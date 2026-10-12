@@ -38,7 +38,10 @@ sites never enter it.
 
 ## Storage layout
 
-Everything lives under the prefix the club chose. All files are JSON.
+Every library lives in `submersion-sites` at the top of the bucket or server,
+beside `submersion-sync` and `submersion-media`, under the folder the club
+chose (`site-sync` is `submersion-sites/site-sync/`; an empty folder is
+`submersion-sites` itself). All files are JSON.
 
 | File | Written by | Content |
 | --- | --- | --- |

@@ -10,8 +10,9 @@ import 'package:submersion/core/services/shared_library/site_document.dart';
 /// Every kind of file lives in its own subfolder and also carries a kind
 /// prefix in its name (`site-`, `member-`, `suggestion-`), so a backend
 /// that flattens folders (the test fake, some S3-compatible stores) still
-/// lists each kind apart. The prefix the club chose is resolved once, under
-/// the account's sync folder; an empty prefix uses the sync folder itself.
+/// lists each kind apart. The prefix names a folder inside `submersion-sites`
+/// at the top of the storage (the bucket or the server address), resolved
+/// once; an empty prefix is `submersion-sites` itself.
 class SharedLibraryTransport {
   SharedLibraryTransport(this._provider, {required String prefix})
     : _prefix = prefix.trim().replaceAll(RegExp(r'^/+|/+$'), '');
@@ -60,12 +61,25 @@ class SharedLibraryTransport {
 
   // Folders
 
+  /// The top of the storage: the bucket for S3, the server address for
+  /// WebDAV (the two kinds a library can use). Both providers key folders
+  /// by path, where '' is that top; a null parent would mean the personal
+  /// sync's folder instead.
+  static const _storageRoot = '';
+
+  /// The library folder: [SharedLibraryLayout.librariesDir] at the top of
+  /// the storage, beside `submersion-sync` and `submersion-media`, then the
+  /// prefix inside it ('site-sync' is `submersion-sites/site-sync/`). An
+  /// empty prefix is `submersion-sites` itself.
   Future<String> _rootId() async {
     if (_root != null) return _root!;
-    final sync = await _provider.getOrCreateSyncFolder();
+    final libraries = await _provider.createFolder(
+      SharedLibraryLayout.librariesDir,
+      parentFolderId: _storageRoot,
+    );
     _root = _prefix.isEmpty
-        ? sync
-        : await _provider.createFolder(_prefix, parentFolderId: sync);
+        ? libraries
+        : await _provider.createFolder(_prefix, parentFolderId: libraries);
     return _root!;
   }
 

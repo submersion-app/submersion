@@ -21226,7 +21226,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'المجلد داخل الحساب الذي تُحفظ فيه المكتبة.';
+      'مجلد داخل submersion-sites في أعلى الحاوية أو الخادم، مثل site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'تحقق';

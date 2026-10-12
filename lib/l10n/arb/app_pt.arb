@@ -5862,7 +5862,7 @@
   "sharedLibrary_connect_action": "Ligar uma biblioteca",
   "sharedLibrary_connect_account_label": "Conta de armazenamento",
   "sharedLibrary_connect_prefix_label": "Pasta (prefixo)",
-  "sharedLibrary_connect_prefix_help": "A pasta dentro da conta onde a biblioteca é guardada.",
+  "sharedLibrary_connect_prefix_help": "Uma pasta dentro de submersion-sites, na raiz do bucket ou do servidor, por exemplo site-sync.",
   "sharedLibrary_connect_probe_action": "Verificar",
   "sharedLibrary_connect_join_action": "Aderir a {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

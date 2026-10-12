@@ -20958,7 +20958,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'A pasta dentro da conta onde a biblioteca é guardada.';
+      'Uma pasta dentro de submersion-sites, na raiz do bucket ou do servidor, por exemplo site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Verificar';

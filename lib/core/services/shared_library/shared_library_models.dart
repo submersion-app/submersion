@@ -242,6 +242,9 @@ class SharedLibraryMembership extends Equatable {
 
 /// File and folder names inside the club prefix.
 abstract final class SharedLibraryLayout {
+  /// The folder at the top of the storage that holds every library, beside
+  /// `submersion-sync` and `submersion-media`.
+  static const librariesDir = 'submersion-sites';
   static const manifestFile = 'submersion-shared-library.json';
   static const rolesFile = 'roles.json';
   static const membersDir = 'members';

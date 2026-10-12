@@ -5762,7 +5762,7 @@
   "sharedLibrary_connect_action": "Könyvtár csatlakoztatása",
   "sharedLibrary_connect_account_label": "Tárhelyfiók",
   "sharedLibrary_connect_prefix_label": "Mappa (előtag)",
-  "sharedLibrary_connect_prefix_help": "A fiókon belüli mappa, ahol a könyvtár található.",
+  "sharedLibrary_connect_prefix_help": "Egy mappa a submersion-sites mappában, a bucket vagy a szerver legfelső szintjén, például site-sync.",
   "sharedLibrary_connect_probe_action": "Ellenőrzés",
   "sharedLibrary_connect_join_action": "Csatlakozás: {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

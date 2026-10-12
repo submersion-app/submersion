@@ -5862,7 +5862,7 @@
   "sharedLibrary_connect_action": "Conectar una biblioteca",
   "sharedLibrary_connect_account_label": "Cuenta de almacenamiento",
   "sharedLibrary_connect_prefix_label": "Carpeta (prefijo)",
-  "sharedLibrary_connect_prefix_help": "La carpeta dentro de la cuenta donde se guarda la biblioteca.",
+  "sharedLibrary_connect_prefix_help": "Una carpeta dentro de submersion-sites, en la raíz del bucket o del servidor, por ejemplo site-sync.",
   "sharedLibrary_connect_probe_action": "Comprobar",
   "sharedLibrary_connect_join_action": "Unirse a {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

@@ -20822,7 +20822,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'De map in het account waar de bibliotheek wordt bewaard.';
+      'Een map in submersion-sites, bovenaan de bucket of server, bijvoorbeeld site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Controleren';

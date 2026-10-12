@@ -33560,7 +33560,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_connect_prefix_help.
   ///
   /// In en, this message translates to:
-  /// **'The folder inside the account where the library is kept.'**
+  /// **'A folder inside submersion-sites, at the top of the bucket or server, such as site-sync.'**
   String get sharedLibrary_connect_prefix_help;
 
   /// No description provided for @sharedLibrary_connect_probe_action.

@@ -5762,7 +5762,7 @@
   "sharedLibrary_connect_action": "Collega una libreria",
   "sharedLibrary_connect_account_label": "Account di archiviazione",
   "sharedLibrary_connect_prefix_label": "Cartella (prefisso)",
-  "sharedLibrary_connect_prefix_help": "La cartella dell'account in cui è conservata la libreria.",
+  "sharedLibrary_connect_prefix_help": "Una cartella dentro submersion-sites, alla radice del bucket o del server, ad esempio site-sync.",
   "sharedLibrary_connect_probe_action": "Verifica",
   "sharedLibrary_connect_join_action": "Unisciti a {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

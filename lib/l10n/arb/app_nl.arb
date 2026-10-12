@@ -5862,7 +5862,7 @@
   "sharedLibrary_connect_action": "Bibliotheek verbinden",
   "sharedLibrary_connect_account_label": "Opslagaccount",
   "sharedLibrary_connect_prefix_label": "Map (prefix)",
-  "sharedLibrary_connect_prefix_help": "De map in het account waar de bibliotheek wordt bewaard.",
+  "sharedLibrary_connect_prefix_help": "Een map in submersion-sites, bovenaan de bucket of server, bijvoorbeeld site-sync.",
   "sharedLibrary_connect_probe_action": "Controleren",
   "sharedLibrary_connect_join_action": "Deelnemen aan {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

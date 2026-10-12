@@ -20887,7 +20887,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'A fiókon belüli mappa, ahol a könyvtár található.';
+      'Egy mappa a submersion-sites mappában, a bucket vagy a szerver legfelső szintjén, például site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';

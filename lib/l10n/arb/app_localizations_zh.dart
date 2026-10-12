@@ -19918,7 +19918,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_connect_prefix_label => '文件夹（前缀）';
 
   @override
-  String get sharedLibrary_connect_prefix_help => '该账户中存放库的文件夹。';
+  String get sharedLibrary_connect_prefix_help =>
+      '存储桶或服务器顶层 submersion-sites 中的文件夹，例如 site-sync。';
 
   @override
   String get sharedLibrary_connect_probe_action => '检查';

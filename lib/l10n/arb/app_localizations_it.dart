@@ -20955,7 +20955,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'La cartella dell\'account in cui è conservata la libreria.';
+      'Una cartella dentro submersion-sites, alla radice del bucket o del server, ad esempio site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Verifica';

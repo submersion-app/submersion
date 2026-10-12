@@ -20932,7 +20932,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'Der Ordner im Konto, in dem die Bibliothek liegt.';
+      'Ein Ordner in submersion-sites auf der obersten Ebene des Buckets oder Servers, etwa site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Prüfen';

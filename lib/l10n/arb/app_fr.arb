@@ -5762,7 +5762,7 @@
   "sharedLibrary_connect_action": "Connecter une bibliothèque",
   "sharedLibrary_connect_account_label": "Compte de stockage",
   "sharedLibrary_connect_prefix_label": "Dossier (préfixe)",
-  "sharedLibrary_connect_prefix_help": "Le dossier du compte où la bibliothèque est conservée.",
+  "sharedLibrary_connect_prefix_help": "Un dossier dans submersion-sites, à la racine du bucket ou du serveur, par exemple site-sync.",
   "sharedLibrary_connect_probe_action": "Vérifier",
   "sharedLibrary_connect_join_action": "Rejoindre {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

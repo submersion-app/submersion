@@ -20960,7 +20960,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'La carpeta dentro de la cuenta donde se guarda la biblioteca.';
+      'Una carpeta dentro de submersion-sites, en la raíz del bucket o del servidor, por ejemplo site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Comprobar';

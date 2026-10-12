@@ -20489,7 +20489,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'התיקייה בחשבון שבה הספרייה נשמרת.';
+      'תיקייה בתוך submersion-sites, בראש ה-bucket או השרת, למשל site-sync.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';

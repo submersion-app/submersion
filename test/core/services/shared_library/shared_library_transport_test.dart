@@ -96,10 +96,24 @@ void main() {
     },
   );
 
-  test('an empty prefix uses the sync folder itself', () async {
-    final root = SharedLibraryTransport(cloud, prefix: '');
-    await root.writeManifest({'id': 'L', 'name': 'Root', 'formatVersion': 1});
-    expect((await root.readManifest())!['name'], 'Root');
+  test('the folder sits in submersion-sites, beside the sync folder', () async {
+    // An S3 account whose personal sync lives under 'submersion-sync/'.
+    final s3 = _S3LikeFolders(syncPrefix: 'submersion-sync/');
+    final t = SharedLibraryTransport(s3, prefix: 'site-sync');
+    await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+    await t.writeSite(const SiteDocument(id: 's1', fields: {'name': 'A'}));
+    expect(s3.uploadFolders, [
+      'submersion-sites/site-sync/',
+      'submersion-sites/site-sync/sites/',
+    ]);
+  });
+
+  test('an empty folder is submersion-sites itself', () async {
+    final s3 = _S3LikeFolders(syncPrefix: 'submersion-sync/');
+    final t = SharedLibraryTransport(s3, prefix: '');
+    await t.writeManifest({'id': 'L', 'name': 'Root', 'formatVersion': 1});
+    expect(s3.uploadFolders, ['submersion-sites/']);
+    expect((await t.readManifest())!['name'], 'Root');
   });
 
   test('isPermissionError recognises 403, 401 and AccessDenied', () {
@@ -142,5 +156,33 @@ class _OverwriteBeforeReadBack extends FakeCloudStorageProvider {
       seedFile(fileId, bytes);
     }
     return super.getFileInfo(fileId);
+  }
+}
+
+/// Folder ids as S3 keys them: a key prefix, the bucket's top being ''. A
+/// null parent means the sync prefix, as on the real provider.
+class _S3LikeFolders extends FakeCloudStorageProvider {
+  _S3LikeFolders({required this.syncPrefix});
+
+  final String syncPrefix;
+  final uploadFolders = <String?>[];
+
+  @override
+  Future<String> getOrCreateSyncFolder() async => syncPrefix;
+
+  @override
+  Future<String> createFolder(
+    String folderName, {
+    String? parentFolderId,
+  }) async => '${parentFolderId ?? syncPrefix}$folderName/';
+
+  @override
+  Future<UploadResult> uploadFile(
+    Uint8List data,
+    String filename, {
+    String? folderId,
+  }) {
+    uploadFolders.add(folderId);
+    return super.uploadFile(data, filename, folderId: folderId);
   }
 }
