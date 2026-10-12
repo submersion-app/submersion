@@ -1538,7 +1538,7 @@ class SyncService {
             records: data.diveComputerConnections,
             hasUpdatedAt: true,
           ),
-          // v287: a profile's club-library memberships (issue #2567).
+          // v288: a profile's club-library memberships (issue #2567).
           (
             type: 'sharedLibraryMemberships',
             records: data.sharedLibraryMemberships,
@@ -2831,7 +2831,7 @@ class SyncService {
     'diveComputerConnections': [
       (field: 'computerId', parent: 'diveComputers', nullable: false),
     ],
-    // v287: a membership belongs to its profile (issue #2567).
+    // v288: a membership belongs to its profile (issue #2567).
     'sharedLibraryMemberships': [
       (field: 'diverId', parent: 'divers', nullable: false),
     ],

@@ -39,7 +39,9 @@ void main() {
     expect(out.merged.clocks['parkingInfo'], c(9, 'b'));
   });
 
-  test('an exact tie keeps local', () {
+  test('an exact tie keeps local and uploads nothing', () {
+    // The same clock is the same edit: a value that differs under it is
+    // only this device's rendering (vocabulary spelling, list order).
     final local = SiteDocument(
       id: 's',
       fields: {'name': 'L'},
@@ -52,8 +54,33 @@ void main() {
     );
     final out = mergeSiteDocuments(local: local, remote: remote);
     expect(out.merged.fields['name'], 'L');
-    expect(out.localWon, {'name'});
+    expect(out.localWon, isEmpty);
     expect(out.remoteWon, isEmpty);
+    expect(out.needsUpload, isFalse);
+  });
+
+  test('a list in another order under the same clock is not re-uploaded', () {
+    // Two devices order a site's types by their own junction ids and spell
+    // tags in their own vocabulary; neither may keep re-uploading.
+    final local = SiteDocument(
+      id: 's',
+      fields: {
+        'siteTypes': ['Wreck', 'Reef'],
+        'tags': ['wreck dive'],
+      },
+      clocks: {'siteTypes': c(7, 'a'), 'tags': c(7, 'a')},
+    );
+    final remote = SiteDocument(
+      id: 's',
+      fields: {
+        'siteTypes': ['Reef', 'Wreck'],
+        'tags': ['Wreck Dive'],
+      },
+      clocks: {'siteTypes': c(7, 'a'), 'tags': c(7, 'a')},
+    );
+    final out = mergeSiteDocuments(local: local, remote: remote);
+    expect(out.needsUpload, isFalse);
+    expect(out.changesLocal, isFalse);
   });
 
   test('a field without a clock is oldest', () {

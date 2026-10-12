@@ -200,16 +200,22 @@ class SharedLibraryTransport {
   Future<SiteDocument> readSite(String fileId) async =>
       SiteDocument.decode(await _provider.downloadFile(fileId));
 
-  /// Uploads [doc] and returns the stored modification time, read back so
-  /// a concurrent overwrite is not mistaken for this write.
-  Future<DateTime> writeSite(SiteDocument doc) async {
+  /// Uploads [doc] and returns the stored modification time when it is
+  /// provably this write's: the read-back reports the size just written.
+  /// Null when another member's write may have landed first, so the next
+  /// pull re-reads the document instead of skipping their edit as its own.
+  Future<DateTime?> writeSite(SiteDocument doc) async {
+    final bytes = SiteDocument.encode(doc);
     final result = await _provider.uploadFile(
-      SiteDocument.encode(doc),
+      bytes,
       siteFileName(doc.id),
       folderId: await _sitesId(),
     );
     final info = await _provider.getFileInfo(result.fileId);
-    return info?.modifiedTime ?? result.uploadTime;
+    if (info == null) return null;
+    final size = info.sizeBytes;
+    if (size != null && size != bytes.length) return null;
+    return info.modifiedTime;
   }
 
   // Suggestions

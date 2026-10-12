@@ -76,6 +76,11 @@ class SharedSiteSuggestion {
   static const uploaded = 'uploaded';
   static const withdrawn = 'withdrawn';
 
+  /// An owner accepted or dismissed it while its file could not be
+  /// deleted: kept so the next sync neither re-imports nor shows it, and
+  /// retries the delete.
+  static const resolved = 'resolved';
+
   final String id;
   final String libraryId;
   final String siteId;

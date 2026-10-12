@@ -371,7 +371,7 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentLocationMoves;
   final List<Map<String, dynamic>> diveComputerConnections;
 
-  /// Club-library memberships per profile (v287, issue #2567).
+  /// Club-library memberships per profile (v288, issue #2567).
   final List<Map<String, dynamic>> sharedLibraryMemberships;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
@@ -8471,11 +8471,13 @@ class SyncDataSerializer {
 
   /// Child entities of `dive_sites` whose rows follow the site out of the
   /// personal sync when the site belongs to a club library (issue #2567).
+  /// `siteHides` is not one: a hide is the profile's own preference and
+  /// syncs to its other devices; the parent gate drops it on a device that
+  /// holds no copy of the site.
   static const Set<String> librarySiteChildEntities = {
     'siteSiteTypes',
     'siteTags',
     'siteSpecies',
-    'siteHides',
     'siteFeatures',
   };
 
@@ -9447,7 +9449,7 @@ class SyncDataSerializer {
         .toList();
   }
 
-  /// Club-library memberships (v287, issue #2567), incremental by hlc.
+  /// Club-library memberships (v288, issue #2567), incremental by hlc.
   Future<List<Map<String, dynamic>>> _exportSharedLibraryMemberships(
     String? hlcSince,
   ) async {
@@ -9830,10 +9832,7 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.siteHides).get();
-    return _withoutLibrarySiteRows(
-      'siteHides',
-      rows.map((r) => r.toJson()).toList(),
-    );
+    return rows.map((r) => r.toJson()).toList();
   }
 
   /// Equipment share and ownership events (v234, issue #2046), gated on the

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -8,6 +10,9 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -117,5 +122,47 @@ void main() {
       isNull,
     );
     expect(await SharedLibraryStore().getSiteState('lib'), isNull);
+  });
+
+  test('a detached site keeps the documents attached to it', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
+        site: const DiveSite(id: 'lib', name: 'Club'),
+      ),
+    );
+    final doc = await DocumentRepository().save(
+      Document(
+        id: '',
+        diverId: 'd1',
+        owner: const DocumentOwner(DocumentOwnerKind.site, 'lib'),
+        type: DocumentType.permit,
+        title: 'Briefing',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      [
+        DocumentPage(
+          id: '',
+          documentId: '',
+          pageIndex: 0,
+          fileName: 'a.txt',
+          mimeType: 'text/plain',
+          sizeBytes: 2,
+          bytes: Uint8List.fromList([4, 2]),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+
+    final newId = await SiteDetacher().detachOrRemove(
+      siteId: 'lib',
+      ownerDiverId: 'd1',
+    );
+
+    final kept = await DocumentRepository().getForOwner(
+      DocumentOwner(DocumentOwnerKind.site, newId!),
+    );
+    expect(kept.map((d) => d.id), [doc.id]);
   });
 }

@@ -802,10 +802,13 @@ class SpeciesRepository {
   }
 
   /// Add expected species to a site
+  /// [stampLibrary] false is for the club library bridge, which applies a
+  /// pulled list whose clocks it writes itself (issue #2567).
   Future<domain.SiteSpeciesEntry> addExpectedSpecies({
     required String siteId,
     required String speciesId,
     String notes = '',
+    bool stampLibrary = true,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -827,7 +830,7 @@ class SpeciesRepository {
       recordId: id,
       localUpdatedAt: now,
     );
-    await _libraryStamper.stamp(siteId, {'species'});
+    if (stampLibrary) await _libraryStamper.stamp(siteId, {'species'});
     SyncEventBus.notifyLocalChange();
 
     final species = await getSpeciesById(speciesId);
@@ -843,7 +846,12 @@ class SpeciesRepository {
   }
 
   /// Remove expected species from a site
-  Future<void> removeExpectedSpecies(String siteId, String speciesId) async {
+  /// [stampLibrary] as for [addExpectedSpecies].
+  Future<void> removeExpectedSpecies(
+    String siteId,
+    String speciesId, {
+    bool stampLibrary = true,
+  }) async {
     final existing = await _db
         .customSelect(
           'SELECT id FROM site_species WHERE site_id = ? AND species_id = ?',
@@ -861,7 +869,7 @@ class SpeciesRepository {
         entityType: 'siteSpecies',
         recordId: id,
       );
-      await _libraryStamper.stamp(siteId, {'species'});
+      if (stampLibrary) await _libraryStamper.stamp(siteId, {'species'});
       SyncEventBus.notifyLocalChange();
     }
   }

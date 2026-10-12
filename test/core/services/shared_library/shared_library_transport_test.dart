@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -54,10 +55,30 @@ void main() {
   test('writeSite returns the stored modification time', () async {
     final before = DateTime.now().subtract(const Duration(seconds: 1));
     final modified = await t.writeSite(const SiteDocument(id: 's1'));
-    expect(modified.isAfter(before), isTrue);
+    expect(modified!.isAfter(before), isTrue);
     final listed = (await t.listSites()).single.modifiedTime;
     expect(modified, listed);
   });
+
+  test(
+    'writeSite returns null when another write lands before the read-back',
+    () async {
+      final racing = _OverwriteBeforeReadBack();
+      final rt = SharedLibraryTransport(racing, prefix: 'club');
+      racing.overwrite = SiteDocument.encode(
+        const SiteDocument(
+          id: 's1',
+          fields: {'name': 'Written by another member'},
+        ),
+      );
+      final modified = await rt.writeSite(const SiteDocument(id: 's1'));
+      expect(
+        modified,
+        isNull,
+        reason: 'the stored time is the other write\'s, not this one\'s',
+      );
+    },
+  );
 
   test('an empty prefix uses the sync folder itself', () async {
     final root = SharedLibraryTransport(cloud, prefix: '');
@@ -91,4 +112,19 @@ void main() {
       isFalse,
     );
   });
+}
+
+/// Another member's upload lands between this upload and its read-back.
+class _OverwriteBeforeReadBack extends FakeCloudStorageProvider {
+  Uint8List? overwrite;
+
+  @override
+  Future<CloudFileInfo?> getFileInfo(String fileId) async {
+    final bytes = overwrite;
+    if (bytes != null) {
+      overwrite = null;
+      seedFile(fileId, bytes);
+    }
+    return super.getFileInfo(fileId);
+  }
 }

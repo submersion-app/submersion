@@ -255,7 +255,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Documents store (v277, issue #2613)
     Documents,
     DocumentPages,
-    // Shared dive-site library (v285, issue #2567)
+    // Shared dive-site library (v288, issue #2567)
     SharedLibraries,
     SharedLibraryMembers,
     SharedLibraryMemberships,

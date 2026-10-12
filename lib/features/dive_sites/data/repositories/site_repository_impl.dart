@@ -470,6 +470,10 @@ class SiteRepository {
   ) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A club library clock goes only on a column whose value changes
+      // (issue #2567): rewriting the same altitude must not beat a newer
+      // edit by another member.
+      final before = await getSiteById(siteId);
       await (_db.update(_db.diveSites)..where((t) => t.id.equals(siteId)))
           .write(patch.copyWith(updatedAt: Value(now)));
       await _syncRepository.markRecordPending(
@@ -477,10 +481,15 @@ class SiteRepository {
         recordId: siteId,
         localUpdatedAt: now,
       );
-      await _libraryStamper.stamp(
-        siteId,
-        LibraryEditStamper.fieldsOfPatch(patch),
-      );
+      if (before != null && before.isLibrarySite) {
+        final after = await getSiteById(siteId);
+        if (after != null) {
+          await _libraryStamper.stamp(
+            siteId,
+            LibraryEditStamper.changedFields(before, after),
+          );
+        }
+      }
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -1487,8 +1496,9 @@ class SiteRepository {
   }
 
   /// Points every row that references [from] at [to] (issue #2567): dives,
-  /// plans, media, features, species, types and tags. The merge helpers do
-  /// the work; [from] is left as an empty site for the caller to delete.
+  /// plans, media, documents, features, species, types and tags. The merge
+  /// helpers do the work; [from] is left as an empty site for the caller to
+  /// delete, whose delete would otherwise take the documents with it.
   Future<void> relinkSiteReferences({
     required String from,
     required String to,
@@ -1498,6 +1508,9 @@ class SiteRepository {
     await _relinkPlans([from], to, now);
     await _relinkMedia([from], to, now);
     await _relinkSiteFeatures([from], to, now);
+    await DocumentRepository().reassignOwner(DocumentOwnerKind.site, [
+      from,
+    ], to);
     await _classification.relinkForMerge([from], to);
     await _mergeExpectedSpecies(
       orderedSiteIds: [to, from],

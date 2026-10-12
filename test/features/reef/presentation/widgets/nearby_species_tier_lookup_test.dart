@@ -99,6 +99,7 @@ class _RecordingRepository extends Fake implements SpeciesRepository {
     required String siteId,
     required String speciesId,
     String notes = '',
+    bool stampLibrary = true,
   }) async {
     added.add(speciesId);
     return SiteSpeciesEntry(

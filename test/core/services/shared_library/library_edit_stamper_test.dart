@@ -126,4 +126,21 @@ void main() {
       expect(state.clocks['name']!.memberId, 'm1');
     },
   );
+
+  test('a write that changes nothing stamps nothing', () async {
+    final types = await SiteTypeRepository().getAllSiteTypes(diverId: 'd1');
+    final classification = SiteClassificationRepository();
+    await classification.replaceTypes('s', [types.first.id]);
+    await SiteRepository().updateSiteCoordinates('s', const GeoPoint(3.0, 4.0));
+    final before = (await SharedLibraryStore().getSiteState('s'))!;
+
+    // A bulk action re-applying what the site already has.
+    await classification.addTypes('s', [types.first.id]);
+    await classification.replaceTypes('s', [types.first.id]);
+    await classification.addTags('s', const []);
+    await SiteRepository().updateSiteCoordinates('s', const GeoPoint(3.0, 4.0));
+
+    final after = (await SharedLibraryStore().getSiteState('s'))!;
+    expect(after.clocks, before.clocks);
+  });
 }

@@ -238,6 +238,22 @@ void main() {
       );
     }
 
+    testWidgets(
+      'without a club library the tags keep the usual 24px gap to depth',
+      (tester) async {
+        _useTallSurface(tester);
+        final container = await classificationContainer();
+        addTearDown(container.dispose);
+        await _openSheet(tester, container);
+
+        final chipBottom = tester
+            .getBottomLeft(find.widgetWithText(FilterChip, 'To try'))
+            .dy;
+        final depthTop = tester.getTopLeft(find.text('Max Depth Range')).dy;
+        expect(depthTop - chipBottom, 24);
+      },
+    );
+
     testWidgets('lists types and only site-scoped tags', (tester) async {
       _useTallSurface(tester);
       final container = await classificationContainer();

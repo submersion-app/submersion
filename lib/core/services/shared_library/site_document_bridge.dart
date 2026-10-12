@@ -316,11 +316,16 @@ class SiteDocumentBridge {
     }
     final current = await _species.getExpectedSpeciesForSite(siteId);
     final currentIds = {for (final e in current) e.speciesId};
+    // No stamp: the caller writes the clocks the document carries.
     for (final id in currentIds.difference(targetIds)) {
-      await _species.removeExpectedSpecies(siteId, id);
+      await _species.removeExpectedSpecies(siteId, id, stampLibrary: false);
     }
     for (final id in targetIds.difference(currentIds)) {
-      await _species.addExpectedSpecies(siteId: siteId, speciesId: id);
+      await _species.addExpectedSpecies(
+        siteId: siteId,
+        speciesId: id,
+        stampLibrary: false,
+      );
     }
   }
 

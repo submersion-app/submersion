@@ -88,30 +88,4 @@ class LibraryEditStamper {
               SiteDocumentBridge.fieldValue(after, f))
         f,
   };
-
-  /// The document fields a column patch writes.
-  static Set<String> fieldsOfPatch(DiveSitesCompanion patch) => {
-    if (patch.name.present) 'name',
-    if (patch.description.present) 'description',
-    if (patch.latitude.present) 'latitude',
-    if (patch.longitude.present) 'longitude',
-    if (patch.minDepth.present) 'minDepth',
-    if (patch.maxDepth.present) 'maxDepth',
-    if (patch.difficulty.present) 'difficulty',
-    if (patch.waterType.present) 'waterType',
-    if (patch.bodyOfWater.present) 'bodyOfWater',
-    if (patch.city.present) 'city',
-    if (patch.island.present) 'island',
-    if (patch.country.present) 'country',
-    if (patch.region.present) 'region',
-    if (patch.rating.present) 'rating',
-    if (patch.notes.present) 'notes',
-    if (patch.hazards.present) 'hazards',
-    if (patch.accessNotes.present) 'accessNotes',
-    if (patch.mooringNumber.present) 'mooringNumber',
-    if (patch.parkingInfo.present) 'parkingInfo',
-    if (patch.altitude.present) 'altitude',
-    if (patch.entryMethod.present) 'entryMethod',
-    if (patch.exitMethod.present) 'exitMethod',
-  };
 }

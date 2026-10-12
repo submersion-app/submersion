@@ -11,6 +11,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
 /// One connected club library (issue #2567): status, display name, role,
 /// members, suggestions, adding personal sites, leaving.
@@ -186,9 +187,15 @@ class SharedLibraryPage extends ConsumerWidget {
   ) async {
     final l10n = context.l10n;
     final sites = await ref.read(sitesProvider.future);
+    final activeDiver = ref.read(validatedCurrentDiverIdProvider);
+    // The profile's own sites: another profile's shared site would be taken
+    // from its owner by the push.
     final personal = [
       for (final s in sites)
-        if (!s.isLibrarySite) s,
+        if (!s.isLibrarySite &&
+            canDestroySharedItemOnceKnown(activeDiver, ownerId: s.diverId) ==
+                true)
+          s,
     ];
     if (!context.mounted) return;
     final chosen = <String>{};

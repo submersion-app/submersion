@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
@@ -198,9 +200,10 @@ class SharedLibraryService {
       final siteFiles = await t.listSites();
       for (final f in siteFiles) {
         final siteId = SharedLibraryTransport.siteIdOf(f);
-        final state = states[siteId];
         final stamp = f.modifiedTime.toUtc().toIso8601String();
-        if (state != null && state.remoteModifiedTime == stamp) continue;
+        if (states[siteId]?.remoteModifiedTime == stamp) continue;
+        // Read afresh: an edit saved since the sync began has new clocks.
+        final state = await _store.getSiteState(siteId);
         final SiteDocument remote;
         try {
           remote = await t.readSite(f.id);
@@ -253,12 +256,7 @@ class SharedLibraryService {
         try {
           uploadAttempted = true;
           final modified = await t.writeSite(doc);
-          await _store.putSiteState(
-            state.copyWith(
-              dirty: false,
-              remoteModifiedTime: modified.toUtc().toIso8601String(),
-            ),
-          );
+          await _recordUpload(state, modified);
           pushed++;
         } catch (e) {
           if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
@@ -267,8 +265,13 @@ class SharedLibraryService {
         }
       }
 
-      // 5. Suggestions.
-      await _uploadSuggestions(t, libraryId);
+      // 5. Suggestions. Read-only credentials refuse them as they refuse
+      // sites: the suggestions wait, and the library reads as read-only.
+      await _retrySuggestionDeletes(t, libraryId);
+      if (await _uploadSuggestions(t, libraryId)) {
+        uploadAttempted = true;
+        readOnly = true;
+      }
       if (membership != null &&
           roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
         await _pullSuggestions(t, libraryId);
@@ -375,6 +378,27 @@ class SharedLibraryService {
     return changedLocal;
   }
 
+  /// Marks [sent] uploaded at [modified]. An edit saved while the upload
+  /// was on the wire changed the clocks: it keeps them and stays dirty for
+  /// the next sync. A null [modified] clears the stamp so the next pull
+  /// re-reads the document.
+  Future<void> _recordUpload(SharedSiteState sent, DateTime? modified) async {
+    final current = await _store.getSiteState(sent.siteId) ?? sent;
+    final editedMeanwhile =
+        current.deleted != sent.deleted ||
+        !const MapEquality<String, FieldClock>().equals(
+          current.clocks,
+          sent.clocks,
+        );
+    await _store.putSiteState(
+      current.copyWith(
+        dirty: editedMeanwhile,
+        remoteModifiedTime: modified?.toUtc().toIso8601String(),
+        clearRemoteModifiedTime: modified == null,
+      ),
+    );
+  }
+
   Future<SiteDocument> _documentFor(SharedSiteState state) async {
     if (state.deleted) {
       return SiteDocument(
@@ -394,7 +418,32 @@ class SharedLibraryService {
     return newest;
   }
 
-  Future<void> _uploadSuggestions(
+  /// Finishes the folder deletes that failed when a suggestion was handled
+  /// offline: an owner's accepted or dismissed one, a reader's withdrawn
+  /// one. Without rights to delete, the row waits for an owner to do it.
+  Future<void> _retrySuggestionDeletes(
+    SharedLibraryTransport t,
+    String libraryId,
+  ) async {
+    for (final status in const [
+      SharedSiteSuggestion.resolved,
+      SharedSiteSuggestion.withdrawn,
+    ]) {
+      for (final s in await _store.suggestions(libraryId, status: status)) {
+        try {
+          await t.deleteSuggestion(s.id);
+          await _store.deleteSuggestion(s.id);
+        } catch (e) {
+          if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
+          _log.warning('No rights to delete suggestion ${s.id}');
+        }
+      }
+    }
+  }
+
+  /// Uploads the pending outgoing suggestions. True when the storage
+  /// refused one for lack of rights: it and the rest stay pending.
+  Future<bool> _uploadSuggestions(
     SharedLibraryTransport t,
     String libraryId,
   ) async {
@@ -404,11 +453,18 @@ class SharedLibraryService {
       status: SharedSiteSuggestion.pending,
     );
     for (final s in pending) {
-      await t.writeSuggestion(s.id, s.toJson());
+      try {
+        await t.writeSuggestion(s.id, s.toJson());
+      } catch (e) {
+        if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
+        _log.warning('Library $libraryId refused a suggestion: read-only');
+        return true;
+      }
       await _store.putSuggestion(
         s.copyWith(status: SharedSiteSuggestion.uploaded),
       );
     }
+    return false;
   }
 
   Future<void> _pullSuggestions(

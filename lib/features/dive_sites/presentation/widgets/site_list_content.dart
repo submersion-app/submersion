@@ -1286,8 +1286,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         icon: Icons.groups_outlined,
         label: context.l10n.sharedLibrary_bulk_addToLibrary,
         minCount: 1,
-        isEnabled: (ids) =>
-            ids.every((id) => !(byId[id]?.isLibrarySite ?? true)),
+        isEnabled: (ids) => ids.every((id) => _mayPushToLibrary(byId[id])),
         onInvoke: _addToLibrary,
       ),
     ];
@@ -1309,12 +1308,23 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     return label;
   }
 
+  /// A personal site this profile may destroy: pushing takes it from every
+  /// other profile, so another profile's shared site never qualifies.
+  bool _mayPushToLibrary(DiveSite? site) =>
+      site != null &&
+      !site.isLibrarySite &&
+      canDestroySharedItemOnceKnown(
+            ref.read(validatedCurrentDiverIdProvider),
+            ownerId: site.diverId,
+          ) ==
+          true;
+
   Future<BulkActionOutcome> _addToLibrary() async {
     final selected = await _readSelectedSites(_selectedIds.toList());
     if (selected == null) return BulkActionOutcome.failed;
     final personal = [
       for (final s in selected)
-        if (!s.isLibrarySite) s.id,
+        if (_mayPushToLibrary(s)) s.id,
     ];
     if (personal.isEmpty || !mounted) return BulkActionOutcome.cancelled;
     final libraryId = await showLibraryPickerDialog(context, ref);

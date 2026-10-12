@@ -22,8 +22,9 @@ class SiteMergeOutcome {
   bool get changesLocal => remoteWon.isNotEmpty;
 }
 
-/// Per-field last-writer-wins. The greater clock wins; a tie keeps local;
-/// a missing clock is oldest. The merged document carries the winning
+/// Per-field last-writer-wins. The greater clock wins; a tie keeps local,
+/// and an identical clock (the same edit) needs no upload; a missing clock
+/// is oldest. The merged document carries the winning
 /// value and clock of every field either side has, so merging is
 /// commutative up to the tie rule and idempotent.
 SiteMergeOutcome mergeSiteDocuments({
@@ -42,11 +43,16 @@ SiteMergeOutcome mergeSiteDocuments({
     final lc = local.clocks[name];
     final rc = remote.clocks[name];
     final takeRemote = inRemote && (!inLocal || _newer(rc, lc));
+    // One clock is one edit: under it a differing value is only how each
+    // device renders it (its own tag spelling, its own junction order), so
+    // neither side applies nor uploads, or two devices trade uploads forever.
+    final sameEdit = inLocal && inRemote && lc != null && lc == rc;
     final differs =
-        !inLocal ||
-        !inRemote ||
-        !_sameValue(local.fields[name], remote.fields[name]) ||
-        lc != rc;
+        !sameEdit &&
+        (!inLocal ||
+            !inRemote ||
+            !_sameValue(local.fields[name], remote.fields[name]) ||
+            lc != rc);
     if (takeRemote) {
       fields[name] = remote.fields[name];
       if (rc != null) clocks[name] = rc;

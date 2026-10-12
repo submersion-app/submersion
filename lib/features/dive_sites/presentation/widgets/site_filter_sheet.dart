@@ -165,7 +165,6 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                         const SizedBox(height: 24),
                         _buildSiteTypeSection(),
                         _buildTagSection(),
-                        const SizedBox(height: 24),
                         _buildLibrarySection(),
                         _buildDepthSection(),
                         const SizedBox(height: 24),
@@ -398,44 +397,49 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     final libraries =
         ref.watch(sharedLibrariesProvider).valueOrNull ?? const [];
     if (libraries.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.sharedLibrary_filter_library,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            FilterChip(
-              label: Text(context.l10n.diveSites_filter_difficulty_any),
-              selected: _libraryId == null,
-              onSelected: (selected) {
-                if (selected) setState(() => _libraryId = null);
-              },
-            ),
-            FilterChip(
-              label: Text(context.l10n.sharedLibrary_filter_personal),
-              selected: _libraryId == SiteFilterState.personalLibrary,
-              onSelected: (selected) => setState(
-                () => _libraryId = selected
-                    ? SiteFilterState.personalLibrary
-                    : null,
-              ),
-            ),
-            for (final library in libraries)
+    // Its own bottom padding, like the tag section, so an absent section
+    // leaves no gap.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.sharedLibrary_filter_library,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
               FilterChip(
-                label: Text(library.name),
-                selected: _libraryId == library.id,
-                onSelected: (selected) =>
-                    setState(() => _libraryId = selected ? library.id : null),
+                label: Text(context.l10n.diveSites_filter_difficulty_any),
+                selected: _libraryId == null,
+                onSelected: (selected) {
+                  if (selected) setState(() => _libraryId = null);
+                },
               ),
-          ],
-        ),
-      ],
+              FilterChip(
+                label: Text(context.l10n.sharedLibrary_filter_personal),
+                selected: _libraryId == SiteFilterState.personalLibrary,
+                onSelected: (selected) => setState(
+                  () => _libraryId = selected
+                      ? SiteFilterState.personalLibrary
+                      : null,
+                ),
+              ),
+              for (final library in libraries)
+                FilterChip(
+                  label: Text(library.name),
+                  selected: _libraryId == library.id,
+                  onSelected: (selected) =>
+                      setState(() => _libraryId = selected ? library.id : null),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

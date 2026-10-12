@@ -650,6 +650,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     if (!access.isLibrary) {
       final libraries = ref.read(sharedLibrariesProvider).valueOrNull;
       if (libraries == null || libraries.isEmpty) return const [];
+      // Pushing takes the site from every other profile: only the profile
+      // that may destroy it may push it.
+      final mayPush = canDestroySharedItemOnceKnown(
+        ref.read(validatedCurrentDiverIdProvider),
+        ownerId: site.diverId,
+      );
+      if (mayPush != true) return const [];
       return [
         item(
           'addToLibrary',

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -337,4 +338,90 @@ void main() {
       SharedLibrarySyncStatus.notConnected,
     );
   });
+
+  test(
+    'an edit made while its site uploads stays dirty for the next sync',
+    () async {
+      final cloud = _HookedCloud();
+      await seedLibrary(cloud);
+      final svc = await device(cloud, 'a');
+      await SiteRepository().createSite(
+        const DiveSite(id: 's1', name: 'Blue', sharedLibraryId: 'L'),
+      );
+      await SharedLibraryStore().putSiteState(
+        SharedSiteState(
+          siteId: 's1',
+          libraryId: 'L',
+          dirty: true,
+          clocks: {
+            for (final f in SiteDocument.fieldNames)
+              f: const FieldClock(hlc: Hlc(1, 0, 'a'), memberId: 'a'),
+          },
+        ),
+      );
+      // The member saves a new hazard while the upload is on the wire.
+      cloud.beforeSiteUpload = () =>
+          LibraryEditStamper().stamp('s1', {'hazards'}, actingDiverId: 'd-a');
+
+      await svc.sync('L', diverId: 'd-a');
+
+      final state = (await SharedLibraryStore().getSiteState('s1'))!;
+      expect(state.dirty, isTrue, reason: 'the new hazard is not uploaded yet');
+      expect(
+        state.clocks['hazards']!.hlc.physicalTime,
+        greaterThan(1),
+        reason: 'the edit\'s clock survives the upload\'s state write',
+      );
+    },
+  );
+
+  test('a refused suggestion upload leaves the sync healthy', () async {
+    final cloud = _HookedCloud();
+    await seedLibrary(cloud);
+    final svc = await device(cloud, 'a');
+    await SharedLibraryStore().putSuggestion(
+      SharedSiteSuggestion(
+        id: 'sg1',
+        libraryId: 'L',
+        siteId: 's1',
+        memberId: 'a',
+        memberName: 'a',
+        fields: const {'hazards': 'surge'},
+        createdAt: DateTime.utc(2026),
+        direction: SharedSiteSuggestion.outgoing,
+      ),
+    );
+    cloud.refuseSuggestions = true;
+
+    final result = await svc.sync('L', diverId: 'd-a');
+
+    expect(result.isHealthy, isTrue);
+    expect(result.status, SharedLibrarySyncStatus.readOnly);
+    final kept = (await SharedLibraryStore().getSuggestion('sg1'))!;
+    expect(kept.status, SharedSiteSuggestion.pending, reason: 'retried later');
+  });
+}
+
+/// Runs [beforeSiteUpload] once before the next site upload, and refuses
+/// suggestion uploads with a 403 when [refuseSuggestions] is set.
+class _HookedCloud extends FakeCloudStorageProvider {
+  Future<void> Function()? beforeSiteUpload;
+  bool refuseSuggestions = false;
+
+  @override
+  Future<UploadResult> uploadFile(
+    Uint8List data,
+    String filename, {
+    String? folderId,
+  }) async {
+    final hook = beforeSiteUpload;
+    if (hook != null && filename.startsWith('site-')) {
+      beforeSiteUpload = null;
+      await hook();
+    }
+    if (refuseSuggestions && filename.startsWith('suggestion-')) {
+      throw const CloudStorageException('403 Forbidden');
+    }
+    return super.uploadFile(data, filename, folderId: folderId);
+  }
 }

@@ -85,7 +85,8 @@ class SuggestionService {
     final s = await _store.getSuggestion(suggestionId);
     if (s == null) return;
     if (s.status == SharedSiteSuggestion.uploaded) {
-      await _deleteRemote(s);
+      await _finish(s, SharedSiteSuggestion.withdrawn);
+      return;
     }
     await _store.deleteSuggestion(suggestionId);
   }
@@ -115,8 +116,7 @@ class SuggestionService {
       actingDiverId: diverId,
       asMemberId: s.memberId,
     );
-    await _deleteRemote(s);
-    await _store.deleteSuggestion(suggestionId);
+    await _finish(s, SharedSiteSuggestion.resolved);
     SyncEventBus.notifyLocalChange();
   }
 
@@ -125,8 +125,7 @@ class SuggestionService {
     final s = await _store.getSuggestion(suggestionId);
     if (s == null) return;
     await _requireOwner(s.libraryId, diverId);
-    await _deleteRemote(s);
-    await _store.deleteSuggestion(suggestionId);
+    await _finish(s, SharedSiteSuggestion.resolved);
   }
 
   /// The service enforces the owner role itself; the UI only hides the
@@ -168,18 +167,32 @@ class SuggestionService {
     };
   }
 
-  Future<void> _deleteRemote(SharedSiteSuggestion s) async {
+  /// Removes [s] here and in the folder. When the folder's copy cannot be
+  /// deleted now (offline, say), the row stays under [marker], out of every
+  /// list, so the next sync neither re-imports it nor loses the delete.
+  Future<void> _finish(SharedSiteSuggestion s, String marker) async {
+    if (await _deleteRemote(s)) {
+      await _store.deleteSuggestion(s.id);
+    } else {
+      await _store.putSuggestion(s.copyWith(status: marker));
+    }
+  }
+
+  /// True when the folder no longer holds [s], or this device cannot reach
+  /// the library at all (nothing would ever retry).
+  Future<bool> _deleteRemote(SharedSiteSuggestion s) async {
     final library = await _store.getLibrary(s.libraryId);
-    if (library == null) return;
+    if (library == null) return true;
     try {
       final t = await _transportFor(library);
       await t.deleteSuggestion(s.id);
+      return true;
     } on CloudStorageException catch (e) {
-      // Gone already, or no rights to delete: either way the local copy
-      // goes and another owner's device drops it on its next sync.
       _log.warning('Could not delete suggestion ${s.id} remotely: $e');
+      return false;
     } on StateError catch (e) {
       _log.warning('Could not reach the library for ${s.id}: $e');
+      return true;
     }
   }
 }

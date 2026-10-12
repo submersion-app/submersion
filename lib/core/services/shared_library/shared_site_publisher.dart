@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
@@ -14,17 +14,12 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 /// a personal site in place, delete stamps the tombstone and detaches the
 /// local row, undelete wins the site back with a newer clock.
 class SharedSitePublisher {
-  SharedSitePublisher({
-    SharedLibraryStore? store,
-    SiteDetacher? detacher,
-    SyncRepository? syncRepository,
-  }) : _store = store ?? SharedLibraryStore(),
-       _detacher = detacher ?? SiteDetacher(),
-       _sync = syncRepository ?? SyncRepository();
+  SharedSitePublisher({SharedLibraryStore? store, SiteDetacher? detacher})
+    : _store = store ?? SharedLibraryStore(),
+      _detacher = detacher ?? SiteDetacher();
 
   final SharedLibraryStore _store;
   final SiteDetacher _detacher;
-  final SyncRepository _sync;
   AppDatabase get _db => DatabaseService.instance.database;
 
   Future<String> _memberId(String diverId, String libraryId) async {
@@ -41,7 +36,9 @@ class SharedSitePublisher {
   /// A personal site becomes the library site, same id: `sharedLibraryId`
   /// set, owner and profile sharing cleared, every field clocked under
   /// the member, state dirty. Dives, plans, features, media and hides are
-  /// untouched. A site already in a library is left alone.
+  /// untouched. A site already in a library is left alone. No personal
+  /// tombstone is logged: a device that has not connected the library keeps
+  /// the copy its dives link to, and connecting adopts it in place.
   Future<void> push({
     required String siteId,
     required String libraryId,
@@ -53,6 +50,11 @@ class SharedSitePublisher {
     )..where((t) => t.id.equals(siteId))).getSingleOrNull();
     if (row == null) throw StateError('site $siteId does not exist');
     if (row.sharedLibraryId != null) return;
+    // The site leaves every profile that is not a member, so only a profile
+    // that may destroy it may push it.
+    if (!canDestroySharedItem(ownerId: row.diverId, activeDiverId: diverId)) {
+      throw StateError('site $siteId belongs to another profile');
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     final clock = MemberClock(memberId);
     final clocks = {
@@ -80,10 +82,6 @@ class SharedSitePublisher {
           lastEditedAtMs: now,
         ),
       );
-      // The personal library drops its copy of the row: peers that already
-      // hold the library row ignore the tombstone, peers that still carry
-      // the old personal copy delete it.
-      await _sync.logDeletions(entityType: 'diveSites', recordIds: [siteId]);
     });
     SyncEventBus.notifyLocalChange();
   }

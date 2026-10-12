@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/shared_library/suggestion_service.dart';
@@ -177,6 +178,47 @@ void main() {
     await SharedLibraryStore().putSuggestion(_incoming('g3', {'notes': 'x'}));
     await SiteRepository().deleteSite('s');
     await service.accept('g3', diverId: 'owner');
+    expect(await SharedLibraryStore().suggestions('L'), isEmpty);
+  });
+
+  test('an accept whose remote delete fails is not re-imported, and the '
+      'next sync finishes the delete', () async {
+    await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+    await t.writeRoles(const SharedLibraryRoles(owners: {'o'}));
+    await t.writeSuggestion('g9', _incoming('g9', {'hazards': 'new'}).toJson());
+    await SharedLibraryStore().putSuggestion(
+      _incoming('g9', {'hazards': 'new'}),
+    );
+
+    cloud.failDeletes = true; // offline at the moment of the accept
+    await service.accept('g9', diverId: 'owner');
+    expect((await SiteRepository().getSiteById('s'))!.hazards, 'new');
+    final inbox = await SharedLibraryStore().suggestions(
+      'L',
+      direction: SharedSiteSuggestion.incoming,
+      status: SharedSiteSuggestion.pending,
+    );
+    expect(inbox, isEmpty, reason: 'handled, so out of the inbox');
+
+    final sync = SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (lib) async =>
+          SharedLibraryTransport(cloud, prefix: lib.prefix),
+    );
+    await sync.sync('L', diverId: 'owner');
+    expect(
+      await SharedLibraryStore().suggestions(
+        'L',
+        direction: SharedSiteSuggestion.incoming,
+        status: SharedSiteSuggestion.pending,
+      ),
+      isEmpty,
+      reason: 'the still-present file is not imported again',
+    );
+
+    cloud.failDeletes = false;
+    await sync.sync('L', diverId: 'owner');
+    expect(await t.listSuggestions(), isEmpty);
     expect(await SharedLibraryStore().suggestions('L'), isEmpty);
   });
 }

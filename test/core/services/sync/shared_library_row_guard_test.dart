@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_classifica
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 
@@ -87,6 +89,41 @@ void main() {
       expect(site.notes, 'new');
       expect(site.name, 'Club');
       expect(site.sharedLibraryId, 'L');
+      await tearDownTestDatabase();
+    },
+  );
+
+  test(
+    "a profile's hide of a library site follows it to its other devices",
+    () async {
+      final cloud = FakeCloudStorageProvider();
+      await setUpTestDatabase();
+      await _addDiver();
+      await SiteRepository().createSite(
+        const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'),
+      );
+      expect(
+        await ProfileHidesRepository().hide(SharedItemKind.site, 'lib', 'd1'),
+        isTrue,
+      );
+      await _sync(cloud);
+      await tearDownTestDatabase();
+
+      // The profile's tablet, connected to the same library.
+      await setUpTestDatabase();
+      await SiteRepository().createSite(
+        const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'),
+      );
+      await _sync(cloud);
+      expect(
+        await ProfileHidesRepository().isHidden(
+          SharedItemKind.site,
+          'lib',
+          'd1',
+        ),
+        isTrue,
+        reason: 'a hide is the profile\'s preference, not library content',
+      );
       await tearDownTestDatabase();
     },
   );

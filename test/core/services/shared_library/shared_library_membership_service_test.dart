@@ -244,4 +244,90 @@ void main() {
       reason: 'the remaining profile keeps the club sites',
     );
   });
+
+  test('joining with a membership synced from another device reuses it, '
+      'so leave ends the membership', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'club',
+      name: 'Club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final store = SharedLibraryStore();
+    final synced = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
+    // A second device: the membership arrived by personal sync, the
+    // library itself is not connected here yet.
+    await store.deleteLibrary(lib.id);
+
+    await service.join(
+      account: account,
+      prefix: 'club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final rows = await store.membershipsForLibrary(lib.id);
+    expect(rows, hasLength(1));
+    expect(rows.single.id, synced.id);
+    expect(rows.single.memberId, synced.memberId);
+
+    await service.leave(libraryId: lib.id, diverId: 'd1');
+    expect(await store.membershipsForLibrary(lib.id), isEmpty);
+    expect(await store.getLibrary(lib.id), isNull);
+  });
+
+  test('create refuses a location that already holds a library', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'club',
+      name: 'Club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await _diver('d2');
+    await expectLater(
+      service.create(
+        account: account,
+        prefix: 'club',
+        name: 'Rival',
+        diverId: 'd2',
+        displayName: 'Bob',
+      ),
+      throwsStateError,
+    );
+    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    expect((await t.readManifest())!['id'], lib.id);
+  });
+
+  test(
+    'setRole builds on the roles in the folder, not the cached copy',
+    () async {
+      final lib = await service.create(
+        account: account,
+        prefix: 'club',
+        name: 'Club',
+        diverId: 'd1',
+        displayName: 'Ann',
+      );
+      final me = (await SharedLibraryStore().membership(
+        diverId: 'd1',
+        libraryId: lib.id,
+      ))!;
+      final t = SharedLibraryTransport(cloud, prefix: 'club');
+      // Another owner promoted Carol since this device last synced.
+      await t.writeRoles(
+        (await t.readRoles()).withRole('carol', SharedLibraryRole.editor),
+      );
+
+      await service.setRole(
+        libraryId: lib.id,
+        actingMemberId: me.memberId,
+        memberId: 'dan',
+        role: SharedLibraryRole.editor,
+      );
+      final roles = await t.readRoles();
+      expect(roles.roleOf('carol'), SharedLibraryRole.editor);
+      expect(roles.roleOf('dan'), SharedLibraryRole.editor);
+    },
+  );
 }

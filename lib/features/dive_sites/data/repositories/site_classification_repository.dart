@@ -169,11 +169,12 @@ class SiteClassificationRepository {
     List<String> typeIds, {
     bool notify = true,
   }) async {
-    await _db.transaction(() async {
+    final changed = await _db.transaction(() async {
       final wanted = typeIds.toSet();
       final existing = await (_db.select(
         _db.siteSiteTypes,
       )..where((t) => t.siteId.equals(siteId))).get();
+      var removed = false;
       for (final row in existing) {
         if (wanted.contains(row.siteTypeId)) continue;
         await (_db.delete(
@@ -183,15 +184,20 @@ class SiteClassificationRepository {
           entityType: 'siteSiteTypes',
           recordId: row.id,
         );
+        removed = true;
       }
       final have = {for (final r in existing) r.siteTypeId};
-      await _insertTypes(siteId, [
+      final added = [
         for (final id in wanted)
           if (!have.contains(id)) id,
-      ]);
+      ];
+      await _insertTypes(siteId, added);
+      return removed || added.isNotEmpty;
     });
     if (notify) {
-      await _libraryStamper.stamp(siteId, {'siteTypes'});
+      // A club library clock only for a real change (issue #2567): a fresh
+      // clock on an unchanged list would beat another member's edit.
+      if (changed) await _libraryStamper.stamp(siteId, {'siteTypes'});
       SyncEventBus.notifyLocalChange();
     }
   }
@@ -203,18 +209,20 @@ class SiteClassificationRepository {
     bool notify = true,
   }) async {
     if (typeIds.isEmpty) return;
-    await _db.transaction(() async {
+    final changed = await _db.transaction(() async {
       final existing = await (_db.select(
         _db.siteSiteTypes,
       )..where((t) => t.siteId.equals(siteId))).get();
       final have = {for (final r in existing) r.siteTypeId};
-      await _insertTypes(siteId, [
+      final added = [
         for (final id in typeIds.toSet())
           if (!have.contains(id)) id,
-      ]);
+      ];
+      await _insertTypes(siteId, added);
+      return added.isNotEmpty;
     });
     if (notify) {
-      await _libraryStamper.stamp(siteId, {'siteTypes'});
+      if (changed) await _libraryStamper.stamp(siteId, {'siteTypes'});
       SyncEventBus.notifyLocalChange();
     }
   }
@@ -225,11 +233,12 @@ class SiteClassificationRepository {
     List<String> tagIds, {
     bool notify = true,
   }) async {
-    await _db.transaction(() async {
+    final changed = await _db.transaction(() async {
       final wanted = tagIds.toSet();
       final existing = await (_db.select(
         _db.siteTags,
       )..where((t) => t.siteId.equals(siteId))).get();
+      var removed = false;
       for (final row in existing) {
         if (wanted.contains(row.tagId)) continue;
         await (_db.delete(
@@ -239,15 +248,18 @@ class SiteClassificationRepository {
           entityType: 'siteTags',
           recordId: row.id,
         );
+        removed = true;
       }
       final have = {for (final r in existing) r.tagId};
-      await _insertTags(siteId, [
+      final added = [
         for (final id in wanted)
           if (!have.contains(id)) id,
-      ]);
+      ];
+      await _insertTags(siteId, added);
+      return removed || added.isNotEmpty;
     });
     if (notify) {
-      await _libraryStamper.stamp(siteId, {'tags'});
+      if (changed) await _libraryStamper.stamp(siteId, {'tags'});
       SyncEventBus.notifyLocalChange();
     }
   }
@@ -259,18 +271,20 @@ class SiteClassificationRepository {
     bool notify = true,
   }) async {
     if (tagIds.isEmpty) return;
-    await _db.transaction(() async {
+    final changed = await _db.transaction(() async {
       final existing = await (_db.select(
         _db.siteTags,
       )..where((t) => t.siteId.equals(siteId))).get();
       final have = {for (final r in existing) r.tagId};
-      await _insertTags(siteId, [
+      final added = [
         for (final id in tagIds.toSet())
           if (!have.contains(id)) id,
-      ]);
+      ];
+      await _insertTags(siteId, added);
+      return added.isNotEmpty;
     });
     if (notify) {
-      await _libraryStamper.stamp(siteId, {'tags'});
+      if (changed) await _libraryStamper.stamp(siteId, {'tags'});
       SyncEventBus.notifyLocalChange();
     }
   }

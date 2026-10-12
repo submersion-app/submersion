@@ -90,7 +90,30 @@ void main() {
           "AND record_id = 'p'",
         )
         .get();
-    expect(tombstones, hasLength(1), reason: 'peers drop the personal copy');
+    expect(
+      tombstones,
+      isEmpty,
+      reason:
+          'a device that has not connected the library keeps the personal '
+          'copy its dives link to; connecting adopts it in place (same id)',
+    );
+  });
+
+  test('push refuses a site another profile owns', () async {
+    await SiteRepository().createSite(
+      const DiveSite(id: 'theirs', diverId: 'd2', name: 'Bob', isShared: true),
+    );
+    await expectLater(
+      SharedSitePublisher().push(
+        siteId: 'theirs',
+        libraryId: 'L',
+        diverId: 'd1',
+      ),
+      throwsStateError,
+    );
+    final site = (await SiteRepository().getSiteById('theirs'))!;
+    expect(site.sharedLibraryId, isNull);
+    expect(site.diverId, 'd2');
   });
 
   test('push refuses a diver without a membership', () async {

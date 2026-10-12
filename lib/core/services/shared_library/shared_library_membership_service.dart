@@ -101,6 +101,11 @@ class SharedLibraryMembershipService {
     required String displayName,
   }) async {
     final t = await _transportFor(account: account, prefix: prefix);
+    // A probe may be stale (another member created it meanwhile): writing
+    // over a manifest would cut every existing member out.
+    if (await t.readManifest() != null) {
+      throw StateError('A library already exists at $prefix');
+    }
     final libraryId = _uuid.v4();
     final memberId = await _store.memberIdForDiver(diverId);
     final now = DateTime.now().toUtc();
@@ -197,16 +202,31 @@ class SharedLibraryMembershipService {
         if (m.memberId != memberId) m,
       me,
     ]);
+    // Connecting on another device finds the profile's membership already
+    // synced in: keep its id, or the profile ends up with two and leaving
+    // ends only one of them.
+    final existing = await _store.membership(
+      diverId: diverId,
+      libraryId: libraryId,
+    );
+    final fresh = _membership(
+      libraryId: libraryId,
+      libraryName: name,
+      diverId: diverId,
+      memberId: memberId,
+      displayName: displayName,
+      account: account,
+      prefix: prefix,
+    );
     await _store.upsertMembership(
-      _membership(
-        libraryId: libraryId,
-        libraryName: name,
-        diverId: diverId,
-        memberId: memberId,
-        displayName: displayName,
-        account: account,
-        prefix: prefix,
-      ),
+      existing == null
+          ? fresh
+          : existing.copyWith(
+              displayName: displayName,
+              libraryName: name,
+              backendKind: fresh.backendKind,
+              locationHint: fresh.locationHint,
+            ),
     );
     return library;
   }
@@ -311,7 +331,10 @@ class SharedLibraryMembershipService {
   }) async {
     final library = await _store.getLibrary(libraryId);
     if (library == null) throw StateError('library $libraryId not connected');
-    final roles = library.roles;
+    final t = await transportForLibrary(library);
+    // The folder's roles, not the cache of the last sync: another owner's
+    // change since then must survive this write.
+    final roles = await t.readRoles();
     if (roles.roleOf(actingMemberId) != SharedLibraryRole.owner) {
       throw StateError('only an owner changes roles');
     }
@@ -321,7 +344,6 @@ class SharedLibraryMembershipService {
       throw StateError('the last owner cannot be demoted');
     }
     final updated = roles.withRole(memberId, role);
-    final t = await transportForLibrary(library);
     await t.writeRoles(updated);
     await _store.setLibraryStatus(libraryId, roles: updated);
   }

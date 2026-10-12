@@ -194,17 +194,21 @@ class SharedLibraryMembership extends Equatable {
   final String backendKind;
   final String locationHint;
 
-  SharedLibraryMembership copyWith({String? displayName}) =>
-      SharedLibraryMembership(
-        id: id,
-        diverId: diverId,
-        libraryId: libraryId,
-        memberId: memberId,
-        displayName: displayName ?? this.displayName,
-        libraryName: libraryName,
-        backendKind: backendKind,
-        locationHint: locationHint,
-      );
+  SharedLibraryMembership copyWith({
+    String? displayName,
+    String? libraryName,
+    String? backendKind,
+    String? locationHint,
+  }) => SharedLibraryMembership(
+    id: id,
+    diverId: diverId,
+    libraryId: libraryId,
+    memberId: memberId,
+    displayName: displayName ?? this.displayName,
+    libraryName: libraryName ?? this.libraryName,
+    backendKind: backendKind ?? this.backendKind,
+    locationHint: locationHint ?? this.locationHint,
+  );
 
   @override
   List<Object?> get props => [
