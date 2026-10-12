@@ -6,12 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/nextcloud_chunked_upload.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav_storage_provider.dart';
 
 import '../../../helpers/fake_webdav_server.dart';
@@ -24,7 +23,6 @@ void main() {
   late Directory tmp;
 
   final config = WebDavConfig(
-    preset: WebDavPreset.other,
     serverUrl: 'https://dav.test/dav',
     username: 'alice',
     password: 'secret',
@@ -61,25 +59,6 @@ void main() {
     );
     expect(result.toJson(), config.toJson());
     expect(await store.load(), isNull, reason: 'testConnection never saves');
-  });
-
-  test('testConnection resolves and returns the Nextcloud user id', () async {
-    server = FakeWebDavServer(
-      username: 'alice@example.com',
-      seedCollections: const ['/remote.php/dav/files/alice'],
-    )..principalUserId = 'alice';
-    final nc = WebDavConfig(
-      preset: WebDavPreset.nextcloud,
-      serverUrl: 'https://dav.test',
-      username: 'alice@example.com',
-      password: 'secret',
-    );
-    final result = await provider.testConnection(nc);
-    expect(result.nextcloudUserId, 'alice');
-    expect(
-      server.collections,
-      contains('/remote.php/dav/files/alice/Submersion'),
-    );
   });
 
   test('an invalid config fails before any request', () async {
@@ -142,7 +121,7 @@ void main() {
     expect(await File(dest).readAsBytes(), await src.readAsBytes());
   });
 
-  test('a large Nextcloud backup is chunked', () async {
+  test('a large backup to a per-user files address is chunked', () async {
     server = FakeWebDavServer(
       seedCollections: const [
         '/remote.php/dav/files/alice',
@@ -151,20 +130,18 @@ void main() {
     );
     await provider.saveConfig(
       WebDavConfig(
-        preset: WebDavPreset.nextcloud,
-        serverUrl: 'https://dav.test',
+        serverUrl: 'https://dav.test/remote.php/dav/files/alice',
         username: 'alice',
         password: 'secret',
-        nextcloudUserId: 'alice',
       ),
     );
     final src = File(p.join(tmp.path, 'big.db'));
-    await src.writeAsBytes(Uint8List(NextcloudChunkedUpload.chunkBytes + 5));
+    await src.writeAsBytes(Uint8List(ChunkedUpload.chunkBytes + 5));
     await provider.uploadFileFromPath(src.path, 'big.db');
     expect(server.count('MOVE'), 1);
     expect(
       server.files['/remote.php/dav/files/alice/Submersion/big.db']!.length,
-      NextcloudChunkedUpload.chunkBytes + 5,
+      ChunkedUpload.chunkBytes + 5,
     );
   });
 

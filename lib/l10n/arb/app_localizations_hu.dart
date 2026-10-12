@@ -21212,7 +21212,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_provider_webdav_subtitle =>
-      'Nextcloud, ownCloud, Synology, Koofr és más WebDAV-kiszolgálók';
+      'Bármely WebDAV-kiszolgáló';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -25194,9 +25194,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
-  String get settings_webdavConfig_davRoot_label => 'WebDAV-cím';
-
-  @override
   String get settings_webdavConfig_error_conflict =>
       'A mappát nem sikerült létrehozni a kiszolgálón.';
 
@@ -25218,7 +25215,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_error_notFound =>
-      'Ezen a címen nincs WebDAV-mappa. Ellenőrizze a kiszolgáló típusát és címét.';
+      'Ezen a címen nincs WebDAV-mappa. Ellenőrizze a címet.';
 
   @override
   String get settings_webdavConfig_error_notWebDav =>
@@ -25274,52 +25271,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_webdavConfig_field_password_label => 'Jelszó';
 
   @override
-  String get settings_webdavConfig_field_preset_label => 'Kiszolgáló típusa';
+  String get settings_webdavConfig_field_serverUrl_helper =>
+      'A teljes WebDAV-cím a kiszolgáló beállításaiból, az elérési úttal együtt';
 
   @override
   String get settings_webdavConfig_field_serverUrl_hintDav =>
       'https://example.com/dav';
 
   @override
-  String get settings_webdavConfig_field_serverUrl_hintHost =>
-      'https://cloud.example.com';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_hintSynology =>
-      'https://nas.local:5006';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_label => 'Kiszolgáló címe';
+  String get settings_webdavConfig_field_serverUrl_label => 'WebDAV-cím';
 
   @override
   String get settings_webdavConfig_field_username_label => 'Felhasználónév';
-
-  @override
-  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
-
-  @override
-  String get settings_webdavConfig_preset_koofr => 'Koofr';
-
-  @override
-  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
-
-  @override
-  String get settings_webdavConfig_preset_other => 'Egyéb WebDAV-kiszolgáló';
-
-  @override
-  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudEu => 'pCloud (EU)';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudUs => 'pCloud (USA)';
-
-  @override
-  String get settings_webdavConfig_preset_synology => 'Synology NAS';
-
-  @override
-  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
 
   @override
   String get settings_webdavConfig_remove_confirm_action => 'Eltávolítás';
@@ -25337,10 +25300,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_saved => 'WebDAV-konfiguráció mentve';
-
-  @override
-  String get settings_webdavConfig_synology_helper =>
-      'Kapcsolja be a WebDAV Servert a Csomagkezelőben. A HTTPS-port általában 5006.';
 
   @override
   String get settings_webdavConfig_test_success => 'Sikeres kapcsolat';

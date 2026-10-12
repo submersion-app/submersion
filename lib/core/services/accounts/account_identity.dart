@@ -22,7 +22,7 @@ String s3NaturalKey(S3Config config) =>
     '${config.displayHost}|${config.bucket}|${config.prefix}';
 
 /// Endpoint identity for a WebDAV account: the DAV root (which carries the
-/// Nextcloud user id where there is one) plus the folder, so sync and media
+/// user id where the address has one) plus the folder, so sync and media
 /// on one server stay separate accounts. Credentials are excluded, so a
 /// new app password does not mint a new account.
 String webdavNaturalKey(WebDavConfig config) =>

@@ -12,8 +12,8 @@ import 'package:submersion/core/services/media_store/media_object_store.dart'
 
 /// Resume state for one chunked upload, persisted by the media queue and
 /// replayed verbatim on retry.
-class NextcloudChunkState {
-  const NextcloudChunkState({
+class ChunkedUploadState {
+  const ChunkedUploadState({
     required this.transferId,
     required this.chunkSize,
     required this.total,
@@ -38,12 +38,12 @@ class NextcloudChunkState {
   String toJsonString() => jsonEncode(toJson());
 
   /// Null for absent, malformed or foreign state; never throws.
-  static NextcloudChunkState? tryParse(String? json) {
+  static ChunkedUploadState? tryParse(String? json) {
     if (json == null) return null;
     try {
       final map = jsonDecode(json);
       if (map is! Map<String, Object?> || map['v'] != 1) return null;
-      return NextcloudChunkState(
+      return ChunkedUploadState(
         transferId: map['transferId']! as String,
         chunkSize: map['chunkSize']! as int,
         total: map['total']! as int,
@@ -55,12 +55,13 @@ class NextcloudChunkState {
   }
 }
 
-/// Nextcloud's chunked upload protocol (v2): MKCOL an upload directory
-/// under `uploads/<user>/`, PUT numbered chunks into it, then MOVE its
-/// `.file` onto the destination. Gets past server and proxy body-size
-/// limits and lets an interrupted media upload resume.
-class NextcloudChunkedUpload {
-  NextcloudChunkedUpload(
+/// The chunked upload protocol (v2) some WebDAV servers offer beside
+/// `files/<user>/`: MKCOL an upload directory under `uploads/<user>/`, PUT
+/// numbered chunks into it, then MOVE its `.file` onto the destination.
+/// Gets past server and proxy body-size limits and lets an interrupted
+/// media upload resume.
+class ChunkedUpload {
+  ChunkedUpload(
     this._client, {
     String Function()? newTransferId,
     Duration pollDelay = const Duration(seconds: 10),
@@ -75,7 +76,7 @@ class NextcloudChunkedUpload {
   final Duration _pollDelay;
   final int _pollAttempts;
 
-  /// Deadline for the assembly MOVE. Nextcloud concatenates the chunks
+  /// Deadline for the assembly MOVE. The server concatenates the chunks
   /// inside that request before it answers, which takes minutes for a large
   /// video, so the 30 second header deadline a bodiless request normally
   /// gets would fire mid-assembly and retry into a lock.
@@ -107,14 +108,13 @@ class NextcloudChunkedUpload {
   static const String transferPrefix = 'submersion-';
 
   static bool appliesTo(WebDavClient client, int length) =>
-      client.config.preset.supportsNextcloudChunking &&
-      client.config.nextcloudUploadsRoot != null &&
+      client.config.chunkedUploadsRoot != null &&
       !client.chunkingUnsupported &&
       length > thresholdBytes;
 
   static String chunkName(int n) => n.toString().padLeft(5, '0');
 
-  Uri get _uploads => _client.config.nextcloudUploadsRoot!;
+  Uri get _uploads => _client.config.chunkedUploadsRoot!;
 
   Uri _under(Uri base, List<String> extra) => base.replace(
     pathSegments: [...base.pathSegments.where((s) => s.isNotEmpty), ...extra],
@@ -131,7 +131,7 @@ class NextcloudChunkedUpload {
   }) async {
     final total = await source.length();
     final dest = _client.uriFor(destPath).toString();
-    var state = NextcloudChunkState.tryParse(resumeStateJson);
+    var state = ChunkedUploadState.tryParse(resumeStateJson);
     if (state != null &&
         (state.total != total ||
             state.dest != dest ||
@@ -153,7 +153,7 @@ class NextcloudChunkedUpload {
         };
       } on WebDavException catch (e) {
         if (e.code != WebDavErrorCode.notFound) rethrow;
-        // The directory is gone: Nextcloud expired it, or an earlier attempt
+        // The directory is gone: the server expired it, or an earlier attempt
         // finished assembling it before its reply was lost.
         if (await _destinationComplete(destPath, total)) {
           onProgress?.call(total, total);
@@ -165,7 +165,7 @@ class NextcloudChunkedUpload {
 
     await _client.ensureCollection(WebDavClient.parentOf(destPath));
     if (state == null) {
-      final fresh = NextcloudChunkState(
+      final fresh = ChunkedUploadState(
         transferId: _newTransferId(),
         chunkSize: chunkBytes,
         total: total,
@@ -238,8 +238,8 @@ class NextcloudChunkedUpload {
 
   /// Best effort; never throws on malformed state.
   Future<void> abandon(String? resumeStateJson) async {
-    final state = NextcloudChunkState.tryParse(resumeStateJson);
-    if (state == null || _client.config.nextcloudUploadsRoot == null) return;
+    final state = ChunkedUploadState.tryParse(resumeStateJson);
+    if (state == null || _client.config.chunkedUploadsRoot == null) return;
     try {
       final response = await _client.request(
         'DELETE',
@@ -248,14 +248,14 @@ class NextcloudChunkedUpload {
       );
       await response.stream.drain<void>();
     } catch (_) {
-      // Nextcloud expires abandoned upload directories on its own.
+      // The server expires abandoned upload directories on its own.
     }
   }
 
   /// Deletes this app's upload directories last touched before
   /// [olderThan]; returns how many.
   Future<int> reapStale(DateTime olderThan) async {
-    if (_client.config.nextcloudUploadsRoot == null) return 0;
+    if (_client.config.chunkedUploadsRoot == null) return 0;
     final List<DavResource> listing;
     try {
       listing = await _client.propfindRaw(_under(_uploads, ['']), 1);

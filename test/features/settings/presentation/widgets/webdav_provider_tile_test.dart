@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/webdav_provider_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -38,12 +37,7 @@ void main() {
     tester,
   ) async {
     final r = await pump(tester, null);
-    expect(
-      find.text(
-        'Nextcloud, ownCloud, Synology, Koofr and other WebDAV servers',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Any WebDAV server'), findsOneWidget);
     await tester.tap(find.text('WebDAV'));
     expect(r.calls, ['edit']);
   });
@@ -52,7 +46,6 @@ void main() {
     final r = await pump(
       tester,
       WebDavConfig(
-        preset: WebDavPreset.other,
         serverUrl: 'https://dav.test/dav',
         username: 'alice',
         password: 'secret',

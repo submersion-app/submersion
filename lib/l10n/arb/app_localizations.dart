@@ -33985,7 +33985,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_cloudSync_provider_webdav_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Nextcloud, ownCloud, Synology, Koofr and other WebDAV servers'**
+  /// **'Any WebDAV server'**
   String get settings_cloudSync_provider_webdav_subtitle;
 
   /// No description provided for @settings_cloudSync_provider_webdav_title.
@@ -40796,12 +40796,6 @@ abstract class AppLocalizations {
   /// **'WebDAV'**
   String get settings_webdavConfig_appBar_title;
 
-  /// No description provided for @settings_webdavConfig_davRoot_label.
-  ///
-  /// In en, this message translates to:
-  /// **'WebDAV address'**
-  String get settings_webdavConfig_davRoot_label;
-
   /// No description provided for @settings_webdavConfig_error_conflict.
   ///
   /// In en, this message translates to:
@@ -40835,7 +40829,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_webdavConfig_error_notFound.
   ///
   /// In en, this message translates to:
-  /// **'No WebDAV folder at this address. Check the server type and address.'**
+  /// **'No WebDAV folder at this address. Check the address.'**
   String get settings_webdavConfig_error_notFound;
 
   /// No description provided for @settings_webdavConfig_error_notWebDav.
@@ -40916,11 +40910,11 @@ abstract class AppLocalizations {
   /// **'Password'**
   String get settings_webdavConfig_field_password_label;
 
-  /// No description provided for @settings_webdavConfig_field_preset_label.
+  /// No description provided for @settings_webdavConfig_field_serverUrl_helper.
   ///
   /// In en, this message translates to:
-  /// **'Server type'**
-  String get settings_webdavConfig_field_preset_label;
+  /// **'The full WebDAV address from your server\'s settings, including its path'**
+  String get settings_webdavConfig_field_serverUrl_helper;
 
   /// No description provided for @settings_webdavConfig_field_serverUrl_hintDav.
   ///
@@ -40928,22 +40922,10 @@ abstract class AppLocalizations {
   /// **'https://example.com/dav'**
   String get settings_webdavConfig_field_serverUrl_hintDav;
 
-  /// No description provided for @settings_webdavConfig_field_serverUrl_hintHost.
-  ///
-  /// In en, this message translates to:
-  /// **'https://cloud.example.com'**
-  String get settings_webdavConfig_field_serverUrl_hintHost;
-
-  /// No description provided for @settings_webdavConfig_field_serverUrl_hintSynology.
-  ///
-  /// In en, this message translates to:
-  /// **'https://nas.local:5006'**
-  String get settings_webdavConfig_field_serverUrl_hintSynology;
-
   /// No description provided for @settings_webdavConfig_field_serverUrl_label.
   ///
   /// In en, this message translates to:
-  /// **'Server address'**
+  /// **'WebDAV address'**
   String get settings_webdavConfig_field_serverUrl_label;
 
   /// No description provided for @settings_webdavConfig_field_username_label.
@@ -40951,60 +40933,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Username'**
   String get settings_webdavConfig_field_username_label;
-
-  /// No description provided for @settings_webdavConfig_preset_fastmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Fastmail Files'**
-  String get settings_webdavConfig_preset_fastmail;
-
-  /// No description provided for @settings_webdavConfig_preset_koofr.
-  ///
-  /// In en, this message translates to:
-  /// **'Koofr'**
-  String get settings_webdavConfig_preset_koofr;
-
-  /// No description provided for @settings_webdavConfig_preset_nextcloud.
-  ///
-  /// In en, this message translates to:
-  /// **'Nextcloud'**
-  String get settings_webdavConfig_preset_nextcloud;
-
-  /// No description provided for @settings_webdavConfig_preset_other.
-  ///
-  /// In en, this message translates to:
-  /// **'Other WebDAV server'**
-  String get settings_webdavConfig_preset_other;
-
-  /// No description provided for @settings_webdavConfig_preset_owncloud.
-  ///
-  /// In en, this message translates to:
-  /// **'ownCloud'**
-  String get settings_webdavConfig_preset_owncloud;
-
-  /// No description provided for @settings_webdavConfig_preset_pcloudEu.
-  ///
-  /// In en, this message translates to:
-  /// **'pCloud (EU)'**
-  String get settings_webdavConfig_preset_pcloudEu;
-
-  /// No description provided for @settings_webdavConfig_preset_pcloudUs.
-  ///
-  /// In en, this message translates to:
-  /// **'pCloud (US)'**
-  String get settings_webdavConfig_preset_pcloudUs;
-
-  /// No description provided for @settings_webdavConfig_preset_synology.
-  ///
-  /// In en, this message translates to:
-  /// **'Synology NAS'**
-  String get settings_webdavConfig_preset_synology;
-
-  /// No description provided for @settings_webdavConfig_preset_yandex.
-  ///
-  /// In en, this message translates to:
-  /// **'Yandex Disk'**
-  String get settings_webdavConfig_preset_yandex;
 
   /// No description provided for @settings_webdavConfig_remove_confirm_action.
   ///
@@ -41035,12 +40963,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'WebDAV configuration saved'**
   String get settings_webdavConfig_saved;
-
-  /// No description provided for @settings_webdavConfig_synology_helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn on WebDAV Server in Package Center. Its HTTPS port is usually 5006.'**
-  String get settings_webdavConfig_synology_helper;
 
   /// No description provided for @settings_webdavConfig_test_success.
   ///

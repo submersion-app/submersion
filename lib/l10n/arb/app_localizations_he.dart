@@ -20798,8 +20798,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_provider_webdav_edit => 'עריכת תצורת WebDAV';
 
   @override
-  String get settings_cloudSync_provider_webdav_subtitle =>
-      'Nextcloud, ownCloud, Synology, Koofr ושרתי WebDAV אחרים';
+  String get settings_cloudSync_provider_webdav_subtitle => 'כל שרת WebDAV';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -24667,9 +24666,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
-  String get settings_webdavConfig_davRoot_label => 'כתובת WebDAV';
-
-  @override
   String get settings_webdavConfig_error_conflict =>
       'לא ניתן ליצור את התיקייה בשרת.';
 
@@ -24690,7 +24686,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_error_notFound =>
-      'אין תיקיית WebDAV בכתובת זו. בדקו את סוג השרת ואת הכתובת.';
+      'אין תיקיית WebDAV בכתובת זו. בדקו את הכתובת.';
 
   @override
   String get settings_webdavConfig_error_notWebDav =>
@@ -24745,52 +24741,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_webdavConfig_field_password_label => 'סיסמה';
 
   @override
-  String get settings_webdavConfig_field_preset_label => 'סוג שרת';
+  String get settings_webdavConfig_field_serverUrl_helper =>
+      'כתובת ה-WebDAV המלאה מהגדרות השרת, כולל הנתיב';
 
   @override
   String get settings_webdavConfig_field_serverUrl_hintDav =>
       'https://example.com/dav';
 
   @override
-  String get settings_webdavConfig_field_serverUrl_hintHost =>
-      'https://cloud.example.com';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_hintSynology =>
-      'https://nas.local:5006';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_label => 'כתובת השרת';
+  String get settings_webdavConfig_field_serverUrl_label => 'כתובת WebDAV';
 
   @override
   String get settings_webdavConfig_field_username_label => 'שם משתמש';
-
-  @override
-  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
-
-  @override
-  String get settings_webdavConfig_preset_koofr => 'Koofr';
-
-  @override
-  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
-
-  @override
-  String get settings_webdavConfig_preset_other => 'שרת WebDAV אחר';
-
-  @override
-  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudEu => 'pCloud (האיחוד האירופי)';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudUs => 'pCloud (ארה\"ב)';
-
-  @override
-  String get settings_webdavConfig_preset_synology => 'Synology NAS';
-
-  @override
-  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
 
   @override
   String get settings_webdavConfig_remove_confirm_action => 'הסרה';
@@ -24808,10 +24770,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_saved => 'תצורת WebDAV נשמרה';
-
-  @override
-  String get settings_webdavConfig_synology_helper =>
-      'הפעילו את WebDAV Server במרכז החבילות. פורט ה-HTTPS שלו הוא בדרך כלל 5006.';
 
   @override
   String get settings_webdavConfig_test_success => 'החיבור הצליח';

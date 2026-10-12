@@ -36,10 +36,7 @@ void main() {
 
   test('messages carry the actionable detail', () {
     expect(from(401).message, contains('app password'));
-    expect(
-      from(404, isRoot: true).message,
-      contains('Check the server type and URL'),
-    );
+    expect(from(404, isRoot: true).message, contains('Check the address'));
     expect(
       from(301, location: 'https://new/').message,
       contains('https://new/'),

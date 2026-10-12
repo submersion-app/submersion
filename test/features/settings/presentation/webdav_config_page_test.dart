@@ -12,7 +12,6 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav_storage_provider.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
@@ -172,11 +171,6 @@ void main() {
     WidgetTester tester, {
     String password = 'secret',
   }) async {
-    // The default preset is Nextcloud; the fake serves a plain DAV root.
-    await tester.tap(find.byKey(const Key('webdav-preset')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Other WebDAV server').last);
-    await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('webdav-server-url')),
       'https://dav.test/dav',
@@ -186,16 +180,23 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('fixed-host presets hide the URL field and show the DAV root', (
+  testWidgets('asks for the WebDAV address with no server type to pick', (
     tester,
   ) async {
     await pumpPage(tester);
-    await tester.tap(find.byKey(const Key('webdav-preset')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Koofr').last);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('webdav-server-url')), findsNothing);
-    expect(find.text('https://app.koofr.net/dav/Koofr/'), findsOneWidget);
+    expect(find.byKey(const Key('webdav-preset')), findsNothing);
+    expect(find.byKey(const Key('webdav-server-url')), findsOneWidget);
+    expect(find.text('WebDAV address'), findsOneWidget);
+    expect(
+      find.text(
+        "The full WebDAV address from your server's settings, including its path",
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Use an app password if the account has two-factor sign-in'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('http shows the warning', (tester) async {
@@ -242,7 +243,10 @@ void main() {
     await fillValidForm(tester, password: 'nope');
     await tester.tap(find.byKey(const Key('webdav-test')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('app password'), findsOneWidget);
+    expect(
+      find.textContaining('The server rejected the username or password'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Save stores the config and selects WebDAV', (tester) async {
@@ -263,7 +267,6 @@ void main() {
   testWidgets('a stored pin shows and can be forgotten', (tester) async {
     await provider.saveConfig(
       WebDavConfig(
-        preset: WebDavPreset.synology,
         serverUrl: 'https://dav.test/dav',
         username: 'alice',
         password: 'secret',
@@ -282,7 +285,6 @@ void main() {
   ) async {
     await provider.saveConfig(
       WebDavConfig(
-        preset: WebDavPreset.other,
         serverUrl: 'https://dav.test/dav',
         username: 'alice',
         password: 'secret',
@@ -302,7 +304,6 @@ void main() {
     tester,
   ) async {
     final saved = WebDavConfig(
-      preset: WebDavPreset.other,
       serverUrl: 'https://dav.test/dav',
       username: 'alice',
       password: 'secret',

@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
@@ -47,7 +46,6 @@ class _FakeService extends Fake implements MediaStoreService {
 void main() {
   late _FakeService service;
   final sync = WebDavConfig(
-    preset: WebDavPreset.synology,
     serverUrl: 'https://nas.local:5006',
     username: 'alice',
     password: 'secret',

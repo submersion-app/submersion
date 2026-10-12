@@ -16,7 +16,7 @@ void main() {
     port: 5006,
     sha256: 'ab' * 32,
     subject: 'CN=nas.local',
-    issuer: 'CN=Synology',
+    issuer: 'CN=Home NAS',
     startValidity: DateTime.utc(2026),
     endValidity: DateTime.utc(2027, 3, 1),
   );
@@ -55,7 +55,7 @@ void main() {
       await open(tester, WebDavUntrustedCertificateException(details));
       expect(find.textContaining('nas.local'), findsWidgets);
       expect(find.text(formatFingerprint('ab' * 32)), findsOneWidget);
-      expect(find.text('CN=Synology'), findsOneWidget);
+      expect(find.text('CN=Home NAS'), findsOneWidget);
       await tester.tap(find.byKey(const Key('webdav-trust')));
       await tester.pumpAndSettle();
       expect(result, isTrue);

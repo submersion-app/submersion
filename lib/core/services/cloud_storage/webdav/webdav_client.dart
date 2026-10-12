@@ -67,7 +67,7 @@ class WebDavClient {
   late final http.Client _http;
   final Set<String> _knownCollections = {};
 
-  /// Set once the server refuses Nextcloud chunking; later large uploads go
+  /// Set once the server refuses chunked uploads; later large uploads go
   /// straight to a single PUT.
   bool chunkingUnsupported = false;
 
@@ -128,8 +128,8 @@ class WebDavClient {
   );
 
   /// Deadline for a reply's status line. Uploads get the generous one, and a
-  /// single large PUT more again: WebDAV outside Nextcloud has no chunking,
-  /// so one request carries a whole video, and `send` does not complete
+  /// single large PUT more again: a server without chunked uploads takes a
+  /// whole video in one request, and `send` does not complete
   /// until the body is written. The floor of [minUploadBytesPerSecond]
   /// still bounds a socket that has genuinely wedged.
   static Duration deadlineFor(String method, int? bodyBytes) {
@@ -479,23 +479,6 @@ class WebDavClient {
       await retry.stream.drain<void>();
     }
     _knownCollections.add(normalized);
-  }
-
-  /// The Nextcloud user id from `current-user-principal`, or null when the
-  /// preset does not use the Nextcloud layout or the server does not say.
-  Future<String?> resolveNextcloudUserId() async {
-    final uri = config.principalProbeUri;
-    if (uri == null) return null;
-    final response = await _send(
-      'PROPFIND',
-      uri,
-      headers: {'depth': '0', 'content-type': 'application/xml; charset=utf-8'},
-      bytes: utf8.encode(kPrincipalPropfindBody),
-      accept: const {404},
-    );
-    final body = await response.stream.bytesToString();
-    if (response.statusCode != 207) return null;
-    return parseCurrentUserPrincipalId(body);
   }
 
   void close() => _http.close();

@@ -3,7 +3,6 @@ import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 
 void main() {
   S3Config config({
@@ -96,7 +95,6 @@ void main() {
   });
   test('webdavNaturalKey ignores credentials and separates folders', () {
     final a = WebDavConfig(
-      preset: WebDavPreset.other,
       serverUrl: 'https://dav.test/dav',
       username: 'alice',
       password: 'one',

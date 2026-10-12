@@ -8,12 +8,6 @@ const String kPropfindBody =
     '<d:resourcetype/><d:getcontentlength/><d:getlastmodified/>'
     '</d:prop></d:propfind>';
 
-const String kPrincipalPropfindBody =
-    '<?xml version="1.0" encoding="utf-8"?>'
-    '<d:propfind xmlns:d="DAV:"><d:prop>'
-    '<d:current-user-principal/>'
-    '</d:prop></d:propfind>';
-
 /// One `<response>` of a PROPFIND reply.
 class DavResource {
   /// Decoded, non-empty segments of the server path (`/a%20b/` gives
@@ -48,29 +42,6 @@ List<DavResource> parseMultistatus(String body) {
     for (final response in _children(doc.rootElement, 'response'))
       ?_resource(response),
   ];
-}
-
-/// The user id from a `current-user-principal` reply
-/// (`.../principals/users/<id>/`), or null when absent.
-String? parseCurrentUserPrincipalId(String body) {
-  try {
-    final doc = XmlDocument.parse(body);
-    for (final principal in _descendants(
-      doc.rootElement,
-      'current-user-principal',
-    )) {
-      final href = _descendants(
-        principal,
-        'href',
-      ).firstOrNull?.innerText.trim();
-      if (href == null || href.isEmpty) continue;
-      final segments = Uri.parse(href).pathSegments.where((s) => s.isNotEmpty);
-      if (segments.isNotEmpty) return segments.last;
-    }
-  } on XmlException {
-    return null;
-  }
-  return null;
 }
 
 DavResource? _resource(XmlElement response) {

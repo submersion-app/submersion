@@ -15,8 +15,7 @@ import 'package:submersion/features/settings/presentation/widgets/webdav_server_
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Configuration for the WebDAV sync backend. Test connection and Save both
-/// run the live probe (Save needs it to resolve the Nextcloud user id) and
-/// both offer to trust a self-signed certificate.
+/// run the live probe and both offer to trust a self-signed certificate.
 class WebDavConfigPage extends ConsumerStatefulWidget {
   const WebDavConfigPage({super.key});
 
@@ -79,12 +78,11 @@ class _WebDavConfigPageState extends ConsumerState<WebDavConfigPage> {
     final l10n = context.l10n;
     setState(() => _busy = true);
     try {
-      final resolved = await runWithCertificateTrust(
+      await runWithCertificateTrust(
         context,
         _form,
         ref.read(webdavStorageProviderInstanceProvider).testConnection,
       );
-      _form.nextcloudUserId = resolved.nextcloudUserId;
       _showSnack(l10n.settings_webdavConfig_test_success);
     } on WebDavException catch (e) {
       _showSnack(webDavErrorText(l10n, e), isError: true);
@@ -107,12 +105,12 @@ class _WebDavConfigPageState extends ConsumerState<WebDavConfigPage> {
     setState(() => _busy = true);
     try {
       final provider = container.read(webdavStorageProviderInstanceProvider);
-      final resolved = await runWithCertificateTrust(
+      final tested = await runWithCertificateTrust(
         context,
         _form,
         provider.testConnection,
       );
-      await provider.saveConfig(resolved);
+      await provider.saveConfig(tested);
       container.read(selectedCloudProviderTypeProvider.notifier).state =
           CloudProviderType.webdav;
       await container

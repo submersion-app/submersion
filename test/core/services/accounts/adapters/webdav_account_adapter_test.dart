@@ -8,7 +8,6 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/core/services/accounts/adapters/webdav_account_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav_storage_provider.dart';
 import 'package:submersion/core/services/media_store/webdav_media_object_store.dart';
 
@@ -23,7 +22,6 @@ void main() {
     updatedAt: DateTime.utc(2026),
   );
   final config = WebDavConfig(
-    preset: WebDavPreset.other,
     serverUrl: 'https://dav.test/dav',
     username: 'alice',
     password: 'secret',
