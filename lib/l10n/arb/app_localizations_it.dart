@@ -13531,11 +13531,69 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Compilato da $name. Usata in $count immersioni precedenti.',
+      one: 'Compilato da $name. Usata in $count immersione precedente.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Tag della bombola';
 
   @override
   String get passport_foreign_notInGear =>
       'Questa bombola non fa parte della tua attrezzatura.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hai usato questa bombola $count volte',
+      one: 'Hai usato questa bombola $count volta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Immersioni';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Usata in $count immersioni',
+      one: 'Usata in $count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Ultimo utilizzo: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'Nessun sito';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'Immersione $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Mostra tutte ($count)';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Impossibile caricare le tue immersioni con questa bombola';
 
   @override
   String passport_foreign_writtenOn(String date) {

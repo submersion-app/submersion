@@ -13440,11 +13440,69 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ingevuld vanuit $name. Gebruikt bij $count eerdere duiken.',
+      one: 'Ingevuld vanuit $name. Gebruikt bij $count eerdere duik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Flessentag';
 
   @override
   String get passport_foreign_notInGear =>
       'Deze fles hoort niet bij je uitrusting.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Je hebt deze fles $count keer gebruikt',
+      one: 'Je hebt deze fles $count keer gebruikt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Duiken';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gebruikt bij $count duiken',
+      one: 'Gebruikt bij $count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Laatst gebruikt op $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'Geen duikstek';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'Duik $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Alle $count tonen';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Je duiken met deze fles konden niet worden geladen';
 
   @override
   String passport_foreign_writtenOn(String date) {

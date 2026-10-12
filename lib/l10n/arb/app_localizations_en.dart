@@ -13330,10 +13330,68 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Filled from $name. Used on $count earlier dives.',
+      one: 'Filled from $name. Used on $count earlier dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Cylinder tag';
 
   @override
   String get passport_foreign_notInGear => 'This cylinder is not in your gear.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You have used this cylinder $count times',
+      one: 'You have used this cylinder $count time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Dives';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Used on $count dives',
+      one: 'Used on $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Last used $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'No site';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'Dive $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Show all $count';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Could not load your dives with this cylinder';
 
   @override
   String passport_foreign_writtenOn(String date) {

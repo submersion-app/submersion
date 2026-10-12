@@ -13245,10 +13245,68 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מולא מתוך $name. שימש ב-$count צלילות קודמות.',
+      one: 'מולא מתוך $name. שימש ב-$count צלילה קודמת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'תג מיכל';
 
   @override
   String get passport_foreign_notInGear => 'המיכל הזה אינו חלק מהציוד שלך.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'השתמשת במיכל הזה $count פעמים',
+      one: 'השתמשת במיכל הזה $count פעם',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'צלילות';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שימש ב-$count צלילות',
+      one: 'שימש ב-$count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'שימוש אחרון: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'אין אתר';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'צלילה $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'הצג את כל $count';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'לא ניתן לטעון את הצלילות שלך עם המיכל הזה';
 
   @override
   String passport_foreign_writtenOn(String date) {

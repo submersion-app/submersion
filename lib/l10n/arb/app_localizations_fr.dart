@@ -13572,11 +13572,69 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rempli depuis $name. Utilisée sur $count plongées précédentes.',
+      one: 'Rempli depuis $name. Utilisée sur $count plongée précédente.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Étiquette de bouteille';
 
   @override
   String get passport_foreign_notInGear =>
       'Cette bouteille ne fait pas partie de votre équipement.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vous avez utilisé cette bouteille $count fois',
+      one: 'Vous avez utilisé cette bouteille $count fois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Plongées';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Utilisée sur $count plongées',
+      one: 'Utilisée sur $count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Dernière utilisation : $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'Aucun site';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'Plongée $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Tout afficher ($count)';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Impossible de charger vos plongées avec cette bouteille';
 
   @override
   String passport_foreign_writtenOn(String date) {

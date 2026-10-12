@@ -21991,6 +21991,12 @@ abstract class AppLocalizations {
   /// **'Filled from {name}'**
   String passport_scan_filledFrom(String name);
 
+  /// No description provided for @passport_scan_filledFromUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Filled from {name}. Used on {count} earlier dive.} other{Filled from {name}. Used on {count} earlier dives.}}'**
+  String passport_scan_filledFromUsed(String name, int count);
+
   /// No description provided for @passport_foreign_title.
   ///
   /// In en, this message translates to:
@@ -22002,6 +22008,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This cylinder is not in your gear.'**
   String get passport_foreign_notInGear;
+
+  /// No description provided for @passport_usage_foreignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You have used this cylinder {count} time} other{You have used this cylinder {count} times}}'**
+  String passport_usage_foreignTitle(int count);
+
+  /// No description provided for @passport_usage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get passport_usage_title;
+
+  /// No description provided for @passport_usage_ownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Used on {count} dive} other{Used on {count} dives}}'**
+  String passport_usage_ownTitle(int count);
+
+  /// No description provided for @passport_usage_lastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used {date}'**
+  String passport_usage_lastUsed(String date);
+
+  /// No description provided for @passport_usage_noSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get passport_usage_noSite;
+
+  /// No description provided for @passport_usage_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String passport_usage_diveNumber(int number);
+
+  /// No description provided for @passport_usage_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count}'**
+  String passport_usage_showAll(int count);
+
+  /// No description provided for @passport_usage_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your dives with this cylinder'**
+  String get passport_usage_loadFailed;
 
   /// No description provided for @passport_foreign_writtenOn.
   ///

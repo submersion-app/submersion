@@ -13497,11 +13497,69 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kitöltve innen: $name. $count korábbi merülésen használva.',
+      one: 'Kitöltve innen: $name. $count korábbi merülésen használva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Palackcímke';
 
   @override
   String get passport_foreign_notInGear =>
       'Ez a palack nem szerepel a felszerelésében.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ezt a palackot $count alkalommal használta',
+      one: 'Ezt a palackot $count alkalommal használta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Merülések';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésen használva',
+      one: '$count merülésen használva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Utoljára használva: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'Nincs merülőhely';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Mind a(z) $count megjelenítése';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Nem sikerült betölteni a palackkal végzett merüléseit';
 
   @override
   String passport_foreign_writtenOn(String date) {

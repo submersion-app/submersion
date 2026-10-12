@@ -7940,8 +7940,48 @@
       "name": {"type": "String"}
     }
   },
+  "passport_scan_filledFromUsed": "{count, plural, one{Filled from {name}. Used on {count} earlier dive.} other{Filled from {name}. Used on {count} earlier dives.}}",
+  "@passport_scan_filledFromUsed": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
   "passport_foreign_title": "Cylinder tag",
   "passport_foreign_notInGear": "This cylinder is not in your gear.",
+  "passport_usage_foreignTitle": "{count, plural, one{You have used this cylinder {count} time} other{You have used this cylinder {count} times}}",
+  "@passport_usage_foreignTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "passport_usage_title": "Dives",
+  "passport_usage_ownTitle": "{count, plural, one{Used on {count} dive} other{Used on {count} dives}}",
+  "@passport_usage_ownTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "passport_usage_lastUsed": "Last used {date}",
+  "@passport_usage_lastUsed": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "passport_usage_noSite": "No site",
+  "passport_usage_diveNumber": "Dive {number}",
+  "@passport_usage_diveNumber": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "passport_usage_showAll": "Show all {count}",
+  "@passport_usage_showAll": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "passport_usage_loadFailed": "Could not load your dives with this cylinder",
   "passport_foreign_writtenOn": "As written on the tag on {date}",
   "@passport_foreign_writtenOn": {
     "placeholders": {

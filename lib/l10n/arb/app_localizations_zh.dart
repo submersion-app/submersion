@@ -12919,10 +12919,64 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从 $name 填入。此前用于 $count 次潜水。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => '气瓶标签';
 
   @override
   String get passport_foreign_notInGear => '此气瓶不在您的装备中。';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '您已使用此气瓶 $count 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => '潜水';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '用于 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return '上次使用：$date';
+  }
+
+  @override
+  String get passport_usage_noSite => '无潜点';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return '显示全部 $count 项';
+  }
+
+  @override
+  String get passport_usage_loadFailed => '无法加载您使用此气瓶的潜水记录';
 
   @override
   String passport_foreign_writtenOn(String date) {
