@@ -65,9 +65,10 @@ bool shouldRedirectToMasterDetail(
   required bool embedded,
   required ListViewMode viewMode,
 }) =>
+    // Cheap checks first: the router walk below runs on every build.
     !embedded &&
+    viewMode != ListViewMode.table &&
+    ResponsiveBreakpoints.isMasterDetail(context) &&
     GoRouter.maybeOf(context) != null &&
     (ModalRoute.of(context)?.isCurrent ?? true) &&
-    !isImperativelyPushed(context) &&
-    ResponsiveBreakpoints.isMasterDetail(context) &&
-    viewMode != ListViewMode.table;
+    !isImperativelyPushed(context);

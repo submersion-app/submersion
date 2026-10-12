@@ -163,6 +163,54 @@ void main() {
       expect(find.text('ROOT'), findsOneWidget);
     });
 
+    testWidgets('inside a shell, on a page go() built over its list, it '
+        'keeps the list underneath', (tester) async {
+      // The app's shape: one ShellRoute, the detail route a child of its
+      // list, so go('/dives/d1') builds both pages inside the shell.
+      final router = GoRouter(
+        initialLocation: '/dives/d1',
+        routes: [
+          ShellRoute(
+            builder: (context, state, child) => Scaffold(body: child),
+            routes: [
+              GoRoute(
+                path: '/dives',
+                builder: (_, _) => const Text('Dive List'),
+                routes: [
+                  GoRoute(
+                    path: ':diveId',
+                    builder: (_, state) => Builder(
+                      builder: (inner) => Column(
+                        children: [
+                          Text('AT ${state.uri}'),
+                          TextButton(
+                            onPressed: () =>
+                                inner.goInPlace('/dives/d1?mode=edit'),
+                            child: const Text('Edit'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await _pump(tester, router);
+
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('AT /dives/d1?mode=edit'), findsOneWidget);
+      expect(router.canPop(), isTrue);
+      router.pop();
+      await tester.pumpAndSettle();
+      expect(find.text('Dive List'), findsOneWidget);
+    });
+
     testWidgets('on a root page it goes', (tester) async {
       final router = build('/list');
       addTearDown(router.dispose);
