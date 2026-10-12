@@ -191,6 +191,63 @@ class PlanEngineConfig extends Equatable {
   }
 }
 
+/// Setpoint in force at [depth]: the segment's per-segment override if set,
+/// else the plan's depth-based (low/high) setpoint.
+double setpointAt(domain.DivePlan plan, double depth, {PlanSegment? segment}) {
+  final override = segment?.setpointBar;
+  if (override != null) return override;
+  return depth > plan.effectiveSetpointSwitchDepth
+      ? plan.effectiveSetpointHigh
+      : plan.effectiveSetpointLow;
+}
+
+/// Mode-aware breathing for [gas] at [depth]: the loop at the in-force
+/// setpoint for CCR (gas = diluent), CMF loop for SCR, open circuit
+/// otherwise. A per-segment [segment] override wins over the plan mode --
+/// including a mid-plan [PlanMode.oc] bailout leg, an existing segment
+/// contract (any other caller replaying a plan's tissue loading, such as
+/// BailoutSolver's own bottom-phase sampling, must honour it the same way
+/// PlanEngine.compute does, or the replay loads a loop's worth of gas for
+/// a leg the diver actually breathed open circuit -- caught by a Copilot
+/// review).
+BreathingConfig breathingFor(
+  domain.DivePlan plan,
+  GasMix gas,
+  double depth, {
+  required PlanEngineConfig config,
+  PlanSegment? segment,
+}) {
+  final mode = modeFor(plan, segment);
+  if (mode == domain.PlanMode.ccr) {
+    return ClosedCircuit(
+      setpoint: setpointAt(plan, depth, segment: segment),
+      diluentFO2: gas.o2 / 100.0,
+      diluentFHe: gas.he / 100.0,
+    );
+  }
+  if (mode == domain.PlanMode.scr) {
+    // CMF semi-closed loop: the segment gas is the supply, and the loop
+    // fraction is the validated steady-state CMF calculation.
+    return Scr(
+      supplyFO2: gas.o2 / 100.0,
+      supplyFHe: gas.he / 100.0,
+      injectionRateLpm: config.scrInjectionRateLpm,
+    );
+  }
+  if (mode == domain.PlanMode.pscr) {
+    // Passive-addition semi-closed loop (Subsurface pscr_o2 model): the
+    // inspired O2 is the supply ppO2 minus a fixed metabolic drop.
+    return PassiveScr(
+      supplyFO2: gas.o2 / 100.0,
+      supplyFHe: gas.he / 100.0,
+      o2ConsumptionMlMin: config.pscrO2ConsumptionMlMin,
+      sacMlMin: config.pscrSacMlMin,
+      pscrRatio: config.pscrRatio,
+    );
+  }
+  return OpenCircuit(fO2: gas.o2 / 100.0, fHe: gas.he / 100.0);
+}
+
 /// Turns a [domain.DivePlan] into a [PlanOutcome] on the Phase 1 engine
 /// seams: DecoModel (BuhlmannGf), SchedulePolicy, BreathingConfig,
 /// DiveEnvironment.
@@ -223,20 +280,6 @@ class PlanEngine {
   domain.PlanMode _modeFor(domain.DivePlan plan, PlanSegment? segment) =>
       modeFor(plan, segment);
 
-  /// Setpoint in force at [depth]: the segment's per-segment override if set,
-  /// else the plan's depth-based (low/high) setpoint.
-  double _setpointAt(
-    domain.DivePlan plan,
-    double depth, {
-    PlanSegment? segment,
-  }) {
-    final override = segment?.setpointBar;
-    if (override != null) return override;
-    return depth > plan.effectiveSetpointSwitchDepth
-        ? plan.effectiveSetpointHigh
-        : plan.effectiveSetpointLow;
-  }
-
   /// Mode-aware breathing for [gas] at [depth]: the loop at the in-force
   /// setpoint for CCR (gas = diluent), CMF loop for SCR, open circuit
   /// otherwise. A per-segment [segment] override wins over the plan mode.
@@ -245,37 +288,7 @@ class PlanEngine {
     GasMix gas,
     double depth, {
     PlanSegment? segment,
-  }) {
-    final mode = _modeFor(plan, segment);
-    if (mode == domain.PlanMode.ccr) {
-      return ClosedCircuit(
-        setpoint: _setpointAt(plan, depth, segment: segment),
-        diluentFO2: gas.o2 / 100.0,
-        diluentFHe: gas.he / 100.0,
-      );
-    }
-    if (mode == domain.PlanMode.scr) {
-      // CMF semi-closed loop: the segment gas is the supply, and the loop
-      // fraction is the validated steady-state CMF calculation.
-      return Scr(
-        supplyFO2: gas.o2 / 100.0,
-        supplyFHe: gas.he / 100.0,
-        injectionRateLpm: config.scrInjectionRateLpm,
-      );
-    }
-    if (mode == domain.PlanMode.pscr) {
-      // Passive-addition semi-closed loop (Subsurface pscr_o2 model): the
-      // inspired O2 is the supply ppO2 minus a fixed metabolic drop.
-      return PassiveScr(
-        supplyFO2: gas.o2 / 100.0,
-        supplyFHe: gas.he / 100.0,
-        o2ConsumptionMlMin: config.pscrO2ConsumptionMlMin,
-        sacMlMin: config.pscrSacMlMin,
-        pscrRatio: config.pscrRatio,
-      );
-    }
-    return OpenCircuit(fO2: gas.o2 / 100.0, fHe: gas.he / 100.0);
-  }
+  }) => breathingFor(plan, gas, depth, config: config, segment: segment);
 
   /// Computes the schedule for [inputPlan], first resolving this engine's
   /// [config] against the plan's own gas-option overrides (ppO2Bottom,

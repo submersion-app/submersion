@@ -331,6 +331,71 @@ void main() {
       );
     });
 
+    test("a segment's mid-plan OC bailout override is replayed open circuit, "
+        "not loaded as if the loop never left, same as PlanEngine.compute's "
+        'own authored-leg replay (a Copilot review caught this: the bottom-'
+        'phase tissue replay always built ClosedCircuit, regardless of the '
+        "segment's own diveModeOverride)", () {
+      // A lean diluent: breathed open circuit at 60 m its own ppO2 is
+      // only ~0.7 bar, far under the plan's 1.3 bar CCR setpoint -- a gap
+      // wide enough that the two replays cannot land on the same tissue
+      // loading by coincidence (an 18/45-style diluent's OC ppO2 sits
+      // close enough to 1.3 bar at 60 m that an earlier version of this
+      // test could not tell a correct replay from a broken one).
+      const leanDiluent = GasMix(o2: 10, he: 50);
+      const leanDiluentTank = DiveTank(
+        id: 'dil-lean',
+        volume: 3.0,
+        startPressure: 200,
+        gasMix: leanDiluent,
+        role: TankRole.diluent,
+      );
+      final tanks = [leanDiluentTank, _bailout()];
+      PlanSegment ocLeg(domain.PlanMode? override) => PlanSegment.hold(
+        id: 'seg-oc',
+        depth: 60.0,
+        durationMinutes: 40,
+        tankId: 'dil-lean',
+        gasMix: leanDiluent,
+        diveModeOverride: override,
+        order: 1,
+      );
+      domain.DivePlan planWith(domain.PlanMode? override) => domain.DivePlan(
+        id: 'plan-mid-bailout',
+        name: 'Mid-plan bailout',
+        mode: domain.PlanMode.ccr,
+        gfLow: 50,
+        gfHigh: 80,
+        tanks: tanks,
+        segments: [
+          PlanSegment.travel(
+            id: 'seg-1',
+            fromDepth: 0,
+            targetDepth: 60.0,
+            tankId: 'dil-lean',
+            gasMix: leanDiluent,
+            order: 0,
+            ratePerMinute: 18.0,
+          ),
+          ocLeg(override),
+        ],
+        createdAt: DateTime(2026, 7, 5),
+        updatedAt: DateTime(2026, 7, 5),
+      );
+
+      final asLoop = solver.solve(planWith(null))!;
+      final asOc = solver.solve(planWith(domain.PlanMode.oc))!;
+
+      // Replaying the same leg open circuit instead of on the loop's
+      // constant-ppO2 setpoint changes the inert gas actually loaded,
+      // so the two must disagree -- if they matched, the override was
+      // never read.
+      expect(
+        asOc.worstCase.litersRequired,
+        isNot(closeTo(asLoop.worstCase.litersRequired, 0.5)),
+      );
+    });
+
     test("the bailout schedule honours the plan's own configured stop "
         'minimums, same as the main table (a Copilot review caught this: '
         'the bailout policy omitted them entirely)', () {

@@ -260,12 +260,17 @@ class BailoutSolver {
             endDepth: chunkEndDepth,
             durationSeconds: chunk,
           ),
-          ClosedCircuit(
-            setpoint: chunkAvg > plan.effectiveSetpointSwitchDepth
-                ? plan.effectiveSetpointHigh
-                : plan.effectiveSetpointLow,
-            diluentFO2: segment.gasMix.o2 / 100.0,
-            diluentFHe: segment.gasMix.he / 100.0,
+          // Same mode-aware breathing PlanEngine.compute replays authored
+          // legs with: a segment can override to PlanMode.oc for a
+          // mid-plan bailout leg, which must load open-circuit tissues
+          // here too, not the loop's constant-ppO2 setpoint regardless of
+          // the segment's own mode (caught by a Copilot review).
+          breathingFor(
+            plan,
+            segment.gasMix,
+            chunkAvg,
+            config: config,
+            segment: segment,
           ),
         );
         covered += chunk;
