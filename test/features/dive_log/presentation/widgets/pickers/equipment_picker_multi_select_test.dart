@@ -245,6 +245,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+      // The buttons scale down rather than overflow, so no exception alone
+      // proves little: check every control is on screen and none overlaps.
+      final title = tester.getRect(find.text("Ajouter de l'équipement"));
+      final cancel = tester.getRect(find.widgetWithText(TextButton, 'Annuler'));
+      final add = tester.getRect(find.byType(FilledButton));
+      final filter = tester.getRect(find.byIcon(Icons.filter_list));
+      final sort = tester.getRect(find.byIcon(Icons.sort));
+      for (final rect in [title, cancel, add, filter, sort]) {
+        expect(rect.left, greaterThanOrEqualTo(0));
+        expect(rect.right, lessThanOrEqualTo(320));
+      }
+      expect(title.right, lessThanOrEqualTo(cancel.left));
+      expect(cancel.right, lessThanOrEqualTo(add.left));
+      expect(filter.right, lessThanOrEqualTo(sort.left));
+      expect(filter.top, greaterThanOrEqualTo(add.bottom));
     });
   });
 }
