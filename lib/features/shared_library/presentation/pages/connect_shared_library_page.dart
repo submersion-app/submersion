@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/s3_server_fields.dart';
@@ -46,8 +48,12 @@ class _ConnectSharedLibraryPageState
   AccountKind _newKind = AccountKind.s3;
   String? _selectedAccountId;
   final _accountFormKey = GlobalKey<FormState>();
-  final _s3 = S3FormController(defaultPrefix: 'submersion-sites/');
-  final _webdav = WebDavFormController(defaultFolder: 'submersion-sites');
+  final _s3 = S3FormController(
+    defaultPrefix: '${SharedLibraryLayout.librariesDir}/',
+  );
+  final _webdav = WebDavFormController(
+    defaultFolder: SharedLibraryLayout.librariesDir,
+  );
 
   @override
   void dispose() {
@@ -78,7 +84,7 @@ class _ConnectSharedLibraryPageState
           if (list.isEmpty) {
             return ListView(
               padding: const EdgeInsets.all(16),
-              children: [_accountForm()],
+              children: [_accountForm(), ..._errorLine(context)],
             );
           }
           // The list rebuilds with new instances whenever an account
@@ -136,13 +142,7 @@ class _ConnectSharedLibraryPageState
                   child: Text(l10n.sharedLibrary_connect_probe_action),
                 ),
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
+              ..._errorLine(context),
               if (_probe != null) ...[const SizedBox(height: 16), _result()],
             ],
           );
@@ -150,6 +150,16 @@ class _ConnectSharedLibraryPageState
       ),
     );
   }
+
+  List<Widget> _errorLine(BuildContext context) => [
+    if (_error != null) ...[
+      const SizedBox(height: 12),
+      Text(
+        _error!,
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
+      ),
+    ],
+  ];
 
   Widget _noAccounts(BuildContext context) {
     final l10n = context.l10n;
@@ -251,9 +261,17 @@ class _ConnectSharedLibraryPageState
       final setup = ref.read(libraryAccountSetupProvider);
       final account = _newKind == AccountKind.s3
           ? await setup.saveS3(_s3.build())
-          : await setup.saveWebDav(_webdav.build());
-      ref.invalidate(eligibleLibraryAccountsProvider);
+          // A self-signed server is offered for trust, as in the WebDAV
+          // settings, before its pin is saved with the account.
+          : await setup.saveWebDav(
+              await runWithCertificateTrust(
+                context,
+                _webdav,
+                setup.reachWebDav,
+              ),
+            );
       if (!mounted) return;
+      ref.invalidate(eligibleLibraryAccountsProvider);
       setState(() {
         _selectedAccountId = account.id;
         _addingAccount = false;
@@ -311,6 +329,12 @@ class _ConnectSharedLibraryPageState
   Future<void> _runProbe() async {
     final account = _account;
     if (account == null) return;
+    if (!SharedLibraryTransport.isValidPrefix(_prefix.text.trim())) {
+      setState(
+        () => _error = context.l10n.settings_webdavConfig_validation_folder,
+      );
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;

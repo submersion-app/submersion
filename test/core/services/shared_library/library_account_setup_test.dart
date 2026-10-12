@@ -6,9 +6,12 @@ import 'package:submersion/core/services/accounts/account_credentials_store.dart
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 
+import '../../../helpers/fake_webdav_server.dart';
 import '../../../helpers/test_database.dart';
 import '../../../support/fake_keychain_storage.dart';
 
@@ -46,10 +49,14 @@ void main() {
 
       expect(account.kind, AccountKind.s3);
       expect(account.id, isNot(syncId));
-      expect(
-        (await ConnectedAccountsRepository().getById(account.id))?.label,
-        contains('submersion-sync'),
-      );
+      // Told apart from the sync account in the picker, which shares the
+      // bucket and so the 'bucket @ host' label.
+      final label = (await ConnectedAccountsRepository().getById(
+        account.id,
+      ))?.label;
+      expect(label, contains('submersion-sync'));
+      expect(label, contains('submersion-sites'));
+      expect(label, isNot('submersion-sync @ s3.eu-west-1.amazonaws.com'));
       final stored = jsonDecode((await credentials.read(account.id))!) as Map;
       expect(stored['accessKeyId'], 'AKIACLUB');
       expect(stored['prefix'], 'submersion-sites/');
@@ -70,5 +77,42 @@ void main() {
     final stored = jsonDecode((await credentials.read(account.id))!) as Map;
     expect(stored['folder'], 'submersion-sites');
     expect(stored['username'], 'ann');
+    expect(account.label, 'ann @ dav.example.com (submersion-sites)');
+  });
+
+  group('reachWebDav', () {
+    late FakeWebDavServer server;
+
+    setUp(() {
+      server = FakeWebDavServer();
+      setup = LibraryAccountSetup(
+        credentials: credentials,
+        webdavClient: (c) => WebDavClient(
+          c,
+          httpClient: server.client,
+          backoff: (_) => Duration.zero,
+        ),
+      );
+    });
+
+    WebDavConfig at(String url) =>
+        WebDavConfig(serverUrl: url, username: 'alice', password: 'secret');
+
+    test('reaches the server without writing to it', () async {
+      // A club may hand out a login that can only read.
+      final config = at('https://dav.test/dav');
+      expect(await setup.reachWebDav(config), config);
+      expect(
+        server.captured.map((r) => r.method),
+        everyElement(isIn(['PROPFIND', 'GET', 'HEAD', 'OPTIONS'])),
+      );
+    });
+
+    test('an address with no WebDAV folder is refused', () async {
+      await expectLater(
+        setup.reachWebDav(at('https://dav.test/nothing')),
+        throwsA(isA<WebDavException>()),
+      );
+    });
   });
 }

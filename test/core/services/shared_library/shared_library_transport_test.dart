@@ -116,6 +116,47 @@ void main() {
     expect((await t.readManifest())!['name'], 'Root');
   });
 
+  test('an empty folder does not read a nested library as its own', () async {
+    // S3 lists a prefix recursively: submersion-sites/ also holds every
+    // library below it, and club-a's files sort before the root's.
+    final bucket = _S3Bucket();
+    final clubA = SharedLibraryTransport(bucket, prefix: 'club-a');
+    await clubA.writeManifest({'id': 'A', 'name': 'A', 'formatVersion': 1});
+    await clubA.writeRoles(const SharedLibraryRoles(owners: {'m1'}));
+    final root = SharedLibraryTransport(bucket, prefix: '');
+    expect(await root.readManifest(), isNull);
+    expect(await root.readRoles(), SharedLibraryRoles.empty);
+  });
+
+  test(
+    'a library nested in a kind folder is not listed as that kind',
+    () async {
+      final bucket = _S3Bucket();
+      // Library 'sites' keeps its own sites in submersion-sites/sites/sites/.
+      await SharedLibraryTransport(
+        bucket,
+        prefix: 'sites',
+      ).writeSite(const SiteDocument(id: 's1', fields: {}));
+      final root = SharedLibraryTransport(bucket, prefix: '');
+      expect(await root.listSites(), isEmpty);
+    },
+  );
+
+  test('a folder with . or .. segments is refused', () async {
+    expect(SharedLibraryTransport.isValidPrefix('clubs/site-sync'), isTrue);
+    expect(SharedLibraryTransport.isValidPrefix(''), isTrue);
+    expect(SharedLibraryTransport.isValidPrefix('../submersion-sync'), isFalse);
+    expect(SharedLibraryTransport.isValidPrefix('a/./b'), isFalse);
+    final escape = SharedLibraryTransport(
+      _S3Bucket(),
+      prefix: '../submersion-sync',
+    );
+    await expectLater(
+      escape.writeManifest({'id': 'L'}),
+      throwsA(isA<CloudStorageException>()),
+    );
+  });
+
   test('isPermissionError recognises 403, 401 and AccessDenied', () {
     expect(
       SharedLibraryTransport.isPermissionError(
@@ -185,4 +226,58 @@ class _S3LikeFolders extends FakeCloudStorageProvider {
     uploadFolders.add(folderId);
     return super.uploadFile(data, filename, folderId: folderId);
   }
+}
+
+/// Keys as S3 stores them, and a listing as S3 returns it: every object
+/// under the prefix, however deep, named by its last segment.
+class _S3Bucket extends FakeCloudStorageProvider {
+  final _objects = <String, Uint8List>{};
+
+  @override
+  Future<String> createFolder(
+    String folderName, {
+    String? parentFolderId,
+  }) async => '${parentFolderId ?? ''}$folderName/';
+
+  @override
+  Future<UploadResult> uploadFile(
+    Uint8List data,
+    String filename, {
+    String? folderId,
+  }) async {
+    final key = '${folderId ?? ''}$filename';
+    _objects[key] = data;
+    return UploadResult(fileId: key, uploadTime: DateTime.utc(2026));
+  }
+
+  @override
+  Future<Uint8List> downloadFile(String fileId) async =>
+      _objects[fileId] ?? (throw CloudStorageException('missing $fileId'));
+
+  @override
+  Future<CloudFileInfo?> getFileInfo(String fileId) async {
+    final data = _objects[fileId];
+    return data == null ? null : _info(fileId, data);
+  }
+
+  @override
+  Future<List<CloudFileInfo>> listFiles({
+    String? folderId,
+    String? namePattern,
+  }) async {
+    final keys = _objects.keys.toList()..sort();
+    return [
+      for (final k in keys)
+        if (k.startsWith(folderId ?? '') &&
+            (namePattern == null || k.split('/').last.contains(namePattern)))
+          _info(k, _objects[k]!),
+    ];
+  }
+
+  CloudFileInfo _info(String key, Uint8List data) => CloudFileInfo(
+    id: key,
+    name: key.split('/').last,
+    modifiedTime: DateTime.utc(2026),
+    sizeBytes: data.length,
+  );
 }

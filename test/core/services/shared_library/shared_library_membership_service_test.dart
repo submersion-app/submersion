@@ -119,6 +119,29 @@ void main() {
     );
   });
 
+  test('join reads the folder through one transport', () async {
+    await SharedLibraryTransport(
+      cloud,
+      prefix: 'club',
+    ).writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+    var built = 0;
+    final counting = SharedLibraryMembershipService(
+      store: SharedLibraryStore(),
+      transportFor: ({required account, required prefix}) async {
+        built++;
+        return SharedLibraryTransport(cloud, prefix: prefix);
+      },
+    );
+    await counting.join(
+      account: account,
+      prefix: 'club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    // Each transport resolves its folders afresh (MKCOL or stat on WebDAV).
+    expect(built, 1);
+  });
+
   test('setRole rewrites roles and refuses to demote the last owner', () async {
     final lib = await service.create(
       account: account,

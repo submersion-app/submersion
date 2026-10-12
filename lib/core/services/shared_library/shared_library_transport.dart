@@ -15,7 +15,7 @@ import 'package:submersion/core/services/shared_library/site_document.dart';
 /// once; an empty prefix is `submersion-sites` itself.
 class SharedLibraryTransport {
   SharedLibraryTransport(this._provider, {required String prefix})
-    : _prefix = prefix.trim().replaceAll(RegExp(r'^/+|/+$'), '');
+    : _prefix = _trimSlashes(prefix.trim());
 
   final CloudStorageProvider _provider;
   final String _prefix;
@@ -59,6 +59,24 @@ class SharedLibraryTransport {
     ).hasMatch(text);
   }
 
+  /// Whether [prefix] stays inside `submersion-sites`: a `.` or `..`
+  /// segment would lead a WebDAV server out of it.
+  static bool isValidPrefix(String prefix) =>
+      !prefix.split('/').map((s) => s.trim()).any((s) => s == '.' || s == '..');
+
+  static String _trimSlashes(String s) => s.replaceAll(RegExp(r'^/+|/+$'), '');
+
+  /// Whether [f] sits directly in [folderId]. S3 lists a prefix with every
+  /// object below it, so a folder's listing also holds the libraries nested
+  /// under it (all of them, for the empty folder that is `submersion-sites`
+  /// itself). Where ids are not paths under the folder, the name decides.
+  static bool _directlyIn(String folderId, CloudFileInfo f) {
+    final folder = _trimSlashes(folderId);
+    final id = _trimSlashes(f.id);
+    if (folder.isEmpty || !id.startsWith('$folder/')) return true;
+    return !id.substring(folder.length + 1).contains('/');
+  }
+
   // Folders
 
   /// The top of the storage: the bucket for S3, the server address for
@@ -73,6 +91,11 @@ class SharedLibraryTransport {
   /// empty prefix is `submersion-sites` itself.
   Future<String> _rootId() async {
     if (_root != null) return _root!;
+    if (!isValidPrefix(_prefix)) {
+      throw CloudStorageException(
+        'A library folder cannot contain . or .. segments: $_prefix',
+      );
+    }
     final libraries = await _provider.createFolder(
       SharedLibraryLayout.librariesDir,
       parentFolderId: _storageRoot,
@@ -106,7 +129,10 @@ class SharedLibraryTransport {
       namePattern: name,
     );
     for (final f in files) {
-      if (f.name == name || f.name.endsWith('/$name')) return f;
+      if ((f.name == name || f.name.endsWith('/$name')) &&
+          _directlyIn(folderId, f)) {
+        return f;
+      }
     }
     return null;
   }
@@ -136,7 +162,8 @@ class SharedLibraryTransport {
     return [
       for (final f in files)
         if (f.name.split('/').last.startsWith(prefix) &&
-            f.name.endsWith('.json'))
+            f.name.endsWith('.json') &&
+            _directlyIn(folderId, f))
           f,
     ];
   }

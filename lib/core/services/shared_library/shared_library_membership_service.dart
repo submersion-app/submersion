@@ -97,8 +97,9 @@ class SharedLibraryMembershipService {
   Future<LibraryProbe> probe({
     required domain.ConnectedAccount account,
     required String prefix,
-  }) async {
-    final t = await _transportFor(account: account, prefix: prefix);
+  }) async => _probeWith(await _transportFor(account: account, prefix: prefix));
+
+  static Future<LibraryProbe> _probeWith(SharedLibraryTransport t) async {
     final manifest = await t.readManifest();
     if (manifest == null) return const LibraryProbe(exists: false);
     return LibraryProbe(
@@ -175,7 +176,9 @@ class SharedLibraryMembershipService {
     required String diverId,
     required String displayName,
   }) async {
-    final found = await probe(account: account, prefix: prefix);
+    // One transport for the whole join: each resolves its folders afresh.
+    final t = await _transportFor(account: account, prefix: prefix);
+    final found = await _probeWith(t);
     if (!found.exists || found.id == null || found.id!.isEmpty) {
       throw StateError('No library at $prefix');
     }
@@ -184,7 +187,6 @@ class SharedLibraryMembershipService {
         'Library format ${found.formatVersion} needs a newer app',
       );
     }
-    final t = await _transportFor(account: account, prefix: prefix);
     final libraryId = found.id!;
     final name = found.name ?? prefix;
     final memberId = await _store.memberIdForDiver(diverId);
