@@ -14138,7 +14138,6 @@
   "pdf_averageDepth": "Profundidade Média",
   "pdf_uniqueSites": "Pontos Distintos",
   "pdf_hoursMinutes": "{hours}h {minutes}min",
-  "pdf_minutesShort": "{minutes}min",
   "pdf_minutes": "{minutes} min",
   "pdf_minutesCompact": "{minutes}min",
   "pdf_diverProfile": "Perfil do Mergulhador",

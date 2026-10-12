@@ -14138,7 +14138,6 @@
   "pdf_averageDepth": "Átlagos mélység",
   "pdf_uniqueSites": "Különböző merülőhelyek",
   "pdf_hoursMinutes": "{hours} ó {minutes} p",
-  "pdf_minutesShort": "{minutes} p",
   "pdf_minutes": "{minutes} perc",
   "pdf_minutesCompact": "{minutes} p",
   "pdf_diverProfile": "Búvárprofil",

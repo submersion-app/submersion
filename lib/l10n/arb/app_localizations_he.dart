@@ -13637,11 +13637,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes דק\'';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes דק\'';
   }

@@ -14138,7 +14138,6 @@
   "pdf_averageDepth": "עומק ממוצע",
   "pdf_uniqueSites": "אתרים שונים",
   "pdf_hoursMinutes": "{hours} שע' {minutes} דק'",
-  "pdf_minutesShort": "{minutes} דק'",
   "pdf_minutes": "{minutes} דק'",
   "pdf_minutesCompact": "{minutes} דק'",
   "pdf_diverProfile": "פרופיל צולל",

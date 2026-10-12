@@ -22627,12 +22627,6 @@ abstract class AppLocalizations {
   /// **'{hours}h {minutes}m'**
   String pdf_hoursMinutes(String hours, String minutes);
 
-  /// No description provided for @pdf_minutesShort.
-  ///
-  /// In en, this message translates to:
-  /// **'{minutes}m'**
-  String pdf_minutesShort(String minutes);
-
   /// No description provided for @pdf_minutes.
   ///
   /// In en, this message translates to:

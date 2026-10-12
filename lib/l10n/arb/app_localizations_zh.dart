@@ -13297,11 +13297,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes分钟';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes 分钟';
   }

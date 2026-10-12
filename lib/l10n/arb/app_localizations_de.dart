@@ -13931,11 +13931,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes min';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes Min.';
   }

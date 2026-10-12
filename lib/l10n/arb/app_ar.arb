@@ -14138,7 +14138,6 @@
   "pdf_averageDepth": "متوسط العمق",
   "pdf_uniqueSites": "المواقع المختلفة",
   "pdf_hoursMinutes": "{hours} س {minutes} د",
-  "pdf_minutesShort": "{minutes} د",
   "pdf_minutes": "{minutes} دقيقة",
   "pdf_minutesCompact": "{minutes} د",
   "pdf_diverProfile": "ملف الغواص",

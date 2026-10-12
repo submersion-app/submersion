@@ -8157,7 +8157,6 @@
   "pdf_averageDepth": "Average Depth",
   "pdf_uniqueSites": "Unique Sites",
   "pdf_hoursMinutes": "{hours}h {minutes}m",
-  "pdf_minutesShort": "{minutes}m",
   "pdf_minutes": "{minutes} min",
   "pdf_minutesCompact": "{minutes}min",
   "pdf_diverProfile": "Diver Profile",
@@ -8324,13 +8323,6 @@
       "hours": {
         "type": "String"
       },
-      "minutes": {
-        "type": "String"
-      }
-    }
-  },
-  "@pdf_minutesShort": {
-    "placeholders": {
       "minutes": {
         "type": "String"
       }

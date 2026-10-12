@@ -14094,11 +14094,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes د';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes دقيقة';
   }

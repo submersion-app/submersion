@@ -14138,7 +14138,6 @@
   "pdf_averageDepth": "平均深度",
   "pdf_uniqueSites": "不同潜水点",
   "pdf_hoursMinutes": "{hours}小时{minutes}分钟",
-  "pdf_minutesShort": "{minutes}分钟",
   "pdf_minutes": "{minutes} 分钟",
   "pdf_minutesCompact": "{minutes}分钟",
   "pdf_diverProfile": "潜水员档案",
