@@ -124,8 +124,10 @@ void main() {
     // The bailout tank carries no normal-loop consumption to chart in the
     // per-tank gas list -- it belongs in the bailout section instead (#3137
     // follow-up). The two loop slots -- the diluent and the oxygen supply
-    // entering CCR added -- each get a "used: ..." row there (#3220).
-    expect(find.textContaining('used:'), findsNWidgets(2));
+    // entering CCR added -- each get a "used: ..." row there (#3220), plus
+    // one more for the single bailout cylinder's own per-cylinder row in
+    // the bailout section, read the same way as the main list.
+    expect(find.textContaining('used:'), findsNWidgets(3));
   });
 
   testWidgets('the oxygen slot is loop consumption, listed in the main gas '
@@ -172,7 +174,9 @@ void main() {
       matching: find.byType(ListView),
     );
     expect(gasList, findsOneWidget);
-    expect(find.textContaining('used:'), findsNWidgets(2));
+    // Diluent + oxygen supply in the main list, plus the single bailout
+    // cylinder's own per-cylinder row in the bailout section.
+    expect(find.textContaining('used:'), findsNWidgets(3));
   });
 
   testWidgets('CCR settings edit all setpoints; switch depth accepts 0', (

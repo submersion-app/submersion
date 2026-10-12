@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
@@ -525,6 +525,14 @@ class BailoutSolver {
       // ppO2/END are computed where the gas was chosen -- the leg's maximum
       // on that gas -- and the two tables read alike.
       double? physicsDepth,
+      // Overrides physicsDepth for END alone, used only for the final
+      // surfacing leg: its ppO2 still reads the deeper end it leaves (the
+      // row above's own ppO2), but its END must read the depth it actually
+      // displays (0 m) -- there is no further stop downstream whose safety
+      // margin the deeper-end reading would protect, and reading it at the
+      // deeper end reintroduced the un-floored negative END this column
+      // exists to avoid (#3137).
+      double? endPhysicsDepth,
     }) {
       final lastFO2 = previousFO2;
       final lastFHe = previousFHe;
@@ -534,6 +542,7 @@ class BailoutSolver {
           (fO2 - lastFO2).abs() > 0.0005 ||
           (fHe - lastFHe).abs() > 0.0005;
       final pDepth = physicsDepth ?? depth;
+      final endDepth = endPhysicsDepth ?? pDepth;
       rows.add(
         PlanScheduleRow(
           kind: kind,
@@ -551,7 +560,7 @@ class BailoutSolver {
             GasMix(
               o2: fO2 * 100,
               he: fHe * 100,
-            ).end(pDepth, o2Narcotic: config.o2Narcotic),
+            ).end(endDepth, o2Narcotic: config.o2Narcotic),
           ),
         ),
       );
@@ -633,8 +642,17 @@ class BailoutSolver {
       if (i > 0) {
         // The merged-in travel time (#3138) breathes whatever gas carried
         // the diver INTO this stop -- the same gas the stop itself is on,
-        // per AscentGasPlan's "switch lands at the stop" design.
-        charge(stopTankId, travelSeconds.toDouble(), stop.depthMeters);
+        // per AscentGasPlan's "switch lands at the stop" design. Charged at
+        // the leg's own average depth, same as _ascentLiters: charging it
+        // at the stop's (shallower) depth alone undercounted every
+        // between-stops travel leg, so the per-tank total fell short of
+        // the worst case's own litersRequired by the same margin on every
+        // plan with more than one stop.
+        charge(
+          stopTankId,
+          travelSeconds.toDouble(),
+          (depth + stop.depthMeters) / 2.0,
+        );
       }
       charge(stopTankId, stop.durationSeconds.toDouble(), stop.depthMeters);
       depth = stop.depthMeters;
@@ -657,6 +675,7 @@ class BailoutSolver {
         fO2: fO2,
         fHe: gas.fHe,
         physicsDepth: depth,
+        endPhysicsDepth: 0,
       );
       charge(tankForGas(fO2, gas.fHe), travelSeconds.toDouble(), depth / 2.0);
     }

@@ -153,14 +153,19 @@ void main() {
 
       expect(find.text('end: -500L/-50bar'), findsOneWidget);
       // Two colour segments (covered share + shortfall), not the ordinary
-      // single-colour LinearProgressIndicator.
+      // single-colour LinearProgressIndicator. Scoped to opaque boxes: the
+      // initial route's own page-transition scrim is a transparent
+      // ColoredBox that `find.byType` would otherwise also pick up.
       expect(find.byType(LinearProgressIndicator), findsNothing);
-      expect(find.byType(ColoredBox), findsNWidgets(2));
+      final barBoxes = find.byWidgetPredicate(
+        (w) => w is ColoredBox && w.color.a > 0,
+      );
+      expect(barBoxes, findsNWidgets(2));
       // Both segments must actually occupy the bar's 4 px height: a Row
       // hands childless ColoredBoxes loose cross-axis constraints, under
       // which they collapse to 0 px tall and render nothing.
       final segmentSizes = tester
-          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .widgetList<ColoredBox>(barBoxes)
           .map((w) => tester.getSize(find.byWidget(w)))
           .toList();
       for (final size in segmentSizes) {
@@ -318,8 +323,12 @@ void main() {
     expect(find.text('→'), findsOneWidget);
     expect(find.text('↗'), findsWidgets);
     expect(find.text('−'), findsWidgets);
-    // Gas section rendered a per-tank consumption bar.
-    expect(find.byType(LinearProgressIndicator), findsWidgets);
+    // Gas section rendered a per-tank consumption row. A 45 m/25-minute
+    // bottom time on a single AL80 of air runs up a deco obligation that
+    // exceeds the cylinder's own capacity, so this renders the over-budget
+    // two-colour bar (#3190) rather than the ordinary LinearProgressIndicator
+    // -- "used:" covers both.
+    expect(find.textContaining('used:'), findsWidgets);
     // Air at 45 m trips the critical gas-density issue (issues sit below
     // the contingency tables — scroll the unique section header into the
     // lazy viewport, then nudge so the issue rows build).
