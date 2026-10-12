@@ -36804,6 +36804,12 @@ abstract class AppLocalizations {
   /// **'Linked item'**
   String get settings_conflict_field_sourceItemId;
 
+  /// No description provided for @settings_conflict_field_sourceMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra data from the source'**
+  String get settings_conflict_field_sourceMetadata;
+
   /// No description provided for @settings_conflict_field_sourceRef.
   ///
   /// In en, this message translates to:

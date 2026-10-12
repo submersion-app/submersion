@@ -22889,6 +22889,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Verknüpfter Punkt';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Zusätzliche Daten der Quelle';
+
+  @override
   String get settings_conflict_field_sourceRef => 'Quelldatei oder Gerät';
 
   @override

@@ -22922,6 +22922,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Item vinculado';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Dados adicionais da origem';
+
+  @override
   String get settings_conflict_field_sourceRef =>
       'Arquivo ou dispositivo de origem';
 

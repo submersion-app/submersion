@@ -6699,6 +6699,7 @@
   "settings_conflict_field_sourceFileName": "源文件名",
   "settings_conflict_field_sourceFormat": "源格式",
   "settings_conflict_field_sourceItemId": "关联条目",
+  "settings_conflict_field_sourceMetadata": "来源附加数据",
   "settings_conflict_field_sourceRef": "源文件或设备",
   "settings_conflict_field_sourceTankIndex": "源日志中的气瓶编号",
   "settings_conflict_field_sourceType": "来源",

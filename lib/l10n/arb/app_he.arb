@@ -6551,6 +6551,7 @@
   "settings_conflict_field_sourceFileName": "שם קובץ המקור",
   "settings_conflict_field_sourceFormat": "פורמט המקור",
   "settings_conflict_field_sourceItemId": "פריט מקושר",
+  "settings_conflict_field_sourceMetadata": "נתונים נוספים מהמקור",
   "settings_conflict_field_sourceRef": "קובץ או מכשיר המקור",
   "settings_conflict_field_sourceTankIndex": "מספר הבלון ביומן המקור",
   "settings_conflict_field_sourceType": "מקור",

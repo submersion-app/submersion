@@ -23112,6 +23112,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'عنصر مرتبط';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'بيانات إضافية من المصدر';
+
+  @override
   String get settings_conflict_field_sourceRef => 'الملف أو الجهاز المصدر';
 
   @override

@@ -6664,6 +6664,7 @@
   "settings_conflict_field_sourceFileName": "Name der Quelldatei",
   "settings_conflict_field_sourceFormat": "Quellformat",
   "settings_conflict_field_sourceItemId": "Verknüpfter Punkt",
+  "settings_conflict_field_sourceMetadata": "Zusätzliche Daten der Quelle",
   "settings_conflict_field_sourceRef": "Quelldatei oder Gerät",
   "settings_conflict_field_sourceTankIndex": "Flaschennummer im Quell-Logbuch",
   "settings_conflict_field_sourceType": "Quelle",

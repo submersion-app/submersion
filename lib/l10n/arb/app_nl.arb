@@ -6547,6 +6547,7 @@
   "settings_conflict_field_sourceFileName": "Naam van het bronbestand",
   "settings_conflict_field_sourceFormat": "Bronformaat",
   "settings_conflict_field_sourceItemId": "Gekoppeld item",
+  "settings_conflict_field_sourceMetadata": "Extra gegevens van de bron",
   "settings_conflict_field_sourceRef": "Bronbestand of -apparaat",
   "settings_conflict_field_sourceTankIndex": "Flesnummer in het bronlogboek",
   "settings_conflict_field_sourceType": "Bron",

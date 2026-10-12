@@ -13529,6 +13529,7 @@
   "settings_conflict_field_sourceFileName": "Source file name",
   "settings_conflict_field_sourceFormat": "Source format",
   "settings_conflict_field_sourceItemId": "Linked item",
+  "settings_conflict_field_sourceMetadata": "Extra data from the source",
   "settings_conflict_field_sourceRef": "Source file or device",
   "settings_conflict_field_sourceTankIndex": "Tank number in the source log",
   "settings_conflict_field_sourceType": "Source",

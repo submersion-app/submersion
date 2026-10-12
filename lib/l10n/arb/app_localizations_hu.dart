@@ -22826,6 +22826,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Kapcsolt elem';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'További adatok a forrásból';
+
+  @override
   String get settings_conflict_field_sourceRef => 'Forrásfájl vagy -eszköz';
 
   @override

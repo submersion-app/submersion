@@ -22995,6 +22995,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Élément lié';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Données supplémentaires de la source';
+
+  @override
   String get settings_conflict_field_sourceRef => 'Fichier ou appareil source';
 
   @override

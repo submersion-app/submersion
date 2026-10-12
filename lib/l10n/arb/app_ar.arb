@@ -6547,6 +6547,7 @@
   "settings_conflict_field_sourceFileName": "اسم الملف المصدر",
   "settings_conflict_field_sourceFormat": "تنسيق المصدر",
   "settings_conflict_field_sourceItemId": "عنصر مرتبط",
+  "settings_conflict_field_sourceMetadata": "بيانات إضافية من المصدر",
   "settings_conflict_field_sourceRef": "الملف أو الجهاز المصدر",
   "settings_conflict_field_sourceTankIndex": "رقم الأسطوانة في السجل المصدر",
   "settings_conflict_field_sourceType": "المصدر",

@@ -21674,6 +21674,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => '关联条目';
 
   @override
+  String get settings_conflict_field_sourceMetadata => '来源附加数据';
+
+  @override
   String get settings_conflict_field_sourceRef => '源文件或设备';
 
   @override

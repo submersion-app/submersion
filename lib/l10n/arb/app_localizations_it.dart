@@ -22940,6 +22940,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Voce collegata';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Dati aggiuntivi dall\'origine';
+
+  @override
   String get settings_conflict_field_sourceRef =>
       'File o dispositivo di origine';
 

@@ -22776,6 +22776,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Gekoppeld item';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Extra gegevens van de bron';
+
+  @override
   String get settings_conflict_field_sourceRef => 'Bronbestand of -apparaat';
 
   @override

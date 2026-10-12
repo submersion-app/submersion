@@ -6547,6 +6547,7 @@
   "settings_conflict_field_sourceFileName": "Nome do arquivo de origem",
   "settings_conflict_field_sourceFormat": "Formato de origem",
   "settings_conflict_field_sourceItemId": "Item vinculado",
+  "settings_conflict_field_sourceMetadata": "Dados adicionais da origem",
   "settings_conflict_field_sourceRef": "Arquivo ou dispositivo de origem",
   "settings_conflict_field_sourceTankIndex": "Número do cilindro no registro de origem",
   "settings_conflict_field_sourceType": "Origem",
