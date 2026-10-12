@@ -242,7 +242,9 @@ class SelectionController extends ValueNotifier<SelectionState> {
     Iterable<String> Function(T rows) idsOf,
   ) {
     _rowsSettled.value = rows.hasSettled;
-    if (!rows.hasSettled) return;
+    // Settledness is recorded either way, so a bar opened later starts
+    // right; deriving ids is skipped when there is no selection to prune.
+    if (!rows.hasSettled || !value.isActive) return;
     final settledRows = rows.value;
     pruneTo(settledRows == null ? const [] : idsOf(settledRows).toList());
   }

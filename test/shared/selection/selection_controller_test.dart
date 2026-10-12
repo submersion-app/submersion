@@ -540,6 +540,19 @@ void main() {
       expect(controller.value.checkedIds, isEmpty);
     });
 
+    test('derives no ids while the mode is inactive', () {
+      final idle = SelectionController();
+      addTearDown(idle.dispose);
+      var derived = 0;
+      idle.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      idle.pruneToSettled(const AsyncData(['a']), (rows) {
+        derived++;
+        return rows;
+      });
+      expect(derived, 0);
+      expect(idle.rowsSettled.value, isTrue);
+    });
+
     test('notifies rowsSettled listeners only on a change', () {
       var calls = 0;
       controller.rowsSettled.addListener(() => calls++);
