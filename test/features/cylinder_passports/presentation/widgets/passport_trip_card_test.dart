@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/data/repositories/trip_equipment_repos
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -105,6 +106,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.packed.map((p) => p.$1), ['a']);
     expect(fake.packed.single.$2, ['tank']);
+  });
+
+  testWidgets('the picker marks the trips the cylinder is packed for and '
+      'leaves a slot-only trip pickable (issue #2654)', (tester) async {
+    final (l10n, fake) = await pump(
+      tester,
+      trips: [packed('a'), packed('b', slot: true, isPacked: false)],
+      allTrips: [trip('a'), trip('b')],
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(TripPickerSheet);
+    expect(tester.widget<TripPickerSheet>(sheet).packedTripIds, {'a'});
+    expect(
+      find.descendant(
+        of: sheet,
+        matching: find.text(l10n.trips_picker_alreadyPacked),
+      ),
+      findsOneWidget,
+    );
+    // A packed trip does nothing; the board-only trip packs.
+    await tester.tap(find.descendant(of: sheet, matching: find.text('Trip a')));
+    await tester.pumpAndSettle();
+    expect(fake.packed, isEmpty);
+    await tester.tap(find.descendant(of: sheet, matching: find.text('Trip b')));
+    await tester.pumpAndSettle();
+    expect(fake.packed.map((p) => p.$1), ['b']);
   });
 
   testWidgets('New trip packs for the trip it creates', (tester) async {

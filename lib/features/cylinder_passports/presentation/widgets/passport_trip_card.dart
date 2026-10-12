@@ -32,6 +32,15 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
   Future<void> _assign() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    // Packing for one of these again would change nothing, so the picker
+    // marks them and will not pick them (issue #2654). A slot-only trip stays
+    // pickable: picking it packs the cylinder too.
+    final packedTripIds = {
+      for (final p
+          in ref.read(equipmentTripsProvider(widget.equipmentId)).value ??
+              const <PackedTrip>[])
+        if (p.packed) p.trip.id,
+    };
     final picked = await showModalBottomSheet<Object>(
       context: context,
       isScrollControlled: true,
@@ -43,6 +52,7 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
         builder: (_, scrollController) => TripPickerSheet(
           scrollController: scrollController,
           selectedTrip: null,
+          packedTripIds: packedTripIds,
           onTripSelected: (trip) => Navigator.of(sheetContext).pop(trip),
           onCreateNewTrip: () => Navigator.of(sheetContext).pop(_newTrip),
         ),
