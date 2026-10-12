@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
+import 'package:submersion/features/media/presentation/widgets/media_thumbnail_zoom_anchor.dart';
 
 /// Whether the key that turns the wheel into a size control is down: Ctrl,
 /// or Cmd on macOS, which keeps Ctrl + scroll for its own accessibility
@@ -23,27 +24,53 @@ bool _zoomModifierPressed() {
 /// The scroll views under [child] must use [MediaThumbnailWheelZoomPhysics],
 /// or they take the wheel for themselves as soon as they have anything to
 /// scroll.
-class MediaThumbnailWheelZoom extends ConsumerWidget {
+///
+/// The thumbnail under the cursor is noted as the size changes and offered
+/// to those views through [MediaThumbnailZoomAnchorScope], so they can keep
+/// it on the cursor's line.
+class MediaThumbnailWheelZoom extends ConsumerStatefulWidget {
   const MediaThumbnailWheelZoom({super.key, required this.child});
 
   final Widget child;
 
-  void _onPointerSignal(WidgetRef ref, PointerSignalEvent event) {
+  @override
+  ConsumerState<MediaThumbnailWheelZoom> createState() =>
+      _MediaThumbnailWheelZoomState();
+}
+
+class _MediaThumbnailWheelZoomState
+    extends ConsumerState<MediaThumbnailWheelZoom> {
+  final _anchor = MediaThumbnailZoomAnchorHolder();
+
+  void _onPointerSignal(PointerSignalEvent event) {
     if (event is! PointerScrollEvent) return;
     final dy = event.scrollDelta.dy;
     if (dy == 0 || !_zoomModifierPressed()) return;
     GestureBinding.instance.pointerSignalResolver.register(event, (_) {
+      if (!mounted) return;
+      final notifier = ref.read(mediaThumbnailScaleProvider.notifier);
+      final before = ref.read(mediaThumbnailScaleProvider).step;
       // One stop per event, whatever distance it reports: a wheel sends one
       // event per click, and the distance varies by platform and mouse.
-      ref.read(mediaThumbnailScaleProvider.notifier).stepBy(dy < 0 ? 1 : -1);
+      notifier.stepBy(dy < 0 ? 1 : -1);
+      if (ref.read(mediaThumbnailScaleProvider).step == before) return;
+      final box = context.findRenderObject();
+      if (box is! RenderBox) return;
+      _anchor.capture(event.position, event.viewId, box);
+      // Only for the rebuild this step causes: a step that changes nothing
+      // on screen must not leave an anchor for the slider to trip over.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _anchor.clear());
     });
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Listener(
-      onPointerSignal: (event) => _onPointerSignal(ref, event),
-      child: child,
+      onPointerSignal: _onPointerSignal,
+      child: MediaThumbnailZoomAnchorScope(
+        holder: _anchor,
+        child: widget.child,
+      ),
     );
   }
 }
@@ -74,4 +101,28 @@ class MediaThumbnailWheelZoomPhysics extends ScrollPhysics {
   @override
   bool shouldAcceptUserOffset(ScrollMetrics position) =>
       !_zoomModifierPressed() && super.shouldAcceptUserOffset(position);
+
+  /// A zoom moves the offset before the new layout exists, so it can ask
+  /// for a place past the end of what the gallery turns out to hold. At
+  /// rest, the offset is brought back inside as the new extent arrives,
+  /// in the same frame and with no spring.
+  @override
+  double adjustPositionForNewDimensions({
+    required ScrollMetrics oldPosition,
+    required ScrollMetrics newPosition,
+    required bool isScrolling,
+    required double velocity,
+  }) {
+    final adjusted = super.adjustPositionForNewDimensions(
+      oldPosition: oldPosition,
+      newPosition: newPosition,
+      isScrolling: isScrolling,
+      velocity: velocity,
+    );
+    if (isScrolling) return adjusted;
+    return adjusted.clamp(
+      newPosition.minScrollExtent,
+      newPosition.maxScrollExtent,
+    );
+  }
 }

@@ -176,7 +176,7 @@ void main() {
   // nothing to scroll ignores the wheel, which hid a version of this that
   // resized only until the content outgrew the pane.
   testWidgets('Ctrl + wheel resizes a gallery long enough to scroll, in every '
-      'thumbnail view, without scrolling it', (tester) async {
+      'thumbnail view, and the wheel alone still scrolls it', (tester) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -209,8 +209,6 @@ void main() {
           .state<ScrollableState>(find.byType(Scrollable).first)
           .position;
       expect(position.maxScrollExtent, greaterThan(0), reason: '$icon');
-      // Not always 0: a view swapped in takes over the last one's offset.
-      final before = position.pixels;
       container.read(mediaThumbnailScaleProvider.notifier).setStep(3);
       await tester.pumpAndSettle();
 
@@ -220,15 +218,239 @@ void main() {
       await wheel(100);
       await wheel(100);
       expect(step(), 2, reason: '$icon');
-      expect(position.pixels, before, reason: '$icon');
       await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
 
       // Without Ctrl the wheel scrolls again.
+      final before = position.pixels;
       await wheel(100);
       expect(position.pixels, before + 100, reason: '$icon');
       expect(step(), 2, reason: '$icon');
     }
   }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
+  group('zoom keeps the photo under the cursor on its line (issue #3297)', () {
+    // Thirteen photos a day, newest first, so the by-date view has many
+    // groups and the ones above the cursor change height with the size.
+    MediaLibraryEntry dated(int i) => MediaLibraryEntry(
+      item: MediaItem(
+        id: 'm$i',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.localFile,
+        filePath: '/tmp/m$i',
+        localPath: '/tmp/m$i',
+        takenAt: DateTime(2026, 6, 28).subtract(Duration(days: i ~/ 13)),
+        createdAt: DateTime(2026, 6, 1),
+        updatedAt: DateTime(2026, 6, 1),
+      ),
+    );
+
+    Future<ScrollPosition> open(WidgetTester tester, IconData mode) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final notifier = _SeededLibraryNotifier(
+        MediaLibraryState(entries: [for (var i = 0; i < 400; i++) dated(i)]),
+      );
+      await tester.pumpWidget(host(notifier));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(mode));
+      await tester.pumpAndSettle();
+      return tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+    }
+
+    Finder tileOf(String id) => find.byWidgetPredicate(
+      (w) => w is MediaLibraryTile && w.entry.item.id == id,
+    );
+
+    /// A thumbnail about halfway down the pane, and a point a third of the
+    /// way down it.
+    (String id, Offset cursor) pickTile(WidgetTester tester) {
+      for (final element in find.byType(MediaLibraryTile).evaluate()) {
+        final rect = tester.getRect(find.byWidget(element.widget));
+        if (rect.top > 450 && rect.top < 650 && rect.left > 300) {
+          final tile = element.widget as MediaLibraryTile;
+          return (
+            tile.entry.item.id,
+            Offset(rect.center.dx, rect.top + rect.height / 3),
+          );
+        }
+      }
+      fail('no thumbnail in the middle of the pane');
+    }
+
+    Future<void> ctrlWheel(
+      WidgetTester tester,
+      Offset cursor,
+      double dy, {
+      bool settle = true,
+    }) async {
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      pointer.hover(cursor);
+      await tester.sendEventToBinding(pointer.scroll(Offset(0, dy)));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      settle ? await tester.pumpAndSettle() : await tester.pump();
+    }
+
+    /// Where down the thumbnail [cursor] sits, 0 at its top to 1 at its foot.
+    double fractionDown(WidgetTester tester, String id, Offset cursor) {
+      final rect = tester.getRect(tileOf(id));
+      return (cursor.dy - rect.top) / rect.height;
+    }
+
+    for (final (name, mode) in [
+      ('gallery', Icons.grid_view),
+      ('by date', Icons.calendar_month),
+    ]) {
+      testWidgets('$name: zooming in and out', (tester) async {
+        final position = await open(tester, mode);
+        position.jumpTo(1500);
+        await tester.pumpAndSettle();
+        final (id, cursor) = pickTile(tester);
+        expect(fractionDown(tester, id, cursor), moreOrLessEquals(1 / 3));
+
+        // Larger, twice: a single frame each, so nothing settles into place.
+        await ctrlWheel(tester, cursor, -100, settle: false);
+        expect(
+          fractionDown(tester, id, cursor),
+          moreOrLessEquals(1 / 3, epsilon: 0.01),
+        );
+        await ctrlWheel(tester, cursor, -100, settle: false);
+        expect(
+          fractionDown(tester, id, cursor),
+          moreOrLessEquals(1 / 3, epsilon: 0.01),
+        );
+
+        // And smaller, past where it started. Not all the way: small
+        // enough, the photo is nearer the gallery's start than the cursor
+        // is to the top of the pane, which is the next tests' business.
+        for (var i = 0; i < 3; i++) {
+          await ctrlWheel(tester, cursor, 100, settle: false);
+          expect(
+            fractionDown(tester, id, cursor),
+            moreOrLessEquals(1 / 3, epsilon: 0.01),
+            reason: 'wheel down $i',
+          );
+        }
+        expect(tester.takeException(), isNull);
+      }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+    }
+
+    testWidgets('over the gap between two rows, holds the photo above', (
+      tester,
+    ) async {
+      final position = await open(tester, Icons.grid_view);
+      position.jumpTo(1500);
+      await tester.pumpAndSettle();
+      final (id, onTile) = pickTile(tester);
+      final foot = tester.getRect(tileOf(id)).bottom;
+      // Two pixels into the four between this row and the next.
+      final cursor = Offset(onTile.dx, foot + 2);
+
+      for (final dy in [-100.0, -100.0, 100.0, 100.0, 100.0]) {
+        await ctrlWheel(tester, cursor, dy, settle: false);
+        expect(
+          tester.getRect(tileOf(id)).bottom,
+          moreOrLessEquals(foot, epsilon: 0.5),
+          reason: 'wheel $dy',
+        );
+      }
+    }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
+    testWidgets('over the gap between two columns, holds a photo beside it', (
+      tester,
+    ) async {
+      final position = await open(tester, Icons.grid_view);
+      position.jumpTo(1500);
+      await tester.pumpAndSettle();
+      final (id, onTile) = pickTile(tester);
+      final rect = tester.getRect(tileOf(id));
+      final cursor = Offset(rect.right + 2, onTile.dy);
+
+      await ctrlWheel(tester, cursor, -100, settle: false);
+
+      expect(
+        fractionDown(tester, id, cursor),
+        moreOrLessEquals(1 / 3, epsilon: 0.01),
+      );
+    }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
+    testWidgets('over a date heading, holds the photo above it', (
+      tester,
+    ) async {
+      final position = await open(tester, Icons.calendar_month);
+      position.jumpTo(1500);
+      await tester.pumpAndSettle();
+      // A heading with photos above it on screen: under its text, the
+      // nearest thumbnail foot.
+      final headings = find.byWidgetPredicate(
+        (w) =>
+            w is Text &&
+            w.style?.fontSize ==
+                Theme.of(
+                  tester.element(find.byType(MediaLibraryView)),
+                ).textTheme.labelLarge?.fontSize,
+      );
+      Offset? cursor;
+      String? id;
+      double? foot;
+      for (final heading in headings.evaluate()) {
+        final at = tester.getCenter(find.byWidget(heading.widget));
+        if (at.dy < 200 || at.dy > 850) continue;
+        for (final element in find.byType(MediaLibraryTile).evaluate()) {
+          final rect = tester.getRect(find.byWidget(element.widget));
+          if (rect.bottom <= at.dy && at.dy - rect.bottom < 40) {
+            // The heading spans the pane; stand on it under this photo.
+            cursor = Offset(rect.center.dx, at.dy);
+            id = (element.widget as MediaLibraryTile).entry.item.id;
+            foot = rect.bottom;
+          }
+        }
+        if (cursor != null) break;
+      }
+      expect(cursor, isNotNull, reason: 'no heading under a photo on screen');
+
+      for (final dy in [-100.0, 100.0, 100.0]) {
+        await ctrlWheel(tester, cursor!, dy, settle: false);
+        expect(
+          tester.getRect(tileOf(id!)).bottom,
+          moreOrLessEquals(foot!, epsilon: 0.5),
+          reason: 'wheel $dy',
+        );
+      }
+    }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
+    testWidgets('stops at the start of the gallery', (tester) async {
+      final position = await open(tester, Icons.grid_view);
+      final first = tester.getRect(tileOf('m0'));
+      // The foot of a first-row photo: shrinking it would need the gallery
+      // to start below its own top.
+      final cursor = Offset(first.center.dx, first.bottom - 2);
+
+      await ctrlWheel(tester, cursor, 100, settle: false);
+
+      expect(position.pixels, 0);
+      expect(tester.getRect(tileOf('m0')).top, first.top);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
+    testWidgets('stops at the end of the gallery', (tester) async {
+      final position = await open(tester, Icons.grid_view);
+      position.jumpTo(position.maxScrollExtent);
+      await tester.pumpAndSettle();
+      final last = tester.getRect(tileOf('m399'));
+      // The top of a last-row photo: shrinking it leaves less gallery below
+      // than the pane below the cursor.
+      final cursor = Offset(last.center.dx, last.top + 2);
+
+      for (var i = 0; i < 3; i++) {
+        await ctrlWheel(tester, cursor, 100, settle: false);
+        expect(position.outOfRange, isFalse, reason: 'wheel down $i');
+        expect(position.pixels, position.maxScrollExtent);
+      }
+    }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+  });
 
   testWidgets('shows localized empty state when no entries', (tester) async {
     final notifier = _SeededLibraryNotifier(const MediaLibraryState());
