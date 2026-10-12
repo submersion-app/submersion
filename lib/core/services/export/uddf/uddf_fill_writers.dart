@@ -103,7 +103,12 @@ abstract final class UddfFillWriters {
         o2 == null) {
       return null;
     }
-    final he = _number(element, 'he');
+    // Helium may be left out (or blank) for none, but a value that is there
+    // and unreadable rejects the fill rather than restoring it as air, as
+    // the fills CSV does.
+    final heText = _read(element, 'he');
+    final he = heText == null ? null : double.tryParse(heText);
+    if (heText != null && he == null) return null;
     final pascal = _number(element, 'pressure');
     final kelvin = _number(element, 'temperature');
     return {

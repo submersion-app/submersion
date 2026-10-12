@@ -386,6 +386,7 @@ class UddfFullExportService {
         // Application data section for all non-standard data
         UddfExportBuilders.buildApplicationData(
           builder,
+          backup: true,
           equipment: equipment,
           equipmentTagIdsByItem: equipmentTagIdsByItem,
           certifications: certifications,

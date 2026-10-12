@@ -143,6 +143,22 @@ void main() {
     expect(rows.map((r) => r['id']), ['d']);
   });
 
+  test('an unreadable helium value drops the fill; a blank one is none', () {
+    const base =
+        '<passportid>pp</passportid>'
+        '<datetime>2026-10-01T14:05:00Z</datetime><o2>0.21</o2>';
+    final rows = UddfFillWriters.parseFills(
+      wrap(
+        '<cylinderfills>'
+        '<fill id="fill_bad">$base<he>bad</he></fill>'
+        '<fill id="fill_blank">$base<he> </he></fill>'
+        '</cylinderfills>',
+      ),
+    );
+    expect(rows.map((r) => r['id']), ['blank']);
+    expect(rows.single['hePercent'], 0.0);
+  });
+
   test('a zoneless time is read as local wall clock', () {
     final rows = UddfFillWriters.parseFills(
       wrap(

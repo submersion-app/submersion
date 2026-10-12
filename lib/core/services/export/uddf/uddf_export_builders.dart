@@ -815,6 +815,11 @@ class UddfExportBuilders {
     // A file shared with other people carries no purchase date, price or
     // currency on its items; a backup keeps them.
     bool omitPurchaseDetails = false,
+    // Only a full backup writes each item's tag identity and its clock list
+    // (issue #2651). A shared file must not hand the reader the sender's
+    // cylinder tags, and an empty clock list tells a restore to remove the
+    // default clocks of the gear it creates.
+    bool backup = false,
   }) {
     final catalog = certificationCatalog ?? CertificationCatalog.builtInOnly;
     // Gear provenance per dive (issue #1487): only rows attached through
@@ -984,14 +989,16 @@ class UddfExportBuilders {
                         );
                         // The item's tag identity (issue #2651), so a
                         // restore links the fills stored under it.
-                        if (_passportIdOf(item) case final passportId?) {
-                          builder.element('passportid', nest: passportId);
+                        if (backup) {
+                          if (_passportIdOf(item) case final passportId?) {
+                            builder.element('passportid', nest: passportId);
+                          }
+                          // The item's service clocks (issue #2651).
+                          UddfServiceClockWriters.writeSchedules(
+                            builder,
+                            serviceSchedulesByItem[item.id] ?? const [],
+                          );
                         }
-                        // The item's service clocks (issue #2651).
-                        UddfServiceClockWriters.writeSchedules(
-                          builder,
-                          serviceSchedulesByItem[item.id] ?? const [],
-                        );
                       },
                     );
                   }
