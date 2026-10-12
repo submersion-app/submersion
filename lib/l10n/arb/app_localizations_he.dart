@@ -20263,6 +20263,241 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_entry_subtitle => 'סנכרון באמצעות אחסון ענן';
 
   @override
+  String get sharedLibrary_settings_title => 'ספריות מועדון';
+
+  @override
+  String get sharedLibrary_settings_subtitle => 'קטלוגים משותפים של אתרי צלילה';
+
+  @override
+  String get sharedLibrary_list_empty => 'עדיין לא חוברה ספריית מועדון.';
+
+  @override
+  String get sharedLibrary_connect_action => 'חיבור ספרייה';
+
+  @override
+  String get sharedLibrary_connect_account_label => 'חשבון אחסון';
+
+  @override
+  String get sharedLibrary_connect_prefix_label => 'תיקייה (קידומת)';
+
+  @override
+  String get sharedLibrary_connect_prefix_help =>
+      'התיקייה בחשבון שבה המועדון שומר את הספרייה שלו.';
+
+  @override
+  String get sharedLibrary_connect_probe_action => 'בדיקה';
+
+  @override
+  String sharedLibrary_connect_join_action(String name) {
+    return 'הצטרפות אל $name';
+  }
+
+  @override
+  String get sharedLibrary_connect_create_action => 'יצירת ספרייה';
+
+  @override
+  String get sharedLibrary_connect_create_name_label => 'שם הספרייה';
+
+  @override
+  String get sharedLibrary_connect_displayName_label => 'השם שלך בספרייה זו';
+
+  @override
+  String get sharedLibrary_connect_notALibrary => 'אין כאן ספרייה עדיין.';
+
+  @override
+  String get sharedLibrary_connect_needsNewerApp =>
+      'ספרייה זו דורשת גרסה חדשה יותר של Submersion.';
+
+  @override
+  String get sharedLibrary_connect_onlyS3Webdav =>
+      'ספריות מועדון פועלות עם חשבונות S3 ו-WebDAV.';
+
+  @override
+  String get sharedLibrary_role_reader => 'קורא';
+
+  @override
+  String get sharedLibrary_role_editor => 'עורך';
+
+  @override
+  String get sharedLibrary_role_owner => 'בעלים';
+
+  @override
+  String get sharedLibrary_library_members => 'חברים';
+
+  @override
+  String sharedLibrary_library_memberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חברים',
+      one: 'חבר אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_library_syncNow => 'סנכרון עכשיו';
+
+  @override
+  String sharedLibrary_library_lastSync(String when) {
+    return 'סנכרון אחרון $when';
+  }
+
+  @override
+  String get sharedLibrary_library_neverSynced => 'טרם סונכרן';
+
+  @override
+  String get sharedLibrary_library_readOnlyBanner =>
+      'ההרשאות שלך מאפשרות קריאה בלבד. אפשר להציע שינויים ואחראי יחיל אותם.';
+
+  @override
+  String sharedLibrary_library_errorBanner(String error) {
+    return 'הסנכרון האחרון נכשל: $error';
+  }
+
+  @override
+  String get sharedLibrary_library_addMySites => 'הוספת האתרים שלי';
+
+  @override
+  String get sharedLibrary_library_suggestions => 'הצעות';
+
+  @override
+  String get sharedLibrary_library_leave => 'עזיבת הספרייה';
+
+  @override
+  String sharedLibrary_library_leaveConfirm_title(String name) {
+    return 'לעזוב את $name?';
+  }
+
+  @override
+  String get sharedLibrary_library_leaveConfirm_body =>
+      'אתרי המועדון שהצלילות שלך משתמשות בהם נשארים כעותקים אישיים. אתרי מועדון אחרים יוסרו מהמכשיר הזה.';
+
+  @override
+  String get sharedLibrary_library_rename_label => 'שם תצוגה';
+
+  @override
+  String get sharedLibrary_members_setRole => 'שינוי תפקיד';
+
+  @override
+  String get sharedLibrary_members_lastOwner =>
+      'אי אפשר להוריד בדרגה את הבעלים האחרון.';
+
+  @override
+  String sharedLibrary_site_badgeTooltip(String name) {
+    return 'ב$name';
+  }
+
+  @override
+  String sharedLibrary_site_lastEdited(String name, String when) {
+    return 'נערך לאחרונה על ידי $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_site_history => 'היסטוריית עריכות';
+
+  @override
+  String get sharedLibrary_site_addToLibrary => 'הוספה לספריית המועדון';
+
+  @override
+  String get sharedLibrary_site_chooseLibrary => 'בחירת ספרייה';
+
+  @override
+  String sharedLibrary_site_added(String name) {
+    return 'נוסף אל $name';
+  }
+
+  @override
+  String sharedLibrary_site_notConnectedHere(String name) {
+    return 'אתר זה נמצא ב$name, שאינה מחוברת במכשיר הזה.';
+  }
+
+  @override
+  String get sharedLibrary_site_connectHere => 'חיבור במכשיר הזה';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_title =>
+      'למחוק מספריית המועדון?';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_body =>
+      'חברים שהצלילות שלהם משתמשות באתר זה שומרים עותק אישי.';
+
+  @override
+  String get sharedLibrary_site_readerCannotDelete =>
+      'רק עורכים ובעלים מוחקים אתרי מועדון.';
+
+  @override
+  String get sharedLibrary_suggest_title => 'הצעת שינויים';
+
+  @override
+  String get sharedLibrary_suggest_note_label => 'הערה לאחראים';
+
+  @override
+  String get sharedLibrary_suggest_send => 'שליחה';
+
+  @override
+  String get sharedLibrary_suggest_sent => 'ההצעה נשלחה';
+
+  @override
+  String get sharedLibrary_suggest_nothingChanged => 'שום דבר לא השתנה.';
+
+  @override
+  String sharedLibrary_suggest_pending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count הצעות ממתינות',
+      one: 'הצעה אחת ממתינה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_suggest_withdraw => 'משיכה';
+
+  @override
+  String get sharedLibrary_inbox_title => 'הצעות';
+
+  @override
+  String get sharedLibrary_inbox_empty => 'אין הצעות ממתינות.';
+
+  @override
+  String sharedLibrary_inbox_from(String name, String when) {
+    return 'מאת $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_inbox_accept => 'אישור';
+
+  @override
+  String get sharedLibrary_inbox_dismiss => 'דחייה';
+
+  @override
+  String get sharedLibrary_inbox_siteDeleted => 'אתר זה נמחק מהספרייה.';
+
+  @override
+  String get sharedLibrary_inbox_before => 'לפני';
+
+  @override
+  String get sharedLibrary_inbox_after => 'אחרי';
+
+  @override
+  String get sharedLibrary_filter_library => 'ספרייה';
+
+  @override
+  String get sharedLibrary_filter_personal => 'אתרים אישיים';
+
+  @override
+  String get sharedLibrary_groupBy_library => 'ספרייה';
+
+  @override
+  String get sharedLibrary_groupBy_personalGroup => 'אישי';
+
+  @override
+  String get sharedLibrary_bulk_addToLibrary => 'הוספה לספריית המועדון';
+
+  @override
   String get settings_cloudSync_adopt_confirm => 'אימוץ הספרייה המשוחזרת';
 
   @override

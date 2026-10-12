@@ -20418,6 +20418,243 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_cloudSync_entry_subtitle => 'Sync via cloud storage';
 
   @override
+  String get sharedLibrary_settings_title => 'Club libraries';
+
+  @override
+  String get sharedLibrary_settings_subtitle => 'Shared dive-site catalogues';
+
+  @override
+  String get sharedLibrary_list_empty => 'No club library connected yet.';
+
+  @override
+  String get sharedLibrary_connect_action => 'Connect a library';
+
+  @override
+  String get sharedLibrary_connect_account_label => 'Storage account';
+
+  @override
+  String get sharedLibrary_connect_prefix_label => 'Folder (prefix)';
+
+  @override
+  String get sharedLibrary_connect_prefix_help =>
+      'The folder inside the account where the club keeps its library.';
+
+  @override
+  String get sharedLibrary_connect_probe_action => 'Check';
+
+  @override
+  String sharedLibrary_connect_join_action(String name) {
+    return 'Join $name';
+  }
+
+  @override
+  String get sharedLibrary_connect_create_action => 'Create library';
+
+  @override
+  String get sharedLibrary_connect_create_name_label => 'Library name';
+
+  @override
+  String get sharedLibrary_connect_displayName_label =>
+      'Your name in this library';
+
+  @override
+  String get sharedLibrary_connect_notALibrary => 'No library here yet.';
+
+  @override
+  String get sharedLibrary_connect_needsNewerApp =>
+      'This library needs a newer version of Submersion.';
+
+  @override
+  String get sharedLibrary_connect_onlyS3Webdav =>
+      'Club libraries work with S3 and WebDAV accounts.';
+
+  @override
+  String get sharedLibrary_role_reader => 'Reader';
+
+  @override
+  String get sharedLibrary_role_editor => 'Editor';
+
+  @override
+  String get sharedLibrary_role_owner => 'Owner';
+
+  @override
+  String get sharedLibrary_library_members => 'Members';
+
+  @override
+  String sharedLibrary_library_memberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_library_syncNow => 'Sync now';
+
+  @override
+  String sharedLibrary_library_lastSync(String when) {
+    return 'Last sync $when';
+  }
+
+  @override
+  String get sharedLibrary_library_neverSynced => 'Not synced yet';
+
+  @override
+  String get sharedLibrary_library_readOnlyBanner =>
+      'Your credentials allow reading only. You can suggest changes; a referent applies them.';
+
+  @override
+  String sharedLibrary_library_errorBanner(String error) {
+    return 'Last sync failed: $error';
+  }
+
+  @override
+  String get sharedLibrary_library_addMySites => 'Add my sites';
+
+  @override
+  String get sharedLibrary_library_suggestions => 'Suggestions';
+
+  @override
+  String get sharedLibrary_library_leave => 'Leave library';
+
+  @override
+  String sharedLibrary_library_leaveConfirm_title(String name) {
+    return 'Leave $name?';
+  }
+
+  @override
+  String get sharedLibrary_library_leaveConfirm_body =>
+      'Club sites your dives use stay as personal copies. Other club sites are removed from this device.';
+
+  @override
+  String get sharedLibrary_library_rename_label => 'Display name';
+
+  @override
+  String get sharedLibrary_members_setRole => 'Change role';
+
+  @override
+  String get sharedLibrary_members_lastOwner =>
+      'The last owner cannot be demoted.';
+
+  @override
+  String sharedLibrary_site_badgeTooltip(String name) {
+    return 'In $name';
+  }
+
+  @override
+  String sharedLibrary_site_lastEdited(String name, String when) {
+    return 'Last edited by $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_site_history => 'Edit history';
+
+  @override
+  String get sharedLibrary_site_addToLibrary => 'Add to club library';
+
+  @override
+  String get sharedLibrary_site_chooseLibrary => 'Choose a library';
+
+  @override
+  String sharedLibrary_site_added(String name) {
+    return 'Added to $name';
+  }
+
+  @override
+  String sharedLibrary_site_notConnectedHere(String name) {
+    return 'This site is in $name, which is not connected on this device.';
+  }
+
+  @override
+  String get sharedLibrary_site_connectHere => 'Connect on this device';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_title =>
+      'Delete from the club library?';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_body =>
+      'Members whose dives use this site keep a personal copy.';
+
+  @override
+  String get sharedLibrary_site_readerCannotDelete =>
+      'Only editors and owners delete club sites.';
+
+  @override
+  String get sharedLibrary_suggest_title => 'Suggest changes';
+
+  @override
+  String get sharedLibrary_suggest_note_label => 'Note for the referents';
+
+  @override
+  String get sharedLibrary_suggest_send => 'Send';
+
+  @override
+  String get sharedLibrary_suggest_sent => 'Suggestion sent';
+
+  @override
+  String get sharedLibrary_suggest_nothingChanged => 'Nothing changed.';
+
+  @override
+  String sharedLibrary_suggest_pending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggestions pending',
+      one: '1 suggestion pending',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_suggest_withdraw => 'Withdraw';
+
+  @override
+  String get sharedLibrary_inbox_title => 'Suggestions';
+
+  @override
+  String get sharedLibrary_inbox_empty => 'No suggestions waiting.';
+
+  @override
+  String sharedLibrary_inbox_from(String name, String when) {
+    return 'From $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_inbox_accept => 'Accept';
+
+  @override
+  String get sharedLibrary_inbox_dismiss => 'Dismiss';
+
+  @override
+  String get sharedLibrary_inbox_siteDeleted =>
+      'This site has been deleted from the library.';
+
+  @override
+  String get sharedLibrary_inbox_before => 'Before';
+
+  @override
+  String get sharedLibrary_inbox_after => 'After';
+
+  @override
+  String get sharedLibrary_filter_library => 'Library';
+
+  @override
+  String get sharedLibrary_filter_personal => 'Personal sites';
+
+  @override
+  String get sharedLibrary_groupBy_library => 'Library';
+
+  @override
+  String get sharedLibrary_groupBy_personalGroup => 'Personal';
+
+  @override
+  String get sharedLibrary_bulk_addToLibrary => 'Add to club library';
+
+  @override
   String get settings_cloudSync_adopt_confirm => 'Adopt Restored Library';
 
   @override

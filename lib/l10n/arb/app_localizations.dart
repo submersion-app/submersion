@@ -33197,6 +33197,390 @@ abstract class AppLocalizations {
   /// **'Sync via cloud storage'**
   String get settings_cloudSync_entry_subtitle;
 
+  /// No description provided for @sharedLibrary_settings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Club libraries'**
+  String get sharedLibrary_settings_title;
+
+  /// No description provided for @sharedLibrary_settings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared dive-site catalogues'**
+  String get sharedLibrary_settings_subtitle;
+
+  /// No description provided for @sharedLibrary_list_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No club library connected yet.'**
+  String get sharedLibrary_list_empty;
+
+  /// No description provided for @sharedLibrary_connect_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a library'**
+  String get sharedLibrary_connect_action;
+
+  /// No description provided for @sharedLibrary_connect_account_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage account'**
+  String get sharedLibrary_connect_account_label;
+
+  /// No description provided for @sharedLibrary_connect_prefix_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder (prefix)'**
+  String get sharedLibrary_connect_prefix_label;
+
+  /// No description provided for @sharedLibrary_connect_prefix_help.
+  ///
+  /// In en, this message translates to:
+  /// **'The folder inside the account where the club keeps its library.'**
+  String get sharedLibrary_connect_prefix_help;
+
+  /// No description provided for @sharedLibrary_connect_probe_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get sharedLibrary_connect_probe_action;
+
+  /// No description provided for @sharedLibrary_connect_join_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {name}'**
+  String sharedLibrary_connect_join_action(String name);
+
+  /// No description provided for @sharedLibrary_connect_create_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Create library'**
+  String get sharedLibrary_connect_create_action;
+
+  /// No description provided for @sharedLibrary_connect_create_name_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Library name'**
+  String get sharedLibrary_connect_create_name_label;
+
+  /// No description provided for @sharedLibrary_connect_displayName_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name in this library'**
+  String get sharedLibrary_connect_displayName_label;
+
+  /// No description provided for @sharedLibrary_connect_notALibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'No library here yet.'**
+  String get sharedLibrary_connect_notALibrary;
+
+  /// No description provided for @sharedLibrary_connect_needsNewerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'This library needs a newer version of Submersion.'**
+  String get sharedLibrary_connect_needsNewerApp;
+
+  /// No description provided for @sharedLibrary_connect_onlyS3Webdav.
+  ///
+  /// In en, this message translates to:
+  /// **'Club libraries work with S3 and WebDAV accounts.'**
+  String get sharedLibrary_connect_onlyS3Webdav;
+
+  /// No description provided for @sharedLibrary_role_reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Reader'**
+  String get sharedLibrary_role_reader;
+
+  /// No description provided for @sharedLibrary_role_editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Editor'**
+  String get sharedLibrary_role_editor;
+
+  /// No description provided for @sharedLibrary_role_owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get sharedLibrary_role_owner;
+
+  /// No description provided for @sharedLibrary_library_members.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get sharedLibrary_library_members;
+
+  /// No description provided for @sharedLibrary_library_memberCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 member} other{{count} members}}'**
+  String sharedLibrary_library_memberCount(int count);
+
+  /// No description provided for @sharedLibrary_library_syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get sharedLibrary_library_syncNow;
+
+  /// No description provided for @sharedLibrary_library_lastSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync {when}'**
+  String sharedLibrary_library_lastSync(String when);
+
+  /// No description provided for @sharedLibrary_library_neverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get sharedLibrary_library_neverSynced;
+
+  /// No description provided for @sharedLibrary_library_readOnlyBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your credentials allow reading only. You can suggest changes; a referent applies them.'**
+  String get sharedLibrary_library_readOnlyBanner;
+
+  /// No description provided for @sharedLibrary_library_errorBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync failed: {error}'**
+  String sharedLibrary_library_errorBanner(String error);
+
+  /// No description provided for @sharedLibrary_library_addMySites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add my sites'**
+  String get sharedLibrary_library_addMySites;
+
+  /// No description provided for @sharedLibrary_library_suggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get sharedLibrary_library_suggestions;
+
+  /// No description provided for @sharedLibrary_library_leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave library'**
+  String get sharedLibrary_library_leave;
+
+  /// No description provided for @sharedLibrary_library_leaveConfirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave {name}?'**
+  String sharedLibrary_library_leaveConfirm_title(String name);
+
+  /// No description provided for @sharedLibrary_library_leaveConfirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Club sites your dives use stay as personal copies. Other club sites are removed from this device.'**
+  String get sharedLibrary_library_leaveConfirm_body;
+
+  /// No description provided for @sharedLibrary_library_rename_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get sharedLibrary_library_rename_label;
+
+  /// No description provided for @sharedLibrary_members_setRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Change role'**
+  String get sharedLibrary_members_setRole;
+
+  /// No description provided for @sharedLibrary_members_lastOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'The last owner cannot be demoted.'**
+  String get sharedLibrary_members_lastOwner;
+
+  /// No description provided for @sharedLibrary_site_badgeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'In {name}'**
+  String sharedLibrary_site_badgeTooltip(String name);
+
+  /// No description provided for @sharedLibrary_site_lastEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Last edited by {name}, {when}'**
+  String sharedLibrary_site_lastEdited(String name, String when);
+
+  /// No description provided for @sharedLibrary_site_history.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit history'**
+  String get sharedLibrary_site_history;
+
+  /// No description provided for @sharedLibrary_site_addToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to club library'**
+  String get sharedLibrary_site_addToLibrary;
+
+  /// No description provided for @sharedLibrary_site_chooseLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a library'**
+  String get sharedLibrary_site_chooseLibrary;
+
+  /// No description provided for @sharedLibrary_site_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to {name}'**
+  String sharedLibrary_site_added(String name);
+
+  /// No description provided for @sharedLibrary_site_notConnectedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'This site is in {name}, which is not connected on this device.'**
+  String sharedLibrary_site_notConnectedHere(String name);
+
+  /// No description provided for @sharedLibrary_site_connectHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect on this device'**
+  String get sharedLibrary_site_connectHere;
+
+  /// No description provided for @sharedLibrary_site_deleteFromLibrary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete from the club library?'**
+  String get sharedLibrary_site_deleteFromLibrary_title;
+
+  /// No description provided for @sharedLibrary_site_deleteFromLibrary_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Members whose dives use this site keep a personal copy.'**
+  String get sharedLibrary_site_deleteFromLibrary_body;
+
+  /// No description provided for @sharedLibrary_site_readerCannotDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Only editors and owners delete club sites.'**
+  String get sharedLibrary_site_readerCannotDelete;
+
+  /// No description provided for @sharedLibrary_suggest_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest changes'**
+  String get sharedLibrary_suggest_title;
+
+  /// No description provided for @sharedLibrary_suggest_note_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for the referents'**
+  String get sharedLibrary_suggest_note_label;
+
+  /// No description provided for @sharedLibrary_suggest_send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get sharedLibrary_suggest_send;
+
+  /// No description provided for @sharedLibrary_suggest_sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion sent'**
+  String get sharedLibrary_suggest_sent;
+
+  /// No description provided for @sharedLibrary_suggest_nothingChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing changed.'**
+  String get sharedLibrary_suggest_nothingChanged;
+
+  /// No description provided for @sharedLibrary_suggest_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 suggestion pending} other{{count} suggestions pending}}'**
+  String sharedLibrary_suggest_pending(int count);
+
+  /// No description provided for @sharedLibrary_suggest_withdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get sharedLibrary_suggest_withdraw;
+
+  /// No description provided for @sharedLibrary_inbox_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get sharedLibrary_inbox_title;
+
+  /// No description provided for @sharedLibrary_inbox_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestions waiting.'**
+  String get sharedLibrary_inbox_empty;
+
+  /// No description provided for @sharedLibrary_inbox_from.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}, {when}'**
+  String sharedLibrary_inbox_from(String name, String when);
+
+  /// No description provided for @sharedLibrary_inbox_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get sharedLibrary_inbox_accept;
+
+  /// No description provided for @sharedLibrary_inbox_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get sharedLibrary_inbox_dismiss;
+
+  /// No description provided for @sharedLibrary_inbox_siteDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'This site has been deleted from the library.'**
+  String get sharedLibrary_inbox_siteDeleted;
+
+  /// No description provided for @sharedLibrary_inbox_before.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get sharedLibrary_inbox_before;
+
+  /// No description provided for @sharedLibrary_inbox_after.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get sharedLibrary_inbox_after;
+
+  /// No description provided for @sharedLibrary_filter_library.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get sharedLibrary_filter_library;
+
+  /// No description provided for @sharedLibrary_filter_personal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal sites'**
+  String get sharedLibrary_filter_personal;
+
+  /// No description provided for @sharedLibrary_groupBy_library.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get sharedLibrary_groupBy_library;
+
+  /// No description provided for @sharedLibrary_groupBy_personalGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get sharedLibrary_groupBy_personalGroup;
+
+  /// No description provided for @sharedLibrary_bulk_addToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to club library'**
+  String get sharedLibrary_bulk_addToLibrary;
+
   /// No description provided for @settings_cloudSync_adopt_confirm.
   ///
   /// In en, this message translates to:

@@ -19704,6 +19704,232 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_entry_subtitle => '通过云存储同步';
 
   @override
+  String get sharedLibrary_settings_title => '俱乐部库';
+
+  @override
+  String get sharedLibrary_settings_subtitle => '共享潜点目录';
+
+  @override
+  String get sharedLibrary_list_empty => '尚未连接俱乐部库。';
+
+  @override
+  String get sharedLibrary_connect_action => '连接库';
+
+  @override
+  String get sharedLibrary_connect_account_label => '存储账户';
+
+  @override
+  String get sharedLibrary_connect_prefix_label => '文件夹（前缀）';
+
+  @override
+  String get sharedLibrary_connect_prefix_help => '俱乐部在该账户中存放库的文件夹。';
+
+  @override
+  String get sharedLibrary_connect_probe_action => '检查';
+
+  @override
+  String sharedLibrary_connect_join_action(String name) {
+    return '加入$name';
+  }
+
+  @override
+  String get sharedLibrary_connect_create_action => '创建库';
+
+  @override
+  String get sharedLibrary_connect_create_name_label => '库名称';
+
+  @override
+  String get sharedLibrary_connect_displayName_label => '您在此库中的名称';
+
+  @override
+  String get sharedLibrary_connect_notALibrary => '此处尚无库。';
+
+  @override
+  String get sharedLibrary_connect_needsNewerApp => '此库需要更新版本的 Submersion。';
+
+  @override
+  String get sharedLibrary_connect_onlyS3Webdav => '俱乐部库支持 S3 和 WebDAV 账户。';
+
+  @override
+  String get sharedLibrary_role_reader => '读者';
+
+  @override
+  String get sharedLibrary_role_editor => '编辑者';
+
+  @override
+  String get sharedLibrary_role_owner => '所有者';
+
+  @override
+  String get sharedLibrary_library_members => '成员';
+
+  @override
+  String sharedLibrary_library_memberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位成员',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_library_syncNow => '立即同步';
+
+  @override
+  String sharedLibrary_library_lastSync(String when) {
+    return '上次同步 $when';
+  }
+
+  @override
+  String get sharedLibrary_library_neverSynced => '尚未同步';
+
+  @override
+  String get sharedLibrary_library_readOnlyBanner =>
+      '您的凭据仅允许读取。您可以提出修改建议，由负责人应用。';
+
+  @override
+  String sharedLibrary_library_errorBanner(String error) {
+    return '上次同步失败：$error';
+  }
+
+  @override
+  String get sharedLibrary_library_addMySites => '添加我的潜点';
+
+  @override
+  String get sharedLibrary_library_suggestions => '建议';
+
+  @override
+  String get sharedLibrary_library_leave => '退出库';
+
+  @override
+  String sharedLibrary_library_leaveConfirm_title(String name) {
+    return '退出$name？';
+  }
+
+  @override
+  String get sharedLibrary_library_leaveConfirm_body =>
+      '您的潜水所使用的俱乐部潜点将保留为个人副本。其他俱乐部潜点将从此设备移除。';
+
+  @override
+  String get sharedLibrary_library_rename_label => '显示名称';
+
+  @override
+  String get sharedLibrary_members_setRole => '更改角色';
+
+  @override
+  String get sharedLibrary_members_lastOwner => '无法降级最后一位所有者。';
+
+  @override
+  String sharedLibrary_site_badgeTooltip(String name) {
+    return '位于$name';
+  }
+
+  @override
+  String sharedLibrary_site_lastEdited(String name, String when) {
+    return '最后由 $name 编辑于 $when';
+  }
+
+  @override
+  String get sharedLibrary_site_history => '编辑历史';
+
+  @override
+  String get sharedLibrary_site_addToLibrary => '添加到俱乐部库';
+
+  @override
+  String get sharedLibrary_site_chooseLibrary => '选择库';
+
+  @override
+  String sharedLibrary_site_added(String name) {
+    return '已添加到$name';
+  }
+
+  @override
+  String sharedLibrary_site_notConnectedHere(String name) {
+    return '此潜点属于$name，该库未在此设备上连接。';
+  }
+
+  @override
+  String get sharedLibrary_site_connectHere => '在此设备上连接';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_title => '从俱乐部库中删除？';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_body => '潜水使用此潜点的成员会保留个人副本。';
+
+  @override
+  String get sharedLibrary_site_readerCannotDelete => '只有编辑者和所有者才能删除俱乐部潜点。';
+
+  @override
+  String get sharedLibrary_suggest_title => '提出修改建议';
+
+  @override
+  String get sharedLibrary_suggest_note_label => '给负责人的备注';
+
+  @override
+  String get sharedLibrary_suggest_send => '发送';
+
+  @override
+  String get sharedLibrary_suggest_sent => '建议已发送';
+
+  @override
+  String get sharedLibrary_suggest_nothingChanged => '没有任何更改。';
+
+  @override
+  String sharedLibrary_suggest_pending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条待处理建议',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_suggest_withdraw => '撤回';
+
+  @override
+  String get sharedLibrary_inbox_title => '建议';
+
+  @override
+  String get sharedLibrary_inbox_empty => '没有待处理的建议。';
+
+  @override
+  String sharedLibrary_inbox_from(String name, String when) {
+    return '来自 $name，$when';
+  }
+
+  @override
+  String get sharedLibrary_inbox_accept => '接受';
+
+  @override
+  String get sharedLibrary_inbox_dismiss => '忽略';
+
+  @override
+  String get sharedLibrary_inbox_siteDeleted => '此潜点已从库中删除。';
+
+  @override
+  String get sharedLibrary_inbox_before => '修改前';
+
+  @override
+  String get sharedLibrary_inbox_after => '修改后';
+
+  @override
+  String get sharedLibrary_filter_library => '库';
+
+  @override
+  String get sharedLibrary_filter_personal => '个人潜点';
+
+  @override
+  String get sharedLibrary_groupBy_library => '库';
+
+  @override
+  String get sharedLibrary_groupBy_personalGroup => '个人';
+
+  @override
+  String get sharedLibrary_bulk_addToLibrary => '添加到俱乐部库';
+
+  @override
   String get settings_cloudSync_adopt_confirm => '采用恢复的资料库';
 
   @override

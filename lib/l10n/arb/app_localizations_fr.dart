@@ -20786,6 +20786,249 @@ class AppLocalizationsFr extends AppLocalizations {
       'Synchronisation via le stockage cloud';
 
   @override
+  String get sharedLibrary_settings_title => 'Bibliothèques de club';
+
+  @override
+  String get sharedLibrary_settings_subtitle =>
+      'Catalogues de sites de plongée partagés';
+
+  @override
+  String get sharedLibrary_list_empty =>
+      'Aucune bibliothèque de club connectée pour le moment.';
+
+  @override
+  String get sharedLibrary_connect_action => 'Connecter une bibliothèque';
+
+  @override
+  String get sharedLibrary_connect_account_label => 'Compte de stockage';
+
+  @override
+  String get sharedLibrary_connect_prefix_label => 'Dossier (préfixe)';
+
+  @override
+  String get sharedLibrary_connect_prefix_help =>
+      'Le dossier du compte où le club conserve sa bibliothèque.';
+
+  @override
+  String get sharedLibrary_connect_probe_action => 'Vérifier';
+
+  @override
+  String sharedLibrary_connect_join_action(String name) {
+    return 'Rejoindre $name';
+  }
+
+  @override
+  String get sharedLibrary_connect_create_action => 'Créer la bibliothèque';
+
+  @override
+  String get sharedLibrary_connect_create_name_label =>
+      'Nom de la bibliothèque';
+
+  @override
+  String get sharedLibrary_connect_displayName_label =>
+      'Votre nom dans cette bibliothèque';
+
+  @override
+  String get sharedLibrary_connect_notALibrary =>
+      'Aucune bibliothèque ici pour le moment.';
+
+  @override
+  String get sharedLibrary_connect_needsNewerApp =>
+      'Cette bibliothèque nécessite une version plus récente de Submersion.';
+
+  @override
+  String get sharedLibrary_connect_onlyS3Webdav =>
+      'Les bibliothèques de club fonctionnent avec des comptes S3 et WebDAV.';
+
+  @override
+  String get sharedLibrary_role_reader => 'Lecteur';
+
+  @override
+  String get sharedLibrary_role_editor => 'Éditeur';
+
+  @override
+  String get sharedLibrary_role_owner => 'Propriétaire';
+
+  @override
+  String get sharedLibrary_library_members => 'Membres';
+
+  @override
+  String sharedLibrary_library_memberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count membres',
+      one: '$count membre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_library_syncNow => 'Synchroniser maintenant';
+
+  @override
+  String sharedLibrary_library_lastSync(String when) {
+    return 'Dernière synchronisation $when';
+  }
+
+  @override
+  String get sharedLibrary_library_neverSynced => 'Pas encore synchronisée';
+
+  @override
+  String get sharedLibrary_library_readOnlyBanner =>
+      'Vos identifiants permettent uniquement la lecture. Vous pouvez suggérer des modifications, un référent les appliquera.';
+
+  @override
+  String sharedLibrary_library_errorBanner(String error) {
+    return 'La dernière synchronisation a échoué : $error';
+  }
+
+  @override
+  String get sharedLibrary_library_addMySites => 'Ajouter mes sites';
+
+  @override
+  String get sharedLibrary_library_suggestions => 'Suggestions';
+
+  @override
+  String get sharedLibrary_library_leave => 'Quitter la bibliothèque';
+
+  @override
+  String sharedLibrary_library_leaveConfirm_title(String name) {
+    return 'Quitter $name ?';
+  }
+
+  @override
+  String get sharedLibrary_library_leaveConfirm_body =>
+      'Les sites du club utilisés par vos plongées restent en copies personnelles. Les autres sites du club sont retirés de cet appareil.';
+
+  @override
+  String get sharedLibrary_library_rename_label => 'Nom affiché';
+
+  @override
+  String get sharedLibrary_members_setRole => 'Changer le rôle';
+
+  @override
+  String get sharedLibrary_members_lastOwner =>
+      'Le dernier propriétaire ne peut pas être rétrogradé.';
+
+  @override
+  String sharedLibrary_site_badgeTooltip(String name) {
+    return 'Dans $name';
+  }
+
+  @override
+  String sharedLibrary_site_lastEdited(String name, String when) {
+    return 'Dernière modification par $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_site_history => 'Historique des modifications';
+
+  @override
+  String get sharedLibrary_site_addToLibrary =>
+      'Ajouter à la bibliothèque du club';
+
+  @override
+  String get sharedLibrary_site_chooseLibrary => 'Choisir une bibliothèque';
+
+  @override
+  String sharedLibrary_site_added(String name) {
+    return 'Ajouté à $name';
+  }
+
+  @override
+  String sharedLibrary_site_notConnectedHere(String name) {
+    return 'Ce site est dans $name, qui n\'est pas connectée sur cet appareil.';
+  }
+
+  @override
+  String get sharedLibrary_site_connectHere => 'Connecter sur cet appareil';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_title =>
+      'Supprimer de la bibliothèque du club ?';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_body =>
+      'Les membres dont les plongées utilisent ce site en gardent une copie personnelle.';
+
+  @override
+  String get sharedLibrary_site_readerCannotDelete =>
+      'Seuls les éditeurs et les propriétaires suppriment des sites du club.';
+
+  @override
+  String get sharedLibrary_suggest_title => 'Suggérer des modifications';
+
+  @override
+  String get sharedLibrary_suggest_note_label => 'Note pour les référents';
+
+  @override
+  String get sharedLibrary_suggest_send => 'Envoyer';
+
+  @override
+  String get sharedLibrary_suggest_sent => 'Suggestion envoyée';
+
+  @override
+  String get sharedLibrary_suggest_nothingChanged => 'Rien n\'a changé.';
+
+  @override
+  String sharedLibrary_suggest_pending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggestions en attente',
+      one: '$count suggestion en attente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_suggest_withdraw => 'Retirer';
+
+  @override
+  String get sharedLibrary_inbox_title => 'Suggestions';
+
+  @override
+  String get sharedLibrary_inbox_empty => 'Aucune suggestion en attente.';
+
+  @override
+  String sharedLibrary_inbox_from(String name, String when) {
+    return 'De $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_inbox_accept => 'Accepter';
+
+  @override
+  String get sharedLibrary_inbox_dismiss => 'Ignorer';
+
+  @override
+  String get sharedLibrary_inbox_siteDeleted =>
+      'Ce site a été supprimé de la bibliothèque.';
+
+  @override
+  String get sharedLibrary_inbox_before => 'Avant';
+
+  @override
+  String get sharedLibrary_inbox_after => 'Après';
+
+  @override
+  String get sharedLibrary_filter_library => 'Bibliothèque';
+
+  @override
+  String get sharedLibrary_filter_personal => 'Sites personnels';
+
+  @override
+  String get sharedLibrary_groupBy_library => 'Bibliothèque';
+
+  @override
+  String get sharedLibrary_groupBy_personalGroup => 'Personnel';
+
+  @override
+  String get sharedLibrary_bulk_addToLibrary =>
+      'Ajouter à la bibliothèque du club';
+
+  @override
   String get settings_cloudSync_adopt_confirm =>
       'Adopter la bibliothèque restaurée';
 

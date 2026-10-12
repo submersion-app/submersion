@@ -20727,6 +20727,248 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sincronização via armazenamento na nuvem';
 
   @override
+  String get sharedLibrary_settings_title => 'Bibliotecas de clube';
+
+  @override
+  String get sharedLibrary_settings_subtitle =>
+      'Catálogos partilhados de locais de mergulho';
+
+  @override
+  String get sharedLibrary_list_empty =>
+      'Ainda não há nenhuma biblioteca de clube ligada.';
+
+  @override
+  String get sharedLibrary_connect_action => 'Ligar uma biblioteca';
+
+  @override
+  String get sharedLibrary_connect_account_label => 'Conta de armazenamento';
+
+  @override
+  String get sharedLibrary_connect_prefix_label => 'Pasta (prefixo)';
+
+  @override
+  String get sharedLibrary_connect_prefix_help =>
+      'A pasta dentro da conta onde o clube guarda a sua biblioteca.';
+
+  @override
+  String get sharedLibrary_connect_probe_action => 'Verificar';
+
+  @override
+  String sharedLibrary_connect_join_action(String name) {
+    return 'Aderir a $name';
+  }
+
+  @override
+  String get sharedLibrary_connect_create_action => 'Criar biblioteca';
+
+  @override
+  String get sharedLibrary_connect_create_name_label => 'Nome da biblioteca';
+
+  @override
+  String get sharedLibrary_connect_displayName_label =>
+      'O seu nome nesta biblioteca';
+
+  @override
+  String get sharedLibrary_connect_notALibrary =>
+      'Ainda não há nenhuma biblioteca aqui.';
+
+  @override
+  String get sharedLibrary_connect_needsNewerApp =>
+      'Esta biblioteca precisa de uma versão mais recente do Submersion.';
+
+  @override
+  String get sharedLibrary_connect_onlyS3Webdav =>
+      'As bibliotecas de clube funcionam com contas S3 e WebDAV.';
+
+  @override
+  String get sharedLibrary_role_reader => 'Leitor';
+
+  @override
+  String get sharedLibrary_role_editor => 'Editor';
+
+  @override
+  String get sharedLibrary_role_owner => 'Proprietário';
+
+  @override
+  String get sharedLibrary_library_members => 'Membros';
+
+  @override
+  String sharedLibrary_library_memberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count membros',
+      one: '$count membro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_library_syncNow => 'Sincronizar agora';
+
+  @override
+  String sharedLibrary_library_lastSync(String when) {
+    return 'Última sincronização $when';
+  }
+
+  @override
+  String get sharedLibrary_library_neverSynced => 'Ainda não sincronizada';
+
+  @override
+  String get sharedLibrary_library_readOnlyBanner =>
+      'As suas credenciais permitem apenas leitura. Pode sugerir alterações; um responsável aplica-as.';
+
+  @override
+  String sharedLibrary_library_errorBanner(String error) {
+    return 'A última sincronização falhou: $error';
+  }
+
+  @override
+  String get sharedLibrary_library_addMySites => 'Adicionar os meus locais';
+
+  @override
+  String get sharedLibrary_library_suggestions => 'Sugestões';
+
+  @override
+  String get sharedLibrary_library_leave => 'Sair da biblioteca';
+
+  @override
+  String sharedLibrary_library_leaveConfirm_title(String name) {
+    return 'Sair de $name?';
+  }
+
+  @override
+  String get sharedLibrary_library_leaveConfirm_body =>
+      'Os locais do clube usados pelos seus mergulhos ficam como cópias pessoais. Os restantes locais do clube são removidos deste dispositivo.';
+
+  @override
+  String get sharedLibrary_library_rename_label => 'Nome a apresentar';
+
+  @override
+  String get sharedLibrary_members_setRole => 'Alterar função';
+
+  @override
+  String get sharedLibrary_members_lastOwner =>
+      'O último proprietário não pode ser despromovido.';
+
+  @override
+  String sharedLibrary_site_badgeTooltip(String name) {
+    return 'Em $name';
+  }
+
+  @override
+  String sharedLibrary_site_lastEdited(String name, String when) {
+    return 'Última edição por $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_site_history => 'Histórico de edições';
+
+  @override
+  String get sharedLibrary_site_addToLibrary =>
+      'Adicionar à biblioteca do clube';
+
+  @override
+  String get sharedLibrary_site_chooseLibrary => 'Escolha uma biblioteca';
+
+  @override
+  String sharedLibrary_site_added(String name) {
+    return 'Adicionado a $name';
+  }
+
+  @override
+  String sharedLibrary_site_notConnectedHere(String name) {
+    return 'Este local está em $name, que não está ligada neste dispositivo.';
+  }
+
+  @override
+  String get sharedLibrary_site_connectHere => 'Ligar neste dispositivo';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_title =>
+      'Eliminar da biblioteca do clube?';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_body =>
+      'Os membros cujos mergulhos usam este local mantêm uma cópia pessoal.';
+
+  @override
+  String get sharedLibrary_site_readerCannotDelete =>
+      'Só editores e proprietários eliminam locais do clube.';
+
+  @override
+  String get sharedLibrary_suggest_title => 'Sugerir alterações';
+
+  @override
+  String get sharedLibrary_suggest_note_label => 'Nota para os responsáveis';
+
+  @override
+  String get sharedLibrary_suggest_send => 'Enviar';
+
+  @override
+  String get sharedLibrary_suggest_sent => 'Sugestão enviada';
+
+  @override
+  String get sharedLibrary_suggest_nothingChanged => 'Nada foi alterado.';
+
+  @override
+  String sharedLibrary_suggest_pending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sugestões pendentes',
+      one: '$count sugestão pendente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_suggest_withdraw => 'Retirar';
+
+  @override
+  String get sharedLibrary_inbox_title => 'Sugestões';
+
+  @override
+  String get sharedLibrary_inbox_empty => 'Não há sugestões pendentes.';
+
+  @override
+  String sharedLibrary_inbox_from(String name, String when) {
+    return 'De $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_inbox_accept => 'Aceitar';
+
+  @override
+  String get sharedLibrary_inbox_dismiss => 'Ignorar';
+
+  @override
+  String get sharedLibrary_inbox_siteDeleted =>
+      'Este local foi eliminado da biblioteca.';
+
+  @override
+  String get sharedLibrary_inbox_before => 'Antes';
+
+  @override
+  String get sharedLibrary_inbox_after => 'Depois';
+
+  @override
+  String get sharedLibrary_filter_library => 'Biblioteca';
+
+  @override
+  String get sharedLibrary_filter_personal => 'Locais pessoais';
+
+  @override
+  String get sharedLibrary_groupBy_library => 'Biblioteca';
+
+  @override
+  String get sharedLibrary_groupBy_personalGroup => 'Pessoais';
+
+  @override
+  String get sharedLibrary_bulk_addToLibrary =>
+      'Adicionar à biblioteca do clube';
+
+  @override
   String get settings_cloudSync_adopt_confirm =>
       'Adotar a biblioteca restaurada';
 

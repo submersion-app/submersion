@@ -20704,6 +20704,248 @@ class AppLocalizationsDe extends AppLocalizations {
       'Synchronisierung über Cloud-Speicher';
 
   @override
+  String get sharedLibrary_settings_title => 'Club-Bibliotheken';
+
+  @override
+  String get sharedLibrary_settings_subtitle => 'Gemeinsame Tauchplatzkataloge';
+
+  @override
+  String get sharedLibrary_list_empty =>
+      'Noch keine Club-Bibliothek verbunden.';
+
+  @override
+  String get sharedLibrary_connect_action => 'Bibliothek verbinden';
+
+  @override
+  String get sharedLibrary_connect_account_label => 'Speicherkonto';
+
+  @override
+  String get sharedLibrary_connect_prefix_label => 'Ordner (Präfix)';
+
+  @override
+  String get sharedLibrary_connect_prefix_help =>
+      'Der Ordner im Konto, in dem der Club seine Bibliothek ablegt.';
+
+  @override
+  String get sharedLibrary_connect_probe_action => 'Prüfen';
+
+  @override
+  String sharedLibrary_connect_join_action(String name) {
+    return '$name beitreten';
+  }
+
+  @override
+  String get sharedLibrary_connect_create_action => 'Bibliothek erstellen';
+
+  @override
+  String get sharedLibrary_connect_create_name_label => 'Name der Bibliothek';
+
+  @override
+  String get sharedLibrary_connect_displayName_label =>
+      'Dein Name in dieser Bibliothek';
+
+  @override
+  String get sharedLibrary_connect_notALibrary =>
+      'Hier gibt es noch keine Bibliothek.';
+
+  @override
+  String get sharedLibrary_connect_needsNewerApp =>
+      'Diese Bibliothek benötigt eine neuere Version von Submersion.';
+
+  @override
+  String get sharedLibrary_connect_onlyS3Webdav =>
+      'Club-Bibliotheken funktionieren mit S3- und WebDAV-Konten.';
+
+  @override
+  String get sharedLibrary_role_reader => 'Leser';
+
+  @override
+  String get sharedLibrary_role_editor => 'Bearbeiter';
+
+  @override
+  String get sharedLibrary_role_owner => 'Eigentümer';
+
+  @override
+  String get sharedLibrary_library_members => 'Mitglieder';
+
+  @override
+  String sharedLibrary_library_memberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mitglieder',
+      one: '1 Mitglied',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_library_syncNow => 'Jetzt synchronisieren';
+
+  @override
+  String sharedLibrary_library_lastSync(String when) {
+    return 'Letzte Synchronisierung $when';
+  }
+
+  @override
+  String get sharedLibrary_library_neverSynced => 'Noch nicht synchronisiert';
+
+  @override
+  String get sharedLibrary_library_readOnlyBanner =>
+      'Deine Zugangsdaten erlauben nur Lesen. Du kannst Änderungen vorschlagen; ein Verantwortlicher übernimmt sie.';
+
+  @override
+  String sharedLibrary_library_errorBanner(String error) {
+    return 'Letzte Synchronisierung fehlgeschlagen: $error';
+  }
+
+  @override
+  String get sharedLibrary_library_addMySites => 'Meine Tauchplätze hinzufügen';
+
+  @override
+  String get sharedLibrary_library_suggestions => 'Vorschläge';
+
+  @override
+  String get sharedLibrary_library_leave => 'Bibliothek verlassen';
+
+  @override
+  String sharedLibrary_library_leaveConfirm_title(String name) {
+    return '$name verlassen?';
+  }
+
+  @override
+  String get sharedLibrary_library_leaveConfirm_body =>
+      'Club-Tauchplätze, die deine Tauchgänge nutzen, bleiben als persönliche Kopien. Andere Club-Tauchplätze werden von diesem Gerät entfernt.';
+
+  @override
+  String get sharedLibrary_library_rename_label => 'Anzeigename';
+
+  @override
+  String get sharedLibrary_members_setRole => 'Rolle ändern';
+
+  @override
+  String get sharedLibrary_members_lastOwner =>
+      'Der letzte Eigentümer kann nicht herabgestuft werden.';
+
+  @override
+  String sharedLibrary_site_badgeTooltip(String name) {
+    return 'In $name';
+  }
+
+  @override
+  String sharedLibrary_site_lastEdited(String name, String when) {
+    return 'Zuletzt bearbeitet von $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_site_history => 'Bearbeitungsverlauf';
+
+  @override
+  String get sharedLibrary_site_addToLibrary =>
+      'Zur Club-Bibliothek hinzufügen';
+
+  @override
+  String get sharedLibrary_site_chooseLibrary => 'Bibliothek auswählen';
+
+  @override
+  String sharedLibrary_site_added(String name) {
+    return 'Zu $name hinzugefügt';
+  }
+
+  @override
+  String sharedLibrary_site_notConnectedHere(String name) {
+    return 'Dieser Tauchplatz liegt in $name, die auf diesem Gerät nicht verbunden ist.';
+  }
+
+  @override
+  String get sharedLibrary_site_connectHere => 'Auf diesem Gerät verbinden';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_title =>
+      'Aus der Club-Bibliothek löschen?';
+
+  @override
+  String get sharedLibrary_site_deleteFromLibrary_body =>
+      'Mitglieder, deren Tauchgänge diesen Tauchplatz nutzen, behalten eine persönliche Kopie.';
+
+  @override
+  String get sharedLibrary_site_readerCannotDelete =>
+      'Nur Bearbeiter und Eigentümer löschen Club-Tauchplätze.';
+
+  @override
+  String get sharedLibrary_suggest_title => 'Änderungen vorschlagen';
+
+  @override
+  String get sharedLibrary_suggest_note_label =>
+      'Hinweis für die Verantwortlichen';
+
+  @override
+  String get sharedLibrary_suggest_send => 'Senden';
+
+  @override
+  String get sharedLibrary_suggest_sent => 'Vorschlag gesendet';
+
+  @override
+  String get sharedLibrary_suggest_nothingChanged => 'Nichts geändert.';
+
+  @override
+  String sharedLibrary_suggest_pending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Vorschläge ausstehend',
+      one: '1 Vorschlag ausstehend',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_suggest_withdraw => 'Zurückziehen';
+
+  @override
+  String get sharedLibrary_inbox_title => 'Vorschläge';
+
+  @override
+  String get sharedLibrary_inbox_empty => 'Keine Vorschläge ausstehend.';
+
+  @override
+  String sharedLibrary_inbox_from(String name, String when) {
+    return 'Von $name, $when';
+  }
+
+  @override
+  String get sharedLibrary_inbox_accept => 'Übernehmen';
+
+  @override
+  String get sharedLibrary_inbox_dismiss => 'Verwerfen';
+
+  @override
+  String get sharedLibrary_inbox_siteDeleted =>
+      'Dieser Tauchplatz wurde aus der Bibliothek gelöscht.';
+
+  @override
+  String get sharedLibrary_inbox_before => 'Vorher';
+
+  @override
+  String get sharedLibrary_inbox_after => 'Nachher';
+
+  @override
+  String get sharedLibrary_filter_library => 'Bibliothek';
+
+  @override
+  String get sharedLibrary_filter_personal => 'Persönliche Tauchplätze';
+
+  @override
+  String get sharedLibrary_groupBy_library => 'Bibliothek';
+
+  @override
+  String get sharedLibrary_groupBy_personalGroup => 'Persönlich';
+
+  @override
+  String get sharedLibrary_bulk_addToLibrary =>
+      'Zur Club-Bibliothek hinzufügen';
+
+  @override
   String get settings_cloudSync_adopt_confirm =>
       'Wiederhergestellte Bibliothek übernehmen';
 
