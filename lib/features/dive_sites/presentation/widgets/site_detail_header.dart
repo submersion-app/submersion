@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_sites/presentation/site_difficulty_disp
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/site_attribution_line.dart';
 
 /// The site's name and what classifies it, directly under the map card at
 /// the top of Site Details.
@@ -67,6 +69,10 @@ class SiteDetailHeader extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(site.name, style: theme.textTheme.headlineSmall),
+                    if (site.isLibrarySite) ...[
+                      const SizedBox(height: 4),
+                      _LibraryLine(site: site),
+                    ],
                     if (rating != null && rating > 0) ...[
                       const SizedBox(height: 4),
                       _Rating(rating: rating),
@@ -144,6 +150,34 @@ class _Rating extends StatelessWidget {
           rating.toStringAsFixed(1),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
+      ],
+    );
+  }
+}
+
+/// The club library a site belongs to and who last edited it (issue
+/// #2567).
+class _LibraryLine extends ConsumerWidget {
+  const _LibraryLine({required this.site});
+
+  final DiveSite site;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final libraries = ref.watch(sharedLibrariesProvider).value;
+    var name = '';
+    for (final l in libraries ?? const []) {
+      if (l.id == site.sharedLibraryId) name = l.name;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Chip(
+          avatar: const Icon(Icons.groups_outlined, size: 18),
+          label: Text(name),
+          visualDensity: VisualDensity.compact,
+        ),
+        SiteAttributionLine(site: site),
       ],
     );
   }
