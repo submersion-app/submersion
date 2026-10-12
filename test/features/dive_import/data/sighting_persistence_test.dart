@@ -151,6 +151,21 @@ void main() {
       expect(sighting.speciesName, 'Palaemon serratus');
     });
 
+    test('a ref the species section does not declare still names the '
+        'species', () async {
+      final diveId = await importDive({
+        'dateTime': DateTime.utc(2024, 6, 1, 9, 30),
+        'sightings': [
+          {'speciesRef': 'species_mystery_fish'},
+        ],
+      });
+
+      final sighting = (await SpeciesRepository().getSightingsForDive(
+        diveId,
+      )).single;
+      expect(sighting.speciesName, 'Mystery Fish');
+    });
+
     test('a UDDF file with a species section imports in one pass', () async {
       const doc = '''<uddf version="3.2.1">
   <profiledata>
