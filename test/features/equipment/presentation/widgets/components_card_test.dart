@@ -425,8 +425,10 @@ void main() {
       'the label wraps rather than hiding the identifier on a phone',
       (tester) async {
         tester.view.devicePixelRatio = 1.0;
-        // The test font draws every glyph a full em wide, so this width
-        // leaves the label about two lines, as a real phone does.
+        // About 320 px of label beside the action icons. The label below
+        // needs more than one line there whether the test font (every glyph
+        // a full em wide) or a real one loaded by another bundled test file
+        // draws it, so a one-line label always fails this.
         tester.view.physicalSize = const Size(600, 800);
         addTearDown(tester.view.reset);
         await tester.pumpWidget(
@@ -437,7 +439,9 @@ void main() {
                 'z1',
                 'HOG Zenith',
                 EquipmentType.secondStage,
-                identifier: 'Necklace',
+                brand: 'Halcyon',
+                model: 'Zenith Pro',
+                identifier: 'Necklace left',
               ),
               role: 'Second Stage',
             ),
@@ -447,7 +451,7 @@ void main() {
         // find.text matches an ellipsized line too, so ask the paragraph
         // whether it had to cut the label short.
         final paragraph = tester.renderObject<RenderParagraph>(
-          find.text('Second Stage · ID Necklace'),
+          find.text('Second Stage · Halcyon Zenith Pro · ID Necklace left'),
         );
         expect(paragraph.didExceedMaxLines, isFalse);
       },
