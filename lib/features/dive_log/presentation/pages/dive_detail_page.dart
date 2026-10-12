@@ -354,18 +354,30 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       data: (dive) {
         if (dive == null) {
           return Scaffold(
-            appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+            // Embedded in a split view, these placeholder bars are not pages:
+            // a pushed list underneath must not give them a back arrow of
+            // their own (#3292).
+            appBar: AppBar(
+              automaticallyImplyLeading: !widget.embedded,
+              title: Text(context.l10n.diveLog_detail_appBar),
+            ),
             body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
         return _wrapWithDiveShortcuts(dive, _buildContent(context, ref, dive));
       },
       loading: () => Scaffold(
-        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(context.l10n.diveLog_detail_appBar),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(context.l10n.diveLog_detail_appBar),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

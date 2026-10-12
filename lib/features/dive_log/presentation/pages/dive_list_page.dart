@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -19,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_c
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
@@ -64,7 +69,11 @@ String _tileUrl(double lat, double lng, int zoom, MapStyle style) {
 /// On desktop (>=800px): Shows a split view with list on left, detail/summary on right.
 /// On narrower screens (<800px): Shows the list with navigation to detail pages.
 class DiveListPage extends ConsumerStatefulWidget {
-  const DiveListPage({super.key});
+  const DiveListPage({super.key, this.returnTo});
+
+  /// Set when this list was pushed by `openDiveList`: what to put back when
+  /// it goes away. Null for the Dives tab itself.
+  final DiveListReturn? returnTo;
 
   @override
   ConsumerState<DiveListPage> createState() => _DiveListPageState();
@@ -75,9 +84,22 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   /// Tracks the selected dive ID for mobile map view info card
   String? _mobileMapSelectedDiveId;
 
+  /// [DiveListPage.returnTo], captured once: a selection on a pushed page
+  /// replaces the route, which rebuilds the widget without its `extra`, but
+  /// this State lives on.
+  DiveListReturn? _returnTo;
+  StateController<DiveFilterState>? _filter;
+  StateController<String?>? _highlight;
+  bool _restored = false;
+
   @override
   void initState() {
     super.initState();
+    _returnTo = widget.returnTo;
+    if (_returnTo != null) {
+      _filter = ref.read(diveFilterProvider.notifier);
+      _highlight = ref.read(highlightedDiveIdProvider.notifier);
+    }
     // Home-tab startup hook for the Lightroom auto-poll: the provider
     // itself gates on account, toggle, and a 6-hour interval, and catches
     // every failure, so this read is fire-and-forget.
@@ -145,8 +167,50 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     }
   }
 
+  /// Puts back the filter and highlight this pushed list replaced (#3292).
+  void _restore() {
+    final returnTo = _returnTo;
+    if (_restored || returnTo == null) return;
+    _restored = true;
+    if (_filter?.mounted ?? false) _filter!.state = returnTo.filter;
+    if (_highlight?.mounted ?? false) {
+      _highlight!.state = returnTo.highlightedDiveId;
+    }
+  }
+
+  @override
+  void dispose() {
+    // Not popped (a sidebar tap replaced the stack): restore anyway, once the
+    // tree has finished tearing down.
+    if (_returnTo != null && !_restored) scheduleMicrotask(_restore);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final page = _buildPage(context);
+    if (_returnTo == null) return page;
+    // Restore at pop time, before the page underneath rebuilds: a table-mode
+    // list there replays the global highlight into its own URL once
+    // uncovered, so a late restore would land it on the wrong dive. A go()
+    // that replaces the stack reports the pop from inside the Navigator's
+    // build, where providers must not change; nothing is uncovered then, so
+    // the restore waits for the build to finish.
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) return;
+        if (SchedulerBinding.instance.schedulerPhase ==
+            SchedulerPhase.persistentCallbacks) {
+          scheduleMicrotask(_restore);
+        } else {
+          _restore();
+        }
+      },
+      child: page,
+    );
+  }
+
+  Widget _buildPage(BuildContext context) {
     // Clear mobile map selection when filters change to avoid stale state
     ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       if (_mobileMapSelectedDiveId != null) {
@@ -471,7 +535,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             tooltip: context.l10n.diveLog_listPage_tooltip_backToDiveList,
-            onPressed: () => context.go('/dives'),
+            // A pushed map (a trip's "View on map") returns where it came
+            // from; the Dives tab's own map returns to its list.
+            onPressed: () =>
+                isPushedRoute(context) ? context.pop() : context.go('/dives'),
           ),
           actions: [
             IconButton(

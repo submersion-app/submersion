@@ -49,6 +49,7 @@ import 'package:submersion/features/dive_centers/presentation/pages/dive_center_
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_import_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
@@ -423,7 +424,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'dives',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const DiveListPage(),
+              // Set when openDiveList pushed this list: what to put back
+              // when it goes away (#3292).
+              child: DiveListPage(
+                returnTo: switch (state.extra) {
+                  final DiveListReturn r => r,
+                  _ => null,
+                },
+              ),
             ),
             routes: [
               GoRoute(

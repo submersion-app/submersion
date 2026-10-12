@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -1412,7 +1413,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
           child: Row(
             children: [
-              const SizedBox(width: 8),
+              // A list pushed over the page that opened it (a site's dives,
+              // say) leads with the way back to that page (#3292).
+              if (isPushedRoute(context))
+                const BackButton()
+              else
+                const SizedBox(width: 8),
               // Expanded, and no Spacer: the title must be the row's only
               // flexible child (see trip_list_content for the detail). This
               // bar was already right-aligned with a bare title plus Spacer,
