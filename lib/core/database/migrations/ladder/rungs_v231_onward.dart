@@ -374,12 +374,21 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankPassportIdColumn();
     }
     if (from < 287) await reportProgress();
-    // v288: shared dive-site library tables and dive_sites.shared_library_id
-    // (issue #2567). Idempotent; re-asserted in beforeOpen. Renumbered from
-    // 287 after #2650 shipped 287.
+    // v288: the dive_courses junction and the certification-side course link
+    // (issue #2515). Schema re-asserted and links re-seeded in beforeOpen;
+    // the certification backfill runs here only.
     if (from < 288) {
-      await _assertSharedLibrarySchema();
+      await _assertDiveCourseSchema();
+      await seedDiveCourseLinks(this);
+      await backfillCertificationCourseLinks(this);
     }
     if (from < 288) await reportProgress();
+    // v289: shared dive-site library tables and dive_sites.shared_library_id
+    // (issue #2567). Idempotent; re-asserted in beforeOpen. Renumbered from
+    // 288 after #2515 shipped 288.
+    if (from < 289) {
+      await _assertSharedLibrarySchema();
+    }
+    if (from < 289) await reportProgress();
   }
 }

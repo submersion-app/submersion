@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
@@ -44,6 +45,9 @@ void main() {
       'INSERT INTO dives (id, dive_date_time, course_id, created_at, '
       "updated_at) VALUES ('d1', $now, 'aow', $now, $now)",
     );
+    // The representative link reaches dive_courses as an open or a sync
+    // apply would carry it (#2515).
+    await seedDiveCourseLinks(db);
   });
   tearDown(tearDownTestDatabase);
 
@@ -76,11 +80,20 @@ void main() {
   test('agency, instructor, certification and dives are queryable', () async {
     expect(await ids('agency = tdi'), {'tec'});
     expect(await ids('instructor.name = Ian'), {'aow'});
-    // Either link direction finds the certification.
+    // The certification side is the truth since v288 (#2515): Tec's
+    // course-side-only pointer is a stale representative, not a link.
     expect(await ids('certification.name = "AOW card"'), {'aow'});
-    expect(await ids('certification.name = "Tec card"'), {'tec'});
+    expect(await ids('certification.name = "Tec card"'), isEmpty);
     expect(await ids('dives:any'), {'aow'});
     expect(await ids('completionDate:none'), {'tec'});
     expect(await ids('"bonaire"'), {'aow'});
+  });
+
+  test('a dive shared by two courses counts for both (#2515)', () async {
+    await db.customStatement(
+      'INSERT INTO dive_courses (id, dive_id, course_id, created_at) '
+      "VALUES ('l2', 'd1', 'tec', $now)",
+    );
+    expect(await ids('dives:any'), {'aow', 'tec'});
   });
 }

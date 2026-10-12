@@ -2050,6 +2050,8 @@ class UniversalAdapter implements ImportSourceAdapter {
           if (type is Map<String, dynamic>) type,
       ],
       // Certification currency (issue #2267), metadata for the same reason.
+      // Custom service kinds (issue #2651), metadata like the site types.
+      serviceKinds: _metadataRows(payload, ImportPayload.serviceKindsKey),
       currencyRules: _metadataRows(payload, ImportPayload.currencyRulesKey),
       currencyPrefs: _metadataRows(payload, ImportPayload.currencyPrefsKey),
       currencyEvents: _metadataRows(payload, ImportPayload.currencyEventsKey),
@@ -2118,6 +2120,10 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // fills CSV is skipped.
     cylinderFillRepository: ref.read(cylinderFillRepositoryProvider),
     cylinderPassportRepository: ref.read(cylinderPassportRepositoryProvider),
+    // Service kinds and clocks (issue #2651); without them a backup's
+    // custom kinds and clocks are skipped and record kinds stay unset.
+    serviceKindRepository: ref.read(serviceKindRepositoryProvider),
+    serviceScheduleRepository: ref.read(serviceScheduleRepositoryProvider),
     // Certification currency (issue #2267); without it a backup's custom
     // rules, prefs and refresher history are skipped.
     certificationCurrencyRepository: ref.read(

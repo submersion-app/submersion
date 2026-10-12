@@ -39,5 +39,8 @@ void main() {
     // passports phase 5).
     expect(repos!.cylinderFillRepository, isNotNull);
     expect(repos!.cylinderPassportRepository, isNotNull);
+    // Service kinds and clocks (issue #2651).
+    expect(repos!.serviceKindRepository, isNotNull);
+    expect(repos!.serviceScheduleRepository, isNotNull);
   });
 }

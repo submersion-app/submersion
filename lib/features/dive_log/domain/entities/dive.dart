@@ -205,8 +205,9 @@ class Dive extends Equatable {
   /// Null for a dive that was never mirrored.
   final String? outingId;
 
-  // Training course (v1.5)
-  final String? courseId; // FK to training course
+  // Training courses (issue #2515). The representative (the
+  // `dives.course_id` column) comes first; see [courseId].
+  final List<String> courseIds;
 
   // Import source tracking
   final String? importSource; // 'appleWatch', 'garmin', 'suunto'
@@ -317,8 +318,8 @@ class Dive extends Equatable {
     // Dive planner (v1.5)
     this.isPlanned = false,
     this.outingId,
-    // Training course (v1.5)
-    this.courseId,
+    // Training courses (issue #2515)
+    this.courseIds = const [],
     // Import source tracking
     this.importSource,
     this.importId,
@@ -381,6 +382,9 @@ class Dive extends Equatable {
     final trimmed = name?.trim();
     return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
   }
+
+  /// The representative training course, or null when the dive is in none.
+  String? get courseId => courseIds.isEmpty ? null : courseIds.first;
 
   /// Display name for the representative (first) dive type.
   String get diveTypeName => diveType?.name ?? diveTypeDisplayName(diveTypeId);
@@ -742,8 +746,8 @@ class Dive extends Equatable {
     bool? isPlanned,
     String? outingId,
     bool clearOutingId = false,
-    // Training course
-    String? courseId,
+    // Training courses
+    List<String>? courseIds,
     // Import source tracking
     String? importSource,
     String? importId,
@@ -847,8 +851,8 @@ class Dive extends Equatable {
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
       outingId: clearOutingId ? null : (outingId ?? this.outingId),
-      // Training course
-      courseId: courseId ?? this.courseId,
+      // Training courses
+      courseIds: courseIds ?? this.courseIds,
       // Import source tracking
       importSource: importSource ?? this.importSource,
       importId: importId ?? this.importId,
@@ -955,8 +959,8 @@ class Dive extends Equatable {
     // Dive planner
     isPlanned,
     outingId,
-    // Training course
-    courseId,
+    // Training courses
+    courseIds,
     // Import source tracking
     importSource,
     importId,

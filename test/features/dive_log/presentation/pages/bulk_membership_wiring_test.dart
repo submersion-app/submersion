@@ -173,7 +173,8 @@ void main() {
 
         await pump(tester, ['d1', 'd2']);
 
-        expect(find.byType(BulkMembershipEditor), findsNWidgets(4));
+        // Tags, dive types, training courses (#2515), equipment, buddies.
+        expect(find.byType(BulkMembershipEditor), findsNWidgets(5));
         expect(find.text('Nitrox'), findsOneWidget);
         expect(find.text('Alice'), findsOneWidget);
         expect(find.text('Regulator'), findsOneWidget);

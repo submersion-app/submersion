@@ -82,7 +82,7 @@ const Set<String> kUnmirroredDiveFields = {
   'loopO2Avg',
   'loopVolume',
   'scrubber',
-  'courseId',
+  'courseIds',
   'importSource',
   'importId',
   'customFields',

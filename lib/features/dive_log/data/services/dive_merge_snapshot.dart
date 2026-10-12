@@ -19,6 +19,7 @@ class DiveMergeSnapshot {
     required this.customFieldRows,
     required this.equipmentRows,
     required this.diveTypeRows,
+    this.diveCourseRows = const [],
     required this.tagRows,
     required this.buddyRows,
     required this.sightingRows,
@@ -43,6 +44,9 @@ class DiveMergeSnapshot {
   final List<DiveCustomField> customFieldRows;
   final List<DiveEquipmentData> equipmentRows;
   final List<DiveDiveType> diveTypeRows;
+
+  /// The dives' course links (issue #2515).
+  final List<DiveCourseRow> diveCourseRows;
   final List<DiveTag> tagRows;
   final List<DiveBuddy> buddyRows;
   final List<Sighting> sightingRows;
@@ -141,6 +145,9 @@ class DiveMergeSnapshot {
       )..where((t) => t.diveId.isIn(diveIds))).get(),
       diveTypeRows: await (db.select(
         db.diveDiveTypes,
+      )..where((t) => t.diveId.isIn(diveIds))).get(),
+      diveCourseRows: await (db.select(
+        db.diveCourses,
       )..where((t) => t.diveId.isIn(diveIds))).get(),
       tagRows: await (db.select(
         db.diveTags,

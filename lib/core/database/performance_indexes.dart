@@ -297,6 +297,13 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     name: 'idx_courses_diver',
     ddl: 'CREATE INDEX IF NOT EXISTS idx_courses_diver ON courses(diver_id)',
   ),
+  // A course's dives through the junction (v288, issue #2515).
+  (
+    name: 'idx_dive_courses_course_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_courses_course_id '
+        'ON dive_courses(course_id)',
+  ),
   (
     name: 'idx_media_platform_asset_id',
     ddl:

@@ -691,6 +691,7 @@ class DiveMergeService {
         );
         batch.deleteWhere(_db.diveEquipment, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.diveDiveTypes, (t) => t.diveId.equals(mergedId));
+        batch.deleteWhere(_db.diveCourses, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.diveTags, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.diveBuddies, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.sightings, (t) => t.diveId.equals(mergedId));
@@ -823,6 +824,16 @@ class DiveMergeService {
             .insert(r.toCompanion(false), mode: InsertMode.insertOrReplace);
         await _sync.markRecordPending(
           entityType: 'diveDiveTypes',
+          recordId: r.id,
+          localUpdatedAt: now,
+        );
+      }
+      for (final r in snapshot.diveCourseRows) {
+        await _db
+            .into(_db.diveCourses)
+            .insert(r.toCompanion(false), mode: InsertMode.insertOrReplace);
+        await _sync.markRecordPending(
+          entityType: 'diveCourses',
           recordId: r.id,
           localUpdatedAt: now,
         );

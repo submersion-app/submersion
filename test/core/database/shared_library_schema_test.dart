@@ -12,7 +12,7 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  test('rung 288 creates the shared library tables', () async {
+  test('rung 289 creates the shared library tables', () async {
     final rows = await db
         .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
         .get();
@@ -37,8 +37,8 @@ void main() {
     );
   });
 
-  test('the schema version is 288', () {
-    expect(AppDatabase.currentSchemaVersion, 288);
-    expect(AppDatabase.migrationVersions.last, 288);
+  test('the schema version is 289', () {
+    expect(AppDatabase.currentSchemaVersion, 289);
+    expect(AppDatabase.migrationVersions.last, 289);
   });
 }

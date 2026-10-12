@@ -134,6 +134,7 @@ void main() {
         (type: 'tags', table: db.tags.actualTableName),
         (type: 'diveTags', table: db.diveTags.actualTableName),
         (type: 'diveDiveTypes', table: db.diveDiveTypes.actualTableName),
+        (type: 'diveCourses', table: db.diveCourses.actualTableName),
         (type: 'diveTypes', table: db.diveTypes.actualTableName),
         (type: 'tankPresets', table: db.tankPresets.actualTableName),
         (type: 'diveComputers', table: db.diveComputers.actualTableName),

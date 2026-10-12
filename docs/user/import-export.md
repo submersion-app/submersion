@@ -190,7 +190,7 @@ ways to deliver the result:
 | Format | Best for | What it contains |
 |--------|----------|------------------|
 | **PDF logbook** | Printing, or sharing with non-divers | A formatted logbook you can style with a template (see below). |
-| **UDDF** | Moving your data to other dive software | The open Universal Dive Data Format. Export the dives you choose, or your entire library: dives, profiles, sites, buddies, equipment, certifications, trips, and more. |
+| **UDDF** | Moving your data to other dive software | The open Universal Dive Data Format. Export the dives you choose, or your entire library: dives, profiles, sites, buddies, equipment (with each cylinder's tag and every item's service clocks), service history, your custom service types, cylinder fills, certifications, trips, and more. |
 | **CSV** | Spreadsheets | A comma-separated file. Choose **Dives**, **Sites**, **Equipment**, **Cylinder fills**, or **Gear check-ins** (every OK check and reported issue). For **Units**, **Metric** writes metric values and ISO dates; **My units** writes your unit, date and time settings, named in each column header. Submersion can import its own CSV exports back. |
 | **Excel Workbook** | A single spreadsheet with everything | An `.xlsx` workbook with sheets for Dives, Sites, Equipment and Statistics, plus checklists, maintenance and gear check-ins when you have them. |
 | **Google Earth KML** | Seeing where you have dived | A `.kml` file that plots your dive sites on the 3D globe in Google Earth. Sites without coordinates are skipped. |
@@ -200,6 +200,14 @@ ways to deliver the result:
 > PDF, Excel and KML exports use your current unit and date-format preferences
 > from [Settings](settings.md), so depths, temperatures, pressures, and dates come
 > out the way you read them in the app. CSV lets you choose (see above).
+
+> [!NOTE]
+> When you import a full UDDF export back into Submersion, each cylinder fill
+> comes back once: a fill already in your log, or one you deleted, is skipped.
+> Fills link to the cylinder carrying their tag, and a cylinder that already
+> has a tag keeps it. Service clocks come back on the gear the import adds,
+> replacing the default clocks new gear starts with, and gear that matches
+> something already in your log keeps its own clocks.
 
 ### PDF logbook templates
 

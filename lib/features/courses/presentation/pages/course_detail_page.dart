@@ -12,7 +12,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -155,9 +155,8 @@ class CourseDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
           ],
 
-          // Earned Certification
-          if (course.certificationId != null)
-            _buildCertificationSection(context, ref, course.certificationId!),
+          // Earned certifications, one row each (#2515)
+          _buildCertificationSection(context, ref, course.id),
 
           // Requirement tracker
           CourseRequirementsSection(courseId: course.id),
@@ -428,9 +427,17 @@ class CourseDetailPage extends ConsumerWidget {
   Widget _buildCertificationSection(
     BuildContext context,
     WidgetRef ref,
-    String certificationId,
+    String courseId,
   ) {
-    final certAsync = ref.watch(certificationByIdProvider(certificationId));
+    final certsAsync = ref.watch(certificationsForCourseProvider(courseId));
+    // The retained value, so a reload after a link change keeps the rows on
+    // screen; nothing on the very first load, since an empty course shows no
+    // section at all.
+    final certs = certsAsync.value;
+    final failed = certs == null && certsAsync.hasError;
+    if (!failed && (certs == null || certs.isEmpty)) {
+      return const SizedBox.shrink();
+    }
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -443,72 +450,62 @@ class CourseDetailPage extends ConsumerWidget {
               children: [
                 _buildSectionHeader(
                   context,
-                  context.l10n.courses_section_earnedCertification,
+                  context.l10n.courses_section_earnedCertifications,
                   Icons.card_membership,
                 ),
                 const SizedBox(height: 12),
-                certAsync.when(
-                  data: (cert) {
-                    if (cert == null) {
-                      return Text(
-                        context.l10n.courses_detail_certificationNotFound,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      );
-                    }
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            _abbreviateAgency(
-                              context.certificationCatalog
-                                  .agency(cert.agency)
-                                  .localizedName(context.l10n),
-                            ),
-                            style: TextStyle(
-                              color: colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ),
-                      title: Text(cert.name),
-                      subtitle: Text(
-                        context.certificationCatalog
-                            .agency(cert.agency)
-                            .localizedName(context.l10n),
-                      ),
-                      trailing: Icon(
-                        Icons.chevron_right,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      onTap: () => context.push('/certifications/${cert.id}'),
-                    );
-                  },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  error: (error, stack) => Text(
+                if (failed)
+                  Text(
                     context.l10n.courses_error_loadingCertification,
                     style: TextStyle(color: colorScheme.error),
-                  ),
-                ),
+                  )
+                else
+                  for (final cert in certs!)
+                    _buildCertificationRow(context, cert, colorScheme),
               ],
             ),
           ),
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+
+  Widget _buildCertificationRow(
+    BuildContext context,
+    Certification cert,
+    ColorScheme colorScheme,
+  ) {
+    final agency = context.certificationCatalog
+        .agency(cert.agency)
+        .localizedName(context.l10n);
+    final card = cert.cardNumber;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            _abbreviateAgency(agency),
+            style: TextStyle(
+              color: colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+        ),
+      ),
+      title: Text(cert.name),
+      subtitle: Text(
+        card != null && card.isNotEmpty ? '$agency - $card' : agency,
+      ),
+      trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+      onTap: () => context.push('/certifications/${cert.id}'),
     );
   }
 

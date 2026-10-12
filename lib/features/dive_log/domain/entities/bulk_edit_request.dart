@@ -33,6 +33,13 @@ class DiveTypesOp extends BulkCollectionOp {
   const DiveTypesOp({required this.mode, required this.diveTypeIds});
 }
 
+/// A dive's training courses (issue #2515).
+class DiveCoursesOp extends BulkCollectionOp {
+  final BulkCollectionMode mode; // add | remove | replace
+  final List<String> courseIds;
+  const DiveCoursesOp({required this.mode, required this.courseIds});
+}
+
 class EquipmentOp extends BulkCollectionOp {
   final BulkCollectionMode mode;
   final List<String> equipmentIds;

@@ -24,6 +24,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_course_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_with_figure.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
@@ -792,7 +793,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         BuddySignaturesSection(diveId: dive.id),
-        if (dive.courseId != null) ...[
+        if (dive.courseIds.isNotEmpty) ...[
           const SizedBox(height: 24),
           _buildSignatureSection(context, ref, dive),
         ],
@@ -1049,7 +1050,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         final buddies =
             ref.watch(buddiesForDiveProvider(dive.id)).valueOrNull ??
             const <BuddyWithRole>[];
-        if (buddies.isEmpty && dive.courseId == null) return null;
+        if (buddies.isEmpty && dive.courseIds.isEmpty) return null;
         return _PairCards(
           _buildBuddiesSection(context, ref, dive),
           _signaturesColumn(context, ref, dive),
@@ -3273,7 +3274,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ])
               if (trimmedOrNull(value) case final text?)
                 _buildDetailRow(context, label, text),
-            if (dive.courseId != null) _buildCourseRow(context, ref, dive),
+            if (dive.courseIds.isNotEmpty) DiveCourseRows(diveId: dive.id),
             if (formatDiveVisibility(
                   meters: dive.visibilityMeters,
                   range: dive.visibilityRange,
@@ -4522,63 +4523,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  /// Training-course row for the Details card (#1219).
-  ///
-  /// The linked course used to surface only as a chip in the Signatures card
-  /// header, which is an optional section far down the page, so read-only
-  /// viewers had no way to see the link short of opening the edit form.
-  /// Callers gate on `dive.courseId != null`, so the provider is only reached
-  /// for dives that actually carry a link; the row stays empty until the
-  /// lookup resolves rather than reserving blank space.
-  Widget _buildCourseRow(BuildContext context, WidgetRef ref, Dive dive) {
-    final course = ref.watch(courseForDiveProvider(dive.id)).valueOrNull;
-    if (course == null) return const SizedBox.shrink();
-
-    return Semantics(
-      button: true,
-      label: context.l10n.diveLog_detail_semantics_viewCourse(course.name),
-      child: InkWell(
-        onTap: () => context.push('/courses/${course.id}'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.diveLog_edit_section_trainingCourse,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        course.name,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildBuddiesSection(BuildContext context, WidgetRef ref, Dive dive) {
     final buddiesAsync = ref.watch(buddiesForDiveProvider(diveId));
 
@@ -5047,7 +4991,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final signatureAsync = ref.watch(signatureForDiveProvider(dive.id));
-    final courseAsync = ref.watch(courseForDiveProvider(dive.id));
 
     return Card(
       child: Padding(
@@ -5071,52 +5014,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (courseAsync.hasValue && courseAsync.value != null) ...[
-                  Flexible(
-                    child: Semantics(
-                      button: true,
-                      label: context.l10n.diveLog_detail_semantics_viewCourse(
-                        courseAsync.value!.name,
-                      ),
-                      child: InkWell(
-                        onTap: () =>
-                            context.push('/courses/${courseAsync.value!.id}'),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.school,
-                                size: 14,
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  courseAsync.value!.name,
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                // One chip per course (#2515).
+                Flexible(child: DiveCourseChips(diveId: dive.id)),
               ],
             ),
             const Divider(),
@@ -5161,13 +5060,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final courseAsync = ref.watch(courseForDiveProvider(dive.id));
-
-    // Get instructor name if available from course
-    String? instructorName;
-    if (courseAsync.hasValue && courseAsync.value != null) {
-      instructorName = courseAsync.value!.instructorName;
-    }
+    // The representative course's instructor signs (#2515).
+    final instructorName = ref
+        .watch(coursesForDiveProvider(dive.id))
+        .value
+        ?.firstOrNull
+        ?.instructorName;
 
     return Semantics(
       button: true,
@@ -5215,12 +5113,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     String? instructorName,
   ) {
-    // Get instructor buddy ID if available from course
-    String? instructorId;
-    final courseAsync = ref.read(courseForDiveProvider(dive.id));
-    if (courseAsync.hasValue && courseAsync.value != null) {
-      instructorId = courseAsync.value!.instructorId;
-    }
+    // The representative course's instructor signs (#2515).
+    final instructorId = ref
+        .read(coursesForDiveProvider(dive.id))
+        .value
+        ?.firstOrNull
+        ?.instructorId;
 
     // Captured before the sheet closes: the save outlives it, and reporting
     // a failure needs a messenger that is still in the tree.

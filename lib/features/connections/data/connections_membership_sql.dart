@@ -3,7 +3,7 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 /// `(dive_id, entity_id)` rows for [kind]. Each fragment is a complete
 /// SELECT so it can be embedded as `JOIN (...) alias`.
 ///
-/// Column kinds (site, trip, center, course) read the link straight off
+/// Column kinds (site, trip, center) read the link straight off
 /// `dives`; junction kinds read their many-to-many table. A nullable link
 /// column is filtered to NOT NULL, so no row has a NULL entity id.
 // stats-scope-exempt: a bare membership fragment carries no aggregate; the
@@ -31,6 +31,5 @@ String membershipSql(ConnectionKind kind) => switch (kind) {
     'SELECT dive_id, computer_id AS entity_id FROM dive_data_sources '
         'WHERE computer_id IS NOT NULL',
   ConnectionKind.course =>
-    'SELECT id AS dive_id, course_id AS entity_id FROM dives '
-        'WHERE course_id IS NOT NULL',
+    'SELECT dive_id, course_id AS entity_id FROM dive_courses',
 };

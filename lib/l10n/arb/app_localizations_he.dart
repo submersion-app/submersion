@@ -4083,9 +4083,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_list_tooltip_walletView => 'תצוגת ארנק';
 
   @override
-  String get certifications_picker_clearTooltip => 'נקה בחירת הסמכה';
-
-  @override
   String get certifications_picker_empty_addButton => 'הוסף הסמכה';
 
   @override
@@ -4106,10 +4103,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_picker_newCert => 'הסמכה חדשה';
 
   @override
-  String get certifications_picker_noSelection => 'לא נבחרה הסמכה';
-
-  @override
-  String get certifications_picker_sheetTitle => 'קישור להסמכה';
+  String get certifications_picker_selectTitle => 'בחר הסמכות';
 
   @override
   String get certifications_search_empty_hint =>
@@ -5089,9 +5083,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound => 'הסמכה לא נמצאה';
-
-  @override
   String get courses_detail_noTrainingDives => 'עדיין אין צלילות אימון מקושרות';
 
   @override
@@ -5154,7 +5145,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_field_instructorNumber => 'מספר מדריך';
 
   @override
-  String get courses_field_linkCertificationHint => 'קשר הסמכה שהושגה מקורס זה';
+  String get courses_field_linkCertificationsHint =>
+      'קשר את ההסמכות שהושגו מקורס זה';
 
   @override
   String get courses_field_location => 'מיקום';
@@ -5203,9 +5195,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_picker_active => 'פעיל';
 
   @override
-  String get courses_picker_clearSelection => 'נקה בחירה';
-
-  @override
   String get courses_picker_createCourse => 'צור קורס';
 
   @override
@@ -5220,10 +5209,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_picker_noCourses => 'עדיין אין קורסים';
 
   @override
-  String get courses_picker_noneSelected => 'לא נבחר קורס';
+  String get courses_picker_selectCoursesTitle => 'בחר קורסי אימון';
 
   @override
-  String get courses_picker_selectTitle => 'בחר קורס אימון';
+  String courses_picker_linkedTo(String courseName) {
+    return 'מקושר ל: $courseName';
+  }
 
   @override
   String get courses_picker_selected => 'נבחר';
@@ -5264,7 +5255,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_section_details => 'פרטי הקורס';
 
   @override
-  String get courses_section_earnedCertification => 'הסמכה שהושגה';
+  String get courses_section_earnedCertifications => 'הסמכות שהושגו';
 
   @override
   String get courses_section_instructor => 'מדריך';
@@ -7434,9 +7425,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'הוספת אתר';
 
   @override
-  String get diveLog_edit_row_course => 'קורס';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'מרכז צלילה';
 
   @override
@@ -7540,7 +7528,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_section_tags => 'תגיות';
 
   @override
-  String get diveLog_edit_section_trainingCourse => 'קורס הכשרה';
+  String get diveLog_edit_section_trainingCourses => 'קורסי הכשרה';
 
   @override
   String get diveLog_edit_section_trip => 'טיול';
@@ -7658,7 +7646,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'הסרה';
 
   @override
-  String get diveLog_edit_trainingCourseHint => 'קישור צלילה זו לקורס הכשרה';
+  String get diveLog_edit_trainingCoursesHint =>
+      'קישור צלילה זו לקורס הכשרה אחד או יותר';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

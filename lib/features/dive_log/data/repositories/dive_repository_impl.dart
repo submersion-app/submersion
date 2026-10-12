@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/courses/data/dive_course_links.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
@@ -153,6 +154,9 @@ class DiveRepository {
   final ImportedFileReclaimer _importedFileReclaimer;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+
+  /// A dive's training courses (issue #2515).
+  DiveCourseLinks get _courseLinks => DiveCourseLinks(_db, _syncRepository);
   final ProfileSeriesRepository _profileSeries = ProfileSeriesRepository();
   final TankPressureSeriesRepository _tankSeries =
       TankPressureSeriesRepository();
@@ -350,6 +354,7 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
           TableUpdateQuery.onTable(_db.courses),
+          TableUpdateQuery.onTable(_db.diveCourses),
           TableUpdateQuery.onTable(_db.diveBuddies),
           TableUpdateQuery.onTable(_db.buddies),
           // Role sets (#1221): a non-primary role writes only these.
@@ -602,6 +607,7 @@ class DiveRepository {
         // Load all tags for these dives in one query
         final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
         final diveTypesByDive = await _diveTypesForDives(diveIds);
+        final coursesByDive = await _courseLinks.courseIdsForDives(diveIds);
         final diverRolesByDive = await _roleLinks.resolveDiverRoleIds({
           for (final row in rows) row.id: row.diverRole,
         });
@@ -633,6 +639,7 @@ class DiveRepository {
                 trip: row.tripId != null ? tripsById[row.tripId] : null,
                 tags: tagsByDive[row.id] ?? [],
                 diveTypeIds: diveTypesByDive[row.id],
+                courseIds: coursesByDive[row.id] ?? const [],
                 diverRoleIds: diverRolesByDive[row.id],
                 customFields: customFieldsByDive[row.id] ?? [],
                 buddies: buddiesByDive[row.id] ?? const [],
@@ -1875,6 +1882,7 @@ class DiveRepository {
           localUpdatedAt: now,
         );
         await _replaceDiveTypeRows(id, dive.diveTypeIds, now);
+        await _courseLinks.writeCourseSet(id, dive.courseIds, now: now);
         await _roleLinks.writeDiverRoles(id, dive.diverRoleIds, now: now);
 
         // Child ids are resolved before the batch rather than inside it:
@@ -2204,6 +2212,7 @@ class DiveRepository {
           localUpdatedAt: now,
         );
         await _replaceDiveTypeRows(dive.id, dive.diveTypeIds, now);
+        await _courseLinks.writeCourseSet(dive.id, dive.courseIds, now: now);
         await _roleLinks.writeDiverRoles(dive.id, dive.diverRoleIds, now: now);
 
         // Update tanks:
@@ -3029,7 +3038,13 @@ class DiveRepository {
   Future<List<domain.Dive>> getDivesForCourse(String courseId) async {
     try {
       final query = _db.select(_db.dives)
-        ..where((t) => t.courseId.equals(courseId))
+        ..where(
+          (t) => existsQuery(
+            _db.select(_db.diveCourses)..where(
+              (j) => j.diveId.equalsExp(t.id) & j.courseId.equals(courseId),
+            ),
+          ),
+        )
         ..orderBy([
           (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
           (t) => OrderingTerm.desc(t.diveNumber),
@@ -4020,6 +4035,7 @@ class DiveRepository {
     Trip? trip,
     List<domain.Tag> tags = const [],
     List<String>? diveTypeIds,
+    List<String>? courseIds,
     List<String>? diverRoleIds,
     List<domain.DiveCustomField> customFields = const [],
     List<domain.BuddyWithRole> buddies = const [],
@@ -4292,8 +4308,9 @@ class DiveRepository {
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
       outingId: row.outingId,
-      // Training course (v1.5)
-      courseId: row.courseId,
+      // Training courses (issue #2515); callers that do not preload the set
+      // get the representative alone.
+      courseIds: courseIds ?? [?row.courseId],
       // Import source tracking
       importSource: row.importSource,
       importId: row.importId,
@@ -4518,6 +4535,9 @@ class DiveRepository {
     final tags = await _tagRepository.getTagsForDive(row.id);
     final diveTypesByDive = await _diveTypesForDives([row.id]);
     final diveTypeIds = diveTypesByDive[row.id] ?? [row.diveType];
+    final courseIds =
+        (await _courseLinks.courseIdsForDives([row.id]))[row.id] ??
+        const <String>[];
     final diverRoleIds =
         (await _roleLinks.resolveDiverRoleIds({
           row.id: row.diverRole,
@@ -4743,8 +4763,8 @@ class DiveRepository {
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
       outingId: row.outingId,
-      // Training course (v1.5)
-      courseId: row.courseId,
+      // Training courses (issue #2515)
+      courseIds: courseIds,
       // Import source tracking
       importSource: row.importSource,
       importId: row.importId,
@@ -6648,6 +6668,49 @@ class DiveRepository {
         localUpdatedAt: now,
       );
     }
+  }
+
+  /// Each dive's course ids, representative first (#2515).
+  Future<Map<String, List<String>>> courseIdsForDives(List<String> diveIds) =>
+      _courseLinks.courseIdsForDives(diveIds);
+
+  /// {courseId: how many of [diveIds] are in it}, for the bulk editor.
+  Future<Map<String, int>> courseCountsForDives(List<String> diveIds) =>
+      _courseLinks.courseCountsForDives(diveIds);
+
+  /// Add [courseIds] to each dive's courses. No notify/txn.
+  Future<void> bulkAddCourses(
+    List<String> diveIds,
+    List<String> courseIds,
+  ) async {
+    if (diveIds.isEmpty || courseIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _courseLinks.addCourses(diveIds, courseIds, now: now);
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Remove [courseIds] from each dive's courses. No notify/txn.
+  Future<void> bulkRemoveCourses(
+    List<String> diveIds,
+    List<String> courseIds,
+  ) async {
+    if (diveIds.isEmpty || courseIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _courseLinks.removeCourses(diveIds, courseIds, now: now);
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Make each dive's courses exactly [courseIds]. No notify/txn.
+  Future<void> bulkReplaceCourses(
+    List<String> diveIds,
+    List<String> courseIds,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      await _courseLinks.writeCourseSet(diveId, courseIds, now: now);
+    }
+    await _bumpDives(diveIds, now);
   }
 
   /// Replace each dive's dive-type membership with exactly [typeIds] (coerced

@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/courses/data/course_certification_links.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as domain;
@@ -284,6 +285,17 @@ class CertificationRepository {
         recordId: cert.id,
         localUpdatedAt: now,
       );
+      // The course's representative is its earliest-issued card, so an
+      // issue-date or name edit can move it (#2515).
+      final courseId = (await (_db.select(
+        _db.certifications,
+      )..where((t) => t.id.equals(cert.id))).getSingleOrNull())?.courseId;
+      if (courseId != null) {
+        await CourseCertificationLinks(
+          _db,
+          _syncRepository,
+        ).refreshRepresentative(courseId, now: now);
+      }
       await _saveCardImages(cert, notify: false);
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated certification: ${cert.id}');
@@ -302,6 +314,9 @@ class CertificationRepository {
     try {
       _log.info('Deleting certification: $id');
       await _db.transaction(() async {
+        final courseId = (await (_db.select(
+          _db.certifications,
+        )..where((t) => t.id.equals(id))).getSingleOrNull())?.courseId;
         // Currency prefs and events cascade with the row, and a cascade
         // writes no tombstones, so log them before they go.
         await CertificationCurrencyRepository().tombstoneChildrenOf(id);
@@ -318,12 +333,51 @@ class CertificationRepository {
           entityType: 'certifications',
           recordId: id,
         );
+        // courses.certification_id has no foreign key, so move the course's
+        // representative off the deleted row (#2515).
+        if (courseId != null) {
+          await CourseCertificationLinks(
+            _db,
+            _syncRepository,
+          ).refreshRepresentative(
+            courseId,
+            now: DateTime.now().millisecondsSinceEpoch,
+          );
+        }
       });
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Deleted certification: $id');
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete certification: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The certifications earned through [courseId], earliest issued first
+  /// (undated last), then by name and id (#2515). The first is the course's
+  /// representative.
+  Future<List<domain.Certification>> getCertificationsForCourse(
+    String courseId,
+  ) async {
+    try {
+      final rows =
+          await (_db.select(_db.certifications)
+                ..where((t) => t.courseId.equals(courseId))
+                ..orderBy([
+                  (t) => OrderingTerm(expression: t.issueDate.isNull()),
+                  (t) => OrderingTerm.asc(t.issueDate),
+                  (t) => OrderingTerm.asc(t.name),
+                  (t) => OrderingTerm.asc(t.id),
+                ]))
+              .get();
+      return await _withCardImages(rows.map(_mapRowToCertification).toList());
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get certifications for course: $courseId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -415,6 +469,7 @@ class CertificationRepository {
       instructorName: row.data['instructor_name'] as String?,
       instructorNumber: row.data['instructor_number'] as String?,
       instructorId: row.data['instructor_id'] as String?,
+      courseId: row.data['course_id'] as String?,
       notes: (row.data['notes'] as String?) ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
@@ -503,6 +558,7 @@ class CertificationRepository {
       instructorName: row.instructorName,
       instructorNumber: row.instructorNumber,
       instructorId: row.instructorId,
+      courseId: row.courseId,
       notes: row.notes,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),

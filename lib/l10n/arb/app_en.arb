@@ -2600,15 +2600,16 @@
   "certifications_list_tooltip_search": "Search certifications",
   "certifications_list_tooltip_sort": "Sort",
   "certifications_list_tooltip_walletView": "Wallet View",
-  "certifications_picker_clearTooltip": "Clear certification selection",
   "certifications_picker_empty_addButton": "Add Certification",
   "certifications_picker_empty_title": "No certifications yet",
   "certifications_picker_error": "Error loading certifications: {error}",
   "certifications_picker_expired": "Expired",
   "certifications_picker_hint": "Tap to link to an earned certification",
   "certifications_picker_newCert": "New Cert",
-  "certifications_picker_noSelection": "No certification selected",
-  "certifications_picker_sheetTitle": "Link to Certification",
+  "certifications_picker_selectTitle": "Select Certifications",
+  "@certifications_picker_selectTitle": {
+    "description": "Title of the multi-select certification sheet in the course editor"
+  },
   "certifications_search_empty_hint": "Search by name, agency, or card number",
   "certifications_search_noResults": "No certifications found for \"{query}\"",
   "certifications_search_tooltip_back": "Back",
@@ -3271,7 +3272,6 @@
   "courses_action_sortTitle": "Sort Courses",
   "courses_card_instructor": "Instructor: {name}",
   "courses_card_started": "Started {date}",
-  "courses_detail_certificationNotFound": "Certification not found",
   "courses_detail_noTrainingDives": "No training dives linked yet",
   "courses_detail_notFound": "Course not found",
   "courses_dialog_complete": "Complete",
@@ -3291,7 +3291,10 @@
   "courses_field_courseNameHint": "e.g. Open Water Diver",
   "courses_field_instructorName": "Instructor Name",
   "courses_field_instructorNumber": "Instructor Number",
-  "courses_field_linkCertificationHint": "Link a certification earned from this course",
+  "courses_field_linkCertificationsHint": "Link the certifications earned from this course",
+  "@courses_field_linkCertificationsHint": {
+    "description": "Hint under the Earned Certifications header in the course editor"
+  },
   "courses_field_location": "Location",
   "courses_field_notes": "Notes",
   "courses_filter_all": "All",
@@ -3306,13 +3309,23 @@
   "courses_message_errorSaving": "Error saving course: {error}",
   "courses_message_exportFailed": "Failed to export training log: {error}",
   "courses_picker_active": "Active",
-  "courses_picker_clearSelection": "Clear selection",
   "courses_picker_createCourse": "Create Course",
   "courses_picker_errorLoading": "Error loading courses: {error}",
   "courses_picker_newCourse": "New Course",
   "courses_picker_noCourses": "No courses yet",
-  "courses_picker_noneSelected": "No course selected",
-  "courses_picker_selectTitle": "Select Training Course",
+  "courses_picker_selectCoursesTitle": "Select Training Courses",
+  "@courses_picker_selectCoursesTitle": {
+    "description": "Title of the multi-select course sheet"
+  },
+  "courses_picker_linkedTo": "Linked to: {courseName}",
+  "@courses_picker_linkedTo": {
+    "description": "Subtitle on a certification already linked to another course; ticking it moves it here",
+    "placeholders": {
+      "courseName": {
+        "type": "String"
+      }
+    }
+  },
   "courses_picker_selected": "selected",
   "courses_picker_tapToLink": "Tap to link to a training course",
   "courses_requirement_diveProgress": "{count} of {target} dives",
@@ -3324,7 +3337,10 @@
   "courses_requirements_empty": "Track adventure dives, prerequisites, and check-offs for this course.",
   "courses_requirements_progress": "{satisfied} of {total} complete",
   "courses_section_details": "Course Details",
-  "courses_section_earnedCertification": "Earned Certification",
+  "courses_section_earnedCertifications": "Earned Certifications",
+  "@courses_section_earnedCertifications": {
+    "description": "Course editor and course detail section listing the certifications the course earned"
+  },
   "courses_section_instructor": "Instructor",
   "courses_section_notes": "Notes",
   "courses_section_requirements": "Requirements",
@@ -4530,10 +4546,6 @@
   "@diveLog_edit_row_addSite": {
     "description": "Placeholder when no site selected"
   },
-  "diveLog_edit_row_course": "Course",
-  "@diveLog_edit_row_course": {
-    "description": "Row label: training course picker"
-  },
   "diveLog_edit_row_diveCenter": "Dive center",
   "@diveLog_edit_row_diveCenter": {
     "description": "Row label: dive center picker"
@@ -4588,7 +4600,10 @@
   "diveLog_edit_section_notes": "Notes",
   "diveLog_edit_section_rating": "Rating",
   "diveLog_edit_section_tags": "Tags",
-  "diveLog_edit_section_trainingCourse": "Training Course",
+  "diveLog_edit_section_trainingCourses": "Training Courses",
+  "@diveLog_edit_section_trainingCourses": {
+    "description": "Dive editor, bulk editor and dive detail label for the training courses a dive belongs to"
+  },
   "diveLog_edit_section_trip": "Trip",
   "diveLog_edit_section_weight": "Weight",
   "diveLog_edit_snackbar_avgDepthCalculated": "Avg depth calculated: {depth}",
@@ -4651,7 +4666,10 @@
   "diveLog_edit_tooltip_removeEquipment": "Remove equipment",
   "diveLog_edit_tooltip_removeSighting": "Remove sighting",
   "diveLog_edit_tooltip_removeWeight": "Remove",
-  "diveLog_edit_trainingCourseHint": "Link this dive to a training course",
+  "diveLog_edit_trainingCoursesHint": "Link this dive to one or more training courses",
+  "@diveLog_edit_trainingCoursesHint": {
+    "description": "Hint above the course chips in the dive editor"
+  },
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
   "diveLog_edit_useSet": "Use Set",

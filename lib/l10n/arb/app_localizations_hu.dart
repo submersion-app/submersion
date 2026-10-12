@@ -4151,10 +4151,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_list_tooltip_walletView => 'Kártya nézet';
 
   @override
-  String get certifications_picker_clearTooltip =>
-      'Tanúsítvány kiválasztás törlése';
-
-  @override
   String get certifications_picker_empty_addButton => 'Tanúsítvány hozzáadása';
 
   @override
@@ -4176,11 +4172,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_picker_newCert => 'Új tanúsítvány';
 
   @override
-  String get certifications_picker_noSelection =>
-      'Nincs tanúsítvány kiválasztva';
-
-  @override
-  String get certifications_picker_sheetTitle => 'Csatolás tanúsítványhoz';
+  String get certifications_picker_selectTitle => 'Tanúsítványok kiválasztása';
 
   @override
   String get certifications_search_empty_hint =>
@@ -5185,9 +5177,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound => 'Képesítés nem található';
-
-  @override
   String get courses_detail_noTrainingDives =>
       'Még nincsenek hozzákapcsolt képzési merülések';
 
@@ -5254,8 +5243,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_field_instructorNumber => 'Oktató száma';
 
   @override
-  String get courses_field_linkCertificationHint =>
-      'Csatolj egy tanfolyamból szerzett képesítést';
+  String get courses_field_linkCertificationsHint =>
+      'Csatold a tanfolyamból szerzett képesítéseket';
 
   @override
   String get courses_field_location => 'Helyszín';
@@ -5304,9 +5293,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_picker_active => 'Aktív';
 
   @override
-  String get courses_picker_clearSelection => 'Kijelölés törlése';
-
-  @override
   String get courses_picker_createCourse => 'Tanfolyam létrehozása';
 
   @override
@@ -5321,10 +5307,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_picker_noCourses => 'Még nincsenek tanfolyamok';
 
   @override
-  String get courses_picker_noneSelected => 'Nincs kiválasztott tanfolyam';
+  String get courses_picker_selectCoursesTitle =>
+      'Képzési tanfolyamok kiválasztása';
 
   @override
-  String get courses_picker_selectTitle => 'Képzési tanfolyam kiválasztása';
+  String courses_picker_linkedTo(String courseName) {
+    return 'Csatolva ehhez: $courseName';
+  }
 
   @override
   String get courses_picker_selected => 'kiválasztva';
@@ -5366,7 +5355,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_section_details => 'Tanfolyam részletei';
 
   @override
-  String get courses_section_earnedCertification => 'Megszerzett képesítés';
+  String get courses_section_earnedCertifications => 'Megszerzett képesítések';
 
   @override
   String get courses_section_instructor => 'Oktató';
@@ -7572,9 +7561,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'Merülőhely hozzáadása';
 
   @override
-  String get diveLog_edit_row_course => 'Tanfolyam';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'Búvárközpont';
 
   @override
@@ -7680,7 +7666,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_section_tags => 'Címkék';
 
   @override
-  String get diveLog_edit_section_trainingCourse => 'Képzési tanfolyam';
+  String get diveLog_edit_section_trainingCourses => 'Képzési tanfolyamok';
 
   @override
   String get diveLog_edit_section_trip => 'Út';
@@ -7798,8 +7784,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Eltávolítás';
 
   @override
-  String get diveLog_edit_trainingCourseHint =>
-      'Merülés összekapcsolása egy képzési tanfolyammal';
+  String get diveLog_edit_trainingCoursesHint =>
+      'Merülés összekapcsolása egy vagy több képzési tanfolyammal';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

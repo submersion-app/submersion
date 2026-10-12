@@ -22,6 +22,10 @@ class UddfImportResult {
 
   /// Custom site type definitions (`id`, `name`, `sortOrder`), issue #1765.
   final List<Map<String, dynamic>> customSiteTypes;
+
+  /// The diver's custom service kinds from a full backup (issue #2651):
+  /// definitions, matched to the importing library by id then name.
+  final List<Map<String, dynamic>> serviceKinds;
   final List<Map<String, dynamic>> diveComputers;
   final List<Map<String, dynamic>> equipmentSets;
   final List<Map<String, dynamic>> courses;
@@ -81,6 +85,7 @@ class UddfImportResult {
     this.customDiveTypes = const [],
     this.customDiveRoles = const [],
     this.customSiteTypes = const [],
+    this.serviceKinds = const [],
     this.diveComputers = const [],
     this.equipmentSets = const [],
     this.courses = const [],
@@ -111,6 +116,7 @@ class UddfImportResult {
       customDiveTypes.isEmpty &&
       customDiveRoles.isEmpty &&
       customSiteTypes.isEmpty &&
+      serviceKinds.isEmpty &&
       diveComputers.isEmpty &&
       equipmentSets.isEmpty &&
       courses.isEmpty &&
@@ -218,6 +224,7 @@ class UddfImportResult {
       customDiveTypes: customDiveTypes,
       customDiveRoles: customDiveRoles,
       customSiteTypes: customSiteTypes,
+      serviceKinds: serviceKinds,
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
       courses: courses,

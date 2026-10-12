@@ -81,21 +81,24 @@ void main() {
     testWidgets('renders gated Logistics + Notes fields', (tester) async {
       await pumpBulk(tester);
 
-      // 8 Logistics (course, #1741; operator, boat, captain, #3229)
+      // 7 Logistics (operator, boat, captain, #3229)
       // + 10 Conditions (surface conditions, #3229) + 6 Weather
       // + 6 Rebreather + 1 Buddies (my role, #1220) + 1 Notes
-      // + 2 statistics-exclusion gates (#526, #1272) = 34.
-      // (dive type moved from a scalar gate to the collection lane, #414)
-      expect(find.byType(BulkFieldGate), findsNWidgets(34));
-      expect(find.text('Course'), findsOneWidget);
+      // + 2 statistics-exclusion gates (#526, #1272) = 33.
+      // (dive type moved from a scalar gate to the collection lane, #414,
+      // and so did course, #2515)
+      expect(find.byType(BulkFieldGate), findsNWidgets(33));
+      // Courses moved to the membership editors (#2515).
+      expect(find.text('Training Courses'), findsOneWidget);
       expect(find.text('Favorite'), findsOneWidget);
       expect(find.text('Exclude from statistics'), findsOneWidget);
       expect(find.text('Exclude from gas statistics'), findsOneWidget);
       // Only the 3 owned collections (weights, tanks, sightings) still use a
-      // mode selector; the 4 reference collections (tags, diveTypes,
-      // equipment, buddies) use the tri-state membership editor.
+      // mode selector; the 5 reference collections (tags, diveTypes,
+      // courses (#2515), equipment, buddies) use the tri-state membership
+      // editor.
       expect(find.byType(BulkCollectionModeSelector), findsNWidgets(3));
-      expect(find.byType(BulkMembershipEditor), findsNWidgets(4));
+      expect(find.byType(BulkMembershipEditor), findsNWidgets(5));
     });
 
     testWidgets('equipment membership reflects current gear and a toggle', (
@@ -514,123 +517,113 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    Finder courseGate() => find.ancestor(
-      of: find.text('Course'),
-      matching: find.byType(BulkFieldGate),
-    );
-
-    Future<void> enableCourseGate(WidgetTester tester) async {
-      await tester.ensureVisible(courseGate());
-      await tester.tap(
-        find.descendant(of: courseGate(), matching: find.byType(Checkbox)),
+    Future<Course> insertRescueCourse() async {
+      final now = DateTime.utc(2024, 4, 1);
+      await db
+          .into(db.courses)
+          .insert(
+            CoursesCompanion(
+              id: const Value('rescue'),
+              diverId: const Value('course-diver'),
+              name: const Value('Rescue Diver'),
+              agency: Value(CertificationAgency.padi.name),
+              startDate: Value(now.millisecondsSinceEpoch),
+              createdAt: Value(now.millisecondsSinceEpoch),
+              updatedAt: Value(now.millisecondsSinceEpoch),
+            ),
+          );
+      return Course(
+        id: 'rescue',
+        diverId: 'course-diver',
+        name: 'Rescue Diver',
+        agency: CertificationAgency.padi.name,
+        startDate: now,
+        createdAt: now,
+        updatedAt: now,
       );
-      await tester.pumpAndSettle();
     }
 
-    testWidgets('the Course gate links every selected dive (#1741)', (
+    Finder courseEditor() => find.ancestor(
+      of: find.text('Training Courses'),
+      matching: find.byType(BulkMembershipEditor),
+    );
+
+    Future<Set<String>> coursesOf(String id) async =>
+        (await repository.getDiveById(id))!.courseIds.toSet();
+
+    testWidgets('adding a course keeps every dive other courses (#2515)', (
       tester,
     ) async {
-      final course = await insertCourse();
-      final d1 = await repository.createDive(
-        createTestDiveWithBottomTime().copyWith(id: 'course-1'),
-      );
-      final d2 = await repository.createDive(
-        createTestDiveWithBottomTime().copyWith(id: 'course-2'),
-      );
-      await pumpBulkDives(tester, [d1.id, d2.id], courses: [course]);
-
-      await enableCourseGate(tester);
-      await tester.tap(
-        find.descendant(of: courseGate(), matching: find.byType(FormRow)),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Advanced Open Water'));
-      await tester.pumpAndSettle();
-      expect(
-        find.descendant(
-          of: courseGate(),
-          matching: find.text('Advanced Open Water'),
-        ),
-        findsOneWidget,
-      );
-
-      await saveBulk(tester);
-
-      expect((await repository.getDiveById(d1.id))!.courseId, 'aow');
-      expect((await repository.getDiveById(d2.id))!.courseId, 'aow');
-    });
-
-    testWidgets('an enabled Course gate left empty unlinks every dive', (
-      tester,
-    ) async {
-      final course = await insertCourse();
+      final aow = await insertCourse();
+      final rescue = await insertRescueCourse();
       final d1 = await repository.createDive(
         createTestDiveWithBottomTime().copyWith(
-          id: 'course-clear-1',
-          courseId: 'aow',
+          id: 'course-add-1',
+          courseIds: ['rescue'],
         ),
       );
       final d2 = await repository.createDive(
-        createTestDiveWithBottomTime().copyWith(
-          id: 'course-clear-2',
-          courseId: 'aow',
-        ),
+        createTestDiveWithBottomTime().copyWith(id: 'course-add-2'),
       );
-      expect((await repository.getDiveById(d1.id))!.courseId, 'aow');
-      await pumpBulkDives(tester, [d1.id, d2.id], courses: [course]);
+      await pumpBulkDives(tester, [d1.id, d2.id], courses: [aow, rescue]);
 
-      await enableCourseGate(tester);
+      final add = find.descendant(
+        of: courseEditor(),
+        matching: find.widgetWithText(TextButton, 'Add'),
+      );
+      await tester.ensureVisible(add);
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(CheckboxListTile, 'Advanced Open Water'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+
       await saveBulk(tester);
 
-      expect((await repository.getDiveById(d1.id))!.courseId, isNull);
-      expect((await repository.getDiveById(d2.id))!.courseId, isNull);
+      expect(await coursesOf(d1.id), {'rescue', 'aow'});
+      expect(await coursesOf(d2.id), {'aow'});
     });
 
-    testWidgets('clearing a picked course unlinks every dive', (tester) async {
-      final course = await insertCourse();
+    testWidgets('removing a course leaves the dive other courses (#2515)', (
+      tester,
+    ) async {
+      final aow = await insertCourse();
+      final rescue = await insertRescueCourse();
       final d1 = await repository.createDive(
         createTestDiveWithBottomTime().copyWith(
-          id: 'course-pick-clear-1',
-          courseId: 'aow',
+          id: 'course-drop-1',
+          courseIds: ['aow', 'rescue'],
         ),
       );
-      await pumpBulkDives(tester, [d1.id], courses: [course]);
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'course-drop-2',
+          courseIds: ['aow'],
+        ),
+      );
+      await pumpBulkDives(tester, [d1.id, d2.id], courses: [aow, rescue]);
 
-      await enableCourseGate(tester);
-      await tester.tap(
-        find.descendant(of: courseGate(), matching: find.byType(FormRow)),
-      );
+      final toggle = find.byKey(const ValueKey('membership-toggle-aow'));
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Advanced Open Water'));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.descendant(
-          of: courseGate(),
-          matching: find.byTooltip('Clear selection'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(
-        find.descendant(
-          of: courseGate(),
-          matching: find.text('Advanced Open Water'),
-        ),
-        findsNothing,
-      );
-
       await saveBulk(tester);
 
-      expect((await repository.getDiveById(d1.id))!.courseId, isNull);
+      expect(await coursesOf(d1.id), {'rescue'});
+      expect(await coursesOf(d2.id), isEmpty);
     });
 
-    testWidgets('a disabled Course gate leaves existing links alone', (
+    testWidgets('an untouched course list leaves existing links alone', (
       tester,
     ) async {
       final course = await insertCourse();
       final d1 = await repository.createDive(
         createTestDiveWithBottomTime().copyWith(
           id: 'course-keep-1',
-          courseId: 'aow',
+          courseIds: ['aow'],
         ),
       );
       final d2 = await repository.createDive(

@@ -36,6 +36,11 @@ class ImportPayload extends Equatable {
   /// site maps reference them by id in `siteTypeRefs`.
   static const customSiteTypesKey = 'customSiteTypes';
 
+  /// Metadata key for custom service kind definitions (issue #2651): maps
+  /// from `UddfServiceClockWriters.parseKinds`. Like site types they have
+  /// no review step; clocks and service records reference them by id.
+  static const serviceKindsKey = 'serviceKinds';
+
   /// Metadata keys for certification currency rows (issue #2267): custom
   /// rules, and the prefs and ledger events of the file's certifications,
   /// each pointing at its `<cert>` through `certificationRef`. No review

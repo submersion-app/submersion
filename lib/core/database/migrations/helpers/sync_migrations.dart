@@ -96,6 +96,7 @@ extension SyncMigrations on AppDatabase {
       'dive_center_gear_notes',
       'dive_diver_roles',
       'dive_buddy_roles',
+      'dive_courses',
     ]) {
       await _addColumnIfMissing(table, 'hlc', 'TEXT');
     }

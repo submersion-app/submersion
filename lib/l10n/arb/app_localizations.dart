@@ -6488,12 +6488,6 @@ abstract class AppLocalizations {
   /// **'Wallet View'**
   String get certifications_list_tooltip_walletView;
 
-  /// No description provided for @certifications_picker_clearTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear certification selection'**
-  String get certifications_picker_clearTooltip;
-
   /// No description provided for @certifications_picker_empty_addButton.
   ///
   /// In en, this message translates to:
@@ -6530,17 +6524,11 @@ abstract class AppLocalizations {
   /// **'New Cert'**
   String get certifications_picker_newCert;
 
-  /// No description provided for @certifications_picker_noSelection.
+  /// Title of the multi-select certification sheet in the course editor
   ///
   /// In en, this message translates to:
-  /// **'No certification selected'**
-  String get certifications_picker_noSelection;
-
-  /// No description provided for @certifications_picker_sheetTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Link to Certification'**
-  String get certifications_picker_sheetTitle;
+  /// **'Select Certifications'**
+  String get certifications_picker_selectTitle;
 
   /// No description provided for @certifications_search_empty_hint.
   ///
@@ -8196,12 +8184,6 @@ abstract class AppLocalizations {
   /// **'Started {date}'**
   String courses_card_started(Object date);
 
-  /// No description provided for @courses_detail_certificationNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification not found'**
-  String get courses_detail_certificationNotFound;
-
   /// No description provided for @courses_detail_noTrainingDives.
   ///
   /// In en, this message translates to:
@@ -8316,11 +8298,11 @@ abstract class AppLocalizations {
   /// **'Instructor Number'**
   String get courses_field_instructorNumber;
 
-  /// No description provided for @courses_field_linkCertificationHint.
+  /// Hint under the Earned Certifications header in the course editor
   ///
   /// In en, this message translates to:
-  /// **'Link a certification earned from this course'**
-  String get courses_field_linkCertificationHint;
+  /// **'Link the certifications earned from this course'**
+  String get courses_field_linkCertificationsHint;
 
   /// No description provided for @courses_field_location.
   ///
@@ -8406,12 +8388,6 @@ abstract class AppLocalizations {
   /// **'Active'**
   String get courses_picker_active;
 
-  /// No description provided for @courses_picker_clearSelection.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear selection'**
-  String get courses_picker_clearSelection;
-
   /// No description provided for @courses_picker_createCourse.
   ///
   /// In en, this message translates to:
@@ -8436,17 +8412,17 @@ abstract class AppLocalizations {
   /// **'No courses yet'**
   String get courses_picker_noCourses;
 
-  /// No description provided for @courses_picker_noneSelected.
+  /// Title of the multi-select course sheet
   ///
   /// In en, this message translates to:
-  /// **'No course selected'**
-  String get courses_picker_noneSelected;
+  /// **'Select Training Courses'**
+  String get courses_picker_selectCoursesTitle;
 
-  /// No description provided for @courses_picker_selectTitle.
+  /// Subtitle on a certification already linked to another course; ticking it moves it here
   ///
   /// In en, this message translates to:
-  /// **'Select Training Course'**
-  String get courses_picker_selectTitle;
+  /// **'Linked to: {courseName}'**
+  String courses_picker_linkedTo(String courseName);
 
   /// No description provided for @courses_picker_selected.
   ///
@@ -8514,11 +8490,11 @@ abstract class AppLocalizations {
   /// **'Course Details'**
   String get courses_section_details;
 
-  /// No description provided for @courses_section_earnedCertification.
+  /// Course editor and course detail section listing the certifications the course earned
   ///
   /// In en, this message translates to:
-  /// **'Earned Certification'**
-  String get courses_section_earnedCertification;
+  /// **'Earned Certifications'**
+  String get courses_section_earnedCertifications;
 
   /// No description provided for @courses_section_instructor.
   ///
@@ -12043,12 +12019,6 @@ abstract class AppLocalizations {
   /// **'Add site'**
   String get diveLog_edit_row_addSite;
 
-  /// Row label: training course picker
-  ///
-  /// In en, this message translates to:
-  /// **'Course'**
-  String get diveLog_edit_row_course;
-
   /// Row label: dive center picker
   ///
   /// In en, this message translates to:
@@ -12229,11 +12199,11 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get diveLog_edit_section_tags;
 
-  /// No description provided for @diveLog_edit_section_trainingCourse.
+  /// Dive editor, bulk editor and dive detail label for the training courses a dive belongs to
   ///
   /// In en, this message translates to:
-  /// **'Training Course'**
-  String get diveLog_edit_section_trainingCourse;
+  /// **'Training Courses'**
+  String get diveLog_edit_section_trainingCourses;
 
   /// No description provided for @diveLog_edit_section_trip.
   ///
@@ -12379,11 +12349,11 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get diveLog_edit_tooltip_removeWeight;
 
-  /// No description provided for @diveLog_edit_trainingCourseHint.
+  /// Hint above the course chips in the dive editor
   ///
   /// In en, this message translates to:
-  /// **'Link this dive to a training course'**
-  String get diveLog_edit_trainingCourseHint;
+  /// **'Link this dive to one or more training courses'**
+  String get diveLog_edit_trainingCoursesHint;
 
   /// No description provided for @diveLog_edit_tripSuggested.
   ///

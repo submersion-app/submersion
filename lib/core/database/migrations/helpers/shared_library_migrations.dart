@@ -1,6 +1,6 @@
 part of '../app_database_migrations.dart';
 
-/// Shared dive-site library schema (issue #2567, v288): five tables and the
+/// Shared dive-site library schema (issue #2567, v289): five tables and the
 /// `dive_sites.shared_library_id` column. Idempotent, so it serves as the
 /// rung and the beforeOpen backstop.
 extension SharedLibraryMigrations on AppDatabase {

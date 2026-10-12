@@ -3945,9 +3945,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_tooltip_walletView => '卡包视图';
 
   @override
-  String get certifications_picker_clearTooltip => '清除证书选择';
-
-  @override
   String get certifications_picker_empty_addButton => '添加证书';
 
   @override
@@ -3968,10 +3965,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_picker_newCert => '新证书';
 
   @override
-  String get certifications_picker_noSelection => '未选择证书';
-
-  @override
-  String get certifications_picker_sheetTitle => '关联证书';
+  String get certifications_picker_selectTitle => '选择证书';
 
   @override
   String get certifications_search_empty_hint => '按名称、机构或卡号搜索';
@@ -4932,9 +4926,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound => '未找到证书';
-
-  @override
   String get courses_detail_noTrainingDives => '尚未关联训练潜水';
 
   @override
@@ -4996,7 +4987,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_field_instructorNumber => '教练编号';
 
   @override
-  String get courses_field_linkCertificationHint => '关联此课程获得的证书';
+  String get courses_field_linkCertificationsHint => '关联此课程获得的证书';
 
   @override
   String get courses_field_location => '位置';
@@ -5045,9 +5036,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_picker_active => '活跃';
 
   @override
-  String get courses_picker_clearSelection => '清除选择';
-
-  @override
   String get courses_picker_createCourse => '创建课程';
 
   @override
@@ -5062,10 +5050,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_picker_noCourses => '暂无课程';
 
   @override
-  String get courses_picker_noneSelected => '无课程已选择';
+  String get courses_picker_selectCoursesTitle => '选择训练课程';
 
   @override
-  String get courses_picker_selectTitle => '选择训练课程';
+  String courses_picker_linkedTo(String courseName) {
+    return '已关联到：$courseName';
+  }
 
   @override
   String get courses_picker_selected => '已选择';
@@ -5105,7 +5095,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_section_details => '课程详情';
 
   @override
-  String get courses_section_earnedCertification => '获得的证书';
+  String get courses_section_earnedCertifications => '获得的证书';
 
   @override
   String get courses_section_instructor => '教练';
@@ -7220,9 +7210,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_row_addSite => '添加潜点';
 
   @override
-  String get diveLog_edit_row_course => '课程';
-
-  @override
   String get diveLog_edit_row_diveCenter => '潜水中心';
 
   @override
@@ -7325,7 +7312,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_section_tags => '标签';
 
   @override
-  String get diveLog_edit_section_trainingCourse => '培训课程';
+  String get diveLog_edit_section_trainingCourses => '培训课程';
 
   @override
   String get diveLog_edit_section_trip => '旅行';
@@ -7436,7 +7423,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => '移除';
 
   @override
-  String get diveLog_edit_trainingCourseHint => '将此次潜水关联到培训课程';
+  String get diveLog_edit_trainingCoursesHint => '将此次潜水关联到一个或多个培训课程';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

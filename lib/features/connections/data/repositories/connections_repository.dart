@@ -198,6 +198,7 @@ class ConnectionsRepository {
           TableUpdateQuery.onTable(_db.trips),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.courses),
+          TableUpdateQuery.onTable(_db.diveCourses),
         ]),
       )
       .debounce(DiveRepository.changeTickDebounce);

@@ -177,6 +177,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Course requirement tracker (v121)
     CourseRequirements,
     CourseRequirementDives,
+    // A dive's courses (v288, issue #2515)
+    DiveCourses,
     // Sync tables
     SyncMetadata,
     SyncRecords,
@@ -255,7 +257,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Documents store (v277, issue #2613)
     Documents,
     DocumentPages,
-    // Shared dive-site library (v288, issue #2567)
+    // Shared dive-site library (v289, issue #2567)
     SharedLibraries,
     SharedLibraryMembers,
     SharedLibraryMemberships,
@@ -270,7 +272,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 288;
+  static const int currentSchemaVersion = 289;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1241,10 +1243,15 @@ class AppDatabase extends _$AppDatabase {
     // so the floor stays at 280. Renumbered from 285 and 286, which #3306
     // and #3319 shipped first.
     287,
-    // v288: shared dive-site library tables and dive_sites.shared_library_id
-    // (issue #2567). New tables and a nullable column, so the floor stays
-    // at 280. Renumbered from 287 after #2650 shipped 287.
+    // v288: the dive_courses junction and the certification-side course link
+    // (issue #2515). A new table plus meaning-preserving backfills, so the
+    // floor stays at 280. Renumbered from 286 and 287, which #2628 and #2650
+    // shipped first.
     288,
+    // v289: shared dive-site library tables and dive_sites.shared_library_id
+    // (issue #2567). New tables and a nullable column, so the floor stays
+    // at 280. Renumbered from 288 after #2515 shipped 288.
+    289,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

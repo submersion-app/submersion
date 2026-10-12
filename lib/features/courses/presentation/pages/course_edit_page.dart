@@ -9,9 +9,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
-import 'package:submersion/features/certifications/domain/entities/certification.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/certifications/presentation/widgets/certification_picker.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_multi_select_field.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -50,7 +48,10 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
   DateTime _startDate = DateTime.now();
   DateTime? _completionDate;
   String? _instructorId;
-  Certification? _selectedCertification;
+  // The certifications this course earned (#2515). Null until an existing
+  // course's set has loaded, so a save before then leaves the links alone
+  // rather than clearing them.
+  List<String>? _selectedCertificationIds;
   bool _isLoading = false;
   bool _isInitialized = false;
 
@@ -80,18 +81,18 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
     _locationController.text = course.location ?? '';
     _notesController.text = course.notes;
 
-    // Load linked certification if exists
-    if (course.certificationId != null) {
-      _loadCertification(course.certificationId!);
-    }
+    _loadCertifications(course.id);
   }
 
-  Future<void> _loadCertification(String certificationId) async {
-    final certification = await ref.read(
-      certificationByIdProvider(certificationId).future,
+  Future<void> _loadCertifications(String courseId) async {
+    final certifications = await ref.read(
+      certificationsForCourseProvider(courseId).future,
     );
-    if (mounted && certification != null) {
-      setState(() => _selectedCertification = certification);
+    if (mounted) {
+      setState(
+        () =>
+            _selectedCertificationIds = [for (final c in certifications) c.id],
+      );
     }
   }
 
@@ -267,13 +268,13 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           ),
           const SizedBox(height: 16),
 
-          // Earned Certification (link course to certification)
+          // Earned Certifications (#2515)
           Row(
             children: [
               Icon(Icons.card_membership, size: 20, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                context.l10n.courses_section_earnedCertification,
+                context.l10n.courses_section_earnedCertifications,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -282,18 +283,24 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            context.l10n.courses_field_linkCertificationHint,
+            context.l10n.courses_field_linkCertificationsHint,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 12),
-          CertificationPicker(
-            selectedCertification: _selectedCertification,
-            onCertificationSelected: (cert) {
-              setState(() => _selectedCertification = cert);
-            },
-          ),
+          // Until an existing course's set loads there is nothing to pick
+          // from: a sheet opened now would start empty, and a save would
+          // unlink every earned certification.
+          if (_isEditing && _selectedCertificationIds == null)
+            const LinearProgressIndicator()
+          else
+            CertificationMultiSelectField(
+              courseId: widget.courseId,
+              selectedCertificationIds: _selectedCertificationIds ?? const [],
+              onChanged: (ids) =>
+                  setState(() => _selectedCertificationIds = ids),
+            ),
           const SizedBox(height: 24),
 
           // Save button
@@ -441,7 +448,6 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
         agency: _agency,
         startDate: _startDate,
         completionDate: _completionDate,
-        certificationId: _selectedCertification?.id,
         instructorId: _instructorId,
         instructorName: _instructorNameController.text.trim().isEmpty
             ? null
@@ -468,18 +474,13 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
         savedId = newCourse.id;
       }
 
-      // Link/unlink certification bidirectionally
-      final oldCertId = existingCourse?.certificationId;
-      final newCertId = _selectedCertification?.id;
-      if (oldCertId != newCertId) {
-        if (newCertId != null) {
-          // Link to new certification
-          await notifier.linkCourseToCertification(savedId, newCertId);
-        }
-        // Invalidate old certification's course provider if changed
-        if (oldCertId != null) {
-          ref.invalidate(courseForCertificationProvider(oldCertId));
-        }
+      // The earned certifications: exactly the ticked set, which may move a
+      // certification off another course (#2515).
+      final certificationIds = _isEditing
+          ? _selectedCertificationIds
+          : (_selectedCertificationIds ?? const <String>[]);
+      if (certificationIds != null) {
+        await notifier.setCourseCertifications(savedId, certificationIds);
       }
 
       if (widget.onSavedWithId != null) {

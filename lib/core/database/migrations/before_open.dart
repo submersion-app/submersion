@@ -725,6 +725,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // restore or sync-adopt never runs onUpgrade, and that is exactly the
     // second device the duplicate types came from.
     await assertDiveTypeUniqueness(this);
+    await _assertCourseLinks(); // v288 (#2515)
 
     // Data self-heal: backfill a primary dive_data_sources row for dives
     // that have profile samples but no source row (legacy file imports).

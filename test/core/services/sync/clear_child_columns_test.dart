@@ -144,6 +144,7 @@ void main() {
       );
       // A junction with no nullable user column, and a type outside the set.
       expect(serializer.clearableChildKeys('diveDiveTypes'), isEmpty);
+      expect(serializer.clearableChildKeys('diveCourses'), isEmpty);
       expect(serializer.clearableChildKeys('dives'), isEmpty);
     },
   );

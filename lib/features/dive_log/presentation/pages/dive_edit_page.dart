@@ -136,7 +136,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_p
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/weather/domain/services/altitude_resolver.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
-import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_multi_select_field.dart';
@@ -353,7 +352,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   DiveSite? _selectedSite;
   Trip? _selectedTrip;
   DiveCenter? _selectedDiveCenter;
-  Course? _selectedCourse;
+  // The dive's training courses (#2515).
+  List<String> _selectedCourseIds = const [];
   List<Sighting> _sightings = [];
   Set<String> _originalSightingIds =
       {}; // Track original IDs to detect deletions
@@ -513,7 +513,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   bool get _showCourseSection =>
-      _selectedCourse != null || _expanded['course'] == true;
+      _selectedCourseIds.isNotEmpty || _expanded['course'] == true;
 
   bool get _showCustomFieldsSection =>
       _customFields.isNotEmpty || _expanded['customFields'] == true;
@@ -974,14 +974,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         final settings = ref.read(settingsProvider);
         final units = UnitFormatter(settings);
 
-        // Load training course if linked (must be done before setState)
-        Course? loadedCourse;
-        if (dive.courseId != null) {
-          loadedCourse = await ref.read(
-            courseByIdProvider(dive.courseId!).future,
-          );
-        }
-
         final hasPrimarySource = await ref
             .read(diveRepositoryProvider)
             .hasPrimaryDataSource(dive.id);
@@ -1015,7 +1007,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _selectedSite = dive.site;
           _selectedTrip = dive.trip;
           _selectedDiveCenter = dive.diveCenter;
-          _selectedCourse = loadedCourse;
+          _selectedCourseIds = List.of(dive.courseIds);
 
           // Load all tanks from the dive
           _loadedTankIds = {for (final t in dive.tanks) t.id};
@@ -1320,7 +1312,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   entries: [
                     if (!_showCourseSection)
                       AddSectionEntry(
-                        label: context.l10n.diveLog_edit_section_trainingCourse,
+                        label:
+                            context.l10n.diveLog_edit_section_trainingCourses,
                         onTap: () => setState(() => _expanded['course'] = true),
                       ),
                     if (!_showCustomFieldsSection)
@@ -1402,6 +1395,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final Map<String, String> _diveTypeNames = {};
   List<BulkMembershipItem> _diveTypeMembers = [];
   MembershipDelta _diveTypeDelta = MembershipDelta.empty;
+
+  // The dives' training courses (#2515).
+  Map<String, int> _courseCounts = {};
+  List<BulkMembershipItem> _courseMembers = [];
+  MembershipDelta _courseDelta = MembershipDelta.empty;
 
   Map<String, int> _buddyCounts = {};
   final Map<String, Buddy> _buddyById = {};
@@ -1503,19 +1501,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ),
               ),
               _gatedRow(
-                BulkField.course,
-                FormRow.picker(
-                  label: l10n.diveLog_edit_row_course,
-                  value: _selectedCourse?.name,
-                  placeholder: l10n.diveLog_edit_row_notSet,
-                  onTap: _showBulkCoursePicker,
-                  onClear: _selectedCourse == null
-                      ? null
-                      : () => setState(() => _selectedCourse = null),
-                  clearTooltip: l10n.courses_picker_clearSelection,
-                ),
-              ),
-              _gatedRow(
                 BulkField.rating,
                 FormRow.rating(
                   label: l10n.diveLog_edit_section_rating,
@@ -1614,7 +1599,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       boatName: trimmedOrNull(_boatNameController.text),
       boatCaptain: trimmedOrNull(_boatCaptainController.text),
       tripId: _selectedTrip?.id,
-      courseId: _selectedCourse?.id,
       rating: _rating > 0 ? _rating : null,
       isFavorite: _bulkFavorite,
       excludedFromStats: _bulkExcludedFromStats,
@@ -1866,6 +1850,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           onChanged: (d) => setState(() => _diveTypeDelta = d),
         ),
         BulkMembershipEditor(
+          title: l10n.diveLog_edit_section_trainingCourses,
+          total: total,
+          labels: labels,
+          items: _courseMembers,
+          counts: _courseCounts,
+          onAdd: _bulkAddCourses,
+          onChanged: (d) => setState(() => _courseDelta = d),
+        ),
+        BulkMembershipEditor(
           title: l10n.diveLog_edit_section_equipment,
           total: total,
           labels: labels,
@@ -1987,6 +1980,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           diveTypeIds: _diveTypeDelta.removeIds,
         ),
       );
+    }
+    for (final (mode, ids) in [
+      (BulkCollectionMode.add, _courseDelta.addIds),
+      (BulkCollectionMode.remove, _courseDelta.removeIds),
+    ]) {
+      if (ids.isNotEmpty) ops.add(DiveCoursesOp(mode: mode, courseIds: ids));
     }
     if (_equipmentDelta.addIds.isNotEmpty) {
       ops.add(
@@ -2487,6 +2486,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         title: l10n.diveLog_edit_label_diveTypes,
         delta: _diveTypeDelta,
         members: _diveTypeMembers,
+      ),
+      (
+        title: l10n.diveLog_edit_section_trainingCourses,
+        delta: _courseDelta,
+        members: _courseMembers,
       ),
       (
         title: l10n.diveLog_edit_section_equipment,
@@ -3274,42 +3278,50 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
-  Future<void> _showBulkCoursePicker() => showCoursePickerSheet(
-    context,
-    selectedCourse: _selectedCourse,
-    onCourseSelected: (course) {
-      _markDirty();
-      setState(() => _selectedCourse = course);
-    },
-  );
+  /// The selected course names for the collapsed section's summary.
+  String _courseSummary() {
+    final names = {
+      for (final c in ref.watch(courseListNotifierProvider).value ?? const [])
+        c.id: c.name,
+    };
+    return [
+      for (final id in _selectedCourseIds)
+        if (names[id] != null) names[id]!,
+    ].join(', ');
+  }
 
   Widget _buildCourseGroupSection() {
     return RareSection(
-      label: context.l10n.diveLog_edit_section_trainingCourse,
+      label: context.l10n.diveLog_edit_section_trainingCourses,
       icon: Icons.school_outlined,
-      expanded: _isExpanded('course', defaultValue: _selectedCourse != null),
+      expanded: _isExpanded(
+        'course',
+        defaultValue: _selectedCourseIds.isNotEmpty,
+      ),
       onToggle: () =>
-          _toggleSection('course', defaultValue: _selectedCourse != null),
-      summary: _selectedCourse?.name ?? '',
-      isEmpty: _selectedCourse == null,
-      emptyInvitation: context.l10n.diveLog_edit_trainingCourseHint,
+          _toggleSection('course', defaultValue: _selectedCourseIds.isNotEmpty),
+      summary: _courseSummary(),
+      isEmpty: _selectedCourseIds.isEmpty,
+      emptyInvitation: context.l10n.diveLog_edit_trainingCoursesHint,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n.diveLog_edit_trainingCourseHint,
+              context.l10n.diveLog_edit_trainingCoursesHint,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 12),
-            CoursePicker(
-              selectedCourse: _selectedCourse,
-              onCourseSelected: (course) {
+            CourseMultiSelectField(
+              selectedCourseIds: _selectedCourseIds,
+              onChanged: (ids) {
+                // The picker is a sheet, not a FormField, so Form.onChanged
+                // never sees it.
                 _markDirty();
-                setState(() => _selectedCourse = course);
+                setState(() => _selectedCourseIds = ids);
               },
             ),
           ],
@@ -4491,6 +4503,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final equipCounts = await repo.equipmentCountsForDives(ids);
     final tagCounts = await repo.tagCountsForDives(ids);
     final typeCounts = await repo.diveTypeCountsForDives(ids);
+    final courseCounts = await repo.courseCountsForDives(ids);
     final buddyRepo = ref.read(buddyRepositoryProvider);
     final buddyCounts = await buddyRepo.buddyCountsForDives(ids);
     final buddyRoles = await buddyRepo.unanimousBuddyRolesForDives(ids);
@@ -4503,6 +4516,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
     final allTags = await ref.read(tagsProvider.future);
     final allTypes = await ref.read(diveTypesProvider.future);
+    final allCourses = await ref.read(allCoursesProvider.future);
     final allBuddies = await buddyRepo.getAllBuddies();
     if (!mounted) return;
 
@@ -4544,6 +4558,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             id: id,
             label: typeName[id] ?? id,
             icon: Icons.scuba_diving,
+          ),
+      ]..sort(byLabel);
+      _courseCounts = courseCounts;
+      final courseName = {for (final c in allCourses) c.id: c.name};
+      _courseMembers = [
+        for (final id in courseCounts.keys)
+          BulkMembershipItem(
+            id: id,
+            label: courseName[id] ?? id,
+            icon: Icons.school_outlined,
           ),
       ]..sort(byLabel);
       _buddyCounts = buddyCounts;
@@ -4749,6 +4773,35 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               id: id,
               label: _diveTypeNames[id] ?? id,
               icon: Icons.scuba_diving,
+            ),
+      ];
+    });
+  }
+
+  /// Opens the course checklist and adds the picked courses as members, each
+  /// starting "on all" in the membership editor (#2515).
+  Future<void> _bulkAddCourses() async {
+    var picked = <String>[];
+    await showCourseMultiPickerSheet(
+      context,
+      selectedCourseIds: const [],
+      onChanged: (ids) => picked = ids,
+    );
+    if (!mounted || picked.isEmpty) return;
+    final names = {
+      for (final c in ref.read(courseListNotifierProvider).value ?? const [])
+        c.id: c.name,
+    };
+    setState(() {
+      final existing = {for (final m in _courseMembers) m.id};
+      _courseMembers = [
+        ..._courseMembers,
+        for (final id in picked)
+          if (!existing.contains(id))
+            BulkMembershipItem(
+              id: id,
+              label: names[id] ?? id,
+              icon: Icons.school_outlined,
             ),
       ];
     });
@@ -6160,7 +6213,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         boatName: trimmedOrNull(_boatNameController.text),
         boatCaptain: trimmedOrNull(_boatCaptainController.text),
         surfaceConditions: trimmedOrNull(_surfaceConditionsController.text),
-        courseId: _selectedCourse?.id,
+        courseIds: _selectedCourseIds,
         tanks: _tanks,
         gear: gearLinksFor(_selectedEquipment, _gearRows),
         // Conditions fields
@@ -6418,22 +6471,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ref.invalidate(navTracksForDiveProvider(savedDiveId));
       }
 
-      // Invalidate course providers if course association changed
+      // Refresh every course the dive joined or left (#2515).
       if (savedDiveId != null) {
-        final oldCourseId = _existingDive?.courseId;
-        final newCourseId = _selectedCourse?.id;
-        // Invalidate old course's dive list if it changed
-        if (oldCourseId != null && oldCourseId != newCourseId) {
-          ref.invalidate(courseDivesProvider(oldCourseId));
-          ref.invalidate(courseDiveCountProvider(oldCourseId));
+        for (final courseId in {
+          ...?_existingDive?.courseIds,
+          ..._selectedCourseIds,
+        }) {
+          ref.invalidate(courseDivesProvider(courseId));
+          ref.invalidate(courseDiveCountProvider(courseId));
         }
-        // Invalidate new course's dive list if set
-        if (newCourseId != null) {
-          ref.invalidate(courseDivesProvider(newCourseId));
-          ref.invalidate(courseDiveCountProvider(newCourseId));
-        }
-        // Always invalidate the courseForDive provider for this dive
-        ref.invalidate(courseForDiveProvider(savedDiveId));
+        ref.invalidate(coursesForDiveProvider(savedDiveId));
       }
 
       // Record tide conditions if the site has coordinates. The recorder

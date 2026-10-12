@@ -4179,10 +4179,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_list_tooltip_walletView => 'Vue portefeuille';
 
   @override
-  String get certifications_picker_clearTooltip =>
-      'Effacer la sélection de certification';
-
-  @override
   String get certifications_picker_empty_addButton =>
       'Ajouter une certification';
 
@@ -4205,11 +4201,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_picker_newCert => 'Nouvelle cert.';
 
   @override
-  String get certifications_picker_noSelection =>
-      'Aucune certification sélectionnée';
-
-  @override
-  String get certifications_picker_sheetTitle => 'Associer à une certification';
+  String get certifications_picker_selectTitle =>
+      'Sélectionner des certifications';
 
   @override
   String get certifications_search_empty_hint =>
@@ -5207,10 +5200,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound =>
-      'Certification introuvable';
-
-  @override
   String get courses_detail_noTrainingDives =>
       'Aucune plongée de formation associée pour le moment';
 
@@ -5277,8 +5266,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get courses_field_instructorNumber => 'Numéro d\'instructeur';
 
   @override
-  String get courses_field_linkCertificationHint =>
-      'Associer une certification obtenue lors de ce cours';
+  String get courses_field_linkCertificationsHint =>
+      'Associer les certifications obtenues lors de ce cours';
 
   @override
   String get courses_field_location => 'Lieu';
@@ -5327,9 +5316,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get courses_picker_active => 'Actif';
 
   @override
-  String get courses_picker_clearSelection => 'Effacer la sélection';
-
-  @override
   String get courses_picker_createCourse => 'Créer un cours';
 
   @override
@@ -5344,10 +5330,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get courses_picker_noCourses => 'Aucun cours pour le moment';
 
   @override
-  String get courses_picker_noneSelected => 'Aucun cours sélectionné';
+  String get courses_picker_selectCoursesTitle =>
+      'Sélectionner des cours de formation';
 
   @override
-  String get courses_picker_selectTitle => 'Sélectionner un cours de formation';
+  String courses_picker_linkedTo(String courseName) {
+    return 'Associée à : $courseName';
+  }
 
   @override
   String get courses_picker_selected => 'sélectionné';
@@ -5389,7 +5378,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get courses_section_details => 'Détails du cours';
 
   @override
-  String get courses_section_earnedCertification => 'Certification obtenue';
+  String get courses_section_earnedCertifications => 'Certifications obtenues';
 
   @override
   String get courses_section_instructor => 'Instructeur';
@@ -7609,9 +7598,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'Ajouter un site';
 
   @override
-  String get diveLog_edit_row_course => 'Cours';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'Centre de plongée';
 
   @override
@@ -7719,7 +7705,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_section_tags => 'Tags';
 
   @override
-  String get diveLog_edit_section_trainingCourse => 'Cours de formation';
+  String get diveLog_edit_section_trainingCourses => 'Cours de formation';
 
   @override
   String get diveLog_edit_section_trip => 'Voyage';
@@ -7837,8 +7823,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Retirer';
 
   @override
-  String get diveLog_edit_trainingCourseHint =>
-      'Associer cette plongée à un cours de formation';
+  String get diveLog_edit_trainingCoursesHint =>
+      'Associer cette plongée à un ou plusieurs cours de formation';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

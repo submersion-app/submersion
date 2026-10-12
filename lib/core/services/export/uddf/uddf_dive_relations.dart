@@ -107,6 +107,7 @@ Future<List<ServiceRecord>> loadUddfServiceRecords(
           id: r.id,
           equipmentId: r.equipmentId,
           serviceCategory: r.serviceCategory,
+          serviceKindId: r.serviceKindId,
           serviceDate: r.serviceDate,
           provider: r.provider,
           cost: r.cost,

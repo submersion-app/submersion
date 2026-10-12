@@ -61,6 +61,7 @@ extension AppDatabaseMigrationStrategy on AppDatabase {
     // Role junction unique indexes (v272, issue #1221), for the same
     // reason: createAll() never builds raw-SQL indexes.
     await assertDiveRoleLinkUniqueness(this);
+    await assertDiveCourseUniqueness(this);
   }
 
   /// Runs every rung above [from], oldest first. The rungs are split

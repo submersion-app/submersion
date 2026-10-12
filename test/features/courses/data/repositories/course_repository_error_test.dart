@@ -52,9 +52,9 @@ void main() {
         throwsA(anything),
       );
 
-      // getCourseForDive - rethrows
+      // getCoursesForDive - rethrows
       await expectLater(
-        repository.getCourseForDive('dive1'),
+        repository.getCoursesForDive('dive1'),
         throwsA(anything),
       );
 
@@ -87,13 +87,13 @@ void main() {
 
       // unlinkDiveFromCourse - rethrows
       await expectLater(
-        repository.unlinkDiveFromCourse('dive1'),
+        repository.unlinkDiveFromCourse('dive1', 'cr1'),
         throwsA(anything),
       );
 
-      // linkCourseToCertification - rethrows
+      // setCourseCertifications - rethrows
       await expectLater(
-        repository.linkCourseToCertification('cr1', 'cert1'),
+        repository.setCourseCertifications('cr1', ['cert1']),
         throwsA(anything),
       );
     });

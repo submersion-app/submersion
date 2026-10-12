@@ -320,8 +320,12 @@ void main() {
       read: (c) => c.read(courseForCertificationProvider(_id).future),
     ),
     (
-      name: 'courseForDiveProvider',
-      read: (c) => c.read(courseForDiveProvider(_id).future),
+      name: 'coursesForDiveProvider',
+      read: (c) => c.read(coursesForDiveProvider(_id).future),
+    ),
+    (
+      name: 'certificationsForCourseProvider',
+      read: (c) => c.read(certificationsForCourseProvider(_id).future),
     ),
     (
       name: 'courseSearchProvider',

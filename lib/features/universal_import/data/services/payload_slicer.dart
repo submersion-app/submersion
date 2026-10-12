@@ -151,8 +151,8 @@ class PayloadSlicer {
     return slices;
   }
 
-  /// [metadata] with its custom dive role and site type definitions cut to
-  /// those [entities] reference. The importer creates every definition it is
+  /// [metadata] with its custom dive role, site type and service kind
+  /// definitions cut to those [entities] reference. The importer creates every definition it is
   /// given under the slice's diver, so an unfiltered copy would give each
   /// profile the whole library's roles and site types (issue #1893).
   static Map<String, dynamic> _metadataFor(
@@ -170,6 +170,17 @@ class PayloadSlicer {
     final siteTypeIds = <Object?>{
       for (final site in entities[ImportEntityType.sites] ?? const [])
         if (site['siteTypeRefs'] case final List refs) ...refs,
+    };
+
+    // Custom service kinds (issue #2651): named by an item's clocks and by
+    // a service record.
+    final serviceKindIds = <Object?>{
+      for (final item in entities[ImportEntityType.equipment] ?? const [])
+        if (item['serviceSchedules'] case final List rows)
+          for (final r in rows)
+            if (r is Map) r['kindRef'],
+      for (final r in entities[ImportEntityType.serviceRecords] ?? const [])
+        r['serviceKindRef'],
     };
 
     List<Object?>? keep(String key, Set<Object?> used) {
@@ -190,6 +201,10 @@ class PayloadSlicer {
       ImportPayload.customSiteTypesKey: ?keep(
         ImportPayload.customSiteTypesKey,
         siteTypeIds,
+      ),
+      ImportPayload.serviceKindsKey: ?keep(
+        ImportPayload.serviceKindsKey,
+        serviceKindIds,
       ),
     };
   }

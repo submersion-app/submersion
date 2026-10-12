@@ -1538,7 +1538,7 @@ class SyncService {
             records: data.diveComputerConnections,
             hasUpdatedAt: true,
           ),
-          // v288: a profile's club-library memberships (issue #2567).
+          // v289: a profile's club-library memberships (issue #2567).
           (
             type: 'sharedLibraryMemberships',
             records: data.sharedLibraryMemberships,
@@ -1620,6 +1620,7 @@ class SyncService {
             records: data.diveDiveTypes,
             hasUpdatedAt: false,
           ),
+          (type: 'diveCourses', records: data.diveCourses, hasUpdatedAt: false),
           (
             type: 'diveDiverRoles',
             records: data.diveDiverRoles,
@@ -2682,6 +2683,7 @@ class SyncService {
     'diveEquipment': false,
     'diveTags': false,
     'diveDiveTypes': false,
+    'diveCourses': false,
     'diveBuddies': false,
     'diveProfileEvents': false,
     'diveSafetyReviews': false,
@@ -2831,7 +2833,7 @@ class SyncService {
     'diveComputerConnections': [
       (field: 'computerId', parent: 'diveComputers', nullable: false),
     ],
-    // v288: a membership belongs to its profile (issue #2567).
+    // v289: a membership belongs to its profile (issue #2567).
     'sharedLibraryMemberships': [
       (field: 'diverId', parent: 'divers', nullable: false),
     ],
@@ -2891,6 +2893,10 @@ class SyncService {
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
     'diveDiveTypes': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveCourses': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'courseId', parent: 'courses', nullable: false),
+    ],
     'diveDiverRoles': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveBuddyRoles': [
       (field: 'diveId', parent: 'dives', nullable: false),
@@ -3955,6 +3961,7 @@ class SyncService {
           // The batch paths re-derive this in repairDanglingForeignKeys;
           // this single-record write skips it.
           await _serializer.alignLinkedRouteOwners();
+          await _serializer.seedRepresentativeCourseLinks();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -3967,6 +3974,7 @@ class SyncService {
           remoteData['id'] = _uuid.v4();
           await _serializer.upsertRecord(entityType, remoteData);
           await _serializer.alignLinkedRouteOwners();
+          await _serializer.seedRepresentativeCourseLinks();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
