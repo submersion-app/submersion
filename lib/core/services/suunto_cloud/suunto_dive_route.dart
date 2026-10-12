@@ -128,8 +128,8 @@ class SuuntoDiveRouteParser {
     }
     if (quality == null && features == null) return null;
     return Map<String, Object?>.unmodifiable({
-      if (quality != null) _qualityKey: quality,
-      if (features != null) _featuresKey: features,
+      _qualityKey: ?quality,
+      _featuresKey: ?features,
     });
   }
 
