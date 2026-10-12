@@ -129,9 +129,89 @@ void main() {
       expect(find.widgetWithText(InputChip, 'Advanced Nitrox'), findsOneWidget);
       expect(find.widgetWithText(InputChip, 'Deco Procedures'), findsOneWidget);
     });
+
+    testWidgets('a chip delete drops only that certification', (tester) async {
+      final changes = <List<String>>[];
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            certificationListNotifierProvider.overrideWith(
+              (ref) => _MockCertListNotifier([
+                _makeCert(id: 'a', name: 'Advanced Nitrox'),
+                _makeCert(id: 'b', name: 'Deco Procedures'),
+              ]),
+            ),
+            allCoursesProvider.overrideWith((ref) async => [_rescue]),
+          ],
+          child: CertificationMultiSelectField(
+            courseId: 'this-course',
+            selectedCertificationIds: const ['a', 'b'],
+            onChanged: changes.add,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.widgetWithText(InputChip, 'Advanced Nitrox'),
+          matching: find.byIcon(Icons.clear),
+        ),
+      );
+      await tester.pump();
+      expect(changes.single, ['b']);
+    });
+
+    testWidgets('no selection shows the hint', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            certificationListNotifierProvider.overrideWith(
+              (ref) => _MockCertListNotifier(const []),
+            ),
+            allCoursesProvider.overrideWith((ref) async => []),
+          ],
+          child: CertificationMultiSelectField(
+            courseId: null,
+            selectedCertificationIds: const [],
+            onChanged: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.text('Tap to link to an earned certification'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('picker sheet', () {
+    testWidgets('an empty wallet offers to add a certification', (
+      tester,
+    ) async {
+      await _pumpSheet(tester, const []);
+      expect(find.text('No certifications yet'), findsOneWidget);
+      expect(find.text('Add Certification'), findsOneWidget);
+    });
+
+    testWidgets('an expired certification carries the Expired badge', (
+      tester,
+    ) async {
+      await _pumpSheet(tester, [
+        Certification(
+          id: 'old',
+          name: 'Old card',
+          agency: 'padi',
+          expiryDate: DateTime(2000),
+          createdAt: _now,
+          updatedAt: _now,
+        ),
+      ]);
+      expect(find.text('Expired'), findsOneWidget);
+    });
+
     testWidgets('a toggle reports the whole selection at once', (tester) async {
       final changes = <List<String>>[];
       await _pumpSheet(

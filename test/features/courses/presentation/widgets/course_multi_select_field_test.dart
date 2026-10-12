@@ -101,4 +101,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(changes.last, ['dp']);
   });
+
+  testWidgets('an in-progress course carries the Active badge', (tester) async {
+    await pump(tester, const []);
+    await tester.tap(find.byType(InputDecorator));
+    await tester.pumpAndSettle();
+    // Both seeded courses have no completion date, so both are in progress.
+    expect(find.text('Active'), findsNWidgets(2));
+  });
+
+  testWidgets('no selection shows the tap-to-link hint', (tester) async {
+    await pump(tester, const []);
+    expect(find.text('Tap to link to a training course'), findsOneWidget);
+  });
 }
