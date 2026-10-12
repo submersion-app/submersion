@@ -20880,6 +20880,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_connect_action => 'Könyvtár csatlakoztatása';
 
   @override
+  String get sharedLibrary_connect_addAccount => 'Tárhelyfiók hozzáadása';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'Fiók mentése';
+
+  @override
   String get sharedLibrary_connect_account_label => 'Tárhelyfiók';
 
   @override

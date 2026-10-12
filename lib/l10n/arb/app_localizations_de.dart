@@ -20925,6 +20925,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sharedLibrary_connect_action => 'Bibliothek verbinden';
 
   @override
+  String get sharedLibrary_connect_addAccount => 'Speicherkonto hinzufügen';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'Konto speichern';
+
+  @override
   String get sharedLibrary_connect_account_label => 'Speicherkonto';
 
   @override

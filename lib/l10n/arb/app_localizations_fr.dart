@@ -21010,6 +21010,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedLibrary_connect_action => 'Connecter une bibliothèque';
 
   @override
+  String get sharedLibrary_connect_addAccount =>
+      'Ajouter un compte de stockage';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'Enregistrer le compte';
+
+  @override
   String get sharedLibrary_connect_account_label => 'Compte de stockage';
 
   @override

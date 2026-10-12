@@ -4,6 +4,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
@@ -192,6 +193,14 @@ final suggestionServiceProvider = Provider<SuggestionService>(
   (ref) => SuggestionService(
     store: ref.watch(sharedLibraryStoreProvider),
     transportFor: ref.watch(sharedLibraryTransportFactoryProvider),
+  ),
+);
+
+// no-tick: a service object; it writes accounts at action time.
+final libraryAccountSetupProvider = Provider<LibraryAccountSetup>(
+  (ref) => LibraryAccountSetup(
+    accounts: ref.watch(connectedAccountsRepositoryProvider),
+    credentials: ref.watch(accountCredentialsStoreProvider),
   ),
 );
 

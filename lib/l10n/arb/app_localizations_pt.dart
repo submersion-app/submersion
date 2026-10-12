@@ -20951,6 +20951,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedLibrary_connect_action => 'Ligar uma biblioteca';
 
   @override
+  String get sharedLibrary_connect_addAccount =>
+      'Adicionar conta de armazenamento';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'Guardar conta';
+
+  @override
   String get sharedLibrary_connect_account_label => 'Conta de armazenamento';
 
   @override

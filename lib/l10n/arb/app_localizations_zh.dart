@@ -19912,6 +19912,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_connect_action => '连接库';
 
   @override
+  String get sharedLibrary_connect_addAccount => '添加存储账户';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => '保存账户';
+
+  @override
   String get sharedLibrary_connect_account_label => '存储账户';
 
   @override

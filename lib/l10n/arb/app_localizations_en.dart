@@ -20637,6 +20637,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLibrary_connect_action => 'Connect a library';
 
   @override
+  String get sharedLibrary_connect_addAccount => 'Add storage account';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'Save account';
+
+  @override
   String get sharedLibrary_connect_account_label => 'Storage account';
 
   @override

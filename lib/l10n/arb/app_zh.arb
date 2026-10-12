@@ -6012,6 +6012,8 @@
   "sharedLibrary_settings_subtitle": "与其他潜水员共同维护的潜点",
   "sharedLibrary_list_empty": "尚未连接共享潜点库。",
   "sharedLibrary_connect_action": "连接库",
+  "sharedLibrary_connect_addAccount": "添加存储账户",
+  "sharedLibrary_connect_saveAccount": "保存账户",
   "sharedLibrary_connect_account_label": "存储账户",
   "sharedLibrary_connect_prefix_label": "文件夹（前缀）",
   "sharedLibrary_connect_prefix_help": "存储桶或服务器顶层 submersion-sites 中的文件夹，例如 site-sync。",

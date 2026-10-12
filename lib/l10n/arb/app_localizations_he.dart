@@ -20482,6 +20482,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_connect_action => 'חיבור ספרייה';
 
   @override
+  String get sharedLibrary_connect_addAccount => 'הוספת חשבון אחסון';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'שמירת החשבון';
+
+  @override
   String get sharedLibrary_connect_account_label => 'חשבון אחסון';
 
   @override

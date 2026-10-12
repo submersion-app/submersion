@@ -5,9 +5,9 @@ import 'package:submersion/core/data/repositories/sync_repository.dart'
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
-import 'package:submersion/core/services/cloud_storage/s3/s3_region.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/s3_server_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Configuration form for the S3-compatible sync backend. Endpoint,
@@ -24,40 +24,19 @@ class S3ConfigPage extends ConsumerStatefulWidget {
 
 class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
   final _formKey = GlobalKey<FormState>();
-  final _endpointController = TextEditingController();
-  final _regionController = TextEditingController();
-  final _bucketController = TextEditingController();
-  final _prefixController = TextEditingController(text: 'submersion-sync/');
-  final _accessKeyController = TextEditingController();
-  final _secretKeyController = TextEditingController();
-
-  bool _pathStyle = false;
-  // Once the user flips the switch manually it stops auto-tracking the
-  // endpoint field.
-  bool _pathStyleTouched = false;
-  bool _secretVisible = false;
+  final _form = S3FormController();
   bool _busy = false;
   bool _hasExistingConfig = false;
 
   @override
   void initState() {
     super.initState();
-    _endpointController.addListener(_onEndpointChanged);
-    _regionController.addListener(_onRegionChanged);
     _loadExisting();
   }
 
-  // The auto-detected helper hides while the field holds a manual value.
-  void _onRegionChanged() => setState(() {});
-
   @override
   void dispose() {
-    _endpointController.dispose();
-    _regionController.dispose();
-    _bucketController.dispose();
-    _prefixController.dispose();
-    _accessKeyController.dispose();
-    _secretKeyController.dispose();
+    _form.dispose();
     super.dispose();
   }
 
@@ -68,27 +47,9 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
           .loadConfig();
       if (!mounted || existing == null) return;
       // A slow keychain read must not overwrite typing.
-      if (_bucketController.text.isNotEmpty ||
-          _accessKeyController.text.isNotEmpty ||
-          _secretKeyController.text.isNotEmpty) {
-        return;
-      }
-      setState(() {
-        // Legacy configs stored AWS as a blank endpoint; surface the real
-        // URL so the (now required) field re-saves without retyping.
-        _endpointController.text = existing.isAws
-            ? 'https://s3.${existing.region}.amazonaws.com'
-            : existing.endpoint;
-        _regionController.text = existing.region;
-        _bucketController.text = existing.bucket;
-        _prefixController.text = existing.prefix;
-        _accessKeyController.text = existing.accessKeyId;
-        _secretKeyController.text = existing.secretAccessKey;
-        _pathStyle = existing.pathStyle;
-        _pathStyleTouched = true;
-        // A stored choice (even an auto-derived one) must not silently flip.
-        _hasExistingConfig = true;
-      });
+      if (_form.hasTyping) return;
+      _form.load(existing);
+      setState(() => _hasExistingConfig = true);
     } catch (e) {
       if (!mounted) return;
       _showSnack(
@@ -98,38 +59,7 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
     }
   }
 
-  void _onEndpointChanged() {
-    final trimmed = _endpointController.text.trim();
-    final host = Uri.tryParse(trimmed)?.host.toLowerCase() ?? '';
-    // The auto-flip is for MinIO, NAS, and other self-hosted servers. AWS
-    // prefers virtual-hosted addressing, and the global endpoint only
-    // reaches cross-region buckets in that mode.
-    final wantsPathStyle =
-        trimmed.isNotEmpty &&
-        host != 'amazonaws.com' &&
-        !host.endsWith('.amazonaws.com');
-    setState(() {
-      if (!_pathStyleTouched) _pathStyle = wantsPathStyle;
-    });
-  }
-
-  bool get _isInsecureEndpoint =>
-      _endpointController.text.trim().toLowerCase().startsWith('http://');
-
-  S3Config _buildConfig() {
-    final manualRegion = _regionController.text.trim();
-    return S3Config(
-      endpoint: _endpointController.text,
-      region: manualRegion.isEmpty
-          ? deriveRegion(_endpointController.text)
-          : manualRegion,
-      bucket: _bucketController.text,
-      prefix: _prefixController.text,
-      pathStyle: _pathStyle,
-      accessKeyId: _accessKeyController.text,
-      secretAccessKey: _secretKeyController.text,
-    );
-  }
+  S3Config _buildConfig() => _form.build();
 
   void _showSnack(String message, {bool isError = false}) {
     if (!mounted) return;
@@ -166,7 +96,7 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
       if (!mounted) return;
       final detected = detectedRegion;
       if (detected != null) {
-        _regionController.text = detected;
+        _form.region.text = detected;
         _showSnack(l10n.settings_s3Config_test_regionDetected(detected));
       } else {
         _showSnack(l10n.settings_s3Config_test_success);
@@ -291,150 +221,7 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
           padding: const EdgeInsets.all(16),
           children: [
             if (_busy) const LinearProgressIndicator(),
-            if (_isInsecureEndpoint)
-              Card(
-                key: const Key('s3-http-warning'),
-                color: Theme.of(context).colorScheme.errorContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.lock_open,
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(l10n.settings_s3Config_warning_http),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            TextFormField(
-              key: const Key('s3-endpoint'),
-              controller: _endpointController,
-              decoration: InputDecoration(
-                labelText: l10n.settings_s3Config_field_endpoint_label,
-                // In-field hint: visible only while blank, so it cannot be
-                // misread as describing the Bucket field below.
-                hintText: l10n.settings_s3Config_field_endpoint_helper,
-              ),
-              keyboardType: TextInputType.url,
-              autocorrect: false,
-              // Sub-paths break SigV4 key addressing; host-only endpoints are accepted.
-              validator: (value) {
-                final trimmed = (value ?? '').trim();
-                if (trimmed.isEmpty) {
-                  return l10n.settings_s3Config_validation_required;
-                }
-                final uri = Uri.tryParse(trimmed);
-                final valid =
-                    uri != null &&
-                    (uri.scheme == 'http' || uri.scheme == 'https') &&
-                    uri.host.isNotEmpty;
-                if (!valid) {
-                  return l10n.settings_s3Config_validation_endpointInvalid;
-                }
-                if (uri.path.isNotEmpty && uri.path != '/') {
-                  return l10n.settings_s3Config_validation_endpointPath;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              key: const Key('s3-bucket'),
-              controller: _bucketController,
-              decoration: InputDecoration(
-                labelText: l10n.settings_s3Config_field_bucket_label,
-              ),
-              autocorrect: false,
-              validator: (value) => (value ?? '').trim().isEmpty
-                  ? l10n.settings_s3Config_validation_required
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              key: const Key('s3-access-key'),
-              controller: _accessKeyController,
-              decoration: InputDecoration(
-                labelText: l10n.settings_s3Config_field_accessKeyId_label,
-              ),
-              autocorrect: false,
-              enableSuggestions: false,
-              validator: (value) => (value ?? '').trim().isEmpty
-                  ? l10n.settings_s3Config_validation_required
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              key: const Key('s3-secret-key'),
-              controller: _secretKeyController,
-              decoration: InputDecoration(
-                labelText: l10n.settings_s3Config_field_secretAccessKey_label,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _secretVisible ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () =>
-                      setState(() => _secretVisible = !_secretVisible),
-                ),
-              ),
-              obscureText: !_secretVisible,
-              autocorrect: false,
-              enableSuggestions: false,
-              validator: (value) => (value ?? '').trim().isEmpty
-                  ? l10n.settings_s3Config_validation_required
-                  : null,
-            ),
-            ExpansionTile(
-              key: const Key('s3-advanced'),
-              title: Text(l10n.settings_s3Config_advanced_title),
-              tilePadding: EdgeInsets.zero,
-              // Top inset keeps the first child's floating label clear of
-              // the header row.
-              childrenPadding: const EdgeInsets.only(top: 12, bottom: 8),
-              // Suppress the M3 outline the tile draws when expanded.
-              shape: const Border(),
-              collapsedShape: const Border(),
-              children: [
-                TextFormField(
-                  key: const Key('s3-region'),
-                  controller: _regionController,
-                  decoration: InputDecoration(
-                    labelText: l10n.settings_s3Config_field_region_label,
-                    helperText: _regionController.text.trim().isEmpty
-                        ? l10n.settings_s3Config_field_region_helperAuto(
-                            deriveRegion(_endpointController.text),
-                          )
-                        : null,
-                  ),
-                  autocorrect: false,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('s3-prefix'),
-                  controller: _prefixController,
-                  decoration: InputDecoration(
-                    labelText: l10n.settings_s3Config_field_prefix_label,
-                  ),
-                  autocorrect: false,
-                ),
-                SwitchListTile(
-                  key: const Key('s3-path-style'),
-                  title: Text(l10n.settings_s3Config_field_pathStyle_label),
-                  subtitle: Text(
-                    l10n.settings_s3Config_field_pathStyle_subtitle,
-                  ),
-                  value: _pathStyle,
-                  onChanged: (value) => setState(() {
-                    _pathStyle = value;
-                    _pathStyleTouched = true;
-                  }),
-                ),
-              ],
-            ),
+            S3ServerFields(controller: _form),
             const SizedBox(height: 16),
             Row(
               children: [

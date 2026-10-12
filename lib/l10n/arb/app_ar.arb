@@ -5860,6 +5860,8 @@
   "sharedLibrary_settings_subtitle": "مواقع غوص تُدار مع غواصين آخرين",
   "sharedLibrary_list_empty": "لم يتم توصيل أي مكتبة مواقع مشتركة بعد.",
   "sharedLibrary_connect_action": "توصيل مكتبة",
+  "sharedLibrary_connect_addAccount": "إضافة حساب تخزين",
+  "sharedLibrary_connect_saveAccount": "حفظ الحساب",
   "sharedLibrary_connect_account_label": "حساب التخزين",
   "sharedLibrary_connect_prefix_label": "المجلد (البادئة)",
   "sharedLibrary_connect_prefix_help": "مجلد داخل submersion-sites في أعلى الحاوية أو الخادم، مثل site-sync.",

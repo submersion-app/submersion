@@ -13099,6 +13099,8 @@
   "sharedLibrary_settings_subtitle": "Dive sites kept together with other divers",
   "sharedLibrary_list_empty": "No shared site library connected yet.",
   "sharedLibrary_connect_action": "Connect a library",
+  "sharedLibrary_connect_addAccount": "Add storage account",
+  "sharedLibrary_connect_saveAccount": "Save account",
   "sharedLibrary_connect_account_label": "Storage account",
   "sharedLibrary_connect_prefix_label": "Folder (prefix)",
   "sharedLibrary_connect_prefix_help": "A folder inside submersion-sites, at the top of the bucket or server, such as site-sync.",

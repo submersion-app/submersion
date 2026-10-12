@@ -5864,6 +5864,8 @@
   "sharedLibrary_settings_subtitle": "אתרי צלילה שמנוהלים יחד עם צוללים אחרים",
   "sharedLibrary_list_empty": "עדיין לא חוברה ספריית אתרים משותפת.",
   "sharedLibrary_connect_action": "חיבור ספרייה",
+  "sharedLibrary_connect_addAccount": "הוספת חשבון אחסון",
+  "sharedLibrary_connect_saveAccount": "שמירת החשבון",
   "sharedLibrary_connect_account_label": "חשבון אחסון",
   "sharedLibrary_connect_prefix_label": "תיקייה (קידומת)",
   "sharedLibrary_connect_prefix_help": "תיקייה בתוך submersion-sites, בראש ה-bucket או השרת, למשל site-sync.",

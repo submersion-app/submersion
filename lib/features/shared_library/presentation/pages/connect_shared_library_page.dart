@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/s3_server_fields.dart';
+import 'package:submersion/features/settings/presentation/widgets/webdav_server_fields.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
@@ -37,11 +40,22 @@ class _ConnectSharedLibraryPageState
   String? _error;
   bool _nameSeeded = false;
 
+  // An account set up right here (issue #2567): its own folder,
+  // submersion-sites, is fixed by LibraryAccountSetup.
+  bool _addingAccount = false;
+  AccountKind _newKind = AccountKind.s3;
+  String? _selectedAccountId;
+  final _accountFormKey = GlobalKey<FormState>();
+  final _s3 = S3FormController(defaultPrefix: 'submersion-sites/');
+  final _webdav = WebDavFormController(defaultFolder: 'submersion-sites');
+
   @override
   void dispose() {
     _prefix.dispose();
     _libraryName.dispose();
     _displayName.dispose();
+    _s3.dispose();
+    _webdav.dispose();
     super.dispose();
   }
 
@@ -60,11 +74,18 @@ class _ConnectSharedLibraryPageState
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
         data: (list) {
-          if (list.isEmpty) return _noAccounts(context);
+          if (list.isEmpty && !_addingAccount) return _noAccounts(context);
+          if (list.isEmpty) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [_accountForm()],
+            );
+          }
           // The list rebuilds with new instances whenever an account
           // changes: keep the chosen one by id, or the dropdown loses it.
+          final wanted = _selectedAccountId ?? _account?.id;
           _account = list.firstWhere(
-            (a) => a.id == _account?.id,
+            (a) => a.id == wanted,
             orElse: () => list.first,
           );
           return ListView(
@@ -81,9 +102,22 @@ class _ConnectSharedLibraryPageState
                 ],
                 onChanged: (a) => setState(() {
                   _account = a;
+                  _selectedAccountId = a?.id;
                   _probe = null;
                 }),
               ),
+              if (_addingAccount) ...[
+                const SizedBox(height: 12),
+                _accountForm(),
+              ] else
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.sharedLibrary_connect_addAccount),
+                    onPressed: () => setState(() => _addingAccount = true),
+                  ),
+                ),
               const SizedBox(height: 12),
               TextField(
                 key: const Key('library-prefix'),
@@ -130,14 +164,107 @@ class _ConnectSharedLibraryPageState
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            FilledButton.tonal(
-              onPressed: () => context.push('/settings/connected-accounts'),
-              child: Text(l10n.sharedLibrary_connect_account_label),
+            FilledButton.icon(
+              icon: const Icon(Icons.add),
+              label: Text(l10n.sharedLibrary_connect_addAccount),
+              onPressed: () => setState(() => _addingAccount = true),
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// An S3 or WebDAV account, set up here: server and keys only, as the
+  /// library's folder comes from the field below.
+  Widget _accountForm() {
+    final l10n = context.l10n;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _accountFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SegmentedButton<AccountKind>(
+                segments: [
+                  ButtonSegment(
+                    value: AccountKind.s3,
+                    label: Text(l10n.settings_cloudSync_provider_s3_title),
+                  ),
+                  ButtonSegment(
+                    value: AccountKind.webdav,
+                    label: Text(l10n.settings_mediaStorage_provider_webdav),
+                  ),
+                ],
+                selected: {_newKind},
+                onSelectionChanged: (kinds) =>
+                    setState(() => _newKind = kinds.first),
+              ),
+              const SizedBox(height: 12),
+              if (_newKind == AccountKind.s3)
+                S3ServerFields(
+                  controller: _s3,
+                  showPrefix: false,
+                  keyPrefix: 'library-s3',
+                )
+              else
+                WebDavServerFields(
+                  controller: _webdav,
+                  showFolder: false,
+                  keyPrefix: 'library-webdav',
+                ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _busy
+                        ? null
+                        : () => setState(() => _addingAccount = false),
+                    child: Text(
+                      MaterialLocalizations.of(context).cancelButtonLabel,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: _busy ? null : _saveAccount,
+                    child: Text(l10n.sharedLibrary_connect_saveAccount),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveAccount() async {
+    if (!(_accountFormKey.currentState?.validate() ?? false)) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final setup = ref.read(libraryAccountSetupProvider);
+      final account = _newKind == AccountKind.s3
+          ? await setup.saveS3(_s3.build())
+          : await setup.saveWebDav(_webdav.build());
+      ref.invalidate(eligibleLibraryAccountsProvider);
+      if (!mounted) return;
+      setState(() {
+        _selectedAccountId = account.id;
+        _addingAccount = false;
+        _probe = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = libraryErrorText(context.l10n, e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Widget _result() {

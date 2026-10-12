@@ -5860,6 +5860,8 @@
   "sharedLibrary_settings_subtitle": "Duikstekken die je met andere duikers bijhoudt",
   "sharedLibrary_list_empty": "Nog geen gedeelde duikstekbibliotheek verbonden.",
   "sharedLibrary_connect_action": "Bibliotheek verbinden",
+  "sharedLibrary_connect_addAccount": "Opslagaccount toevoegen",
+  "sharedLibrary_connect_saveAccount": "Account opslaan",
   "sharedLibrary_connect_account_label": "Opslagaccount",
   "sharedLibrary_connect_prefix_label": "Map (prefix)",
   "sharedLibrary_connect_prefix_help": "Een map in submersion-sites, bovenaan de bucket of server, bijvoorbeeld site-sync.",

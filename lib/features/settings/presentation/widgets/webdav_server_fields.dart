@@ -120,10 +120,15 @@ class WebDavServerFields extends StatelessWidget {
     super.key,
     required this.controller,
     this.keyPrefix = 'webdav',
+    this.showFolder = true,
   });
 
   final WebDavFormController controller;
   final String keyPrefix;
+
+  /// False where the caller fixes the folder (a shared site library keeps
+  /// its own), so the field would only mislead.
+  final bool showFolder;
 
   Key _k(String name) => Key('$keyPrefix-$name');
 
@@ -225,30 +230,32 @@ class WebDavServerFields extends StatelessWidget {
                   ? l10n.settings_webdavConfig_validation_required
                   : null,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              key: _k('folder'),
-              controller: controller.folder,
-              autocorrect: false,
-              decoration: InputDecoration(
-                labelText: l10n.settings_webdavConfig_field_folder_label,
-                helperText: l10n.settings_webdavConfig_field_folder_helper,
+            if (showFolder) ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                key: _k('folder'),
+                controller: controller.folder,
+                autocorrect: false,
+                decoration: InputDecoration(
+                  labelText: l10n.settings_webdavConfig_field_folder_label,
+                  helperText: l10n.settings_webdavConfig_field_folder_helper,
+                ),
+                validator: (v) {
+                  final segments = (v ?? '')
+                      .split('/')
+                      .map((s) => s.trim())
+                      .where((s) => s.isNotEmpty)
+                      .toList();
+                  if (segments.isEmpty) {
+                    return l10n.settings_webdavConfig_validation_required;
+                  }
+                  if (segments.any((s) => s == '.' || s == '..')) {
+                    return l10n.settings_webdavConfig_validation_folder;
+                  }
+                  return null;
+                },
               ),
-              validator: (v) {
-                final segments = (v ?? '')
-                    .split('/')
-                    .map((s) => s.trim())
-                    .where((s) => s.isNotEmpty)
-                    .toList();
-                if (segments.isEmpty) {
-                  return l10n.settings_webdavConfig_validation_required;
-                }
-                if (segments.any((s) => s == '.' || s == '..')) {
-                  return l10n.settings_webdavConfig_validation_folder;
-                }
-                return null;
-              },
-            ),
+            ],
             if (pin != null)
               ListTile(
                 key: _k('pin-row'),

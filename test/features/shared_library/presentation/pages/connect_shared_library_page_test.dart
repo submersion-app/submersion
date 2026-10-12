@@ -4,6 +4,9 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
+import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -197,4 +200,98 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Bucket'), findsOneWidget);
   });
+
+  testWidgets('a storage account is set up right on the connect page', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final accounts = <ConnectedAccount>[];
+    final setup = _RecordingSetup(onSave: accounts.add);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          eligibleLibraryAccountsProvider.overrideWith(
+            (ref) async => List.of(accounts),
+          ),
+          libraryAccountSetupProvider.overrideWithValue(setup),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
+          currentDiverProvider.overrideWith((ref) async => null),
+        ],
+        locale: const Locale('en'),
+        child: const ConnectSharedLibraryPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // No account yet: set one up here instead of leaving for Settings.
+    await tester.tap(find.text('Add storage account'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('library-s3-endpoint')),
+      'https://s3.eu-west-1.amazonaws.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('library-s3-bucket')),
+      'submersion-sync',
+    );
+    await tester.enterText(find.byKey(const Key('library-s3-access-key')), 'k');
+    await tester.enterText(find.byKey(const Key('library-s3-secret-key')), 's');
+    expect(find.byKey(const Key('library-s3-prefix')), findsNothing);
+    await tester.tap(find.text('Save account'));
+    await tester.pumpAndSettle();
+
+    expect(setup.s3.single.bucket, 'submersion-sync');
+    expect(
+      find.text('submersion-sync @ s3.eu-west-1.amazonaws.com'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('library-prefix')), findsOneWidget);
+    expect(find.text('Save account'), findsNothing);
+  });
+
+  testWidgets('the WebDAV form leaves the folder to the library', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add storage account'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('WebDAV'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('library-webdav-server-url')), findsOneWidget);
+    expect(find.byKey(const Key('library-webdav-folder')), findsNothing);
+  });
+}
+
+class _RecordingSetup extends LibraryAccountSetup {
+  _RecordingSetup({required this.onSave});
+
+  final void Function(ConnectedAccount) onSave;
+  final s3 = <S3Config>[];
+
+  @override
+  Future<ConnectedAccount> saveS3(S3Config server) async {
+    s3.add(server);
+    final account = ConnectedAccount(
+      id: 'new',
+      kind: AccountKind.s3,
+      label: '${server.bucket} @ ${server.displayHost}',
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+    onSave(account);
+    return account;
+  }
+
+  @override
+  Future<ConnectedAccount> saveWebDav(WebDavConfig server) async =>
+      throw UnimplementedError();
 }

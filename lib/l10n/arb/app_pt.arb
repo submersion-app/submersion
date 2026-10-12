@@ -5860,6 +5860,8 @@
   "sharedLibrary_settings_subtitle": "Locais de mergulho mantidos com outros mergulhadores",
   "sharedLibrary_list_empty": "Ainda não há nenhuma biblioteca de locais partilhada ligada.",
   "sharedLibrary_connect_action": "Ligar uma biblioteca",
+  "sharedLibrary_connect_addAccount": "Adicionar conta de armazenamento",
+  "sharedLibrary_connect_saveAccount": "Guardar conta",
   "sharedLibrary_connect_account_label": "Conta de armazenamento",
   "sharedLibrary_connect_prefix_label": "Pasta (prefixo)",
   "sharedLibrary_connect_prefix_help": "Uma pasta dentro de submersion-sites, na raiz do bucket ou do servidor, por exemplo site-sync.",

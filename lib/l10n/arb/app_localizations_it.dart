@@ -20948,6 +20948,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sharedLibrary_connect_action => 'Collega una libreria';
 
   @override
+  String get sharedLibrary_connect_addAccount =>
+      'Aggiungi account di archiviazione';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'Salva account';
+
+  @override
   String get sharedLibrary_connect_account_label => 'Account di archiviazione';
 
   @override

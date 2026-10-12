@@ -5860,6 +5860,8 @@
   "sharedLibrary_settings_subtitle": "Puntos de buceo mantenidos con otros buceadores",
   "sharedLibrary_list_empty": "Aún no hay ninguna biblioteca de puntos compartida conectada.",
   "sharedLibrary_connect_action": "Conectar una biblioteca",
+  "sharedLibrary_connect_addAccount": "Añadir cuenta de almacenamiento",
+  "sharedLibrary_connect_saveAccount": "Guardar cuenta",
   "sharedLibrary_connect_account_label": "Cuenta de almacenamiento",
   "sharedLibrary_connect_prefix_label": "Carpeta (prefijo)",
   "sharedLibrary_connect_prefix_help": "Una carpeta dentro de submersion-sites, en la raíz del bucket o del servidor, por ejemplo site-sync.",

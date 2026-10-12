@@ -20815,6 +20815,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_connect_action => 'Bibliotheek verbinden';
 
   @override
+  String get sharedLibrary_connect_addAccount => 'Opslagaccount toevoegen';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'Account opslaan';
+
+  @override
   String get sharedLibrary_connect_account_label => 'Opslagaccount';
 
   @override

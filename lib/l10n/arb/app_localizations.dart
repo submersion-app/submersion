@@ -33545,6 +33545,18 @@ abstract class AppLocalizations {
   /// **'Connect a library'**
   String get sharedLibrary_connect_action;
 
+  /// No description provided for @sharedLibrary_connect_addAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add storage account'**
+  String get sharedLibrary_connect_addAccount;
+
+  /// No description provided for @sharedLibrary_connect_saveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Save account'**
+  String get sharedLibrary_connect_saveAccount;
+
   /// No description provided for @sharedLibrary_connect_account_label.
   ///
   /// In en, this message translates to:

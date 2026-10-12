@@ -21219,6 +21219,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_connect_action => 'توصيل مكتبة';
 
   @override
+  String get sharedLibrary_connect_addAccount => 'إضافة حساب تخزين';
+
+  @override
+  String get sharedLibrary_connect_saveAccount => 'حفظ الحساب';
+
+  @override
   String get sharedLibrary_connect_account_label => 'حساب التخزين';
 
   @override

@@ -5760,6 +5760,8 @@
   "sharedLibrary_settings_subtitle": "Siti di immersione tenuti insieme ad altri subacquei",
   "sharedLibrary_list_empty": "Nessuna libreria di siti condivisa ancora collegata.",
   "sharedLibrary_connect_action": "Collega una libreria",
+  "sharedLibrary_connect_addAccount": "Aggiungi account di archiviazione",
+  "sharedLibrary_connect_saveAccount": "Salva account",
   "sharedLibrary_connect_account_label": "Account di archiviazione",
   "sharedLibrary_connect_prefix_label": "Cartella (prefisso)",
   "sharedLibrary_connect_prefix_help": "Una cartella dentro submersion-sites, alla radice del bucket o del server, ad esempio site-sync.",

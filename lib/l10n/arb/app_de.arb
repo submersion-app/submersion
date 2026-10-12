@@ -5991,6 +5991,8 @@
   "sharedLibrary_settings_subtitle": "Tauchplätze, die du mit anderen Tauchern pflegst",
   "sharedLibrary_list_empty": "Noch keine geteilte Tauchplatzbibliothek verbunden.",
   "sharedLibrary_connect_action": "Bibliothek verbinden",
+  "sharedLibrary_connect_addAccount": "Speicherkonto hinzufügen",
+  "sharedLibrary_connect_saveAccount": "Konto speichern",
   "sharedLibrary_connect_account_label": "Speicherkonto",
   "sharedLibrary_connect_prefix_label": "Ordner (Präfix)",
   "sharedLibrary_connect_prefix_help": "Ein Ordner in submersion-sites auf der obersten Ebene des Buckets oder Servers, etwa site-sync.",
