@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/icons/submersion_icons.dart';
@@ -42,8 +43,21 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      final text = tester.widget<Text>(find.text('Sidemount Right'));
-      expect(text.overflow, TextOverflow.ellipsis);
+      // One line, cut with an ellipsis: wrapping would make the selected
+      // field and every menu row taller on a narrow layout.
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text('Sidemount Right'),
+      );
+      expect(paragraph.didExceedMaxLines, isTrue);
+      expect(
+        paragraph
+            .getBoxesForSelection(
+              const TextSelection(baseOffset: 0, extentOffset: 15),
+            )
+            .map((box) => box.top)
+            .toSet(),
+        hasLength(1),
+      );
     });
   });
 }
