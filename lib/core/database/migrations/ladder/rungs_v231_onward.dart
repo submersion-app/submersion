@@ -341,5 +341,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertTrendGapCollapseColumn();
     }
     if (from < 281) await reportProgress();
+    // v282: nav_tracks.source_metadata (issue #3047). Column only, no
+    // backfill; re-asserted in beforeOpen through _assertNavTracksSchema.
+    if (from < 282) {
+      await _assertNavTrackSourceMetadataColumn();
+    }
+    if (from < 282) await reportProgress();
   }
 }
