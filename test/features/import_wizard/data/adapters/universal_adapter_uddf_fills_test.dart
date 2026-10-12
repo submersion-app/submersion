@@ -13,10 +13,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 
@@ -66,9 +70,40 @@ void main() {
     id: 's1',
     equipmentId: 'e-tank',
     serviceCategory: ServiceCategory.inspection,
+    serviceKindId: 'k-burst',
     serviceDate: DateTime(2026, 5, 1),
     provider: 'Hydro shop',
   );
+  // A custom service kind and two clocks on the tank (issue #2651): one of
+  // the built-in hydro kind, which createEquipment also seeds, and one of
+  // the custom kind.
+  final burst = ServiceKind(
+    id: 'k-burst',
+    diverId: 'someone-else',
+    name: 'Burst disc',
+    applicableTypes: const [EquipmentType.tank],
+    defaultIntervalDays: 730,
+    createdAt: _now,
+    updatedAt: _now,
+  );
+  final clocks = [
+    ServiceSchedule(
+      id: 'auto-hydro-e-tank',
+      equipmentId: 'e-tank',
+      serviceKindId: 'hydro',
+      intervalDays: 1095,
+      createdAt: _now,
+      updatedAt: _now,
+    ),
+    ServiceSchedule(
+      id: 'c-burst',
+      equipmentId: 'e-tank',
+      serviceKindId: 'k-burst',
+      intervalDays: 365,
+      createdAt: _now,
+      updatedAt: _now,
+    ),
+  ];
 
   Future<Uint8List> backup() async => Uint8List.fromList(
     utf8.encode(
@@ -77,6 +112,8 @@ void main() {
         equipment: [tank],
         serviceRecords: [service],
         fills: goldenFills(),
+        serviceKinds: [burst],
+        serviceSchedulesByItem: {'e-tank': clocks},
       ),
     ),
   );
@@ -122,6 +159,28 @@ void main() {
         restoredTank,
       );
       expect(records.map((r) => r.provider), ['Hydro shop']);
+
+      // The custom kind is the diver's own now, and the record and a clock
+      // point at it; the seeded hydro clock took the backup's interval.
+      final mine = [
+        for (final k in await ServiceKindRepository().getAllKinds(
+          diverId: _diverId,
+        ))
+          if (!k.isBuiltIn) k,
+      ];
+      expect(mine.map((k) => k.name), ['Burst disc']);
+      expect(mine.single.diverId, _diverId);
+      expect(records.single.serviceKindId, mine.single.id);
+      final restoredClocks = await ServiceScheduleRepository()
+          .getSchedulesForEquipment(restoredTank);
+      final hydro = restoredClocks.where((s) => s.serviceKindId == 'hydro');
+      expect(hydro.map((s) => s.intervalDays), [1095]);
+      expect(
+        restoredClocks
+            .where((s) => s.serviceKindId == mine.single.id)
+            .map((s) => s.intervalDays),
+        [365],
+      );
     });
 
     // The same backup over the restored library: every fill is marked as
@@ -143,6 +202,19 @@ void main() {
       expect(
         await CylinderPassportRepository().getPassportId(restoredTank),
         'pp-al80',
+      );
+      // Nothing is duplicated: one custom kind, the same clocks.
+      expect([
+        for (final k in await ServiceKindRepository().getAllKinds(
+          diverId: _diverId,
+        ))
+          if (!k.isBuiltIn) k,
+      ], hasLength(1));
+      expect(
+        (await ServiceScheduleRepository().getSchedulesForEquipment(
+          restoredTank,
+        )).where((s) => s.serviceKindId == 'hydro'),
+        hasLength(1),
       );
       // A matched item's history is not attached again.
       expect(

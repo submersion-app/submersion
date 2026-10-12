@@ -91,6 +91,8 @@ class UddfImportParser implements ImportParser {
             ImportPayload.customDiveRolesKey: result.customDiveRoles,
           if (result.customSiteTypes.isNotEmpty)
             ImportPayload.customSiteTypesKey: result.customSiteTypes,
+          if (result.serviceKinds.isNotEmpty)
+            ImportPayload.serviceKindsKey: result.serviceKinds,
           if (result.currencyRules.isNotEmpty)
             ImportPayload.currencyRulesKey: result.currencyRules,
           if (result.currencyPrefs.isNotEmpty)

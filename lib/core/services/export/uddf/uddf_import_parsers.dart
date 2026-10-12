@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Normalizes a raw UDDF `<tankvolume>` value to liters (#158).
@@ -1031,6 +1032,10 @@ class UddfImportParsers {
     // The item's tag identity (issue #2651); adopted by the entity
     // importer only into an empty slot.
     item['passportId'] = getElementText(itemElement, 'passportid');
+    // The item's service clocks (issue #2651), restored after the item.
+    item['serviceSchedules'] = UddfServiceClockWriters.parseSchedules(
+      itemElement,
+    );
     final observationsElement = itemElement
         .findElements('observations')
         .firstOrNull;
@@ -1187,6 +1192,8 @@ class UddfImportParsers {
     }
 
     record['equipmentRef'] = getElementText(recordElement, 'equipmentref');
+    // The service kind the record fulfils (issue #2651).
+    record['serviceKindRef'] = getElementText(recordElement, 'servicekind');
 
     // Files exported before v160 spell this 'servicetype'. UDDF files have no
     // version handshake and live on disk indefinitely, so both spellings are

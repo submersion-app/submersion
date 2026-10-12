@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -105,6 +106,15 @@ void main() {
       'anchorSetAt': DateTime(2026, 1, 11, 8),
       'enabled': false,
     });
+  });
+
+  test('the full parser carries kinds, clocks and record kinds', () async {
+    final result = await UddfFullImportService().importAllDataFromUddf(
+      (await backup()).toXmlString(),
+    );
+    expect(result.serviceKinds.single['id'], 'k-burst');
+    expect(result.equipment.single['serviceSchedules'], hasLength(1));
+    expect(result.serviceRecords.single['serviceKindRef'], 'k-burst');
   });
 
   test('a record names its kind', () async {

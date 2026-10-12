@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_import/data/services/additional_compute
 import 'package:submersion/features/dive_import/data/services/currency_restorer.dart';
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
 import 'package:submersion/features/dive_import/data/services/import_passport_adoption.dart';
+import 'package:submersion/features/dive_import/data/services/import_service_clocks.dart';
 import 'package:submersion/features/dive_import/data/services/import_weight_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
@@ -69,7 +70,9 @@ import 'package:submersion/features/equipment/data/repositories/equipment_locati
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     as equipment_domain;
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -172,6 +175,12 @@ class ImportRepositories {
   final CylinderFillRepository? cylinderFillRepository;
   final CylinderPassportRepository? cylinderPassportRepository;
 
+  /// Optional for the same reason; when either is null, a full backup's
+  /// custom service kinds and item clocks are skipped and its service
+  /// records restore without a kind (issue #2651).
+  final ServiceKindRepository? serviceKindRepository;
+  final ServiceScheduleRepository? serviceScheduleRepository;
+
   /// Optional for the same reason; when null, the certification currency
   /// rows in a full backup (issue #2267) are skipped.
   final CertificationCurrencyRepository? certificationCurrencyRepository;
@@ -204,6 +213,8 @@ class ImportRepositories {
     this.speciesRepository,
     this.cylinderFillRepository,
     this.cylinderPassportRepository,
+    this.serviceKindRepository,
+    this.serviceScheduleRepository,
     this.certificationCurrencyRepository,
   });
 }
@@ -514,6 +525,23 @@ class UddfEntityImporter {
           );
 
     final equipmentRan = !stopped();
+    // Custom service kinds (issue #2651) land before equipment, so
+    // auto-attach sees them as the source library did. A file with no
+    // kinds, clocks or record kinds reads none, as most imports are.
+    final kindResolver =
+        !equipmentRan ||
+            repositories.serviceKindRepository == null ||
+            !carriesServiceKinds(
+              data.serviceKinds,
+              data.equipment,
+              data.serviceRecords,
+            )
+        ? const ServiceKindResolver({}, {})
+        : await importServiceKinds(
+            data.serviceKinds,
+            repositories.serviceKindRepository!,
+            diverId: diverId,
+          );
     final equipmentCount = !equipmentRan
         ? 0
         : await _importEquipment(
@@ -548,6 +576,19 @@ class UddfEntityImporter {
       );
     }
 
+    // Each created item's clocks (issue #2651), merged by kind with the
+    // ones createEquipment seeded.
+    if (equipmentRan && repositories.serviceScheduleRepository != null) {
+      await restoreServiceClocks(
+        data.equipment,
+        selections.equipment,
+        equipmentIdMapping,
+        preResolvedEquipmentIds,
+        repositories.serviceScheduleRepository!,
+        kindResolver,
+      );
+    }
+
     // Service history belongs to the equipment it describes, so it rides
     // along with whatever equipment was selected rather than being its own
     // choice in the wizard. A pre-resolved duplicate still mapped to its
@@ -563,6 +604,7 @@ class UddfEntityImporter {
               entry.key: entry.value,
         },
         now,
+        kindResolver,
       );
     }
 
@@ -896,6 +938,7 @@ class UddfEntityImporter {
     ServiceRecordRepository? repository,
     Map<String, String> equipmentIdMapping,
     DateTime now,
+    ServiceKindResolver kinds,
   ) async {
     if (repository == null || items.isEmpty) return 0;
     var count = 0;
@@ -915,6 +958,7 @@ class UddfEntityImporter {
         serviceCategory:
             _parseEnum(recordData['serviceCategory'], ServiceCategory.values) ??
             ServiceCategory.other,
+        serviceKindId: kinds.resolve(recordData['serviceKindRef'] as String?),
         serviceDate: serviceDate,
         provider: recordData['provider'] as String?,
         cost: asDoubleOrNull(recordData['cost']),

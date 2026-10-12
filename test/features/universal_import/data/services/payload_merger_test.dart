@@ -168,6 +168,33 @@ void main() {
       expect([for (final r in roles) (r as Map)['id']], ['r1', 'r2', 'r3']);
     });
 
+    test('folds custom service kinds by id across files (issue #2651)', () {
+      ImportPayload withKinds(List<String> ids) => ImportPayload(
+        entities: const {},
+        metadata: {
+          ImportPayload.serviceKindsKey: [
+            for (final id in ids) {'id': id, 'name': 'Kind $id'},
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'a.uddf',
+          payload: withKinds(['k1', 'k2']),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'b.uddf',
+          payload: withKinds(['k2', 'k3']),
+        ),
+      ]);
+
+      final kinds = merged.metadata[ImportPayload.serviceKindsKey] as List;
+      expect([for (final k in kinds) (k as Map)['id']], ['k1', 'k2', 'k3']);
+    });
+
     test('namespaces currency certificationRefs like the certifications', () {
       // Issue #2267: a pref names its certification by uddfId, which the
       // merge prefixes per file, so the ref must take the same prefix or no
