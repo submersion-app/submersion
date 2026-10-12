@@ -2765,6 +2765,15 @@ class _DataSectionContent extends ConsumerWidget {
                   onTap: () => context.push('/settings/cloud-sync'),
                 ),
                 const Divider(height: 1),
+                // Club libraries (issue #2567).
+                ListTile(
+                  leading: const Icon(Icons.groups_outlined),
+                  title: Text(context.l10n.sharedLibrary_settings_title),
+                  subtitle: Text(context.l10n.sharedLibrary_settings_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/club-libraries'),
+                ),
+                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.perm_media_outlined),
                   title: Text(context.l10n.settings_photosMedia_title),

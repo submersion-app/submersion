@@ -198,3 +198,70 @@ final suggestionServiceProvider = Provider<SuggestionService>(
 final sharedSitePublisherProvider = Provider<SharedSitePublisher>(
   (ref) => SharedSitePublisher(store: ref.watch(sharedLibraryStoreProvider)),
 );
+
+final _suggestionTickProvider = StreamProvider<void>((ref) async* {
+  yield null;
+  yield* ref.watch(sharedLibraryStoreProvider).watchSuggestions();
+});
+
+/// Reader suggestions waiting for an owner's review in [libraryId].
+final incomingSuggestionsProvider =
+    FutureProvider.family<List<SharedSiteSuggestion>, String>((
+      ref,
+      libraryId,
+    ) async {
+      ref.watch(_suggestionTickProvider);
+      return ref
+          .watch(sharedLibraryStoreProvider)
+          .suggestions(
+            libraryId,
+            direction: SharedSiteSuggestion.incoming,
+            status: SharedSiteSuggestion.pending,
+          );
+    });
+
+/// How many suggestions wait in [libraryId], for the badge.
+final pendingIncomingSuggestionCountProvider =
+    FutureProvider.family<int, String>((ref, libraryId) async {
+      final list = await ref.watch(
+        incomingSuggestionsProvider(libraryId).future,
+      );
+      return list.length;
+    });
+
+/// The active profile's own suggestions on [siteId], not yet handled.
+final outgoingSuggestionsForSiteProvider =
+    FutureProvider.family<List<SharedSiteSuggestion>, String>((
+      ref,
+      siteId,
+    ) async {
+      ref.watch(_suggestionTickProvider);
+      final store = ref.watch(sharedLibraryStoreProvider);
+      final result = <SharedSiteSuggestion>[];
+      for (final library in await store.getLibraries()) {
+        final mine = await store.suggestions(
+          library.id,
+          direction: SharedSiteSuggestion.outgoing,
+          siteId: siteId,
+        );
+        result.addAll(
+          mine.where((s) => s.status != SharedSiteSuggestion.withdrawn),
+        );
+      }
+      return result;
+    });
+
+/// Field name to (stored value, proposed value) for the review sheet.
+// no-tick: a one-shot diff computed when the sheet opens; it is rebuilt
+// with the sheet.
+final suggestionDiffProvider =
+    FutureProvider.family<Map<String, (Object?, Object?)>, String>((
+      ref,
+      suggestionId,
+    ) async {
+      final s = await ref
+          .watch(sharedLibraryStoreProvider)
+          .getSuggestion(suggestionId);
+      if (s == null) return const {};
+      return ref.watch(suggestionServiceProvider).diff(s);
+    });
