@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -44,6 +45,9 @@ class _MediaThumbnailWheelZoomState
 
   void _onPointerSignal(PointerSignalEvent event) {
     if (event is! PointerScrollEvent) return;
+    // A wheel only. A trackpad's scroll is a stream of small events, not
+    // clicks, and one stop per event would race through every size.
+    if (event.kind == PointerDeviceKind.trackpad) return;
     final dy = event.scrollDelta.dy;
     if (dy == 0 || !_zoomModifierPressed()) return;
     GestureBinding.instance.pointerSignalResolver.register(event, (_) {
@@ -84,6 +88,12 @@ class _MediaThumbnailWheelZoomState
 /// is for the scroll view itself to decline. It asks its physics on every
 /// event, which is where this answers.
 ///
+/// The same question is also asked at layout, where the answer decides
+/// whether the view can be dragged at all until it is next laid out. A
+/// zoom relays the view out while the modifier is still down, so the key
+/// must only count when a pointer event asks, or a trackpad's two-finger
+/// scroll, which arrives as a drag, would stay off once the key is up.
+///
 /// Set on the scroll view itself, not through a ScrollConfiguration: a
 /// vertical scroll view with no controller defaults to
 /// [AlwaysScrollableScrollPhysics], which accepts the wheel whatever the
@@ -99,8 +109,13 @@ class MediaThumbnailWheelZoomPhysics extends ScrollPhysics {
       MediaThumbnailWheelZoomPhysics(parent: buildParent(ancestor));
 
   @override
-  bool shouldAcceptUserOffset(ScrollMetrics position) =>
-      !_zoomModifierPressed() && super.shouldAcceptUserOffset(position);
+  bool shouldAcceptUserOffset(ScrollMetrics position) {
+    final accepts = super.shouldAcceptUserOffset(position);
+    final atLayout =
+        SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks;
+    return accepts && (atLayout || !_zoomModifierPressed());
+  }
 
   /// A zoom moves the offset before the new layout exists, so it can ask
   /// for a place past the end of what the gallery turns out to hold. At

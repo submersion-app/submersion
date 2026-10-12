@@ -179,6 +179,23 @@ void main() {
       expect(scroll.pixels, 0);
     }, variant: macOnly);
 
+    // Only the mouse wheel resizes: a trackpad's scroll is not a series of
+    // clicks, and one notch per event would race through every size.
+    testWidgets('a trackpad scroll event leaves the size alone', (
+      tester,
+    ) async {
+      await pump(tester);
+
+      await holding(tester, cmd, () async {
+        final trackpad = TestPointer(1, PointerDeviceKind.trackpad);
+        trackpad.hover(tester.getCenter(find.byType(ListView)));
+        await tester.sendEventToBinding(trackpad.scroll(const Offset(0, -40)));
+        await tester.pumpAndSettle();
+      });
+
+      expect(step(), 3);
+    }, variant: macOnly);
+
     // macOS keeps Ctrl + scroll for its own accessibility screen zoom.
     testWidgets('Ctrl is left to the system: it scrolls as usual', (
       tester,

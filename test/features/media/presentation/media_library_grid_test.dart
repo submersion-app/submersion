@@ -450,6 +450,33 @@ void main() {
         expect(position.pixels, position.maxScrollExtent);
       }
     }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
+    // A zoom relays the gallery out while Cmd is still down. Whether the
+    // list can be dragged is decided at layout, so it must not be decided
+    // by the key, or two-finger scrolling stays off once Cmd is let go.
+    testWidgets('a trackpad still scrolls the gallery after a Cmd + wheel '
+        'zoom', (tester) async {
+      final position = await open(tester, Icons.grid_view);
+      final (_, cursor) = pickTile(tester);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+      final mouse = TestPointer(1, PointerDeviceKind.mouse);
+      mouse.hover(cursor);
+      await tester.sendEventToBinding(mouse.scroll(const Offset(0, 100)));
+      await tester.pumpAndSettle();
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+      expect(position.pixels, 0);
+
+      final trackpad = TestPointer(2, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(trackpad.panZoomStart(cursor));
+      await tester.sendEventToBinding(
+        trackpad.panZoomUpdate(cursor, pan: const Offset(0, -300)),
+      );
+      await tester.sendEventToBinding(trackpad.panZoomEnd());
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, greaterThan(0));
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
   });
 
   testWidgets('shows localized empty state when no entries', (tester) async {
