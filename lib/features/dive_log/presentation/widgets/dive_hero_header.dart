@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
 
 /// A dive's hero header: map backdrop, number badge, name and site, entry and
 /// exit times, rating/mode/type badges, and the depth, runtime, bottom-time
@@ -143,18 +144,37 @@ class DiveHeroHeader extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          dive.effectiveName ??
-                              dive.site?.name ??
-                              context.l10n.diveLog_listPage_unknownSite,
-                          style: Theme.of(context).textTheme.titleLarge,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                dive.effectiveName ??
+                                    dive.site?.name ??
+                                    context.l10n.diveLog_listPage_unknownSite,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                            ),
+                            // A club library site wears its badge beside the
+                            // name it shows as (issue #2567).
+                            if (dive.effectiveName == null && dive.site != null)
+                              LibrarySiteBadge(site: dive.site!),
+                          ],
                         ),
                         ?belowTitle,
                         if (dive.effectiveName != null && dive.site != null)
-                          Text(
-                            dive.site!.name,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  dive.site!.name,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                              LibrarySiteBadge(site: dive.site!),
+                            ],
                           ),
                         if (dive.site?.locationString.isNotEmpty == true)
                           Text(
