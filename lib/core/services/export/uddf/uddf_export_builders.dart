@@ -14,6 +14,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
@@ -40,6 +41,8 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
@@ -778,6 +781,10 @@ class UddfExportBuilders {
     // Cylinder fills (issue #2651): keyed by passport id, so a section of
     // their own rather than a child of the item.
     List<CylinderFill>? fills,
+    // The diver's custom service kinds and each item's service clocks
+    // (issue #2651); an item absent from the map writes none.
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     Map<String, String>? settings,
     Diver? owner,
     List<Tag>? tags,
@@ -847,6 +854,7 @@ class UddfExportBuilders {
         (serviceRecords?.isNotEmpty ?? false) ||
         (observations?.isNotEmpty ?? false) ||
         (fills?.isNotEmpty ?? false) ||
+        (serviceKinds?.isNotEmpty ?? false) ||
         (settings?.isNotEmpty ?? false) ||
         owner != null ||
         (tags?.isNotEmpty ?? false) ||
@@ -979,6 +987,11 @@ class UddfExportBuilders {
                         if (_passportIdOf(item) case final passportId?) {
                           builder.element('passportid', nest: passportId);
                         }
+                        // The item's service clocks (issue #2651).
+                        UddfServiceClockWriters.writeSchedules(
+                          builder,
+                          serviceSchedulesByItem[item.id] ?? const [],
+                        );
                       },
                     );
                   }
@@ -1151,6 +1164,13 @@ class UddfExportBuilders {
               );
             }
 
+            // Custom service kinds (issue #2651), before anything refers
+            // to them.
+            UddfServiceClockWriters.writeKinds(
+              builder,
+              serviceKinds ?? const [],
+            );
+
             // Service Records
             if (serviceRecords != null && serviceRecords.isNotEmpty) {
               builder.element(
@@ -1169,6 +1189,9 @@ class UddfExportBuilders {
                           'servicecategory',
                           nest: record.serviceCategory.name,
                         );
+                        if (record.serviceKindId case final kind?) {
+                          builder.element('servicekind', nest: kind);
+                        }
                         builder.element(
                           'servicedate',
                           nest: record.serviceDate.toIso8601String(),

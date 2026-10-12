@@ -6,6 +6,7 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -375,6 +376,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return const [];
     return _ref.read(cylinderFillRepositoryProvider).getAllVisibleTo(diverId);
+  }
+
+  /// The validated diver's custom service kinds (issue #2651); built-ins
+  /// are fixed in every database and never exported.
+  Future<List<ServiceKind>> _diverServiceKinds() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    final kinds = await _ref
+        .read(serviceKindRepositoryProvider)
+        .getAllKinds(diverId: diverId);
+    return [
+      for (final k in kinds)
+        if (!k.isBuiltIn) k,
+    ];
   }
 
   /// [_validatedDiverDives] with each dive's recorded profile, for the full
@@ -825,6 +839,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         serviceRecords: allServiceRecords,
         observations: await _diverObservations(),
         fills: await _diverFills(),
+        serviceKinds: await _diverServiceKinds(),
+        serviceSchedulesByItem: await _ref
+            .read(serviceScheduleRepositoryProvider)
+            .getSchedulesForEquipmentIds([for (final e in equipment) e.id]),
         courses: courses,
         diveWeights: relations.diveWeights,
         diveGasSwitches: relations.diveGasSwitches,
@@ -1574,6 +1592,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         serviceRecords: allServiceRecords,
         observations: await _diverObservations(),
         fills: await _diverFills(),
+        serviceKinds: await _diverServiceKinds(),
+        serviceSchedulesByItem: await _ref
+            .read(serviceScheduleRepositoryProvider)
+            .getSchedulesForEquipmentIds([for (final e in equipment) e.id]),
         courses: courses,
         diveWeights: relations.diveWeights,
         diveGasSwitches: relations.diveGasSwitches,

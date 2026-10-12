@@ -10,13 +10,17 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Both full UDDF export paths pass the diver's visible fills (#2651).
+/// Both full UDDF export paths pass the diver's visible fills, custom
+/// service kinds and clocks (#2651).
 ///
 /// The round trips prove writer and parser agree; this proves the app
 /// reaches them. Without it the export could pass no fills forever while
@@ -55,6 +59,16 @@ void main() {
     // Unlinked fills are visible only to the diver who logged them.
     await CylinderFillRepository().create(fill('mine', 'me'));
     await CylinderFillRepository().create(fill('theirs', 'other'));
+    // A custom service kind (issue #2651); the built-ins are seeded.
+    await ServiceKindRepository().createKind(
+      ServiceKind(
+        id: 'k-mine',
+        diverId: 'me',
+        name: 'Burst disc',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
   });
 
   tearDown(tearDownTestDatabase);
@@ -85,6 +99,9 @@ void main() {
         final state = container.read(exportNotifierProvider);
         expect(state.status, ExportStatus.success, reason: state.message);
         expect(export.fills?.map((f) => f.id), ['mine']);
+        // Only the custom kind: built-ins are fixed in every database.
+        expect(export.serviceKinds?.map((k) => k.id), ['k-mine']);
+        expect(export.serviceSchedulesByItem, isNotNull);
       },
     );
   }
@@ -92,12 +109,19 @@ void main() {
 
 class _CapturingExportService implements ExportService {
   List<CylinderFill>? fills;
+  List<ServiceKind>? serviceKinds;
+  Map<String, List<ServiceSchedule>>? serviceSchedulesByItem;
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
     final name = invocation.memberName;
     if (name == #exportAllDataToUddf || name == #saveAllDataToUddfFile) {
       fills = invocation.namedArguments[#fills] as List<CylinderFill>?;
+      serviceKinds =
+          invocation.namedArguments[#serviceKinds] as List<ServiceKind>?;
+      serviceSchedulesByItem =
+          invocation.namedArguments[#serviceSchedulesByItem]
+              as Map<String, List<ServiceSchedule>>?;
       return name == #exportAllDataToUddf
           ? Future<String>.value('/tmp/export.uddf')
           : Future<String?>.value('/tmp/export.uddf');

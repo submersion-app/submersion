@@ -47,6 +47,8 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -619,6 +621,8 @@ class ExportService {
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
     List<CylinderFill>? fills,
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -657,6 +661,8 @@ class ExportService {
     serviceRecords: serviceRecords,
     observations: observations,
     fills: fills,
+    serviceKinds: serviceKinds,
+    serviceSchedulesByItem: serviceSchedulesByItem,
     settings: settings,
     diveBuddies: diveBuddies,
     owner: owner,
@@ -695,6 +701,8 @@ class ExportService {
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
     List<CylinderFill>? fills,
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -733,6 +741,8 @@ class ExportService {
     serviceRecords: serviceRecords,
     observations: observations,
     fills: fills,
+    serviceKinds: serviceKinds,
+    serviceSchedulesByItem: serviceSchedulesByItem,
     settings: settings,
     diveBuddies: diveBuddies,
     owner: owner,
