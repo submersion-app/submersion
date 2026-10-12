@@ -82,14 +82,29 @@ void main() {
       // stop it leads to instead (scheduleLines derives the printed
       // minutes from consecutive rows' runtimeSeconds, so nothing is
       // lost -- see schedule_lines.dart).
-      expect(tail.first.kind, PlanScheduleRowKind.ascent);
+      //
+      // The leading travel block can itself be more than one row: air's
+      // EAN50 switch (MOD 22 m) falls one metre before this dive's first
+      // stop (21 m), so travelLegBoundaries splits the bottom-to-first-stop
+      // leg there too (#3225) -- the same "gas whose window starts before
+      // the first stop" case that feature targets, just a one-metre
+      // instance of it rather than a wide one. Every row up to the first
+      // stop is still travel (never a stop itself), and nothing between two
+      // stops breaks the fold.
       expect(tail.last.kind, PlanScheduleRowKind.ascent);
       expect(tail.last.depthMeters, 0);
+      final firstStopIndex = tail.indexWhere(
+        (r) => r.kind == PlanScheduleRowKind.stop,
+      );
+      expect(firstStopIndex, greaterThan(0), reason: 'a leading travel leg');
+      for (var i = 0; i < firstStopIndex; i++) {
+        expect(tail[i].kind, PlanScheduleRowKind.ascent, reason: 'tail row $i');
+      }
       final stopsInTable = tail.where(
         (r) => r.kind == PlanScheduleRowKind.stop,
       );
       expect(stopsInTable.length, outcome.stops.length);
-      for (var i = 1; i < tail.length - 1; i++) {
+      for (var i = firstStopIndex; i < tail.length - 1; i++) {
         expect(tail[i].kind, PlanScheduleRowKind.stop, reason: 'tail row $i');
       }
     });
@@ -118,8 +133,16 @@ void main() {
     });
 
     test('a travel leg arrives at the depth of the stop after it', () {
+      // A travel leg's own displayed depth is where it ends. When the leg
+      // leads straight into the next row (a stop, or the final surfacing),
+      // that is the next row's depth by definition. When it instead leads
+      // into another travel row -- a gas-switch split of the same original
+      // leg, per #3225 -- the two sub-legs end at different depths, each
+      // its own boundary, so the check only applies at the end of the
+      // travel block.
       for (var i = 2; i < rows.length - 1; i++) {
-        if (rows[i].kind == PlanScheduleRowKind.ascent) {
+        final isLastOfBlock = rows[i + 1].kind != PlanScheduleRowKind.ascent;
+        if (rows[i].kind == PlanScheduleRowKind.ascent && isLastOfBlock) {
           expect(rows[i].depthMeters, rows[i + 1].depthMeters);
         }
       }
@@ -156,16 +179,23 @@ void main() {
     test('the gas is marked on the first line and where it switches', () {
       expect(rows.first.gasSwitch, isTrue);
       final switches = rows.where((r) => r.gasSwitch).toList();
-      // Air off the boat, EAN50 once: the switch sits on a stop line, not on
-      // the leg that reaches it - the diver changes regulators at the stop.
+      // Air off the boat, EAN50 once: exactly one switch after the first
+      // line. Here EAN50's own MOD (22 m) falls a metre before the first
+      // stop (21 m), so the switch is marked on the travel sub-leg that
+      // crosses that MOD (#3225), not retroactively on the stop after it --
+      // the diver already changed regulators on the way down. A dive where
+      // the switch MOD coincides with a stop would instead mark it there;
+      // either way it never lands on the line before the switch actually
+      // happens.
       expect(switches.length, 2);
-      expect(switches[1].kind, PlanScheduleRowKind.stop);
+      expect(
+        switches[1].kind,
+        anyOf(PlanScheduleRowKind.ascent, PlanScheduleRowKind.stop),
+      );
       expect(switches[1].gasFO2, closeTo(0.50, 1e-9));
-      expect(switches[1].depthMeters, lessThanOrEqualTo(21));
-      // Whatever line came before it (the travel leg, if this is the first
-      // stop, or an earlier stop once travel-between-stops rows fold away
-      // per #3138) was still on air -- the switch is never retroactively
-      // attributed to an earlier line.
+      expect(switches[1].depthMeters, lessThanOrEqualTo(22));
+      // Whatever line came before it was still on air -- the switch is
+      // never retroactively attributed to an earlier line.
       final before = rows[rows.indexOf(switches[1]) - 1];
       expect(before.gasFO2, closeTo(0.21, 1e-9));
     });

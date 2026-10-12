@@ -54,9 +54,18 @@ void _expectTtsIsTimeAfterAuthoredSegments(PlanOutcome outcome) {
 
   // And it is exactly what the printed schedule adds up to after the
   // authored rows: travel to the first stop, the stops, the travel between
-  // them and the final ascent.
+  // them and the final ascent. Travel time between two stops folds into
+  // the stop it leads to rather than printing its own row (#3138), so a
+  // stop's own durationSeconds is just its hold time -- summing that field
+  // across the tail undercounts by exactly the folded travel. The table's
+  // own runtimeSeconds chain carries the true elapsed time throughout
+  // (scheduleLines derives printed per-line minutes from consecutive
+  // rows' runtimeSeconds, not from durationSeconds -- see
+  // schedule_lines.dart), so the last row's runtime is the one number to
+  // check the tail against.
   final tail = outcome.schedule.where((r) => r.runtimeSeconds > authoredEnd);
-  final tailSeconds = tail.fold(0, (sum, r) => sum + r.durationSeconds);
+  expect(tail, isNotEmpty);
+  final tailSeconds = tail.last.runtimeSeconds - authoredEnd;
   expect(outcome.ttsAtBottom, tailSeconds);
 }
 
