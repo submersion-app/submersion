@@ -5068,7 +5068,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // The representative course's instructor signs (#2515).
     final instructorName = ref
         .watch(coursesForDiveProvider(dive.id))
-        .valueOrNull
+        .value
         ?.firstOrNull
         ?.instructorName;
 
@@ -5121,7 +5121,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // The representative course's instructor signs (#2515).
     final instructorId = ref
         .read(coursesForDiveProvider(dive.id))
-        .valueOrNull
+        .value
         ?.firstOrNull
         ?.instructorId;
 

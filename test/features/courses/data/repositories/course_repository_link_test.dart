@@ -283,4 +283,31 @@ void main() {
     final courses = await repository.getCoursesForDive('dive-9');
     expect(courses.map((c) => c.id), ['course-9']);
   });
+
+  test(
+    "moving a course's start date refreshes its dives' representative",
+    () async {
+      await insertDiver('alice');
+      await insertCourse(id: 'course-early', diverId: 'alice');
+      final late = await repository.createCourse(
+        domain.Course(
+          id: 'course-late',
+          diverId: 'alice',
+          name: 'Later',
+          agency: CertificationAgency.padi.name,
+          startDate: DateTime(2025, 1, 1),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await insertDive(id: 'dive-r', diverId: 'alice');
+      await repository.linkDiveToCourse('dive-r', 'course-early');
+      await repository.linkDiveToCourse('dive-r', 'course-late');
+      expect(await diveCourseId('dive-r'), 'course-early');
+
+      await repository.updateCourse(late.copyWith(startDate: DateTime(2020)));
+
+      expect(await diveCourseId('dive-r'), 'course-late');
+    },
+  );
 }

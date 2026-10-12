@@ -370,6 +370,19 @@ class CourseRepository {
         recordId: course.id,
         localUpdatedAt: now,
       );
+      // A dive's representative is its earliest course by start date, then
+      // name, so editing either can move it (#2515). Only a dive whose value
+      // actually changes is stamped for sync.
+      final links = await (_db.select(
+        _db.diveCourses,
+      )..where((t) => t.courseId.equals(course.id))).get();
+      for (final link in links) {
+        await _diveLinks.refreshRepresentative(
+          link.diveId,
+          now: now,
+          markPending: true,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated course: ${course.id}');
     } catch (e, stackTrace) {
