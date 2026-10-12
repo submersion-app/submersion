@@ -10,7 +10,11 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -59,6 +63,34 @@ void main() {
     // Unlinked fills are visible only to the diver who logged them.
     await CylinderFillRepository().create(fill('mine', 'me'));
     await CylinderFillRepository().create(fill('theirs', 'other'));
+    // A tank whose clock uses another diver's custom kind, as a shared
+    // item's clocks can: that kind must travel with the clock.
+    final tank = await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'AL80',
+        type: EquipmentType.tank,
+        diverId: 'me',
+      ),
+    );
+    await ServiceKindRepository().createKind(
+      ServiceKind(
+        id: 'k-theirs',
+        diverId: 'other',
+        name: 'Valve rebuild',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: 'c-theirs',
+        equipmentId: tank.id,
+        serviceKindId: 'k-theirs',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
     // A custom service kind (issue #2651); the built-ins are seeded.
     await ServiceKindRepository().createKind(
       ServiceKind(
@@ -99,8 +131,12 @@ void main() {
         final state = container.read(exportNotifierProvider);
         expect(state.status, ExportStatus.success, reason: state.message);
         expect(export.fills?.map((f) => f.id), ['mine']);
-        // Only the custom kind: built-ins are fixed in every database.
-        expect(export.serviceKinds?.map((k) => k.id), ['k-mine']);
+        // Custom kinds only (built-ins are fixed in every database): the
+        // diver's own, and any an exported clock or record refers to.
+        expect(
+          export.serviceKinds?.map((k) => k.id),
+          unorderedEquals(['k-mine', 'k-theirs']),
+        );
         expect(export.serviceSchedulesByItem, isNotNull);
       },
     );

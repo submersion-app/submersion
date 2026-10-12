@@ -47,7 +47,7 @@ Future<ServiceKindResolver> importServiceKinds(
 }) async {
   final visible = await repository.getAllKinds(diverId: diverId);
   final localIds = {for (final k in visible) k.id};
-  final byName = {for (final k in visible) k.name.toLowerCase(): k.id};
+  final byName = {for (final k in visible) k.name.trim().toLowerCase(): k.id};
   final mapped = <String, String>{};
   for (final data in kinds) {
     final id = data['id'] as String?;
@@ -113,7 +113,9 @@ Future<int> restoreServiceClocks(
   ServiceScheduleRepository repository,
   ServiceKindResolver kinds,
 ) async {
-  var count = 0;
+  // The created items that carry a clock list, with their seeded clocks
+  // read in one batch rather than one query per item.
+  final targets = <(String, List<Object?>)>[];
   for (final (i, item) in items.indexed) {
     if (!selected.contains(i)) continue;
     final uddfId = item['uddfId'] as String?;
@@ -123,9 +125,15 @@ Future<int> restoreServiceClocks(
     if (equipmentId == null || preResolvedEquipmentIds[uddfId] == equipmentId) {
       continue;
     }
-    final unclaimed = [
-      ...await repository.getSchedulesForEquipment(equipmentId),
-    ];
+    targets.add((equipmentId, rows));
+  }
+  if (targets.isEmpty) return 0;
+  final seeded = await repository.getSchedulesForEquipmentIds([
+    for (final (equipmentId, _) in targets) equipmentId,
+  ]);
+  var count = 0;
+  for (final (equipmentId, rows) in targets) {
+    final unclaimed = [...?seeded[equipmentId]];
     for (final row in rows.whereType<Map<String, dynamic>>()) {
       final kindId = kinds.resolve(row['kindRef'] as String?);
       if (kindId == null) continue;

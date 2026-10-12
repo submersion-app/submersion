@@ -581,7 +581,11 @@ class UddfEntityImporter {
 
     // Each created item's clocks (issue #2651): exactly the backup's,
     // merged by kind with the ones createEquipment seeded.
-    if (equipmentRan && repositories.serviceScheduleRepository != null) {
+    // Without the kind repository no ref can resolve, so restoring would
+    // drop every listed clock and then the item's defaults: leave both.
+    if (equipmentRan &&
+        repositories.serviceKindRepository != null &&
+        repositories.serviceScheduleRepository != null) {
       await restoreServiceClocks(
         data.equipment,
         selections.equipment,

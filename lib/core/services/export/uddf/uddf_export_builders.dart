@@ -2138,7 +2138,6 @@ class UddfExportBuilders {
   }
 }
 
-/// One `<observation>` under an equipment item (condition phase 3a).
 /// [item]'s passport id: the curated `passport_id` attribute, or null.
 String? _passportIdOf(EquipmentItem item) {
   for (final a in item.attributes) {
@@ -2148,6 +2147,8 @@ String? _passportIdOf(EquipmentItem item) {
   }
   return null;
 }
+
+/// One `<observation>` under an equipment item (condition phase 3a).
 
 void _buildObservation(XmlBuilder builder, EquipmentObservation o) {
   builder.element(

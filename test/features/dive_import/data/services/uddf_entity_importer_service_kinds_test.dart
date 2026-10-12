@@ -97,4 +97,50 @@ void main() {
     );
     expect(await customKindNames(), ['Burst disc']);
   });
+
+  test('without the kind repository, an item keeps its default '
+      'clocks', () async {
+    await UddfEntityImporter().import(
+      data: const UddfImportResult(
+        equipment: [
+          {
+            'uddfId': 'equip_a',
+            'name': 'AL80',
+            'type': 'tank',
+            'serviceSchedules': [
+              {'kindRef': 'hydro', 'intervalDays': 1095},
+            ],
+          },
+        ],
+      ),
+      selections: const UddfImportSelections(equipment: {0}),
+      repositories: ImportRepositories(
+        tripRepository: TripRepository(),
+        equipmentRepository: EquipmentRepository(),
+        equipmentSetRepository: EquipmentSetRepository(),
+        buddyRepository: BuddyRepository(),
+        diveCenterRepository: DiveCenterRepository(),
+        certificationRepository: CertificationRepository(),
+        tagRepository: TagRepository(),
+        diveTypeRepository: DiveTypeRepository(),
+        siteRepository: SiteRepository(),
+        diveRepository: DiveRepository(),
+        tankPressureRepository: TankPressureRepository(),
+        courseRepository: CourseRepository(),
+        serviceScheduleRepository: ServiceScheduleRepository(),
+      ),
+      diverId: 'd1',
+    );
+    final item = (await EquipmentRepository().getAllEquipment(
+      diverId: 'd1',
+    )).single;
+    final kinds = {
+      for (final s
+          in await ServiceScheduleRepository().getSchedulesForEquipment(
+            item.id,
+          ))
+        s.serviceKindId,
+    };
+    expect(kinds, containsAll(['hydro', 'vip']));
+  });
 }

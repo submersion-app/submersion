@@ -7,6 +7,7 @@ import 'package:submersion/features/cylinder_passports/presentation/providers/cy
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
@@ -378,17 +379,42 @@ class ExportNotifier extends StateNotifier<ExportState> {
     return _ref.read(cylinderFillRepositoryProvider).getAllVisibleTo(diverId);
   }
 
-  /// The validated diver's custom service kinds (issue #2651); built-ins
-  /// are fixed in every database and never exported.
-  Future<List<ServiceKind>> _diverServiceKinds() async {
+  /// Each exported item's service clocks and the custom service kinds the
+  /// full UDDF backup carries (issue #2651): the validated diver's own, and
+  /// any other custom kind an exported clock or record refers to, as a
+  /// shared item's clocks can use its owner's. Built-ins are fixed in every
+  /// database and never exported.
+  Future<
+    ({
+      List<ServiceKind> kinds,
+      Map<String, List<ServiceSchedule>> schedulesByItem,
+    })
+  >
+  _uddfServiceClocks(
+    List<EquipmentItem> equipment,
+    List<ServiceRecord> records,
+  ) async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
-    final kinds = await _ref
-        .read(serviceKindRepositoryProvider)
-        .getAllKinds(diverId: diverId);
-    return [
-      for (final k in kinds)
+    final kindRepository = _ref.read(serviceKindRepositoryProvider);
+    final schedulesByItem = await _ref
+        .read(serviceScheduleRepositoryProvider)
+        .getSchedulesForEquipmentIds([for (final e in equipment) e.id]);
+    final visible = await kindRepository.getAllKinds(diverId: diverId);
+    final known = {for (final k in visible) k.id};
+    final kinds = [
+      for (final k in visible)
         if (!k.isBuiltIn) k,
     ];
+    final referenced = {
+      for (final list in schedulesByItem.values)
+        for (final s in list) s.serviceKindId,
+      for (final r in records) ?r.serviceKindId,
+    }.difference(known);
+    for (final id in referenced) {
+      final kind = await kindRepository.getKindById(id);
+      if (kind != null && !kind.isBuiltIn) kinds.add(kind);
+    }
+    return (kinds: kinds, schedulesByItem: schedulesByItem);
   }
 
   /// [_validatedDiverDives] with each dive's recorded profile, for the full
@@ -805,6 +831,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
       state = state.copyWith(message: _l10n.settings_export_progress_uddf);
       final currency = await _currencyBackup(certifications);
+      final clocks = await _uddfServiceClocks(equipment, allServiceRecords);
       final path = await _exportService.exportAllDataToUddf(
         dives: dives,
         sites: sites,
@@ -839,10 +866,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
         serviceRecords: allServiceRecords,
         observations: await _diverObservations(),
         fills: await _diverFills(),
-        serviceKinds: await _diverServiceKinds(),
-        serviceSchedulesByItem: await _ref
-            .read(serviceScheduleRepositoryProvider)
-            .getSchedulesForEquipmentIds([for (final e in equipment) e.id]),
+        serviceKinds: clocks.kinds,
+        serviceSchedulesByItem: clocks.schedulesByItem,
         courses: courses,
         diveWeights: relations.diveWeights,
         diveGasSwitches: relations.diveGasSwitches,
@@ -1558,6 +1583,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         message: _l10n.settings_export_progress_chooseLocation,
       );
       final currency = await _currencyBackup(certifications);
+      final clocks = await _uddfServiceClocks(equipment, allServiceRecords);
       final path = await _exportService.saveAllDataToUddfFile(
         dives: dives,
         sites: sites,
@@ -1592,10 +1618,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
         serviceRecords: allServiceRecords,
         observations: await _diverObservations(),
         fills: await _diverFills(),
-        serviceKinds: await _diverServiceKinds(),
-        serviceSchedulesByItem: await _ref
-            .read(serviceScheduleRepositoryProvider)
-            .getSchedulesForEquipmentIds([for (final e in equipment) e.id]),
+        serviceKinds: clocks.kinds,
+        serviceSchedulesByItem: clocks.schedulesByItem,
         courses: courses,
         diveWeights: relations.diveWeights,
         diveGasSwitches: relations.diveGasSwitches,
