@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -967,6 +968,11 @@ class UddfExportBuilders {
                           builder,
                           equipmentTagIdsByItem[item.id] ?? const [],
                         );
+                        // The item's tag identity (issue #2651), so a
+                        // restore links the fills stored under it.
+                        if (_passportIdOf(item) case final passportId?) {
+                          builder.element('passportid', nest: passportId);
+                        }
                       },
                     );
                   }
@@ -2101,6 +2107,16 @@ class UddfExportBuilders {
 }
 
 /// One `<observation>` under an equipment item (condition phase 3a).
+/// [item]'s passport id: the curated `passport_id` attribute, or null.
+String? _passportIdOf(EquipmentItem item) {
+  for (final a in item.attributes) {
+    if (a.isCustom || a.key != EquipmentAttrKeys.passportId) continue;
+    final value = a.valueText?.trim();
+    if (value != null && value.isNotEmpty) return value;
+  }
+  return null;
+}
+
 void _buildObservation(XmlBuilder builder, EquipmentObservation o) {
   builder.element(
     'observation',

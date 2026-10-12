@@ -1028,6 +1028,9 @@ class UddfImportParsers {
     // Condition phase 3a: the parent link and the check-ins. Kept raw
     // (uddf ids and tag names) for the entity importer to resolve.
     item['parentRef'] = getElementText(itemElement, 'parentref');
+    // The item's tag identity (issue #2651); adopted by the entity
+    // importer only into an empty slot.
+    item['passportId'] = getElementText(itemElement, 'passportid');
     final observationsElement = itemElement
         .findElements('observations')
         .firstOrNull;
