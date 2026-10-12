@@ -114,7 +114,7 @@ extension DiveFieldFormatter on DiveField {
 }
 
 /// Format a [Duration] value as a compact elapsed time ("45min", "1h 15m",
-/// "6d 13h", "1y 35d"), or "--" when missing or not positive.
+/// "6d 13h", "1y 35d"), or "--" when missing or under a minute.
 String _formatDuration(dynamic value) {
   if (value is! Duration || value.inMinutes <= 0) return '--';
   return formatElapsedEnglish(value);

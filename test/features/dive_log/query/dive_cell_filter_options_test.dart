@@ -159,6 +159,13 @@ void main() {
     );
     expect(o.first.valueLabel, '1y 35d');
     expect(betweenOf(o.first.rule), (576000.0, 577439.0));
+    for (final option in o) {
+      expect(
+        validateQuery(option.rule, diveQueryEntity, appQueryRegistry),
+        isEmpty,
+        reason: '${option.kind}',
+      );
+    }
   });
 
   test('an unloaded interval map offers nothing for an unstored interval', () {
