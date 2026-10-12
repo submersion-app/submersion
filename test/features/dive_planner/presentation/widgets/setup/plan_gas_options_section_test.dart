@@ -102,7 +102,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Min.'), findsOneWidget);
+      // Problem solving time and the gas-switch stop time field both use
+      // the same minute-unit suffix, so there are now two matches.
+      expect(find.text('Min.'), findsNWidgets(2));
       expect(find.text('min'), findsNothing);
     },
   );
