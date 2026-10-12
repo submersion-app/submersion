@@ -1486,6 +1486,32 @@ class SiteRepository {
     );
   }
 
+  /// Points every row that references [from] at [to] (issue #2567): dives,
+  /// plans, media, features, species, types and tags. The merge helpers do
+  /// the work; [from] is left as an empty site for the caller to delete.
+  Future<void> relinkSiteReferences({
+    required String from,
+    required String to,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _relinkDives([from], to, now);
+    await _relinkPlans([from], to, now);
+    await _relinkMedia([from], to, now);
+    await _relinkSiteFeatures([from], to, now);
+    await _classification.relinkForMerge([from], to);
+    await _mergeExpectedSpecies(
+      orderedSiteIds: [to, from],
+      survivorId: to,
+      now: now,
+    );
+  }
+
+  /// Whether any dive or plan on this device links to [siteId].
+  Future<bool> hasLinks(String siteId) async {
+    final usage = await countLinksToSites(_db, [siteId]);
+    return usage.dives > 0 || usage.plans > 0;
+  }
+
   Future<void> _relinkDives(
     List<String> duplicateIds,
     String survivorId,

@@ -222,15 +222,29 @@ class SharedLibraryService {
 
       // 4. Push.
       var pushed = 0;
+      final remoteFiles = {
+        for (final f in await t.listSites())
+          SharedLibraryTransport.siteIdOf(f): f.id,
+      };
       for (final state in await _store.dirtySites(libraryId)) {
         if (readOnly) break;
-        final SiteDocument doc;
+        SiteDocument doc;
         try {
           doc = await _documentFor(state);
         } on StateError {
           // The row is gone and no tombstone was recorded: nothing to send.
           await _store.deleteSiteState(state.siteId);
           continue;
+        }
+        if (state.deleted && remoteFiles.containsKey(state.siteId)) {
+          // A tombstone keeps the document's fields, so an undelete wins
+          // the site back intact.
+          try {
+            final remote = await t.readSite(remoteFiles[state.siteId]!);
+            doc = mergeSiteDocuments(local: doc, remote: remote).merged;
+          } on FormatException {
+            // Nothing readable to keep; the bare tombstone goes up.
+          }
         }
         try {
           final modified = await t.writeSite(doc);

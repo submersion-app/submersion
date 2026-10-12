@@ -1,4 +1,3 @@
-
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
