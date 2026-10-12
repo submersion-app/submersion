@@ -72,6 +72,47 @@ void main() {
       expect(bMedia.single['_diveIndex'], 0);
     });
 
+    test('custom service kinds reach only the slices that use them '
+        '(issue #2651)', () {
+      const payload = ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {_key: 'diver:a'},
+            {_key: 'new:b'},
+          ],
+          ImportEntityType.equipment: [
+            {
+              'uddfId': 'E',
+              _key: 'new:b',
+              'serviceSchedules': [
+                {'kindRef': 'k-clock'},
+              ],
+            },
+          ],
+          ImportEntityType.serviceRecords: [
+            {'equipmentRef': 'E', 'serviceKindRef': 'k-record', _key: 'new:b'},
+          ],
+        },
+        metadata: {
+          ImportPayload.serviceKindsKey: [
+            {'id': 'k-clock', 'name': 'Clock kind'},
+            {'id': 'k-record', 'name': 'Record kind'},
+            {'id': 'k-unused', 'name': 'Unused'},
+          ],
+        },
+      );
+      List<Object?> ids(DiverSlice s) => [
+        for (final d
+            in s.payload.metadata[ImportPayload.serviceKindsKey] as List? ??
+                const [])
+          (d as Map)['id'],
+      ];
+
+      final slices = PayloadSlicer.slice(payload, firstTargetKey: 'diver:a');
+      expect(ids(slices[0]), ['k-clock', 'k-record', 'k-unused']);
+      expect(ids(slices[1]), ['k-clock', 'k-record']);
+    });
+
     test('custom roles and site types reach only the slices that use them', () {
       const payload = ImportPayload(
         entities: {

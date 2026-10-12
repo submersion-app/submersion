@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/models/export_service_record.dar
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -22,7 +23,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
 import '../../../../core/services/export/csv/csv_test_fixtures.dart';
 import '../../../../helpers/test_database.dart';
@@ -285,6 +288,123 @@ void main() {
         ))!.equipmentId,
         'holder',
       );
+    });
+  });
+
+  testWidgets('two backups imported as one batch resolve their tags, fills '
+      'and clocks through the per-file ids', (tester) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    await tester.runAsync(() => DiverRepository().createDiver(_diver()));
+
+    EquipmentItem tagged(String id, String name, String passportId) =>
+        EquipmentItem(
+          id: id,
+          name: name,
+          type: EquipmentType.tank,
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: id,
+              key: EquipmentAttrKeys.passportId,
+              valueText: passportId,
+            ),
+          ],
+        );
+    CylinderFill fillOf(String id, String passportId) => CylinderFill(
+      id: id,
+      passportId: passportId,
+      filledAt: DateTime(2026, 9, 1),
+      o2Percent: 32,
+      createdAt: _now,
+      updatedAt: _now,
+    );
+    ServiceSchedule clock(String item, String kind, int days) =>
+        ServiceSchedule(
+          id: 'c-$item-$kind',
+          equipmentId: item,
+          serviceKindId: kind,
+          intervalDays: days,
+          createdAt: _now,
+          updatedAt: _now,
+        );
+    Future<ImportPayload> parsed(
+      String diveId,
+      DateTime when,
+      EquipmentItem tank,
+      CylinderFill fill,
+      List<ServiceSchedule> clocks,
+    ) async => UddfImportParser().parse(
+      Uint8List.fromList(
+        utf8.encode(
+          await UddfFullExportService().generateAllDataXmlForTest(
+            dives: [dive.copyWith(id: diveId, dateTime: when)],
+            equipment: [tank],
+            fills: [fill],
+            serviceKinds: [burst],
+            serviceSchedulesByItem: {tank.id: clocks},
+          ),
+        ),
+      ),
+    );
+
+    final batch = await tester.runAsync(() async {
+      final a = await parsed(
+        'dive-a',
+        DateTime(2026, 6, 2, 10),
+        tagged('e-a', 'AL80', 'pp-a'),
+        fillOf('f-a', 'pp-a'),
+        [clock('e-a', 'hydro', 1095), clock('e-a', 'k-burst', 365)],
+      );
+      final b = await parsed(
+        'dive-b',
+        DateTime(2026, 7, 9, 14),
+        tagged('e-b', 'Steel 15', 'pp-b'),
+        fillOf('f-b', 'pp-b'),
+        [clock('e-b', 'k-burst', 200)],
+      );
+      return const PayloadMerger().merge([
+        FilePayload(fileId: 'f0', fileName: 'a.uddf', payload: a),
+        FilePayload(fileId: 'f1', fileName: 'b.uddf', payload: b),
+      ]);
+    });
+    final result = await importThroughWizard(
+      tester,
+      payload: batch!,
+      diver: _diver(),
+    );
+    expect(result.errorMessage, isNull);
+
+    await tester.runAsync(() async {
+      final kinds = [
+        for (final k in await ServiceKindRepository().getAllKinds(
+          diverId: _diverId,
+        ))
+          if (!k.isBuiltIn) k,
+      ];
+      expect(kinds.map((k) => k.name), ['Burst disc']);
+      final byName = {
+        for (final e in await EquipmentRepository().getAllEquipment(
+          diverId: _diverId,
+        ))
+          e.name: e.id,
+      };
+      final passports = CylinderPassportRepository();
+      final fills = CylinderFillRepository();
+      final schedules = ServiceScheduleRepository();
+      Future<Map<String, int?>> clocksOf(String id) async => {
+        for (final s in await schedules.getSchedulesForEquipment(id))
+          s.serviceKindId: s.intervalDays,
+      };
+
+      expect(await passports.getPassportId(byName['AL80']!), 'pp-a');
+      expect(await passports.getPassportId(byName['Steel 15']!), 'pp-b');
+      expect((await fills.getById('f-a'))!.equipmentId, byName['AL80']);
+      expect((await fills.getById('f-b'))!.equipmentId, byName['Steel 15']);
+      expect(await clocksOf(byName['AL80']!), {
+        'hydro': 1095,
+        kinds.single.id: 365,
+      });
+      expect(await clocksOf(byName['Steel 15']!), {kinds.single.id: 200});
     });
   });
 }
