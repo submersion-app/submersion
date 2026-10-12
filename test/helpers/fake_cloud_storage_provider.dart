@@ -32,6 +32,10 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When true, [uploadFile] throws, modelling an offline/denied provider.
   bool failUploads = false;
 
+  /// Thrown by [uploadFile] when [failUploads] is set, in place of the
+  /// generic message: tests model a permission refusal with it.
+  CloudStorageException? uploadException;
+
   /// When true, [uploadFile] WRITES the file and then throws
   /// [TimeoutException], modelling a PUT that landed server-side while the
   /// response was lost.
@@ -118,7 +122,8 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     uploadAttempts++;
     if (hangOperations) return _hang<UploadResult>();
     if (failUploads) {
-      throw const CloudStorageException('upload failed (test)');
+      throw uploadException ??
+          const CloudStorageException('upload failed (test)');
     }
     _files[filename] = _FakeFile(data, DateTime.now());
     if (timeoutUploadsAfterWrite) {
