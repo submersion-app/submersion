@@ -734,4 +734,45 @@ extension DiverMigrations on AppDatabase {
       );
     }
   }
+
+  /// v284: diver_settings.profile_color_* (issue #3012). Nullable ARGB ints,
+  /// no default and no backfill: null is the metric's default colour.
+  /// Re-asserted in beforeOpen.
+  Future<void> _assertProfileMetricColorColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    for (final column in _profileMetricColorColumns) {
+      if (!names.contains(column)) {
+        await customStatement(
+          'ALTER TABLE diver_settings ADD COLUMN $column INTEGER',
+        );
+      }
+    }
+  }
 }
+
+const List<String> _profileMetricColorColumns = [
+  'profile_color_depth',
+  'profile_color_temperature',
+  'profile_color_pressure',
+  'profile_color_heart_rate',
+  'profile_color_sac',
+  'profile_color_max_depth',
+  'profile_color_ceiling',
+  'profile_color_ndl',
+  'profile_color_tts',
+  'profile_color_gtr',
+  'profile_color_cns',
+  'profile_color_otu',
+  'profile_color_pp_o2',
+  'profile_color_pp_n2',
+  'profile_color_pp_he',
+  'profile_color_mod',
+  'profile_color_density',
+  'profile_color_gf',
+  'profile_color_surface_gf',
+  'profile_color_mean_depth',
+];

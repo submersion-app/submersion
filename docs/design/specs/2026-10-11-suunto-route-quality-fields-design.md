@@ -59,8 +59,8 @@ undocumented extras there without another schema rung.
 - The v285 rung in `rungs_v231_onward.dart` calls it, and
   `_assertNavTracksSchema()` calls it too, so the existing beforeOpen
   backstop re-asserts it. `before_open.dart` is not touched.
-- `currentSchemaVersion` goes to 285. No backfill. (Planned as 282; main
-  shipped 283 first while open PRs held 282 (#3133) and 284 (#3299).)
+- `currentSchemaVersion` goes to 285. No backfill. (Planned as 282, which
+  PR #3133 holds; main shipped 283 and 284 first.)
 
 ### Parsing
 

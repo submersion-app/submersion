@@ -30,13 +30,13 @@ void main() {
       // indistinguishable on the chart and in the legend beside it.
       final byColour = <int, String>{};
       _all.forEach((name, band) {
-        final previous = byColour[band.color.toARGB32()];
+        final previous = byColour[band.metric.defaultColor!.toARGB32()];
         expect(
           previous,
           isNull,
           reason: '$name shares its colour with $previous',
         );
-        byColour[band.color.toARGB32()] = name;
+        byColour[band.metric.defaultColor!.toARGB32()] = name;
       });
     });
 
@@ -45,7 +45,7 @@ void main() {
       // [6, 3]); the pair must be, or two traces would be identical.
       final seen = <String, String>{};
       _all.forEach((name, band) {
-        final key = '${band.color.toARGB32()}/${band.dashArray}';
+        final key = '${band.metric.defaultColor!.toARGB32()}/${band.dashArray}';
         final clash = seen[key];
         expect(
           clash,

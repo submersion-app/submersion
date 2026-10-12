@@ -438,6 +438,30 @@ class DiverSettings extends Table {
   IntColumn get trendGapCollapseMonths =>
       integer().withDefault(const Constant(12))();
   // coverage:ignore-end
+  // v284: per-diver profile metric colours (issue #3012), ARGB ints; null is
+  // the metric's default (or Auto). Codegen input, never executed.
+  // coverage:ignore-start
+  IntColumn get profileColorDepth => integer().nullable()();
+  IntColumn get profileColorTemperature => integer().nullable()();
+  IntColumn get profileColorPressure => integer().nullable()();
+  IntColumn get profileColorHeartRate => integer().nullable()();
+  IntColumn get profileColorSac => integer().nullable()();
+  IntColumn get profileColorMaxDepth => integer().nullable()();
+  IntColumn get profileColorCeiling => integer().nullable()();
+  IntColumn get profileColorNdl => integer().nullable()();
+  IntColumn get profileColorTts => integer().nullable()();
+  IntColumn get profileColorGtr => integer().nullable()();
+  IntColumn get profileColorCns => integer().nullable()();
+  IntColumn get profileColorOtu => integer().nullable()();
+  IntColumn get profileColorPpO2 => integer().nullable()();
+  IntColumn get profileColorPpN2 => integer().nullable()();
+  IntColumn get profileColorPpHe => integer().nullable()();
+  IntColumn get profileColorMod => integer().nullable()();
+  IntColumn get profileColorDensity => integer().nullable()();
+  IntColumn get profileColorGf => integer().nullable()();
+  IntColumn get profileColorSurfaceGf => integer().nullable()();
+  IntColumn get profileColorMeanDepth => integer().nullable()();
+  // coverage:ignore-end
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();

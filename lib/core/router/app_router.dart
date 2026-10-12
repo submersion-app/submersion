@@ -124,6 +124,7 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
+import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
@@ -1428,6 +1429,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'default-metrics',
                 name: 'defaultMetrics',
                 builder: (context, state) => const DefaultVisibleMetricsPage(),
+              ),
+              GoRoute(
+                path: 'metric-colors',
+                name: 'metricColors',
+                builder: (context, state) => const ProfileMetricColorsPage(),
               ),
               GoRoute(
                 path: 'themes',
