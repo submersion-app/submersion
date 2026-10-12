@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
@@ -320,6 +321,7 @@ class SyncData {
   final List<Map<String, dynamic>> tags;
   final List<Map<String, dynamic>> diveTags;
   final List<Map<String, dynamic>> diveDiveTypes;
+  final List<Map<String, dynamic>> diveCourses;
   final List<Map<String, dynamic>> diveTypes;
   final List<Map<String, dynamic>> diveRoles;
   final List<Map<String, dynamic>> customCertificationAgencies;
@@ -443,6 +445,7 @@ class SyncData {
     this.tags = const [],
     this.diveTags = const [],
     this.diveDiveTypes = const [],
+    this.diveCourses = const [],
     this.diveTypes = const [],
     this.diveRoles = const [],
     this.customCertificationAgencies = const [],
@@ -561,6 +564,7 @@ class SyncData {
     'tags': tags,
     'diveTags': diveTags,
     'diveDiveTypes': diveDiveTypes,
+    'diveCourses': diveCourses,
     'diveTypes': diveTypes,
     'diveRoles': diveRoles,
     'customCertificationAgencies': customCertificationAgencies,
@@ -688,6 +692,7 @@ class SyncData {
       tags: _parseList(json['tags']),
       diveTags: _parseList(json['diveTags']),
       diveDiveTypes: _parseList(json['diveDiveTypes']),
+      diveCourses: _parseList(json['diveCourses']),
       diveTypes: _parseList(json['diveTypes']),
       diveRoles: _parseList(json['diveRoles']),
       customCertificationAgencies: _parseList(
@@ -1167,6 +1172,7 @@ class SyncDataSerializer {
     (key: 'tags', table: _db.tags, blob: false, full: null),
     (key: 'diveTags', table: _db.diveTags, blob: false, full: null),
     (key: 'diveDiveTypes', table: _db.diveDiveTypes, blob: false, full: null),
+    (key: 'diveCourses', table: _db.diveCourses, blob: false, full: null),
     // diveTypes/species/fieldPresets exclude built-in reference data
     // (isBuiltIn=false), so reuse their exporters rather than paging all rows.
     (
@@ -1726,6 +1732,7 @@ class SyncDataSerializer {
     'courseRequirementDives',
     'diveTags',
     'diveDiveTypes',
+    'diveCourses',
     'diveDiverRoles',
     'diveBuddyRoles',
     'siteSiteTypes',
@@ -1968,6 +1975,7 @@ class SyncDataSerializer {
     'equipmentOwnershipEvents': 'equipment_ownership_events',
     'equipmentLocationMoves': 'equipment_location_moves',
     'diveDiveTypes': 'dive_dive_types',
+    'diveCourses': 'dive_courses',
     'weightPresetEntries': 'weight_preset_entries',
     'diveCenterGearNotes': 'dive_center_gear_notes',
     'tideRecords': 'tide_records',
@@ -2370,6 +2378,14 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      diveCourses: await _safeExport(
+        'diveCourses',
+        () async => _withPendingChildren(
+          'diveCourses',
+          await _exportDiveCourses(hlcSince),
+          pendingChildren,
+        ),
+      ),
       diveDiverRoles: await _safeExport(
         'diveDiverRoles',
         () async => _withPendingChildren(
@@ -2732,6 +2748,20 @@ class SyncDataSerializer {
   Future<void> repairDanglingForeignKeys() async {
     await _repairDanglingReferences();
     await alignLinkedRouteOwners();
+    await seedRepresentativeCourseLinks();
+  }
+
+  /// An older app version writes only the representative `dives.course_id`
+  /// (#2515). Adds that course to the dive's `dive_courses` set when the pair
+  /// is missing; never removes one. Runs after the FK repair so a just-cleared
+  /// link is not re-added. Marks nothing pending: every device derives the
+  /// same deterministic rows from the same synced dives.
+  Future<void> seedRepresentativeCourseLinks() async {
+    if (await seedDiveCourseLinks(_db) > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.diveCourses, kind: UpdateKind.insert),
+      });
+    }
   }
 
   /// A linked route belongs to its dive's diver (v252). A peer below v252,
@@ -3163,6 +3193,11 @@ class SyncDataSerializer {
       case 'diveDiveTypes':
         final row = await (_db.select(
           _db.diveDiveTypes,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'diveCourses':
+        final row = await (_db.select(
+          _db.diveCourses,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'diveTypes':
@@ -4974,6 +5009,19 @@ class SyncDataSerializer {
       case 'diveDiveTypes':
         await _applyDiveDiveTypeRecord(DiveDiveType.fromJson(data));
         return;
+      case 'diveCourses':
+        // Deterministic ids plus a unique (dive, course) index: DoNothing with
+        // an empty target absorbs a conflict on either constraint, and the
+        // pair is the row's whole meaning (#2515).
+        await _db
+            .into(_db.diveCourses)
+            .insert(
+              DiveCourseRow.fromJson(data),
+              onConflict: DoNothing<$DiveCoursesTable, DiveCourseRow>(
+                target: const [],
+              ),
+            );
+        return;
       case 'diveTypes':
         await _db
             .into(_db.diveTypes)
@@ -6175,6 +6223,18 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveCourses':
+        // See the single-row apply in [upsertRecord].
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.diveCourses,
+            records.map(DiveCourseRow.fromJson).toList(),
+            onConflict: DoNothing<$DiveCoursesTable, DiveCourseRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
       case 'diveTypes':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -7096,6 +7156,8 @@ class SyncDataSerializer {
         return plain(_db.diveTags, _db.diveTags.id);
       case 'diveDiveTypes':
         return plain(_db.diveDiveTypes, _db.diveDiveTypes.id);
+      case 'diveCourses':
+        return plain(_db.diveCourses, _db.diveCourses.id);
       case 'diveBuddies':
         return plain(_db.diveBuddies, _db.diveBuddies.id);
       case 'diveProfileEvents':
@@ -7551,6 +7613,8 @@ class SyncDataSerializer {
         return _db.diveTags;
       case 'diveDiveTypes':
         return _db.diveDiveTypes;
+      case 'diveCourses':
+        return _db.diveCourses;
       case 'diveBuddies':
         return _db.diveBuddies;
       case 'diveProfileEvents':
@@ -7977,6 +8041,11 @@ class SyncDataSerializer {
       case 'diveDiveTypes':
         await (_db.delete(
           _db.diveDiveTypes,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveCourses':
+        await (_db.delete(
+          _db.diveCourses,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveTypes':
@@ -9174,6 +9243,21 @@ class SyncDataSerializer {
     final diveIds = await _diveIdsModifiedSince(hlcSince);
     if (diveIds.isEmpty) return [];
     return _childRowsOf(diveIds, select);
+  }
+
+  Future<List<Map<String, dynamic>>> _exportDiveCourses(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final diveIds = await _diveIdsModifiedSince(hlcSince);
+      if (diveIds.isEmpty) return [];
+      final rows = await (_db.select(
+        _db.diveCourses,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveCourses).get();
+    return rows.map((r) => r.toJson()).toList();
   }
 
   Future<Set<String>> _diveIdsModifiedSince(String hlcSince) async {
