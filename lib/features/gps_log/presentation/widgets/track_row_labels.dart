@@ -1,3 +1,4 @@
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -20,11 +21,9 @@ String formatTrackStart(UnitFormatter units, GpsTrack track) {
 }
 
 /// Compact duration, matching the app-wide dive_field_formatter style
-/// ("Xh Ym" at an hour or more, "Xmin" below).
-String formatCompactDuration(Duration duration) {
-  if (duration.inHours < 1) return '${duration.inMinutes}min';
-  return '${duration.inHours}h ${duration.inMinutes % 60}m';
-}
+/// ("47min", "3h 12m", and "2d 2h" or "1y 35d" for a long recorded total).
+String formatCompactDuration(Duration duration) =>
+    formatElapsedEnglish(duration);
 
 /// Duration of the track as trimmed, compactly ("47min", "3h 12m").
 ///
