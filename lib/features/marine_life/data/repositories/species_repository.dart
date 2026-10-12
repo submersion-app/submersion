@@ -172,6 +172,26 @@ class SpeciesRepository {
     return getSpeciesById(row.data['id'] as String);
   }
 
+  /// Every species whose common name equals [commonName], ignoring case,
+  /// built-in rows first and then in the order they were added.
+  ///
+  /// Both sides go through SQLite's LOWER, which folds ASCII only: lowering
+  /// the needle in Dart instead would never match a name such as "Étoile".
+  Future<List<domain.Species>> findSpeciesByCommonName(
+    String commonName,
+  ) async {
+    final needle = commonName.trim();
+    if (needle.isEmpty) return const [];
+    final rows = await _db
+        .customSelect(
+          'SELECT * FROM species WHERE LOWER(common_name) = LOWER(?) '
+          'ORDER BY is_built_in DESC, rowid',
+          variables: [Variable.withString(needle)],
+        )
+        .get();
+    return rows.map(_mapRawRowToSpecies).toList();
+  }
+
   /// Add sighting to a dive
   Future<domain.Sighting> addSighting({
     required String diveId,

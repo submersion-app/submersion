@@ -87,6 +87,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/data/services/imported_species_resolver.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
@@ -3474,9 +3475,10 @@ class UddfEntityImporter {
   /// Writes the dive's marine life, creating any species it names.
   ///
   /// `sightings.species_id` is a foreign key to `species`, so the species
-  /// row has to exist first. `getOrCreateSpecies` matches on the lowercased
-  /// common name, which is what keeps an import from minting a twin of a
-  /// species already in the bundled catalogue.
+  /// row has to exist first. [ImportedSpeciesResolver] matches on the
+  /// scientific name and then the common name, which is what keeps an import
+  /// from minting a twin of a species already in the bundled catalogue, even
+  /// when the file names it in another language (issue #3033).
   ///
   /// Best effort per sighting: one unreadable entry must not fail a dive
   /// that is otherwise fine.
@@ -3489,6 +3491,8 @@ class UddfEntityImporter {
     if (repository == null) return;
     final raw = diveData['sightings'];
     if (raw is! List || raw.isEmpty) return;
+    final resolver = ImportedSpeciesResolver(repository);
+    String? text(Object? value) => value is String ? value.trim() : null;
 
     for (final entry in raw) {
       if (entry is! Map) continue;
@@ -3510,13 +3514,13 @@ class UddfEntityImporter {
       if (commonName == null || commonName.isEmpty) continue;
 
       try {
-        final scientific = entry['speciesScientificName'] is String
-            ? (entry['speciesScientificName'] as String).trim()
-            : null;
-        final species = await repository.getOrCreateSpecies(
+        final category = entry['speciesCategory'];
+        final species = await resolver.resolve(
           commonName: commonName,
-          scientificName: scientific,
-          category: SpeciesCategory.other,
+          scientificName: text(entry['speciesScientificName']),
+          category: category is SpeciesCategory ? category : null,
+          taxonomyClass: text(entry['speciesTaxonomyClass']),
+          description: text(entry['speciesDescription']),
         );
         await repository.addSighting(
           diveId: diveId,
@@ -3541,7 +3545,10 @@ class UddfEntityImporter {
           MarineSighting(
             id: _uuid.v4(),
             speciesId: speciesRef,
-            speciesName: _speciesNameFromRef(speciesRef),
+            speciesName: switch (sightingData['speciesName']) {
+              final String name when name.trim().isNotEmpty => name.trim(),
+              _ => _speciesNameFromRef(speciesRef),
+            },
             count: sightingData['count'] as int? ?? 1,
             notes: sightingData['notes'] as String? ?? '',
           ),
