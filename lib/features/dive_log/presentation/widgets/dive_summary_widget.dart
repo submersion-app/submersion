@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -461,7 +462,7 @@ class DiveSummaryWidget extends ConsumerWidget {
         // Use query params to stay in master-detail layout
         final state = GoRouterState.of(context);
         final currentPath = state.uri.path;
-        context.go('$currentPath?selected=$diveId');
+        context.goInPlace('$currentPath?selected=$diveId');
       },
     );
   }
@@ -486,7 +487,7 @@ class DiveSummaryWidget extends ConsumerWidget {
                 // Use query params to stay in master-detail layout
                 final state = GoRouterState.of(context);
                 final currentPath = state.uri.path;
-                context.go('$currentPath?mode=new');
+                context.goInPlace('$currentPath?mode=new');
               },
               icon: const Icon(Icons.edit_note),
               label: Text(

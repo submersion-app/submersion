@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
@@ -100,7 +101,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
         if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
-          context.go('$currentPath?mode=new');
+          context.goInPlace('$currentPath?mode=new');
         } else {
           context.push('/dives/new');
         }
@@ -123,7 +124,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   }
 
   void _toggleMapView() {
-    final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
     final selectedId = state.uri.queryParameters['selected'];
@@ -131,16 +131,16 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     if (_isMapView) {
       // Switch back to detail view
       if (selectedId != null) {
-        router.go('$currentPath?selected=$selectedId');
+        context.goInPlace('$currentPath?selected=$selectedId');
       } else {
-        router.go(currentPath);
+        context.goInPlace(currentPath);
       }
     } else {
       // Switch to map view
       if (selectedId != null) {
-        router.go('$currentPath?selected=$selectedId&view=map');
+        context.goInPlace('$currentPath?selected=$selectedId&view=map');
       } else {
-        router.go('$currentPath?view=map');
+        context.goInPlace('$currentPath?view=map');
       }
     }
   }
@@ -194,19 +194,18 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             embedded: true,
             embeddedSiteId: siteId,
             onCloseEmbeddedSite: () {
-              final router = GoRouter.of(context);
               final state = GoRouterState.of(context);
               final params = Map<String, String>.from(
                 state.uri.queryParameters,
               );
               params.remove('site');
-              router.go(
+              context.goInPlace(
                 Uri(path: state.uri.path, queryParameters: params).toString(),
               );
             },
             onDeleted: () {
               final state = GoRouterState.of(context);
-              context.go(state.uri.path);
+              context.goInPlace(state.uri.path);
             },
           );
         },
@@ -378,21 +377,19 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             embedded: true,
             embeddedSiteId: siteId,
             onCloseEmbeddedSite: () {
-              final router = GoRouter.of(context);
               final state = GoRouterState.of(context);
               final params = Map<String, String>.from(
                 state.uri.queryParameters,
               );
               params.remove('site');
-              router.go(
+              context.goInPlace(
                 Uri(path: state.uri.path, queryParameters: params).toString(),
               );
             },
             onDeleted: () {
               // Clear selection when dive is deleted
-              final router = GoRouter.of(context);
               final state = GoRouterState.of(context);
-              router.go(state.uri.path);
+              context.goInPlace(state.uri.path);
             },
           );
         },
@@ -404,7 +401,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             // Exit map view and show detail pane for the selected dive
             final state = GoRouterState.of(context);
             final currentPath = state.uri.path;
-            context.go('$currentPath?selected=$diveId');
+            context.goInPlace('$currentPath?selected=$diveId');
           },
         ),
         editBuilder: (context, id, onSaved, onCancel) {

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -2246,7 +2247,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onLogManually: () {
                   if (ResponsiveBreakpoints.isMasterDetail(context)) {
                     final routerState = GoRouterState.of(context);
-                    context.go('${routerState.uri.path}?mode=new');
+                    context.goInPlace('${routerState.uri.path}?mode=new');
                   } else {
                     context.push('/dives/new');
                   }

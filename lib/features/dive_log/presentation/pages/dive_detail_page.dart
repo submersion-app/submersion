@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -277,7 +278,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   void _navigateToDive(String neighborId) {
     ref.read(highlightedDiveIdProvider.notifier).state = neighborId;
     if (widget.embedded) {
-      context.go('/dives?selected=$neighborId');
+      context.goInPlace('/dives?selected=$neighborId');
     } else {
       context.replace('/dives/$neighborId');
     }
@@ -1501,7 +1502,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 onPressed: () {
                   final state = GoRouterState.of(context);
                   final currentPath = state.uri.path;
-                  context.go('$currentPath?selected=$diveId&mode=edit');
+                  context.goInPlace('$currentPath?selected=$diveId&mode=edit');
                 },
               ),
               // More options
@@ -1782,14 +1783,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           : () {
               if (widget.embedded &&
                   ResponsiveBreakpoints.isMasterDetail(context)) {
-                final router = GoRouter.of(context);
                 final state = GoRouterState.of(context);
                 final currentPath = state.uri.path;
                 final params = Map<String, String>.from(
                   state.uri.queryParameters,
                 );
                 params['site'] = site.id;
-                router.go(
+                context.goInPlace(
                   Uri(path: currentPath, queryParameters: params).toString(),
                 );
               } else {
