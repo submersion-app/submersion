@@ -5,6 +5,7 @@ import 'package:submersion/core/database/tables/diver_tables.dart';
 /// A club library this device connected (issue #2567). Device-local: the
 /// credentials live on the connected account, the role and member caches
 /// are refreshed from the folder on every sync.
+@DataClassName('SharedLibraryRow')
 class SharedLibraries extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
@@ -25,6 +26,7 @@ class SharedLibraries extends Table {
 }
 
 /// Member cards as last listed from `members/` (issue #2567).
+@DataClassName('SharedLibraryMemberRow')
 class SharedLibraryMembers extends Table {
   TextColumn get libraryId =>
       text().references(SharedLibraries, #id, onDelete: KeyAction.cascade)();
@@ -39,6 +41,7 @@ class SharedLibraryMembers extends Table {
 /// A diver profile's membership of a library (issue #2567). Synced, so every
 /// device of the profile is the same member; carries a location hint and
 /// never credentials.
+@DataClassName('SharedLibraryMembershipRow')
 class SharedLibraryMemberships extends Table {
   TextColumn get id => text()();
   TextColumn get diverId =>
@@ -65,6 +68,7 @@ class SharedLibraryMemberships extends Table {
 /// (issue #2567). Device-local. No FK to dive_sites: the row outlives a
 /// deleted site so the tombstone can still be uploaded and a re-listed
 /// tombstone is not downloaded again.
+@DataClassName('SharedSiteStateRow')
 class SharedSiteStates extends Table {
   TextColumn get siteId => text()();
   TextColumn get libraryId => text()();
@@ -87,6 +91,7 @@ class SharedSiteStates extends Table {
 
 /// A proposed edit from a reader (issue #2567): outgoing until uploaded,
 /// incoming on an owner's device until accepted or dismissed.
+@DataClassName('SharedSiteSuggestionRow')
 class SharedSiteSuggestions extends Table {
   TextColumn get id => text()();
   TextColumn get libraryId => text()();
