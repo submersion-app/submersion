@@ -593,8 +593,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editSite',
-                    builder: (context, state) =>
-                        SiteEditPage(siteId: state.pathParameters['siteId']),
+                    builder: (context, state) => SiteEditPage(
+                      siteId: state.pathParameters['siteId'],
+                      suggest: state.uri.queryParameters['suggest'] == '1',
+                    ),
                   ),
                 ],
               ),

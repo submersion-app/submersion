@@ -19,6 +19,7 @@ class EditFormScaffold extends StatelessWidget {
     required this.isSaving,
     required this.hasUnsavedChanges,
     required this.onSave,
+    this.saveLabel,
     required this.child,
     this.onCancel,
     this.headerIcon,
@@ -30,6 +31,9 @@ class EditFormScaffold extends StatelessWidget {
   final bool isSaving;
   final bool hasUnsavedChanges;
   final VoidCallback onSave;
+
+  /// The save button's text; the usual Save when null.
+  final String? saveLabel;
   final VoidCallback? onCancel;
   final Widget child;
   final IconData? headerIcon;
@@ -86,7 +90,7 @@ class EditFormScaffold extends StatelessWidget {
         ),
       );
     }
-    final label = Text(context.l10n.forms_save);
+    final label = Text(saveLabel ?? context.l10n.forms_save);
     if (filled) {
       return FilledButton(onPressed: onSave, child: label);
     }
