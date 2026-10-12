@@ -51,6 +51,15 @@ class MediaThumbnailZoomAnchor {
   ///
   /// [heightChangeAbove] is how much taller the built rows above the
   /// anchor's grid become, negative for shorter.
+  ///
+  /// This predicts the new layout rather than measuring it, so that the
+  /// first frame at the new size is already in place. The prediction holds
+  /// only while the views keep to what it assumes: square tiles
+  /// [kMediaThumbnailGap] apart across and down, grids whose padding and
+  /// headers do not change with the column count, and only grids changing
+  /// height. The "zooming in and out" tests in media_library_grid_test.dart
+  /// compare it with the real layout in both views; change any of those
+  /// and they are the ones to run.
   double scrollOffsetFor({
     required double pixels,
     required int oldColumns,

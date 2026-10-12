@@ -26,8 +26,8 @@ class MediaLibraryTile extends StatelessWidget {
   final VoidCallback onTap;
 
   /// The size the thumbnail is resolved and decoded at. Larger tiles ask
-  /// for more (issue #3297), so a half-pane thumbnail is not a 200px image
-  /// stretched.
+  /// for more (issue #3297), up to the cap in [mediaThumbnailDecodeTarget],
+  /// so a large thumbnail is not a 200px image stretched.
   final Size targetSize;
 
   /// Whether the surface is in multi-select. Unselected tiles dim, which is

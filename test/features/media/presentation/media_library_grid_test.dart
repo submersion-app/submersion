@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -73,8 +76,8 @@ MediaLibraryEntry entry(String id) => MediaLibraryEntry(
     id: id,
     mediaType: MediaType.photo,
     sourceType: MediaSourceType.localFile,
-    filePath: '/tmp/$id',
-    localPath: '/tmp/$id',
+    filePath: p.join(Directory.systemTemp.path, id),
+    localPath: p.join(Directory.systemTemp.path, id),
     takenAt: DateTime(2026, 6, 1),
     createdAt: DateTime(2026, 6, 1),
     updatedAt: DateTime(2026, 6, 1),
@@ -236,8 +239,8 @@ void main() {
         id: 'm$i',
         mediaType: MediaType.photo,
         sourceType: MediaSourceType.localFile,
-        filePath: '/tmp/m$i',
-        localPath: '/tmp/m$i',
+        filePath: p.join(Directory.systemTemp.path, 'm$i'),
+        localPath: p.join(Directory.systemTemp.path, 'm$i'),
         takenAt: DateTime(2026, 6, 28).subtract(Duration(days: i ~/ 13)),
         createdAt: DateTime(2026, 6, 1),
         updatedAt: DateTime(2026, 6, 1),

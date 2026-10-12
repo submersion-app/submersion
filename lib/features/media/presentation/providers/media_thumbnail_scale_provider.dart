@@ -59,6 +59,13 @@ int mediaThumbnailColumnsForStep(int step, double paneWidth) {
 /// One of three sizes rather than the exact extent: every change of target
 /// re-resolves the tile, and a window being dragged wider would otherwise
 /// do that on each frame. 200 is what the fixed 140px grid always used.
+///
+/// 800 is a memory ceiling, not a match for the largest tile. Past 800
+/// logical px a thumbnail is drawn from the 800 decode scaled up, which
+/// only happens two across on panes wider than about 1600, and looks a
+/// little soft there. A larger step would hold four times the pixels per
+/// tile (a 1600 decode at 2x is about 40 MB a tile) for the few widest
+/// desktop panes.
 Size mediaThumbnailDecodeTarget(double paneWidth, int columns) {
   final extent = paneWidth / columns;
   final side = extent <= 200
