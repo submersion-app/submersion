@@ -10322,6 +10322,9 @@ class SyncDataSerializer {
       'serviceReminderDays': '[7, 14, 30]',
       'reminderTime': '09:00',
       'tripServiceLeadDays': 14,
+      // v281: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson (issue #3251).
+      'trendGapCollapseMonths': 12,
       'showDataSourceBadges': true,
       'showProfilePanelInTableView': true,
       'showDetailsPaneDives': false,

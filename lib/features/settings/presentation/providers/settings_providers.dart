@@ -24,6 +24,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
+import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -295,6 +296,10 @@ class AppSettings {
   /// ObservationRuleId.dbValue strings. Unknown ids (a newer build's rules)
   /// are kept so a save never drops them.
   final Set<String> insightsMutedObservationRules;
+
+  /// Stretches with no dives longer than this collapse into a break on the
+  /// trend charts (issue #3251).
+  final TrendGapThreshold trendGapThreshold;
 
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
@@ -657,6 +662,7 @@ class AppSettings {
     this.conditionEngineEnabled = true,
     this.conditionDisabledRules = const {},
     this.insightsMutedObservationRules = const {},
+    this.trendGapThreshold = TrendGapThreshold.year1,
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -849,6 +855,7 @@ class AppSettings {
     bool? conditionEngineEnabled,
     Set<String>? conditionDisabledRules,
     Set<String>? insightsMutedObservationRules,
+    TrendGapThreshold? trendGapThreshold,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -1018,6 +1025,7 @@ class AppSettings {
           conditionDisabledRules ?? this.conditionDisabledRules,
       insightsMutedObservationRules:
           insightsMutedObservationRules ?? this.insightsMutedObservationRules,
+      trendGapThreshold: trendGapThreshold ?? this.trendGapThreshold,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null
@@ -2273,6 +2281,20 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Waits for the diver's settings to load first, as [setAutoTagImports]
+  /// does (#998): a pick from a chart's Range menu while the app is still
+  /// loading would otherwise be overwritten by the load.
+  Future<void> setTrendGapThreshold(TrendGapThreshold value) async {
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the load; defaults are the fallback.
+    }
+    if (!mounted) return;
+    state = state.copyWith(trendGapThreshold: value);
+    await _saveSettings();
+  }
+
   Future<void> setIcdWarningsEnabled(bool value) async {
     state = state.copyWith(icdWarningsEnabled: value);
     await _saveSettings();
@@ -3140,6 +3162,11 @@ final defaultShowGasSwitchMarkersProvider = Provider<bool>((ref) {
   return ref.watch(
     settingsProvider.select((s) => s.defaultShowGasSwitchMarkers),
   );
+});
+
+/// The active diver's gap threshold for every `DiveTrendChart`.
+final trendGapThresholdProvider = Provider<TrendGapThreshold>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.trendGapThreshold));
 });
 
 final defaultShowLateGasSwitchesProvider = Provider<bool>((ref) {

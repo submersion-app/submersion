@@ -46,6 +46,11 @@ sealed class FocusFactor {
   final int groupSize;
 
   bool get standsOut;
+
+  /// How far the group sits from its baseline, on the scale the standout
+  /// rule uses: baseline standard deviations for a number, share gap for a
+  /// category. Orders the standouts card; 0 when nothing can be compared.
+  double get strength;
 }
 
 final class NumericFactor extends FocusFactor {
@@ -56,6 +61,7 @@ final class NumericFactor extends FocusFactor {
     required this.groupMean,
     required this.baselineMean,
     required this.standsOut,
+    required this.strength,
   });
 
   final double? groupMean;
@@ -63,6 +69,9 @@ final class NumericFactor extends FocusFactor {
 
   @override
   final bool standsOut;
+
+  @override
+  final double strength;
 
   double? get difference => groupMean == null || baselineMean == null
       ? null
@@ -77,6 +86,7 @@ class CategoryShare {
     required this.baselineShare,
     required this.groupCount,
     required this.standsOut,
+    required this.strength,
     this.label,
   });
 
@@ -89,6 +99,9 @@ class CategoryShare {
   final double baselineShare;
   final int groupCount;
   final bool standsOut;
+
+  /// Group share minus baseline share.
+  final double strength;
 }
 
 final class CategoricalFactor extends FocusFactor {
@@ -104,6 +117,9 @@ final class CategoricalFactor extends FocusFactor {
 
   @override
   bool get standsOut => top.any((s) => s.standsOut);
+
+  @override
+  double get strength => top.fold(0, (m, s) => s.strength > m ? s.strength : m);
 }
 
 @immutable
@@ -115,6 +131,14 @@ class FocusFactorReport {
   /// The group is below the minimum size, so nothing was compared.
   final bool tooFewDives;
 
-  List<FocusFactor> get standouts =>
-      factors.where((f) => f.standsOut).toList(growable: false);
+  /// Standouts strongest first; ties keep display order.
+  List<FocusFactor> get standouts {
+    final out = factors.where((f) => f.standsOut).toList();
+    final order = {for (var i = 0; i < factors.length; i++) factors[i].id: i};
+    out.sort((a, b) {
+      final c = b.strength.compareTo(a.strength);
+      return c != 0 ? c : order[a.id]!.compareTo(order[b.id]!);
+    });
+    return List.unmodifiable(out);
+  }
 }

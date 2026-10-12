@@ -57,6 +57,7 @@ class TrendChartSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(trendChartSettingsProvider(chartId));
+    final gapThreshold = ref.watch(trendGapThresholdProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -86,6 +87,7 @@ class TrendChartSection extends ConsumerWidget {
                 dateFormat: ref.watch(dateFormatProvider),
                 onDiveSelected: onDiveSelected,
                 range: settings.range,
+                gapThreshold: gapThreshold,
                 onRangeChanged: (range) =>
                     _update(ref, settings.copyWith(range: range)),
                 aggregation: settings.aggregation,
@@ -118,6 +120,9 @@ class TrendChartSection extends ConsumerWidget {
                 rateColor: rateColor,
                 rateLabel: rate,
                 range: settings.range,
+                gapThreshold: gapThreshold,
+                onGapThresholdSelected: (t) =>
+                    ref.read(settingsProvider.notifier).setTrendGapThreshold(t),
                 onRangePresetSelected: (preset) =>
                     preset == TrendRangePreset.custom
                     ? _pickCustomRange(context, ref, points)

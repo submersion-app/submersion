@@ -133,19 +133,35 @@ const int kMinTrendFitPoints = 5;
 /// from none, so the line would be least stable exactly where the diving was
 /// densest. At the ends the window truncates rather than padding.
 ///
+/// [periodOf] numbers the periods between collapsed gaps (issue #3251); the
+/// window never reaches into another period, so dives either side of a long
+/// break are never averaged together. Null treats the series as one period.
+///
 /// Returns an empty list below [kMinTrendFitPoints].
 List<TrendDataPoint> rollingMean(
   List<TrendDataPoint> points, {
   int window = 21,
+  int Function(DateTime date)? periodOf,
 }) {
   if (points.length < kMinTrendFitPoints) return const [];
 
   final ordered = [...points]..sort((a, b) => a.date.compareTo(b.date));
   final half = window ~/ 2;
+  final period = periodOf == null
+      ? null
+      : [for (final p in ordered) periodOf(p.date)];
 
   return List<TrendDataPoint>.generate(ordered.length, (i) {
-    final lo = (i - half) < 0 ? 0 : i - half;
-    final hi = (i + half + 1) > ordered.length ? ordered.length : i + half + 1;
+    var lo = (i - half) < 0 ? 0 : i - half;
+    var hi = (i + half + 1) > ordered.length ? ordered.length : i + half + 1;
+    if (period != null) {
+      while (period[lo] != period[i]) {
+        lo++;
+      }
+      while (period[hi - 1] != period[i]) {
+        hi--;
+      }
+    }
     var sum = 0.0;
     for (var j = lo; j < hi; j++) {
       sum += ordered[j].value;

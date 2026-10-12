@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
+import 'package:submersion/features/insights/presentation/formatters/trend_gap_label.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
@@ -141,6 +143,32 @@ class AppearanceGeneralTiles extends ConsumerWidget {
                 DropdownMenuItem(
                   value: style,
                   child: Text(_mapStyleName(context, style)),
+                ),
+            ],
+          ),
+        ),
+        ListTile(
+          key: const ValueKey('settings-trend-gaps'),
+          leading: const FeatureAccentIcon(
+            Icons.insights_outlined,
+            featureId: 'settings-appearance',
+            surface: AccentSurface.list,
+          ),
+          title: Text(l10n.settings_appearance_trendGaps),
+          subtitle: Text(l10n.settings_appearance_trendGaps_subtitle),
+          trailing: DropdownButton<TrendGapThreshold>(
+            value: settings.trendGapThreshold,
+            underline: const SizedBox.shrink(),
+            onChanged: (t) {
+              if (t != null) {
+                ref.read(settingsProvider.notifier).setTrendGapThreshold(t);
+              }
+            },
+            items: [
+              for (final t in TrendGapThreshold.values)
+                DropdownMenuItem(
+                  value: t,
+                  child: Text(trendGapThresholdLabel(t, l10n)),
                 ),
             ],
           ),

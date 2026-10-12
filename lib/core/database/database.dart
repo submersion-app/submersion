@@ -262,7 +262,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 280;
+  static const int currentSchemaVersion = 281;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1210,6 +1210,10 @@ class AppDatabase extends _$AppDatabase {
     // minimumCompatibleSchemaVersion. Renumbered from 277, 278 and 279 as
     // main shipped those first.
     280,
+    // v281: diver_settings.trend_gap_collapse_months (issue #3251). Additive
+    // defaulted column, so the floor stays at 280. Renumbered from 278, 279
+    // and 280, which #3226, #3106 and #2361 shipped first.
+    281,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

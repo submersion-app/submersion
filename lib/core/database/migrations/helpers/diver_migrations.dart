@@ -717,4 +717,21 @@ extension DiverMigrations on AppDatabase {
       );
     }
   }
+
+  /// v281: diver_settings.trend_gap_collapse_months (issue #3251). Column
+  /// only, defaulting to a year; re-asserted in beforeOpen. No CHECK: a peer
+  /// value outside 0, 6, 12, 24 reads as 12 rather than failing the upsert.
+  Future<void> _assertTrendGapCollapseColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('trend_gap_collapse_months')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN trend_gap_collapse_months '
+        'INTEGER NOT NULL DEFAULT 12',
+      );
+    }
+  }
 }

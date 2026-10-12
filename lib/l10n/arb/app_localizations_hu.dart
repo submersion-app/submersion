@@ -23013,6 +23013,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => 'Útlista nézete';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'Szünetek összevonása a trenddiagramokon';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'Szervizfigyelmeztetés ennyi nappal az út előtt';
 
@@ -26001,7 +26005,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_category_focus_subtitle =>
-      'Legjobb, legrosszabb és küszöbérték szerinti csoportok';
+      'Mi a közös a legjobb és legrosszabb merüléseidben';
 
   @override
   String get insights_category_progression_title => 'Fejlődés';
@@ -26355,6 +26359,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_focus_title => 'Merülésfókusz';
 
   @override
+  String get insights_focus_intro =>
+      'Nézd meg, mi a közös a merüléseid egy csoportjában.';
+
+  @override
   String get insights_focus_error => 'A merülésfókusz betöltése sikertelen';
 
   @override
@@ -26367,7 +26375,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String group,
     String overall,
   ) {
-    return '$count / $total merülés, csoportátlag $group, összesen $overall';
+    return '$count / $total merülés. Átlag $group, szemben az összes merülésed $overall értékével.';
   }
 
   @override
@@ -26396,16 +26404,32 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adj meg egy értéket a felette vagy alatta lévő merülések megtekintéséhez';
 
   @override
-  String get insights_focus_chart_title => 'A csoport az idő függvényében';
+  String insights_focus_chart_title(String metric) {
+    return '$metric az idő függvényében';
+  }
 
   @override
   String get insights_focus_chart_group => 'A csoportban';
 
   @override
-  String get insights_focus_list_title => 'A csoport merülései';
+  String get insights_focus_chart_others => 'Többi merülés';
+
+  @override
+  String get insights_focus_list_title => 'A merülések';
 
   @override
   String get insights_focus_list_unknownSite => 'Nincs merülőhely';
+
+  @override
+  String insights_focus_list_showAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mind a(z) $count merülés mutatása',
+      one: 'Az 1 merülés mutatása',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_focus_unit_minutes => 'perc';
@@ -26429,22 +26453,61 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_focus_metric_waterTemp => 'Vízhőmérséklet';
 
   @override
-  String get insights_focus_mode_best => 'Legjobb';
+  String get insights_focus_metric_gasUsed => 'Gázfogyasztás';
 
   @override
-  String get insights_focus_mode_worst => 'Legrosszabb';
+  String get insights_focus_metric_avgDepth => 'Átlagmélység';
 
   @override
-  String get insights_focus_mode_lowest => 'Legalacsonyabb';
+  String get insights_focus_metric_surfaceInterval => 'Felszíni intervallum';
 
   @override
-  String get insights_focus_mode_highest => 'Legmagasabb';
+  String get insights_focus_metric_airTemp => 'Léghőmérséklet';
 
   @override
-  String get insights_focus_mode_above => 'Felett';
+  String get insights_focus_metric_visibility => 'Látótávolság';
 
   @override
-  String get insights_focus_mode_below => 'Alatt';
+  String get insights_focus_metric_altitude => 'Tengerszint feletti magasság';
+
+  @override
+  String get insights_focus_metric_cns => 'CNS a végén';
+
+  @override
+  String get insights_focus_metric_otu => 'OTU';
+
+  @override
+  String get insights_focus_metricGroup_gas => 'Gáz';
+
+  @override
+  String get insights_focus_metricGroup_depthTime => 'Mélység és idő';
+
+  @override
+  String get insights_focus_metricGroup_conditions => 'Körülmények';
+
+  @override
+  String get insights_focus_metricGroup_exposure => 'Terhelés';
+
+  @override
+  String get insights_focus_metricGroup_kit => 'Felszerelés';
+
+  @override
+  String get insights_focus_mode_best => 'legjobb';
+
+  @override
+  String get insights_focus_mode_worst => 'legrosszabb';
+
+  @override
+  String get insights_focus_mode_lowest => 'legalacsonyabb';
+
+  @override
+  String get insights_focus_mode_highest => 'legmagasabb';
+
+  @override
+  String get insights_focus_mode_above => 'felett';
+
+  @override
+  String get insights_focus_mode_below => 'alatt';
 
   @override
   String get insights_focus_count_label => 'Merülések';
@@ -26454,9 +26517,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adj meg egy egész számot 1 és 999 között';
 
   @override
-  String get insights_focus_threshold_label => 'Érték';
-
-  @override
   String get insights_focus_threshold_error => 'Adj meg egy számot';
 
   @override
@@ -26464,33 +26524,146 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adj meg nullát vagy többet';
 
   @override
-  String get insights_focus_factors_title => 'Közös tényezők';
+  String insights_focus_sentence_ranked(
+    String count,
+    String mode,
+    String metric,
+  ) {
+    return 'Mutasd azt a $count merülést, ahol a(z) $metric a $mode';
+  }
 
   @override
-  String get insights_focus_factors_subtitle =>
-      'Ez a csoport az összes olyan merüléshez képest, amelynek van ilyen értéke';
+  String insights_focus_sentence_threshold(
+    String metric,
+    String mode,
+    String value,
+  ) {
+    return 'Mutasd a merüléseket, ahol a(z) $metric $value $mode';
+  }
 
   @override
-  String get insights_focus_factors_tooFew =>
-      'Válassz legalább 3 merülést a közös tényezők összehasonlításához';
+  String get insights_focus_count_custom => 'Egyéni...';
+
+  @override
+  String get insights_focus_count_dialogTitle => 'Hány merülés?';
+
+  @override
+  String get insights_focus_comparison_title => 'Teljes összehasonlítás';
+
+  @override
+  String insights_focus_comparison_subtitle(String metric) {
+    return 'Az összes merülés a jelenlegi szűrő minden olyan merülését jelenti, amelynek van $metric értéke';
+  }
+
+  @override
+  String get insights_focus_column_these => 'Ezek a merülések';
+
+  @override
+  String get insights_focus_column_all => 'Összes merülés';
+
+  @override
+  String get insights_focus_column_difference => 'Különbség';
+
+  @override
+  String insights_focus_comparison_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Még $count tényező mutatása',
+      one: 'Még 1 tényező mutatása',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_focus_factors_standsOut => 'Kiemelkedik';
 
   @override
-  String insights_focus_factors_standoutsSummary(String factors) {
-    return 'Kiemelkedik: $factors';
-  }
-
-  @override
-  String insights_focus_factors_versus(String group, String baseline) {
-    return '$group vs. $baseline';
-  }
-
-  @override
   String insights_focus_factors_coverage(int covered, int total) {
     return '$covered / $total merülés';
   }
+
+  @override
+  String get insights_focus_standouts_title => 'Ami kiemelkedik';
+
+  @override
+  String get insights_focus_standouts_none =>
+      'Ezekben a merülésekben semmi sem emelkedik ki.';
+
+  @override
+  String get insights_focus_standouts_tooFew =>
+      'Válassz legalább 3 merülést, hogy lásd, mi a közös bennük';
+
+  @override
+  String insights_focus_standouts_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'és még $count a teljes összehasonlításban',
+      one: 'és még 1 a teljes összehasonlításban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_focus_standouts_categoryAll(
+    int count,
+    String value,
+    String baseline,
+  ) {
+    return 'Mind a(z) $count $value volt ($baseline az összes merülésedből)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySome(
+    int count,
+    int total,
+    String value,
+    String baseline,
+  ) {
+    return '$total merülésből $count $value volt, szemben az összes merülésed $baseline arányával';
+  }
+
+  @override
+  String insights_focus_standouts_numeric(
+    String factor,
+    String difference,
+    String direction,
+    String group,
+    String baseline,
+  ) {
+    return '$factor $difference $direction ($group vs $baseline)';
+  }
+
+  @override
+  String get insights_focus_direction_deeper => 'mélyebb';
+
+  @override
+  String get insights_focus_direction_shallower => 'sekélyebb';
+
+  @override
+  String get insights_focus_direction_longer => 'hosszabb';
+
+  @override
+  String get insights_focus_direction_shorter => 'rövidebb';
+
+  @override
+  String get insights_focus_direction_warmer => 'melegebb';
+
+  @override
+  String get insights_focus_direction_colder => 'hidegebb';
+
+  @override
+  String get insights_focus_direction_larger => 'nagyobb';
+
+  @override
+  String get insights_focus_direction_smaller => 'kisebb';
+
+  @override
+  String get insights_focus_direction_moreLead => 'több ólom';
+
+  @override
+  String get insights_focus_direction_lessLead => 'kevesebb ólom';
 
   @override
   String get insights_focus_factorGroup_diveShape => 'Merülési profil';
@@ -33209,6 +33382,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'Merülési profil diagram megjelenítése a táblázat felett alapértelmezetten';
+
+  @override
+  String get settings_appearance_trendGaps =>
+      'Szünetek összevonása a trenddiagramokon';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'A hosszú merülési szüneteket keskeny, sraffozott sávként mutatja';
 
   @override
   String get settings_appearance_mapStyle => 'Térképstílus';
@@ -47983,6 +48164,41 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'Heti átlag';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'Szünetek összevonása';
+
+  @override
+  String get insights_trend_gaps_off => 'Ki';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 hónap';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 év';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 év';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years év';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months hó';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years év $months hó';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'Nincs merülés $start és $end között';
+  }
 
   @override
   String get insights_trend_legend_rate => 'Általános trend';

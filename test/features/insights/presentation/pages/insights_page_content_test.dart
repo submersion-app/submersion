@@ -105,6 +105,9 @@ void main() {
     await tester.pumpWidget(await wrap(const InsightsMobileContent()));
     await tester.pumpAndSettle();
     expect(find.text('Dive focus'), findsOneWidget);
-    expect(find.text('Best, worst and threshold groups'), findsOneWidget);
+    expect(
+      find.text('What your best and worst dives have in common'),
+      findsOneWidget,
+    );
   });
 }

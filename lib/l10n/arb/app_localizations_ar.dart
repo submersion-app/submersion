@@ -23296,6 +23296,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => 'عرض قائمة الرحلات';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'طي الفجوات في مخططات الاتجاه';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'تحذير الصيانة بالأيام قبل الرحلة';
 
@@ -26289,7 +26293,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_category_focus_subtitle =>
-      'مجموعات الأفضل والأسوأ وحسب الحد';
+      'ما تشترك فيه أفضل غطساتك وأسوأها';
 
   @override
   String get insights_category_progression_title => 'التقدم';
@@ -26636,6 +26640,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_focus_title => 'تركيز الغطسات';
 
   @override
+  String get insights_focus_intro => 'اعرف ما تشترك فيه مجموعة من غطساتك.';
+
+  @override
   String get insights_focus_error => 'تعذر تحميل تركيز الغطسات';
 
   @override
@@ -26657,7 +26664,7 @@ class AppLocalizationsAr extends AppLocalizations {
       two: 'غطستين',
       one: 'غطسة واحدة',
     );
-    return '$count من $_temp0، متوسط المجموعة $group مقابل $overall إجمالاً';
+    return '$count من $_temp0. المتوسط $group، مقابل $overall عبر كل غطساتك.';
   }
 
   @override
@@ -26689,16 +26696,35 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل قيمة لرؤية الغطسات فوقها أو تحتها';
 
   @override
-  String get insights_focus_chart_title => 'المجموعة عبر الزمن';
+  String insights_focus_chart_title(String metric) {
+    return '$metric عبر الزمن';
+  }
 
   @override
   String get insights_focus_chart_group => 'في المجموعة';
 
   @override
-  String get insights_focus_list_title => 'غطسات المجموعة';
+  String get insights_focus_chart_others => 'غطسات أخرى';
+
+  @override
+  String get insights_focus_list_title => 'الغطسات';
 
   @override
   String get insights_focus_list_unknownSite => 'لا يوجد موقع';
+
+  @override
+  String insights_focus_list_showAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اعرض كل الغطسات الـ$count',
+      many: 'اعرض كل الغطسات الـ$count',
+      few: 'اعرض كل الغطسات الـ$count',
+      two: 'اعرض الغطستين',
+      one: 'اعرض الغطسة',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_focus_unit_minutes => 'د';
@@ -26720,6 +26746,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_focus_metric_waterTemp => 'حرارة الماء';
+
+  @override
+  String get insights_focus_metric_gasUsed => 'الغاز المستهلك';
+
+  @override
+  String get insights_focus_metric_avgDepth => 'متوسط العمق';
+
+  @override
+  String get insights_focus_metric_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get insights_focus_metric_airTemp => 'حرارة الهواء';
+
+  @override
+  String get insights_focus_metric_visibility => 'الرؤية';
+
+  @override
+  String get insights_focus_metric_altitude => 'الارتفاع';
+
+  @override
+  String get insights_focus_metric_cns => 'CNS عند النهاية';
+
+  @override
+  String get insights_focus_metric_otu => 'OTU';
+
+  @override
+  String get insights_focus_metricGroup_gas => 'الغاز';
+
+  @override
+  String get insights_focus_metricGroup_depthTime => 'العمق والوقت';
+
+  @override
+  String get insights_focus_metricGroup_conditions => 'الظروف';
+
+  @override
+  String get insights_focus_metricGroup_exposure => 'التعرض';
+
+  @override
+  String get insights_focus_metricGroup_kit => 'المعدات';
 
   @override
   String get insights_focus_mode_best => 'الأفضل';
@@ -26746,37 +26811,68 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_focus_count_error => 'أدخل عدداً صحيحاً من 1 إلى 999';
 
   @override
-  String get insights_focus_threshold_label => 'القيمة';
-
-  @override
   String get insights_focus_threshold_error => 'أدخل رقماً';
 
   @override
   String get insights_focus_threshold_negativeError => 'أدخل صفراً أو أكثر';
 
   @override
-  String get insights_focus_factors_title => 'العوامل المشتركة';
+  String insights_focus_sentence_ranked(
+    String count,
+    String mode,
+    String metric,
+  ) {
+    return 'اعرض $count غطسات حيث $metric هو $mode';
+  }
 
   @override
-  String get insights_focus_factors_subtitle =>
-      'هذه المجموعة مقارنة بكل الغطسات التي لها هذه القيمة';
+  String insights_focus_sentence_threshold(
+    String metric,
+    String mode,
+    String value,
+  ) {
+    return 'اعرض الغطسات التي فيها $metric $mode $value';
+  }
 
   @override
-  String get insights_focus_factors_tooFew =>
-      'اختر 3 غطسات على الأقل لمقارنة العوامل المشتركة';
+  String get insights_focus_count_custom => 'مخصص...';
+
+  @override
+  String get insights_focus_count_dialogTitle => 'كم غطسة؟';
+
+  @override
+  String get insights_focus_comparison_title => 'المقارنة الكاملة';
+
+  @override
+  String insights_focus_comparison_subtitle(String metric) {
+    return 'كل الغطسات تعني كل غطسة في الفلتر الحالي لها $metric';
+  }
+
+  @override
+  String get insights_focus_column_these => 'هذه الغطسات';
+
+  @override
+  String get insights_focus_column_all => 'كل الغطسات';
+
+  @override
+  String get insights_focus_column_difference => 'الفرق';
+
+  @override
+  String insights_focus_comparison_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اعرض $count عامل آخر',
+      many: 'اعرض $count عاملاً آخر',
+      few: 'اعرض $count عوامل أخرى',
+      two: 'اعرض عاملين آخرين',
+      one: 'اعرض عاملاً آخر',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_focus_factors_standsOut => 'بارز';
-
-  @override
-  String insights_focus_factors_standoutsSummary(String factors) {
-    return 'بارز: $factors';
-  }
-
-  @override
-  String insights_focus_factors_versus(String group, String baseline) {
-    return '$group مقابل $baseline';
-  }
 
   @override
   String insights_focus_factors_coverage(int covered, int total) {
@@ -26791,6 +26887,90 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$covered من $_temp0';
   }
+
+  @override
+  String get insights_focus_standouts_title => 'ما يبرز';
+
+  @override
+  String get insights_focus_standouts_none => 'لا شيء يبرز في هذه الغطسات.';
+
+  @override
+  String get insights_focus_standouts_tooFew =>
+      'اختر 3 غطسات على الأقل لرؤية ما يجمعها';
+
+  @override
+  String insights_focus_standouts_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'و$count أخرى في المقارنة الكاملة',
+      many: 'و$count أخرى في المقارنة الكاملة',
+      few: 'و$count أخرى في المقارنة الكاملة',
+      two: 'واثنتان أخريان في المقارنة الكاملة',
+      one: 'وواحدة أخرى في المقارنة الكاملة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_focus_standouts_categoryAll(
+    int count,
+    String value,
+    String baseline,
+  ) {
+    return 'كل الغطسات الـ$count كانت $value ($baseline من كل غطساتك)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySome(
+    int count,
+    int total,
+    String value,
+    String baseline,
+  ) {
+    return '$count من $total كانت $value، مقابل $baseline من كل غطساتك';
+  }
+
+  @override
+  String insights_focus_standouts_numeric(
+    String factor,
+    String difference,
+    String direction,
+    String group,
+    String baseline,
+  ) {
+    return '$factor $difference $direction ($group مقابل $baseline)';
+  }
+
+  @override
+  String get insights_focus_direction_deeper => 'أعمق';
+
+  @override
+  String get insights_focus_direction_shallower => 'أقل عمقاً';
+
+  @override
+  String get insights_focus_direction_longer => 'أطول';
+
+  @override
+  String get insights_focus_direction_shorter => 'أقصر';
+
+  @override
+  String get insights_focus_direction_warmer => 'أدفأ';
+
+  @override
+  String get insights_focus_direction_colder => 'أبرد';
+
+  @override
+  String get insights_focus_direction_larger => 'أكبر';
+
+  @override
+  String get insights_focus_direction_smaller => 'أصغر';
+
+  @override
+  String get insights_focus_direction_moreLead => 'أثقال أكثر';
+
+  @override
+  String get insights_focus_direction_lessLead => 'أثقال أقل';
 
   @override
   String get insights_focus_factorGroup_diveShape => 'شكل الغطسة';
@@ -33797,6 +33977,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'عرض مخطط ملف الغوصة فوق الجدول بشكل افتراضي';
+
+  @override
+  String get settings_appearance_trendGaps => 'طي الفجوات في مخططات الاتجاه';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'عرض فترات الانقطاع الطويلة عن الغوص كشريط مخطط ضيق';
 
   @override
   String get settings_appearance_mapStyle => 'نمط الخريطة';
@@ -48858,6 +49045,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'المتوسط الأسبوعي';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'طي الفجوات';
+
+  @override
+  String get insights_trend_gaps_off => 'إيقاف';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 أشهر';
+
+  @override
+  String get insights_trend_gaps_year1 => 'سنة واحدة';
+
+  @override
+  String get insights_trend_gaps_years2 => 'سنتان';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years س';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months ش';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years س $months ش';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'لا غطسات: من $start إلى $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'الاتجاه العام';
