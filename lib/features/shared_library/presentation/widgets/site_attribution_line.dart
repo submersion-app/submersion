@@ -30,11 +30,13 @@ class SiteAttributionLine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final libraryId = site.sharedLibraryId;
     if (libraryId == null) return const SizedBox.shrink();
-    final state = ref.watch(siteLibraryStateProvider(site.id)).valueOrNull;
+    // .value keeps the last state through a reload (each new clock
+    // reloads it), where valueOrNull would blank the line.
+    final state = ref.watch(siteLibraryStateProvider(site.id)).value;
     final newest = newestFieldClock(state);
     if (newest == null) return const SizedBox.shrink();
     final names =
-        ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull ??
+        ref.watch(libraryMemberNamesProvider(libraryId)).value ??
         const <String, String>{};
     final when = DateTime.fromMillisecondsSinceEpoch(
       newest.hlc.physicalTime,

@@ -302,6 +302,14 @@ class SharedLibraryMembershipService {
       if (library != null) {
         try {
           final t = await transportForLibrary(library);
+          // The member id outlives this library when the profile is in
+          // another one, so a role left behind would come back on a rejoin.
+          final roles = await t.readRoles();
+          if (roles.roleOf(membership.memberId) != SharedLibraryRole.reader) {
+            await t.writeRoles(
+              roles.withRole(membership.memberId, SharedLibraryRole.reader),
+            );
+          }
           await t.deleteMember(membership.memberId);
         } catch (e) {
           _log.warning('Could not delete member card for $libraryId: $e');

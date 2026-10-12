@@ -12,7 +12,8 @@
 
 ## Global Constraints
 
-- Schema rung is 285; `AppDatabase.currentSchemaVersion` becomes 285, the rung is appended to `migrationVersions`, and every new table or column is also asserted in `beforeOpen` (the compatibility floor is NOT raised: new tables and a nullable column only).
+- Schema rung is 285 as planned; it shipped as 289, because main released rungs 285 to 288 while this branch was open. The code, tests and spec use 289.
+- Planned schema rung: 285; `AppDatabase.currentSchemaVersion` becomes 285, the rung is appended to `migrationVersions`, and every new table or column is also asserted in `beforeOpen` (the compatibility floor is NOT raised: new tables and a nullable column only).
 - Tables live in `lib/core/database/tables/`, migration helpers in `lib/core/database/migrations/helpers/`, never in `database.dart` beyond the `tables:` list and the version constant.
 - No em dashes anywhere, no emojis, no AI attribution in commits or the PR.
 - Every user-visible string is an ARB key in `lib/l10n/arb/app_en.arb` and the ten other locales (ar, de, es, fr, he, hu, it, nl, pt, zh), inserted next to a key of the same feature group; run `flutter gen-l10n` after editing.

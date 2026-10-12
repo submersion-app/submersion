@@ -463,11 +463,23 @@ class WebDavClient {
   Future<void> ensureCollection(String path) async {
     final normalized = _segments(path).join('/');
     if (normalized.isEmpty || _knownCollections.contains(normalized)) return;
-    final response = await _send(
-      'MKCOL',
-      uriFor(normalized, collection: true),
-      accept: const {405, 409},
-    );
+    final http.StreamedResponse response;
+    try {
+      response = await _send(
+        'MKCOL',
+        uriFor(normalized, collection: true),
+        accept: const {405, 409},
+      );
+    } on WebDavException catch (e) {
+      // Read-only credentials refuse MKCOL even for a collection that is
+      // there (a club library shared for reading, issue #2567): one that
+      // exists is all a reader needs.
+      if (e.code != WebDavErrorCode.forbidden) rethrow;
+      final entry = await stat(normalized);
+      if (entry == null || !entry.isCollection) rethrow;
+      _knownCollections.add(normalized);
+      return;
+    }
     await response.stream.drain<void>();
     if (response.statusCode == 409) {
       await ensureCollection(parentOf(normalized));

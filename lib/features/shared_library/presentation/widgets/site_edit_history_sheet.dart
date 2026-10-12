@@ -29,9 +29,10 @@ class SiteEditHistorySheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final libraryId = site.sharedLibraryId ?? '';
-    final state = ref.watch(siteLibraryStateProvider(site.id)).valueOrNull;
+    // .value keeps the last state through a reload, as on the header.
+    final state = ref.watch(siteLibraryStateProvider(site.id)).value;
     final names =
-        ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull ??
+        ref.watch(libraryMemberNamesProvider(libraryId)).value ??
         const <String, String>{};
     // Growable: the first frame has no state yet and sort mutates in place.
     final entries = <MapEntry<String, FieldClock>>[...?state?.clocks.entries]

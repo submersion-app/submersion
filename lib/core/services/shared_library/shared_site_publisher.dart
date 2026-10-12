@@ -61,7 +61,8 @@ class SharedSitePublisher {
     required String libraryId,
     required String diverId,
   }) async {
-    final memberId = await _memberId(diverId, libraryId);
+    // As in the UI: only an editor or owner adds sites.
+    final memberId = await _editorMemberId(diverId, libraryId);
     final row = await (_db.select(
       _db.diveSites,
     )..where((t) => t.id.equals(siteId))).getSingleOrNull();

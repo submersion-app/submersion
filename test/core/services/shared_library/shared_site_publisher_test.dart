@@ -216,4 +216,29 @@ void main() {
     expect(await SiteRepository().getSiteById('c'), isNotNull);
     expect((await SharedLibraryStore().getSiteState('c'))!.dirty, isFalse);
   });
+
+  test('a reader cannot push a site into the library', () async {
+    await SharedLibraryStore().upsertMembership(
+      const SharedLibraryMembership(
+        id: 'ms2',
+        diverId: 'd2',
+        libraryId: 'L',
+        memberId: 'm2',
+        displayName: 'Bob',
+        libraryName: 'Club',
+        backendKind: 's3',
+      ),
+    );
+    await SiteRepository().createSite(
+      const DiveSite(id: 'bobs', diverId: 'd2', name: 'Bob site'),
+    );
+    await expectLater(
+      SharedSitePublisher().push(siteId: 'bobs', libraryId: 'L', diverId: 'd2'),
+      throwsStateError,
+    );
+    expect(
+      (await SiteRepository().getSiteById('bobs'))!.sharedLibraryId,
+      isNull,
+    );
+  });
 }

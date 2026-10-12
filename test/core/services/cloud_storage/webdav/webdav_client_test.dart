@@ -430,4 +430,45 @@ void main() {
     );
     expect(pulled, lessThan(10), reason: 'the whole 8 MB page was read');
   });
+
+  test(
+    'ensureCollection accepts an existing collection it may not create',
+    () async {
+      // Read-only credentials: the server refuses MKCOL with 403 even for a
+      // collection that is there.
+      server.seedCollection('/dav/club');
+      final readOnly = WebDavClient(
+        _config(),
+        httpClient: _RefuseMkcol(server.client),
+        backoff: (_) => Duration.zero,
+      );
+      addTearDown(readOnly.close);
+      await readOnly.ensureCollection('club');
+      await expectLater(
+        readOnly.ensureCollection('missing'),
+        throwsA(
+          isA<WebDavException>().having(
+            (e) => e.code,
+            'code',
+            WebDavErrorCode.forbidden,
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// A server that refuses every MKCOL, as read-only credentials make it.
+class _RefuseMkcol extends http.BaseClient {
+  _RefuseMkcol(this.inner);
+
+  final http.Client inner;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'MKCOL') {
+      return http.StreamedResponse(const Stream.empty(), 403);
+    }
+    return inner.send(request);
+  }
 }

@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -116,6 +115,13 @@ class SharedLibraryService {
       diverId: diverId,
       libraryId: libraryId,
     );
+    // Another local profile's library: this profile may neither read its
+    // rows in nor upload as an unknown member.
+    if (membership == null) {
+      return const SharedLibrarySyncResult(
+        status: SharedLibrarySyncStatus.notConnected,
+      );
+    }
     try {
       final SharedLibraryTransport t;
       try {
@@ -158,44 +164,39 @@ class SharedLibraryService {
       // Probed afresh every sync: a refused upload sets it, so upgraded
       // credentials clear the banner on the next run.
       var readOnly = false;
-      if (membership != null) {
-        SharedLibraryMember? mine;
-        for (final m in members) {
-          if (m.memberId == membership.memberId) mine = m;
-        }
-        if (mine == null || mine.displayName != membership.displayName) {
-          try {
-            await t.writeMember(
+      SharedLibraryMember? mine;
+      for (final m in members) {
+        if (m.memberId == membership.memberId) mine = m;
+      }
+      if (mine == null || mine.displayName != membership.displayName) {
+        try {
+          await t.writeMember(
+            SharedLibraryMember(
+              memberId: membership.memberId,
+              displayName: membership.displayName,
+              joinedAt: mine?.joinedAt ?? _now().toUtc(),
+            ),
+            appVersion: _appVersion,
+          );
+          if (mine == null) {
+            await _store.replaceMembers(libraryId, [
+              ...members,
               SharedLibraryMember(
                 memberId: membership.memberId,
                 displayName: membership.displayName,
-                joinedAt: mine?.joinedAt ?? _now().toUtc(),
+                joinedAt: _now().toUtc(),
               ),
-              appVersion: _appVersion,
-            );
-            if (mine == null) {
-              await _store.replaceMembers(libraryId, [
-                ...members,
-                SharedLibraryMember(
-                  memberId: membership.memberId,
-                  displayName: membership.displayName,
-                  joinedAt: _now().toUtc(),
-                ),
-              ]);
-            }
-          } catch (e) {
-            // A member card is a courtesy: a refused write is not a
-            // read-only library (readers may write cards by policy).
-            _log.warning('Could not write member card for $libraryId: $e');
+            ]);
           }
+        } catch (e) {
+          // A member card is a courtesy: a refused write is not a
+          // read-only library (readers may write cards by policy).
+          _log.warning('Could not write member card for $libraryId: $e');
         }
       }
-
       // 3. Pull.
       final states = await _store.siteStates(libraryId);
-      final clock = MemberClock(
-        membership?.memberId ?? LibraryEditStamper.unknownMember,
-      );
+      final clock = MemberClock(membership.memberId);
       var pulled = 0;
       final siteFiles = await t.listSites();
       for (final f in siteFiles) {
@@ -272,8 +273,7 @@ class SharedLibraryService {
         uploadAttempted = true;
         readOnly = true;
       }
-      if (membership != null &&
-          roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
+      if (roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
         await _pullSuggestions(t, libraryId);
       }
 

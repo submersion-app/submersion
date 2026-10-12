@@ -61,6 +61,22 @@ void main() {
   });
 
   test(
+    'writeSite returns null for a same-length write by another member',
+    () async {
+      final racing = _OverwriteBeforeReadBack();
+      final rt = SharedLibraryTransport(racing, prefix: 'club');
+      const mine = SiteDocument(id: 's1', fields: {'name': 'AAAA'});
+      const theirs = SiteDocument(id: 's1', fields: {'name': 'BBBB'});
+      expect(
+        SiteDocument.encode(mine).length,
+        SiteDocument.encode(theirs).length,
+      );
+      racing.overwrite = SiteDocument.encode(theirs);
+      expect(await rt.writeSite(mine), isNull);
+    },
+  );
+
+  test(
     'writeSite returns null when another write lands before the read-back',
     () async {
       final racing = _OverwriteBeforeReadBack();

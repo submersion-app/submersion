@@ -400,6 +400,24 @@ void main() {
     final kept = (await SharedLibraryStore().getSuggestion('sg1'))!;
     expect(kept.status, SharedSiteSuggestion.pending, reason: 'retried later');
   });
+
+  test('a profile with no membership cannot sync the library', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud);
+    final svc = await device(cloud, 'a');
+    await DiverRepository().createDiver(
+      Diver(
+        id: 'other',
+        name: 'Other',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    cloud.operationLog.clear();
+    final result = await svc.sync('L', diverId: 'other');
+    expect(result.status, SharedLibrarySyncStatus.notConnected);
+    expect(cloud.operationLog.where((op) => op.startsWith('upload')), isEmpty);
+  });
 }
 
 /// Runs [beforeSiteUpload] once before the next site upload, and refuses

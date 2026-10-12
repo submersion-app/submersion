@@ -201,9 +201,11 @@ class SharedLibraryTransport {
       SiteDocument.decode(await _provider.downloadFile(fileId));
 
   /// Uploads [doc] and returns the stored modification time when it is
-  /// provably this write's: the read-back reports the size just written.
-  /// Null when another member's write may have landed first, so the next
-  /// pull re-reads the document instead of skipping their edit as its own.
+  /// provably this write's: read after the time, the stored bytes are the
+  /// ones just written. Null when another member's write may have landed
+  /// first, so the next pull re-reads the document instead of skipping
+  /// their edit as its own. A write after the read changes the time again,
+  /// which the next pull notices.
   Future<DateTime?> writeSite(SiteDocument doc) async {
     final bytes = SiteDocument.encode(doc);
     final result = await _provider.uploadFile(
@@ -215,7 +217,17 @@ class SharedLibraryTransport {
     if (info == null) return null;
     final size = info.sizeBytes;
     if (size != null && size != bytes.length) return null;
+    final stored = await _provider.downloadFile(result.fileId);
+    if (!_sameBytes(stored, bytes)) return null;
     return info.modifiedTime;
+  }
+
+  static bool _sameBytes(Uint8List a, Uint8List b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   // Suggestions

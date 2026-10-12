@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
@@ -80,5 +83,49 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(Text), findsNothing);
+  });
+
+  testWidgets('a clock update does not blank the line while it reloads', (
+    tester,
+  ) async {
+    final state = SharedSiteState(
+      siteId: 's',
+      libraryId: 'L',
+      clocks: {'name': _clock(DateTime.utc(2026, 10, 1), 'b')},
+    );
+    // The first load answers; a reload (a newer clock written) never does
+    // within the test, so the widget is caught mid-reload.
+    var loads = 0;
+    final trigger = StateProvider<int>((ref) => 0);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          siteLibraryStateProvider('s').overrideWith((ref) {
+            ref.watch(trigger);
+            return loads++ == 0
+                ? Future.value(state)
+                : Completer<SharedSiteState?>().future;
+          }),
+          libraryMemberNamesProvider(
+            'L',
+          ).overrideWith((ref) async => {'b': 'Bob'}),
+        ],
+        locale: const Locale('en'),
+        child: const SiteAttributionLine(site: _site),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Last edited by Bob'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(SiteAttributionLine)),
+    ).read(trigger.notifier).state++;
+    await tester.pump();
+    expect(
+      find.textContaining('Last edited by Bob'),
+      findsOneWidget,
+      reason: 'the previous value stays up while the new one loads',
+    );
   });
 }

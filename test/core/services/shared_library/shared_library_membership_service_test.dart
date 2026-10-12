@@ -386,4 +386,44 @@ void main() {
     await leaving;
     expect(await SharedLibraryStore().getLibrary(lib.id), isNull);
   });
+
+  test('leaving gives up the member\'s role in the library', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'club',
+      name: 'Club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await _diver('d2');
+    await service.join(
+      account: account,
+      prefix: 'club',
+      diverId: 'd2',
+      displayName: 'Bob',
+    );
+    final bob = (await SharedLibraryStore().membership(
+      diverId: 'd2',
+      libraryId: lib.id,
+    ))!;
+    final ann = (await SharedLibraryStore().membership(
+      diverId: 'd1',
+      libraryId: lib.id,
+    ))!;
+    await service.setRole(
+      libraryId: lib.id,
+      actingMemberId: ann.memberId,
+      memberId: bob.memberId,
+      role: SharedLibraryRole.editor,
+    );
+
+    await service.leave(libraryId: lib.id, diverId: 'd2');
+
+    final roles = await SharedLibraryTransport(
+      cloud,
+      prefix: 'club',
+    ).readRoles();
+    expect(roles.roleOf(bob.memberId), SharedLibraryRole.reader);
+    expect(roles.roleOf(ann.memberId), SharedLibraryRole.owner);
+  });
 }
