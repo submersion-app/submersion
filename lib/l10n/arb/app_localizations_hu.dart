@@ -4179,6 +4179,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_picker_sheetTitle => 'Csatolás tanúsítványhoz';
 
   @override
+  String get certifications_picker_selectTitle => 'Tanúsítványok kiválasztása';
+
+  @override
   String get certifications_search_empty_hint =>
       'Keresés név, szervezet vagy kártyaszám alapján';
 
@@ -5254,6 +5257,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csatolj egy tanfolyamból szerzett képesítést';
 
   @override
+  String get courses_field_linkCertificationsHint =>
+      'Csatold a tanfolyamból szerzett képesítéseket';
+
+  @override
   String get courses_field_location => 'Helyszín';
 
   @override
@@ -5323,6 +5330,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_picker_selectTitle => 'Képzési tanfolyam kiválasztása';
 
   @override
+  String get courses_picker_selectCoursesTitle =>
+      'Képzési tanfolyamok kiválasztása';
+
+  @override
+  String courses_picker_linkedTo(String courseName) {
+    return 'Csatolva ehhez: $courseName';
+  }
+
+  @override
   String get courses_picker_selected => 'kiválasztva';
 
   @override
@@ -5363,6 +5379,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_section_earnedCertification => 'Megszerzett képesítés';
+
+  @override
+  String get courses_section_earnedCertifications => 'Megszerzett képesítések';
 
   @override
   String get courses_section_instructor => 'Oktató';
@@ -7674,6 +7693,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_section_trainingCourse => 'Képzési tanfolyam';
 
   @override
+  String get diveLog_edit_section_trainingCourses => 'Képzési tanfolyamok';
+
+  @override
   String get diveLog_edit_section_trip => 'Út';
 
   @override
@@ -7791,6 +7813,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_edit_trainingCourseHint =>
       'Merülés összekapcsolása egy képzési tanfolyammal';
+
+  @override
+  String get diveLog_edit_trainingCoursesHint =>
+      'Merülés összekapcsolása egy vagy több képzési tanfolyammal';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

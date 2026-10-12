@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -379,9 +380,9 @@ void main() {
     final dive = await seedRichDive();
     await pumpEditor(tester, dive.id);
 
-    await tester.tap(find.text('Training Course'));
+    await tester.tap(find.text('Training Courses'));
     await tester.pumpAndSettle();
-    expect(find.text('Training Course'), findsOneWidget);
+    expect(find.text('Training Courses'), findsOneWidget);
 
     // The seeded custom field means its section renders directly rather
     // than hiding behind the add row.
@@ -404,5 +405,43 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(savedId, isNotNull);
+  });
+
+  testWidgets('a dive saves with two training courses (#2515)', (tester) async {
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('cd', 'D', 0, 0)",
+    );
+    await db.customStatement(
+      'INSERT INTO courses (id, diver_id, name, agency, start_date, '
+      "created_at, updated_at) VALUES ('an', 'cd', 'Advanced Nitrox', 'tdi', "
+      "1, 0, 0), ('dp', 'cd', 'Deco Procedures', 'tdi', 2, 0, 0)",
+    );
+    final dive = await repository.createDive(
+      Dive(id: 'course-dive', dateTime: DateTime(2026, 6, 2, 9)),
+    );
+    String? savedId;
+    await pumpEditor(tester, dive.id, onSaved: (id) => savedId = id);
+
+    await tester.tap(find.text('Training Courses'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tap to link to a training course'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Advanced Nitrox'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Deco Procedures'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save'));
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(savedId, dive.id);
+    final saved = await repository.getDiveById(dive.id);
+    expect(saved!.courseIds.toSet(), {'an', 'dp'});
+    expect(saved.courseId, 'an');
   });
 }

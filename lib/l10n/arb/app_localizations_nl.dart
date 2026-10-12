@@ -4174,6 +4174,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_picker_sheetTitle => 'Koppelen aan certificering';
 
   @override
+  String get certifications_picker_selectTitle => 'Selecteer certificeringen';
+
+  @override
   String get certifications_search_empty_hint =>
       'Zoek op naam, organisatie of kaartnummer';
 
@@ -5237,6 +5240,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Koppel een certificering verdiend bij deze cursus';
 
   @override
+  String get courses_field_linkCertificationsHint =>
+      'Koppel de certificeringen verdiend bij deze cursus';
+
+  @override
   String get courses_field_location => 'Locatie';
 
   @override
@@ -5306,6 +5313,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_picker_selectTitle => 'Selecteer trainingscursus';
 
   @override
+  String get courses_picker_selectCoursesTitle =>
+      'Selecteer trainingscursussen';
+
+  @override
+  String courses_picker_linkedTo(String courseName) {
+    return 'Gekoppeld aan: $courseName';
+  }
+
+  @override
   String get courses_picker_selected => 'geselecteerd';
 
   @override
@@ -5346,6 +5362,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_section_earnedCertification => 'Behaalde certificering';
+
+  @override
+  String get courses_section_earnedCertifications => 'Behaalde certificeringen';
 
   @override
   String get courses_section_instructor => 'Instructeur';
@@ -7649,6 +7668,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_section_trainingCourse => 'Trainingscursus';
 
   @override
+  String get diveLog_edit_section_trainingCourses => 'Trainingscursussen';
+
+  @override
   String get diveLog_edit_section_trip => 'Reis';
 
   @override
@@ -7766,6 +7788,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_edit_trainingCourseHint =>
       'Koppel deze duik aan een trainingscursus';
+
+  @override
+  String get diveLog_edit_trainingCoursesHint =>
+      'Koppel deze duik aan een of meer trainingscursussen';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

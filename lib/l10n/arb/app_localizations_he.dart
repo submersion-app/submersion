@@ -4108,6 +4108,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_picker_sheetTitle => 'קישור להסמכה';
 
   @override
+  String get certifications_picker_selectTitle => 'בחר הסמכות';
+
+  @override
   String get certifications_search_empty_hint =>
       'חיפוש לפי שם, ארגון או מספר כרטיס';
 
@@ -5153,6 +5156,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_field_linkCertificationHint => 'קשר הסמכה שהושגה מקורס זה';
 
   @override
+  String get courses_field_linkCertificationsHint =>
+      'קשר את ההסמכות שהושגו מקורס זה';
+
+  @override
   String get courses_field_location => 'מיקום';
 
   @override
@@ -5222,6 +5229,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_picker_selectTitle => 'בחר קורס אימון';
 
   @override
+  String get courses_picker_selectCoursesTitle => 'בחר קורסי אימון';
+
+  @override
+  String courses_picker_linkedTo(String courseName) {
+    return 'מקושר ל: $courseName';
+  }
+
+  @override
   String get courses_picker_selected => 'נבחר';
 
   @override
@@ -5261,6 +5276,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_section_earnedCertification => 'הסמכה שהושגה';
+
+  @override
+  String get courses_section_earnedCertifications => 'הסמכות שהושגו';
 
   @override
   String get courses_section_instructor => 'מדריך';
@@ -7534,6 +7552,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_section_trainingCourse => 'קורס הכשרה';
 
   @override
+  String get diveLog_edit_section_trainingCourses => 'קורסי הכשרה';
+
+  @override
   String get diveLog_edit_section_trip => 'טיול';
 
   @override
@@ -7650,6 +7671,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_trainingCourseHint => 'קישור צלילה זו לקורס הכשרה';
+
+  @override
+  String get diveLog_edit_trainingCoursesHint =>
+      'קישור צלילה זו לקורס הכשרה אחד או יותר';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

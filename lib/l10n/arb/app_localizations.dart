@@ -6536,6 +6536,12 @@ abstract class AppLocalizations {
   /// **'Link to Certification'**
   String get certifications_picker_sheetTitle;
 
+  /// Title of the multi-select certification sheet in the course editor
+  ///
+  /// In en, this message translates to:
+  /// **'Select Certifications'**
+  String get certifications_picker_selectTitle;
+
   /// No description provided for @certifications_search_empty_hint.
   ///
   /// In en, this message translates to:
@@ -8316,6 +8322,12 @@ abstract class AppLocalizations {
   /// **'Link a certification earned from this course'**
   String get courses_field_linkCertificationHint;
 
+  /// Hint under the Earned Certifications header in the course editor
+  ///
+  /// In en, this message translates to:
+  /// **'Link the certifications earned from this course'**
+  String get courses_field_linkCertificationsHint;
+
   /// No description provided for @courses_field_location.
   ///
   /// In en, this message translates to:
@@ -8442,6 +8454,18 @@ abstract class AppLocalizations {
   /// **'Select Training Course'**
   String get courses_picker_selectTitle;
 
+  /// Title of the multi-select course sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Select Training Courses'**
+  String get courses_picker_selectCoursesTitle;
+
+  /// Subtitle on a certification already linked to another course; ticking it moves it here
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to: {courseName}'**
+  String courses_picker_linkedTo(String courseName);
+
   /// No description provided for @courses_picker_selected.
   ///
   /// In en, this message translates to:
@@ -8513,6 +8537,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Earned Certification'**
   String get courses_section_earnedCertification;
+
+  /// Course editor and course detail section listing the certifications the course earned
+  ///
+  /// In en, this message translates to:
+  /// **'Earned Certifications'**
+  String get courses_section_earnedCertifications;
 
   /// No description provided for @courses_section_instructor.
   ///
@@ -12223,6 +12253,12 @@ abstract class AppLocalizations {
   /// **'Training Course'**
   String get diveLog_edit_section_trainingCourse;
 
+  /// Dive editor, bulk editor and dive detail label for the training courses a dive belongs to
+  ///
+  /// In en, this message translates to:
+  /// **'Training Courses'**
+  String get diveLog_edit_section_trainingCourses;
+
   /// No description provided for @diveLog_edit_section_trip.
   ///
   /// In en, this message translates to:
@@ -12372,6 +12408,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Link this dive to a training course'**
   String get diveLog_edit_trainingCourseHint;
+
+  /// Hint above the course chips in the dive editor
+  ///
+  /// In en, this message translates to:
+  /// **'Link this dive to one or more training courses'**
+  String get diveLog_edit_trainingCoursesHint;
 
   /// No description provided for @diveLog_edit_tripSuggested.
   ///

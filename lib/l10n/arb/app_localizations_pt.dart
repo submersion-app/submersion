@@ -4195,6 +4195,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_picker_sheetTitle => 'Vincular a Certificação';
 
   @override
+  String get certifications_picker_selectTitle => 'Selecionar Certificações';
+
+  @override
   String get certifications_search_empty_hint =>
       'Buscar por nome, agência ou número do cartão';
 
@@ -5264,6 +5267,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Vincular uma certificação obtida neste curso';
 
   @override
+  String get courses_field_linkCertificationsHint =>
+      'Vincular as certificações obtidas neste curso';
+
+  @override
   String get courses_field_location => 'Local';
 
   @override
@@ -5333,6 +5340,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_picker_selectTitle => 'Selecionar Curso de Treinamento';
 
   @override
+  String get courses_picker_selectCoursesTitle =>
+      'Selecionar Cursos de Treinamento';
+
+  @override
+  String courses_picker_linkedTo(String courseName) {
+    return 'Vinculada a: $courseName';
+  }
+
+  @override
   String get courses_picker_selected => 'selecionado';
 
   @override
@@ -5373,6 +5389,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get courses_section_earnedCertification => 'Certificação Obtida';
+
+  @override
+  String get courses_section_earnedCertifications => 'Certificações Obtidas';
 
   @override
   String get courses_section_instructor => 'Instrutor';
@@ -7694,6 +7713,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_section_trainingCourse => 'Curso de Treinamento';
 
   @override
+  String get diveLog_edit_section_trainingCourses => 'Cursos de Treinamento';
+
+  @override
   String get diveLog_edit_section_trip => 'Viagem';
 
   @override
@@ -7811,6 +7833,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_edit_trainingCourseHint =>
       'Vincular este mergulho a um curso de treinamento';
+
+  @override
+  String get diveLog_edit_trainingCoursesHint =>
+      'Vincular este mergulho a um ou mais cursos de treinamento';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

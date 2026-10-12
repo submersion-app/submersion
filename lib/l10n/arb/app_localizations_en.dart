@@ -4133,6 +4133,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_picker_sheetTitle => 'Link to Certification';
 
   @override
+  String get certifications_picker_selectTitle => 'Select Certifications';
+
+  @override
   String get certifications_search_empty_hint =>
       'Search by name, agency, or card number';
 
@@ -5185,6 +5188,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Link a certification earned from this course';
 
   @override
+  String get courses_field_linkCertificationsHint =>
+      'Link the certifications earned from this course';
+
+  @override
   String get courses_field_location => 'Location';
 
   @override
@@ -5254,6 +5261,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_picker_selectTitle => 'Select Training Course';
 
   @override
+  String get courses_picker_selectCoursesTitle => 'Select Training Courses';
+
+  @override
+  String courses_picker_linkedTo(String courseName) {
+    return 'Linked to: $courseName';
+  }
+
+  @override
   String get courses_picker_selected => 'selected';
 
   @override
@@ -5293,6 +5308,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_section_earnedCertification => 'Earned Certification';
+
+  @override
+  String get courses_section_earnedCertifications => 'Earned Certifications';
 
   @override
   String get courses_section_instructor => 'Instructor';
@@ -7576,6 +7594,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_section_trainingCourse => 'Training Course';
 
   @override
+  String get diveLog_edit_section_trainingCourses => 'Training Courses';
+
+  @override
   String get diveLog_edit_section_trip => 'Trip';
 
   @override
@@ -7693,6 +7714,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_edit_trainingCourseHint =>
       'Link this dive to a training course';
+
+  @override
+  String get diveLog_edit_trainingCoursesHint =>
+      'Link this dive to one or more training courses';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

@@ -4261,6 +4261,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_picker_sheetTitle => 'الربط بشهادة';
 
   @override
+  String get certifications_picker_selectTitle => 'اختيار الشهادات';
+
+  @override
   String get certifications_search_empty_hint =>
       'البحث بالاسم أو الوكالة أو رقم البطاقة';
 
@@ -5343,6 +5346,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'ربط الاعتماد المكتسب من هذه الدورة';
 
   @override
+  String get courses_field_linkCertificationsHint =>
+      'ربط الاعتمادات المكتسبة من هذه الدورة';
+
+  @override
   String get courses_field_location => 'الموقع';
 
   @override
@@ -5412,6 +5419,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_picker_selectTitle => 'اختيار دورة تدريبية';
 
   @override
+  String get courses_picker_selectCoursesTitle => 'اختيار الدورات التدريبية';
+
+  @override
+  String courses_picker_linkedTo(String courseName) {
+    return 'مرتبط بـ: $courseName';
+  }
+
+  @override
   String get courses_picker_selected => 'محدد';
 
   @override
@@ -5451,6 +5466,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_section_earnedCertification => 'الاعتماد المكتسب';
+
+  @override
+  String get courses_section_earnedCertifications => 'الاعتمادات المكتسبة';
 
   @override
   String get courses_section_instructor => 'المدرب';
@@ -7800,6 +7818,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_section_trainingCourse => 'دورة التدريب';
 
   @override
+  String get diveLog_edit_section_trainingCourses => 'الدورات التدريبية';
+
+  @override
   String get diveLog_edit_section_trip => 'الرحلة';
 
   @override
@@ -7924,6 +7945,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_trainingCourseHint => 'ربط هذه الغوصة بدورة تدريبية';
+
+  @override
+  String get diveLog_edit_trainingCoursesHint =>
+      'ربط هذه الغوصة بدورة تدريبية واحدة أو أكثر';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {

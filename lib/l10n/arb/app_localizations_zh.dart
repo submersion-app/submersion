@@ -3970,6 +3970,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_picker_sheetTitle => '关联证书';
 
   @override
+  String get certifications_picker_selectTitle => '选择证书';
+
+  @override
   String get certifications_search_empty_hint => '按名称、机构或卡号搜索';
 
   @override
@@ -4995,6 +4998,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_field_linkCertificationHint => '关联此课程获得的证书';
 
   @override
+  String get courses_field_linkCertificationsHint => '关联此课程获得的证书';
+
+  @override
   String get courses_field_location => '位置';
 
   @override
@@ -5064,6 +5070,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_picker_selectTitle => '选择训练课程';
 
   @override
+  String get courses_picker_selectCoursesTitle => '选择训练课程';
+
+  @override
+  String courses_picker_linkedTo(String courseName) {
+    return '已关联到：$courseName';
+  }
+
+  @override
   String get courses_picker_selected => '已选择';
 
   @override
@@ -5102,6 +5116,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_section_earnedCertification => '获得的证书';
+
+  @override
+  String get courses_section_earnedCertifications => '获得的证书';
 
   @override
   String get courses_section_instructor => '教练';
@@ -7319,6 +7336,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_section_trainingCourse => '培训课程';
 
   @override
+  String get diveLog_edit_section_trainingCourses => '培训课程';
+
+  @override
   String get diveLog_edit_section_trip => '旅行';
 
   @override
@@ -7428,6 +7448,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_trainingCourseHint => '将此次潜水关联到培训课程';
+
+  @override
+  String get diveLog_edit_trainingCoursesHint => '将此次潜水关联到一个或多个培训课程';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
