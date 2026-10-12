@@ -20,7 +20,7 @@ void main() {
       rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY, course_id TEXT)');
       rawDb.execute(
         'CREATE TABLE certifications (id TEXT PRIMARY KEY, name TEXT, '
-        'issue_date INTEGER, course_id TEXT)',
+        'issue_date INTEGER, course_id TEXT, updated_at INTEGER)',
       );
       rawDb.execute(
         "INSERT INTO courses VALUES ('c1','d','AN','tdi',100,'k1',0,0)",
@@ -32,8 +32,31 @@ void main() {
       rawDb.execute("INSERT INTO dives VALUES ('v2',NULL)");
       // k1 is linked only from the course side. k2 already points at c1, so
       // the certification side wins and c2 loses it.
-      rawDb.execute("INSERT INTO certifications VALUES ('k1','AN',1,NULL)");
-      rawDb.execute("INSERT INTO certifications VALUES ('k2','DP',2,'c1')");
+      rawDb.execute("INSERT INTO certifications VALUES ('k1','AN',1,NULL,0)");
+      rawDb.execute("INSERT INTO certifications VALUES ('k2','DP',2,'c1',0)");
+      // An older app version only half-unlinked (#2515): swapping c3's card
+      // from k5 to k4 rewrote c3 at 100 and left k5 pointing at it.
+      rawDb.execute(
+        "INSERT INTO courses VALUES ('c3','d','Swap','padi',300,'k4',0,100)",
+      );
+      rawDb.execute(
+        "INSERT INTO certifications VALUES ('k4','New',4,NULL,100)",
+      );
+      rawDb.execute("INSERT INTO certifications VALUES ('k5','Old',5,'c3',50)");
+      // Clearing c5's card rewrote c5 at 100 and left k8 pointing at it.
+      rawDb.execute(
+        "INSERT INTO courses VALUES ('c5','d','Clear','padi',500,NULL,0,100)",
+      );
+      rawDb.execute(
+        "INSERT INTO certifications VALUES ('k8','Gone',8,'c5',50)",
+      );
+      // A device already on v286 linked two cards to c4: both written at or
+      // after the course, so both are real links.
+      rawDb.execute(
+        "INSERT INTO courses VALUES ('c4','d','Multi','tdi',400,'k6',0,100)",
+      );
+      rawDb.execute("INSERT INTO certifications VALUES ('k6','A',6,'c4',100)");
+      rawDb.execute("INSERT INTO certifications VALUES ('k7','B',7,'c4',120)");
     },
   );
 
@@ -97,6 +120,11 @@ void main() {
         [
           {'id': 'k1', 'course_id': 'c1'},
           {'id': 'k2', 'course_id': 'c1'},
+          {'id': 'k4', 'course_id': 'c3'},
+          {'id': 'k5', 'course_id': null},
+          {'id': 'k6', 'course_id': 'c4'},
+          {'id': 'k7', 'course_id': 'c4'},
+          {'id': 'k8', 'course_id': null},
         ],
       );
       expect(
@@ -104,6 +132,9 @@ void main() {
         [
           {'id': 'c1', 'certification_id': 'k1'},
           {'id': 'c2', 'certification_id': null},
+          {'id': 'c3', 'certification_id': 'k4'},
+          {'id': 'c4', 'certification_id': 'k6'},
+          {'id': 'c5', 'certification_id': null},
         ],
       );
     },

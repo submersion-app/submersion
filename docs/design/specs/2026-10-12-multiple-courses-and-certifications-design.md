@@ -91,10 +91,17 @@ New table `dive_courses`, defined under `lib/core/database/tables/` (never in
 - `courses.certification_id` stays as the representative: the course's
   earliest-issued linked certification (NULL issue dates last, then `name`,
   then `id`), or NULL. Rewritten whenever the set changes.
-- **Rung backfill.** For each course whose `certification_id` names a
-  certification with a NULL `course_id`, set that certification's `course_id`.
-  A certification already pointing at a different course is left alone: the
-  certification side wins.
+- **Rung backfill.** First, clear old-version leftovers: an older app version
+  only half-unlinked (swapping or clearing a course's card rewrote the course
+  row and left the old card's `course_id` pointing at it). A card the course
+  does not name and that is older than the course row (`updated_at`) is such a
+  leftover and loses its `course_id`; a card at least as new as the course is
+  a link the new app made (a device already on v286) and stays. Then, for each
+  course whose `certification_id` names a certification with a NULL
+  `course_id`, set that certification's `course_id`. A certification still
+  pointing at a different course is left alone: the certification side wins.
+  Decided after the final review; a leftover card edited after the correction
+  is the one case that comes back.
 - Readers that OR both sides switch to the certification side only.
 
 ### Deletion

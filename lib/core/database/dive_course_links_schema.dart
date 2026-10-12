@@ -98,11 +98,20 @@ Future<int> seedDiveCourseLinks(DatabaseConnectionUser db) async {
   return inserted;
 }
 
-/// The certification side becomes the truth (v286): a course's
-/// `certification_id` that names a certification with no course claims it,
-/// then every course's representative is recomputed from the certification
-/// side (earliest issued, undated last, then name, then id). Runs in the rung
-/// only. Deterministic over synced data, so it marks nothing pending.
+/// The certification side becomes the truth (v286, issue #2515). Runs in the
+/// rung only. Deterministic over synced data, so it marks nothing pending.
+///
+/// 1. An older app version only half-unlinked: swapping or clearing a
+///    course's card rewrote the course row and left the old card's
+///    `course_id` pointing at it, invisibly, since its screens read only the
+///    course side. Such a leftover is a card the course does not name and
+///    that is older than the course row, so it is cleared. A card at least as
+///    new as the course is a link the new app made (a device already on v286
+///    linking several cards), and it stays.
+/// 2. A course's `certification_id` that names a card with no course claims
+///    it.
+/// 3. Every course's representative is recomputed from the certification
+///    side (earliest issued, undated last, then name, then id).
 Future<void> backfillCertificationCourseLinks(DatabaseConnectionUser db) async {
   if (!await _hasColumns(db, 'courses', const ['id', 'certification_id'])) {
     return;
@@ -114,6 +123,19 @@ Future<void> backfillCertificationCourseLinks(DatabaseConnectionUser db) async {
     'course_id',
   ])) {
     return;
+  }
+  if (await _hasColumns(db, 'courses', const ['updated_at']) &&
+      await _hasColumns(db, 'certifications', const ['updated_at'])) {
+    await db.customStatement('''
+      UPDATE certifications SET course_id = NULL
+      WHERE course_id IS NOT NULL
+        AND EXISTS (
+          SELECT 1 FROM courses c
+          WHERE c.id = certifications.course_id
+            AND c.certification_id IS NOT certifications.id
+            AND certifications.updated_at < c.updated_at
+        )
+    ''');
   }
   await db.customStatement('''
     UPDATE certifications SET course_id = (
