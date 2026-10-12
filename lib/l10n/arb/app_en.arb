@@ -17508,6 +17508,7 @@
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scan device gallery",
   "trips_photos_viewAll": "View All",
+  "trips_picker_alreadyPacked": "Already packed",
   "trips_picker_clearTooltip": "Clear selection",
   "trips_picker_empty_createButton": "Create Trip",
   "trips_picker_empty_title": "No trips yet",
@@ -27083,6 +27084,7 @@
   "trips_picker_suggestedSemantics": "Suggested trip: {name}. Tap to use",
   "trips_picker_tileSemantics": "{name}, {startDate} to {endDate}",
   "trips_picker_tileSemanticsSelected": "{name}, {startDate} to {endDate}, selected",
+  "trips_picker_tileSemanticsPacked": "{name}, {startDate} to {endDate}, already packed",
   "divePlanner_quickPlan_subtitle": "Create a simple rectangular dive profile",
   "divePlanner_quickPlan_depthLabel": "Depth:",
   "divePlanner_quickPlan_depthSemantics": "Depth: {depth}",
@@ -27311,6 +27313,19 @@
     }
   },
   "@trips_picker_tileSemanticsSelected": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "startDate": {
+        "type": "Object"
+      },
+      "endDate": {
+        "type": "Object"
+      }
+    }
+  },
+  "@trips_picker_tileSemanticsPacked": {
     "placeholders": {
       "name": {
         "type": "Object"

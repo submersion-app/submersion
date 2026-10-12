@@ -111,20 +111,8 @@ class SpeciesRepository {
     required SpeciesCategory category,
   }) async {
     // Try to find existing species with same name
-    final existing = await _db
-        .customSelect(
-          '''
-      SELECT * FROM species
-      WHERE LOWER(common_name) = ?
-      LIMIT 1
-    ''',
-          variables: [Variable.withString(commonName.toLowerCase())],
-        )
-        .getSingleOrNull();
-
-    if (existing != null) {
-      return _mapRawRowToSpecies(existing);
-    }
+    final existing = await findSpeciesByCommonName(commonName);
+    if (existing.isNotEmpty) return existing.first;
 
     // Create new species
     final id = _uuid.v4();
@@ -164,12 +152,45 @@ class SpeciesRepository {
     if (needle.isEmpty) return null;
     final row = await _db
         .customSelect(
-          'SELECT id FROM species WHERE LOWER(scientific_name) = ? LIMIT 1',
+          'SELECT id FROM species WHERE LOWER(scientific_name) = ? '
+          'ORDER BY is_built_in DESC, rowid LIMIT 1',
           variables: [Variable.withString(needle)],
         )
         .getSingleOrNull();
     if (row == null) return null;
     return getSpeciesById(row.data['id'] as String);
+  }
+
+  /// Every species whose common name equals [commonName], ignoring case,
+  /// built-in rows first and then in the order they were added.
+  ///
+  /// SQLite's LOWER folds ASCII only, so "Étoile" and "étoile" never compare
+  /// equal in SQL. The query keeps the ASCII-folded matches plus any name of
+  /// the same length that holds a non-ASCII character, and Dart's Unicode
+  /// [String.toLowerCase] makes the final call.
+  Future<List<domain.Species>> findSpeciesByCommonName(
+    String commonName,
+  ) async {
+    final needle = commonName.trim();
+    if (needle.isEmpty) return const [];
+    final folded = needle.toLowerCase();
+    final rows = await _db
+        .customSelect(
+          '''
+      SELECT * FROM species
+      WHERE LOWER(common_name) = LOWER(?)
+         OR (LENGTH(common_name) = LENGTH(?)
+             AND common_name GLOB '*[^ -~]*')
+      ORDER BY is_built_in DESC, rowid
+    ''',
+          variables: [Variable.withString(needle), Variable.withString(needle)],
+        )
+        .get();
+    return [
+      for (final row in rows)
+        if ((row.data['common_name'] as String).toLowerCase() == folded)
+          _mapRawRowToSpecies(row),
+    ];
   }
 
   /// Add sighting to a dive

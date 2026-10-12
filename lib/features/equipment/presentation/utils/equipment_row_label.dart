@@ -38,10 +38,15 @@ class EquipmentRowLabelStrings {
 /// same after one detail go on to the next. Rows that are identical in all
 /// three stay identical; a counter would not be stable from one list to
 /// the next.
+///
+/// [shownWith] is text a list shows on the row beside the label, such as a
+/// part's role in its assembly (#2791). It counts toward a collision, so rows
+/// it already tells apart gain no tie-break.
 Map<String, EquipmentRowLabel> buildEquipmentRowLabels(
   Iterable<EquipmentItem> rows,
-  EquipmentRowLabelStrings strings,
-) {
+  EquipmentRowLabelStrings strings, {
+  String Function(EquipmentItem item)? shownWith,
+}) {
   final items = rows.toList(growable: false);
   final parts = {for (final item in items) item.id: _baseParts(item, strings)};
 
@@ -58,7 +63,7 @@ Map<String, EquipmentRowLabel> buildEquipmentRowLabels(
   // four pouches have a serial number, the other two only a purchase date),
   // and those move on to the next detail.
   for (final detailOf in tieBreaks) {
-    for (final group in _collidingGroups(items, parts)) {
+    for (final group in _collidingGroups(items, parts, shownWith)) {
       final details = {for (final e in group) e.id: detailOf(e)};
       if (details.values.toSet().length < 2) continue;
       for (final e in group) {
@@ -81,10 +86,13 @@ Map<String, EquipmentRowLabel> buildEquipmentRowLabels(
 List<List<EquipmentItem>> _collidingGroups(
   List<EquipmentItem> items,
   Map<String, List<String>> parts,
+  String Function(EquipmentItem item)? shownWith,
 ) {
   final groups = <String, List<EquipmentItem>>{};
   for (final item in items) {
-    final key = '${item.name}\u0000${parts[item.id]!.join('\u0000')}';
+    final shown = shownWith?.call(item) ?? '';
+    final key =
+        '${item.name}\u0000$shown\u0000${parts[item.id]!.join('\u0000')}';
     (groups[key] ??= []).add(item);
   }
   return [

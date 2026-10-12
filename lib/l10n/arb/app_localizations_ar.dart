@@ -30409,6 +30409,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_photos_viewAll => 'عرض الكل';
 
   @override
+  String get trips_picker_alreadyPacked => 'مجهزة بالفعل';
+
+  @override
   String get trips_picker_clearTooltip => 'مسح الاختيار';
 
   @override
@@ -47142,6 +47145,15 @@ class AppLocalizationsAr extends AppLocalizations {
     Object endDate,
   ) {
     return '$name، من $startDate إلى $endDate، محددة';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name، من $startDate إلى $endDate، مجهزة بالفعل';
   }
 
   @override

@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
@@ -33,6 +34,11 @@ class PlanTankList extends ConsumerWidget {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    // The planner derives roles rather than storing them, so each chip's
+    // glyph follows the plan as the diver edits it (issue #2901).
+    final roles = const TankRoleResolver().rolesFor(
+      divePlanFromState(planState),
+    );
 
     return Card(
       child: Padding(
@@ -79,6 +85,7 @@ class PlanTankList extends ConsumerWidget {
               children: planState.tanks.map((tank) {
                 return _TankChip(
                   tank: tank,
+                  role: roles[tank.id] ?? tank.role,
                   units: units,
                   onEdit: () => _showEditTankDialog(context, ref, tank, units),
                   onDelete: planState.tanks.length > 1
@@ -157,12 +164,16 @@ TankRole Function(DiveTank provisional) _roleResolverFor(WidgetRef ref) {
 
 class _TankChip extends StatelessWidget {
   final DiveTank tank;
+
+  /// The role the plan derives for [tank], shown as the avatar glyph.
+  final TankRole role;
   final UnitFormatter units;
   final VoidCallback onEdit;
   final VoidCallback? onDelete;
 
   const _TankChip({
     required this.tank,
+    required this.role,
     required this.units,
     required this.onEdit,
     this.onDelete,
@@ -173,10 +184,17 @@ class _TankChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     final tankSize = units.formatTankVolume(tank.volume, tank.workingPressure);
-    final tankLabel =
-        '${tank.name ?? tank.gasMix.name}, '
-        '${units.formatPressure(tank.startPressure)}, '
-        '$tankSize';
+    final roleName = role.localizedName(context.l10n);
+    // The avatar shows the role, not the gas initial it used to, so a named
+    // cylinder carries its gas on the second line; an unnamed one is already
+    // titled by its gas.
+    final gas = tank.name == null ? null : tank.gasMix.name;
+    final details = [?gas, units.formatPressure(tank.startPressure), tankSize];
+    final tankLabel = [
+      tank.name ?? tank.gasMix.name,
+      roleName,
+      ...details,
+    ].join(', ');
 
     return Semantics(
       label: tankLabel,
@@ -184,12 +202,10 @@ class _TankChip extends StatelessWidget {
         avatar: CircleAvatar(
           backgroundColor: theme.colorScheme.primaryContainer,
           child: ExcludeSemantics(
-            child: Text(
-              tank.gasMix.name.substring(0, 1),
-              style: TextStyle(
-                fontSize: 12,
-                color: theme.colorScheme.onPrimaryContainer,
-              ),
+            child: Icon(
+              role.icon,
+              size: 16,
+              color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
         ),
@@ -198,10 +214,7 @@ class _TankChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(tank.name ?? tank.gasMix.name),
-            Text(
-              '${units.formatPressure(tank.startPressure)} • $tankSize',
-              style: theme.textTheme.bodySmall,
-            ),
+            Text(details.join(' • '), style: theme.textTheme.bodySmall),
           ],
         ),
         onPressed: onEdit,

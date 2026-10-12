@@ -1126,6 +1126,12 @@ class UddfExportBuilders {
                           );
                         }
                         builder.element('category', nest: spec.category.name);
+                        if (spec.taxonomyClass != null) {
+                          builder.element(
+                            'taxonomyclass',
+                            nest: spec.taxonomyClass,
+                          );
+                        }
                         if (spec.description != null) {
                           builder.element(
                             'description',

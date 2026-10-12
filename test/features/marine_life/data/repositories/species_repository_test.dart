@@ -432,6 +432,36 @@ void main() {
           expect(found.scientificName, 'Mobula birostris');
         },
       );
+
+      test('matches a name with non-ASCII capitals', () async {
+        // SQLite's LOWER folds ASCII only, so a needle lowered in Dart
+        // ("étoile") never equalled LOWER("Étoile") and a twin was created.
+        final created = await repository.createSpecies(
+          commonName: 'Étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        final found = await repository.getOrCreateSpecies(
+          commonName: 'Étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        expect(found.id, created.id);
+      });
+
+      test('matches when only an accented letter differs in case', () async {
+        final created = await repository.createSpecies(
+          commonName: 'étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        final found = await repository.getOrCreateSpecies(
+          commonName: 'Étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        expect(found.id, created.id);
+      });
     });
   });
 }

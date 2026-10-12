@@ -104,4 +104,36 @@ abstract final class SubmersionIcons {
   /// A sock seen side-on: a ribbed cuff over the leg and a rounded foot,
   /// with no sole, which is what tells it apart from the bootie.
   static const IconData socks = IconData(0xe916, fontFamily: fontFamily);
+
+  // Tank roles (#2901): one glyph per way a cylinder is carried. Picked by
+  // `TankRole.icon`, never directly.
+
+  /// An upright cylinder with its valve and handwheel: back gas.
+  static const IconData tankBackGas = IconData(0xe917, fontFamily: fontFamily);
+
+  /// A pair of cylinders with the left one solid: sidemount left.
+  static const IconData tankSidemountLeft = IconData(
+    0xe918,
+    fontFamily: fontFamily,
+  );
+
+  /// A pair of cylinders with the right one solid: sidemount right.
+  static const IconData tankSidemountRight = IconData(
+    0xe919,
+    fontFamily: fontFamily,
+  );
+
+  /// A tilted cylinder on a leash with a bolt snap at each end: stage, deco
+  /// and bailout.
+  static const IconData tankSlung = IconData(0xe91a, fontFamily: fontFamily);
+
+  /// A short bottle strapped beside a full-size cylinder: pony.
+  static const IconData tankPony = IconData(0xe91b, fontFamily: fontFamily);
+
+  /// A stubby cylinder beside a scrubber canister: a rebreather's diluent or
+  /// oxygen supply.
+  static const IconData tankRebreather = IconData(
+    0xe91c,
+    fontFamily: fontFamily,
+  );
 }

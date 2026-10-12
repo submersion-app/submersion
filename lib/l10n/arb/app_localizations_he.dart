@@ -29316,6 +29316,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_photos_viewAll => 'הצג הכל';
 
   @override
+  String get trips_picker_alreadyPacked => 'כבר נארז';
+
+  @override
   String get trips_picker_clearTooltip => 'נקה בחירה';
 
   @override
@@ -45556,6 +45559,15 @@ class AppLocalizationsHe extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, מ-$startDate עד $endDate, נבחר';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, מ-$startDate עד $endDate, כבר נארז';
   }
 
   @override
