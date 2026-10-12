@@ -349,18 +349,28 @@ class PlanEngine {
     // start depths, phases, rates - is resolved once here, and everything
     // downstream reads legs rather than segments.
     final legs = const SegmentChain().resolve(segments);
+    // The final authored leg can itself be a mid-plan OC/bailout override
+    // (modeFor), in which case its gasMix is the bailout mix, not a
+    // diluent - fall back to the last leg still breathed on the loop.
+    PlanSegment? lastLoopSegment;
+    for (final segment in segments.reversed) {
+      if (_modeFor(plan, segment) != domain.PlanMode.oc) {
+        lastLoopSegment = segment;
+        break;
+      }
+    }
     final ascentPlan = isCcr
         ? CcrLoopAscentGas(
             environment: environment,
             setpointLow: plan.effectiveSetpointLow,
             setpointHigh: plan.effectiveSetpointHigh,
             switchDepth: plan.effectiveSetpointSwitchDepth,
-            diluentFO2: segments.isEmpty
+            diluentFO2: lastLoopSegment == null
                 ? 0.21
-                : segments.last.gasMix.o2 / 100.0,
-            diluentFHe: segments.isEmpty
+                : lastLoopSegment.gasMix.o2 / 100.0,
+            diluentFHe: lastLoopSegment == null
                 ? 0.0
-                : segments.last.gasMix.he / 100.0,
+                : lastLoopSegment.gasMix.he / 100.0,
           )
         : _ascentPlanFor(plan.tanks);
 

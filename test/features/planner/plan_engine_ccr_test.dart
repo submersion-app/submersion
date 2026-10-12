@@ -357,6 +357,44 @@ void main() {
       }
     });
 
+    test('the computed ascent reads the last loop diluent, not a final '
+        'OC/bailout override (a Copilot review caught this: segments.last '
+        'was used unconditionally for the CCR ascent gas)', () {
+      const bailoutGas = GasMix(o2: 50);
+      final overriddenPlan = _plan(
+        segments: [
+          ..._segments(),
+          PlanSegment.hold(
+            id: 'seg-bailout',
+            depth: 40.0,
+            durationMinutes: 1,
+            tankId: 'bo',
+            gasMix: bailoutGas,
+            diveModeOverride: domain.PlanMode.oc,
+            order: 2,
+          ),
+        ],
+      );
+      final outcome = engine.compute(overriddenPlan);
+
+      // Authored legs come first, then the computed ascent -- so any stop
+      // shallower than the authored override's own depth is computed, not
+      // authored, and must be back on the loop's diluent.
+      final computedStops = outcome.schedule.where(
+        (r) => r.kind == PlanScheduleRowKind.stop && r.depthMeters < 40.0,
+      );
+      expect(computedStops, isNotEmpty);
+      for (final row in computedStops) {
+        expect(
+          row.gasFO2,
+          closeTo(_diluent.o2 / 100.0, 1e-9),
+          reason:
+              'computed stop at ${row.depthMeters} m should read the loop '
+              "diluent, not the bailout override's gas",
+        );
+      }
+    });
+
     test('END column matches GasMix.end() on the row\'s own gas and depth, '
         'floored at 0 m (depth-matched rows only)', () {
       final outcome = engine.compute(_plan());
