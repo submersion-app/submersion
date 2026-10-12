@@ -49,6 +49,8 @@ import 'package:submersion/features/weather/presentation/providers/weather_provi
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/safety/domain/entities/incident.dart';
+import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 
 typedef Override = riverpod.Override;
 
@@ -763,6 +765,7 @@ Future<List<Override>> getBaseOverrides({
   IncomingLinkSource? incomingLinks,
   NfcTagService? nfcTagService,
   List<Document> ownerDocuments = const [],
+  List<Incident> incidents = const [],
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -818,6 +821,10 @@ Future<List<Override>> getBaseOverrides({
     documentsForOwnerProvider.overrideWith(
       (ref, owner) async => ownerDocuments,
     ),
+    // The Diver Profile hub counts the active diver's near-miss log entries
+    // (issue #3061); without this it reaches the real repository and a
+    // database that widget tests do not have.
+    incidentsProvider.overrideWith((ref) async => incidents),
     // Weather/elevation lookups must never hit the network in widget tests;
     // the default stub fails fast so altitude auto-fill resolves to null.
     weatherHttpClientProvider.overrideWithValue(

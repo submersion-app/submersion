@@ -1,4 +1,5 @@
-/// Maps Garmin FIT `file_id.garmin_product` codes to human model names.
+/// Maps FIT `file_id` identity fields to human model names: Garmin
+/// `garmin_product` codes, Suunto product codes and `product_name`.
 ///
 /// 4223=Mk3i, 4518=X50i and 3865=T2 transmitter were verified from sample
 /// files. The rest come from the `garmin_product` enum in Garmin's FIT SDK
@@ -53,8 +54,63 @@ class FitDeviceMapper {
     4776: 'Tactix 8',
   };
 
-  static String modelName(int? garminProduct) {
-    if (garminProduct == null) return 'Garmin';
-    return _models[garminProduct] ?? 'Garmin';
+  /// Suunto `file_id.product` codes. 73=Nautic S was verified from a Suunto
+  /// app export (#3045).
+  static const Map<int, String> _suuntoModels = {73: 'Nautic S'};
+
+  /// `file_id.manufacturer` codes whose `product` is a `garmin_product`:
+  /// Garmin, Dynastream, Dynastream OEM and Tacx, the codes fit_tool reads
+  /// the `garminProduct` subfield for.
+  static const Set<int> _garminFamily = {1, 13, 15, 89};
+
+  static const int _suunto = 23;
+
+  /// The computer model a FIT file's `file_id` names (#3045).
+  ///
+  /// A Garmin-family file keeps the product table, which holds verified
+  /// names, and otherwise plain "Garmin". It ignores `product_name`: the
+  /// Garmin cloud import matches a serial against the stored model, so
+  /// renaming a device it already registered as "Garmin" would split it
+  /// into a second record. A file with no manufacturer at all keeps that
+  /// same Garmin lookup.
+  ///
+  /// A Suunto file uses `product_name`, then its product code, then plain
+  /// "Suunto". Any other manufacturer has only `product_name` to go on and
+  /// is left without a model when that is absent, so the importer leaves
+  /// the dive unattributed rather than naming it a Garmin.
+  ///
+  /// [manufacturerName] is stripped from the front of `product_name`, so
+  /// "Suunto Nautic S" becomes "Nautic S" beside manufacturer "Suunto".
+  static String? modelFor({
+    required int? manufacturer,
+    String? manufacturerName,
+    int? product,
+    String? productName,
+  }) {
+    if (manufacturer == null || _garminFamily.contains(manufacturer)) {
+      return _models[product] ?? 'Garmin';
+    }
+    final named = _modelFromProductName(productName, manufacturerName);
+    if (manufacturer == _suunto) {
+      return named ?? _suuntoModels[product] ?? 'Suunto';
+    }
+    return named;
+  }
+
+  /// [productName] trimmed and without a leading [manufacturerName] word;
+  /// null when nothing is left.
+  static String? _modelFromProductName(
+    String? productName,
+    String? manufacturerName,
+  ) {
+    var name = productName?.trim() ?? '';
+    if (manufacturerName != null && manufacturerName.isNotEmpty) {
+      final prefix = RegExp(
+        '^${RegExp.escape(manufacturerName)}(\\s+|\$)',
+        caseSensitive: false,
+      );
+      name = name.replaceFirst(prefix, '').trim();
+    }
+    return name.isEmpty ? null : name;
   }
 }

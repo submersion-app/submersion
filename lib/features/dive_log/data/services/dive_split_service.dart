@@ -432,6 +432,7 @@ class DiveSplitService {
           computerId: s.computerId,
           sourceId: newSourceId,
           isPrimary: source.isPrimary ? s.isPrimary : true,
+          activatedAt: Value(s.activatedAt),
           samples: s.samples,
           now: now,
         );

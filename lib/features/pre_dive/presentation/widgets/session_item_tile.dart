@@ -62,7 +62,7 @@ class SessionItemTile extends ConsumerWidget {
   /// service log entry cannot silently rewrite what the diver saw when they
   /// made the call).
   ///
-  /// The instant matters because [formatServiceTriggerText] decides between
+  /// The instant matters because [formatServiceTriggerLines] decides between
   /// "Due {date}" and "Overdue since {date}" by comparing it against the
   /// entry's dueDate. An entry frozen while overdue on its dives or hours
   /// trigger can still carry a dueDate in the future, so reading a resolved
@@ -112,10 +112,24 @@ class SessionItemTile extends ConsumerWidget {
     ];
   }
 
+  /// Text colour for a service entry's header and trigger lines.
+  /// serviceSeverityDotColor returns surfaceContainerHighest for an OK entry,
+  /// which suits a small dot meant to stay quiet but is near-invisible as
+  /// full-line text on a light theme. Ordinary body text reads fine for
+  /// "everything's fine".
+  Color _serviceEntryColor(
+    BuildContext context,
+    ThemeData theme,
+    ServiceClockSeverity severity,
+  ) => severity == ServiceClockSeverity.ok
+      ? theme.colorScheme.onSurfaceVariant
+      : serviceSeverityDotColor(context, severity);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final (serviceEntries, serviceAsOf) = _serviceEntries(ref);
     final hasOverdue = serviceEntries.any(
       (entry) => entry.severity == ServiceClockSeverity.overdue,
@@ -235,20 +249,42 @@ class SessionItemTile extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-        for (final entry in serviceEntries)
-          Text(
-            '${entry.kindName}: '
-            '${formatServiceTriggerText(context, units: UnitFormatter(ref.watch(settingsProvider)), now: serviceAsOf, dueDate: entry.dueDate, divesSinceAnchor: entry.divesSinceAnchor, divesRemaining: entry.divesRemaining, hoursSinceAnchor: entry.hoursSinceAnchor, hoursRemaining: entry.hoursRemaining, usageByUnit: entry.usageByUnit)}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              // serviceSeverityDotColor returns surfaceContainerHighest for
-              // an OK entry -- right for a small dot meant to stay quiet,
-              // but near-invisible as full-line text on a light theme.
-              // Ordinary body text reads fine for "everything's fine".
-              color: entry.severity == ServiceClockSeverity.ok
-                  ? theme.colorScheme.onSurfaceVariant
-                  : serviceSeverityDotColor(context, entry.severity),
+        // A bullet header per entry, due/usage lines indented underneath and
+        // a gap before the next entry: a wall of same-indent lines read as
+        // one continuous block on a narrow phone screen (issue #3272),
+        // especially once a trigger line itself wraps to two lines.
+        for (final entry in serviceEntries) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              '• ${entry.kindName}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: _serviceEntryColor(context, theme, entry.severity),
+              ),
             ),
           ),
+          for (final line in formatServiceTriggerLines(
+            context,
+            units: units,
+            now: serviceAsOf,
+            dueDate: entry.dueDate,
+            divesSinceAnchor: entry.divesSinceAnchor,
+            divesRemaining: entry.divesRemaining,
+            hoursSinceAnchor: entry.hoursSinceAnchor,
+            hoursRemaining: entry.hoursRemaining,
+            usageByUnit: entry.usageByUnit,
+          ))
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 12),
+              child: Text(
+                line,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: _serviceEntryColor(context, theme, entry.severity),
+                ),
+              ),
+            ),
+        ],
       ],
       // Same block, same tone, after the clocks: a significant condition
       // finding is as informative as an overdue clock and just as much the
@@ -274,9 +310,7 @@ class SessionItemTile extends ConsumerWidget {
       // text-bearing there eats into the item title (issue #935).
       if (item.completedAt != null)
         Text(
-          UnitFormatter(
-            ref.watch(settingsProvider),
-          ).formatTime(item.completedAt),
+          units.formatTime(item.completedAt),
           style: theme.textTheme.bodySmall,
         ),
     ];

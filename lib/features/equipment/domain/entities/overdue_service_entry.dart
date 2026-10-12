@@ -66,7 +66,7 @@ class OverdueServiceEntry extends Equatable {
   /// Snapshots frozen before [severity]/[usageByUnit] existed carry neither
   /// key; they only ever held overdue clocks, so that is the correct
   /// fallback severity, and an empty usage map falls back to the legacy
-  /// dives/hours fields via [formatServiceTriggerText].
+  /// dives/hours fields via [formatServiceTriggerLines].
   factory OverdueServiceEntry.fromJson(Map<String, dynamic> json) =>
       OverdueServiceEntry(
         kindName: json['kindName'] as String,

@@ -9662,9 +9662,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
-  String get diveLog_sources_row_metric => '指标';
-
-  @override
   String get diveLog_sources_row_maxDepth => '最大深度';
 
   @override
@@ -11009,6 +11006,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_group_noCountry => '无国家';
 
   @override
+  String get diveSites_group_noBodyOfWater => '无水域';
+
+  @override
   String diveSites_group_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11028,7 +11028,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_list_groupBy_location => '国家和地区';
 
   @override
+  String get diveSites_list_groupBy_locationAndWater => '国家和水域';
+
+  @override
   String get diveSites_list_groupBy_none => '无';
+
+  @override
+  String get diveSites_list_groupBy_water => '水域';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
@@ -13917,7 +13923,7 @@ class AppLocalizationsZh extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '已用 $used 次，剩余 $remaining/$total 次潜水';
+    return '已用 $used/$total 次潜水，剩余 $remaining 次';
   }
 
   @override
@@ -14040,7 +14046,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '已用 $used 小时，剩余 $remaining/$total 小时';
+    return '已用 $used/$total 小时，剩余 $remaining 小时';
   }
 
   @override
@@ -14049,7 +14055,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '海水小时数已用 $used，剩余 $remaining / $total';
+    return '海水小时已用 $used/$total，剩余 $remaining';
   }
 
   @override
@@ -14058,7 +14064,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '冷水潜水已用 $used 次，剩余 $remaining / $total 次';
+    return '冷水潜水已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14067,7 +14073,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '高氧小时数已用 $used，剩余 $remaining / $total';
+    return '高氧小时已用 $used/$total，剩余 $remaining';
   }
 
   @override
@@ -14076,7 +14082,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '深潜已用 $used 次，剩余 $remaining / $total 次';
+    return '深潜已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14085,7 +14091,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '电池循环已用 $used 次，剩余 $remaining / $total 次';
+    return '电池循环已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14471,6 +14477,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_focalLengthHint => '例如 60 或 15-45';
 
   @override
   String get equipment_edit_webLinkHint => '例如 shop.example.com/product';
@@ -19089,12 +19098,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_tide_description => '潮汐周期图和时间';
-
-  @override
-  String get diveDetailSection_reefHealth_name => '水况';
-
-  @override
-  String get diveDetailSection_reefHealth_description => '潜水日期的卫星水况';
 
   @override
   String get diveDetailSection_surfaceGps_name => '位置';
@@ -25095,6 +25098,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_metric_bottomTime => '水底时间';
 
   @override
+  String get insights_focus_metric_runtime => '运行时间';
+
+  @override
   String get insights_focus_metric_weight => '配重';
 
   @override
@@ -25605,6 +25611,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => '潜水时间趋势';
+
+  @override
+  String get insights_progression_runtime_error => '加载运行时间趋势失败';
+
+  @override
+  String get insights_progression_runtime_subtitle => '范围内的每次潜水';
+
+  @override
+  String get insights_progression_runtime_title => '运行时间趋势';
 
   @override
   String get insights_progression_cumulative_error => '加载累计数据失败';
@@ -34059,6 +34074,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
 
   @override
+  String get equipment_edit_invalidFocalLength => '请输入 60 或 15-45';
+
+  @override
   String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';
 
   @override
@@ -34526,7 +34544,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetyHub_incidentsLink => '未遂事件日志';
 
   @override
-  String get safetyHub_incidentsLink_subtitle => '私密、非惩罚性的事件记录';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条记录',
+      one: '$count 条记录',
+      zero: '暂无',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => '记录未遂事件';
@@ -43447,6 +43474,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get maps_regionDownload_downloadButton => '下载';
+
+  @override
+  String get maps_regionDownload_presetOverview => '概览';
+
+  @override
+  String get maps_regionDownload_presetDetail => '详细';
+
+  @override
+  String get maps_regionDownload_presetFull => '完整';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      '超过 100,000 个瓦片：请缩小区域或降低最大缩放级别。';
+
+  @override
+  String get maps_regionDownload_socks5Unsupported =>
+      '区域下载无法使用 SOCKS5 代理：请在网络设置中切换到 HTTP 代理或“不使用代理”。';
 
   @override
   String get diveLog_map_title => '潜水活动';

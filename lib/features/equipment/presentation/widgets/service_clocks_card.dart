@@ -29,11 +29,11 @@ class ServiceClocksCard extends ConsumerWidget {
     this.onLogService,
   });
 
-  String _triggerText(
+  List<String> _triggerLines(
     BuildContext context,
     UnitFormatter units,
     ServiceClockStatus status,
-  ) => formatServiceTriggerText(
+  ) => formatServiceTriggerLines(
     context,
     units: units,
     now: status.now,
@@ -137,7 +137,15 @@ class ServiceClocksCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_triggerText(context, units, status)),
+                            // Due date and each usage count get their own
+                            // line: joined into one line they read as a
+                            // single crowded sentence (issue #3267).
+                            for (final line in _triggerLines(
+                              context,
+                              units,
+                              status,
+                            ))
+                              Text(line),
                             // A baseline date, a service record, the
                             // purchase date or the date the item was added
                             // can each start a clock; say which date did.

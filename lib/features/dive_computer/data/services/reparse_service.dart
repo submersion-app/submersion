@@ -718,13 +718,22 @@ class ReparseService {
     // Delete existing profiles for this (diveId, computerId)
     await _profileSeries.deleteByComputer(diveId, computerId);
 
+    // A manual edit stays the live generation of its source: the fresh parse
+    // lands demoted beneath it, the rule DiveReimportService._replaceProfile
+    // follows for a file. Inserted primary it would sit live beside the edit
+    // and, stamped newer, outrank it on the next primary swap (issue #3189).
+    final beneathEdit =
+        isPrimary &&
+        computerId != null &&
+        await _profileSeries.hasLiveEdit(diveId, sourceId: sourceId);
+
     // Re-insert from parsed samples
     if (parsed.samples.isNotEmpty) {
       await _profileSeries.insertSeries(
         diveId: diveId,
         computerId: computerId,
         sourceId: sourceId,
-        isPrimary: isPrimary,
+        isPrimary: isPrimary && !beneathEdit,
         samples: [
           for (final s in parsed.samples) _sampleFromParsed(s, timeOffset),
         ],

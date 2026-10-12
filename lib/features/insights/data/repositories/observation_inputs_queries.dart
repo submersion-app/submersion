@@ -26,7 +26,7 @@ class ObservationInputsQueries {
           .customSelect(
             'SELECT d.id AS id, d.dive_date_time AS ms, '
             'd.max_depth AS max_depth, '
-            '${effectiveRuntimeSecondsSql('d')} AS runtime_s, '
+            '${measuredRuntimeSecondsSql('d')} AS runtime_s, '
             '(SELECT SUM(w.amount_kg) FROM dive_weights w '
             'WHERE w.dive_id = d.id) AS weight_kg, '
             'd.site_id AS site_id, ds.name AS site_name, '

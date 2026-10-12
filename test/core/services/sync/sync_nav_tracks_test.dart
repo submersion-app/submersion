@@ -94,7 +94,7 @@ void main() {
     expect(row.read<String?>('diver_id'), 'me');
   });
 
-  test('a route\'s source metadata (v282) travels with it', () async {
+  test('a route\'s source metadata (v285) travels with it', () async {
     const metadata = {
       'DiveRouteQuality': 0,
       'QualityFeatures': [16, 0.1],
@@ -125,7 +125,7 @@ void main() {
       sourceMetadata: metadata,
     );
     final fetched = (await serializer.fetchRecord('navTracks', id))!;
-    // A v280-v281 peer omits the column it does not have.
+    // A peer below v285 omits the column it does not have.
     final fromOlderPeer = {...fetched, 'name': 'Renamed'}
       ..remove('sourceMetadata');
 

@@ -6,16 +6,44 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Formats the "Due {date}" / "Overdue since {date}" / "N of M dives left" /
-/// "N of M hours left" trigger line for one service clock, joining whichever
-/// triggers are configured. Shared by [ServiceClocksCard] (live equipment
-/// clocks) and the pre-dive checklist item tile (live and frozen overdue
-/// summaries), so both read the exact same wording.
+/// Formats the "Due {date}" / "Overdue since {date}" / "N of M dives, K left"
+/// / "N of M hours, K left" trigger line for one service clock, joining
+/// whichever triggers are configured with a middle dot. Used by the cylinder
+/// passport card and the status indicator, so they read the exact same
+/// wording as the equipment and checklist views.
+///
+/// [formatServiceTriggerLines] returns the same triggers unjoined, for a
+/// caller that lays them out as separate lines instead.
+String formatServiceTriggerText(
+  BuildContext context, {
+  required UnitFormatter units,
+  required DateTime now,
+  DateTime? dueDate,
+  int? divesSinceAnchor,
+  int? divesRemaining,
+  double? hoursSinceAnchor,
+  double? hoursRemaining,
+  Map<ExposureUnit, ClockUsage> usageByUnit = const {},
+}) => formatServiceTriggerLines(
+  context,
+  units: units,
+  now: now,
+  dueDate: dueDate,
+  divesSinceAnchor: divesSinceAnchor,
+  divesRemaining: divesRemaining,
+  hoursSinceAnchor: hoursSinceAnchor,
+  hoursRemaining: hoursRemaining,
+  usageByUnit: usageByUnit,
+).join(' · ');
+
+/// Same triggers as [formatServiceTriggerText], one per list entry instead
+/// of joined into a single line. [ServiceClocksCard] renders each entry as
+/// its own line so a due date and a usage count never run into each other.
 ///
 /// The legacy dives and hours arguments and [usageByUnit] say the same
 /// thing; they fold together so a caller passing either form renders one
 /// line per unit, in [ExposureUnit] order.
-String formatServiceTriggerText(
+List<String> formatServiceTriggerLines(
   BuildContext context, {
   required UnitFormatter units,
   required DateTime now,
@@ -79,7 +107,7 @@ String formatServiceTriggerText(
             ),
     );
   }
-  return parts.join(' · ');
+  return parts;
 }
 
 /// The single most urgent trigger for [status], in short form, for a
@@ -125,7 +153,7 @@ String formatServiceTriggerShort(
 
   final usage = status.usageByUnit[pick]!;
   // A spent clock is overdue, not negatively remaining; the same clamp
-  // formatServiceTriggerText applies to its own usage lines.
+  // formatServiceTriggerLines applies to its own usage lines.
   final remaining = usage.remaining < 0 ? 0.0 : usage.remaining;
   return pick.shortRemainingText(l10n, remaining);
 }

@@ -27,6 +27,18 @@ SourceNameLabels _labelsOf(BuildContext context) {
 String? _cnsText(DiveDataSource s) =>
     s.cns != null ? '${s.cns!.toStringAsFixed(0)}%' : null;
 
+/// Entry to exit as one localized range. Shared by the provenance list and
+/// the comparison grid so a span reads the same in both.
+String _timeRangeText(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  DateTime entry,
+  DateTime exit,
+) => l10n.diveLog_sources_timeRange(
+  units.formatTime(entry),
+  units.formatTime(exit),
+);
+
 /// A collapsible section showing data source provenance for a dive.
 ///
 /// Handles three scenarios:
@@ -34,8 +46,9 @@ String? _cnsText(DiveDataSource s) =>
 /// - **Single source:** Shows the source card with device info, a provenance
 ///   list and one metrics row.
 /// - **Multi-source (N):** A comparison table carries every per-source
-///   number; the cards beneath it carry identity and provenance only, so no
-///   value is printed twice (issue #3247).
+///   number and provenance detail; the cards beneath it carry identity,
+///   status and actions only, so no value is printed twice (issues #3247,
+///   #3281).
 ///
 /// Section-wide actions (Compare in 3D, Separate combined dives) live in a
 /// menu in the section header, reachable whether or not the section is
@@ -46,6 +59,12 @@ class DataSourcesSection extends StatefulWidget {
 
   /// The multi-source comparison table.
   static const comparisonGridKey = Key('data-sources-comparison-grid');
+
+  /// The widest a source column's cells (its name header and its values)
+  /// grow when three or more sources make the comparison table scroll
+  /// sideways, so one long file name cannot stretch its column across the
+  /// screen.
+  static const double maxScrollingCellWidth = 200;
 
   /// The card for one source.
   static Key cardKey(String sourceId) => Key('data-source-card-$sourceId');
@@ -159,7 +178,7 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
         _DataSourceCard(
           source: source,
           units: widget.units,
-          showBadges: isMultiSource,
+          isMultiSource: isMultiSource,
           isViewing: widget.viewedSourceId == source.id,
           onSetPrimary: widget.onSetPrimary != null
               ? () => widget.onSetPrimary!(source.id)
@@ -302,13 +321,14 @@ class _ManualEntryCard extends StatelessWidget {
 
 enum _SourceMenuAction { setPrimary, split }
 
-/// Card for a single [DiveDataSource]: identity, status chips, the per-source
-/// menu and a provenance list. On a single-source dive it also carries the
-/// metrics row that the comparison grid shows for multi-source dives.
+/// Card for a single [DiveDataSource]: identity, status chips and the
+/// per-source menu. On a single-source dive it also carries the provenance
+/// list and metrics row that the comparison grid shows for multi-source
+/// dives.
 class _DataSourceCard extends StatelessWidget {
   final DiveDataSource source;
   final UnitFormatter units;
-  final bool showBadges;
+  final bool isMultiSource;
   final bool isViewing;
   final VoidCallback? onSetPrimary;
   final VoidCallback? onSplit;
@@ -317,7 +337,7 @@ class _DataSourceCard extends StatelessWidget {
   const _DataSourceCard({
     required this.source,
     required this.units,
-    required this.showBadges,
+    required this.isMultiSource,
     required this.isViewing,
     this.onSetPrimary,
     this.onSplit,
@@ -348,12 +368,12 @@ class _DataSourceCard extends StatelessWidget {
     final hasOverflowMenu = canSetPrimary || canSplit;
 
     final chips = <Widget>[
-      if (showBadges && source.isPrimary)
+      if (isMultiSource && source.isPrimary)
         _Badge(
           label: context.l10n.diveLog_computerSource_badge_primary,
           color: colorScheme.primaryContainer,
         ),
-      if (showBadges && isViewing)
+      if (isMultiSource && isViewing)
         _Badge(
           label: context.l10n.diveLog_sources_badge_viewing,
           color: colorScheme.tertiaryContainer,
@@ -368,7 +388,7 @@ class _DataSourceCard extends StatelessWidget {
         // Gated like the Viewing chip: a stale viewed id on a dive that has
         // dropped to one source would otherwise tint a card with no chip to
         // say why.
-        color: showBadges && isViewing
+        color: isMultiSource && isViewing
             ? colorScheme.surfaceContainerHighest
             : Colors.transparent,
         child: InkWell(
@@ -448,24 +468,26 @@ class _DataSourceCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Padding(
-                  // The header trims its end inset to seat the menu button;
-                  // the body below it keeps the full 16.
-                  padding: EdgeInsetsDirectional.only(
-                    end: hasOverflowMenu ? 12 : 0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _ProvenanceList(source: source, units: units),
-                      if (!showBadges) ...[
+                // A multi-source dive shows provenance and metrics in the
+                // comparison table, so its card stops at the header.
+                if (!isMultiSource) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    // The header trims its end inset to seat the menu
+                    // button; the body below it keeps the full 16.
+                    padding: EdgeInsetsDirectional.only(
+                      end: hasOverflowMenu ? 12 : 0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _ProvenanceList(source: source, units: units),
                         const SizedBox(height: 12),
                         _MetricsRow(source: source, units: units),
                       ],
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -480,8 +502,10 @@ class _DataSourceCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 /// Serial, format, times, import date and file name as one aligned
-/// label/value list. The label column takes the width of its widest label,
-/// so it lines up in every locale; rows without a value are left out.
+/// label/value list for a single-source dive (a multi-source dive shows
+/// these in the comparison table). The label column takes the width of its
+/// widest label, so it lines up in every locale; rows without a value are
+/// left out.
 class _ProvenanceList extends StatelessWidget {
   final DiveDataSource source;
   final UnitFormatter units;
@@ -548,10 +572,7 @@ class _ProvenanceList extends StatelessWidget {
       return [
         (
           l10n.diveLog_sources_detail_times,
-          l10n.diveLog_sources_timeRange(
-            units.formatTime(entry),
-            units.formatTime(exit),
-          ),
+          _timeRangeText(l10n, units, entry, exit),
         ),
       ];
     }

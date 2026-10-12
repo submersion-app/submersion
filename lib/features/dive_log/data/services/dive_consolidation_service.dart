@@ -438,6 +438,7 @@ class DiveConsolidationService {
             computerId: s.computerId ?? secRow.computerId,
             sourceId: sourceIdMap[s.sourceId] ?? sourceIdMap[null],
             isPrimary: false,
+            activatedAt: Value(s.activatedAt),
             samples: [for (final p in s.samples) p.shiftedBy(offset)],
             now: now,
           );

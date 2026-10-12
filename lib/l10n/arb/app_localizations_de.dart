@@ -10151,9 +10151,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
-  String get diveLog_sources_row_metric => 'Messwert';
-
-  @override
   String get diveLog_sources_row_maxDepth => 'Max. Tiefe';
 
   @override
@@ -11563,6 +11560,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_group_noCountry => 'Kein Land';
 
   @override
+  String get diveSites_group_noBodyOfWater => 'Kein Gewässer';
+
+  @override
   String diveSites_group_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11583,7 +11583,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_list_groupBy_location => 'Land und Region';
 
   @override
+  String get diveSites_list_groupBy_locationAndWater => 'Land und Gewässer';
+
+  @override
   String get diveSites_list_groupBy_none => 'Keine';
+
+  @override
+  String get diveSites_list_groupBy_water => 'Gewässer';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
@@ -14557,7 +14563,7 @@ class AppLocalizationsDe extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used Tauchgänge, $remaining von $total Tauchgängen übrig';
+    return '$used von $total Tauchgängen, $remaining übrig';
   }
 
   @override
@@ -14687,7 +14693,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Stunden, $remaining von $total Stunden übrig';
+    return '$used von $total Stunden, $remaining übrig';
   }
 
   @override
@@ -14696,7 +14702,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Salzwasserstunden, $remaining von $total Salzwasserstunden übrig';
+    return '$used von $total Salzwasserstunden, $remaining übrig';
   }
 
   @override
@@ -14705,7 +14711,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Kaltwassertauchgänge, $remaining von $total Kaltwassertauchgängen übrig';
+    return '$used von $total Kaltwassertauchgängen, $remaining übrig';
   }
 
   @override
@@ -14714,7 +14720,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Stunden mit hohem O2, $remaining von $total Stunden mit hohem O2 übrig';
+    return '$used von $total Stunden mit hohem O2, $remaining übrig';
   }
 
   @override
@@ -14723,7 +14729,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used tiefe Tauchgänge, $remaining von $total tiefen Tauchgängen übrig';
+    return '$used von $total tiefen Tauchgängen, $remaining übrig';
   }
 
   @override
@@ -14732,7 +14738,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Batteriezyklen, $remaining von $total Batteriezyklen übrig';
+    return '$used von $total Batteriezyklen, $remaining übrig';
   }
 
   @override
@@ -15146,6 +15152,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'z.B. 5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_focalLengthHint => 'z. B. 60 oder 15-45';
 
   @override
   String get equipment_edit_webLinkHint => 'z.B. shop.example.com/product';
@@ -20033,13 +20042,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveDetailSection_tide_description =>
       'Gezeitenzyklusdiagramm und Zeiten';
-
-  @override
-  String get diveDetailSection_reefHealth_name => 'Wasserbedingungen';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'Satellitengestützte Wasserbedingungen am Tauchdatum';
 
   @override
   String get diveDetailSection_surfaceGps_name => 'Standort';
@@ -26523,6 +26525,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Grundzeit';
 
   @override
+  String get insights_focus_metric_runtime => 'Laufzeit';
+
+  @override
   String get insights_focus_metric_weight => 'Blei';
 
   @override
@@ -27059,6 +27064,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'Grundzeit-Trend';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Laufzeit-Trend konnte nicht geladen werden';
+
+  @override
+  String get insights_progression_runtime_subtitle =>
+      'Jeder Tauchgang im Zeitraum';
+
+  @override
+  String get insights_progression_runtime_title => 'Laufzeit-Trend';
 
   @override
   String get insights_progression_cumulative_error =>
@@ -36022,6 +36038,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_edit_invalidThickness => 'Format: 5, 5/4 oder 7/5/3';
 
   @override
+  String get equipment_edit_invalidFocalLength => 'Format: 60 oder 15-45';
+
+  @override
   String get equipment_edit_invalidWebLink =>
       'Webadresse eingeben, z.B. shop.example.com';
 
@@ -36519,8 +36538,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get safetyHub_incidentsLink => 'Beinahe-Unfall-Log';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'Private, nicht wertende Vorfallnotizen';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge',
+      one: '$count Eintrag',
+      zero: 'Noch keine',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Beinahe-Unfall erfassen';
@@ -46122,6 +46149,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get maps_regionDownload_downloadButton => 'Herunterladen';
+
+  @override
+  String get maps_regionDownload_presetOverview => 'Übersicht';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'Detail';
+
+  @override
+  String get maps_regionDownload_presetFull => 'Vollständig';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      'Über 100.000 Kacheln: Verkleinern Sie den Bereich oder senken Sie den maximalen Zoom.';
+
+  @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'Regionsdownloads können keinen SOCKS5-Proxy verwenden: Wechseln Sie in den Netzwerkeinstellungen zu einem HTTP-Proxy oder zu „Kein Proxy“.';
 
   @override
   String get diveLog_map_title => 'Tauchaktivität';

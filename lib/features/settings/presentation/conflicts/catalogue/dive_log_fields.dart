@@ -720,6 +720,11 @@ final Map<String, ConflictField> diveLogOverrides = {
     FieldKind.enumValue,
     enumLabel: eventSourceLabeler,
   ),
+  // When this generation last went live for its source (v283, issue #3189).
+  'diveProfileSeries.activatedAt': ConflictField(
+    (l) => l.settings_conflict_field_lastUsedAt,
+    FieldKind.dateTime,
+  ),
   'diveSafetyFindings.severity': ConflictField(
     (l) => l.settings_conflict_field_diveSafetyFindings_severity,
     FieldKind.enumValue,

@@ -5,6 +5,7 @@ import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -57,6 +58,23 @@ void main() {
         reason: '$m',
       );
     }
+  });
+
+  test('run time reads the Progression chart provider (issue #3059)', () async {
+    final points = [
+      TrendDataPoint(date: DateTime.utc(2025), value: 52, diveId: 'a'),
+    ];
+    final c = ProviderContainer(
+      overrides: [
+        ...await getBaseOverrides(),
+        runtimeTrendProvider.overrideWith((ref) async => points),
+      ],
+    );
+    addTearDown(c.dispose);
+    expect(
+      await c.read(focusMetricSeriesProvider(FocusMetric.runtime).future),
+      same(points),
+    );
   });
 
   test('factor rows are keyed by dive id once per load', () async {

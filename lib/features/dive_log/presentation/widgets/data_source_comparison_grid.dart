@@ -4,13 +4,16 @@ part of 'data_sources_section.dart';
 // Source Comparison Grid
 // ---------------------------------------------------------------------------
 
-/// A compact table comparing key metrics across all data sources for a dive,
-/// e.g. "Perdix says 30.1 m / Teric says 30.4 m" at a glance.
+/// A compact table comparing every data source of a dive side by side: the
+/// key metrics (e.g. "Perdix says 30.1 m / Teric says 30.4 m"), then each
+/// source's provenance (serial, format, times, import date and file), so a
+/// multi-source dive shows one table rather than a list per card (#3281).
 ///
 /// Only rendered when there are 2+ sources; rows where every source has a
 /// null value are omitted entirely. With two sources the columns flex to the
 /// card width so both fit on a phone; with more, the columns take their
-/// natural width and the table scrolls sideways.
+/// natural width, capped at [DataSourcesSection.maxScrollingCellWidth], and
+/// the table scrolls sideways.
 class _SourceComparisonGrid extends StatelessWidget {
   const _SourceComparisonGrid({required this.sources, required this.units});
   final List<DiveDataSource> sources;
@@ -60,6 +63,14 @@ class _SourceComparisonGrid extends StatelessWidget {
             ? '${s.gradientFactorLow}/${s.gradientFactorHigh}'
             : null,
       ),
+      (l10n.diveLog_sources_detail_serial, (s) => s.computerSerial),
+      (l10n.diveLog_sources_detail_format, (s) => s.sourceFormat),
+      ..._timeRows(l10n),
+      (
+        l10n.diveLog_sources_detail_imported,
+        (s) => units.formatDate(s.importedAt),
+      ),
+      (l10n.diveLog_sources_detail_file, (s) => s.sourceFileName),
     ];
     final visibleRows = [
       for (final row in rows)
@@ -67,10 +78,22 @@ class _SourceComparisonGrid extends StatelessWidget {
     ];
 
     final fitsWidth = sources.length <= 2;
+    // A sideways-scrolling column sizes to its content, so a cap keeps one
+    // long value (a file name) from stretching it; flexed columns are
+    // already bounded by the card width.
+    Widget sourceCell(Widget child) => fitsWidth
+        ? child
+        : ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: DataSourcesSection.maxScrollingCellWidth,
+            ),
+            child: child,
+          );
+
     final table = Table(
       key: DataSourcesSection.comparisonGridKey,
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      // The metric column takes its natural width in both modes; the source
+      // The label column takes its natural width in both modes; the source
       // columns share the rest when they fit, else size to their content.
       columnWidths: {
         0: const IntrinsicColumnWidth(),
@@ -83,20 +106,21 @@ class _SourceComparisonGrid extends StatelessWidget {
       children: [
         TableRow(
           children: [
-            Padding(
-              padding: _cellPadding,
-              child: Text(l10n.diveLog_sources_row_metric, style: labelStyle),
-            ),
+            // The label column holds provenance as well as metrics, so its
+            // header is left blank rather than titled "Metric".
+            const SizedBox.shrink(),
             for (final s in sources)
               Padding(
                 padding: _cellPadding,
-                child: Text(
-                  resolveSourceName(s, labels),
-                  style: s.isPrimary
-                      ? headerStyle?.copyWith(fontWeight: FontWeight.bold)
-                      : headerStyle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: sourceCell(
+                  Text(
+                    resolveSourceName(s, labels),
+                    style: s.isPrimary
+                        ? headerStyle?.copyWith(fontWeight: FontWeight.bold)
+                        : headerStyle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
           ],
@@ -111,7 +135,14 @@ class _SourceComparisonGrid extends StatelessWidget {
               for (final s in sources)
                 Padding(
                   padding: _cellPadding,
-                  child: Text(pick(s) ?? '—', style: valueStyle),
+                  child: sourceCell(
+                    Text(
+                      pick(s) ?? '—',
+                      style: valueStyle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -135,5 +166,34 @@ class _SourceComparisonGrid extends StatelessWidget {
               child: table,
             ),
     );
+  }
+
+  /// One Times row (entry to exit) when every source knows both ends;
+  /// otherwise separate Entry and Exit rows, so a source with a lone time
+  /// is not read as a span. The single-source list follows the same rule.
+  List<(String, String? Function(DiveDataSource))> _timeRows(
+    AppLocalizations l10n,
+  ) {
+    final allSpans = sources.every(
+      (s) => s.entryTime != null && s.exitTime != null,
+    );
+    if (allSpans) {
+      return [
+        (
+          l10n.diveLog_sources_detail_times,
+          (s) => _timeRangeText(l10n, units, s.entryTime!, s.exitTime!),
+        ),
+      ];
+    }
+    return [
+      (
+        l10n.diveLog_edit_row_entry,
+        (s) => s.entryTime != null ? units.formatTime(s.entryTime!) : null,
+      ),
+      (
+        l10n.diveLog_edit_row_exit,
+        (s) => s.exitTime != null ? units.formatTime(s.exitTime!) : null,
+      ),
+    ];
   }
 }

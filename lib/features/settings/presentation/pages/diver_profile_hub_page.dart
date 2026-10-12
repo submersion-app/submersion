@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/presentation/widgets/diver_switcher_s
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 
 final _log = LoggerService.forClass(DiverProfileHubPage);
 
@@ -254,6 +255,25 @@ class DiverProfileHubPage extends ConsumerWidget {
               title: context.l10n.settings_profileHub_medicalInfo,
               subtitle: _medicalInfoSubtitle(context, diver),
               route: '/settings/diver-profile/medical',
+            ),
+            const Divider(height: 1),
+            // The near-miss log is the active diver's own safety record, so
+            // it sits with the emergency and medical tiles (issue #3061).
+            Consumer(
+              builder: (context, ref, _) {
+                // .value keeps the last count through a reload, as the
+                // Documents tile does.
+                final incidents = ref.watch(incidentsProvider).value;
+                return _buildSectionTile(
+                  context,
+                  icon: Icons.flag_outlined,
+                  title: context.l10n.safetyHub_incidentsLink,
+                  subtitle: context.l10n.safetyHub_incidentsLink_count(
+                    incidents?.length ?? 0,
+                  ),
+                  route: '/incidents',
+                );
+              },
             ),
             const Divider(height: 1),
             _buildSectionTile(

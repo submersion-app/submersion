@@ -38,8 +38,8 @@ extension TrackMigrations on AppDatabase {
     ''');
   }
 
-  /// v282: nav_tracks.source_metadata (issue #3047). Idempotent; called
-  /// from the v282 onUpgrade step and from [_assertNavTracksSchema], which
+  /// v285: nav_tracks.source_metadata (issue #3047). Idempotent; called
+  /// from the v285 onUpgrade step and from [_assertNavTracksSchema], which
   /// the beforeOpen backstop runs on every open.
   Future<void> _assertNavTrackSourceMetadataColumn() async {
     if (!await _tableExists('nav_tracks')) return;

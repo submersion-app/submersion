@@ -36,6 +36,7 @@ void main() {
       'getDiveTypeDistribution': (r) => r.getDiveTypeDistribution(),
       'getDepthPerDive': (r) => r.getDepthPerDive(),
       'getBottomTimePerDive': (r) => r.getBottomTimePerDive(),
+      'getRuntimePerDive': (r) => r.getRuntimePerDive(),
       'getDivesPerYear': (r) => r.getDivesPerYear(),
       'getYearStats': (r) => r.getYearStats(2026),
       'getDivesBySuitThickness': (r) => r.getDivesBySuitThickness(),

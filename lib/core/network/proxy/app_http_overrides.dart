@@ -22,6 +22,8 @@ String proxyDirective(EffectiveProxy proxy) {
 
 /// The app's one hook into every HttpClient the Dart VM creates: flutter_map
 /// and FMTC tiles, NetworkImage, and every package:http client included.
+/// Overrides are per isolate, so a spawned isolate has none until
+/// ensureIsolateHttpOverrides installs them there.
 ///
 /// It keeps the Windows trust fix (the platform-trusted SecurityContext from
 /// [appSecurityContext], which Dart's bundled BoringSSL cannot otherwise
@@ -66,17 +68,46 @@ class AppHttpOverrides extends HttpOverrides {
   final ProxyRoutingPolicy _shouldProxy;
   final SecurityContext? Function() _fallbackContext;
 
+  /// The proxy snapshot new connections use right now.
+  EffectiveProxy get currentProxy => _currentProxy();
+
+  /// The dart:io directive for [url] under [proxy]. SOCKS5 is DIRECT here:
+  /// the connection factory opens that tunnel, not dart:io.
+  String _directiveFor(Uri url, EffectiveProxy proxy) {
+    if (proxy.kind != ProxyKind.http || !_shouldProxy(url, proxy)) {
+      return 'DIRECT';
+    }
+    return proxyDirective(proxy);
+  }
+
+  /// The proxy for a client this class did not create.
+  ///
+  /// Every client from [createHttpClient] has its own findProxy, so this is
+  /// reached by clients built before these overrides were installed, which
+  /// is how FMTC's download isolates build theirs (#3269): dart:io's default
+  /// findProxy is [HttpClient.findProxyFromEnvironment], which defers here on
+  /// every request. The app's proxy settings replace the environment's.
+  ///
+  /// Such a client has no connection factory, so it cannot open a SOCKS5
+  /// tunnel. The request is refused rather than sent around the proxy the
+  /// user chose.
+  @override
+  String findProxyFromEnvironment(Uri url, Map<String, String>? environment) {
+    final proxy = _currentProxy();
+    if (proxy.kind == ProxyKind.socks5 && _shouldProxy(url, proxy)) {
+      throw HttpException(
+        'This connection cannot use the SOCKS5 proxy, so it was not made',
+        uri: url,
+      );
+    }
+    return _directiveFor(url, proxy);
+  }
+
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     final effectiveContext = context ?? _fallbackContext();
     final client = super.createHttpClient(effectiveContext);
-    client.findProxy = (url) {
-      final proxy = _currentProxy();
-      if (proxy.kind != ProxyKind.http || !_shouldProxy(url, proxy)) {
-        return 'DIRECT';
-      }
-      return proxyDirective(proxy);
-    };
+    client.findProxy = (url) => _directiveFor(url, _currentProxy());
     client.connectionFactory = (url, proxyHost, proxyPort) =>
         _connect(url, proxyHost, proxyPort, effectiveContext, client);
     return client;

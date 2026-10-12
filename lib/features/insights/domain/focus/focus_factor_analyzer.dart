@@ -48,7 +48,9 @@ abstract final class FocusFactorAnalyzer {
   static FocusFactorId? _selfFactor(FocusMetric metric) => switch (metric) {
     FocusMetric.maxDepth => FocusFactorId.maxDepth,
     FocusMetric.avgDepth => FocusFactorId.avgDepth,
-    FocusMetric.bottomTime => FocusFactorId.duration,
+    // Duration is runtime, falling back to bottom time: either metric
+    // ranked against it would mostly compare a dive with itself.
+    FocusMetric.runtime || FocusMetric.bottomTime => FocusFactorId.duration,
     FocusMetric.weight => FocusFactorId.weight,
     FocusMetric.waterTemp => FocusFactorId.waterTemp,
     FocusMetric.visibility => FocusFactorId.visibility,

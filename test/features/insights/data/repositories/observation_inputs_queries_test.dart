@@ -32,6 +32,7 @@ void main() {
     String? siteId,
     double? maxDepth,
     int? runtime,
+    int? bottomTime,
     int? entry,
     int? exit,
     bool excluded = false,
@@ -46,6 +47,7 @@ void main() {
           diveDateTime: Value(when.millisecondsSinceEpoch),
           maxDepth: Value(maxDepth),
           runtime: Value(runtime),
+          bottomTime: Value(bottomTime),
           entryTime: Value(entry),
           exitTime: Value(exit),
           excludedFromStats: Value(excluded),
@@ -152,6 +154,13 @@ void main() {
     expect(d2.siteId, isNull);
     expect(d2.hasProfile, isFalse);
     expect(d2.buddies, isEmpty);
+  });
+
+  test('bottom time never stands in for runtime (issue #3059)', () async {
+    await diveRow('table-era', diverId: 'B', when: feb1, bottomTime: 35 * 60);
+    final dives = await ObservationInputsQueries().dives(diverId: 'B');
+    final tableEra = dives.singleWhere((d) => d.id == 'table-era');
+    expect(tableEra.runtimeSeconds, isNull);
   });
 
   test('a null diver reads every diver', () async {

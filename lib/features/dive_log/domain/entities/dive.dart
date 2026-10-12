@@ -543,14 +543,7 @@ class Dive extends Equatable {
   /// on a multi-tank dive the back gas, else the first cylinder; the only
   /// cylinder on a single-tank dive whatever its role. Null when the dive
   /// has no cylinders.
-  DiveTank? get sacReferenceTank {
-    if (tanks.isEmpty) return null;
-    if (tanks.length == 1) return tanks.first;
-    return tanks.firstWhere(
-      (t) => t.role == TankRole.backGas,
-      orElse: () => tanks.first,
-    );
-  }
+  DiveTank? get sacReferenceTank => sacReferenceTankOf(tanks);
 
   /// The volume of [sacReferenceTank], its own or its matched partner's
   /// (issue #3109): what turns a SAC in bar of that cylinder into L/min.

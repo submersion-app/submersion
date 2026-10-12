@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_grouping_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
@@ -18,11 +19,15 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
-SiteWithDiveCount _site(String id, String name, {String? country}) =>
-    SiteWithDiveCount(
-      site: DiveSite(id: id, name: name, country: country),
-      diveCount: 0,
-    );
+SiteWithDiveCount _site(
+  String id,
+  String name, {
+  String? country,
+  String? region,
+}) => SiteWithDiveCount(
+  site: DiveSite(id: id, name: name, country: country, region: region),
+  diveCount: 0,
+);
 
 final _sites = [
   _site('au1', 'Cod Hole', country: 'Australia'),
@@ -44,6 +49,7 @@ Future<ProviderContainer> _pump(
   WidgetTester tester, {
   required List<String?> opened,
   SiteGroupBy groupBy = SiteGroupBy.location,
+  List<SiteWithDiveCount>? sites,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = const Size(500, 844);
@@ -60,7 +66,7 @@ Future<ProviderContainer> _pump(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         sortedSitesWithCountsProvider.overrideWithValue(
-          AsyncValue.data(_sites),
+          AsyncValue.data(sites ?? _sites),
         ),
         siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
         siteListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
@@ -80,7 +86,7 @@ Future<void> _press(WidgetTester tester, LogicalKeyboardKey key) async {
   await tester.pumpAndSettle();
 }
 
-Finder _header(String label) => find.widgetWithText(SiteCountryHeader, label);
+Finder _header(String label) => find.widgetWithText(SiteGroupHeader, label);
 
 void main() {
   testWidgets('arrows walk countries and sites; Left and Right fold them', (
@@ -114,6 +120,46 @@ void main() {
     expect(opened, isEmpty, reason: 'an arrow must not open a page');
     await _press(tester, LogicalKeyboardKey.enter);
     expect(opened, ['eg1']);
+  });
+
+  testWidgets('Left folds a region, then climbs to its country', (
+    tester,
+  ) async {
+    final opened = <String?>[];
+    final container = await _pump(
+      tester,
+      opened: opened,
+      sites: [
+        _site('q1', 'Cod Hole', country: 'Australia', region: 'Queensland'),
+        _site('q2', 'Osprey Reef', country: 'Australia', region: 'Queensland'),
+        _site('eg1', 'Blue Hole', country: 'Egypt'),
+      ],
+    );
+
+    await tester.tap(_header('Australia'));
+    await tester.pumpAndSettle();
+    expect(_header('Queensland'), findsOneWidget);
+    expect(find.byType(SiteListTile), findsNothing);
+
+    // The region header is a stop of its own: Right opens it, Down enters.
+    await _press(tester, LogicalKeyboardKey.arrowDown);
+    await _press(tester, LogicalKeyboardKey.arrowRight);
+    expect(find.byType(SiteListTile), findsNWidgets(2));
+    await _press(tester, LogicalKeyboardKey.arrowDown);
+    expect(container.read(highlightedSiteIdProvider), 'q1');
+
+    // Left folds the region the site is in, leaving the cursor on it.
+    await _press(tester, LogicalKeyboardKey.arrowLeft);
+    expect(find.byType(SiteListTile), findsNothing);
+    expect(_header('Queensland'), findsOneWidget);
+
+    // Left on the folded region climbs to the country without folding it,
+    // and Left again folds the country.
+    await _press(tester, LogicalKeyboardKey.arrowLeft);
+    expect(_header('Queensland'), findsOneWidget);
+    await _press(tester, LogicalKeyboardKey.arrowLeft);
+    expect(_header('Queensland'), findsNothing);
+    expect(opened, isEmpty);
   });
 
   testWidgets('ungrouped, Down moves from the clicked site', (tester) async {

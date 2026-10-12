@@ -37,7 +37,7 @@ or weight it on the alignment page).
 
 ## Design
 
-### Schema (v282)
+### Schema (v285)
 
 One nullable column, `nav_tracks.source_metadata TEXT`: a JSON object of
 source-specific fields, keyed by the export's own names. Null means the
@@ -54,10 +54,11 @@ undocumented extras there without another schema rung.
 - `_assertNavTrackSourceMetadataColumn()` in
   `lib/core/database/migrations/helpers/track_migrations.dart` adds the column
   when missing (idempotent, guarded on the table existing).
-- The v282 rung in `rungs_v231_onward.dart` calls it, and
+- The v285 rung in `rungs_v231_onward.dart` calls it, and
   `_assertNavTracksSchema()` calls it too, so the existing beforeOpen
   backstop re-asserts it. `before_open.dart` is not touched.
-- `currentSchemaVersion` goes from 281 to 282. No backfill.
+- `currentSchemaVersion` goes to 285. No backfill. (Planned as 282; main
+  shipped 283 first while open PRs held 282 (#3133) and 284 (#3299).)
 
 ### Parsing
 
@@ -128,7 +129,7 @@ values from another dive would misrepresent it.
   `getForDive`; without it, the field is null.
 - Writer: against a real database, an attached Suunto route carries the
   parsed metadata.
-- Migration v282: the column is added to an existing table, and existing rows
+- Migration v285: the column is added to an existing table, and existing rows
   read null.
 - Sync apply: an incoming `navTracks` row without `sourceMetadata` keeps the
   local value; a row with it overwrites.

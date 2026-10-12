@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 /// Specification for a single animated bubble.
@@ -68,27 +70,83 @@ class OceanBackground extends StatefulWidget {
 }
 
 class _OceanBackgroundState extends State<OceanBackground>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ticker;
-  final _stopwatch = Stopwatch();
+    with WidgetsBindingObserver {
+  /// Elapsed animation time; paused whenever the effects are frozen so they
+  /// resume from where they stopped instead of jumping ahead. Built from
+  /// [clock] so tests can drive it with fake time.
+  final _stopwatch = clock.stopwatch();
+
+  /// Animation position in cycles, read by the painter.
+  final _animationValue = ValueNotifier<double>(0);
+
+  /// Drives repaints at [_frameInterval]. A vsync ticker would request a frame
+  /// on every display refresh (60 to 120 times a second) for bubbles that take
+  /// seconds to rise, keeping an idle app busy (#3044).
+  Timer? _frameTimer;
+
+  AppLifecycleState? _lifecycleState;
+  bool _tickersEnabled = true;
+  bool _disableAnimations = false;
 
   /// Seconds for one conceptual animation cycle (controls bubble rise speed).
   static const _cyclePeriod = 10.0;
 
+  /// 30 frames per second.
+  static const _frameInterval = Duration(microseconds: 33334);
+
   @override
   void initState() {
     super.initState();
-    _stopwatch.start();
-    _ticker = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
+    _lifecycleState = WidgetsBinding.instance.lifecycleState;
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tickersEnabled = TickerMode.valuesOf(context).enabled;
+    _disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    _syncAnimation();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecycleState = state;
+    _syncAnimation();
+  }
+
+  /// Animates only while the effects can be seen and are wanted: the app is
+  /// focused in the foreground (a null state means the platform has not
+  /// reported one yet), the route is not covered, and reduce motion is off.
+  bool get _shouldAnimate =>
+      (_lifecycleState == null ||
+          _lifecycleState == AppLifecycleState.resumed) &&
+      _tickersEnabled &&
+      !_disableAnimations;
+
+  void _syncAnimation() {
+    if (_shouldAnimate) {
+      if (_frameTimer != null) return;
+      _stopwatch.start();
+      _frameTimer = Timer.periodic(_frameInterval, (_) => _onFrame());
+    } else {
+      _frameTimer?.cancel();
+      _frameTimer = null;
+      _stopwatch.stop();
+    }
+  }
+
+  void _onFrame() {
+    _animationValue.value =
+        _stopwatch.elapsedMicroseconds / (_cyclePeriod * 1000000);
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _frameTimer?.cancel();
     _stopwatch.stop();
+    _animationValue.dispose();
     super.dispose();
   }
 
@@ -130,11 +188,9 @@ class _OceanBackgroundState extends State<OceanBackground>
           children: [
             Positioned.fill(
               child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _ticker,
-                  builder: (context, _) {
-                    final t =
-                        _stopwatch.elapsedMilliseconds / (_cyclePeriod * 1000);
+                child: ValueListenableBuilder<double>(
+                  valueListenable: _animationValue,
+                  builder: (context, t, _) {
                     return CustomPaint(
                       painter: OceanEffectPainter(
                         animationValue: t,

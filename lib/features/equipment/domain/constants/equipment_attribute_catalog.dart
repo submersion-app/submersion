@@ -13,7 +13,21 @@ import 'package:submersion/core/constants/enums.dart';
 ///              is the only thing allowed to turn it into a launchable Uri
 /// - color:     valueText holds `#RRGGBB`, uppercase; `normalizeEquipmentColor`
 ///              decides whether a stored value is a colour
-enum AttributeKind { text, number, thickness, choice, flag, date, url, color }
+/// - focalLength: valueText holds a prime's figure or a zoom's range as
+///              written ("60", "15-45"), valueNum the wide end in mm; rows
+///              saved before issue #3050 carry valueNum alone
+///              (`focal_length.dart`)
+enum AttributeKind {
+  text,
+  number,
+  thickness,
+  choice,
+  flag,
+  date,
+  url,
+  color,
+  focalLength,
+}
 
 /// Which block of the edit and detail forms an attribute belongs in.
 ///
@@ -632,8 +646,12 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['camera_lens', 'wet_lens', 'diopter'],
       ),
       // Quoted in millimetres in every unit system, so not a converted
-      // length.
-      EquipmentAttributeDef(key: 'focal_length_mm', kind: AttributeKind.number),
+      // length. A zoom is written as a range (issue #3050); the key keeps
+      // the name it had as a plain number so synced rows still match.
+      EquipmentAttributeDef(
+        key: 'focal_length_mm',
+        kind: AttributeKind.focalLength,
+      ),
     ],
     EquipmentType.port: [
       EquipmentAttributeDef(

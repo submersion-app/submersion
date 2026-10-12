@@ -19,6 +19,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // existing revisions untouched and only fills missing pointer rows.
     await _assertProfileSeriesHistorySchema();
     await _backfillProfileSeriesHistoryRows();
+    // v283 backstop: dive_profile_series.activated_at, after the history it
+    // backfills from.
+    await _assertProfileSeriesActivatedAt();
 
     // v252 backstop: nav_tracks.diver_id. Column only; the backfill stays
     // in the rung.

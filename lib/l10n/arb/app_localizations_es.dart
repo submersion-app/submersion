@@ -10152,9 +10152,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
-  String get diveLog_sources_row_metric => 'Medida';
-
-  @override
   String get diveLog_sources_row_maxDepth => 'Prof. máxima';
 
   @override
@@ -11562,6 +11559,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_group_noCountry => 'Sin país';
 
   @override
+  String get diveSites_group_noBodyOfWater => 'Sin masa de agua';
+
+  @override
   String diveSites_group_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11582,7 +11582,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_list_groupBy_location => 'País y región';
 
   @override
+  String get diveSites_list_groupBy_locationAndWater => 'País y masa de agua';
+
+  @override
   String get diveSites_list_groupBy_none => 'Ninguno';
+
+  @override
+  String get diveSites_list_groupBy_water => 'Masa de agua';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
@@ -14557,7 +14563,7 @@ class AppLocalizationsEs extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used inmersiones, quedan $remaining de $total';
+    return '$used de $total inmersiones, quedan $remaining';
   }
 
   @override
@@ -14688,7 +14694,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used horas, quedan $remaining de $total';
+    return '$used de $total horas, quedan $remaining';
   }
 
   @override
@@ -14697,7 +14703,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used horas en agua salada, quedan $remaining de $total';
+    return '$used de $total horas en agua salada, quedan $remaining';
   }
 
   @override
@@ -14706,7 +14712,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used inmersiones en agua fría, quedan $remaining de $total';
+    return '$used de $total inmersiones en agua fría, quedan $remaining';
   }
 
   @override
@@ -14715,7 +14721,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used horas con alto O2, quedan $remaining de $total';
+    return '$used de $total horas con alto O2, quedan $remaining';
   }
 
   @override
@@ -14724,7 +14730,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used inmersiones profundas, quedan $remaining de $total';
+    return '$used de $total inmersiones profundas, quedan $remaining';
   }
 
   @override
@@ -14733,7 +14739,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used ciclos de batería, quedan $remaining de $total';
+    return '$used de $total ciclos de batería, quedan $remaining';
   }
 
   @override
@@ -15147,6 +15153,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'p. ej., 5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_focalLengthHint => 'p. ej., 60 o 15-45';
 
   @override
   String get equipment_edit_webLinkHint => 'p. ej. shop.example.com/product';
@@ -20051,13 +20060,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveDetailSection_tide_description =>
       'Gráfico del ciclo de mareas y temporalización';
-
-  @override
-  String get diveDetailSection_reefHealth_name => 'Condiciones del agua';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'Condiciones del agua por satélite en la fecha de la inmersión';
 
   @override
   String get diveDetailSection_surfaceGps_name => 'Ubicación';
@@ -26592,6 +26594,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Tiempo de fondo';
 
   @override
+  String get insights_focus_metric_runtime => 'Tiempo total';
+
+  @override
   String get insights_focus_metric_weight => 'Lastre';
 
   @override
@@ -27134,6 +27139,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get insights_progression_bottomTime_title =>
       'Tendencia de tiempo de fondo';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Error al cargar la tendencia de tiempo total';
+
+  @override
+  String get insights_progression_runtime_subtitle =>
+      'Cada inmersión del periodo';
+
+  @override
+  String get insights_progression_runtime_title => 'Tendencia de tiempo total';
 
   @override
   String get insights_progression_cumulative_error =>
@@ -36120,6 +36136,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_edit_invalidThickness => 'Usa 5, 5/4 o 7/5/3';
 
   @override
+  String get equipment_edit_invalidFocalLength => 'Usa 60 o 15-45';
+
+  @override
   String get equipment_edit_invalidWebLink =>
       'Introduce una dirección web, p. ej. shop.example.com';
 
@@ -36615,8 +36634,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get safetyHub_incidentsLink => 'Registro de casi incidentes';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'Notas de incidentes privadas y sin ánimo punitivo';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entradas',
+      one: '$count entrada',
+      zero: 'Ninguna aún',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Registrar casi incidente';
@@ -46259,6 +46286,23 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get maps_regionDownload_downloadButton => 'Descargar';
+
+  @override
+  String get maps_regionDownload_presetOverview => 'Resumen';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'Detalle';
+
+  @override
+  String get maps_regionDownload_presetFull => 'Completo';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      'Más de 100 000 teselas: reduce el área o baja el zoom máximo.';
+
+  @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'Las descargas de regiones no pueden usar un proxy SOCKS5: cambia a un proxy HTTP o a «Sin proxy» en los ajustes de red.';
 
   @override
   String get diveLog_map_title => 'Actividad de buceo';

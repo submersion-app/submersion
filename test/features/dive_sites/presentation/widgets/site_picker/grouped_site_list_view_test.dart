@@ -39,11 +39,11 @@ void main() {
     });
   });
 
-  testWidgets('country header shows label, count and toggles', (tester) async {
+  testWidgets('group header shows label, count and toggles', (tester) async {
     var taps = 0;
     await tester.pumpWidget(
       _host(
-        SiteCountryHeader(
+        SiteGroupHeader(
           label: 'Australia',
           siteCount: 3,
           isExpanded: false,
@@ -61,7 +61,7 @@ void main() {
   testWidgets('an expanded header shows the open chevron', (tester) async {
     await tester.pumpWidget(
       _host(
-        SiteCountryHeader(
+        SiteGroupHeader(
           label: 'Fiji',
           siteCount: 1,
           isExpanded: true,
@@ -73,21 +73,37 @@ void main() {
     expect(find.byIcon(Icons.expand_more), findsOneWidget);
   });
 
-  testWidgets('the no-country group gets its localized label', (tester) async {
-    late String label;
-    await tester.pumpWidget(
-      _host(
-        Builder(
-          builder: (context) {
-            final group = groupSitesByLocation(const [
-              DiveSite(id: 'a', name: 'A'),
-            ], (s) => s).single;
-            label = countryGroupLabel(AppLocalizations.of(context), group);
-            return const SizedBox();
-          },
-        ),
-      ),
+  test('the ungrouped group gets the supplied no-group label', () {
+    final group = groupSitesByLocation(const [
+      DiveSite(id: 'a', name: 'A'),
+    ], (s) => s).single;
+    expect(siteOuterGroupLabel('No country', group), 'No country');
+  });
+
+  test('a named group ignores the no-group label', () {
+    final group = groupSitesByLocation(const [
+      DiveSite(id: 'a', name: 'A', country: 'Fiji'),
+    ], (s) => s).single;
+    expect(siteOuterGroupLabel('No country', group), 'Fiji');
+  });
+
+  test('the ungrouped subgroup gets the supplied no-group label', () {
+    final group = groupSitesByLocationAndWater(const [
+      DiveSite(id: 'a', name: 'A', country: 'Fiji'),
+    ], (s) => s).single;
+    expect(
+      siteSubGroupLabel('No body of water', group.subgroups.single),
+      'No body of water',
     );
-    expect(label, 'No country');
+  });
+
+  test('a named subgroup ignores the no-group label', () {
+    final group = groupSitesByLocationAndWater(const [
+      DiveSite(id: 'a', name: 'A', country: 'Fiji', bodyOfWater: 'Pacific'),
+    ], (s) => s).single;
+    expect(
+      siteSubGroupLabel('No body of water', group.subgroups.single),
+      'Pacific',
+    );
   });
 }

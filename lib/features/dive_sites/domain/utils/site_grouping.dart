@@ -1,20 +1,76 @@
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
-/// Key of the group holding sites with no country. A real country key is
-/// never empty, because a blank country counts as no country.
-const String noCountryGroupKey = '';
+/// How the Dive Sites list is grouped (#1080, #3270). Session-only, like the
+/// list's sort. The combined values group by the first-named field, then by
+/// the second, nested inside it.
+enum SiteGroupBy { none, location, water, locationAndWater }
+
+/// Key of the group holding sites with no value for the field grouped by. A
+/// real key is never empty, because a blank value counts as "none". Shared
+/// by every grouping axis (country, body of water): the two never compare
+/// against each other, so the same sentinel works for both.
+const String noGroupKey = '';
 
 /// The group key of [site]'s country: trimmed and case/accent folded, or
-/// [noCountryGroupKey] when the country is null or blank.
-String siteCountryKey(DiveSite site) {
-  final country = site.country?.trim() ?? '';
-  return country.isEmpty ? noCountryGroupKey : textSortKey(country);
+/// [noGroupKey] when the country is null or blank.
+String siteCountryKey(DiveSite site) => _groupKey(site.country);
+
+/// The group key of [site]'s body of water: trimmed and case/accent folded,
+/// or [noGroupKey] when it is null or blank.
+String siteBodyOfWaterKey(DiveSite site) => _groupKey(site.bodyOfWater);
+
+String _groupKey(String? raw) {
+  final value = raw?.trim() ?? '';
+  return value.isEmpty ? noGroupKey : textSortKey(value);
 }
 
-/// The sites of one region inside a [SiteCountryGroup].
-class SiteRegionGroup<T> {
-  const SiteRegionGroup({
+/// The outer-grouping key function matching [groupBy]'s outer axis: country
+/// for the two country-based modes, body of water for the water-only mode.
+/// Never called for [SiteGroupBy.none], which has no groups.
+///
+/// A switch rather than a ternary: adding a grouping mode without extending
+/// this one is then a compile error, not a silent fall-through to the wrong
+/// axis.
+String Function(DiveSite) outerKeyOfMode(SiteGroupBy groupBy) =>
+    switch (groupBy) {
+      SiteGroupBy.water => siteBodyOfWaterKey,
+      SiteGroupBy.none ||
+      SiteGroupBy.location ||
+      SiteGroupBy.locationAndWater => siteCountryKey,
+    };
+
+/// The subgroup-axis key function matching [groupBy]'s inner axis, or null
+/// for a mode with no subgrouping. Never called for [SiteGroupBy.none].
+String Function(DiveSite)? innerKeyOfMode(SiteGroupBy groupBy) =>
+    switch (groupBy) {
+      SiteGroupBy.location => (site) => _groupKey(site.region),
+      SiteGroupBy.locationAndWater => siteBodyOfWaterKey,
+      SiteGroupBy.none || SiteGroupBy.water => null,
+    };
+
+/// Whether [groupBy]'s inner axis bundles sites with no value into a titled
+/// subgroup of its own (see [_groupSites]'s `bundleUnlabeledInner`) rather
+/// than leaving them in the outer group's plain [SiteOuterGroup.ungrouped]
+/// list. Only [SiteGroupBy.locationAndWater] does, since body of water is
+/// commonly blank; region never has, since #1080 (only meaningful for a mode
+/// [innerKeyOfMode] gives a key function for).
+bool bundlesUnlabeledInner(SiteGroupBy groupBy) =>
+    groupBy == SiteGroupBy.locationAndWater;
+
+/// The expansion-state key for the subgroup [subKey] of outer group
+/// [outerKey], so the same region or body-of-water name under two different
+/// outer groups toggles independently. Shares one expansion set with outer
+/// groups (both start closed), distinguished by this prefix rather than a
+/// separate set, since a subgroup is in every other respect a header like
+/// any other.
+String subGroupExpansionKey(String outerKey, String subKey) =>
+    '$outerKey\u0000$subKey';
+
+/// The sites of one subgroup (a region or a body of water) inside a
+/// [SiteOuterGroup].
+class SiteSubGroup<T> {
+  const SiteSubGroup({
     required this.key,
     required this.label,
     required this.items,
@@ -22,114 +78,212 @@ class SiteRegionGroup<T> {
 
   final String key;
 
-  /// The region's commonest spelling among its sites.
+  /// The subgroup's commonest spelling among its sites, or empty for the
+  /// ungrouped subgroup, whose label the UI supplies ("No body of water").
   final String label;
 
   final List<T> items;
+
+  bool get isUngroupedKey => key == noGroupKey;
 }
 
-/// The sites of one country, split into those with no region and per-region
-/// subgroups (#1080).
-class SiteCountryGroup<T> {
-  const SiteCountryGroup({
+/// The sites sharing one outer-grouping value (a country or a body of
+/// water), split into those with no subgroup value and per-subgroup
+/// subgroups (#1080, #3270).
+class SiteOuterGroup<T> {
+  const SiteOuterGroup({
     required this.key,
     required this.label,
-    required this.unregioned,
-    required this.regions,
+    required this.ungrouped,
+    required this.subgroups,
   });
 
   final String key;
 
-  /// The country's commonest spelling, or empty for the no-country group,
-  /// whose label the UI supplies ("No country").
+  /// The group's commonest spelling, or empty for the ungrouped group, whose
+  /// label the UI supplies ("No country", "No body of water").
   final String label;
 
-  /// Sites with no region, listed before the region subgroups.
-  final List<T> unregioned;
+  /// Sites with no subgroup value, listed before the subgroups. Empty for a
+  /// grouping that bundles those sites into an ungrouped subgroup instead
+  /// (see [_groupSites]'s `bundleUnlabeledInner`).
+  final List<T> ungrouped;
 
-  final List<SiteRegionGroup<T>> regions;
+  final List<SiteSubGroup<T>> subgroups;
 
-  bool get isNoCountry => key == noCountryGroupKey;
+  bool get isUngroupedKey => key == noGroupKey;
 
   int get siteCount =>
-      unregioned.length +
-      regions.fold<int>(0, (sum, region) => sum + region.items.length);
+      ungrouped.length +
+      subgroups.fold<int>(0, (sum, subgroup) => sum + subgroup.items.length);
 
-  /// Every site in display order: unregioned first, then each region.
+  /// Every site in display order: ungrouped first, then each subgroup.
   Iterable<T> get allItems sync* {
-    yield* unregioned;
-    for (final region in regions) {
-      yield* region.items;
+    yield* ungrouped;
+    for (final subgroup in subgroups) {
+      yield* subgroup.items;
     }
   }
 }
 
-/// Accumulates one country or region while grouping; never escapes
-/// [groupSitesByLocation].
+/// Accumulates one outer or subgroup bucket while grouping; never escapes
+/// [_groupSites].
 class _Bucket<T> {
   final spellings = <String>[];
   final items = <T>[];
-  final regions = <String, _Bucket<T>>{};
+  final subBuckets = <String, _Bucket<T>>{};
 }
 
-/// Groups [items] by country, then region, for a site list or picker.
+/// Groups [items] by [outerRawOf], then by [innerRawOf] when given, for a
+/// site list or picker.
 ///
-/// Countries order alphabetically (accent and case folded) with the
-/// no-country group last; regions order the same way after the country's
-/// unregioned sites. Items keep their input order inside each group, so the
+/// Outer groups order alphabetically (accent and case folded) with the
+/// ungrouped group last; subgroups order the same way after the outer
+/// group's ungrouped sites (or, with [bundleUnlabeledInner], after its last
+/// named subgroup, since the ungrouped subgroup then sorts like any other
+/// ungrouped entry). Items keep their input order inside every group, so the
 /// caller's sort carries through.
-List<SiteCountryGroup<T>> groupSitesByLocation<T>(
+///
+/// [bundleUnlabeledInner] decides what an item with no inner-axis value
+/// joins: the outer group's plain [SiteOuterGroup.ungrouped] list (false,
+/// the long-standing region behaviour, #1080), or a titled "ungrouped"
+/// subgroup of its own (true, body-of-water's behaviour, #3270) -- body of
+/// water is often missing per-site, so leaving those sites unbundled would
+/// read as a wall of untitled rows before the first named subgroup.
+List<SiteOuterGroup<T>> _groupSites<T>(
   List<T> items,
   DiveSite Function(T) siteOf,
-) {
-  final countries = <String, _Bucket<T>>{};
+  String Function(DiveSite) outerRawOf,
+  String Function(DiveSite)? innerRawOf, {
+  bool bundleUnlabeledInner = false,
+}) {
+  final outers = <String, _Bucket<T>>{};
   for (final item in items) {
     final site = siteOf(item);
-    final countryKey = siteCountryKey(site);
-    final country = countries.putIfAbsent(countryKey, _Bucket<T>.new);
-    if (countryKey != noCountryGroupKey) {
-      country.spellings.add(site.country!.trim());
+    final outerRaw = outerRawOf(site).trim();
+    final outerKey = _groupKey(outerRaw);
+    final outer = outers.putIfAbsent(outerKey, _Bucket<T>.new);
+    if (outerKey != noGroupKey) {
+      outer.spellings.add(outerRaw);
     }
-    final region = site.region?.trim() ?? '';
-    if (region.isEmpty) {
-      country.items.add(item);
+
+    final innerRaw = innerRawOf == null ? '' : innerRawOf(site).trim();
+    if (innerRaw.isEmpty) {
+      if (innerRawOf != null && bundleUnlabeledInner) {
+        outer.subBuckets
+            .putIfAbsent(noGroupKey, _Bucket<T>.new)
+            .items
+            .add(item);
+      } else {
+        outer.items.add(item);
+      }
       continue;
     }
-    final regionBucket = country.regions.putIfAbsent(
-      textSortKey(region),
+    final innerBucket = outer.subBuckets.putIfAbsent(
+      textSortKey(innerRaw),
       _Bucket<T>.new,
     );
-    regionBucket.spellings.add(region);
-    regionBucket.items.add(item);
+    innerBucket.spellings.add(innerRaw);
+    innerBucket.items.add(item);
   }
 
   final collator = TextCollator();
   final groups = [
-    for (final entry in countries.entries)
-      SiteCountryGroup<T>(
+    for (final entry in outers.entries)
+      SiteOuterGroup<T>(
         key: entry.key,
-        label: entry.key == noCountryGroupKey
-            ? ''
-            : _commonest(entry.value.spellings),
-        unregioned: List.unmodifiable(entry.value.items),
-        regions: List.unmodifiable(
+        label: entry.key == noGroupKey ? '' : _commonest(entry.value.spellings),
+        ungrouped: List.unmodifiable(entry.value.items),
+        subgroups: List.unmodifiable(
           [
-            for (final region in entry.value.regions.entries)
-              SiteRegionGroup<T>(
-                key: region.key,
-                label: _commonest(region.value.spellings),
-                items: List.unmodifiable(region.value.items),
+            for (final sub in entry.value.subBuckets.entries)
+              SiteSubGroup<T>(
+                key: sub.key,
+                label: sub.key == noGroupKey
+                    ? ''
+                    : _commonest(sub.value.spellings),
+                items: List.unmodifiable(sub.value.items),
               ),
-          ]..sort((a, b) => collator.compare(a.label, b.label)),
+          ]..sort(
+            (a, b) => _compareUngroupedLast(
+              a.isUngroupedKey,
+              a.label,
+              b.isUngroupedKey,
+              b.label,
+              collator,
+            ),
+          ),
         ),
       ),
   ];
-  groups.sort((a, b) {
-    if (a.isNoCountry != b.isNoCountry) return a.isNoCountry ? 1 : -1;
-    return collator.compare(a.label, b.label);
-  });
+  groups.sort(
+    (a, b) => _compareUngroupedLast(
+      a.isUngroupedKey,
+      a.label,
+      b.isUngroupedKey,
+      b.label,
+      collator,
+    ),
+  );
   return List.unmodifiable(groups);
 }
+
+/// Orders the ungrouped group or subgroup last, everything else by label --
+/// shared by the outer-group and subgroup sorts in [_groupSites].
+int _compareUngroupedLast(
+  bool aUngrouped,
+  String aLabel,
+  bool bUngrouped,
+  String bLabel,
+  TextCollator collator,
+) {
+  if (aUngrouped != bUngrouped) return aUngrouped ? 1 : -1;
+  return collator.compare(aLabel, bLabel);
+}
+
+/// Groups [items] by country, then region (#1080).
+List<SiteOuterGroup<T>> groupSitesByLocation<T>(
+  List<T> items,
+  DiveSite Function(T) siteOf,
+) => _groupSites(
+  items,
+  siteOf,
+  (site) => site.country ?? '',
+  (site) => site.region ?? '',
+);
+
+/// Groups [items] by body of water, with no further subgrouping (#3270).
+List<SiteOuterGroup<T>> groupSitesByWater<T>(
+  List<T> items,
+  DiveSite Function(T) siteOf,
+) => _groupSites(items, siteOf, (site) => site.bodyOfWater ?? '', null);
+
+/// Groups [items] by country, then body of water (#3270). Sites with no
+/// body of water join a titled "No body of water" subgroup of their own
+/// rather than sitting unbundled above it, since that field is commonly
+/// blank.
+List<SiteOuterGroup<T>> groupSitesByLocationAndWater<T>(
+  List<T> items,
+  DiveSite Function(T) siteOf,
+) => _groupSites(
+  items,
+  siteOf,
+  (site) => site.country ?? '',
+  (site) => site.bodyOfWater ?? '',
+  bundleUnlabeledInner: true,
+);
+
+/// The grouping [groupBy] asks for, or an empty list for [SiteGroupBy.none].
+List<SiteOuterGroup<T>> groupSitesFor<T>(
+  SiteGroupBy groupBy,
+  List<T> items,
+  DiveSite Function(T) siteOf,
+) => switch (groupBy) {
+  SiteGroupBy.none => const [],
+  SiteGroupBy.location => groupSitesByLocation(items, siteOf),
+  SiteGroupBy.water => groupSitesByWater(items, siteOf),
+  SiteGroupBy.locationAndWater => groupSitesByLocationAndWater(items, siteOf),
+};
 
 /// The most frequent spelling; a tie keeps the one seen first.
 String _commonest(List<String> spellings) {
@@ -153,17 +307,30 @@ sealed class SiteListRow<T> {
   const SiteListRow();
 }
 
-final class CountryHeaderRow<T> extends SiteListRow<T> {
-  const CountryHeaderRow({required this.group, required this.isExpanded});
+final class OuterHeaderRow<T> extends SiteListRow<T> {
+  const OuterHeaderRow({required this.group, required this.isExpanded});
 
-  final SiteCountryGroup<T> group;
+  final SiteOuterGroup<T> group;
   final bool isExpanded;
 }
 
-final class RegionHeaderRow<T> extends SiteListRow<T> {
-  const RegionHeaderRow(this.label);
+final class SubHeaderRow<T> extends SiteListRow<T> {
+  const SubHeaderRow({
+    required this.outerKey,
+    required this.subgroup,
+    required this.isExpanded,
+  });
 
-  final String label;
+  /// The key of the outer group this subgroup nests inside, needed to build
+  /// its [subGroupExpansionKey].
+  final String outerKey;
+
+  final SiteSubGroup<T> subgroup;
+
+  final bool isExpanded;
+
+  /// This subgroup's key in the shared expansion set.
+  String get expansionKey => subGroupExpansionKey(outerKey, subgroup.key);
 }
 
 final class SiteRow<T> extends SiteListRow<T> {
@@ -172,40 +339,79 @@ final class SiteRow<T> extends SiteListRow<T> {
   final T item;
 }
 
-/// Flattens [groups] into rows for one lazy list. A country whose key is not
-/// in [expanded] contributes only its header.
+/// Flattens [groups] into rows for one lazy list. An outer group whose key
+/// is not in [expanded] contributes only its header; a subgroup whose
+/// [subGroupExpansionKey] is not in [expanded] likewise contributes only its
+/// own header, once its outer group is open. Both start closed.
 List<SiteListRow<T>> flattenSiteGroups<T>(
-  List<SiteCountryGroup<T>> groups, {
+  List<SiteOuterGroup<T>> groups, {
   required Set<String> expanded,
 }) => [
   for (final group in groups) ...[
-    CountryHeaderRow<T>(group: group, isExpanded: expanded.contains(group.key)),
+    OuterHeaderRow<T>(group: group, isExpanded: expanded.contains(group.key)),
     if (expanded.contains(group.key)) ...[
-      for (final item in group.unregioned) SiteRow<T>(item),
-      for (final region in group.regions) ...[
-        RegionHeaderRow<T>(region.label),
-        for (final item in region.items) SiteRow<T>(item),
+      for (final item in group.ungrouped) SiteRow<T>(item),
+      for (final subgroup in group.subgroups) ...[
+        SubHeaderRow<T>(
+          outerKey: group.key,
+          subgroup: subgroup,
+          isExpanded: expanded.contains(
+            subGroupExpansionKey(group.key, subgroup.key),
+          ),
+        ),
+        if (expanded.contains(subGroupExpansionKey(group.key, subgroup.key)))
+          for (final item in subgroup.items) SiteRow<T>(item),
       ],
     ],
   ],
 ];
 
-/// The countries a grouped list opens with: the [selected] site's country,
-/// and the only group when there is just one.
-Set<String> initialExpandedCountries<T>(
-  List<SiteCountryGroup<T>> groups, {
+/// The groups a grouped list opens with: the [selected] site's outer group
+/// (keyed by [outerKeyOf]) and, when [innerKeyOf] is given, its subgroup too
+/// -- otherwise the selected site would sit behind two collapsed headers
+/// instead of one. Also the only outer group when there is just one.
+///
+/// A blank inner value is skipped unless [bundlesInner] says the mode
+/// bundles it into a titled subgroup of its own (#3270) rather than leaving
+/// it in the outer group's plain ungrouped list -- only then does a blank
+/// value still have a subgroup header to open.
+Set<String> initialExpandedGroups<T>(
+  List<SiteOuterGroup<T>> groups, {
+  required String Function(DiveSite) outerKeyOf,
   DiveSite? selected,
-}) => {
-  if (groups.length == 1) groups.single.key,
-  if (selected != null) siteCountryKey(selected),
-};
+  String Function(DiveSite)? innerKeyOf,
+  bool bundlesInner = false,
+}) {
+  final outerKey = selected == null ? null : outerKeyOf(selected);
+  final innerKey = selected == null || innerKeyOf == null
+      ? null
+      : innerKeyOf(selected);
+  return {
+    if (groups.length == 1) groups.single.key,
+    ?outerKey,
+    if (outerKey != null &&
+        innerKey != null &&
+        (innerKey != noGroupKey || bundlesInner))
+      subGroupExpansionKey(outerKey, innerKey),
+  };
+}
 
-/// A copy of [keys] with [key] removed if present, else added: one country
+/// A copy of [keys] with [key] removed if present, else added: one group
 /// header tap.
-Set<String> toggleCountryKey(Set<String> keys, String key) =>
+Set<String> toggleGroupKey(Set<String> keys, String key) =>
     keys.contains(key) ? (keys.toSet()..remove(key)) : {...keys, key};
 
-/// Every group key, for "a search or filter is active, open everything".
-Set<String> allCountryKeys<T>(List<SiteCountryGroup<T>> groups) => {
+/// Every outer group key, for "a search or filter is active, open
+/// everything".
+Set<String> allGroupKeys<T>(List<SiteOuterGroup<T>> groups) => {
   for (final group in groups) group.key,
+};
+
+/// Every subgroup's expansion key, scoped to its outer group, for "a search
+/// or filter is active, open everything" and for the site picker, which
+/// never lets a region collapse at all.
+Set<String> allSubGroupKeys<T>(List<SiteOuterGroup<T>> groups) => {
+  for (final group in groups)
+    for (final subgroup in group.subgroups)
+      subGroupExpansionKey(group.key, subgroup.key),
 };

@@ -519,7 +519,8 @@ void main() {
         );
 
         expect(find.text('Service overdue'), findsOneWidget);
-        expect(find.textContaining('Hydrostatic test: Due '), findsOneWidget);
+        expect(find.textContaining('Hydrostatic test'), findsOneWidget);
+        expect(find.textContaining('Due '), findsOneWidget);
         expect(find.textContaining('Overdue since'), findsNothing);
       },
     );
@@ -761,6 +762,38 @@ void main() {
         expect(find.textContaining('Scrubber'), findsOneWidget);
       },
     );
+
+    testWidgets('each clock gets a bulleted header, not run into the next one '
+        '(issue #3272)', (tester) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          state: PreDiveItemState.done,
+          completedAt: now,
+          equipmentId: 'g1',
+          overdueServices: const [
+            OverdueServiceEntry(
+              kindName: 'Hydrostatic test',
+              severity: ServiceClockSeverity.overdue,
+              divesSinceAnchor: 48,
+              divesRemaining: 52,
+            ),
+            OverdueServiceEntry(
+              kindName: 'O2 sensor',
+              severity: ServiceClockSeverity.ok,
+            ),
+          ],
+        ),
+      );
+
+      // The clock's name is its own bulleted line, separate from the
+      // trigger line(s) underneath it. Joining it into one string with the
+      // usage count is what read as a single crowded block.
+      expect(find.text('• Hydrostatic test'), findsOneWidget);
+      expect(find.text('• O2 sensor'), findsOneWidget);
+      expect(find.text('48 of 100 dives, 52 left'), findsOneWidget);
+    });
   });
 
   group('tap target', () {

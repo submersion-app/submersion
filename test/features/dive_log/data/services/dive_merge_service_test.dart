@@ -414,6 +414,40 @@ void main() {
       );
     });
 
+    test('merged copies keep their activation times (#3189)', () async {
+      await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9));
+      await profileSeries.insertSeries(
+        diveId: 'a',
+        computerId: 'sec-comp',
+        isPrimary: false,
+        activatedAt: const Value(5),
+        samples: const [ProfileSample(timestamp: 30, depth: 5)],
+        now: 0,
+      );
+      await profileSeries.insertSeries(
+        diveId: 'a',
+        computerId: 'third-comp',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 30, depth: 6)],
+        now: 0,
+      );
+      await seedDive('b', entry: DateTime.utc(2026, 7, 1, 10));
+
+      final outcome = await service.apply(['a', 'b']);
+
+      final merged = await profileSeries.getSeriesForDive(
+        outcome.mergedDive.id,
+      );
+      expect(
+        merged.singleWhere((s) => s.computerId == 'sec-comp').activatedAt,
+        5,
+      );
+      expect(
+        merged.singleWhere((s) => s.computerId == 'third-comp').activatedAt,
+        isNull,
+      );
+    });
+
     test('gap samples match the source profile sample rate', () async {
       // 10s-cadence sources -> the surface gap is filled at 10s too, so the
       // synthesized samples are indistinguishable from the computer's own

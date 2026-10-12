@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v282: nav_tracks.source_metadata (issue #3047), a source's undocumented
-/// fields kept as-is. Column only, no backfill: existing routes read null.
+/// v285: nav_tracks.source_metadata (issue #3047), a source's undocumented
+/// fields kept as-is. Renumbered from 282, which PR #3133 holds; 284 is held
+/// by PR #3299, so v283 is the rung directly below this one. Column only, no backfill: existing routes read null.
 /// The sync floor does not move: an older peer omits the column, and both
 /// apply paths keep a column a payload omits.
 void main() {
@@ -37,17 +38,17 @@ void main() {
     return row.read<String?>('source_metadata');
   }
 
-  test('v282 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(282));
-    expect(AppDatabase.migrationVersions, contains(282));
+  test('v285 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(285));
+    expect(AppDatabase.migrationVersions, contains(285));
     expect(
-      AppDatabase.migrationStepCount(281),
-      AppDatabase.migrationStepCount(282) + 1,
+      AppDatabase.migrationStepCount(283),
+      AppDatabase.migrationStepCount(285) + 1,
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(282));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(285));
   });
 
   test('a fresh database has the column', () async {
@@ -57,16 +58,16 @@ void main() {
   });
 
   test(
-    'upgrading from v281 adds the column; existing routes read null',
+    'upgrading from v283 adds the column; existing routes read null',
     () async {
-      final db = AppDatabase(strandedAt(281));
+      final db = AppDatabase(strandedAt(283));
       addTearDown(db.close);
       expect(await columns(db), contains('source_metadata'));
       expect(await metadataOf(db, 'r1'), isNull);
     },
   );
 
-  test('a database already at v282 without the column regains it', () async {
+  test('a database already at v285 without the column regains it', () async {
     final db = AppDatabase(strandedAt(AppDatabase.currentSchemaVersion));
     addTearDown(db.close);
     expect(await columns(db), contains('source_metadata'));

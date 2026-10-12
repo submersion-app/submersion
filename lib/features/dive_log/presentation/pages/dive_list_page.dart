@@ -15,6 +15,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_badge.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
@@ -869,18 +870,9 @@ class DiveListTile extends ConsumerWidget {
                               if ((summary?.safetyFindingCount ?? 0) > 0 &&
                                   ref.watch(safetyReviewEnabledProvider)) ...[
                                 const SizedBox(width: 6),
-                                Tooltip(
-                                  message: context.l10n
-                                      .safetyReview_findingCount(
-                                        summary!.safetyFindingCount,
-                                      ),
-                                  child: Icon(
-                                    Icons.circle,
-                                    size: 8,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
+                                SafetyFindingBadge(
+                                  count: summary!.safetyFindingCount,
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                               ],
                               if (rating != null) ...[

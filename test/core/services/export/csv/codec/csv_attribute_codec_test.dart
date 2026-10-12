@@ -240,4 +240,69 @@ void main() {
       });
     }
   });
+
+  group('focal length (#3050)', () {
+    EquipmentAttribute focal({String? text, double? num}) =>
+        EquipmentAttribute.curated(
+          equipmentId: 'e',
+          key: 'focal_length_mm',
+          valueText: text,
+          valueNum: num,
+        );
+
+    test('a zoom writes and reads back its range', () {
+      final pair = formatAttributePair(
+        focal(text: '15-45', num: 15),
+        CsvExportUnits.metric,
+      );
+      expect(pair, 'focal_length_mm=15-45');
+      expect(parseAttributePair(pair), (
+        key: 'focal_length_mm',
+        isCustom: false,
+        valueText: '15-45',
+        valueNum: 15.0,
+      ));
+    });
+
+    test('My units writes the range unchanged under the same key', () {
+      // Quoted in mm in every unit system, so nothing converts or renames.
+      expect(
+        formatAttributePair(
+          focal(text: '15-45', num: 15),
+          CsvExportUnits.fromSettings(_imperial),
+        ),
+        'focal_length_mm=15-45',
+      );
+    });
+
+    test('a lens saved as a single number reads back unchanged', () {
+      // Files written before #3050 carry the number alone, as "60.0".
+      final pair = formatAttributePair(focal(num: 60), CsvExportUnits.metric);
+      expect(pair, 'focal_length_mm=60.0');
+      expect(parseAttributePair(pair), (
+        key: 'focal_length_mm',
+        isCustom: false,
+        valueText: null,
+        valueNum: 60.0,
+      ));
+    });
+
+    test('a non-finite number is not read as a focal length', () {
+      expect(parseAttributePair('focal_length_mm=Infinity'), (
+        key: 'focal_length_mm',
+        isCustom: false,
+        valueText: 'Infinity',
+        valueNum: null,
+      ));
+    });
+
+    test('a value that is not a focal length keeps its text', () {
+      expect(parseAttributePair('focal_length_mm=wide'), (
+        key: 'focal_length_mm',
+        isCustom: false,
+        valueText: 'wide',
+        valueNum: null,
+      ));
+    });
+  });
 }

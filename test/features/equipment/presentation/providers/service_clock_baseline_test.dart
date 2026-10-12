@@ -119,7 +119,8 @@ void main() {
   test('a baseline set after a service was logged counts from the '
       'baseline', () async {
     // The reported bug: a service logged yesterday silently outranked a
-    // baseline set to a year ago, so the clock read 100 of 100 dives left.
+    // baseline set to a year ago, so the clock read 100 of 100 dives, 0
+    // left.
     final reg = await regulatorWithDives();
     await ServiceRecordRepository().createRecord(
       regService(reg.id, now.subtract(const Duration(days: 1))),

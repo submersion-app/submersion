@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The location a site row shows under its name inside a country group: the
@@ -13,29 +12,39 @@ String? siteGroupedSubtitle(DiveSite site) {
   return parts.isEmpty ? null : parts.join(' · ');
 }
 
-/// A country group's header text, naming the no-country group.
-String countryGroupLabel(
-  AppLocalizations l10n,
-  SiteCountryGroup<Object?> group,
-) => group.isNoCountry ? l10n.diveSites_group_noCountry : group.label;
+/// An outer group's header text, naming the ungrouped group with
+/// [noGroupLabel] (e.g. "No country", "No body of water").
+String siteOuterGroupLabel(
+  String noGroupLabel,
+  SiteOuterGroup<Object?> group,
+) => group.isUngroupedKey ? noGroupLabel : group.label;
 
-/// Tappable header that opens or closes one country group.
+/// A subgroup's header text, naming its ungrouped subgroup with
+/// [noGroupLabel] (e.g. a country's sites with no body of water, #3270).
+String siteSubGroupLabel(String noGroupLabel, SiteSubGroup<Object?> subgroup) =>
+    subgroup.isUngroupedKey ? noGroupLabel : subgroup.label;
+
+/// Tappable header that opens or closes one outer group.
 ///
 /// A plain row rather than a ListTile: the site count is text, and text in
 /// ListTile.trailing squeezes the title (#2717).
-class SiteCountryHeader extends StatelessWidget {
-  const SiteCountryHeader({
+class SiteGroupHeader extends StatelessWidget {
+  const SiteGroupHeader({
     super.key,
     required this.label,
     required this.siteCount,
     required this.isExpanded,
     required this.onTap,
+    this.indent = 16,
   });
 
   final String label;
   final int siteCount;
   final bool isExpanded;
   final VoidCallback onTap;
+
+  /// Left padding, deeper for a subgroup header than its outer group's.
+  final double indent;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +55,7 @@ class SiteCountryHeader extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: EdgeInsetsDirectional.fromSTEB(indent, 12, 16, 12),
           child: Row(
             children: [
               Icon(
