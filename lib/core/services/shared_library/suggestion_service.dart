@@ -96,10 +96,11 @@ class SuggestionService {
   Future<void> accept(String suggestionId, {required String diverId}) async {
     final s = await _store.getSuggestion(suggestionId);
     if (s == null) return;
+    await _requireOwner(s.libraryId, diverId);
     final site = await SiteRepository().getSiteById(s.siteId);
     if (site == null || site.sharedLibraryId != s.libraryId) {
       _log.info('Suggestion $suggestionId names a site that is gone');
-      await dismiss(suggestionId);
+      await dismiss(suggestionId, diverId: diverId);
       return;
     }
     await _bridge.apply(
@@ -120,11 +121,27 @@ class SuggestionService {
   }
 
   /// Owner: drops the suggestion here and in the folder.
-  Future<void> dismiss(String suggestionId) async {
+  Future<void> dismiss(String suggestionId, {required String diverId}) async {
     final s = await _store.getSuggestion(suggestionId);
     if (s == null) return;
+    await _requireOwner(s.libraryId, diverId);
     await _deleteRemote(s);
     await _store.deleteSuggestion(suggestionId);
+  }
+
+  /// The service enforces the owner role itself; the UI only hides the
+  /// inbox from everyone else.
+  Future<void> _requireOwner(String libraryId, String diverId) async {
+    final membership = await _store.membership(
+      diverId: diverId,
+      libraryId: libraryId,
+    );
+    final library = await _store.getLibrary(libraryId);
+    if (membership == null ||
+        library == null ||
+        library.roles.roleOf(membership.memberId) != SharedLibraryRole.owner) {
+      throw StateError('only an owner reviews suggestions');
+    }
   }
 
   /// For the review sheet: field name to (stored value, proposed value).

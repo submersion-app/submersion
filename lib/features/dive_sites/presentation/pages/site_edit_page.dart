@@ -1282,6 +1282,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return canDestroySharedItemOnceKnown(
       ref.watch(validatedCurrentDiverIdProvider),
       ownerId: _originalSite?.diverId,
+      // A club library site is deleted through its role-gated action on
+      // the detail page, never through the personal delete (issue #2567).
+      isLibrarySite: _originalSite?.isLibrarySite ?? false,
     );
   }
 

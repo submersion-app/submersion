@@ -140,5 +140,10 @@ void main() {
   ) async {
     await pump(tester, suggest: false);
     expect(find.byType(SwitchListTile), findsNothing);
+    expect(
+      find.byTooltip('Delete Site'),
+      findsNothing,
+      reason: 'a library site is deleted through its role-gated action',
+    );
   });
 }

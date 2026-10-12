@@ -242,15 +242,9 @@ class SharedLibraryMembershipService {
       diverId: diverId,
       libraryId: libraryId,
     );
-    final rows = await (_db.select(
-      _db.diveSites,
-    )..where((t) => t.sharedLibraryId.equals(libraryId))).get();
-    for (final row in rows) {
-      await _detacher.detachOrRemove(siteId: row.id, ownerDiverId: diverId);
-    }
+    final library = await _store.getLibrary(libraryId);
     if (membership != null) {
       await _store.deleteMembership(membership.id);
-      final library = await _store.getLibrary(libraryId);
       if (library != null) {
         try {
           final t = await transportForLibrary(library);
@@ -260,9 +254,16 @@ class SharedLibraryMembershipService {
         }
       }
     }
-    if ((await _store.membershipsForLibrary(libraryId)).isEmpty) {
-      await _store.deleteLibrary(libraryId);
+    // Another profile on this device may still belong to the library; its
+    // sites stay until the last local membership goes.
+    if ((await _store.membershipsForLibrary(libraryId)).isNotEmpty) return;
+    final rows = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.sharedLibraryId.equals(libraryId))).get();
+    for (final row in rows) {
+      await _detacher.detachOrRemove(siteId: row.id, ownerDiverId: diverId);
     }
+    await _store.deleteLibrary(libraryId);
   }
 
   /// Renames the profile's member card and membership.
@@ -300,15 +301,20 @@ class SharedLibraryMembershipService {
     ]);
   }
 
-  /// Owners only: rewrites roles.json. The last owner cannot be demoted.
+  /// Owners only: rewrites roles.json. [actingMemberId] must hold the owner
+  /// role in the cached roles, and the last owner cannot be demoted.
   Future<void> setRole({
     required String libraryId,
+    required String actingMemberId,
     required String memberId,
     required SharedLibraryRole role,
   }) async {
     final library = await _store.getLibrary(libraryId);
     if (library == null) throw StateError('library $libraryId not connected');
     final roles = library.roles;
+    if (roles.roleOf(actingMemberId) != SharedLibraryRole.owner) {
+      throw StateError('only an owner changes roles');
+    }
     if (role != SharedLibraryRole.owner &&
         roles.owners.contains(memberId) &&
         roles.owners.length == 1) {

@@ -62,6 +62,7 @@ void main() {
       final kept = (await SiteRepository().getSiteById(newId!))!;
       expect(kept.sharedLibraryId, isNull);
       expect(kept.diverId, 'd1');
+      expect(kept.isShared, isTrue, reason: 'visible to every local profile');
       expect(kept.name, 'Club');
       expect(kept.hazards, 'h');
       final dive = (await DiveRepository().getDiveById('dv'))!;

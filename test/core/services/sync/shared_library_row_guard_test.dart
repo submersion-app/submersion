@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -101,6 +106,61 @@ void main() {
     );
     await _sync(cloud);
     expect((await SiteRepository().getSiteById('x'))?.sharedLibraryId, 'L');
+    await tearDownTestDatabase();
+  });
+
+  test("a peer's tombstone for a child of a library site is ignored", () async {
+    final cloud = FakeCloudStorageProvider();
+    // Device B lives in a file so it can be reopened as the same device
+    // after another device published the tombstone.
+    final dir = Directory.systemTemp.createTempSync('row_guard_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final bFile = File(p.join(dir.path, 'b.sqlite'));
+    Future<void> openB() async {
+      DatabaseService.instance.setTestDatabase(
+        AppDatabase(NativeDatabase(bFile)),
+      );
+    }
+
+    // Device A: a personal site with a type, published.
+    await setUpTestDatabase();
+    await _addDiver();
+    await SiteRepository().createSite(const DiveSite(id: 'x', name: 'Mine'));
+    final types = await SiteTypeRepository().getAllSiteTypes(diverId: 'd1');
+    await SiteClassificationRepository().replaceTypes('x', [types.first.id]);
+    await _sync(cloud);
+    await tearDownTestDatabase();
+
+    // Device B: receives both rows, then the site joins a library.
+    await openB();
+    await _sync(cloud);
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE dive_sites SET shared_library_id = 'L' WHERE id = 'x'",
+    );
+    await _sync(cloud);
+    await tearDownTestDatabase();
+
+    // Device C: holds the personal copy, drops the type, which tombstones
+    // the junction row.
+    await setUpTestDatabase();
+    await _sync(cloud);
+    await SiteClassificationRepository().replaceTypes('x', []);
+    final logged = await DatabaseService.instance.database
+        .customSelect(
+          "SELECT 1 FROM deletion_log WHERE entity_type = 'siteSiteTypes'",
+        )
+        .get();
+    expect(logged, isNotEmpty, reason: 'the test needs a child tombstone');
+    await _sync(cloud);
+    await tearDownTestDatabase();
+
+    // Device B again: the library site keeps its type.
+    await openB();
+    await _sync(cloud);
+    final links = await DatabaseService.instance.database
+        .customSelect("SELECT 1 FROM site_site_types WHERE site_id = 'x'")
+        .get();
+    expect(links, hasLength(1));
     await tearDownTestDatabase();
   });
 

@@ -84,6 +84,13 @@ void main() {
       (await SiteRepository().getAllSites(diverId: 'd1')).map((s) => s.id),
       contains('p'),
     );
+    final tombstones = await DatabaseService.instance.database
+        .customSelect(
+          "SELECT 1 FROM deletion_log WHERE entity_type = 'diveSites' "
+          "AND record_id = 'p'",
+        )
+        .get();
+    expect(tombstones, hasLength(1), reason: 'peers drop the personal copy');
   });
 
   test('push refuses a diver without a membership', () async {

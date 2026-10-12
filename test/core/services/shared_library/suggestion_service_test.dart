@@ -160,11 +160,18 @@ void main() {
     'dismiss drops the file and the row; a vanished file is tolerated',
     () async {
       await SharedLibraryStore().putSuggestion(_incoming('g2', {'notes': 'x'}));
-      await service.dismiss('g2');
+      await service.dismiss('g2', diverId: 'owner');
       expect(await SharedLibraryStore().suggestions('L'), isEmpty);
       expect((await SiteRepository().getSiteById('s'))!.notes, '');
     },
   );
+
+  test('a reader may neither accept nor dismiss', () async {
+    await SharedLibraryStore().putSuggestion(_incoming('g4', {'notes': 'x'}));
+    expect(() => service.accept('g4', diverId: 'reader'), throwsStateError);
+    expect(() => service.dismiss('g4', diverId: 'reader'), throwsStateError);
+    expect(await SharedLibraryStore().suggestions('L'), hasLength(1));
+  });
 
   test('accept of a suggestion whose site is gone only dismisses', () async {
     await SharedLibraryStore().putSuggestion(_incoming('g3', {'notes': 'x'}));

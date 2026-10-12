@@ -2444,6 +2444,17 @@ class SyncService {
           if (entityType == 'diveSites' && librarySites.contains(recordId)) {
             continue;
           }
+          // A child row of a library site (its types, tags, species, hides
+          // or features) is just as much outside the personal sync.
+          if (librarySites.isNotEmpty &&
+              SyncDataSerializer.librarySiteChildEntities.contains(
+                entityType,
+              )) {
+            final local = await _serializer.fetchRecord(entityType, recordId);
+            if (local != null && librarySites.contains(local['siteId'])) {
+              continue;
+            }
+          }
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }

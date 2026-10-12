@@ -43,10 +43,12 @@ class SiteDetacher {
     final newId = _uuid.v4();
     await _db.transaction(() async {
       await _sites.createSite(
+        // Shared with every local profile, as the club site was visible to
+        // all of them; the owner may unshare it later.
         site.copyWith(
           id: newId,
           diverId: ownerDiverId,
-          isShared: false,
+          isShared: true,
           clearSharedLibraryId: true,
         ),
       );

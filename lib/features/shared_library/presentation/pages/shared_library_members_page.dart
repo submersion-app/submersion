@@ -69,10 +69,17 @@ class SharedLibraryMembersPage extends ConsumerWidget {
     SharedLibraryRole role,
   ) async {
     final l10n = context.l10n;
+    final me = await ref.read(currentMembershipProvider(libraryId).future);
+    if (me == null) return;
     try {
       await ref
           .read(sharedLibraryMembershipServiceProvider)
-          .setRole(libraryId: libraryId, memberId: memberId, role: role);
+          .setRole(
+            libraryId: libraryId,
+            actingMemberId: me.memberId,
+            memberId: memberId,
+            role: role,
+          );
     } on StateError {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

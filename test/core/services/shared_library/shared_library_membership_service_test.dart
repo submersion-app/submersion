@@ -127,8 +127,19 @@ void main() {
     ))!;
     await service.setRole(
       libraryId: lib.id,
+      actingMemberId: me.memberId,
       memberId: 'other',
       role: SharedLibraryRole.editor,
+    );
+    expect(
+      () => service.setRole(
+        libraryId: lib.id,
+        actingMemberId: 'other',
+        memberId: me.memberId,
+        role: SharedLibraryRole.reader,
+      ),
+      throwsStateError,
+      reason: 'an editor may not change roles',
     );
     final roles = await SharedLibraryTransport(
       cloud,
@@ -142,6 +153,7 @@ void main() {
     expect(
       () => service.setRole(
         libraryId: lib.id,
+        actingMemberId: me.memberId,
         memberId: me.memberId,
         role: SharedLibraryRole.editor,
       ),
@@ -217,11 +229,19 @@ void main() {
       diverId: 'd2',
       displayName: 'Bob',
     );
+    await SiteRepository().createSite(
+      DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: lib.id),
+    );
     await service.leave(libraryId: lib.id, diverId: 'd1');
     expect(await SharedLibraryStore().getLibrary(lib.id), isNotNull);
     expect(
       await SharedLibraryStore().membershipsForLibrary(lib.id),
       hasLength(1),
+    );
+    expect(
+      (await SiteRepository().getSiteById('lib'))?.sharedLibraryId,
+      lib.id,
+      reason: 'the remaining profile keeps the club sites',
     );
   });
 }

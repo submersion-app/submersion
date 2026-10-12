@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
@@ -13,12 +14,17 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 /// a personal site in place, delete stamps the tombstone and detaches the
 /// local row, undelete wins the site back with a newer clock.
 class SharedSitePublisher {
-  SharedSitePublisher({SharedLibraryStore? store, SiteDetacher? detacher})
-    : _store = store ?? SharedLibraryStore(),
-      _detacher = detacher ?? SiteDetacher();
+  SharedSitePublisher({
+    SharedLibraryStore? store,
+    SiteDetacher? detacher,
+    SyncRepository? syncRepository,
+  }) : _store = store ?? SharedLibraryStore(),
+       _detacher = detacher ?? SiteDetacher(),
+       _sync = syncRepository ?? SyncRepository();
 
   final SharedLibraryStore _store;
   final SiteDetacher _detacher;
+  final SyncRepository _sync;
   AppDatabase get _db => DatabaseService.instance.database;
 
   Future<String> _memberId(String diverId, String libraryId) async {
@@ -74,6 +80,10 @@ class SharedSitePublisher {
           lastEditedAtMs: now,
         ),
       );
+      // The personal library drops its copy of the row: peers that already
+      // hold the library row ignore the tombstone, peers that still carry
+      // the old personal copy delete it.
+      await _sync.logDeletions(entityType: 'diveSites', recordIds: [siteId]);
     });
     SyncEventBus.notifyLocalChange();
   }

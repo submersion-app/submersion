@@ -106,9 +106,13 @@ class SuggestionReviewSheet extends ConsumerWidget {
               children: [
                 TextButton(
                   onPressed: () async {
+                    final diverId = await ref.read(
+                      validatedCurrentDiverIdProvider.future,
+                    );
+                    if (diverId == null) return;
                     await ref
                         .read(suggestionServiceProvider)
-                        .dismiss(suggestion.id);
+                        .dismiss(suggestion.id, diverId: diverId);
                     ref.invalidate(
                       incomingSuggestionsProvider(suggestion.libraryId),
                     );
