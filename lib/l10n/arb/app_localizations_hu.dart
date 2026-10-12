@@ -22877,6 +22877,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_species_category => 'Kategória';
 
   @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Split at the configured rate';
+
+  @override
   String get settings_conflict_field_startDateTime => 'Tervezett kezdés';
 
   @override

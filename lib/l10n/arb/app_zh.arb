@@ -15290,5 +15290,20 @@
   "builtIns_showColumnLabel": "显示",
   "builtIns_showInPickers": "在选择列表中显示",
   "preDive_start_allTemplatesHidden": "所有检查清单都已隐藏。可在 {path} 中重新显示。",
-  "settings_conflict_field_hiddenBuiltInIds": "已隐藏的内置项目"
+  "settings_conflict_field_hiddenBuiltInIds": "已隐藏的内置项目",
+  "divePlanner_field_diluentGas": "Diluent",
+  "divePlanner_field_diluentGasHint": "Unticked cylinders are bailout",
+  "divePlanner_gasOptions_gasSwitchStopSeconds": "Gas switch stop",
+  "divePlanner_label_bailoutGases": "Bailout",
+  "divePlanner_label_loopGases": "Loop",
+  "divePlanner_label_noBailout": "No bailout cylinder yet",
+  "divePlanner_segmentEditor_splitAtRate": "Use configured rate",
+  "divePlanner_segmentEditor_splitAtRateHint": "Travel at the configured rate, the rest of the duration as hold time",
+  "plannerCanvas_bailout_schedule": "Schedule from the worst case",
+  "plannerCanvas_chartMode_bailout": "Bailout",
+  "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_scrub_tts": "TTS {minutes}′",
+  "plannerCanvas_table_end": "END",
+  "plannerCanvas_table_ppO2": "PO2",
+  "settings_conflict_field_splitAtConfiguredRate": "Split at the configured rate"
 }

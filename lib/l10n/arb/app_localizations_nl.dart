@@ -22827,6 +22827,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_species_category => 'Categorie';
 
   @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Split at the configured rate';
+
+  @override
   String get settings_conflict_field_startDateTime => 'Geplande start';
 
   @override

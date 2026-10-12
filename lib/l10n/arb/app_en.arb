@@ -13564,6 +13564,7 @@
   "settings_conflict_field_sourceValueNumber": "Reference reading",
   "settings_conflict_field_spec": "Connection map",
   "settings_conflict_field_species_category": "Category",
+  "settings_conflict_field_splitAtConfiguredRate": "Split at the configured rate",
   "settings_conflict_field_startDateTime": "Planned start",
   "settings_conflict_field_startDepth": "Start depth",
   "settings_conflict_field_startTime": "Start time",

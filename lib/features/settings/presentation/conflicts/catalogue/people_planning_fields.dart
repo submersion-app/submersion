@@ -405,6 +405,10 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_sourceValueNumber,
     FieldKind.number,
   ),
+  'splitAtConfiguredRate': ConflictField(
+    (l) => l.settings_conflict_field_splitAtConfiguredRate,
+    FieldKind.boolean,
+  ),
   'startDateTime': ConflictField(
     (l) => l.settings_conflict_field_startDateTime,
     FieldKind.epochSeconds,

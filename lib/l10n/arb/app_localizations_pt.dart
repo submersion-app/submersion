@@ -22974,6 +22974,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_species_category => 'Categoria';
 
   @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Split at the configured rate';
+
+  @override
   String get settings_conflict_field_startDateTime => 'Início previsto';
 
   @override

@@ -36900,6 +36900,12 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get settings_conflict_field_species_category;
 
+  /// No description provided for @settings_conflict_field_splitAtConfiguredRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Split at the configured rate'**
+  String get settings_conflict_field_splitAtConfiguredRate;
+
   /// No description provided for @settings_conflict_field_startDateTime.
   ///
   /// In en, this message translates to:

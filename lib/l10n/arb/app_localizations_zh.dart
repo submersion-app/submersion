@@ -21725,6 +21725,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_species_category => '类别';
 
   @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Split at the configured rate';
+
+  @override
   String get settings_conflict_field_startDateTime => '计划开始时间';
 
   @override

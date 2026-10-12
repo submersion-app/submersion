@@ -23163,6 +23163,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_species_category => 'الفئة';
 
   @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Split at the configured rate';
+
+  @override
   String get settings_conflict_field_startDateTime => 'البداية المخططة';
 
   @override

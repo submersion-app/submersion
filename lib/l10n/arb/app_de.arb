@@ -6682,6 +6682,7 @@
   "settings_conflict_field_sourceValueNumber": "Referenzwert",
   "settings_conflict_field_spec": "Verbindungsübersicht",
   "settings_conflict_field_species_category": "Kategorie",
+  "settings_conflict_field_splitAtConfiguredRate": "Mit konfigurierter Rate aufteilen",
   "settings_conflict_field_startDateTime": "Geplanter Beginn",
   "settings_conflict_field_startDepth": "Anfangstiefe",
   "settings_conflict_field_startTime": "Startzeit",
