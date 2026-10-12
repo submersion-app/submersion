@@ -48,16 +48,15 @@ class OtuLimitProgressRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  '${value.toStringAsFixed(0)} / ${limit.toStringAsFixed(0)} OTU '
-                  '(${percent.toStringAsFixed(0)}%)',
-                  textAlign: TextAlign.end,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
+              // Not flexible: a short numeric readout laid out at its own
+              // width, so the label takes all the rest and the value stays
+              // at the right edge (an Expanded/Flexible pair splits 50/50).
+              Text(
+                '${value.toStringAsFixed(0)} / ${limit.toStringAsFixed(0)} OTU '
+                '(${percent.toStringAsFixed(0)}%)',
+                style: textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: color,
                 ),
               ),
             ],

@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
@@ -47,6 +48,13 @@ class CnsOtuSnapshot {
   /// whenever the last dive's analysis computed no deco statuses at all.
   final List<TissueCompartment>? endOfDiveCompartments;
 
+  /// The last dive's site conditions, the environment its analysis computed
+  /// [endOfDiveCompartments] in. Live tissue loading off-gasses toward THIS
+  /// surface's equilibrium: at altitude it sits well below the sea-level
+  /// value, so projecting at [DiveEnvironment.standard] would hide real
+  /// residual loading. Assumes the diver is still at that surface.
+  final DiveEnvironment surfaceEnvironment;
+
   const CnsOtuSnapshot({
     required this.lastDiveId,
     required this.lastDiveEnd,
@@ -55,6 +63,7 @@ class CnsOtuSnapshot {
     required this.weeklyOtu,
     required this.computedAt,
     this.endOfDiveCompartments,
+    this.surfaceEnvironment = DiveEnvironment.standard,
   });
 
   /// Whether the last dive's own CNS% and OTU are known.
@@ -72,6 +81,7 @@ class CnsOtuSnapshot {
     double? weeklyOtu,
     DateTime? computedAt,
     List<TissueCompartment>? endOfDiveCompartments,
+    DiveEnvironment? surfaceEnvironment,
   }) {
     return CnsOtuSnapshot(
       lastDiveId: lastDiveId ?? this.lastDiveId,
@@ -82,6 +92,7 @@ class CnsOtuSnapshot {
       computedAt: computedAt ?? this.computedAt,
       endOfDiveCompartments:
           endOfDiveCompartments ?? this.endOfDiveCompartments,
+      surfaceEnvironment: surfaceEnvironment ?? this.surfaceEnvironment,
     );
   }
 }

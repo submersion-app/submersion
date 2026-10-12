@@ -1,6 +1,7 @@
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Projects the diver's tissue state at the end of their last dive forward
@@ -25,6 +26,10 @@ class TissueLiveService {
   /// what the diver's present conservatism means for their residual loading
   /// right now, not a historical setting.
   ///
+  /// [environment] is the last dive's site conditions (see
+  /// `CnsOtuSnapshot.surfaceEnvironment`): the surface the tissues off-gas
+  /// toward, which at altitude sits well below the sea-level equilibrium.
+  ///
   /// A [now] at or before [lastDiveEnd] (clock skew, or evaluating right at
   /// the dive's end) applies no off-gassing, the same guard
   /// [CnsOtuLiveService.currentCns] uses for its elapsed time.
@@ -34,11 +39,13 @@ class TissueLiveService {
     required DateTime now,
     required double gfLow,
     required double gfHigh,
+    DiveEnvironment environment = DiveEnvironment.standard,
   }) {
     final algorithm = _loadedAlgorithm(
       endOfDiveCompartments: endOfDiveCompartments,
       gfLow: gfLow,
       gfHigh: gfHigh,
+      environment: environment,
     );
 
     final elapsed = now.difference(lastDiveEnd);
@@ -83,11 +90,13 @@ class TissueLiveService {
     required DateTime now,
     required double gfLow,
     required double gfHigh,
+    DiveEnvironment environment = DiveEnvironment.standard,
   }) {
     final algorithm = _loadedAlgorithm(
       endOfDiveCompartments: endOfDiveCompartments,
       gfLow: gfLow,
       gfHigh: gfHigh,
+      environment: environment,
     );
     // Re-derived before every snapshot, not just the first: each sampled
     // state's ceiling must reflect what THAT state currently owes, not a
@@ -142,8 +151,13 @@ class TissueLiveService {
     required List<TissueCompartment> endOfDiveCompartments,
     required double gfLow,
     required double gfHigh,
+    required DiveEnvironment environment,
   }) {
-    final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
+    final algorithm = BuhlmannAlgorithm(
+      gfLow: gfLow,
+      gfHigh: gfHigh,
+      environment: environment,
+    );
     algorithm.restoreState(endOfDiveCompartments);
     return algorithm;
   }
@@ -158,13 +172,19 @@ class TissueLiveService {
 
   /// Whether [status] (as returned by [currentStatus]) still carries
   /// residual tissue loading worth showing, i.e. at least one compartment's
-  /// inert-gas tension is meaningfully above surface equilibrium. Serves the
+  /// inert-gas tension is meaningfully above surface equilibrium.
+  ///
+  /// The equilibrium is [status]'s own inspired N2 at its ambient pressure,
+  /// so it follows the environment the status was projected in rather than
+  /// assuming a 1.0 bar sea-level surface. Serves the
   /// same purpose for tissue loading as the CNS%/OTU epsilon in
   /// `CnsOtuStatusCard` serves for those readouts: a projection that is
   /// technically non-zero but has decayed into irrelevance should not keep a
   /// safety readout in its "active" state.
   static bool hasResidualLoad(DecoStatus status) {
-    final surfaceTension = calculateInspiredN2(1.0, airN2Fraction);
+    final surfaceTension =
+        status.inspiredN2Bar ??
+        calculateInspiredN2(status.ambientPressureBar, airN2Fraction);
     return status.compartments.any(
       (comp) => comp.totalInertGas - surfaceTension > _residualLoadEpsilonBar,
     );

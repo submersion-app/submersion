@@ -182,25 +182,36 @@ class CnsOtuStatusCard extends StatelessWidget {
     // not a fixed time span: a trivial, shallow dive should not read as
     // "still loaded" for days just because little real time has passed.
     //
-    // The full timeline (not just the current status) off-gasses the
-    // surface interval in sampled steps, so CompactTissueLoadingCard can
-    // draw its heat map / area chart over that off-gassing the same way it
-    // draws one over a dive -- there is no dive happening right now, but the
-    // surface interval since the last one is its own timeline to show.
+    // The gate runs on the single current status; only a load still worth
+    // showing pays for the full timeline, which off-gasses the surface
+    // interval in sampled steps (a deco evaluation per sample, re-run on
+    // every tick) so CompactTissueLoadingCard can draw its heat map / area
+    // chart over that off-gassing the same way it draws one over a dive.
     final endOfDiveCompartments = snap.endOfDiveCompartments;
-    final tissueTimeline = endOfDiveCompartments != null
-        ? TissueLiveService.surfaceIntervalTimeline(
+    final currentTissue = endOfDiveCompartments != null
+        ? TissueLiveService.currentStatus(
             endOfDiveCompartments: endOfDiveCompartments,
             lastDiveEnd: snap.lastDiveEnd,
             now: now,
             gfLow: gfLow,
             gfHigh: gfHigh,
+            environment: snap.surfaceEnvironment,
           )
         : null;
     final tissueStatus =
-        tissueTimeline != null &&
-            TissueLiveService.hasResidualLoad(tissueTimeline.last)
-        ? tissueTimeline.last
+        currentTissue != null &&
+            TissueLiveService.hasResidualLoad(currentTissue)
+        ? currentTissue
+        : null;
+    final tissueTimeline = tissueStatus != null
+        ? TissueLiveService.surfaceIntervalTimeline(
+            endOfDiveCompartments: endOfDiveCompartments!,
+            lastDiveEnd: snap.lastDiveEnd,
+            now: now,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+            environment: snap.surfaceEnvironment,
+          )
         : null;
 
     // A tissue load still worth showing counts as active too -- without

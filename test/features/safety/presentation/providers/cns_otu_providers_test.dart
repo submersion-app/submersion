@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_times.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -159,6 +161,7 @@ void main() {
               ? null
               : ProfileAnalysis.empty().copyWith(o2Exposure: exposure);
         }),
+        diveProvider.overrideWith((ref, diveId) async => null),
       ],
     );
     addTearDown(container.dispose);
@@ -303,8 +306,9 @@ void main() {
   group('endOfDiveCompartments', () {
     ProviderContainer containerForAnalysis(
       _StubDiveRepository repo,
-      ProfileAnalysis? analysis,
-    ) {
+      ProfileAnalysis? analysis, {
+      Dive? dive,
+    }) {
       final diverNotifier = MockCurrentDiverIdNotifier();
       diverNotifier.setCurrentDiver('diver-1');
       final container = ProviderContainer(
@@ -314,6 +318,9 @@ void main() {
           profileAnalysisProvider.overrideWith((ref, diveId) async {
             return diveId == repo.lastDive?.id ? analysis : null;
           }),
+          diveProvider.overrideWith(
+            (ref, diveId) async => diveId == dive?.id ? dive : null,
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -386,6 +393,37 @@ void main() {
       expect(snapshot, isNotNull);
       expect(snapshot!.exposure, isNull);
       expect(snapshot.endOfDiveCompartments, isNull);
+    });
+
+    test('surface environment comes from the last dive\'s site conditions, '
+        'and falls back to the standard surface without a dive row', () async {
+      final lastDive = DiveTimes(
+        id: 'dive-1',
+        dateTime: today.subtract(const Duration(hours: 2)),
+      );
+      final repo = _StubDiveRepository(lastDive, weekDives: [lastDive]);
+      final analysis = ProfileAnalysis.empty().copyWith(
+        o2Exposure: const O2Exposure(cnsEnd: 10.0),
+      );
+
+      final altitudeDive = Dive(
+        id: 'dive-1',
+        dateTime: lastDive.dateTime,
+        altitude: 2000,
+      );
+      final atAltitude = await snapshotOf(
+        containerForAnalysis(repo, analysis, dive: altitudeDive),
+      );
+      expect(
+        atAltitude!.surfaceEnvironment,
+        DiveEnvironment.forConditions(altitudeMeters: 2000),
+      );
+      expect(atAltitude.surfaceEnvironment.surfacePressureBar, lessThan(0.9));
+
+      final withoutDive = await snapshotOf(
+        containerForAnalysis(repo, analysis),
+      );
+      expect(withoutDive!.surfaceEnvironment, DiveEnvironment.standard);
     });
   });
 }

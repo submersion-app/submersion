@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/safety/domain/services/tissue_live_service.dart';
 
@@ -243,6 +245,56 @@ void main() {
       expect(
         timeline.length,
         lessThanOrEqualTo(TissueLiveService.timelineSampleCount + 1),
+      );
+    });
+  });
+
+  group('altitude', () {
+    final altitude = DiveEnvironment.forConditions(altitudeMeters: 2000);
+
+    // Saturated at the 2000 m surface, then the slowest compartment left
+    // 0.1 bar above that surface's equilibrium: a real residual load there,
+    // yet still BELOW the 1.0 bar sea-level equilibrium.
+    List<TissueCompartment> altitudeResidual() {
+      final compartments = BuhlmannAlgorithm(
+        environment: altitude,
+      ).compartments.toList();
+      final slowest = compartments.last;
+      compartments[compartments.length - 1] = slowest.copyWith(
+        currentPN2: slowest.currentPN2 + 0.1,
+      );
+      return compartments;
+    }
+
+    DecoStatus projectAt(DiveEnvironment environment) =>
+        TissueLiveService.currentStatus(
+          endOfDiveCompartments: altitudeResidual(),
+          lastDiveEnd: diveEnd,
+          now: diveEnd.add(const Duration(hours: 1)),
+          gfLow: 0.3,
+          gfHigh: 0.7,
+          environment: environment,
+        );
+
+    test('off-gasses toward the dive site\'s surface and keeps its residual '
+        'load visible', () {
+      final status = projectAt(altitude);
+      final surfaceN2 = calculateInspiredN2(
+        altitude.surfacePressureBar,
+        airN2Fraction,
+      );
+
+      expect(status.ambientPressureBar, altitude.surfacePressureBar);
+      expect(status.compartments.last.currentPN2, greaterThan(surfaceN2));
+      expect(status.isOffgassing(status.compartments.last), isTrue);
+      expect(TissueLiveService.hasResidualLoad(status), isTrue);
+    });
+
+    test('the same tissues judged at the standard sea-level surface would '
+        'hide that load', () {
+      expect(
+        TissueLiveService.hasResidualLoad(projectAt(DiveEnvironment.standard)),
+        isFalse,
       );
     });
   });
