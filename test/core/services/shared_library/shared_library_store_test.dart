@@ -103,7 +103,7 @@ void main() {
         )
         .getSingle();
     expect(row.read<String?>('hlc'), isNotNull);
-  }, skip: 'Task 7 registers the entity in hlcTargets');
+  });
 
   test('site state keeps clocks, the dirty flag and deleted', () async {
     const clock = FieldClock(hlc: Hlc(1, 0, 'm'), memberId: 'm');

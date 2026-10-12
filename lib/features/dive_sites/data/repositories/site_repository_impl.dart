@@ -31,6 +31,7 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 
 export 'package:submersion/features/dive_sites/data/repositories/site_links.dart'
     show SiteLinks, SiteUsage;
@@ -64,6 +65,7 @@ class SiteRepository {
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final SiteClassificationRepository _classification =
       SiteClassificationRepository();
   final _uuid = const Uuid();
@@ -242,6 +244,20 @@ class SiteRepository {
     try {
       _log.info('Updating site: ${site.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A library site records which fields this save changes (issue
+      // #2567); the comparison needs the row as it was.
+      final before = await getSiteById(site.id);
+      final libraryEdit = before?.isLibrarySite ?? false;
+      final typesBefore = libraryEdit && classification != null
+          ? (await _classification.getTypesForSite(
+              site.id,
+            )).map((t) => t.id).toSet()
+          : const <String>{};
+      final tagsBefore = libraryEdit && classification != null
+          ? (await _classification.getTagsForSite(
+              site.id,
+            )).map((t) => t.id).toSet()
+          : const <String>{};
 
       var companion = DiveSitesCompanion(
         name: Value(site.name),
@@ -305,6 +321,20 @@ class SiteRepository {
         }
         await _writeClassification(site.id, classification);
       });
+      if (libraryEdit && before != null) {
+        final changed = LibraryEditStamper.changedFields(before, site);
+        if (classification != null) {
+          if (classification.typeIds.toSet() != typesBefore) {
+            changed.add('siteTypes');
+          }
+          if (classification.tagIds.toSet() != tagsBefore) changed.add('tags');
+        }
+        await _libraryStamper.stamp(
+          site.id,
+          changed,
+          actingDiverId: actingDiverId,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated site: ${site.id}');
     } catch (e, stackTrace) {
@@ -375,6 +405,7 @@ class SiteRepository {
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      final before = await getSiteById(siteId);
       final changed = await _db.transaction(() async {
         final row = await (_db.select(
           _db.diveSites,
@@ -410,6 +441,15 @@ class SiteRepository {
         recordId: siteId,
         localUpdatedAt: now,
       );
+      if (before?.isLibrarySite ?? false) {
+        final after = await getSiteById(siteId);
+        if (after != null) {
+          await _libraryStamper.stamp(
+            siteId,
+            LibraryEditStamper.changedFields(before!, after),
+          );
+        }
+      }
       SyncEventBus.notifyLocalChange();
       return true;
     } catch (e, stackTrace) {
@@ -436,6 +476,10 @@ class SiteRepository {
         entityType: 'diveSites',
         recordId: siteId,
         localUpdatedAt: now,
+      );
+      await _libraryStamper.stamp(
+        siteId,
+        LibraryEditStamper.fieldsOfPatch(patch),
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {

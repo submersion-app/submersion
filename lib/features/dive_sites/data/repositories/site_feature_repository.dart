@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart'
     as domain;
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 
 /// CRUD for diver-placed site annotations. Every mutation follows the
 /// house write ritual: write the row, mark it pending (which stamps its
@@ -16,6 +17,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 class SiteFeatureRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
 
   /// Emits whenever the `site_features` table changes so providers can
@@ -140,6 +142,7 @@ class SiteFeatureRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.logDeletion(entityType: 'siteFeatures', recordId: id);
     await _bumpSite(row.siteId, now);
+    await _libraryStamper.stamp(row.siteId, {'features'});
     SyncEventBus.notifyLocalChange();
   }
 
@@ -154,6 +157,7 @@ class SiteFeatureRepository {
       localUpdatedAt: now,
     );
     await _bumpSite(siteId, now);
+    await _libraryStamper.stamp(siteId, {'features'});
     SyncEventBus.notifyLocalChange();
   }
 

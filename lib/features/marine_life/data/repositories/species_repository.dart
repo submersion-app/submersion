@@ -10,12 +10,14 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 
 class SpeciesRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
 
   /// Get all species
@@ -812,6 +814,7 @@ class SpeciesRepository {
       recordId: id,
       localUpdatedAt: now,
     );
+    await _libraryStamper.stamp(siteId, {'species'});
     SyncEventBus.notifyLocalChange();
 
     final species = await getSpeciesById(speciesId);
@@ -845,6 +848,7 @@ class SpeciesRepository {
         entityType: 'siteSpecies',
         recordId: id,
       );
+      await _libraryStamper.stamp(siteId, {'species'});
       SyncEventBus.notifyLocalChange();
     }
   }

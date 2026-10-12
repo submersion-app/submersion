@@ -10,6 +10,7 @@ import 'package:submersion/features/site_types/data/mappers/site_type_row_mapper
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 
 /// Reads and writes a site's types and tags (issue #1765): the
 /// `site_site_types` and `site_tags` junctions.
@@ -24,6 +25,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 class SiteClassificationRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
 
   /// Emits when either junction, or the type or tag vocabulary, changes.
@@ -188,7 +190,10 @@ class SiteClassificationRepository {
           if (!have.contains(id)) id,
       ]);
     });
-    if (notify) SyncEventBus.notifyLocalChange();
+    if (notify) {
+      await _libraryStamper.stamp(siteId, {'siteTypes'});
+      SyncEventBus.notifyLocalChange();
+    }
   }
 
   /// Adds [typeIds] to [siteId]'s types; never removes one.
@@ -208,7 +213,10 @@ class SiteClassificationRepository {
           if (!have.contains(id)) id,
       ]);
     });
-    if (notify) SyncEventBus.notifyLocalChange();
+    if (notify) {
+      await _libraryStamper.stamp(siteId, {'siteTypes'});
+      SyncEventBus.notifyLocalChange();
+    }
   }
 
   /// Makes [siteId]'s tags exactly [tagIds].
@@ -238,7 +246,10 @@ class SiteClassificationRepository {
           if (!have.contains(id)) id,
       ]);
     });
-    if (notify) SyncEventBus.notifyLocalChange();
+    if (notify) {
+      await _libraryStamper.stamp(siteId, {'tags'});
+      SyncEventBus.notifyLocalChange();
+    }
   }
 
   /// Adds [tagIds] to [siteId]'s tags; never removes one.
@@ -258,7 +269,10 @@ class SiteClassificationRepository {
           if (!have.contains(id)) id,
       ]);
     });
-    if (notify) SyncEventBus.notifyLocalChange();
+    if (notify) {
+      await _libraryStamper.stamp(siteId, {'tags'});
+      SyncEventBus.notifyLocalChange();
+    }
   }
 
   /// Moves the duplicates' links onto [survivorId] during a site merge.
