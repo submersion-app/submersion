@@ -37170,6 +37170,12 @@ abstract class AppLocalizations {
   /// **'Trip list view'**
   String get settings_conflict_field_tripListViewMode;
 
+  /// No description provided for @settings_conflict_field_trendGapCollapseMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse gaps in trend charts'**
+  String get settings_conflict_field_trendGapCollapseMonths;
+
   /// No description provided for @settings_conflict_field_tripServiceLeadDays.
   ///
   /// In en, this message translates to:
@@ -42255,7 +42261,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_category_focus_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Best, worst and threshold groups'**
+  /// **'What your best and worst dives have in common'**
   String get insights_category_focus_subtitle;
 
   /// No description provided for @insights_category_progression_title.
@@ -42849,6 +42855,12 @@ abstract class AppLocalizations {
   /// **'Dive focus'**
   String get insights_focus_title;
 
+  /// No description provided for @insights_focus_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'See what a group of your dives has in common.'**
+  String get insights_focus_intro;
+
   /// No description provided for @insights_focus_error.
   ///
   /// In en, this message translates to:
@@ -42864,7 +42876,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_focus_summary.
   ///
   /// In en, this message translates to:
-  /// **'{count} of {total, plural, =1{1 dive} other{{total} dives}}, group average {group} vs {overall} overall'**
+  /// **'{count} of {total, plural, =1{1 dive} other{{total} dives}}. Average {group}, against {overall} across all your dives.'**
   String insights_focus_summary(
     int count,
     int total,
@@ -42899,19 +42911,25 @@ abstract class AppLocalizations {
   /// No description provided for @insights_focus_chart_title.
   ///
   /// In en, this message translates to:
-  /// **'The group over time'**
-  String get insights_focus_chart_title;
+  /// **'{metric} over time'**
+  String insights_focus_chart_title(String metric);
 
   /// No description provided for @insights_focus_chart_group.
   ///
   /// In en, this message translates to:
-  /// **'In group'**
+  /// **'In the group'**
   String get insights_focus_chart_group;
+
+  /// No description provided for @insights_focus_chart_others.
+  ///
+  /// In en, this message translates to:
+  /// **'Other dives'**
+  String get insights_focus_chart_others;
 
   /// No description provided for @insights_focus_list_title.
   ///
   /// In en, this message translates to:
-  /// **'Dives in the group'**
+  /// **'The dives'**
   String get insights_focus_list_title;
 
   /// No description provided for @insights_focus_list_unknownSite.
@@ -42919,6 +42937,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No site'**
   String get insights_focus_list_unknownSite;
+
+  /// No description provided for @insights_focus_list_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show the 1 dive} other{Show all {count} dives}}'**
+  String insights_focus_list_showAll(int count);
 
   /// No description provided for @insights_focus_unit_minutes.
   ///
@@ -42962,40 +42986,118 @@ abstract class AppLocalizations {
   /// **'Water temp'**
   String get insights_focus_metric_waterTemp;
 
+  /// No description provided for @insights_focus_metric_gasUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used'**
+  String get insights_focus_metric_gasUsed;
+
+  /// No description provided for @insights_focus_metric_avgDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Average depth'**
+  String get insights_focus_metric_avgDepth;
+
+  /// No description provided for @insights_focus_metric_surfaceInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get insights_focus_metric_surfaceInterval;
+
+  /// No description provided for @insights_focus_metric_airTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Air temp'**
+  String get insights_focus_metric_airTemp;
+
+  /// No description provided for @insights_focus_metric_visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get insights_focus_metric_visibility;
+
+  /// No description provided for @insights_focus_metric_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get insights_focus_metric_altitude;
+
+  /// No description provided for @insights_focus_metric_cns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at end'**
+  String get insights_focus_metric_cns;
+
+  /// No description provided for @insights_focus_metric_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get insights_focus_metric_otu;
+
+  /// No description provided for @insights_focus_metricGroup_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get insights_focus_metricGroup_gas;
+
+  /// No description provided for @insights_focus_metricGroup_depthTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth and time'**
+  String get insights_focus_metricGroup_depthTime;
+
+  /// No description provided for @insights_focus_metricGroup_conditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditions'**
+  String get insights_focus_metricGroup_conditions;
+
+  /// No description provided for @insights_focus_metricGroup_exposure.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure'**
+  String get insights_focus_metricGroup_exposure;
+
+  /// No description provided for @insights_focus_metricGroup_kit.
+  ///
+  /// In en, this message translates to:
+  /// **'Kit'**
+  String get insights_focus_metricGroup_kit;
+
   /// No description provided for @insights_focus_mode_best.
   ///
   /// In en, this message translates to:
-  /// **'Best'**
+  /// **'best'**
   String get insights_focus_mode_best;
 
   /// No description provided for @insights_focus_mode_worst.
   ///
   /// In en, this message translates to:
-  /// **'Worst'**
+  /// **'worst'**
   String get insights_focus_mode_worst;
 
   /// No description provided for @insights_focus_mode_lowest.
   ///
   /// In en, this message translates to:
-  /// **'Lowest'**
+  /// **'lowest'**
   String get insights_focus_mode_lowest;
 
   /// No description provided for @insights_focus_mode_highest.
   ///
   /// In en, this message translates to:
-  /// **'Highest'**
+  /// **'highest'**
   String get insights_focus_mode_highest;
 
   /// No description provided for @insights_focus_mode_above.
   ///
   /// In en, this message translates to:
-  /// **'Above'**
+  /// **'above'**
   String get insights_focus_mode_above;
 
   /// No description provided for @insights_focus_mode_below.
   ///
   /// In en, this message translates to:
-  /// **'Below'**
+  /// **'below'**
   String get insights_focus_mode_below;
 
   /// No description provided for @insights_focus_count_label.
@@ -43010,12 +43112,6 @@ abstract class AppLocalizations {
   /// **'Enter a whole number from 1 to 999'**
   String get insights_focus_count_error;
 
-  /// No description provided for @insights_focus_threshold_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Value'**
-  String get insights_focus_threshold_label;
-
   /// No description provided for @insights_focus_threshold_error.
   ///
   /// In en, this message translates to:
@@ -43028,23 +43124,73 @@ abstract class AppLocalizations {
   /// **'Enter zero or more'**
   String get insights_focus_threshold_negativeError;
 
-  /// No description provided for @insights_focus_factors_title.
+  /// Dive focus sentence builder. Each placeholder is replaced by a control; keep all three, in any order.
   ///
   /// In en, this message translates to:
-  /// **'Common factors'**
-  String get insights_focus_factors_title;
+  /// **'Show the {count} dives with the {mode} {metric}'**
+  String insights_focus_sentence_ranked(
+    String count,
+    String mode,
+    String metric,
+  );
 
-  /// No description provided for @insights_focus_factors_subtitle.
+  /// Dive focus sentence builder in threshold form. Each placeholder is replaced by a control; keep all three, in any order.
   ///
   /// In en, this message translates to:
-  /// **'This group compared with every dive that has the value'**
-  String get insights_focus_factors_subtitle;
+  /// **'Show the dives with {metric} {mode} {value}'**
+  String insights_focus_sentence_threshold(
+    String metric,
+    String mode,
+    String value,
+  );
 
-  /// No description provided for @insights_focus_factors_tooFew.
+  /// No description provided for @insights_focus_count_custom.
   ///
   /// In en, this message translates to:
-  /// **'Choose at least 3 dives to compare common factors'**
-  String get insights_focus_factors_tooFew;
+  /// **'Custom...'**
+  String get insights_focus_count_custom;
+
+  /// No description provided for @insights_focus_count_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How many dives?'**
+  String get insights_focus_count_dialogTitle;
+
+  /// No description provided for @insights_focus_comparison_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Full comparison'**
+  String get insights_focus_comparison_title;
+
+  /// No description provided for @insights_focus_comparison_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives means every dive in the current filter that has {metric}'**
+  String insights_focus_comparison_subtitle(String metric);
+
+  /// No description provided for @insights_focus_column_these.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives'**
+  String get insights_focus_column_these;
+
+  /// No description provided for @insights_focus_column_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get insights_focus_column_all;
+
+  /// No description provided for @insights_focus_column_difference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get insights_focus_column_difference;
+
+  /// No description provided for @insights_focus_comparison_showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 more factor} other{Show {count} more factors}}'**
+  String insights_focus_comparison_showMore(int count);
 
   /// No description provided for @insights_focus_factors_standsOut.
   ///
@@ -43052,23 +43198,128 @@ abstract class AppLocalizations {
   /// **'Stands out'**
   String get insights_focus_factors_standsOut;
 
-  /// No description provided for @insights_focus_factors_standoutsSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'Stands out: {factors}'**
-  String insights_focus_factors_standoutsSummary(String factors);
-
-  /// No description provided for @insights_focus_factors_versus.
-  ///
-  /// In en, this message translates to:
-  /// **'{group} vs {baseline}'**
-  String insights_focus_factors_versus(String group, String baseline);
-
   /// No description provided for @insights_focus_factors_coverage.
   ///
   /// In en, this message translates to:
   /// **'{covered} of {total, plural, =1{1 dive} other{{total} dives}}'**
   String insights_focus_factors_coverage(int covered, int total);
+
+  /// No description provided for @insights_focus_standouts_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What stands out'**
+  String get insights_focus_standouts_title;
+
+  /// No description provided for @insights_focus_standouts_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing stands out about these dives.'**
+  String get insights_focus_standouts_none;
+
+  /// No description provided for @insights_focus_standouts_tooFew.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least 3 dives to see what they share'**
+  String get insights_focus_standouts_tooFew;
+
+  /// No description provided for @insights_focus_standouts_more.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{and 1 more in the full comparison} other{and {count} more in the full comparison}}'**
+  String insights_focus_standouts_more(int count);
+
+  /// No description provided for @insights_focus_standouts_categoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} were {value} ({baseline} of all your dives)'**
+  String insights_focus_standouts_categoryAll(
+    int count,
+    String value,
+    String baseline,
+  );
+
+  /// No description provided for @insights_focus_standouts_categorySome.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} were {value}, against {baseline} of all your dives'**
+  String insights_focus_standouts_categorySome(
+    int count,
+    int total,
+    String value,
+    String baseline,
+  );
+
+  /// No description provided for @insights_focus_standouts_numeric.
+  ///
+  /// In en, this message translates to:
+  /// **'{factor} {difference} {direction} ({group} vs {baseline})'**
+  String insights_focus_standouts_numeric(
+    String factor,
+    String difference,
+    String direction,
+    String group,
+    String baseline,
+  );
+
+  /// No description provided for @insights_focus_direction_deeper.
+  ///
+  /// In en, this message translates to:
+  /// **'deeper'**
+  String get insights_focus_direction_deeper;
+
+  /// No description provided for @insights_focus_direction_shallower.
+  ///
+  /// In en, this message translates to:
+  /// **'shallower'**
+  String get insights_focus_direction_shallower;
+
+  /// No description provided for @insights_focus_direction_longer.
+  ///
+  /// In en, this message translates to:
+  /// **'longer'**
+  String get insights_focus_direction_longer;
+
+  /// No description provided for @insights_focus_direction_shorter.
+  ///
+  /// In en, this message translates to:
+  /// **'shorter'**
+  String get insights_focus_direction_shorter;
+
+  /// No description provided for @insights_focus_direction_warmer.
+  ///
+  /// In en, this message translates to:
+  /// **'warmer'**
+  String get insights_focus_direction_warmer;
+
+  /// No description provided for @insights_focus_direction_colder.
+  ///
+  /// In en, this message translates to:
+  /// **'colder'**
+  String get insights_focus_direction_colder;
+
+  /// No description provided for @insights_focus_direction_larger.
+  ///
+  /// In en, this message translates to:
+  /// **'larger'**
+  String get insights_focus_direction_larger;
+
+  /// No description provided for @insights_focus_direction_smaller.
+  ///
+  /// In en, this message translates to:
+  /// **'smaller'**
+  String get insights_focus_direction_smaller;
+
+  /// No description provided for @insights_focus_direction_moreLead.
+  ///
+  /// In en, this message translates to:
+  /// **'more lead'**
+  String get insights_focus_direction_moreLead;
+
+  /// No description provided for @insights_focus_direction_lessLead.
+  ///
+  /// In en, this message translates to:
+  /// **'less lead'**
+  String get insights_focus_direction_lessLead;
 
   /// No description provided for @insights_focus_factorGroup_diveShape.
   ///
@@ -52876,6 +53127,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display dive profile chart above the table by default'**
   String get settings_appearance_showProfilePanel_subtitle;
+
+  /// No description provided for @settings_appearance_trendGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse gaps in trend charts'**
+  String get settings_appearance_trendGaps;
+
+  /// No description provided for @settings_appearance_trendGaps_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show long breaks in diving as a narrow hatched band'**
+  String get settings_appearance_trendGaps_subtitle;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///
@@ -76628,6 +76891,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weekly average'**
   String get insights_trend_aggregation_weekly;
+
+  /// No description provided for @insights_trend_gaps_menuHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse gaps'**
+  String get insights_trend_gaps_menuHeader;
+
+  /// No description provided for @insights_trend_gaps_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get insights_trend_gaps_off;
+
+  /// No description provided for @insights_trend_gaps_months6.
+  ///
+  /// In en, this message translates to:
+  /// **'6 months'**
+  String get insights_trend_gaps_months6;
+
+  /// No description provided for @insights_trend_gaps_year1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 year'**
+  String get insights_trend_gaps_year1;
+
+  /// No description provided for @insights_trend_gaps_years2.
+  ///
+  /// In en, this message translates to:
+  /// **'2 years'**
+  String get insights_trend_gaps_years2;
+
+  /// Length of a collapsed break in diving on a trend chart axis, whole years only
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y'**
+  String insights_trend_gap_years(int years);
+
+  /// Length of a collapsed break in diving, under a year
+  ///
+  /// In en, this message translates to:
+  /// **'{months}m'**
+  String insights_trend_gap_months(int months);
+
+  /// Length of a collapsed break in diving, years and months
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {months}m'**
+  String insights_trend_gap_yearsMonths(int years, int months);
+
+  /// Chart readout when hovering a collapsed break; start and end are formatted dates
+  ///
+  /// In en, this message translates to:
+  /// **'No dives: {start} to {end}'**
+  String insights_trend_gap_noDives(String start, String end);
 
   /// No description provided for @insights_trend_legend_rate.
   ///

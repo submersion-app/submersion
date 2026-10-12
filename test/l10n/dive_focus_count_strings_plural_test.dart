@@ -112,46 +112,129 @@ void main() {
     (l) => l.insights_focus_summary(2, 3, 'G', 'O'),
     {
       'en': (
-        '1 of 1 dive, group average G vs O overall',
-        '2 of 3 dives, group average G vs O overall',
+        '1 of 1 dive. Average G, against O across all your dives.',
+        '2 of 3 dives. Average G, against O across all your dives.',
       ),
       'ar': (
-        '1 من غطسة واحدة، متوسط المجموعة G مقابل O إجمالاً',
-        '2 من 3 غطسات، متوسط المجموعة G مقابل O إجمالاً',
+        '1 من غطسة واحدة. المتوسط G، مقابل O عبر كل غطساتك.',
+        '2 من 3 غطسات. المتوسط G، مقابل O عبر كل غطساتك.',
       ),
       'de': (
-        '1 von 1 Tauchgang, Gruppendurchschnitt G gegenüber O insgesamt',
-        '2 von 3 Tauchgängen, Gruppendurchschnitt G gegenüber O insgesamt',
+        '1 von 1 Tauchgang. Durchschnitt G, gegenüber O über alle deine '
+            'Tauchgänge.',
+        '2 von 3 Tauchgängen. Durchschnitt G, gegenüber O über alle deine '
+            'Tauchgänge.',
       ),
       'es': (
-        '1 de 1 inmersión, media del grupo G frente a O en total',
-        '2 de 3 inmersiones, media del grupo G frente a O en total',
+        '1 de 1 inmersión. Media G, frente a O en todas tus inmersiones.',
+        '2 de 3 inmersiones. Media G, frente a O en todas tus inmersiones.',
       ),
       'fr': (
-        '1 plongée sur 1, moyenne du groupe G contre O au total',
-        '2 plongées sur 3, moyenne du groupe G contre O au total',
+        '1 plongée sur 1. Moyenne G, contre O sur toutes vos plongées.',
+        '2 plongées sur 3. Moyenne G, contre O sur toutes vos plongées.',
       ),
       'he': (
-        '1 מתוך צלילה אחת, ממוצע הקבוצה G לעומת O בסך הכול',
-        '2 מתוך 3 צלילות, ממוצע הקבוצה G לעומת O בסך הכול',
+        '1 מתוך צלילה אחת. ממוצע G, לעומת O בכל הצלילות שלך.',
+        '2 מתוך 3 צלילות. ממוצע G, לעומת O בכל הצלילות שלך.',
       ),
       'hu': (
-        '1 / 1 merülés, csoportátlag G, összesen O',
-        '2 / 3 merülés, csoportátlag G, összesen O',
+        '1 / 1 merülés. Átlag G, szemben az összes merülésed O értékével.',
+        '2 / 3 merülés. Átlag G, szemben az összes merülésed O értékével.',
       ),
       'it': (
-        '1 immersione su 1, media del gruppo G contro O complessiva',
-        '2 immersioni su 3, media del gruppo G contro O complessiva',
+        '1 immersione su 1. Media G, contro O su tutte le tue immersioni.',
+        '2 immersioni su 3. Media G, contro O su tutte le tue immersioni.',
       ),
       'nl': (
-        '1 van 1 duik, groepsgemiddelde G tegenover O in totaal',
-        '2 van 3 duiken, groepsgemiddelde G tegenover O in totaal',
+        '1 van 1 duik. Gemiddelde G, tegenover O over al je duiken.',
+        '2 van 3 duiken. Gemiddelde G, tegenover O over al je duiken.',
       ),
       'pt': (
-        '1 de 1 mergulho, média do grupo G contra O no total',
-        '2 de 3 mergulhos, média do grupo G contra O no total',
+        '1 de 1 mergulho. Média G, contra O em todos os seus mergulhos.',
+        '2 de 3 mergulhos. Média G, contra O em todos os seus mergulhos.',
       ),
-      'zh': ('1 次潜水中的 1 次，组内平均 G，总体 O', '3 次潜水中的 2 次，组内平均 G，总体 O'),
+      'zh': ('1 次潜水中的 1 次。平均 G，全部潜水为 O。', '3 次潜水中的 2 次。平均 G，全部潜水为 O。'),
+    },
+  );
+
+  check(
+    'insights_focus_list_showAll',
+    (l) => l.insights_focus_list_showAll(1),
+    (l) => l.insights_focus_list_showAll(6),
+    {
+      'en': ('Show the 1 dive', 'Show all 6 dives'),
+      'ar': ('اعرض الغطسة', 'اعرض كل الغطسات الـ6'),
+      'de': ('Den 1 Tauchgang zeigen', 'Alle 6 Tauchgänge zeigen'),
+      'es': ('Mostrar la 1 inmersión', 'Mostrar las 6 inmersiones'),
+      'fr': ('Afficher la plongée', 'Afficher les 6 plongées'),
+      'he': ('הצג את הצלילה', 'הצג את כל 6 הצלילות'),
+      'hu': ('Az 1 merülés mutatása', 'Mind a(z) 6 merülés mutatása'),
+      'it': ("Mostra l'immersione", 'Mostra tutte le 6 immersioni'),
+      'nl': ('Toon de 1 duik', 'Toon alle 6 duiken'),
+      'pt': ('Mostrar o mergulho', 'Mostrar todos os 6 mergulhos'),
+      'zh': ('显示这 1 次潜水', '显示全部 6 次潜水'),
+    },
+  );
+
+  check(
+    'insights_focus_standouts_more',
+    (l) => l.insights_focus_standouts_more(1),
+    (l) => l.insights_focus_standouts_more(3),
+    {
+      'en': (
+        'and 1 more in the full comparison',
+        'and 3 more in the full comparison',
+      ),
+      'ar': ('وواحدة أخرى في المقارنة الكاملة', 'و3 أخرى في المقارنة الكاملة'),
+      'de': (
+        'und 1 weiterer im vollständigen Vergleich',
+        'und 3 weitere im vollständigen Vergleich',
+      ),
+      'es': (
+        'y 1 más en la comparación completa',
+        'y 3 más en la comparación completa',
+      ),
+      'fr': (
+        'et 1 de plus dans la comparaison complète',
+        'et 3 de plus dans la comparaison complète',
+      ),
+      'he': ('ועוד אחד בהשוואה המלאה', 'ועוד 3 בהשוואה המלאה'),
+      'hu': (
+        'és még 1 a teljes összehasonlításban',
+        'és még 3 a teljes összehasonlításban',
+      ),
+      'it': (
+        'e 1 altro nel confronto completo',
+        'e altri 3 nel confronto completo',
+      ),
+      'nl': (
+        'en 1 meer in de volledige vergelijking',
+        'en 3 meer in de volledige vergelijking',
+      ),
+      'pt': (
+        'e mais 1 na comparação completa',
+        'e mais 3 na comparação completa',
+      ),
+      'zh': ('完整对比中还有 1 项', '完整对比中还有 3 项'),
+    },
+  );
+
+  check(
+    'insights_focus_comparison_showMore',
+    (l) => l.insights_focus_comparison_showMore(1),
+    (l) => l.insights_focus_comparison_showMore(4),
+    {
+      'en': ('Show 1 more factor', 'Show 4 more factors'),
+      'ar': ('اعرض عاملاً آخر', 'اعرض 4 عوامل أخرى'),
+      'de': ('1 weiteren Faktor zeigen', '4 weitere Faktoren zeigen'),
+      'es': ('Mostrar 1 factor más', 'Mostrar 4 factores más'),
+      'fr': ('Afficher 1 facteur de plus', 'Afficher 4 facteurs de plus'),
+      'he': ('הצג גורם נוסף', 'הצג 4 גורמים נוספים'),
+      'hu': ('Még 1 tényező mutatása', 'Még 4 tényező mutatása'),
+      'it': ('Mostra 1 altro fattore', 'Mostra altri 4 fattori'),
+      'nl': ('Toon 1 factor meer', 'Toon 4 factoren meer'),
+      'pt': ('Mostrar mais 1 fator', 'Mostrar mais 4 fatores'),
+      'zh': ('显示另外 1 项因素', '显示另外 4 项因素'),
     },
   );
 

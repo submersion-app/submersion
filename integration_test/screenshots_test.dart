@@ -554,6 +554,11 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
+      // scrollUntilVisible stops once the tile is built, and a ListView
+      // builds tiles in its cache extent below the screen, so a tile pushed
+      // down by a new Appearance setting is found but not tappable.
+      await tester.ensureVisible(navBarTile.first);
+      await _settle(tester);
       await tester.tap(navBarTile.first);
       await _settle(tester);
     }

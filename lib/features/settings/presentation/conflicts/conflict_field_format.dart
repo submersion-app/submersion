@@ -38,6 +38,10 @@ String _format(
       return value.toString();
     case FieldKind.enumValue:
       if (value is String) return field.enumLabel?.call(l10n, value) ?? value;
+      // An enum stored as its integer code, such as a month count.
+      if (value is num) {
+        return field.enumLabel?.call(l10n, '$value') ?? value.toString();
+      }
       return value.toString();
     case FieldKind.dateTime:
       final moment = _instant(value);

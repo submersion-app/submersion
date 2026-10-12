@@ -63,6 +63,8 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertIcdWarningsColumn();
     // v278 backstop: the dives visibility range columns.
     await _assertVisibilityRangeColumns();
+    // v281 backstop: diver_settings.trend_gap_collapse_months.
+    await _assertTrendGapCollapseColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do

@@ -233,6 +233,7 @@ class InsightsProgressionPage extends ConsumerWidget {
         data: (data) => DiveTrendChart(
           points: data,
           dateFormat: ref.watch(dateFormatProvider),
+          gapThreshold: ref.watch(trendGapThresholdProvider),
           pointColor: Colors.green,
           valueFormatter: (value) => value.toStringAsFixed(0),
         ),

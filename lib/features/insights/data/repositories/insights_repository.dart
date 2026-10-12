@@ -38,6 +38,7 @@ export 'package:submersion/features/insights/domain/trend_aggregation.dart'
 
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
+part 'insights_repository_focus_series.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///

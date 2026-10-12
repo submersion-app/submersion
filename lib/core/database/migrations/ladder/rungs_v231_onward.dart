@@ -334,5 +334,12 @@ extension RungsFromV231 on AppDatabase {
     // v280: no data change (issue #2361). Carries the sync floor past the
     // builds that cannot parse AccountKind.webdav.
     if (from < 280) await reportProgress();
+    // v281: diver_settings.trend_gap_collapse_months (issue #3251). Column
+    // only, defaulting to a year; re-asserted in beforeOpen. Renumbered from
+    // 278, 279 and 280, which #3226, #3106 and #2361 shipped first.
+    if (from < 281) {
+      await _assertTrendGapCollapseColumn();
+    }
+    if (from < 281) await reportProgress();
   }
 }

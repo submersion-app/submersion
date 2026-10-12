@@ -431,6 +431,13 @@ class DiverSettings extends Table {
   // v122: days before a trip to nag about gear due before trip end.
   IntColumn get tripServiceLeadDays =>
       integer().withDefault(const Constant(14))();
+  // v281: calendar months a stretch with no dives must exceed before the
+  // trend charts collapse it into a break (issue #3251); 0 is off. Any
+  // other value reads as 12. Codegen input, never executed.
+  // coverage:ignore-start
+  IntColumn get trendGapCollapseMonths =>
+      integer().withDefault(const Constant(12))();
+  // coverage:ignore-end
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();

@@ -155,18 +155,23 @@ put it until the map changes; **Lay out again** puts every node back.
 
 ### Dive focus
 
-Dive focus picks out a group of dives and shows what sets them apart. Choose a
-metric (**RMV**, **SAC**, **Max depth**, **Bottom time**, **Weight** or
-**Water temp**) and how to pick the group:
+Dive focus shows what a group of your dives has in common. Build the group as
+a sentence: "Show the **10** dives with the **best** **RMV**", or "Show the
+dives with **RMV** **above** **15 L/min**". Fourteen metrics are available,
+grouped as Gas (RMV, SAC, gas used), Depth and time (max depth, average
+depth, bottom time, surface interval), Conditions (water temp, air temp,
+visibility, altitude), Exposure (CNS at end, OTU) and Kit (weight). Gas
+metrics offer **best** and **worst**; the others offer **lowest** and
+**highest**. A threshold starts at your average for that metric.
 
-- the **Best** or **Worst** N dives for SAC and RMV, or the **Lowest** or
-  **Highest** N for the others, or
-- every dive **Above** or **Below** a value you enter.
-
-Dive focus then charts the group over time, lists its dives, and compares it
-with every other dive that has a value. **Common factors** covers the dive's
-depth and length, conditions, month, time of day, site, dive type, gas, tank
-size, weight, suit and buddy, and marks what **Stands out** in the group. It needs at least three dives to compare.
+**What stands out** lists the strongest differences between the group and
+every dive that has the value: "All 10 were boat entries (64% of all your
+dives)", "Average depth 2.1 m shallower (11.3 m vs 13.4 m)". The chart
+below marks the group in the accent colour and draws your threshold as a
+dashed line. **Full comparison** gives every factor with the group's value,
+the value across all dives and the difference; rows that say nothing fold
+behind **Show more factors**. **The dives** lists the group, five at a time,
+and opens any dive you tap. Dive focus needs at least three dives to compare.
 
 ### Profile Analysis
 

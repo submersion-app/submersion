@@ -18,6 +18,7 @@ library;
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/insights/domain/trend_time_scale.dart';
 
 enum DateAxisGranularity { day, month, quarter, year }
 
@@ -29,7 +30,37 @@ class DateAxis {
     required this.granularity,
     required this.labelInterval,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
+    this.scale = TrendTimeScale.identity,
+    this.axisPerPixel,
   });
+
+  /// Maps axis positions back to dates; collapses long gaps (issue #3251).
+  final TrendTimeScale scale;
+
+  /// Axis units per pixel of plot, when the plot width is known. Lets a
+  /// label keep clear of a break band by a pixel distance.
+  final double? axisPerPixel;
+
+  /// Half the width of a band's length label ("6y 7m"), in pixels, plus the
+  /// gap kept between it and a date label.
+  static const double breakLabelClearancePx = 26;
+
+  /// Half the width of a date label of each granularity, in pixels.
+  static const Map<DateAxisGranularity, double> _labelHalfWidthPx = {
+    DateAxisGranularity.year: 16,
+    DateAxisGranularity.quarter: 24,
+    DateAxisGranularity.month: 24,
+    DateAxisGranularity.day: 24,
+  };
+
+  /// Narrowest spacing, in pixels, between two labels of each granularity at
+  /// the chart's bodySmall size: "2014" and "Mar '25" plus a gap.
+  static const Map<DateAxisGranularity, double> _minLabelSpacingPx = {
+    DateAxisGranularity.year: 44,
+    DateAxisGranularity.quarter: 60,
+    DateAxisGranularity.month: 60,
+    DateAxisGranularity.day: 64,
+  };
 
   /// Lower bound, as `millisecondsSinceEpoch`, for fl_chart's `minX`.
   final double min;
@@ -80,25 +111,43 @@ class DateAxis {
   /// fl_chart is free to use a different one, and comparing against a value it
   /// never drew silently defeats the check.
   String? labelFor(double value, {double? step}) {
-    if (!showsLabelAt(value)) return null;
+    if (!showsLabelAt(value) || _crowdsBreak(value)) return null;
 
     final text = _format(_dateOf(value));
 
-    // The previously drawn label is one step back, or the lower bound when
-    // that step would fall outside the axis. fl_chart does not anchor its
-    // step sequence at min, so the first derived label can sit less than a
-    // step from the bound: without the clamp that pair goes uncompared, which
-    // is exactly how "Sep Sep" survived.
-    var previous = value - (step ?? labelInterval);
+    // The previous slot is the last multiple of the step below [value], or
+    // the lower bound when that falls outside the axis: fl_chart lays its
+    // slots on multiples of the step, not from min, so the first derived
+    // label can sit less than a step from the bound (without the clamp that
+    // pair goes uncompared, which is how "Sep Sep" survived), and the label
+    // at max sits less than a step from the last slot. A slot that draws
+    // nothing, such as one inside a collapsed gap (issue #3251), is no
+    // duplicate to drop against.
+    final s = step ?? labelInterval;
+    var previous = ((value / s - 1e-9).ceil() - 1) * s;
     if (previous < min) previous = min;
-    if (previous < value && showsLabelAt(previous)) {
+    if (previous < value && showsLabelAt(previous) && !_crowdsBreak(previous)) {
       if (_format(_dateOf(previous)) == text) return null;
     }
     return text;
   }
 
-  static DateTime _dateOf(double ms) =>
-      DateTime.fromMillisecondsSinceEpoch(ms.toInt(), isUtc: true);
+  DateTime _dateOf(double value) => scale.toDate(value);
+
+  /// Whether a label at [value] would sit in a gap (where it would name a
+  /// date with no dives) or overlap a band's length label, which is centred
+  /// on the band.
+  bool _crowdsBreak(double value) {
+    if (scale.inGap(value)) return true;
+    final perPx = axisPerPixel;
+    if (perPx == null) return false;
+    final reach =
+        (breakLabelClearancePx + _labelHalfWidthPx[granularity]!) * perPx;
+    for (final b in scale.breaks) {
+      if ((value - (b.axisStart + b.axisEnd) / 2).abs() < reach) return true;
+    }
+    return false;
+  }
 
   /// Every label carries its year. A bare "Oct" never says which October, and
   /// spelling the year out only where it changes left the axis looking ragged,
@@ -130,14 +179,30 @@ class DateAxis {
     DateTime first,
     DateTime last, {
     DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
-  }) {
-    final start = first;
-    var end = last;
-    if (!end.isAfter(start)) {
-      end = start.add(const Duration(days: 1));
-    }
+  }) => DateAxis.forAxisRange(
+    first.millisecondsSinceEpoch.toDouble(),
+    last.millisecondsSinceEpoch.toDouble(),
+    dateFormat: dateFormat,
+  );
 
-    final days = end.difference(start).inDays;
+  /// An axis over positions [min]..[max] under [scale].
+  ///
+  /// Granularity comes from the axis span, which for a collapsed scale is
+  /// the time with dives in it, not the calendar span. With [plotWidth] the
+  /// label step is widened until neighbouring labels cannot touch.
+  factory DateAxis.forAxisRange(
+    double min,
+    double max, {
+    TrendTimeScale scale = TrendTimeScale.identity,
+    double? plotWidth,
+    DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
+  }) {
+    final lo = min;
+    final hi = max > min ? max : min + Duration.millisecondsPerDay;
+
+    // Whole days, as Duration.inDays counted them before the axis took
+    // positions rather than dates.
+    final days = ((hi - lo) / Duration.millisecondsPerDay).floor();
     final granularity = days > 1095
         ? DateAxisGranularity.year
         : days > 365
@@ -146,19 +211,54 @@ class DateAxis {
         ? DateAxisGranularity.month
         : DateAxisGranularity.day;
 
-    final ticks = _ticksFor(start, end, granularity);
-    final minMs = start.millisecondsSinceEpoch.toDouble();
-    final maxMs = end.millisecondsSinceEpoch.toDouble();
-    final steps = ticks.length > 1 ? ticks.length - 1 : 1;
+    final start = scale.toDate(lo);
+    final end = scale.toDate(hi);
+    final candidates =
+        granularity == DateAxisGranularity.day && !scale.isIdentity
+        ? _dayTicksOnAxis(lo, hi, days, scale)
+        : _ticksFor(start, end, granularity);
+    var ticks = [
+      for (final t in candidates)
+        if (!scale.inGap(scale.toAxis(t))) t,
+    ];
+    if (ticks.isEmpty) ticks = [start];
+
+    // The step comes from every candidate, gap ones included: dropping the
+    // ticks a gap swallows must not widen the spacing of the rest.
+    final steps = candidates.length > 1 ? candidates.length - 1 : 1;
+    var interval = (hi - lo) / steps;
+    final width = plotWidth;
+    final hasWidth = width != null && width > 0;
+    if (hasWidth) {
+      final minInterval = (hi - lo) * _minLabelSpacingPx[granularity]! / width;
+      if (minInterval > interval) interval = minInterval;
+    }
 
     return DateAxis(
-      min: minMs,
-      max: maxMs,
-      ticks: ticks,
+      min: lo,
+      max: hi,
+      ticks: List.unmodifiable(ticks),
       granularity: granularity,
-      labelInterval: (maxMs - minMs) / steps,
+      labelInterval: interval,
       dateFormat: dateFormat,
+      scale: scale,
+      axisPerPixel: hasWidth ? (hi - lo) / width : null,
     );
+  }
+
+  /// Day ticks for a collapsed axis, stepped through axis space so the step
+  /// follows the [days] with dives in view rather than the calendar span,
+  /// which can run to years across a gap and leave a single tick.
+  static List<DateTime> _dayTicksOnAxis(
+    double lo,
+    double hi,
+    int days,
+    TrendTimeScale scale,
+  ) {
+    final stepMs =
+        (days <= 5 ? 1 : (days / 5).ceil()) *
+        Duration.millisecondsPerDay.toDouble();
+    return [for (var x = lo; x <= hi; x += stepMs) scale.toDate(x)];
   }
 
   static List<DateTime> _ticksFor(

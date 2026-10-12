@@ -39,15 +39,21 @@ class TrendRange {
 ///
 /// A preset ends at [dataEnd]. A window that would start before the data
 /// starts at the data, and a window with no overlap at all shows everything.
+///
+/// [toAxis] places a date on the chart's x axis; null is epoch milliseconds.
+/// A chart that collapses long gaps (issue #3251) passes its scale's, so the
+/// presets stay calendar-true while the fractions follow the drawn axis.
 ({double start, double end}) trendRangeFractions(
   TrendRange range,
   DateTime dataStart,
-  DateTime dataEnd,
-) {
+  DateTime dataEnd, {
+  double Function(DateTime date)? toAxis,
+}) {
   const everything = (start: 0.0, end: 1.0);
-  final fullMs =
-      dataEnd.millisecondsSinceEpoch - dataStart.millisecondsSinceEpoch;
-  if (fullMs <= 0) return everything;
+  final axis = toAxis ?? (DateTime d) => d.millisecondsSinceEpoch.toDouble();
+  final origin = axis(dataStart);
+  final full = axis(dataEnd) - origin;
+  if (full <= 0) return everything;
 
   final DateTime from;
   final DateTime to;
@@ -66,9 +72,7 @@ class TrendRange {
       from = _presetStart(range.preset, dataEnd);
   }
 
-  double fraction(DateTime d) =>
-      ((d.millisecondsSinceEpoch - dataStart.millisecondsSinceEpoch) / fullMs)
-          .clamp(0.0, 1.0);
+  double fraction(DateTime d) => ((axis(d) - origin) / full).clamp(0.0, 1.0);
   final start = fraction(from);
   final end = fraction(to);
   return end <= start ? everything : (start: start, end: end);

@@ -47,10 +47,12 @@ abstract final class FocusFactorAnalyzer {
 
   static FocusFactorId? _selfFactor(FocusMetric metric) => switch (metric) {
     FocusMetric.maxDepth => FocusFactorId.maxDepth,
+    FocusMetric.avgDepth => FocusFactorId.avgDepth,
     FocusMetric.bottomTime => FocusFactorId.duration,
     FocusMetric.weight => FocusFactorId.weight,
     FocusMetric.waterTemp => FocusFactorId.waterTemp,
-    FocusMetric.rmv || FocusMetric.sac => null,
+    FocusMetric.visibility => FocusFactorId.visibility,
+    _ => null,
   };
 
   static double? _number(FocusFactorId id, FocusFactorRow r) => switch (id) {
@@ -94,18 +96,17 @@ abstract final class FocusFactorAnalyzer {
     final gMean = _mean(g);
     final bMean = _mean(b);
     final sd = _sd(b, bMean);
-    final standsOut =
-        gMean != null &&
-        bMean != null &&
-        sd > 0 &&
-        (gMean - bMean).abs() >= standoutDeviations * sd;
+    final strength = gMean == null || bMean == null || sd <= 0
+        ? 0.0
+        : (gMean - bMean).abs() / sd;
     return NumericFactor(
       id: id,
       groupCovered: g.length,
       groupSize: group.length,
       groupMean: gMean,
       baselineMean: bMean,
-      standsOut: standsOut,
+      standsOut: strength >= standoutDeviations,
+      strength: strength,
     );
   }
 
@@ -160,6 +161,7 @@ abstract final class FocusFactorAnalyzer {
             groupShare: groupShare,
             baselineShare: baselineShare,
             groupCount: e.value,
+            strength: groupShare - baselineShare,
             standsOut:
                 e.value >= standoutMinCount &&
                 groupShare - baselineShare >= standoutSharePoints - 1e-9,

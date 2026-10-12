@@ -21857,6 +21857,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => '行程列表视图';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths => '在趋势图中折叠间隔';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays => '行程前保养提醒天数';
 
   @override
@@ -24689,7 +24692,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_category_progression_subtitle => '深度与时间趋势';
 
   @override
-  String get insights_category_focus_subtitle => '最佳、最差和阈值分组';
+  String get insights_category_focus_subtitle => '你最佳和最差的潜水有什么共同点';
 
   @override
   String get insights_category_progression_title => '进展';
@@ -25012,6 +25015,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_title => '潜水聚焦';
 
   @override
+  String get insights_focus_intro => '看看你的一组潜水有什么共同点。';
+
+  @override
   String get insights_focus_error => '无法加载潜水聚焦';
 
   @override
@@ -25024,7 +25030,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String group,
     String overall,
   ) {
-    return '$total 次潜水中的 $count 次，组内平均 $group，总体 $overall';
+    return '$total 次潜水中的 $count 次。平均 $group，全部潜水为 $overall。';
   }
 
   @override
@@ -25052,16 +25058,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_enterValue => '输入一个数值以查看高于或低于它的潜水';
 
   @override
-  String get insights_focus_chart_title => '该组随时间变化';
+  String insights_focus_chart_title(String metric) {
+    return '$metric随时间变化';
+  }
 
   @override
   String get insights_focus_chart_group => '组内';
 
   @override
-  String get insights_focus_list_title => '组内潜水';
+  String get insights_focus_chart_others => '其他潜水';
+
+  @override
+  String get insights_focus_list_title => '潜水列表';
 
   @override
   String get insights_focus_list_unknownSite => '无潜点';
+
+  @override
+  String insights_focus_list_showAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '显示全部 $count 次潜水',
+      one: '显示这 1 次潜水',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_focus_unit_minutes => '分钟';
@@ -25083,6 +25105,45 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_focus_metric_waterTemp => '水温';
+
+  @override
+  String get insights_focus_metric_gasUsed => '气体消耗量';
+
+  @override
+  String get insights_focus_metric_avgDepth => '平均深度';
+
+  @override
+  String get insights_focus_metric_surfaceInterval => '水面间隔';
+
+  @override
+  String get insights_focus_metric_airTemp => '气温';
+
+  @override
+  String get insights_focus_metric_visibility => '能见度';
+
+  @override
+  String get insights_focus_metric_altitude => '海拔';
+
+  @override
+  String get insights_focus_metric_cns => '结束时 CNS';
+
+  @override
+  String get insights_focus_metric_otu => 'OTU';
+
+  @override
+  String get insights_focus_metricGroup_gas => '气体';
+
+  @override
+  String get insights_focus_metricGroup_depthTime => '深度与时间';
+
+  @override
+  String get insights_focus_metricGroup_conditions => '环境条件';
+
+  @override
+  String get insights_focus_metricGroup_exposure => '氧暴露';
+
+  @override
+  String get insights_focus_metricGroup_kit => '装备';
 
   @override
   String get insights_focus_mode_best => '最佳';
@@ -25109,40 +25170,150 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_count_error => '请输入 1 到 999 之间的整数';
 
   @override
-  String get insights_focus_threshold_label => '数值';
-
-  @override
   String get insights_focus_threshold_error => '请输入数字';
 
   @override
   String get insights_focus_threshold_negativeError => '请输入零或更大的数';
 
   @override
-  String get insights_focus_factors_title => '共同因素';
+  String insights_focus_sentence_ranked(
+    String count,
+    String mode,
+    String metric,
+  ) {
+    return '显示$metric$mode的 $count 次潜水';
+  }
 
   @override
-  String get insights_focus_factors_subtitle => '此组与所有具有该数值的潜水对比';
+  String insights_focus_sentence_threshold(
+    String metric,
+    String mode,
+    String value,
+  ) {
+    return '显示$metric$mode $value 的潜水';
+  }
 
   @override
-  String get insights_focus_factors_tooFew => '至少选择 3 次潜水才能比较共同因素';
+  String get insights_focus_count_custom => '自定义…';
+
+  @override
+  String get insights_focus_count_dialogTitle => '多少次潜水？';
+
+  @override
+  String get insights_focus_comparison_title => '完整对比';
+
+  @override
+  String insights_focus_comparison_subtitle(String metric) {
+    return '“全部潜水”指当前筛选中所有具有$metric数值的潜水';
+  }
+
+  @override
+  String get insights_focus_column_these => '这些潜水';
+
+  @override
+  String get insights_focus_column_all => '全部潜水';
+
+  @override
+  String get insights_focus_column_difference => '差异';
+
+  @override
+  String insights_focus_comparison_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '显示另外 $count 项因素',
+      one: '显示另外 1 项因素',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_focus_factors_standsOut => '突出';
 
   @override
-  String insights_focus_factors_standoutsSummary(String factors) {
-    return '突出：$factors';
-  }
-
-  @override
-  String insights_focus_factors_versus(String group, String baseline) {
-    return '$group 对比 $baseline';
-  }
-
-  @override
   String insights_focus_factors_coverage(int covered, int total) {
     return '$total 次中的 $covered 次';
   }
+
+  @override
+  String get insights_focus_standouts_title => '突出之处';
+
+  @override
+  String get insights_focus_standouts_none => '这些潜水没有突出之处。';
+
+  @override
+  String get insights_focus_standouts_tooFew => '至少选择 3 次潜水才能查看共同点';
+
+  @override
+  String insights_focus_standouts_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '完整对比中还有 $count 项',
+      one: '完整对比中还有 1 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_focus_standouts_categoryAll(
+    int count,
+    String value,
+    String baseline,
+  ) {
+    return '全部 $count 次均为$value（占你全部潜水的 $baseline）';
+  }
+
+  @override
+  String insights_focus_standouts_categorySome(
+    int count,
+    int total,
+    String value,
+    String baseline,
+  ) {
+    return '$total 次中有 $count 次为$value，而全部潜水中为 $baseline';
+  }
+
+  @override
+  String insights_focus_standouts_numeric(
+    String factor,
+    String difference,
+    String direction,
+    String group,
+    String baseline,
+  ) {
+    return '$factor$direction $difference（$group 对比 $baseline）';
+  }
+
+  @override
+  String get insights_focus_direction_deeper => '深';
+
+  @override
+  String get insights_focus_direction_shallower => '浅';
+
+  @override
+  String get insights_focus_direction_longer => '长';
+
+  @override
+  String get insights_focus_direction_shorter => '短';
+
+  @override
+  String get insights_focus_direction_warmer => '暖';
+
+  @override
+  String get insights_focus_direction_colder => '冷';
+
+  @override
+  String get insights_focus_direction_larger => '大';
+
+  @override
+  String get insights_focus_direction_smaller => '小';
+
+  @override
+  String get insights_focus_direction_moreLead => '配重多';
+
+  @override
+  String get insights_focus_direction_lessLead => '配重少';
 
   @override
   String get insights_focus_factorGroup_diveShape => '潜水形态';
@@ -31499,6 +31670,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_showProfilePanel_subtitle => '默认在表格上方显示潜水剖面图';
+
+  @override
+  String get settings_appearance_trendGaps => '在趋势图中折叠间隔';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle => '将长时间未潜水的时段显示为窄的斜线带';
 
   @override
   String get settings_appearance_mapStyle => '地图样式';
@@ -45311,6 +45488,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => '每周平均';
+
+  @override
+  String get insights_trend_gaps_menuHeader => '折叠间隔';
+
+  @override
+  String get insights_trend_gaps_off => '关闭';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 个月';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 年';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 年';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years年';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months个月';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years年$months个月';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return '无潜水：$start 至 $end';
+  }
 
   @override
   String get insights_trend_legend_rate => '总体趋势';
