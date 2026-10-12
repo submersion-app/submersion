@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_legend_entries.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -26,6 +29,7 @@ Future<List<ActiveLegendEntry>> _entries(
   WidgetTester tester, {
   required ProfileLegendConfig config,
   required ProfileLegendState state,
+  ProfileMetricColorOverrides overrides = ProfileMetricColorOverrides.none,
 }) async {
   late List<ActiveLegendEntry> result;
   await tester.pumpWidget(
@@ -35,7 +39,15 @@ Future<List<ActiveLegendEntry>> _entries(
       supportedLocales: AppLocalizations.supportedLocales,
       home: Builder(
         builder: (context) {
-          result = activeLegendEntries(context, config: config, state: state);
+          result = activeLegendEntries(
+            context,
+            config: config,
+            state: state,
+            palette: ProfileMetricPalette(
+              overrides: overrides,
+              temperatureAuto: Theme.of(context).colorScheme.tertiary,
+            ),
+          );
           return const SizedBox.shrink();
         },
       ),
@@ -46,6 +58,58 @@ Future<List<ActiveLegendEntry>> _entries(
 
 void main() {
   group('activeLegendEntries', () {
+    testWidgets('a chosen colour reaches its entry (issue #3012)', (
+      tester,
+    ) async {
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(hasPpO2Data: true),
+        state: const ProfileLegendState(showPpO2: true),
+        overrides: ProfileMetricColorOverrides.none.withColor(
+          ProfileMetric.ppO2,
+          const Color(0xFFE040FB),
+        ),
+      );
+      expect(
+        entries.singleWhere((e) => e.label == 'ppO2').color,
+        const Color(0xFFE040FB),
+      );
+    });
+
+    testWidgets('a chosen pressure colour colours a single tank, not '
+        'several', (tester) async {
+      final overrides = ProfileMetricColorOverrides.none.withColor(
+        ProfileMetric.pressure,
+        const Color(0xFF00E676),
+      );
+      final single = await _entries(
+        tester,
+        config: ProfileLegendConfig(
+          hasMultiTankPressure: true,
+          tanks: [_tanks.first],
+          tankPressures: {'tank-1': _tankPressures['tank-1']!},
+        ),
+        state: const ProfileLegendState(showPressure: true),
+        overrides: overrides,
+      );
+      expect(single.map((e) => e.color), contains(const Color(0xFF00E676)));
+
+      final several = await _entries(
+        tester,
+        config: const ProfileLegendConfig(
+          hasMultiTankPressure: true,
+          tanks: _tanks,
+          tankPressures: _tankPressures,
+        ),
+        state: const ProfileLegendState(showPressure: true),
+        overrides: overrides,
+      );
+      expect(
+        several.map((e) => e.color),
+        isNot(contains(const Color(0xFF00E676))),
+      );
+    });
+
     testWidgets('lists only metrics that are both available and switched on', (
       tester,
     ) async {

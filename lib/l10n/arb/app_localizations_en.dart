@@ -20247,6 +20247,64 @@ class AppLocalizationsEn extends AppLocalizations {
       'Default Visible Metrics';
 
   @override
+  String get settings_appearance_metricColors => 'Metric Colors';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Default colors';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count customized',
+      one: '$count customized',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Reset all';
+
+  @override
+  String get settings_metricColors_resetAllTitle => 'Reset metric colors?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Every metric goes back to its default color.';
+
+  @override
+  String get settings_metricColors_reset => 'Reset';
+
+  @override
+  String get settings_metricColors_default => 'Default';
+
+  @override
+  String get settings_metricColors_auto => 'Auto';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'Auto: follows the theme';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Auto: each gas has its own color';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Used on single-tank dives';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return '$metric color';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Swaps with $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Standard Metrics';
 
@@ -22724,6 +22782,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Collapse gaps in trend charts';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Profile color: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>

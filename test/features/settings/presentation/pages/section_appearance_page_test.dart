@@ -5,6 +5,8 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -39,6 +41,40 @@ Widget _buildTestWidget(
 
 void main() {
   group('SectionAppearancePage - Dives section', () {
+    testWidgets('Dive Profile has a Metric Colors tile with a summary '
+        '(issue #3012)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+      expect(find.text('Metric Colors'), findsOneWidget);
+      expect(find.text('Default colors'), findsOneWidget);
+    });
+
+    testWidgets('the Metric Colors tile counts customised metrics', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          'dives',
+          notifier: MockSettingsNotifier(
+            AppSettings(
+              profileMetricColors: ProfileMetricColorOverrides.none.withColor(
+                ProfileMetric.ppO2,
+                const Color(0xFFE040FB),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('1 customized'), findsOneWidget);
+    });
+
     testWidgets('shows all 5 section headers and dive-specific settings', (
       tester,
     ) async {
@@ -1098,6 +1134,54 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(pushedPath, '/settings/default-metrics');
+    });
+
+    testWidgets('metric colors tile navigates to metric-colors (issue #3012)', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      String? pushedPath;
+      final router = GoRouter(
+        initialLocation: '/settings/section',
+        routes: [
+          GoRoute(
+            path: '/settings/section',
+            builder: (context, state) =>
+                const SectionAppearancePage(sectionKey: 'dives'),
+          ),
+          GoRoute(
+            path: '/settings/metric-colors',
+            builder: (context, state) {
+              pushedPath = state.uri.toString();
+              return const SizedBox();
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Find and tap the visible metrics tile (has visibility icon)
+      final colorsTile = find.widgetWithIcon(ListTile, Icons.palette_outlined);
+      expect(colorsTile, findsOneWidget);
+      await tester.tap(colorsTile);
+      await tester.pumpAndSettle();
+
+      expect(pushedPath, '/settings/metric-colors');
     });
 
     testWidgets('dive detail sections tile navigates to detail-sections', (

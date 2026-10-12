@@ -2,7 +2,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart'
     show DecimatedCurveIndices, SurfaceValueOf, WithSurfaceLeadIn;
 
@@ -60,6 +59,7 @@ LineChartBarData _buildPartialPressureLine({
 }
 
 LineChartBarData buildPpO2Line(
+  Color color,
   MetricBand band,
   List<double> ppO2Curve,
   double ppO2MaxScale,
@@ -71,7 +71,7 @@ LineChartBarData buildPpO2Line(
   band: band,
   curve: ppO2Curve,
   maxScale: ppO2MaxScale,
-  color: ProfileMetricColors.ppO2,
+  color: color,
   profile: profile,
   decimatedCurveIndices: decimatedCurveIndices,
   withSurfaceLeadIn: withSurfaceLeadIn,
@@ -80,6 +80,7 @@ LineChartBarData buildPpO2Line(
 
 /// Build ppN2 (partial pressure of nitrogen) line
 LineChartBarData buildPpN2Line(
+  Color color,
   MetricBand band,
   List<double> ppN2Curve,
   double ppN2MaxScale,
@@ -91,7 +92,7 @@ LineChartBarData buildPpN2Line(
   band: band,
   curve: ppN2Curve,
   maxScale: ppN2MaxScale,
-  color: ProfileMetricColors.ppN2,
+  color: color,
   profile: profile,
   decimatedCurveIndices: decimatedCurveIndices,
   withSurfaceLeadIn: withSurfaceLeadIn,
@@ -102,6 +103,7 @@ LineChartBarData buildPpN2Line(
 /// filterAtOrBelow 0.001 means a non-trimix dive (ppHe ~0 throughout) draws
 /// nothing at all, and the lead-in is skipped with it.
 LineChartBarData buildPpHeLine(
+  Color color,
   MetricBand band,
   List<double> ppHeCurve,
   double ppHeMaxScale,
@@ -113,7 +115,7 @@ LineChartBarData buildPpHeLine(
   band: band,
   curve: ppHeCurve,
   maxScale: ppHeMaxScale,
-  color: ProfileMetricColors.ppHe,
+  color: color,
   profile: profile,
   decimatedCurveIndices: decimatedCurveIndices,
   withSurfaceLeadIn: withSurfaceLeadIn,

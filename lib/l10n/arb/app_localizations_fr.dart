@@ -20610,6 +20610,65 @@ class AppLocalizationsFr extends AppLocalizations {
       'Métriques visibles par défaut';
 
   @override
+  String get settings_appearance_metricColors => 'Couleurs des métriques';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Couleurs par défaut';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personnalisées',
+      one: '$count personnalisée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Tout réinitialiser';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Réinitialiser les couleurs des métriques ?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Chaque métrique reprend sa couleur par défaut.';
+
+  @override
+  String get settings_metricColors_reset => 'Réinitialiser';
+
+  @override
+  String get settings_metricColors_default => 'Par défaut';
+
+  @override
+  String get settings_metricColors_auto => 'Auto';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'Auto : suit le thème';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Auto : chaque gaz a sa propre couleur';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Utilisée pour les plongées à un seul bloc';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'Couleur de $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'S\'échange avec $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Métriques standard';
 
@@ -23190,6 +23249,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Réduire les pauses dans les graphiques de tendance';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Couleur du profil : $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>

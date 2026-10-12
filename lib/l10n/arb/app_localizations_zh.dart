@@ -19545,6 +19545,59 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_subsection_defaultVisibleMetrics => '默认可见指标';
 
   @override
+  String get settings_appearance_metricColors => '指标颜色';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault => '默认颜色';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已自定义 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => '全部重置';
+
+  @override
+  String get settings_metricColors_resetAllTitle => '重置指标颜色？';
+
+  @override
+  String get settings_metricColors_resetAllBody => '每个指标都将恢复默认颜色。';
+
+  @override
+  String get settings_metricColors_reset => '重置';
+
+  @override
+  String get settings_metricColors_default => '默认';
+
+  @override
+  String get settings_metricColors_auto => '自动';
+
+  @override
+  String get settings_metricColors_autoTemperature => '自动：跟随主题';
+
+  @override
+  String get settings_metricColors_autoPressure => '自动：每种气体有各自的颜色';
+
+  @override
+  String get settings_metricColors_pressureCustom => '用于单气瓶潜水';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return '$metric颜色';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return '与$metric互换';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics => '标准指标';
 
   @override
@@ -21852,6 +21905,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_trendGapCollapseMonths => '在趋势图中折叠间隔';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return '剖面颜色：$metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays => '行程前保养提醒天数';

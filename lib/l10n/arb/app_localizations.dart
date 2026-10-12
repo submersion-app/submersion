@@ -32941,6 +32941,90 @@ abstract class AppLocalizations {
   /// **'Default Visible Metrics'**
   String get settings_appearance_subsection_defaultVisibleMetrics;
 
+  /// No description provided for @settings_appearance_metricColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric Colors'**
+  String get settings_appearance_metricColors;
+
+  /// No description provided for @settings_appearance_metricColors_subtitleDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default colors'**
+  String get settings_appearance_metricColors_subtitleDefault;
+
+  /// No description provided for @settings_appearance_metricColors_subtitleCustomized.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} customized} other{{count} customized}}'**
+  String settings_appearance_metricColors_subtitleCustomized(int count);
+
+  /// No description provided for @settings_metricColors_resetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all'**
+  String get settings_metricColors_resetAll;
+
+  /// No description provided for @settings_metricColors_resetAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset metric colors?'**
+  String get settings_metricColors_resetAllTitle;
+
+  /// No description provided for @settings_metricColors_resetAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every metric goes back to its default color.'**
+  String get settings_metricColors_resetAllBody;
+
+  /// No description provided for @settings_metricColors_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get settings_metricColors_reset;
+
+  /// No description provided for @settings_metricColors_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settings_metricColors_default;
+
+  /// No description provided for @settings_metricColors_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get settings_metricColors_auto;
+
+  /// No description provided for @settings_metricColors_autoTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: follows the theme'**
+  String get settings_metricColors_autoTemperature;
+
+  /// No description provided for @settings_metricColors_autoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: each gas has its own color'**
+  String get settings_metricColors_autoPressure;
+
+  /// No description provided for @settings_metricColors_pressureCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Used on single-tank dives'**
+  String get settings_metricColors_pressureCustom;
+
+  /// No description provided for @settings_metricColors_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric} color'**
+  String settings_metricColors_sheetTitle(String metric);
+
+  /// No description provided for @settings_metricColors_swapsWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Swaps with {metric}'**
+  String settings_metricColors_swapsWith(String metric);
+
   /// No description provided for @settings_appearance_subsection_standardMetrics.
   ///
   /// In en, this message translates to:
@@ -37163,6 +37247,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Collapse gaps in trend charts'**
   String get settings_conflict_field_trendGapCollapseMonths;
+
+  /// No description provided for @settings_conflict_field_profileColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile color: {metric}'**
+  String settings_conflict_field_profileColor(String metric);
 
   /// No description provided for @settings_conflict_field_tripServiceLeadDays.
   ///

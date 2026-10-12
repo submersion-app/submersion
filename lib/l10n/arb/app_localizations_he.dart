@@ -20093,6 +20093,63 @@ class AppLocalizationsHe extends AppLocalizations {
       'מדדים גלויים כברירת מחדל';
 
   @override
+  String get settings_appearance_metricColors => 'צבעי מדדים';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'צבעי ברירת מחדל';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מותאמים',
+      one: '$count מותאם',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'איפוס הכול';
+
+  @override
+  String get settings_metricColors_resetAllTitle => 'לאפס את צבעי המדדים?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'כל מדד יחזור לצבע ברירת המחדל שלו.';
+
+  @override
+  String get settings_metricColors_reset => 'איפוס';
+
+  @override
+  String get settings_metricColors_default => 'ברירת מחדל';
+
+  @override
+  String get settings_metricColors_auto => 'אוטומטי';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'אוטומטי: לפי ערכת הנושא';
+
+  @override
+  String get settings_metricColors_autoPressure => 'אוטומטי: לכל גז צבע משלו';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'בשימוש בצלילות עם מכל אחד';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'הצבע של $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'מתחלף עם $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'מדדים סטנדרטיים';
 
@@ -22531,6 +22588,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'כיווץ פערים בתרשימי מגמה';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'צבע פרופיל: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>

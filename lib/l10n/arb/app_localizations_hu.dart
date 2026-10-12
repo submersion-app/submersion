@@ -20482,6 +20482,65 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alapértelmezett látható metrikák';
 
   @override
+  String get settings_appearance_metricColors => 'Metrikák színei';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Alapértelmezett színek';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count testreszabva',
+      one: '$count testreszabva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Összes visszaállítása';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Visszaállítod a metrikák színeit?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Minden metrika visszakapja az alapértelmezett színét.';
+
+  @override
+  String get settings_metricColors_reset => 'Visszaállítás';
+
+  @override
+  String get settings_metricColors_default => 'Alapértelmezett';
+
+  @override
+  String get settings_metricColors_auto => 'Automatikus';
+
+  @override
+  String get settings_metricColors_autoTemperature =>
+      'Automatikus: a témát követi';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Automatikus: minden gáznak saját színe van';
+
+  @override
+  String get settings_metricColors_pressureCustom => 'Egypalackos merülésekhez';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return '$metric színe';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Csere ezzel: $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Szabványos metrikák';
 
@@ -23017,6 +23076,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Szünetek összevonása a trenddiagramokon';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Profilszín: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>

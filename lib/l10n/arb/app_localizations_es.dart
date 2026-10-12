@@ -20553,6 +20553,66 @@ class AppLocalizationsEs extends AppLocalizations {
       'Métricas visibles predeterminadas';
 
   @override
+  String get settings_appearance_metricColors => 'Colores de las métricas';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Colores predeterminados';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personalizados',
+      one: '$count personalizado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Restablecer todo';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      '¿Restablecer los colores de las métricas?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Cada métrica vuelve a su color predeterminado.';
+
+  @override
+  String get settings_metricColors_reset => 'Restablecer';
+
+  @override
+  String get settings_metricColors_default => 'Predeterminado';
+
+  @override
+  String get settings_metricColors_auto => 'Automático';
+
+  @override
+  String get settings_metricColors_autoTemperature =>
+      'Automático: sigue el tema';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Automático: cada gas tiene su propio color';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Se usa en inmersiones con una sola botella';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'Color de $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Se intercambia con $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Métricas estándar';
 
@@ -23135,6 +23195,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Contraer pausas en los gráficos de tendencia';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Color del perfil: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>

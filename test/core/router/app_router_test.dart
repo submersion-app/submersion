@@ -34,6 +34,7 @@ import 'package:submersion/features/settings/presentation/pages/site_detail_sect
 import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -712,6 +713,22 @@ void main() {
       );
       final columnWidget = columnRoute!.builder!(context, columnState);
       expect(columnWidget, isA<ColumnConfigPage>());
+
+      // Metric colors route (issue #3012)
+      final colorsRoute = _findRouteByName(config.routes, 'metricColors');
+      expect(colorsRoute, isNotNull);
+      final colorsState = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/metric-colors'),
+        matchedLocation: '/settings/metric-colors',
+        fullPath: '/settings/metric-colors',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/metric-colors'),
+      );
+      expect(
+        colorsRoute!.builder!(context, colorsState),
+        isA<ProfileMetricColorsPage>(),
+      );
     });
   });
 

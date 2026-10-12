@@ -1,4 +1,5 @@
 import 'package:submersion/features/settings/presentation/conflicts/conflict_enum_labels.dart';
+import 'package:submersion/features/settings/presentation/conflicts/catalogue/profile_color_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 
 /// Conflict labels and value kinds for the diver's settings (#694). Generated from a
@@ -599,6 +600,7 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.enumValue,
     enumLabel: weightUnitLabeler,
   ),
+  ...profileColorConflictFields,
 };
 
 /// Columns whose meaning depends on the entity, keyed `entity.column`.

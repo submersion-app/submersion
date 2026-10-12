@@ -20808,6 +20808,67 @@ class AppLocalizationsAr extends AppLocalizations {
       'المقاييس المرئية الافتراضية';
 
   @override
+  String get settings_appearance_metricColors => 'ألوان المقاييس';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'الألوان الافتراضية';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مقياس مخصص',
+      many: '$count مقياسًا مخصصًا',
+      few: '$count مقاييس مخصصة',
+      two: 'مقياسان مخصصان',
+      one: 'مقياس واحد مخصص',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'إعادة تعيين الكل';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'إعادة تعيين ألوان المقاييس؟';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'يعود كل مقياس إلى لونه الافتراضي.';
+
+  @override
+  String get settings_metricColors_reset => 'إعادة تعيين';
+
+  @override
+  String get settings_metricColors_default => 'افتراضي';
+
+  @override
+  String get settings_metricColors_auto => 'تلقائي';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'تلقائي: يتبع السمة';
+
+  @override
+  String get settings_metricColors_autoPressure => 'تلقائي: لكل غاز لونه الخاص';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'يُستخدم في الغطسات بأسطوانة واحدة';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'لون $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'يتبادل مع $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'المقاييس القياسية';
 
@@ -23300,6 +23361,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'طي الفجوات في مخططات الاتجاه';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'لون ملف الغوصة: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>

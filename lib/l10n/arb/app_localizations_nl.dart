@@ -20418,6 +20418,66 @@ class AppLocalizationsNl extends AppLocalizations {
       'Standaard zichtbare metrieken';
 
   @override
+  String get settings_appearance_metricColors => 'Kleuren van metrieken';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Standaardkleuren';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aangepast',
+      one: '$count aangepast',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Alles herstellen';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Kleuren van metrieken herstellen?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Elke metriek krijgt weer zijn standaardkleur.';
+
+  @override
+  String get settings_metricColors_reset => 'Herstellen';
+
+  @override
+  String get settings_metricColors_default => 'Standaard';
+
+  @override
+  String get settings_metricColors_auto => 'Automatisch';
+
+  @override
+  String get settings_metricColors_autoTemperature =>
+      'Automatisch: volgt het thema';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Automatisch: elk gas heeft een eigen kleur';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Gebruikt bij duiken met één fles';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'Kleur van $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Wisselt met $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Standaardmetrieken';
 
@@ -22969,6 +23029,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Pauzes in trendgrafieken inkorten';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Profielkleur: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
