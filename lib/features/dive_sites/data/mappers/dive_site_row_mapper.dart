@@ -45,5 +45,6 @@ domain.DiveSite mapDiveSiteRow(DiveSite row) {
         ? null
         : EntryMethod.values.asNameMap()[row.exitMethod],
     isShared: row.isShared,
+    sharedLibraryId: row.sharedLibraryId,
   );
 }

@@ -175,6 +175,7 @@ class SiteRepository {
                 entryMethod: Value(site.entryMethod?.name),
                 exitMethod: Value(site.exitMethod?.name),
                 isShared: Value(site.isShared),
+                sharedLibraryId: Value(site.sharedLibraryId),
                 createdAt: Value(now),
                 updatedAt: Value(now),
               ),
@@ -1411,6 +1412,7 @@ class SiteRepository {
         entryMethod: Value(site.entryMethod?.name),
         exitMethod: Value(site.exitMethod?.name),
         isShared: Value(site.isShared),
+        sharedLibraryId: Value(site.sharedLibraryId),
         updatedAt: Value(now),
       ),
     );

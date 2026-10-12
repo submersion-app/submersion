@@ -64,6 +64,10 @@ class DiveSite extends Equatable {
   final EntryMethod? exitMethod;
   final bool isShared;
 
+  /// The club library this site belongs to (issue #2567); null for a
+  /// personal site.
+  final String? sharedLibraryId;
+
   const DiveSite({
     required this.id,
     this.diverId,
@@ -90,7 +94,11 @@ class DiveSite extends Equatable {
     this.entryMethod,
     this.exitMethod,
     this.isShared = false,
+    this.sharedLibraryId,
   });
+
+  /// Whether this site belongs to a club library (issue #2567).
+  bool get isLibrarySite => sharedLibraryId != null;
 
   /// The town a site belongs to: its [city], falling back to its [island],
   /// trimmed; empty when neither is set.
@@ -158,6 +166,8 @@ class DiveSite extends Equatable {
     EntryMethod? entryMethod,
     EntryMethod? exitMethod,
     bool? isShared,
+    String? sharedLibraryId,
+    bool clearSharedLibraryId = false,
   }) {
     return DiveSite(
       id: id ?? this.id,
@@ -185,6 +195,9 @@ class DiveSite extends Equatable {
       entryMethod: entryMethod ?? this.entryMethod,
       exitMethod: exitMethod ?? this.exitMethod,
       isShared: isShared ?? this.isShared,
+      sharedLibraryId: clearSharedLibraryId
+          ? null
+          : (sharedLibraryId ?? this.sharedLibraryId),
     );
   }
 
@@ -215,6 +228,7 @@ class DiveSite extends Equatable {
     entryMethod,
     exitMethod,
     isShared,
+    sharedLibraryId,
   ];
 }
 
