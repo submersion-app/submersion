@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -88,6 +89,18 @@ void main() {
       );
     });
 
+    test('a row whose cloud file is gone is not adopted', () async {
+      // Another device deleted it after the page listed it; adopting it would
+      // leave a pinned record that can never be restored or pruned.
+      final files = await service().getCloudBackups();
+      final stale = backupRecordFromCloudFile(files.single)!;
+      await cloud.deleteFile(_cloudName);
+
+      await service().pinRecord(stale);
+
+      expect(preferences.getHistory(), isEmpty);
+    });
+
     test('pinning a tracked record pins it in place', () async {
       final tracked = BackupRecord(
         id: 'tracked',
@@ -121,6 +134,25 @@ void main() {
       await service().pinRecord(gone);
 
       expect(preferences.getHistory(), isEmpty);
+    });
+  });
+
+  group('deleteBackup on a cloud-only row', () {
+    test('deletes the cloud file', () async {
+      final files = await service().getCloudBackups();
+      await service().deleteBackup(backupRecordFromCloudFile(files.single)!);
+      expect(await cloud.fileExists(_cloudName), isFalse);
+    });
+
+    test('a failed cloud delete is reported, not swallowed', () async {
+      // The cloud file is all there is: removing the (absent) record and
+      // reporting success would leave the row to reappear on the next visit.
+      final files = await service().getCloudBackups();
+      cloud.failDeletes = true;
+      await expectLater(
+        service().deleteBackup(backupRecordFromCloudFile(files.single)!),
+        throwsA(isA<CloudStorageException>()),
+      );
     });
   });
 

@@ -26,6 +26,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/pump_until.dart';
 
@@ -291,18 +292,21 @@ void main() {
       // After a fresh install the history lists cloud backups it has no record
       // of (issue #3214); pinning one is how the diver keeps it tracked.
       await backupPrefs.setHistory(const []);
+      const name = 'submersion_backup_2026-03-14_093015.db';
+      final cloud = FakeCloudStorageProvider()
+        ..seedFile(name, Uint8List.fromList(List.filled(2048, 1)));
       final cloudOnly = BackupRecord(
-        id: 'cloud:x',
-        filename: 'submersion_backup_2026-03-14_093015.db',
+        id: 'cloud:$name',
+        filename: name,
         timestamp: _kNow,
         sizeBytes: 2048,
         location: BackupLocation.cloud,
-        cloudFileId: 'x',
+        cloudFileId: name,
       );
       final service = BackupService(
         dbAdapter: _FakeBackupDatabaseAdapter(),
         preferences: backupPrefs,
-        cloudProvider: null,
+        cloudProvider: cloud,
       );
 
       tester.view.physicalSize = const Size(1200, 2400);
@@ -319,8 +323,8 @@ void main() {
       await tester.pumpAndSettle();
 
       final adopted = backupPrefs.getHistory().single;
-      expect(adopted.id, 'cloud:x');
-      expect(adopted.cloudFileId, 'x');
+      expect(adopted.id, 'cloud:$name');
+      expect(adopted.cloudFileId, name);
       expect(adopted.pinned, isTrue);
     });
 

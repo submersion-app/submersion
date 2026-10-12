@@ -1137,7 +1137,12 @@ class BackupService {
         _log.info('Deleted cloud file: ${record.cloudFileId}');
       } catch (e, stack) {
         _log.error('Failed to delete cloud file', error: e, stackTrace: stack);
-        // Continue with removing the record even if cloud delete fails
+        // A cloud backup the history does not track (a row listed from the
+        // cloud folder, issue #3214) has nothing else to delete: carrying on
+        // would report success while the file stays. A tracked record is
+        // still removed even if cloud delete fails.
+        final tracked = _preferences.getHistory().any((r) => r.id == record.id);
+        if (record.localPath == null && !tracked) rethrow;
       }
     }
 
@@ -1156,13 +1161,17 @@ class BackupService {
   /// the history has no record of (a row from `mergeCloudBackups`, issue
   /// #3214). Adopted pinned, it stays exempt from retention.
   ///
-  /// Only a record with a cloud copy is adopted: an unknown local record is
-  /// one that has since been deleted or pruned, and a stale tile must not
-  /// bring it back.
+  /// Only a record whose cloud copy still exists is adopted: an unknown local
+  /// record is one that has since been deleted or pruned, and a cloud file
+  /// another device deleted after the listing would become a pinned record
+  /// that can never be restored or pruned.
   Future<void> pinRecord(BackupRecord record) async {
     final tracked = _preferences.getHistory().any((r) => r.id == record.id);
     if (tracked) return pinBackup(record.id);
-    if (record.cloudFileId == null) return;
+    final cloudFileId = record.cloudFileId;
+    final provider = _cloudProvider;
+    if (cloudFileId == null || provider == null) return;
+    if (!await provider.fileExists(cloudFileId)) return;
     await _preferences.addRecord(record.copyWith(pinned: true));
   }
 

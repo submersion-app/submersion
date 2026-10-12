@@ -64,10 +64,14 @@ List<BackupRecord> mergeCloudBackups(
     for (final r in history) p.basenameWithoutExtension(r.filename),
   };
 
+  // `add` returns false for an id already seen: a legacy Drive file with two
+  // parents comes back from two of the duplicate-folder queries.
+  final seenIds = <String>{};
   final discovered = [
     for (final file in cloudFiles)
       if (!knownIds.contains(file.id) &&
-          !knownStems.contains(p.basenameWithoutExtension(file.name)))
+          !knownStems.contains(p.basenameWithoutExtension(file.name)) &&
+          seenIds.add(file.id))
         ?backupRecordFromCloudFile(file),
   ];
   if (discovered.isEmpty) return history;

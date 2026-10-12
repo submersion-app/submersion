@@ -142,6 +142,13 @@ void main() {
       expect(merged, history);
     });
 
+    test('a file listed twice becomes one row', () {
+      // A legacy Drive file with two parents is returned by two of the
+      // duplicate-folder queries.
+      final file = _file('submersion_backup_2026-03-14_093015.db', id: 'x');
+      expect(mergeCloudBackups(const [], [file, file]), hasLength(1));
+    });
+
     test('sorts the merged list newest first', () {
       final history = [
         _tracked(
