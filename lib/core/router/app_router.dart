@@ -479,7 +479,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final ids =
                       (state.extra as List<dynamic>?)?.cast<String>() ??
                       const <String>[];
-                  return BulkDiveEditPage(diveIds: ids);
+                  return BulkDiveEditPage(
+                    diveIds: ids,
+                    popOnSave: state.uri.queryParameters['return'] == 'pop',
+                  );
                 },
               ),
               GoRoute(

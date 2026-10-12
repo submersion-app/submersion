@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -1033,7 +1034,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   Future<BulkActionOutcome> _openBulkEdit() async {
     final ids = _selectedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
-    await context.pushNamed('bulkEditDives', extra: ids);
+    // A list pushed over another page (a site's dives, say) has the form
+    // come back to it on save; a go('/dives') would erase that page (#3292).
+    await context.pushNamed(
+      'bulkEditDives',
+      queryParameters: isPushedRoute(context)
+          ? const {'return': 'pop'}
+          : const {},
+      extra: ids,
+    );
     return BulkActionOutcome.completed;
   }
 

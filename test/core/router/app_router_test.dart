@@ -40,6 +40,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
 GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
@@ -1843,6 +1844,41 @@ void main() {
       expect(pageFor(ret).returnTo, same(ret));
       expect(pageFor(null).returnTo, isNull);
       expect(pageFor('unrelated').returnTo, isNull);
+    });
+  });
+
+  group('bulk edit route (#3292)', () {
+    testWidgets('return=pop tells the form to pop on save', (tester) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      BulkDiveEditPage pageAt(String location) {
+        final state = GoRouterState(
+          router.configuration,
+          uri: Uri.parse(location),
+          matchedLocation: Uri.parse(location).path,
+          fullPath: '/dives/bulk-edit',
+          pathParameters: const {},
+          extra: const ['d1'],
+          pageKey: ValueKey(location),
+        );
+        return _findRouteByName(
+              router.configuration.routes,
+              'bulkEditDives',
+            )!.builder!(capturedContext, state)
+            as BulkDiveEditPage;
+      }
+
+      expect(pageAt('/dives/bulk-edit?return=pop').popOnSave, isTrue);
+      expect(pageAt('/dives/bulk-edit').popOnSave, isFalse);
     });
   });
 }
