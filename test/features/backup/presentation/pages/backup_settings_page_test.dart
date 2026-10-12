@@ -9,6 +9,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/pump_until.dart';
 
@@ -211,7 +213,10 @@ void main() {
       if (tempDir.existsSync()) await tempDir.delete(recursive: true);
     });
 
-    Widget buildApp(BackupService service) {
+    Widget buildApp(
+      BackupService service, {
+      List<BackupRecord> Function()? history,
+    }) {
       return ProviderScope(
         overrides: [
           localeProvider.overrideWithValue('en'),
@@ -220,7 +225,7 @@ void main() {
           cloudStorageProviderProvider.overrideWithValue(null),
           quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           backupHistoryProvider.overrideWith(
-            (ref) async => backupPrefs.getHistory(),
+            (ref) async => (history ?? backupPrefs.getHistory)(),
           ),
         ],
         child: const MaterialApp(
@@ -279,6 +284,85 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(backupPrefs.getHistory().single.pinned, isFalse);
+    });
+
+    testWidgets('pinning a cloud backup with no record adopts it', (
+      tester,
+    ) async {
+      // After a fresh install the history lists cloud backups it has no record
+      // of (issue #3214); pinning one is how the diver keeps it tracked.
+      await backupPrefs.setHistory(const []);
+      const name = 'submersion_backup_2026-03-14_093015.db';
+      final cloud = FakeCloudStorageProvider()
+        ..seedFile(name, Uint8List.fromList(List.filled(2048, 1)));
+      final cloudOnly = BackupRecord(
+        id: 'cloud:$name',
+        filename: name,
+        timestamp: _kNow,
+        sizeBytes: 2048,
+        location: BackupLocation.cloud,
+        cloudFileId: name,
+      );
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: backupPrefs,
+        cloudProvider: cloud,
+      );
+
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(buildApp(service, history: () => [cloudOnly]));
+      await tester.pumpAndSettle();
+
+      expect(find.text('In cloud storage (2.0 KB)'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.push_pin_outlined));
+      await tester.pumpAndSettle();
+
+      final adopted = backupPrefs.getHistory().single;
+      expect(adopted.id, 'cloud:$name');
+      expect(adopted.cloudFileId, name);
+      expect(adopted.pinned, isTrue);
+    });
+
+    testWidgets('deleting a cloud-only row warns it may be another '
+        'device\'s copy', (tester) async {
+      await backupPrefs.setHistory(const []);
+      final cloudOnly = BackupRecord(
+        id: 'cloud:x',
+        filename: 'submersion_backup_2026-03-14_093015.db',
+        timestamp: _kNow,
+        sizeBytes: 2048,
+        location: BackupLocation.cloud,
+        cloudFileId: 'x',
+      );
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: backupPrefs,
+        cloudProvider: null,
+        syncRepository: _FixedDeviceIdSyncRepository('this-device'),
+      );
+
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(buildApp(service, history: () => [cloudOnly]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining("another device's only copy"), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('pin failure shows SnackBar with user-facing message', (
@@ -925,4 +1009,13 @@ class _ThrowingPinBackupService extends BackupService {
   @override
   Future<void> unpinBackup(String id) async =>
       throw StateError('simulated unpin failure');
+}
+
+class _FixedDeviceIdSyncRepository extends SyncRepository {
+  _FixedDeviceIdSyncRepository(this.deviceId);
+
+  final String deviceId;
+
+  @override
+  Future<String> getDeviceId() async => deviceId;
 }

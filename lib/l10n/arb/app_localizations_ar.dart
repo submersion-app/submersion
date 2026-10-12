@@ -2540,6 +2540,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم حذف هذه النسخة الاحتياطية نهائياً. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'هذه النسخة الاحتياطية موجودة في التخزين السحابي فقط، ولا يوجد ما يثبت أن هذا الجهاز أنشأها. قد تكون النسخة الوحيدة لجهاز آخر، أو نسخة أنشأها هذا الجهاز قبل إعادة التثبيت. لا يمكن التراجع عن الحذف.';
+
+  @override
   String get backup_delete_dialog_delete => 'حذف';
 
   @override
@@ -8011,6 +8015,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أزل عناصر لإضافة عناصر مختلفة';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'عرض المعدات المتقاعدة والمباعة';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
 
@@ -10142,6 +10150,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'لا شيء';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'عرض منظمات التنفس المتقاعدة والمباعة';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'أسطوانة الرحلة';
@@ -20793,6 +20805,67 @@ class AppLocalizationsAr extends AppLocalizations {
       'المقاييس المرئية الافتراضية';
 
   @override
+  String get settings_appearance_metricColors => 'ألوان المقاييس';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'الألوان الافتراضية';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مقياس مخصص',
+      many: '$count مقياسًا مخصصًا',
+      few: '$count مقاييس مخصصة',
+      two: 'مقياسان مخصصان',
+      one: 'مقياس واحد مخصص',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'إعادة تعيين الكل';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'إعادة تعيين ألوان المقاييس؟';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'يعود كل مقياس إلى لونه الافتراضي.';
+
+  @override
+  String get settings_metricColors_reset => 'إعادة تعيين';
+
+  @override
+  String get settings_metricColors_default => 'افتراضي';
+
+  @override
+  String get settings_metricColors_auto => 'تلقائي';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'تلقائي: يتبع السمة';
+
+  @override
+  String get settings_metricColors_autoPressure => 'تلقائي: لكل غاز لونه الخاص';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'يُستخدم في الغطسات بأسطوانة واحدة';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'لون $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'يتبادل مع $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'المقاييس القياسية';
 
@@ -20871,6 +20944,110 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_navCustomization_saveError =>
       'تعذّر حفظ تخطيط التنقل. حاول مرة أخرى.';
+
+  @override
+  String get navShortcut_noFly => 'وقت حظر الطيران';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'الأرقام القياسية';
+
+  @override
+  String get navShortcut_sitesMap => 'خريطة المواقع';
+
+  @override
+  String get navShortcut_diveActivityMap => 'خريطة نشاط الغوص';
+
+  @override
+  String get navShortcut_diveCentersMap => 'خريطة مراكز الغوص';
+
+  @override
+  String get navShortcut_diverProfile => 'ملف الغواص';
+
+  @override
+  String get navShortcut_cloudSync => 'المزامنة السحابية';
+
+  @override
+  String get navShortcut_offlineMaps => 'الخرائط غير المتصلة';
+
+  @override
+  String get navShortcut_short_deco => 'إزالة الضغط';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'حاسبات الغاز';
+
+  @override
+  String get navShortcut_short_weighting => 'الأوزان';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get navShortcut_short_blender => 'الخلاط';
+
+  @override
+  String get navShortcut_short_airUse => 'الاستهلاك';
+
+  @override
+  String get navShortcut_short_patterns => 'الأنماط';
+
+  @override
+  String get navShortcut_short_profiles => 'الملفات';
+
+  @override
+  String get navShortcut_short_diveMap => 'خريطة الغوص';
+
+  @override
+  String get navShortcut_short_centersMap => 'خريطة المراكز';
+
+  @override
+  String get navShortcut_short_gearSets => 'المجموعات';
+
+  @override
+  String get navShortcut_short_certWallet => 'المحفظة';
+
+  @override
+  String get navShortcut_short_emergency => 'الطوارئ';
+
+  @override
+  String get navShortcut_short_backup => 'النسخ الاحتياطي';
+
+  @override
+  String get navShortcut_short_speciesStats => 'إحصاءات الأنواع';
+
+  @override
+  String get navShortcut_short_gearStats => 'إحصاءات المعدات';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'إضافة اختصار';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'اختصار جديد';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'البحث في الصفحات';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'لا توجد صفحات مطابقة';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'موجود بالفعل في هذا التخطيط';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'إزالة $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'العروض';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'الإعدادات والأدوات';
 
   @override
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
@@ -23099,6 +23276,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'عنصر مرتبط';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'بيانات إضافية من المصدر';
+
+  @override
   String get settings_conflict_field_sourceRef => 'الملف أو الجهاز المصدر';
 
   @override
@@ -23285,6 +23466,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'طي الفجوات في مخططات الاتجاه';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'لون ملف الغوصة: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -36596,7 +36782,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'الطيران بعد الغوص';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'الحمل الحالي لـ CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'حمل الغطس الحالي';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'قياسي (12/18/24 س)';
@@ -36669,6 +36855,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'حول CNS وOTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'تنخفض نسبة CNS% (ساعة الأكسجين) بعد الغطسة بعمر نصف 90 دقيقة — تعود عمليًا إلى 0 بعد نحو يوم واحد.\n\nيُعاد ضبط OTU اليومي كل ليلة عند منتصف الليل. أما OTU الأسبوعي فهو مجموع متجدد لآخر 7 أيام: تسقط الغطسات الأقدم تلقائيًا من الحساب بمجرد خروجها من هذا النطاق.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'حول تشبّع الأنسجة';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'يحتوي جسمك على 16 حجرة نسيجية تمتص وتطلق النيتروجين (وكذلك الهيليوم في غطسات التريميكس أو أجهزة إعادة التنفس) بسرعات مختلفة. الأنسجة السريعة تتشبّع وتتخلّص من التشبّع بسرعة؛ أما الأنسجة البطيئة فتحتاج وقتًا أطول بكثير لكليهما.\n\nبعد غطسة بالهيليوم، يمكن أن يتحرك النيتروجين والهيليوم في نفس الحجرة لفترة وجيزة باتجاهين متعاكسين: بينما لا يزال الهيليوم يتحرر، يمكن لنفس الحجرة أن تمتص القليل من النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه. لهذا قد تُظهر الحجرة مؤقتًا \"Ongassing\" حتى وإن استمر حملها الإجمالي بالانخفاض.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49974,6 +50174,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'قاعدة بيانات أحدث، محفوظة عند الرجوع - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'في التخزين السحابي ($size)';
   }
 
   @override

@@ -69,6 +69,22 @@ class DecoStatus extends Equatable {
     this.inspiredHeBar,
   });
 
+  /// Rate noise floor, in bar/min, below which [isOffgassing]'s net rate is
+  /// treated as zero rather than a real on-gassing signal.
+  ///
+  /// A compartment projected toward equilibrium across many small time steps
+  /// (e.g. `TissueLiveService.surfaceIntervalTimeline`, which off-gasses a
+  /// surface interval in dozens of discrete segments) can land a few bits on
+  /// the wrong side of its exact equilibrium tension from accumulated
+  /// floating-point rounding, even though it approached that equilibrium
+  /// strictly from one side the whole time. Left at the literal `< 0`
+  /// boundary, that noise flips the badge to "on-gassing" for a compartment
+  /// that has, physically, simply finished off-gassing. This floor is far
+  /// above any such rounding noise (on the order of 1e-15) and far below any
+  /// real physiological rate, so it only ever absorbs noise, never a
+  /// genuine on-gassing signal.
+  static const double _netRateNoiseFloor = 1e-9;
+
   /// Whether [compartment] is releasing inert gas at this instant, or null
   /// when the inspired gas is unknown.
   ///
@@ -83,7 +99,7 @@ class DecoStatus extends Equatable {
     final netRate =
         (pN2 - compartment.currentPN2) / compartment.halfTimeN2 +
         (pHe - compartment.currentPHe) / compartment.halfTimeHe;
-    return netRate < 0;
+    return netRate < _netRateNoiseFloor;
   }
 
   /// Whether the diver is currently in decompression obligation.

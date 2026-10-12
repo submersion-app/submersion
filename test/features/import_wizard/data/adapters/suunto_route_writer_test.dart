@@ -26,15 +26,19 @@ SuuntoParsedDive _parsed({SuuntoDiveRoute? route, String? serial = 'NS-1'}) =>
       route: route,
     );
 
-SuuntoDiveRoute _route({double? lat = 47.3, double? lon = -2.9}) =>
-    SuuntoDiveRoute(
-      points: const [
-        NavTrackPoint(timestamp: 1776606280, north: 0, east: 0, depth: 1),
-        NavTrackPoint(timestamp: 1776606281, north: 1, east: 1, depth: 2),
-      ],
-      originLatitude: lat,
-      originLongitude: lon,
-    );
+SuuntoDiveRoute _route({
+  double? lat = 47.3,
+  double? lon = -2.9,
+  Map<String, Object?>? metadata,
+}) => SuuntoDiveRoute(
+  points: const [
+    NavTrackPoint(timestamp: 1776606280, north: 0, east: 0, depth: 1),
+    NavTrackPoint(timestamp: 1776606281, north: 1, east: 1, depth: 2),
+  ],
+  originLatitude: lat,
+  originLongitude: lon,
+  sourceMetadata: metadata,
+);
 
 Future<void> _insertDive(
   AppDatabase db,
@@ -120,6 +124,33 @@ void main() {
       expect(second, isNot(first));
     },
   );
+
+  test('keeps the route quality fields on the stored route (#3047)', () async {
+    await _insertDive(db, 'd1');
+    const metadata = {
+      'DiveRouteQuality': 1,
+      'QualityFeatures': [16, 0.1],
+    };
+    await writer.attach('d1', _parsed(route: _route(metadata: metadata)));
+
+    expect((await repo.getForDive('d1')).single.sourceMetadata, metadata);
+  });
+
+  test('a re-import carries the new export\'s quality fields', () async {
+    await _insertDive(db, 'd1');
+    await writer.attach(
+      'd1',
+      _parsed(route: _route(metadata: const {'DiveRouteQuality': 1})),
+    );
+    await writer.attach(
+      'd1',
+      _parsed(route: _route(metadata: const {'DiveRouteQuality': 0})),
+    );
+
+    expect((await repo.getForDive('d1')).single.sourceMetadata, {
+      'DiveRouteQuality': 0,
+    });
+  });
 
   test('another source keeps primary; the Suunto route is secondary', () async {
     await _insertDive(db, 'd1');

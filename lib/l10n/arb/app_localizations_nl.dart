@@ -2473,6 +2473,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze back-up wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Deze back-up staat alleen in je cloudopslag en niets wijst erop dat dit apparaat hem heeft gemaakt. Het kan de enige kopie van een ander apparaat zijn, of een kopie die dit apparaat vóór een herinstallatie heeft gemaakt. Verwijderen kan niet ongedaan worden gemaakt.';
+
+  @override
   String get backup_delete_dialog_delete => 'Verwijderen';
 
   @override
@@ -7851,6 +7855,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verwijder items om andere toe te voegen';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Uitrusting die uit gebruik of verkocht is tonen';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Zet de status van een item op Actief om het aan een duik toe te voegen';
 
@@ -9952,6 +9960,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Geen';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Ademautomaten die uit gebruik of verkocht zijn tonen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';
@@ -20399,6 +20411,66 @@ class AppLocalizationsNl extends AppLocalizations {
       'Standaard zichtbare metrieken';
 
   @override
+  String get settings_appearance_metricColors => 'Kleuren van metrieken';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Standaardkleuren';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aangepast',
+      one: '$count aangepast',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Alles herstellen';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Kleuren van metrieken herstellen?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Elke metriek krijgt weer zijn standaardkleur.';
+
+  @override
+  String get settings_metricColors_reset => 'Herstellen';
+
+  @override
+  String get settings_metricColors_default => 'Standaard';
+
+  @override
+  String get settings_metricColors_auto => 'Automatisch';
+
+  @override
+  String get settings_metricColors_autoTemperature =>
+      'Automatisch: volgt het thema';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Automatisch: elk gas heeft een eigen kleur';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Gebruikt bij duiken met één fles';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'Kleur van $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Wisselt met $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Standaardmetrieken';
 
@@ -20477,6 +20549,111 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_navCustomization_saveError =>
       'Kan de navigatie-indeling niet opslaan. Probeer het opnieuw.';
+
+  @override
+  String get navShortcut_noFly => 'Niet-vliegtijd';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Records';
+
+  @override
+  String get navShortcut_sitesMap => 'Kaart van duikstekken';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Kaart van duikactiviteit';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Kaart van duikcentra';
+
+  @override
+  String get navShortcut_diverProfile => 'Duikersprofiel';
+
+  @override
+  String get navShortcut_cloudSync => 'Cloudsynchronisatie';
+
+  @override
+  String get navShortcut_offlineMaps => 'Offline kaarten';
+
+  @override
+  String get navShortcut_short_deco => 'Deco';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Gascalc.';
+
+  @override
+  String get navShortcut_short_weighting => 'Lood';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Oppervl.-int.';
+
+  @override
+  String get navShortcut_short_blender => 'Menger';
+
+  @override
+  String get navShortcut_short_airUse => 'Verbruik';
+
+  @override
+  String get navShortcut_short_patterns => 'Patronen';
+
+  @override
+  String get navShortcut_short_profiles => 'Profielen';
+
+  @override
+  String get navShortcut_short_diveMap => 'Duikkaart';
+
+  @override
+  String get navShortcut_short_centersMap => 'Centrakaart';
+
+  @override
+  String get navShortcut_short_gearSets => 'Sets';
+
+  @override
+  String get navShortcut_short_certWallet => 'Brevetten';
+
+  @override
+  String get navShortcut_short_emergency => 'Nood';
+
+  @override
+  String get navShortcut_short_backup => 'Back-up';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Soortenstatistiek';
+
+  @override
+  String get navShortcut_short_gearStats => 'Uitrustingsstatistiek';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Snelkoppeling toevoegen';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle =>
+      'Nieuwe snelkoppeling';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'Pagina\'s zoeken';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Geen overeenkomende pagina\'s';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Al in deze indeling';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return '$destination verwijderen';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Weergaven';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Instellingen en hulpmiddelen';
 
   @override
   String get settings_backToSettings_tooltip => 'Terug naar instellingen';
@@ -22759,6 +22936,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Gekoppeld item';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Extra gegevens van de bron';
+
+  @override
   String get settings_conflict_field_sourceRef => 'Bronbestand of -apparaat';
 
   @override
@@ -22950,6 +23131,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Pauzes in trendgrafieken inkorten';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Profielkleur: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -35885,7 +36071,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Vliegen na het duiken';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Huidige CNS/OTU-belasting';
+  String get safetySettings_cnsOtuHeader => 'Huidige duikbelasting';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standaard (12/18/24 u)';
@@ -35958,6 +36144,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'Over CNS en OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Je lichaam heeft 16 weefselcompartimenten die stikstof opnemen en afgeven (en bij trimix- of rebreatherduiken ook helium), elk met een eigen snelheid. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben voor beide veel meer tijd nodig.\n\nNa een duik met helium kunnen stikstof en helium in één compartiment kortstondig in tegengestelde richtingen bewegen: terwijl het helium nog afgeeft, kan datzelfde compartiment tegelijk wat stikstof opnemen, totdat beide gassen in evenwicht zijn met de lucht die je inademt. Daarom kan een compartiment even \"Ongassing\" tonen, terwijl de totale belasting toch blijft dalen.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49024,6 +49224,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Nieuwere database, bewaard bij het teruggaan - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'In cloudopslag ($size)';
   }
 
   @override

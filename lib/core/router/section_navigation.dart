@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/pushed_route.dart';
+
 /// Navigation helper for jumping to a detail page from a section the user
 /// expects to be returned to.
 ///
@@ -38,6 +40,21 @@ extension SectionNavigation on BuildContext {
       router.pop();
     }
   }
+
+  /// Change this page's own URL (selection, mode, view) without discarding
+  /// the pages under it.
+  ///
+  /// On a pushed page this replaces the top page, keeping its page key and
+  /// widget state (#3292). A page go() built is changed with `go` as before,
+  /// even when its parent sits under it: replace would turn it into a push,
+  /// and its URL would stop reflecting the selection.
+  void goInPlace(String location) {
+    if (isImperativelyPushed(this)) {
+      GoRouter.of(this).replace<void>(location);
+    } else {
+      GoRouter.of(this).go(location);
+    }
+  }
 }
 
 /// Whether any page in [matches] resolves to [location].
@@ -64,10 +81,4 @@ bool _stackContains(List<RouteMatchBase> matches, String location) {
 /// A shell reports its own prefix, so descend to the leaf. An
 /// [ImperativeRouteMatch] already reports the leaf of the list that produced
 /// it, so it needs no descent.
-String _leafLocation(RouteMatchBase match) {
-  var current = match;
-  while (current is ShellRouteMatch && current.matches.isNotEmpty) {
-    current = current.matches.last;
-  }
-  return current.matchedLocation;
-}
+String _leafLocation(RouteMatchBase match) => leafMatch(match).matchedLocation;

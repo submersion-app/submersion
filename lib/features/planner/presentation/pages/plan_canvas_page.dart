@@ -124,7 +124,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(),
+        // Opened as a nav shortcut (#2936) the planner is the only page, and
+        // an inert back arrow reads as broken; AppBar makes the same test.
+        leading: Navigator.of(context).canPop() ? const BackButton() : null,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

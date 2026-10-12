@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// The dives behind one row of the Insights country card (#2623): the
@@ -33,15 +33,14 @@ DiveFilterState regionDivesFilter(
 
 /// Opens the dive list showing [filter], replacing its current filter so a
 /// leftover axis cannot hide some of the row's dives. The filter chips on
-/// the dive list clear it again.
+/// the dive list clear it again. The list is pushed over Insights, so its
+/// back arrow returns there (#3292).
 void openInsightsDives(
   BuildContext context,
   WidgetRef ref,
   DiveFilterState filter,
 ) {
-  ref.read(diveFilterProvider.notifier).state = filter;
-  // go, not push: the dive list is a shell tab.
-  context.go('/dives');
+  openDiveList(context, ref, filter);
 }
 
 ConditionNode _site(String column, StringValue value) =>

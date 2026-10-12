@@ -8,12 +8,13 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
-import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/domain/grid_sampling.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/features/site_scape/presentation/site_feature_sheet.d
 import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/features/site_scape/presentation/site_seascape_section.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -53,7 +55,6 @@ import 'package:submersion/features/reef/presentation/widgets/reef_section.dart'
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
@@ -84,23 +85,22 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail.
-    // Skip in table mode -- table view has no master-detail split to redirect into.
-    // Also skip if we can pop OR if we came from dive detail, which means we arrived here
-    // from another page and want to be able to go back.
-    if (!widget.embedded &&
-        !_hasRedirected &&
-        !Navigator.of(context).canPop() &&
-        ResponsiveBreakpoints.isMasterDetail(context)) {
-      final viewMode = ref.read(siteListViewModeProvider);
-      if (viewMode != ListViewMode.table) {
-        _hasRedirected = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.go('/sites?selected=${widget.siteId}');
-          }
-        });
-      }
+    // Desktop redirect: a root visit (deep link, sidebar) moves into the
+    // master-detail split. A pushed page, opened from a dive's details
+    // say, stays put: the redirect's go() would erase the page under it
+    // and its back arrow (#3292).
+    if (!_hasRedirected &&
+        shouldRedirectToMasterDetail(
+          context,
+          embedded: widget.embedded,
+          viewMode: ref.read(siteListViewModeProvider),
+        )) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/sites?selected=${widget.siteId}');
+        }
+      });
     }
 
     final siteAsync = ref.watch(siteProvider(widget.siteId));
@@ -484,7 +484,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
                 // the scaffold will try to find a dive with that siteId and fail.
                 params['site'] = widget.siteId;
-                context.push(
+                // In place, not push: a pushed copy of the Dives list would
+                // stay behind after save, with a back arrow of its own (#3292).
+                context.goInPlace(
                   Uri(path: currentPath, queryParameters: params).toString(),
                 );
               } else {
@@ -1322,10 +1324,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       child: TextButton.icon(
         key: const ValueKey('siteViewAllDivesButton'),
         onPressed: () {
-          ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-            siteId: site.id,
-          );
-          context.go('/dives');
+          openDiveList(context, ref, DiveFilterState(siteId: site.id));
         },
         icon: const Icon(Icons.list_alt, size: 18),
         label: Text(

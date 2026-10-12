@@ -52,6 +52,7 @@ Future<void> _pumpPage(
     SiteWithDiveCount(site: _site2, diveCount: 1),
   ],
   Size size = const Size(600, 900),
+  Widget Function(SiteMapPage page)? home,
 }) async {
   // The default phone-sized surface keeps MapListScaffold in mobile mode,
   // which renders only the map pane (no list pane providers to mock).
@@ -83,7 +84,7 @@ Future<void> _pumpPage(
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: page,
+        home: home == null ? page : home(page),
       ),
     ),
   );
@@ -129,6 +130,37 @@ void main() {
   ) async {
     await _pumpPage(tester, const SiteMapPage());
     expect(find.byType(FlutterMap), findsWidgets);
+  });
+
+  testWidgets('with nothing beneath it the map shows no back arrow', (
+    tester,
+  ) async {
+    // The only page, as on a nav shortcut (#2936): an arrow to Sites would
+    // lead somewhere the diver never came from.
+    await _pumpPage(tester, const SiteMapPage());
+    expect(find.byIcon(Icons.arrow_back), findsNothing);
+  });
+
+  testWidgets('pushed over another page the map keeps its back arrow', (
+    tester,
+  ) async {
+    await _pumpPage(
+      tester,
+      const SiteMapPage(),
+      home: (page) => Builder(
+        builder: (context) => TextButton(
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: (_) => page)),
+          child: const Text('open map'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open map'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
   });
 
   testWidgets('deep link seeds the selection and lands in 3D', (tester) async {

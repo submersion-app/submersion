@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -48,19 +47,22 @@ class _CertificationDetailPageState
 
   @override
   Widget build(BuildContext context) {
-    // Skip redirect in table mode -- table view has no master-detail split.
-    if (!widget.embedded &&
-        !_hasRedirected &&
-        ResponsiveBreakpoints.isMasterDetail(context)) {
-      final viewMode = ref.read(certificationListViewModeProvider);
-      if (viewMode != ListViewMode.table) {
-        _hasRedirected = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.go('/certifications?selected=${widget.certificationId}');
-          }
-        });
-      }
+    // Desktop redirect: a root visit (deep link, sidebar) moves into the
+    // master-detail split. A pushed page, opened from a dive's details
+    // say, stays put: the redirect's go() would erase the page under it
+    // and its back arrow (#3292).
+    if (!_hasRedirected &&
+        shouldRedirectToMasterDetail(
+          context,
+          embedded: widget.embedded,
+          viewMode: ref.read(certificationListViewModeProvider),
+        )) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/certifications?selected=${widget.certificationId}');
+        }
+      });
     }
 
     final certificationAsync = ref.watch(

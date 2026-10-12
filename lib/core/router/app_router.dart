@@ -5,6 +5,7 @@ import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/nav_shortcut_pages.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -49,6 +50,7 @@ import 'package:submersion/features/dive_centers/presentation/pages/dive_center_
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_import_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
@@ -124,6 +126,7 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
+import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
@@ -207,7 +210,7 @@ import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_compare_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
-import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agencies_page.dart';
@@ -273,6 +276,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: const DashboardPage(),
             ),
           ),
+
+          // Nav shortcuts: deep pages promoted to the main nav (#2936).
+          navShortcutRoute(),
 
           // Planning hub and tools, gated behind the safety disclaimer
           // (issue #3120). A plain GoRoute only wraps its own exact-match
@@ -423,7 +429,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'dives',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const DiveListPage(),
+              // Set when openDiveList pushed this list: what to put back
+              // when it goes away (#3292).
+              child: DiveListPage(
+                returnTo: switch (state.extra) {
+                  final DiveListReturn r => r,
+                  _ => null,
+                },
+              ),
             ),
             routes: [
               GoRoute(
@@ -471,7 +484,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final ids =
                       (state.extra as List<dynamic>?)?.cast<String>() ??
                       const <String>[];
-                  return BulkDiveEditPage(diveIds: ids);
+                  return BulkDiveEditPage(
+                    diveIds: ids,
+                    popOnSave: state.uri.queryParameters['return'] == 'pop',
+                  );
                 },
               ),
               GoRoute(
@@ -1134,8 +1150,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'import-wizard',
                 name: 'universalImport',
-                builder: (context, state) =>
-                    const _UniversalImportWizardRoute(),
+                builder: (context, state) => const UniversalImportWizardRoute(),
               ),
               GoRoute(
                 path: 'import-cloud/suunto',
@@ -1428,6 +1443,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'default-metrics',
                 name: 'defaultMetrics',
                 builder: (context, state) => const DefaultVisibleMetricsPage(),
+              ),
+              GoRoute(
+                path: 'metric-colors',
+                name: 'metricColors',
+                builder: (context, state) => const ProfileMetricColorsPage(),
               ),
               GoRoute(
                 path: 'themes',
@@ -2114,16 +2134,6 @@ class _DiveComputerDownloadWizardRouteState
         ),
       ),
     );
-  }
-}
-
-/// Wrapper that creates a [UniversalAdapter] with Ref from Riverpod.
-class _UniversalImportWizardRoute extends ConsumerWidget {
-  const _UniversalImportWizardRoute();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return UnifiedImportWizard(adapter: UniversalAdapter(ref: ref));
   }
 }
 

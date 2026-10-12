@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 
 void main() {
   group('normalizeNavOrder', () {
@@ -97,6 +98,55 @@ void main() {
     test('kDefaultPrimaryIds is the first three of the default order', () {
       expect(kDefaultPrimaryIds, kDefaultNavOrder.take(3).toList());
       expect(kDefaultPrimaryIds, ['dives', 'sites', 'trips']);
+    });
+  });
+
+  group('normalizeNavOrder with shortcuts (#2936)', () {
+    const known = ['shortcut:gas-blender', 'shortcut:insights-gas'];
+
+    test('known shortcuts keep their stored position', () {
+      final result = normalizeNavOrder(
+        stored: ['shortcut:gas-blender', 'dives'],
+        movableIds: movableNavIds,
+        shortcutOrderIds: known,
+      );
+      expect(result.take(2), ['shortcut:gas-blender', 'dives']);
+      expect(
+        result.where((id) => !id.startsWith('shortcut:')).toSet(),
+        movableNavIds.toSet(),
+      );
+    });
+
+    test('unknown and duplicate shortcuts are dropped', () {
+      final result = normalizeNavOrder(
+        stored: [
+          'shortcut:retired',
+          'shortcut:gas-blender',
+          'shortcut:gas-blender',
+        ],
+        movableIds: movableNavIds,
+        shortcutOrderIds: known,
+      );
+      expect(result.where((id) => id.startsWith('shortcut:')), [
+        'shortcut:gas-blender',
+      ]);
+    });
+
+    test('missing shortcuts are never appended', () {
+      final result = normalizeNavOrder(
+        stored: const [],
+        movableIds: movableNavIds,
+        shortcutOrderIds: known,
+      );
+      expect(result, movableNavIds);
+    });
+
+    test('legacy ids pass shortcut ids through untouched', () {
+      expect(withLegacyNavIds(['shortcut:gas-blender', 'insights']), [
+        'shortcut:gas-blender',
+        'insights',
+        'statistics',
+      ]);
     });
   });
 }

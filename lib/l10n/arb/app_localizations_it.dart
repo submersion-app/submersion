@@ -2486,6 +2486,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo backup verrà eliminato permanentemente. Questa azione non può essere annullata.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Questo backup si trova solo nel tuo archivio cloud e nulla indica che sia stato creato da questo dispositivo. Potrebbe essere l\'unica copia di un altro dispositivo, o una creata da questo dispositivo prima di una reinstallazione. L\'eliminazione non può essere annullata.';
+
+  @override
   String get backup_delete_dialog_delete => 'Elimina';
 
   @override
@@ -7895,6 +7899,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rimuovi elementi per aggiungerne altri';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Mostra attrezzatura dismessa e venduta';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Imposta lo stato di un elemento su Attivo per aggiungerlo a un\'immersione';
 
@@ -10018,6 +10026,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nessuno';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Mostra erogatori dismessi e venduti';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Bombola del viaggio';
@@ -20531,6 +20543,66 @@ class AppLocalizationsIt extends AppLocalizations {
       'Metriche visibili predefinite';
 
   @override
+  String get settings_appearance_metricColors => 'Colori delle metriche';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Colori predefiniti';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personalizzati',
+      one: '$count personalizzato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Ripristina tutto';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Ripristinare i colori delle metriche?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Ogni metrica torna al suo colore predefinito.';
+
+  @override
+  String get settings_metricColors_reset => 'Ripristina';
+
+  @override
+  String get settings_metricColors_default => 'Predefinito';
+
+  @override
+  String get settings_metricColors_auto => 'Automatico';
+
+  @override
+  String get settings_metricColors_autoTemperature =>
+      'Automatico: segue il tema';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Automatico: ogni gas ha il suo colore';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Usato nelle immersioni con una sola bombola';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'Colore di $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Si scambia con $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Metriche standard';
 
@@ -20608,6 +20680,111 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_navCustomization_saveError =>
       'Impossibile salvare il layout di navigazione. Riprova.';
+
+  @override
+  String get navShortcut_noFly => 'Tempo di non volo';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Record';
+
+  @override
+  String get navShortcut_sitesMap => 'Mappa dei siti';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Mappa delle immersioni';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Mappa dei centri immersione';
+
+  @override
+  String get navShortcut_diverProfile => 'Profilo subacqueo';
+
+  @override
+  String get navShortcut_cloudSync => 'Sincronizzazione cloud';
+
+  @override
+  String get navShortcut_offlineMaps => 'Mappe offline';
+
+  @override
+  String get navShortcut_short_deco => 'Deco';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Calc. gas';
+
+  @override
+  String get navShortcut_short_weighting => 'Zavorra';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Int. superficie';
+
+  @override
+  String get navShortcut_short_blender => 'Miscelatore';
+
+  @override
+  String get navShortcut_short_airUse => 'Consumo';
+
+  @override
+  String get navShortcut_short_patterns => 'Andamenti';
+
+  @override
+  String get navShortcut_short_profiles => 'Profili';
+
+  @override
+  String get navShortcut_short_diveMap => 'Mappa immersioni';
+
+  @override
+  String get navShortcut_short_centersMap => 'Mappa centri';
+
+  @override
+  String get navShortcut_short_gearSets => 'Set';
+
+  @override
+  String get navShortcut_short_certWallet => 'Portafoglio';
+
+  @override
+  String get navShortcut_short_emergency => 'Emergenza';
+
+  @override
+  String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Stat. specie';
+
+  @override
+  String get navShortcut_short_gearStats => 'Stat. attrezzatura';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Aggiungi scorciatoia';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle =>
+      'Nuova scorciatoia';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'Cerca pagine';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Nessuna pagina corrispondente';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Già in questo layout';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'Rimuovi $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Viste';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Impostazioni e strumenti';
 
   @override
   String get settings_backToSettings_tooltip => 'Torna alle impostazioni';
@@ -22924,6 +23101,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Voce collegata';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Dati aggiuntivi dall\'origine';
+
+  @override
   String get settings_conflict_field_sourceRef =>
       'File o dispositivo di origine';
 
@@ -23117,6 +23298,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Comprimi le pause nei grafici di tendenza';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Colore del profilo: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -36135,7 +36321,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Volare dopo l\'immersione';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Carico attuale di CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'Carico di immersione attuale';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -36210,6 +36396,21 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Senza profilo di profondità non è possibile calcolarne CNS% e OTU. I totali qui sotto la escludono.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'Informazioni su CNS e OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Il tuo CNS% (orologio dell\'ossigeno) decade dopo l\'immersione con un\'emivita di 90 minuti -- torna praticamente a 0 dopo circa un giorno.\n\nL\'OTU giornaliero si azzera ogni notte a mezzanotte. L\'OTU settimanale è un totale mobile degli ultimi 7 giorni: le immersioni più vecchie escono automaticamente dal calcolo non appena restano fuori da questa finestra.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title =>
+      'Informazioni sul carico tissutale';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con ricircolatore, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo per entrambi i processi.\n\nDopo un\'immersione con elio, azoto ed elio in uno stesso compartimento possono muoversi brevemente in direzioni opposte: mentre l\'elio sta ancora uscendo, lo stesso compartimento può contemporaneamente assorbire un po\' di azoto, finché entrambi i gas non raggiungono l\'equilibrio con l\'aria che respiri. Per questo un compartimento può mostrare brevemente \"Ongassing\" anche mentre il suo carico complessivo continua a scendere.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49338,6 +49539,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Database più recente, conservato tornando indietro - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'Nell\'archivio cloud ($size)';
   }
 
   @override

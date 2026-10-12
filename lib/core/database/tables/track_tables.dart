@@ -183,6 +183,13 @@ class NavTracks extends Table {
 
   IntColumn get codecVersion => integer().withDefault(const Constant(1))();
 
+  /// Source-specific fields kept exactly as the export carried them, as a
+  /// JSON object under the export's own names (v285, issue #3047): a
+  /// Suunto route's `DiveRouteQuality` and `QualityFeatures`, whose meaning
+  /// is undocumented. Null when the source carried none. Nothing reads it
+  /// yet; the codec is nav_track_source_metadata_codec.dart.
+  TextColumn get sourceMetadata => text().nullable()();
+
   /// Gzipped JSON array of
   /// [wallClockEpochSeconds, north, east, depth, course, pitch, roll,
   ///  distance, speed, temp, battV]; null for channels a source lacks.

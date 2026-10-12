@@ -609,6 +609,20 @@ class SectionAppearancePage extends ConsumerWidget {
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/settings/default-metrics'),
       ),
+      ListTile(
+        leading: const Icon(Icons.palette_outlined),
+        title: Text(context.l10n.settings_appearance_metricColors),
+        subtitle: Text(
+          settings.profileMetricColors.isEmpty
+              ? context.l10n.settings_appearance_metricColors_subtitleDefault
+              : context.l10n
+                    .settings_appearance_metricColors_subtitleCustomized(
+                      settings.profileMetricColors.count,
+                    ),
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.push('/settings/metric-colors'),
+      ),
       if (ViewerFullscreenModeTile.isSupported)
         const ViewerFullscreenModeTile(),
     ];

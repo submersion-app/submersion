@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
@@ -33,10 +34,12 @@ enum IncomingFileOutcome {
 }
 
 /// True while an import wizard owns the screen: the universal import
-/// wizard, or the Suunto file import (#1445). A file arriving then is
-/// turned away rather than stacking a second wizard over the first.
+/// wizard (at Transfer, or opened as its nav shortcut, #2936), or the Suunto
+/// file import (#1445). A file arriving then is turned away rather than
+/// stacking a second wizard over the first.
 bool isImportWizardRoute(String path) =>
     path.startsWith('/transfer/import-wizard') ||
+    path.startsWith(shortcutLocation('import-wizard')) ||
     path.startsWith('/transfer/import-file/');
 
 /// Shared logic for handling an incoming file from drag-and-drop or

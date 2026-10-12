@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/clock_s
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -612,10 +613,7 @@ class DeviceDetailPage extends ConsumerWidget {
     WidgetRef ref,
     DiveComputer computer,
   ) {
-    ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-      computerId: computer.id,
-    );
-    context.go('/dives');
+    openDiveList(context, ref, DiveFilterState(computerId: computer.id));
   }
 
   Future<void> _confirmReimportAll(

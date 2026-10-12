@@ -2477,6 +2477,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez a biztonsági mentés véglegesen törlésre kerül. Ez a művelet nem vonható vissza.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Ez a biztonsági mentés csak a felhőtárhelyen található, és semmi sem utal arra, hogy ez az eszköz készítette. Lehet egy másik eszköz egyetlen példánya, vagy egy olyan mentés, amelyet ez az eszköz egy újratelepítés előtt készített. A törlés nem vonható vissza.';
+
+  @override
   String get backup_delete_dialog_delete => 'Törlés';
 
   @override
@@ -7876,6 +7880,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Távolítson el elemeket mások hozzáadásához';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Kivont és eladott felszerelés megjelenítése';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Állítsa a tárgy állapotát Aktívra, hogy merüléséhez adja';
 
@@ -9995,6 +10003,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nincs';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Kivont és eladott reduktorok megjelenítése';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Az utazás palackja';
@@ -20464,6 +20476,65 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alapértelmezett látható metrikák';
 
   @override
+  String get settings_appearance_metricColors => 'Metrikák színei';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Alapértelmezett színek';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count testreszabva',
+      one: '$count testreszabva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Összes visszaállítása';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Visszaállítod a metrikák színeit?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Minden metrika visszakapja az alapértelmezett színét.';
+
+  @override
+  String get settings_metricColors_reset => 'Visszaállítás';
+
+  @override
+  String get settings_metricColors_default => 'Alapértelmezett';
+
+  @override
+  String get settings_metricColors_auto => 'Automatikus';
+
+  @override
+  String get settings_metricColors_autoTemperature =>
+      'Automatikus: a témát követi';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Automatikus: minden gáznak saját színe van';
+
+  @override
+  String get settings_metricColors_pressureCustom => 'Egypalackos merülésekhez';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return '$metric színe';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Csere ezzel: $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Szabványos metrikák';
 
@@ -20542,6 +20613,110 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_navCustomization_saveError =>
       'Nem sikerült menteni a navigáció elrendezését. Próbálja újra.';
+
+  @override
+  String get navShortcut_noFly => 'Repülési tilalom ideje';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Rekordok';
+
+  @override
+  String get navShortcut_sitesMap => 'Merülőhelyek térképe';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Merülési aktivitás térképe';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Merülőcentrumok térképe';
+
+  @override
+  String get navShortcut_diverProfile => 'Merülő profil';
+
+  @override
+  String get navShortcut_cloudSync => 'Felhő szinkronizálás';
+
+  @override
+  String get navShortcut_offlineMaps => 'Offline térképek';
+
+  @override
+  String get navShortcut_short_deco => 'Dekó';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Gázkalk.';
+
+  @override
+  String get navShortcut_short_weighting => 'Súlyozás';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Felszíni idő';
+
+  @override
+  String get navShortcut_short_blender => 'Keverő';
+
+  @override
+  String get navShortcut_short_airUse => 'Fogyasztás';
+
+  @override
+  String get navShortcut_short_patterns => 'Minták';
+
+  @override
+  String get navShortcut_short_profiles => 'Profilok';
+
+  @override
+  String get navShortcut_short_diveMap => 'Merülési térkép';
+
+  @override
+  String get navShortcut_short_centersMap => 'Centrum térkép';
+
+  @override
+  String get navShortcut_short_gearSets => 'Szettek';
+
+  @override
+  String get navShortcut_short_certWallet => 'Tárca';
+
+  @override
+  String get navShortcut_short_emergency => 'Vészhelyzet';
+
+  @override
+  String get navShortcut_short_backup => 'Mentés';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Fajstatisztika';
+
+  @override
+  String get navShortcut_short_gearStats => 'Felszerelés-statisztika';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Parancsikon hozzáadása';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'Új parancsikon';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'Oldalak keresése';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Nincs egyező oldal';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Már szerepel ebben az elrendezésben';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return '$destination eltávolítása';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Nézetek';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Beállítások és eszközök';
 
   @override
   String get settings_backToSettings_tooltip => 'Vissza a beállításokhoz';
@@ -22810,6 +22985,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Kapcsolt elem';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'További adatok a forrásból';
+
+  @override
   String get settings_conflict_field_sourceRef => 'Forrásfájl vagy -eszköz';
 
   @override
@@ -22999,6 +23178,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Szünetek összevonása a trenddiagramokon';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Profilszín: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -35931,7 +36115,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Repülés merülés után';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Jelenlegi CNS/OTU terhelés';
+  String get safetySettings_cnsOtuHeader => 'Jelenlegi merülési terhelés';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Normál (12/18/24 ó)';
@@ -36006,6 +36190,20 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Mélységprofil nélkül a CNS% és az OTU nem számítható ki. Az alábbi összesítések nem tartalmazzák.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'A CNS-ről és az OTU-ról';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'A CNS% (oxigénóra) a merülés után 90 perces felezési idővel csökken -- körülbelül egy nap múlva gyakorlatilag visszatér 0-ra.\n\nA napi OTU minden éjjel éjfélkor nullázódik. A heti OTU az utolsó 7 nap gördülő összege: a régebbi merülések automatikusan kikerülnek a számításból, amint kiesnek ebből az időablakból.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'A szövettelítődésről';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'A testednek 16 szövetkompartmentje van, amelyek különböző sebességgel vesznek fel és adnak le nitrogént (trimix- vagy újralégzős merüléseknél héliumot is). A gyors szövetek gyorsan telítődnek és ürülnek; a lassú szövetek mindkettőhöz sokkal több időt igényelnek.\n\nHéliumos merülés után egyazon kompartmentben a nitrogén és a hélium rövid ideig ellentétes irányba mozoghat: amíg a hélium még távozik, ugyanaz a kompartment egyidejűleg kis mennyiségű nitrogént vehet fel, amíg mindkét gáz egyensúlyba nem kerül a belélegzett levegővel. Ezért egy kompartment rövid időre \"Ongassing\" jelzést mutathat, miközben a teljes terhelése továbbra is csökken.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49081,6 +49279,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Újabb adatbázis, visszalépéskor megőrizve - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'Felhőtárhelyen ($size)';
   }
 
   @override

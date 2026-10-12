@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/otu_limit_progress_row.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/planning/presentation/widgets/planning_tool_
 import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
 import 'package:submersion/features/safety/domain/services/cns_otu_live_service.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/domain/services/tissue_live_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/cns_otu_format.dart';
 import 'package:submersion/features/safety/presentation/providers/cns_otu_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -58,6 +60,11 @@ class _CnsOtuPageState extends ConsumerState<CnsOtuPage> {
     final l10n = context.l10n;
     final snapshotAsync = ref.watch(cnsOtuSnapshotProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
+    // The diver's CURRENT conservatism, not whatever the last dive itself
+    // was analyzed with: the live tissue readout shows what today's GF
+    // settings mean for the residual loading right now.
+    final gfLow = ref.watch(gfLowDecimalProvider);
+    final gfHigh = ref.watch(gfHighDecimalProvider);
 
     final content = ListView(
       padding: const EdgeInsets.all(16),
@@ -68,7 +75,12 @@ class _CnsOtuPageState extends ConsumerState<CnsOtuPage> {
         // misleading for a safety readout. A refresh after data exists keeps
         // the retained value (no flicker). Mirrors NoFlyPage.
         if (snapshotAsync.hasValue)
-          CnsOtuStatusCard(snapshot: snapshotAsync.value, units: units)
+          CnsOtuStatusCard(
+            snapshot: snapshotAsync.value,
+            units: units,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+          )
         else if (snapshotAsync.hasError)
           _CnsOtuStatusPlaceholder(
             icon: Icons.error_outline,
@@ -103,9 +115,17 @@ class CnsOtuStatusCard extends StatelessWidget {
   final CnsOtuSnapshot? snapshot;
   final UnitFormatter units;
 
+  /// The diver's current gradient factors, for projecting live tissue
+  /// loading -- the setting the diver has now, not whatever the last dive
+  /// itself was analyzed with.
+  final double gfLow;
+  final double gfHigh;
+
   const CnsOtuStatusCard({
     required this.snapshot,
     required this.units,
+    required this.gfLow,
+    required this.gfHigh,
     super.key,
   });
 
@@ -155,10 +175,54 @@ class CnsOtuStatusCard extends StatelessWidget {
       now: now,
     );
 
+    // Independent of exposure: a gauge-mode or gas-segment-less rebreather
+    // dive can have a known exposure but withheld tissue data (see
+    // CnsOtuSnapshot.endOfDiveCompartments) -- hence the separate null check
+    // rather than reusing `exposure`. Gated on magnitude (hasResidualLoad),
+    // not a fixed time span: a trivial, shallow dive should not read as
+    // "still loaded" for days just because little real time has passed.
+    //
+    // The gate runs on the single current status; only a load still worth
+    // showing pays for the full timeline, which off-gasses the surface
+    // interval in sampled steps (a deco evaluation per sample, re-run on
+    // every tick) so CompactTissueLoadingCard can draw its heat map / area
+    // chart over that off-gassing the same way it draws one over a dive.
+    final endOfDiveCompartments = snap.endOfDiveCompartments;
+    final currentTissue = endOfDiveCompartments != null
+        ? TissueLiveService.currentStatus(
+            endOfDiveCompartments: endOfDiveCompartments,
+            lastDiveEnd: snap.lastDiveEnd,
+            now: now,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+            environment: snap.surfaceEnvironment,
+          )
+        : null;
+    final tissueStatus =
+        currentTissue != null &&
+            TissueLiveService.hasResidualLoad(currentTissue)
+        ? currentTissue
+        : null;
+    final tissueTimeline = tissueStatus != null
+        ? TissueLiveService.surfaceIntervalTimeline(
+            endOfDiveCompartments: endOfDiveCompartments!,
+            lastDiveEnd: snap.lastDiveEnd,
+            now: now,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+            environment: snap.surfaceEnvironment,
+          )
+        : null;
+
+    // A tissue load still worth showing counts as active too -- without
+    // this, CNS/OTU decaying below their own epsilons (CNS within ~15h,
+    // daily OTU at midnight) would read as "no active load" while the
+    // tissues themselves are still meaningfully loaded.
     final hasActiveLoad =
         liveCns >= _loadEpsilon ||
         dailyOtu >= _loadEpsilon ||
-        snap.weeklyOtu >= _loadEpsilon;
+        snap.weeklyOtu >= _loadEpsilon ||
+        tissueStatus != null;
     if (!hasActiveLoad) {
       return _clearCard(l10n, theme);
     }
@@ -174,6 +238,27 @@ class CnsOtuStatusCard extends StatelessWidget {
         dailyOtu: dailyOtu,
         weeklyOtu: snap.weeklyOtu,
       ),
+      if (tissueStatus != null) ...[
+        const SizedBox(height: 8),
+        CompactTissueLoadingCard(
+          status: tissueStatus,
+          decoStatuses: tissueTimeline,
+        ),
+      ],
+      // Explanations last, below every readout they describe, so they never
+      // push the numbers themselves further down the page.
+      const SizedBox(height: 8),
+      _AboutCard(
+        title: l10n.safetyHub_cnsOtu_about_title,
+        body: l10n.safetyHub_cnsOtu_about_body,
+      ),
+      if (tissueStatus != null) ...[
+        const SizedBox(height: 8),
+        _AboutCard(
+          title: l10n.safetyHub_tissueLoading_about_title,
+          body: l10n.safetyHub_tissueLoading_about_body,
+        ),
+      ],
     ]);
   }
 
@@ -277,6 +362,61 @@ class _OtuTotalsCard extends StatelessWidget {
               label: l10n.o2Toxicity_weekly,
               value: weeklyOtu,
               limit: O2Exposure.weeklyOtuLimit,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A short plain-language explanation card, same shape as the "About Tissue
+/// Loading" card on the Surface Interval Tool page: an info icon, a title,
+/// and a body paragraph. Used here so a diver can understand what the
+/// numbers above mean (CNS/OTU decay and reset, or tissue off-gassing and
+/// counter-diffusion) without leaving the page.
+class _AboutCard extends StatelessWidget {
+  final String title;
+  final String body;
+
+  const _AboutCard({required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Card(
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.info_outline,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              body,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
