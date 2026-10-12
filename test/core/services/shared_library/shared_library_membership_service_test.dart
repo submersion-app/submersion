@@ -247,7 +247,7 @@ void main() {
     expect(
       (await SiteRepository().getSiteById('lib'))?.sharedLibraryId,
       lib.id,
-      reason: 'the remaining profile keeps the club sites',
+      reason: 'the remaining profile keeps the shared sites',
     );
   });
 

@@ -20620,13 +20620,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_cloudSync_entry_subtitle => 'Sync via cloud storage';
 
   @override
-  String get sharedLibrary_settings_title => 'Club libraries';
+  String get sharedLibrary_settings_title => 'Shared Site Libraries';
 
   @override
-  String get sharedLibrary_settings_subtitle => 'Shared dive-site catalogues';
+  String get sharedLibrary_settings_subtitle =>
+      'Dive sites kept together with other divers';
 
   @override
-  String get sharedLibrary_list_empty => 'No club library connected yet.';
+  String get sharedLibrary_list_empty =>
+      'No shared site library connected yet.';
 
   @override
   String get sharedLibrary_connect_action => 'Connect a library';
@@ -20639,7 +20641,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'The folder inside the account where the club keeps its library.';
+      'The folder inside the account where the library is kept.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Check';
@@ -20668,7 +20670,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'Club libraries work with S3 and WebDAV accounts.';
+      'Shared site libraries work with S3 and WebDAV accounts.';
 
   @override
   String get sharedLibrary_role_reader => 'Reader';
@@ -20729,7 +20731,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'Club sites your dives use stay as personal copies. Other club sites are removed from this device.';
+      'Shared sites your dives use stay as personal copies. Other shared sites are removed from this device.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Display name';
@@ -20743,7 +20745,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'No club library here lets you add sites.';
+      'No shared site library here lets you add sites.';
 
   @override
   String get sharedLibrary_list_notConnected => 'Not connected on this device';
@@ -20770,7 +20772,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLibrary_site_history => 'Edit history';
 
   @override
-  String get sharedLibrary_site_addToLibrary => 'Add to club library';
+  String get sharedLibrary_site_addToLibrary => 'Add to shared site library';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Choose a library';
@@ -20790,7 +20792,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'Delete from the club library?';
+      'Delete from the shared site library?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -20798,7 +20800,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Only editors and owners delete club sites.';
+      'Only editors and owners delete shared sites.';
 
   @override
   String get sharedLibrary_suggest_title => 'Suggest changes';
@@ -20869,7 +20871,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLibrary_groupBy_personalGroup => 'Personal';
 
   @override
-  String get sharedLibrary_bulk_addToLibrary => 'Add to club library';
+  String get sharedLibrary_bulk_addToLibrary => 'Add to shared site library';
 
   @override
   String get settings_cloudSync_adopt_confirm => 'Adopt Restored Library';
@@ -22461,7 +22463,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Shared';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Club library';
+  String get settings_conflict_field_sharedLibrary => 'Shared site library';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'Member id';

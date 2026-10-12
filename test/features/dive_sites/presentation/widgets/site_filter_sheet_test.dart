@@ -241,7 +241,7 @@ void main() {
     }
 
     testWidgets(
-      'without a club library the tags keep the usual 24px gap to depth',
+      'without a shared site library the tags keep the usual 24px gap to depth',
       (tester) async {
         _useTallSurface(tester);
         final container = await classificationContainer();

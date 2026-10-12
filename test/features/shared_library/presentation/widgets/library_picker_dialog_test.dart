@@ -100,7 +100,7 @@ void main() {
     final picked = await _pick(tester, roles: SharedLibraryRoles.empty);
     expect(picked, isNull);
     expect(
-      find.text('No club library here lets you add sites.'),
+      find.text('No shared site library here lets you add sites.'),
       findsOneWidget,
     );
   });

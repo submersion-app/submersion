@@ -20908,14 +20908,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Synchronisierung über Cloud-Speicher';
 
   @override
-  String get sharedLibrary_settings_title => 'Club-Bibliotheken';
+  String get sharedLibrary_settings_title => 'Geteilte Tauchplatzbibliotheken';
 
   @override
-  String get sharedLibrary_settings_subtitle => 'Gemeinsame Tauchplatzkataloge';
+  String get sharedLibrary_settings_subtitle =>
+      'Tauchplätze, die du mit anderen Tauchern pflegst';
 
   @override
   String get sharedLibrary_list_empty =>
-      'Noch keine Club-Bibliothek verbunden.';
+      'Noch keine geteilte Tauchplatzbibliothek verbunden.';
 
   @override
   String get sharedLibrary_connect_action => 'Bibliothek verbinden';
@@ -20928,7 +20929,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'Der Ordner im Konto, in dem der Club seine Bibliothek ablegt.';
+      'Der Ordner im Konto, in dem die Bibliothek liegt.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Prüfen';
@@ -20958,7 +20959,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'Club-Bibliotheken funktionieren mit S3- und WebDAV-Konten.';
+      'Geteilte Tauchplatzbibliotheken funktionieren mit S3- und WebDAV-Konten.';
 
   @override
   String get sharedLibrary_role_reader => 'Leser';
@@ -21019,7 +21020,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'Club-Tauchplätze, die deine Tauchgänge nutzen, bleiben als persönliche Kopien. Andere Club-Tauchplätze werden von diesem Gerät entfernt.';
+      'Geteilte Tauchplätze, die deine Tauchgänge nutzen, bleiben als persönliche Kopien. Andere geteilte Tauchplätze werden von diesem Gerät entfernt.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Anzeigename';
@@ -21033,7 +21034,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'Keine Clubbibliothek hier erlaubt dir, Tauchplätze hinzuzufügen.';
+      'Keine geteilte Tauchplatzbibliothek hier erlaubt dir, Tauchplätze hinzuzufügen.';
 
   @override
   String get sharedLibrary_list_notConnected =>
@@ -21062,7 +21063,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_addToLibrary =>
-      'Zur Club-Bibliothek hinzufügen';
+      'Zur geteilten Tauchplatzbibliothek hinzufügen';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Bibliothek auswählen';
@@ -21082,7 +21083,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'Aus der Club-Bibliothek löschen?';
+      'Aus der geteilten Tauchplatzbibliothek löschen?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -21090,7 +21091,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Nur Bearbeiter und Eigentümer löschen Club-Tauchplätze.';
+      'Nur Bearbeiter und Eigentümer löschen geteilte Tauchplätze.';
 
   @override
   String get sharedLibrary_suggest_title => 'Änderungen vorschlagen';
@@ -21163,7 +21164,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_bulk_addToLibrary =>
-      'Zur Club-Bibliothek hinzufügen';
+      'Zur geteilten Tauchplatzbibliothek hinzufügen';
 
   @override
   String get settings_cloudSync_adopt_confirm =>
@@ -22801,7 +22802,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Geteilt';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Club-Bibliothek';
+  String get settings_conflict_field_sharedLibrary =>
+      'Geteilte Tauchplatzbibliothek';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'Mitglieds-ID';

@@ -20863,15 +20863,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Szinkronizálás felhőtárhelyen keresztül';
 
   @override
-  String get sharedLibrary_settings_title => 'Klubkönyvtárak';
+  String get sharedLibrary_settings_title => 'Megosztott merülőhely-könyvtárak';
 
   @override
   String get sharedLibrary_settings_subtitle =>
-      'Megosztott merülőhely-katalógusok';
+      'Más búvárokkal közösen vezetett merülőhelyek';
 
   @override
   String get sharedLibrary_list_empty =>
-      'Még nincs csatlakoztatott klubkönyvtár.';
+      'Még nincs csatlakoztatott megosztott merülőhely-könyvtár.';
 
   @override
   String get sharedLibrary_connect_action => 'Könyvtár csatlakoztatása';
@@ -20884,7 +20884,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'A fiókon belüli mappa, ahol a klub a könyvtárát tartja.';
+      'A fiókon belüli mappa, ahol a könyvtár található.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
@@ -20913,7 +20913,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'A klubkönyvtárak S3- és WebDAV-fiókokkal működnek.';
+      'A megosztott merülőhely-könyvtárak S3- és WebDAV-fiókokkal működnek.';
 
   @override
   String get sharedLibrary_role_reader => 'Olvasó';
@@ -20974,7 +20974,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'A merüléseid által használt klubhelyek személyes másolatként megmaradnak. A többi klubhely törlődik erről az eszközről.';
+      'A merüléseid által használt megosztott helyek személyes másolatként megmaradnak. A többi megosztott hely törlődik erről az eszközről.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Megjelenített név';
@@ -20988,7 +20988,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'Itt egyik klubkönyvtárba sem adhatsz hozzá merülőhelyeket.';
+      'Itt egyik megosztott merülőhely-könyvtárba sem adhatsz hozzá merülőhelyeket.';
 
   @override
   String get sharedLibrary_list_notConnected =>
@@ -21016,7 +21016,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_site_history => 'Szerkesztési előzmények';
 
   @override
-  String get sharedLibrary_site_addToLibrary => 'Hozzáadás a klubkönyvtárhoz';
+  String get sharedLibrary_site_addToLibrary =>
+      'Hozzáadás a megosztott merülőhely-könyvtárhoz';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Válassz könyvtárat';
@@ -21037,7 +21038,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'Törlöd a klubkönyvtárból?';
+      'Törlöd a megosztott merülőhely-könyvtárból?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -21045,7 +21046,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Klubhelyeket csak szerkesztők és tulajdonosok törölhetnek.';
+      'Megosztott helyeket csak szerkesztők és tulajdonosok törölhetnek.';
 
   @override
   String get sharedLibrary_suggest_title => 'Módosítások javaslása';
@@ -21116,7 +21117,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_groupBy_personalGroup => 'Személyes';
 
   @override
-  String get sharedLibrary_bulk_addToLibrary => 'Hozzáadás a klubkönyvtárhoz';
+  String get sharedLibrary_bulk_addToLibrary =>
+      'Hozzáadás a megosztott merülőhely-könyvtárhoz';
 
   @override
   String get settings_cloudSync_adopt_confirm =>
@@ -22744,7 +22746,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Megosztva';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Klubkönyvtár';
+  String get settings_conflict_field_sharedLibrary =>
+      'Megosztott merülőhely-könyvtár';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'Tagazonosító';

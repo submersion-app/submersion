@@ -20798,13 +20798,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Synchroniseren via cloudopslag';
 
   @override
-  String get sharedLibrary_settings_title => 'Clubbibliotheken';
+  String get sharedLibrary_settings_title => 'Gedeelde duikstekbibliotheken';
 
   @override
-  String get sharedLibrary_settings_subtitle => 'Gedeelde duikstekcatalogi';
+  String get sharedLibrary_settings_subtitle =>
+      'Duikstekken die je met andere duikers bijhoudt';
 
   @override
-  String get sharedLibrary_list_empty => 'Nog geen clubbibliotheek verbonden.';
+  String get sharedLibrary_list_empty =>
+      'Nog geen gedeelde duikstekbibliotheek verbonden.';
 
   @override
   String get sharedLibrary_connect_action => 'Bibliotheek verbinden';
@@ -20817,7 +20819,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'De map in het account waar de club zijn bibliotheek bewaart.';
+      'De map in het account waar de bibliotheek wordt bewaard.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
@@ -20848,7 +20850,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'Clubbibliotheken werken met S3- en WebDAV-accounts.';
+      'Gedeelde duikstekbibliotheken werken met S3- en WebDAV-accounts.';
 
   @override
   String get sharedLibrary_role_reader => 'Lezer';
@@ -20909,7 +20911,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'Clubduikstekken die je duiken gebruiken blijven als persoonlijke kopieën. Andere clubduikstekken worden van dit apparaat verwijderd.';
+      'Gedeelde duikstekken die je duiken gebruiken blijven als persoonlijke kopieën. Andere gedeelde duikstekken worden van dit apparaat verwijderd.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Weergavenaam';
@@ -20923,7 +20925,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'Geen clubbibliotheek hier laat je duikplekken toevoegen.';
+      'Geen gedeelde duikstekbibliotheek hier laat je duikplekken toevoegen.';
 
   @override
   String get sharedLibrary_list_notConnected =>
@@ -20951,7 +20953,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_site_history => 'Bewerkingsgeschiedenis';
 
   @override
-  String get sharedLibrary_site_addToLibrary => 'Toevoegen aan clubbibliotheek';
+  String get sharedLibrary_site_addToLibrary =>
+      'Toevoegen aan gedeelde duikstekbibliotheek';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Kies een bibliotheek';
@@ -20971,7 +20974,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'Verwijderen uit de clubbibliotheek?';
+      'Verwijderen uit de gedeelde duikstekbibliotheek?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -20979,7 +20982,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Alleen bewerkers en eigenaren verwijderen clubduikstekken.';
+      'Alleen bewerkers en eigenaren verwijderen gedeelde duikstekken.';
 
   @override
   String get sharedLibrary_suggest_title => 'Wijzigingen voorstellen';
@@ -21050,7 +21053,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_groupBy_personalGroup => 'Persoonlijk';
 
   @override
-  String get sharedLibrary_bulk_addToLibrary => 'Toevoegen aan clubbibliotheek';
+  String get sharedLibrary_bulk_addToLibrary =>
+      'Toevoegen aan gedeelde duikstekbibliotheek';
 
   @override
   String get settings_cloudSync_adopt_confirm =>
@@ -22685,7 +22689,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Gedeeld';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Clubbibliotheek';
+  String get settings_conflict_field_sharedLibrary =>
+      'Gedeelde duikstekbibliotheek';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'Lid-id';

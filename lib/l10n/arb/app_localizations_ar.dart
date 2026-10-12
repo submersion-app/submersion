@@ -21202,13 +21202,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'المزامنة عبر التخزين السحابي';
 
   @override
-  String get sharedLibrary_settings_title => 'مكتبات النادي';
+  String get sharedLibrary_settings_title => 'مكتبات المواقع المشتركة';
 
   @override
-  String get sharedLibrary_settings_subtitle => 'فهارس مواقع غوص مشتركة';
+  String get sharedLibrary_settings_subtitle =>
+      'مواقع غوص تُدار مع غواصين آخرين';
 
   @override
-  String get sharedLibrary_list_empty => 'لم يتم توصيل أي مكتبة نادٍ بعد.';
+  String get sharedLibrary_list_empty =>
+      'لم يتم توصيل أي مكتبة مواقع مشتركة بعد.';
 
   @override
   String get sharedLibrary_connect_action => 'توصيل مكتبة';
@@ -21221,7 +21223,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'المجلد داخل الحساب الذي يحتفظ فيه النادي بمكتبته.';
+      'المجلد داخل الحساب الذي تُحفظ فيه المكتبة.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
@@ -21249,7 +21251,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'تعمل مكتبات النادي مع حسابات S3 وWebDAV.';
+      'تعمل مكتبات المواقع المشتركة مع حسابات S3 وWebDAV.';
 
   @override
   String get sharedLibrary_role_reader => 'قارئ';
@@ -21313,7 +21315,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'تبقى مواقع النادي التي تستخدمها غوصاتك كنسخ شخصية. تُزال مواقع النادي الأخرى من هذا الجهاز.';
+      'تبقى المواقع المشتركة التي تستخدمها غوصاتك كنسخ شخصية. تُزال المواقع المشتركة الأخرى من هذا الجهاز.';
 
   @override
   String get sharedLibrary_library_rename_label => 'الاسم المعروض';
@@ -21327,7 +21329,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'لا توجد مكتبة نادٍ هنا تتيح لك إضافة مواقع.';
+      'لا توجد مكتبة مواقع مشتركة هنا تتيح لك إضافة مواقع.';
 
   @override
   String get sharedLibrary_list_notConnected => 'غير متصل على هذا الجهاز';
@@ -21354,7 +21356,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_site_history => 'سجل التعديلات';
 
   @override
-  String get sharedLibrary_site_addToLibrary => 'إضافة إلى مكتبة النادي';
+  String get sharedLibrary_site_addToLibrary =>
+      'إضافة إلى مكتبة المواقع المشتركة';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'اختر مكتبة';
@@ -21374,7 +21377,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'حذف من مكتبة النادي؟';
+      'حذف من مكتبة المواقع المشتركة؟';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -21382,7 +21385,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'يمكن للمحررين والمالكين فقط حذف مواقع النادي.';
+      'يمكن للمحررين والمالكين فقط حذف المواقع المشتركة.';
 
   @override
   String get sharedLibrary_suggest_title => 'اقتراح تغييرات';
@@ -21455,7 +21458,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_groupBy_personalGroup => 'شخصي';
 
   @override
-  String get sharedLibrary_bulk_addToLibrary => 'إضافة إلى مكتبة النادي';
+  String get sharedLibrary_bulk_addToLibrary =>
+      'إضافة إلى مكتبة المواقع المشتركة';
 
   @override
   String get settings_cloudSync_adopt_confirm => 'اعتماد المكتبة المستعادة';
@@ -23056,7 +23060,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_isShared => 'مشترك';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'مكتبة النادي';
+  String get settings_conflict_field_sharedLibrary => 'مكتبة المواقع المشتركة';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'معرّف العضو';

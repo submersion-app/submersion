@@ -19897,13 +19897,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_entry_subtitle => '通过云存储同步';
 
   @override
-  String get sharedLibrary_settings_title => '俱乐部库';
+  String get sharedLibrary_settings_title => '共享潜点库';
 
   @override
-  String get sharedLibrary_settings_subtitle => '共享潜点目录';
+  String get sharedLibrary_settings_subtitle => '与其他潜水员共同维护的潜点';
 
   @override
-  String get sharedLibrary_list_empty => '尚未连接俱乐部库。';
+  String get sharedLibrary_list_empty => '尚未连接共享潜点库。';
 
   @override
   String get sharedLibrary_connect_action => '连接库';
@@ -19915,7 +19915,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_connect_prefix_label => '文件夹（前缀）';
 
   @override
-  String get sharedLibrary_connect_prefix_help => '俱乐部在该账户中存放库的文件夹。';
+  String get sharedLibrary_connect_prefix_help => '该账户中存放库的文件夹。';
 
   @override
   String get sharedLibrary_connect_probe_action => '检查';
@@ -19941,7 +19941,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_connect_needsNewerApp => '此库需要更新版本的 Submersion。';
 
   @override
-  String get sharedLibrary_connect_onlyS3Webdav => '俱乐部库支持 S3 和 WebDAV 账户。';
+  String get sharedLibrary_connect_onlyS3Webdav => '共享潜点库支持 S3 和 WebDAV 账户。';
 
   @override
   String get sharedLibrary_role_reader => '读者';
@@ -20001,7 +20001,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      '您的潜水所使用的俱乐部潜点将保留为个人副本。其他俱乐部潜点将从此设备移除。';
+      '您的潜水所使用的共享潜点将保留为个人副本。其他共享潜点将从此设备移除。';
 
   @override
   String get sharedLibrary_library_rename_label => '显示名称';
@@ -20013,7 +20013,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_members_lastOwner => '无法降级最后一位所有者。';
 
   @override
-  String get sharedLibrary_picker_none => '这里没有允许你添加潜点的俱乐部资料库。';
+  String get sharedLibrary_picker_none => '这里没有允许你添加潜点的共享潜点库。';
 
   @override
   String get sharedLibrary_list_notConnected => '未在此设备上连接';
@@ -20038,7 +20038,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_site_history => '编辑历史';
 
   @override
-  String get sharedLibrary_site_addToLibrary => '添加到俱乐部库';
+  String get sharedLibrary_site_addToLibrary => '添加到共享潜点库';
 
   @override
   String get sharedLibrary_site_chooseLibrary => '选择库';
@@ -20057,13 +20057,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_site_connectHere => '在此设备上连接';
 
   @override
-  String get sharedLibrary_site_deleteFromLibrary_title => '从俱乐部库中删除？';
+  String get sharedLibrary_site_deleteFromLibrary_title => '从共享潜点库中删除？';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body => '潜水使用此潜点的成员会保留个人副本。';
 
   @override
-  String get sharedLibrary_site_readerCannotDelete => '只有编辑者和所有者才能删除俱乐部潜点。';
+  String get sharedLibrary_site_readerCannotDelete => '只有编辑者和所有者才能删除共享潜点。';
 
   @override
   String get sharedLibrary_suggest_title => '提出修改建议';
@@ -20132,7 +20132,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_groupBy_personalGroup => '个人';
 
   @override
-  String get sharedLibrary_bulk_addToLibrary => '添加到俱乐部库';
+  String get sharedLibrary_bulk_addToLibrary => '添加到共享潜点库';
 
   @override
   String get settings_cloudSync_adopt_confirm => '采用恢复的资料库';
@@ -21608,7 +21608,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_isShared => '已共享';
 
   @override
-  String get settings_conflict_field_sharedLibrary => '俱乐部库';
+  String get settings_conflict_field_sharedLibrary => '共享潜点库';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => '成员 ID';

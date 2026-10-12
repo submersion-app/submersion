@@ -155,7 +155,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-      find.text('Club libraries work with S3 and WebDAV accounts.'),
+      find.text('Shared site libraries work with S3 and WebDAV accounts.'),
       findsOneWidget,
     );
   });

@@ -20931,15 +20931,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sincronizzazione tramite archiviazione cloud';
 
   @override
-  String get sharedLibrary_settings_title => 'Librerie del club';
+  String get sharedLibrary_settings_title => 'Librerie di siti condivise';
 
   @override
   String get sharedLibrary_settings_subtitle =>
-      'Cataloghi condivisi di siti di immersione';
+      'Siti di immersione tenuti insieme ad altri subacquei';
 
   @override
   String get sharedLibrary_list_empty =>
-      'Nessuna libreria del club ancora collegata.';
+      'Nessuna libreria di siti condivisa ancora collegata.';
 
   @override
   String get sharedLibrary_connect_action => 'Collega una libreria';
@@ -20952,7 +20952,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'La cartella dell\'account in cui il club conserva la sua libreria.';
+      'La cartella dell\'account in cui è conservata la libreria.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
@@ -20982,7 +20982,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'Le librerie del club funzionano con account S3 e WebDAV.';
+      'Le librerie di siti condivise funzionano con account S3 e WebDAV.';
 
   @override
   String get sharedLibrary_role_reader => 'Lettore';
@@ -21043,7 +21043,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'I siti del club usati dalle tue immersioni restano come copie personali. Gli altri siti del club vengono rimossi da questo dispositivo.';
+      'I siti condivisi usati dalle tue immersioni restano come copie personali. Gli altri siti condivisi vengono rimossi da questo dispositivo.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Nome visualizzato';
@@ -21057,7 +21057,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'Nessuna libreria del club qui ti consente di aggiungere siti.';
+      'Nessuna libreria di siti condivisa qui ti consente di aggiungere siti.';
 
   @override
   String get sharedLibrary_list_notConnected =>
@@ -21086,7 +21086,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_addToLibrary =>
-      'Aggiungi alla libreria del club';
+      'Aggiungi alla libreria di siti condivisa';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Scegli una libreria';
@@ -21106,7 +21106,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'Eliminare dalla libreria del club?';
+      'Eliminare dalla libreria di siti condivisa?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -21114,7 +21114,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Solo editor e proprietari eliminano i siti del club.';
+      'Solo editor e proprietari eliminano i siti condivisi.';
 
   @override
   String get sharedLibrary_suggest_title => 'Suggerisci modifiche';
@@ -21186,7 +21186,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_bulk_addToLibrary =>
-      'Aggiungi alla libreria del club';
+      'Aggiungi alla libreria di siti condivisa';
 
   @override
   String get settings_cloudSync_adopt_confirm =>
@@ -22844,7 +22844,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Condiviso';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Libreria del club';
+  String get settings_conflict_field_sharedLibrary =>
+      'Libreria di siti condivisa';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'Id membro';

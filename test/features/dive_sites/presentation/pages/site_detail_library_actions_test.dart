@@ -118,7 +118,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
-    expect(find.text('Delete from the club library?'), findsOneWidget);
+    expect(find.text('Delete from the shared site library?'), findsOneWidget);
   });
 
   testWidgets('an unconnected device offers Connect on this device', (
@@ -135,12 +135,13 @@ void main() {
     expect(find.text('Connect on this device'), findsOneWidget);
   });
 
-  testWidgets('a personal site offers Add to club library to an editor', (
-    tester,
-  ) async {
-    await _pump(tester, site: _personalSite, role: SharedLibraryRole.editor);
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    expect(find.text('Add to club library'), findsOneWidget);
-  });
+  testWidgets(
+    'a personal site offers Add to shared site library to an editor',
+    (tester) async {
+      await _pump(tester, site: _personalSite, role: SharedLibraryRole.editor);
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      expect(find.text('Add to shared site library'), findsOneWidget);
+    },
+  );
 }

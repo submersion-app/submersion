@@ -20466,13 +20466,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_entry_subtitle => 'סנכרון באמצעות אחסון ענן';
 
   @override
-  String get sharedLibrary_settings_title => 'ספריות מועדון';
+  String get sharedLibrary_settings_title => 'ספריות אתרים משותפות';
 
   @override
-  String get sharedLibrary_settings_subtitle => 'קטלוגים משותפים של אתרי צלילה';
+  String get sharedLibrary_settings_subtitle =>
+      'אתרי צלילה שמנוהלים יחד עם צוללים אחרים';
 
   @override
-  String get sharedLibrary_list_empty => 'עדיין לא חוברה ספריית מועדון.';
+  String get sharedLibrary_list_empty => 'עדיין לא חוברה ספריית אתרים משותפת.';
 
   @override
   String get sharedLibrary_connect_action => 'חיבור ספרייה';
@@ -20485,7 +20486,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'התיקייה בחשבון שבה המועדון שומר את הספרייה שלו.';
+      'התיקייה בחשבון שבה הספרייה נשמרת.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
@@ -20513,7 +20514,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'ספריות מועדון פועלות עם חשבונות S3 ו-WebDAV.';
+      'ספריות אתרים משותפות פועלות עם חשבונות S3 ו-WebDAV.';
 
   @override
   String get sharedLibrary_role_reader => 'קורא';
@@ -20574,7 +20575,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'אתרי המועדון שהצלילות שלך משתמשות בהם נשארים כעותקים אישיים. אתרי מועדון אחרים יוסרו מהמכשיר הזה.';
+      'אתרים משותפים שהצלילות שלך משתמשות בהם נשארים כעותקים אישיים. אתרים משותפים אחרים יוסרו מהמכשיר הזה.';
 
   @override
   String get sharedLibrary_library_rename_label => 'שם תצוגה';
@@ -20588,7 +20589,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'אין כאן ספריית מועדון שמאפשרת לך להוסיף אתרים.';
+      'אין כאן ספריית אתרים משותפת שמאפשרת לך להוסיף אתרים.';
 
   @override
   String get sharedLibrary_list_notConnected => 'לא מחוברת במכשיר זה';
@@ -20615,7 +20616,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_site_history => 'היסטוריית עריכות';
 
   @override
-  String get sharedLibrary_site_addToLibrary => 'הוספה לספריית המועדון';
+  String get sharedLibrary_site_addToLibrary => 'הוספה לספריית האתרים המשותפת';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'בחירת ספרייה';
@@ -20635,7 +20636,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'למחוק מספריית המועדון?';
+      'למחוק מספריית האתרים המשותפת?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -20643,7 +20644,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'רק עורכים ובעלים מוחקים אתרי מועדון.';
+      'רק עורכים ובעלים מוחקים אתרים משותפים.';
 
   @override
   String get sharedLibrary_suggest_title => 'הצעת שינויים';
@@ -20713,7 +20714,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_groupBy_personalGroup => 'אישי';
 
   @override
-  String get sharedLibrary_bulk_addToLibrary => 'הוספה לספריית המועדון';
+  String get sharedLibrary_bulk_addToLibrary => 'הוספה לספריית האתרים המשותפת';
 
   @override
   String get settings_cloudSync_adopt_confirm => 'אימוץ הספרייה המשוחזרת';
@@ -22275,7 +22276,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_isShared => 'משותף';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'ספריית מועדון';
+  String get settings_conflict_field_sharedLibrary => 'ספריית אתרים משותפת';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'מזהה חבר';

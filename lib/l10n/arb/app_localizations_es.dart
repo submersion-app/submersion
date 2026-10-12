@@ -20935,15 +20935,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sincronización mediante almacenamiento en la nube';
 
   @override
-  String get sharedLibrary_settings_title => 'Bibliotecas de club';
+  String get sharedLibrary_settings_title =>
+      'Bibliotecas de puntos compartidas';
 
   @override
   String get sharedLibrary_settings_subtitle =>
-      'Catálogos compartidos de puntos de buceo';
+      'Puntos de buceo mantenidos con otros buceadores';
 
   @override
   String get sharedLibrary_list_empty =>
-      'Aún no hay ninguna biblioteca de club conectada.';
+      'Aún no hay ninguna biblioteca de puntos compartida conectada.';
 
   @override
   String get sharedLibrary_connect_action => 'Conectar una biblioteca';
@@ -20956,7 +20957,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'La carpeta dentro de la cuenta donde el club guarda su biblioteca.';
+      'La carpeta dentro de la cuenta donde se guarda la biblioteca.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Comprobar';
@@ -20987,7 +20988,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'Las bibliotecas de club funcionan con cuentas S3 y WebDAV.';
+      'Las bibliotecas de puntos compartidas funcionan con cuentas S3 y WebDAV.';
 
   @override
   String get sharedLibrary_role_reader => 'Lector';
@@ -21048,7 +21049,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'Los puntos del club que usan tus inmersiones se conservan como copias personales. Los demás puntos del club se eliminan de este dispositivo.';
+      'Los puntos compartidos que usan tus inmersiones se conservan como copias personales. Los demás puntos compartidos se eliminan de este dispositivo.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Nombre visible';
@@ -21062,7 +21063,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'Ninguna biblioteca del club aquí te permite añadir sitios.';
+      'Ninguna biblioteca de puntos compartida aquí te permite añadir sitios.';
 
   @override
   String get sharedLibrary_list_notConnected =>
@@ -21091,7 +21092,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_addToLibrary =>
-      'Añadir a la biblioteca del club';
+      'Añadir a la biblioteca de puntos compartida';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Elige una biblioteca';
@@ -21111,7 +21112,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      '¿Eliminar de la biblioteca del club?';
+      '¿Eliminar de la biblioteca de puntos compartida?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -21119,7 +21120,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Solo los editores y propietarios eliminan puntos del club.';
+      'Solo los editores y propietarios eliminan puntos compartidos.';
 
   @override
   String get sharedLibrary_suggest_title => 'Sugerir cambios';
@@ -21191,7 +21192,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sharedLibrary_bulk_addToLibrary =>
-      'Añadir a la biblioteca del club';
+      'Añadir a la biblioteca de puntos compartida';
 
   @override
   String get settings_cloudSync_adopt_confirm =>
@@ -22842,7 +22843,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Compartido';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Biblioteca de club';
+  String get settings_conflict_field_sharedLibrary =>
+      'Biblioteca de puntos compartida';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'Id. de miembro';

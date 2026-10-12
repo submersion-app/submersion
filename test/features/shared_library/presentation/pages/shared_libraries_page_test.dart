@@ -23,7 +23,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('No club library connected yet.'), findsOneWidget);
+    expect(find.text('No shared site library connected yet.'), findsOneWidget);
     expect(find.text('Connect a library'), findsWidgets);
   });
 
@@ -104,6 +104,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Reef Club'), findsOneWidget);
     expect(find.text('Not connected on this device'), findsOneWidget);
-    expect(find.text('No club library connected yet.'), findsNothing);
+    expect(find.text('No shared site library connected yet.'), findsNothing);
   });
 }

@@ -20993,15 +20993,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Synchronisation via le stockage cloud';
 
   @override
-  String get sharedLibrary_settings_title => 'Bibliothèques de club';
+  String get sharedLibrary_settings_title => 'Bibliothèques de sites partagées';
 
   @override
   String get sharedLibrary_settings_subtitle =>
-      'Catalogues de sites de plongée partagés';
+      'Des sites de plongée tenus avec d\'autres plongeurs';
 
   @override
   String get sharedLibrary_list_empty =>
-      'Aucune bibliothèque de club connectée pour le moment.';
+      'Aucune bibliothèque de sites partagée connectée pour le moment.';
 
   @override
   String get sharedLibrary_connect_action => 'Connecter une bibliothèque';
@@ -21014,7 +21014,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'Le dossier du compte où le club conserve sa bibliothèque.';
+      'Le dossier du compte où la bibliothèque est conservée.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
@@ -21045,7 +21045,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'Les bibliothèques de club fonctionnent avec des comptes S3 et WebDAV.';
+      'Les bibliothèques de sites partagées fonctionnent avec des comptes S3 et WebDAV.';
 
   @override
   String get sharedLibrary_role_reader => 'Lecteur';
@@ -21106,7 +21106,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'Les sites du club utilisés par vos plongées restent en copies personnelles. Les autres sites du club sont retirés de cet appareil.';
+      'Les sites partagés utilisés par vos plongées restent en copies personnelles. Les autres sites partagés sont retirés de cet appareil.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Nom affiché';
@@ -21120,7 +21120,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'Aucune bibliothèque de club ici ne vous permet d\'ajouter des sites.';
+      'Aucune bibliothèque de sites partagée ici ne vous permet d\'ajouter des sites.';
 
   @override
   String get sharedLibrary_list_notConnected =>
@@ -21149,7 +21149,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_addToLibrary =>
-      'Ajouter à la bibliothèque du club';
+      'Ajouter à la bibliothèque de sites partagée';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Choisir une bibliothèque';
@@ -21169,7 +21169,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'Supprimer de la bibliothèque du club ?';
+      'Supprimer de la bibliothèque de sites partagée ?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -21177,7 +21177,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Seuls les éditeurs et les propriétaires suppriment des sites du club.';
+      'Seuls les éditeurs et les propriétaires suppriment des sites partagés.';
 
   @override
   String get sharedLibrary_suggest_title => 'Suggérer des modifications';
@@ -21249,7 +21249,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_bulk_addToLibrary =>
-      'Ajouter à la bibliothèque du club';
+      'Ajouter à la bibliothèque de sites partagée';
 
   @override
   String get settings_cloudSync_adopt_confirm =>
@@ -22903,7 +22903,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Partagé';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Bibliothèque de club';
+  String get settings_conflict_field_sharedLibrary =>
+      'Bibliothèque de sites partagée';
 
   @override
   String get settings_conflict_field_sharedLibraryMember =>

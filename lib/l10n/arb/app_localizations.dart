@@ -33518,19 +33518,19 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_settings_title.
   ///
   /// In en, this message translates to:
-  /// **'Club libraries'**
+  /// **'Shared Site Libraries'**
   String get sharedLibrary_settings_title;
 
   /// No description provided for @sharedLibrary_settings_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Shared dive-site catalogues'**
+  /// **'Dive sites kept together with other divers'**
   String get sharedLibrary_settings_subtitle;
 
   /// No description provided for @sharedLibrary_list_empty.
   ///
   /// In en, this message translates to:
-  /// **'No club library connected yet.'**
+  /// **'No shared site library connected yet.'**
   String get sharedLibrary_list_empty;
 
   /// No description provided for @sharedLibrary_connect_action.
@@ -33554,7 +33554,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_connect_prefix_help.
   ///
   /// In en, this message translates to:
-  /// **'The folder inside the account where the club keeps its library.'**
+  /// **'The folder inside the account where the library is kept.'**
   String get sharedLibrary_connect_prefix_help;
 
   /// No description provided for @sharedLibrary_connect_probe_action.
@@ -33602,7 +33602,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_connect_onlyS3Webdav.
   ///
   /// In en, this message translates to:
-  /// **'Club libraries work with S3 and WebDAV accounts.'**
+  /// **'Shared site libraries work with S3 and WebDAV accounts.'**
   String get sharedLibrary_connect_onlyS3Webdav;
 
   /// No description provided for @sharedLibrary_role_reader.
@@ -33692,7 +33692,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_library_leaveConfirm_body.
   ///
   /// In en, this message translates to:
-  /// **'Club sites your dives use stay as personal copies. Other club sites are removed from this device.'**
+  /// **'Shared sites your dives use stay as personal copies. Other shared sites are removed from this device.'**
   String get sharedLibrary_library_leaveConfirm_body;
 
   /// No description provided for @sharedLibrary_library_rename_label.
@@ -33716,7 +33716,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_picker_none.
   ///
   /// In en, this message translates to:
-  /// **'No club library here lets you add sites.'**
+  /// **'No shared site library here lets you add sites.'**
   String get sharedLibrary_picker_none;
 
   /// No description provided for @sharedLibrary_list_notConnected.
@@ -33758,7 +33758,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_site_addToLibrary.
   ///
   /// In en, this message translates to:
-  /// **'Add to club library'**
+  /// **'Add to shared site library'**
   String get sharedLibrary_site_addToLibrary;
 
   /// No description provided for @sharedLibrary_site_chooseLibrary.
@@ -33788,7 +33788,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_site_deleteFromLibrary_title.
   ///
   /// In en, this message translates to:
-  /// **'Delete from the club library?'**
+  /// **'Delete from the shared site library?'**
   String get sharedLibrary_site_deleteFromLibrary_title;
 
   /// No description provided for @sharedLibrary_site_deleteFromLibrary_body.
@@ -33800,7 +33800,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_site_readerCannotDelete.
   ///
   /// In en, this message translates to:
-  /// **'Only editors and owners delete club sites.'**
+  /// **'Only editors and owners delete shared sites.'**
   String get sharedLibrary_site_readerCannotDelete;
 
   /// No description provided for @sharedLibrary_suggest_title.
@@ -33920,7 +33920,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_bulk_addToLibrary.
   ///
   /// In en, this message translates to:
-  /// **'Add to club library'**
+  /// **'Add to shared site library'**
   String get sharedLibrary_bulk_addToLibrary;
 
   /// No description provided for @settings_cloudSync_adopt_confirm.
@@ -36525,7 +36525,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_sharedLibrary.
   ///
   /// In en, this message translates to:
-  /// **'Club library'**
+  /// **'Shared site library'**
   String get settings_conflict_field_sharedLibrary;
 
   /// No description provided for @settings_conflict_field_sharedLibraryMember.

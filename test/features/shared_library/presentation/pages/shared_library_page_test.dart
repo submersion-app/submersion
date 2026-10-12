@@ -141,7 +141,10 @@ void main() {
     expect(find.text('Reef'), findsOneWidget);
     expect(find.text('Wreck'), findsOneWidget);
     expect(find.text('Club wall'), findsNothing);
-    final button = find.widgetWithText(FilledButton, 'Add to club library');
+    final button = find.widgetWithText(
+      FilledButton,
+      'Add to shared site library',
+    );
     expect(tester.widget<FilledButton>(button).onPressed, isNull);
 
     await tester.tap(find.text('Reef'));
@@ -181,7 +184,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Reef'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Add to club library'));
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Add to shared site library'),
+    );
     await tester.pumpAndSettle();
     expect(
       find.text('Something went wrong. Please try again.'),

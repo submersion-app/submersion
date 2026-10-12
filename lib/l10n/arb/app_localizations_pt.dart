@@ -20933,15 +20933,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sincronização via armazenamento na nuvem';
 
   @override
-  String get sharedLibrary_settings_title => 'Bibliotecas de clube';
+  String get sharedLibrary_settings_title =>
+      'Bibliotecas de locais partilhadas';
 
   @override
   String get sharedLibrary_settings_subtitle =>
-      'Catálogos partilhados de locais de mergulho';
+      'Locais de mergulho mantidos com outros mergulhadores';
 
   @override
   String get sharedLibrary_list_empty =>
-      'Ainda não há nenhuma biblioteca de clube ligada.';
+      'Ainda não há nenhuma biblioteca de locais partilhada ligada.';
 
   @override
   String get sharedLibrary_connect_action => 'Ligar uma biblioteca';
@@ -20954,7 +20955,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_prefix_help =>
-      'A pasta dentro da conta onde o clube guarda a sua biblioteca.';
+      'A pasta dentro da conta onde a biblioteca é guardada.';
 
   @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
@@ -20984,7 +20985,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_onlyS3Webdav =>
-      'As bibliotecas de clube funcionam com contas S3 e WebDAV.';
+      'As bibliotecas de locais partilhadas funcionam com contas S3 e WebDAV.';
 
   @override
   String get sharedLibrary_role_reader => 'Leitor';
@@ -21045,7 +21046,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_leaveConfirm_body =>
-      'Os locais do clube usados pelos seus mergulhos ficam como cópias pessoais. Os restantes locais do clube são removidos deste dispositivo.';
+      'Os locais partilhados usados pelos seus mergulhos ficam como cópias pessoais. Os restantes locais partilhados são removidos deste dispositivo.';
 
   @override
   String get sharedLibrary_library_rename_label => 'Nome a apresentar';
@@ -21059,7 +21060,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_picker_none =>
-      'Nenhuma biblioteca do clube aqui permite adicionar locais.';
+      'Nenhuma biblioteca de locais partilhada aqui permite adicionar locais.';
 
   @override
   String get sharedLibrary_list_notConnected => 'Não ligada neste dispositivo';
@@ -21087,7 +21088,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_addToLibrary =>
-      'Adicionar à biblioteca do clube';
+      'Adicionar à biblioteca de locais partilhada';
 
   @override
   String get sharedLibrary_site_chooseLibrary => 'Escolha uma biblioteca';
@@ -21107,7 +21108,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_title =>
-      'Eliminar da biblioteca do clube?';
+      'Eliminar da biblioteca de locais partilhada?';
 
   @override
   String get sharedLibrary_site_deleteFromLibrary_body =>
@@ -21115,7 +21116,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_site_readerCannotDelete =>
-      'Só editores e proprietários eliminam locais do clube.';
+      'Só editores e proprietários eliminam locais partilhados.';
 
   @override
   String get sharedLibrary_suggest_title => 'Sugerir alterações';
@@ -21187,7 +21188,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_bulk_addToLibrary =>
-      'Adicionar à biblioteca do clube';
+      'Adicionar à biblioteca de locais partilhada';
 
   @override
   String get settings_cloudSync_adopt_confirm =>
@@ -22826,7 +22827,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Compartilhado';
 
   @override
-  String get settings_conflict_field_sharedLibrary => 'Biblioteca de clube';
+  String get settings_conflict_field_sharedLibrary =>
+      'Biblioteca de locais partilhada';
 
   @override
   String get settings_conflict_field_sharedLibraryMember => 'Id. de membro';
