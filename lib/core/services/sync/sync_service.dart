@@ -1538,6 +1538,12 @@ class SyncService {
             records: data.diveComputerConnections,
             hasUpdatedAt: true,
           ),
+          // v285: a profile's club-library memberships (issue #2567).
+          (
+            type: 'sharedLibraryMemberships',
+            records: data.sharedLibraryMemberships,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'transmitters',
             records: data.transmitters,
@@ -2642,6 +2648,7 @@ class SyncService {
     'weightPresetEntries': false,
     'diveComputers': true,
     'diveComputerConnections': true,
+    'sharedLibraryMemberships': true,
     'transmitters': true,
     'cylinderFills': true,
     'connectionMaps': true,
@@ -2807,6 +2814,10 @@ class SyncService {
     // v279: a connection belongs to its computer (issue #3106).
     'diveComputerConnections': [
       (field: 'computerId', parent: 'diveComputers', nullable: false),
+    ],
+    // v285: a membership belongs to its profile (issue #2567).
+    'sharedLibraryMemberships': [
+      (field: 'diverId', parent: 'divers', nullable: false),
     ],
     // Both gear FKs are nullable: the registry entry outlives a deleted
     // cylinder or computer (set null), so a missing parent must not drop it.

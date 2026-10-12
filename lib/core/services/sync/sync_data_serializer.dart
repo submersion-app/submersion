@@ -369,6 +369,9 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentLocations;
   final List<Map<String, dynamic>> equipmentLocationMoves;
   final List<Map<String, dynamic>> diveComputerConnections;
+
+  /// Club-library memberships per profile (v285, issue #2567).
+  final List<Map<String, dynamic>> sharedLibraryMemberships;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
@@ -487,6 +490,7 @@ class SyncData {
     this.equipmentLocations = const [],
     this.equipmentLocationMoves = const [],
     this.diveComputerConnections = const [],
+    this.sharedLibraryMemberships = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
@@ -604,6 +608,7 @@ class SyncData {
     'equipmentLocations': equipmentLocations,
     'equipmentLocationMoves': equipmentLocationMoves,
     'diveComputerConnections': diveComputerConnections,
+    'sharedLibraryMemberships': sharedLibraryMemberships,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
@@ -736,6 +741,7 @@ class SyncData {
       equipmentLocations: _parseList(json['equipmentLocations']),
       equipmentLocationMoves: _parseList(json['equipmentLocationMoves']),
       diveComputerConnections: _parseList(json['diveComputerConnections']),
+      sharedLibraryMemberships: _parseList(json['sharedLibraryMemberships']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
@@ -1325,6 +1331,12 @@ class SyncDataSerializer {
     (
       key: 'diveComputerConnections',
       table: _db.diveComputerConnections,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'sharedLibraryMemberships',
+      table: _db.sharedLibraryMemberships,
       blob: false,
       full: null,
     ),
@@ -2624,6 +2636,10 @@ class SyncDataSerializer {
         'diveComputerConnections',
         () => _exportDiveComputerConnections(hlcSince),
       ),
+      sharedLibraryMemberships: await _safeExport(
+        'sharedLibraryMemberships',
+        () => _exportSharedLibraryMemberships(hlcSince),
+      ),
       siteTypes: await _safeExport(
         'siteTypes',
         () => _exportSiteTypes(hlcSince),
@@ -3282,6 +3298,11 @@ class SyncDataSerializer {
                 'diveComputerConnections',
                 row.toJson(),
               );
+      case 'sharedLibraryMemberships':
+        final row = await (_db.select(
+          _db.sharedLibraryMemberships,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'transmitters':
         final row = await (_db.select(
           _db.transmitters,
@@ -3748,6 +3769,11 @@ class SyncDataSerializer {
               r.toJson(),
             ),
         };
+      case 'sharedLibraryMemberships':
+        final rows = await (_db.select(
+          _db.sharedLibraryMemberships,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'transmitters':
         final rows = await (_db.select(
           _db.transmitters,
@@ -5084,6 +5110,15 @@ class SyncDataSerializer {
             .into(_db.diveComputerConnections)
             .insertOnConflictUpdate(
               DiveComputerConnectionRow.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
+            );
+        return;
+      case 'sharedLibraryMemberships':
+        await _db
+            .into(_db.sharedLibraryMemberships)
+            .insertOnConflictUpdate(
+              SharedLibraryMembershipRow.fromJson(
                 _withTimestampDefaults(data),
               ).toCompanion(false),
             );
@@ -6526,6 +6561,20 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'sharedLibraryMemberships':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.sharedLibraryMemberships,
+            records
+                .map(
+                  (r) => SharedLibraryMembershipRow.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'transmitters':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -7061,6 +7110,11 @@ class SyncDataSerializer {
           _db.diveComputerConnections,
           _db.diveComputerConnections.id,
         );
+      case 'sharedLibraryMemberships':
+        return plain(
+          _db.sharedLibraryMemberships,
+          _db.sharedLibraryMemberships.id,
+        );
       case 'transmitters':
         return plain(_db.transmitters, _db.transmitters.id);
       case 'cylinderFills':
@@ -7519,6 +7573,8 @@ class SyncDataSerializer {
         return _db.diveComputers;
       case 'diveComputerConnections':
         return _db.diveComputerConnections;
+      case 'sharedLibraryMemberships':
+        return _db.sharedLibraryMemberships;
       case 'transmitters':
         return _db.transmitters;
       case 'cylinderFills':
@@ -8098,6 +8154,11 @@ class SyncDataSerializer {
       case 'diveComputerConnections':
         await (_db.delete(
           _db.diveComputerConnections,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'sharedLibraryMemberships':
+        await (_db.delete(
+          _db.sharedLibraryMemberships,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'transmitters':
@@ -9307,6 +9368,18 @@ class SyncDataSerializer {
               withoutDeviceLocalColumns('diveComputerConnections', r.toJson()),
         )
         .toList();
+  }
+
+  /// Club-library memberships (v285, issue #2567), incremental by hlc.
+  Future<List<Map<String, dynamic>>> _exportSharedLibraryMemberships(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.sharedLibraryMemberships);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportTransmitters(

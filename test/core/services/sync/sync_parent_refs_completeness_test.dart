@@ -57,6 +57,7 @@ void main() {
     'insight_observation_dismissals': 'insightObservationDismissals',
     'dive_computers': 'diveComputers',
     'dive_computer_connections': 'diveComputerConnections',
+    'shared_library_memberships': 'sharedLibraryMemberships',
     'species': 'species',
     'tags': 'tags',
     'courses': 'courses',

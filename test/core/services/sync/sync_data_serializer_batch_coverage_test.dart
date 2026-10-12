@@ -173,6 +173,10 @@ void main() {
             type: 'diveComputerConnections',
             table: db.diveComputerConnections.actualTableName,
           ),
+          (
+            type: 'sharedLibraryMemberships',
+            table: db.sharedLibraryMemberships.actualTableName,
+          ),
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),
           (type: 'savedQueries', table: db.savedQueries.actualTableName),
           (

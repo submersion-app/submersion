@@ -124,6 +124,7 @@ void main() {
       'tankPresets',
       'diveComputers',
       'diveComputerConnections',
+      'sharedLibraryMemberships',
       'tankPressureProfiles',
       'tideRecords',
       'settings',
@@ -273,6 +274,10 @@ void main() {
         (
           type: 'diveComputerConnections',
           table: db.diveComputerConnections.actualTableName,
+        ),
+        (
+          type: 'sharedLibraryMemberships',
+          table: db.sharedLibraryMemberships.actualTableName,
         ),
         (type: 'tideRecords', table: db.tideRecords.actualTableName),
         (type: 'settings', table: db.settings.actualTableName),

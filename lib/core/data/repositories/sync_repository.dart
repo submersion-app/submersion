@@ -195,6 +195,7 @@ class SyncRepository {
     'equipmentShares': (table: 'equipment_shares', pk: 'id'),
     'tripEquipment': (table: 'trip_equipment', pk: 'id'),
     'diveComputerConnections': (table: 'dive_computer_connections', pk: 'id'),
+    'sharedLibraryMemberships': (table: 'shared_library_memberships', pk: 'id'),
     'tripHides': (table: 'trip_hides', pk: 'id'),
     'siteHides': (table: 'site_hides', pk: 'id'),
     'equipmentOwnershipEvents': (table: 'equipment_ownership_events', pk: 'id'),
