@@ -354,5 +354,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileMetricColorColumns();
     }
     if (from < 284) await reportProgress();
+    // v285: dive_tanks.passport_id (issue #2650). Column only, no backfill:
+    // nothing recorded which tag an older tank came from. Re-asserted in
+    // beforeOpen; the index is in performance_indexes.dart.
+    if (from < 285) {
+      await _assertTankPassportIdColumn();
+    }
+    if (from < 285) await reportProgress();
   }
 }
