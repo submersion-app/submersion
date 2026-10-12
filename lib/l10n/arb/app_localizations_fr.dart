@@ -14258,11 +14258,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pdf_pressureEnd => 'Fin';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'IS : ${minutes}min';
-  }
-
-  @override
   String pdf_surfaceIntervalSpan(String interval) {
     return 'IS : $interval';
   }
@@ -27868,19 +27863,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'Échec du chargement des données d\'intervalle de surface';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours h $minutes min';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'Maximum';

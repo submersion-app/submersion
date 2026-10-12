@@ -14383,11 +14383,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdf_pressureEnd => 'النهاية';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'فترة السطح: $minutes د';
-  }
-
-  @override
   String pdf_surfaceIntervalSpan(String interval) {
     return 'فترة السطح: $interval';
   }
@@ -27944,19 +27939,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'فشل تحميل بيانات فترة السطح';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours س $minutes د';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'الأقصى';

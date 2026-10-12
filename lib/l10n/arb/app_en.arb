@@ -8244,7 +8244,6 @@
   "pdf_avgShort": "Avg",
   "pdf_pressureStart": "Start",
   "pdf_pressureEnd": "End",
-  "pdf_surfaceIntervalShort": "SI: {minutes}min",
   "pdf_surfaceIntervalSpan": "SI: {interval}",
   "@pdf_surfaceIntervalSpan": {"description": "Short surface interval line in the NAUI logbook; interval is a formatted elapsed time", "placeholders": {"interval": {"type": "String"}}},
   "pdf_diveDataHeading": "DIVE DATA",
@@ -8392,13 +8391,6 @@
   "@pdf_diveNumber": {
     "placeholders": {
       "number": {
-        "type": "String"
-      }
-    }
-  },
-  "@pdf_surfaceIntervalShort": {
-    "placeholders": {
-      "minutes": {
         "type": "String"
       }
     }
@@ -15802,8 +15794,6 @@
   "insights_timePatterns_surfaceInterval_average": "Average",
   "insights_timePatterns_surfaceInterval_empty": "No surface interval data available",
   "insights_timePatterns_surfaceInterval_error": "Failed to load surface interval data",
-  "insights_timePatterns_surfaceInterval_formatHoursMinutes": "{hours}h {minutes}m",
-  "insights_timePatterns_surfaceInterval_formatMinutes": "{minutes} min",
   "insights_timePatterns_surfaceInterval_maximum": "Maximum",
   "insights_timePatterns_surfaceInterval_minimum": "Minimum",
   "insights_timePatterns_surfaceInterval_subtitle": "Time between dives",
@@ -16053,23 +16043,6 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
-    }
-  },
-  "@insights_timePatterns_surfaceInterval_formatHoursMinutes": {
-    "placeholders": {
-      "hours": {
-        "type": "Object"
-      },
-      "minutes": {
-        "type": "Object"
-      }
-    }
-  },
-  "@insights_timePatterns_surfaceInterval_formatMinutes": {
-    "placeholders": {
-      "minutes": {
-        "type": "Object"
       }
     }
   },

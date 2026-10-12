@@ -13923,11 +13923,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get pdf_pressureEnd => 'סיום';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'מרווח: $minutes דק\'';
-  }
-
-  @override
   String pdf_surfaceIntervalSpan(String interval) {
     return 'מרווח: $interval';
   }
@@ -27068,19 +27063,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'שגיאה בטעינת נתוני מרווח שטח';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours שע\' $minutes דק\'';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'מקסימום';

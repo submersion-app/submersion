@@ -13581,11 +13581,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pdf_pressureEnd => '结束';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return '间隔：$minutes分钟';
-  }
-
-  @override
   String pdf_surfaceIntervalSpan(String interval) {
     return '间隔：$interval';
   }
@@ -26216,19 +26211,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_timePatterns_surfaceInterval_error => '加载水面间隔数据失败';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours小时$minutes分钟';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes 分钟';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => '最大';
