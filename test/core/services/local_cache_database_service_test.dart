@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 
@@ -153,7 +154,9 @@ void main() {
   });
 
   test('setTestDatabase still injects an in-memory database', () async {
-    final injected = LocalCacheDatabase(NativeDatabase.memory());
+    final injected = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     service.setTestDatabase(injected);
     expect(service.database, same(injected));
     await injected.close();

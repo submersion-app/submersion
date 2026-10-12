@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -75,7 +76,9 @@ void main() {
   late MediaServingRecorder recorder;
 
   setUp(() async {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     root = await Directory.systemTemp.createTemp('miv_prov_test');
     store = InMemoryMediaObjectStore();
     cache = MediaCacheStore(database: db, root: root);

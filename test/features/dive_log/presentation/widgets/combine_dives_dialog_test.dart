@@ -278,6 +278,20 @@ void main() {
     expect(find.text('Combine into one dive'), findsOneWidget);
   });
 
+  testWidgets('a gap of days between picked dives reads in days', (
+    tester,
+  ) async {
+    // The first dive ends at 09:30; the second starts three days later.
+    await pumpCombineDialog(
+      tester,
+      dives: [
+        diveAt('a', DateTime.utc(2026, 7, 1, 9)),
+        diveAt('b', DateTime.utc(2026, 7, 4, 9, 30)),
+      ],
+    );
+    expect(find.text('Surface interval: 3d 0h'), findsOneWidget);
+  });
+
   testWidgets('sequential preview shows a depth-line profile chart when the '
       'sources carry profile data', (tester) async {
     await pumpCombineDialog(

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/tide/entities/tide_constituent.dart';
 import 'package:submersion/features/tides/data/repositories/noaa_station_cache_repository.dart';
@@ -10,7 +11,9 @@ void main() {
   late NoaaStationCacheRepository repo;
 
   setUp(() {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     repo = NoaaStationCacheRepository(
       db,
       now: () => DateTime.utc(2026, 8, 9, 12),

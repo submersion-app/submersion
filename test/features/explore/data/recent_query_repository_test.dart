@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -17,7 +18,9 @@ void main() {
   late RecentQueryRepository repo;
 
   setUp(() {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     LocalCacheDatabaseService.instance.setTestDatabase(db);
     repo = RecentQueryRepository();
   });

@@ -29,8 +29,8 @@ final courseQueryEntity = QueryEntity(
   table: 'courses',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "{r}.name LIKE ? ESCAPE '\\'",
-    "{r}.location LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.location) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),
@@ -58,7 +58,7 @@ final courseQueryEntity = QueryEntity(
       isMany: false,
       labelKey: 'query_courses_instructor',
     ),
-    // certifications.course_id is the truth since v287 (#2515);
+    // certifications.course_id is the truth since v288 (#2515);
     // courses.certification_id is only a representative.
     QueryRelation(
       key: 'certification',

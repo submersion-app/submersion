@@ -1,11 +1,12 @@
 import 'package:drift/native.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 
 /// Creates an in-memory database for testing
 AppDatabase createTestDatabase() {
-  return AppDatabase(NativeDatabase.memory());
+  return AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
 }
 
 /// Sets up the test database in DatabaseService

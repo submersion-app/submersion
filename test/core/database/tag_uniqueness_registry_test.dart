@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 
@@ -38,7 +39,7 @@ void main() {
 
   test('a v148 schema (no scope columns, no site_tags) collapses '
       'without error', () async {
-    final db = _BareDb(NativeDatabase.memory());
+    final db = _BareDb(NativeDatabase.memory(setup: registerAppSqlFunctions));
     addTearDown(db.close);
     await db.customStatement('''
       CREATE TABLE tags (
@@ -84,7 +85,9 @@ void main() {
       'dive_tags index stands', () async {
     // Before the registry the dive junction was repointed with a plain
     // UPDATE, which threw here on idx_dive_tags_dive_tag_unique.
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement('DROP INDEX IF EXISTS $kTagsUniqueIndexName');
     await db.customStatement(
@@ -115,7 +118,9 @@ void main() {
     // The repair has always swept site_tags rows whose tag is gone (#1849),
     // while dive_tags rows in that state survive untouched (v149). The
     // equipment junction follows its site twin.
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement('PRAGMA foreign_keys = OFF');
     await db.customStatement(
@@ -151,7 +156,9 @@ void main() {
   });
 
   test('links on a losing tag move in every registry junction', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement('DROP INDEX IF EXISTS $kTagsUniqueIndexName');
     await db.customStatement(

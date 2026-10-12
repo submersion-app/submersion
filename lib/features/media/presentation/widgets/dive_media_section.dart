@@ -310,9 +310,11 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     // Drop checked media that is no longer attached to this dive, so an
     // unlink can never reach an item that is not on screen.
     final visibleIds =
-        mediaAsync.valueOrNull?.map((m) => m.id).toList() ?? const <String>[];
+        mediaAsync.value?.map((m) => m.id).toList() ?? const <String>[];
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
+      }
     });
 
     return SelectableListScope(
@@ -333,6 +335,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
+    final selectionMedia = mediaAsync.value ?? const <MediaItem>[];
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -340,30 +343,30 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header: selection mode or normal
+            // Built from the value rather than the data branch, so a reload
+            // that holds its rows keeps the bar (and its exit) on screen; the
+            // controller disables the row actions while the rows are loading.
             if (_isSelectionMode)
-              mediaAsync.whenOrNull(
-                    data: (media) => SelectionAppBar(
-                      controller: _selection,
-                      selectableIds: media.map((m) => m.id).toList(),
-                      shell: SelectionBarShell.pane,
-                      // Unlinking removes media from this dive without
-                      // destroying files, so this surface has no true delete
-                      // and the baseline delete control is omitted.
-                      onDelete: null,
-                      actions: [
-                        BulkAction(
-                          id: 'unlink',
-                          icon: Icons.link_off,
-                          label: context.l10n
-                              .media_diveMediaSection_unlinkSelectedButton(
-                                _selection.value.count,
-                              ),
-                          onInvoke: () => _unlinkSelected(context, media),
+              SelectionAppBar(
+                controller: _selection,
+                selectableIds: selectionMedia.map((m) => m.id).toList(),
+                shell: SelectionBarShell.pane,
+                // Unlinking removes media from this dive without
+                // destroying files, so this surface has no true delete
+                // and the baseline delete control is omitted.
+                onDelete: null,
+                actions: [
+                  BulkAction(
+                    id: 'unlink',
+                    icon: Icons.link_off,
+                    label: context.l10n
+                        .media_diveMediaSection_unlinkSelectedButton(
+                          _selection.value.count,
                         ),
-                      ],
-                    ),
-                  ) ??
-                  const SizedBox.shrink()
+                    onInvoke: () => _unlinkSelected(context, selectionMedia),
+                  ),
+                ],
+              )
             else
               Row(
                 children: [

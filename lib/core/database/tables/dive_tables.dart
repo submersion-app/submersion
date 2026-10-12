@@ -332,6 +332,12 @@ class DiveTanks extends Table {
     onDelete: KeyAction.setNull,
   )();
 
+  /// v287: the passport id of the tagged cylinder this tank was filled
+  /// from (issue #2650), set when the diver scanned a tag or picked a
+  /// cylinder that has one. An identity, not a link: a rental's id has no
+  /// equipment row. User-authored; downloads and re-parses never write it.
+  TextColumn get passportId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 

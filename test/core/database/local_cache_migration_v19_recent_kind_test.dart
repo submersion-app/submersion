@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/explore/data/recent_query_repository.dart';
@@ -36,7 +37,9 @@ void main() {
   });
 
   test('a fresh database takes typed rows', () async {
-    final db = LocalCacheDatabase(NativeDatabase.memory());
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     LocalCacheDatabaseService.instance.setTestDatabase(db);
     addTearDown(() async {
       await db.close();

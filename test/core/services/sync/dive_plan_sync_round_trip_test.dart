@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -130,7 +131,9 @@ void main() {
         // Apply into a second FK-ON database, parents before children.
         // The serializer reads DatabaseService.instance.database, so point the
         // service at the target database for the apply phase.
-        final db2 = AppDatabase(NativeDatabase.memory());
+        final db2 = AppDatabase(
+          NativeDatabase.memory(setup: registerAppSqlFunctions),
+        );
         addTearDown(() => db2.close());
         DatabaseService.instance.resetForTesting();
         DatabaseService.instance.setTestDatabase(db2);

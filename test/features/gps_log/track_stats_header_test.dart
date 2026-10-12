@@ -51,6 +51,14 @@ void main() {
     expect(find.text('1h 0m'), findsOneWidget);
   });
 
+  testWidgets('a track over a day matches its list row in days', (
+    tester,
+  ) async {
+    // 50 hours: the list row reads "2d 2h", so the header must too.
+    await _pump(tester, [p(0, 0.0), p(50 * 3600, 0.01)]);
+    expect(find.text('2d 2h'), findsOneWidget);
+  });
+
   testWidgets('renders zeroed stats for an empty track without throwing', (
     tester,
   ) async {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
@@ -47,7 +48,10 @@ class _ThrowingDiveResyncOrchestrator extends DiveResyncOrchestrator {
 void main() {
   late AppDatabase db;
 
-  setUp(() => db = AppDatabase(NativeDatabase.memory()));
+  setUp(
+    () =>
+        db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions)),
+  );
   tearDown(() => db.close());
 
   /// Shared pump used by both [pumpDetail] and the thrown-error test, which

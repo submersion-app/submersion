@@ -55,11 +55,11 @@ final siteQueryEntity = QueryEntity(
   table: 'dive_sites',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "{r}.name LIKE ? ESCAPE '\\'",
-    "{r}.country LIKE ? ESCAPE '\\'",
-    "{r}.region LIKE ? ESCAPE '\\'",
-    "{r}.city LIKE ? ESCAPE '\\'",
-    "{r}.island LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.country) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.region) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.city) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.island) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),
@@ -105,7 +105,7 @@ final siteQueryEntity = QueryEntity(
     QueryField(
       key: 'difficulty',
       type: FieldType.enumName,
-      sql: 'LOWER({r}.difficulty)',
+      sql: 'unicode_lower({r}.difficulty)',
       emptySql: "({r}.difficulty IS NULL OR TRIM({r}.difficulty) = '')",
       labelKey: 'query_sites_difficulty',
       enumValues: [for (final d in SiteDifficulty.values) d.name],

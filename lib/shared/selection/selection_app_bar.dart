@@ -42,6 +42,13 @@ enum SelectionBarShell {
 /// and leaves it alone otherwise, so a finished action always returns the
 /// diver to the normal list (#1262) while a cancelled or failed one keeps the
 /// selection they built.
+///
+/// While the rows are loading ([SelectionController.rowsSettled] is false),
+/// nothing that acts on rows can run: select-all, every extra (including
+/// [BulkAction.alwaysEnabled] ones) and delete are disabled, and each
+/// dispatch re-checks at tap time because the flag flips a frame before the
+/// bar repaints. Close and deselect-all stay live; they only discard the
+/// diver's own checks.
 class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Menu value for the baseline delete entry.
   ///
@@ -94,9 +101,10 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: controller,
-      builder: (context, state, _) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([controller, controller.rowsSettled]),
+      builder: (context, _) {
+        final state = controller.value;
         final count = state.count;
         final title = Text(context.l10n.common_selection_countSelected(count));
         final leading = IconButton(
@@ -105,7 +113,12 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: context.l10n.common_selection_exitTooltip,
           onPressed: controller.exit,
         );
-        final trailing = _buildControls(context, count, state.checkedIds);
+        final trailing = _buildControls(
+          context,
+          count,
+          state.checkedIds,
+          settled: controller.rowsSettled.value,
+        );
 
         switch (shell) {
           case SelectionBarShell.appBar:
@@ -143,6 +156,9 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
     FutureOr<BulkActionOutcome> Function() handler, {
     bool exitsOnComplete = true,
   }) async {
+    // A control painted while the rows were settled can still be tapped in
+    // the frame before the bar repaints disabled.
+    if (!controller.rowsSettled.value) return;
     final outcome = await handler();
     if (outcome == BulkActionOutcome.completed && exitsOnComplete) {
       controller.exit();
@@ -174,8 +190,9 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
   List<Widget> _buildControls(
     BuildContext context,
     int count,
-    Set<String> checkedIds,
-  ) {
+    Set<String> checkedIds, {
+    required bool settled,
+  }) {
     // A surface that picked the sentinel as an action id would have its menu
     // entry silently invoke onDelete instead of its own handler -- the wrong
     // handler, and a destructive one. BulkAction.id is free-form, so make the
@@ -188,6 +205,8 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final allChecked =
         count >= selectableIds.length && selectableIds.isNotEmpty;
+    bool enabledFor(BulkAction action) =>
+        settled && action.isEnabledForSelection(count, checkedIds);
     final inline = actions.take(maxInlineActions).toList();
     final overflow = actions.skip(maxInlineActions).toList();
 
@@ -196,7 +215,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
         key: const ValueKey('selection_select_all'),
         icon: const Icon(Icons.select_all),
         tooltip: context.l10n.common_selection_selectAllTooltip,
-        onPressed: allChecked
+        onPressed: allChecked || !settled
             ? null
             : () => controller.selectAll(selectableIds),
       ),
@@ -214,7 +233,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
           color: action.isDestructive
               ? Theme.of(context).colorScheme.error
               : null,
-          onPressed: action.isEnabledForSelection(count, checkedIds)
+          onPressed: enabledFor(action)
               ? () => _start(_invoke(action), action.id)
               : null,
         ),
@@ -226,7 +245,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
               PopupMenuItem<String>(
                 key: ValueKey('selection_menu_${action.id}'),
                 value: action.id,
-                enabled: action.isEnabledForSelection(count, checkedIds),
+                enabled: enabledFor(action),
                 child: ListTile(
                   leading: Icon(action.icon),
                   title: Text(action.label),
@@ -237,7 +256,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
               // Delete sorts last, behind a divider, so it is never adjacent
               // to a benign entry the user is aiming for.
               if (overflow.isNotEmpty) const PopupMenuDivider(),
-              _buildDeleteItem(context, count),
+              _buildDeleteItem(context, count, settled: settled),
             ],
           ],
           // onSelected is synchronous, so the dispatch is deliberately
@@ -275,9 +294,13 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// [ListTile] child resolves its own icon colour: an unconditional error
   /// colour would keep the row looking live while [PopupMenuItem.enabled] had
   /// already made it inert.
-  PopupMenuItem<String> _buildDeleteItem(BuildContext context, int count) {
+  PopupMenuItem<String> _buildDeleteItem(
+    BuildContext context,
+    int count, {
+    required bool settled,
+  }) {
     final theme = Theme.of(context);
-    final enabled = count > 0;
+    final enabled = settled && count > 0;
     final color = enabled ? theme.colorScheme.error : theme.disabledColor;
 
     return PopupMenuItem<String>(

@@ -201,7 +201,7 @@ class CourseRepository {
     String certificationId,
   ) async {
     try {
-      // The certification side is the truth since v287 (#2515);
+      // The certification side is the truth since v288 (#2515);
       // courses.certification_id is only a representative.
       final results = await _db
           .customSelect(
@@ -271,8 +271,8 @@ class CourseRepository {
 
     final results = await _db.customSelect('''
       SELECT * FROM courses
-      WHERE (LOWER(name) LIKE ?
-         OR LOWER(location) LIKE ?)
+      WHERE (unicode_lower(name) LIKE ?
+         OR unicode_lower(location) LIKE ?)
       $diverFilter
       ORDER BY start_date DESC, name ASC
     ''', variables: variables).get();

@@ -83,9 +83,9 @@ class DiveCenterRepository {
 
     final results = await _db.customSelect('''
       SELECT * FROM dive_centers
-      WHERE (LOWER(name) LIKE ?
-         OR LOWER(city) LIKE ?
-         OR LOWER(country) LIKE ?)
+      WHERE (unicode_lower(name) LIKE ?
+         OR unicode_lower(city) LIKE ?
+         OR unicode_lower(country) LIKE ?)
       $diverFilter
       ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();

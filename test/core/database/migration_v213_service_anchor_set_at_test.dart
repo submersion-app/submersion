@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v213 gives `service_schedules` an `anchor_set_at`: when the diver set the
@@ -49,7 +50,9 @@ void main() {
   });
 
   test('a fresh database has anchor_set_at', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(await columnsOf(db, 'service_schedules'), contains('anchor_set_at'));

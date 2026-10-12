@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart' show Fake;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -180,8 +181,10 @@ class HarnessDevice {
     MediaStoreAttachState attach,
   ) async {
     final d = HarnessDevice._(h, name);
-    d.db = AppDatabase(NativeDatabase.memory());
-    d.cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    d.db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
+    d.cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     d.root = await Directory.systemTemp.createTemp(
       'two_device_${name.replaceAll(' ', '_')}_',
     );

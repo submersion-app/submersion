@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Reads the SQL default expression declared for [column] on [table] and asks
@@ -41,7 +42,9 @@ void main() {
   });
 
   test('a fresh database has both dive_plans ascent-rate columns', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('dive_plans')").get();
@@ -50,7 +53,9 @@ void main() {
   });
 
   test('the columns are not null and carry the standard rates', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('dive_plans')").get();

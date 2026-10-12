@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -119,6 +120,8 @@ void main() {
     List<ServiceRecord> records = const [],
     List<dynamic> extraOverrides = const [],
     AppSettings? settings,
+    String? passportId = pid,
+    List<PassportUsageDive> usage = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 2800);
@@ -136,7 +139,8 @@ void main() {
         overrides: [
           ...overrides,
           equipmentItemProvider(id).overrideWith((ref) async => tank),
-          passportIdProvider(id).overrideWith((ref) async => pid),
+          passportIdProvider(id).overrideWith((ref) async => passportId),
+          passportUsageProvider(pid).overrideWith((ref) async => usage),
           fillsForEquipmentProvider(id).overrideWith((ref) async => fills),
           newestFillProvider(
             id,
@@ -169,6 +173,42 @@ void main() {
     await tester.pumpAndSettle();
     return AppLocalizations.of(tester.element(find.byType(PassportPage)));
   }
+
+  group('dives with this cylinder (#2650)', () {
+    final twoDives = [
+      PassportUsageDive(diveId: 'd1', dateTime: DateTime.utc(2026, 9, 1)),
+      PassportUsageDive(diveId: 'd2', dateTime: DateTime.utc(2026, 8, 1)),
+    ];
+
+    testWidgets('sit between fill history and the tag', (tester) async {
+      final l10n = await pump(tester, usage: twoDives);
+      final count = find.text(l10n.passport_usage_ownTitle(2));
+      expect(find.text(l10n.passport_usage_title), findsOneWidget);
+      expect(count, findsOneWidget);
+      expect(
+        tester.getTopLeft(count).dy,
+        greaterThan(
+          tester.getTopLeft(find.text(l10n.passport_history_title)).dy,
+        ),
+      );
+      expect(
+        tester.getTopLeft(count).dy,
+        lessThan(tester.getTopLeft(find.text(l10n.passport_tag_title)).dy),
+      );
+    });
+
+    testWidgets('a cylinder never used shows no Dives card', (tester) async {
+      final l10n = await pump(tester);
+      expect(find.text(l10n.passport_usage_title), findsNothing);
+    });
+
+    testWidgets('no card before the cylinder has a passport id', (
+      tester,
+    ) async {
+      final l10n = await pump(tester, passportId: null, usage: twoDives);
+      expect(find.text(l10n.passport_usage_title), findsNothing);
+    });
+  });
 
   testWidgets('shows the spec and derived figures', (tester) async {
     final l10n = await pump(tester);

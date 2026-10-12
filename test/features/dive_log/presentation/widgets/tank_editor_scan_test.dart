@@ -9,11 +9,14 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/passport_usage_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/tag_fill_importer.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -49,6 +52,15 @@ class _BrokenImporter extends TagFillImporter {
     required CylinderPassportPayload tag,
     required String equipmentId,
     required String? diverId,
+  }) async => throw StateError('database is locked');
+}
+
+class _BrokenUsage extends PassportUsageRepository {
+  @override
+  Future<List<PassportUsageDive>> usageFor(
+    String passportId, {
+    required String? diverId,
+    String? excludeDiveId,
   }) async => throw StateError('database is locked');
 }
 
@@ -153,6 +165,7 @@ void main() {
     MockSettingsNotifier? settings,
     DiveTank tank = const DiveTank(id: 'tank-1'),
     List<dynamic> extra = const [],
+    String? diveId,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -188,6 +201,7 @@ void main() {
                 tankNumber: 1,
                 onChanged: onChanged,
                 onOwnCylinderUsed: onOwnCylinderUsed,
+                diveId: diveId,
               ),
             ),
           ),
@@ -311,9 +325,10 @@ void main() {
     presetName: 'al80',
   );
 
-  testWidgets('a tag with no details changes nothing and says so', (
-    tester,
-  ) async {
+  // The tag still says which cylinder this is (issue #2650), so the tank
+  // takes its passport id and keeps everything else.
+  testWidgets('a tag with no details names the cylinder, keeps the spec and '
+      'says so', (tester) async {
     DiveTank? changed;
     final l10n = await pump(
       tester,
@@ -322,8 +337,121 @@ void main() {
       tank: al80Tank,
     );
     await scan(tester);
-    expect(changed, isNull);
+    expect(changed!.passportId, stranger);
+    expect(changed!.presetName, 'al80');
+    expect(changed!.volume, 11.1);
+    expect(changed!.material, TankMaterial.aluminum);
     expect(find.text(l10n.passport_foreign_noDetails), findsOneWidget);
+  });
+
+  group('earlier uses on a foreign scan (#2650)', () {
+    Future<void> seedUse(String diveId) => DiveRepository().createDive(
+      Dive(
+        id: diveId,
+        dateTime: DateTime.utc(2025, 3, 12),
+        tanks: const [DiveTank(id: '', passportId: stranger)],
+      ),
+    );
+
+    testWidgets('names how often the cylinder was used', (tester) async {
+      await tester.runAsync(() async {
+        await seedUse('d1');
+        await seedUse('d2');
+      });
+      final l10n = await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10',
+        onChanged: (_) {},
+      );
+      await scan(tester);
+      expect(
+        find.text(
+          l10n.passport_scan_filledFromUsed(
+            l10n.passport_foreign_defaultName,
+            2,
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('leaves out the dive being edited', (tester) async {
+      await tester.runAsync(() => seedUse('d1'));
+      final l10n = await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10',
+        onChanged: (_) {},
+        diveId: 'd1',
+      );
+      await scan(tester);
+      expect(
+        find.text(
+          l10n.passport_scan_filledFrom(l10n.passport_foreign_defaultName),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failing lookup still reports the fill', (tester) async {
+      final l10n = await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10',
+        onChanged: (_) {},
+        extra: [
+          passportUsageRepositoryProvider.overrideWithValue(_BrokenUsage()),
+        ],
+      );
+      await scan(tester);
+      expect(
+        find.text(
+          l10n.passport_scan_filledFrom(l10n.passport_foreign_defaultName),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('passport id (#2650)', () {
+    testWidgets('a foreign scan stamps the tag id', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10',
+        onChanged: (t) => changed = t,
+      );
+      await scan(tester);
+      expect(changed!.passportId, stranger);
+    });
+
+    testWidgets('an own scan stamps the tag id', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$own',
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await scan(tester);
+      expect(changed!.passportId, own);
+    });
+
+    testWidgets('a hand edit keeps the id', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: null,
+        onChanged: (t) => changed = t,
+        tank: al80Tank.copyWith(passportId: 'p-1'),
+      );
+      final o2Field = find.ancestor(
+        of: find.text('O2'),
+        matching: find.byType(TextFormField),
+      );
+      await tester.enterText(o2Field, '32');
+      await tester.pumpAndSettle();
+      expect(changed!.gasMix.o2, 32);
+      expect(changed!.passportId, 'p-1');
+    });
   });
 
   testWidgets('a tag without volume or pressure keeps the preset', (

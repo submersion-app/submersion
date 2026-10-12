@@ -8838,6 +8838,12 @@ abstract class AppLocalizations {
   /// **'Last dive {days}d ago'**
   String dashboard_gauges_lastDiveDays(int days);
 
+  /// Dashboard chip when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {span} ago'**
+  String dashboard_gauges_lastDiveSpan(String span);
+
   /// No description provided for @dashboard_gauges_lastDiveToday.
   ///
   /// In en, this message translates to:
@@ -21979,6 +21985,12 @@ abstract class AppLocalizations {
   /// **'Filled from {name}'**
   String passport_scan_filledFrom(String name);
 
+  /// No description provided for @passport_scan_filledFromUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Filled from {name}. Used on {count} earlier dive.} other{Filled from {name}. Used on {count} earlier dives.}}'**
+  String passport_scan_filledFromUsed(String name, int count);
+
   /// No description provided for @passport_foreign_title.
   ///
   /// In en, this message translates to:
@@ -21990,6 +22002,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This cylinder is not in your gear.'**
   String get passport_foreign_notInGear;
+
+  /// No description provided for @passport_usage_foreignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You have used this cylinder {count} time} other{You have used this cylinder {count} times}}'**
+  String passport_usage_foreignTitle(int count);
+
+  /// No description provided for @passport_usage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get passport_usage_title;
+
+  /// No description provided for @passport_usage_ownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Used on {count} dive} other{Used on {count} dives}}'**
+  String passport_usage_ownTitle(int count);
+
+  /// No description provided for @passport_usage_lastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used {date}'**
+  String passport_usage_lastUsed(String date);
+
+  /// No description provided for @passport_usage_noSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get passport_usage_noSite;
+
+  /// No description provided for @passport_usage_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String passport_usage_diveNumber(int number);
+
+  /// No description provided for @passport_usage_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count}'**
+  String passport_usage_showAll(int count);
+
+  /// No description provided for @passport_usage_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your dives with this cylinder'**
+  String get passport_usage_loadFailed;
 
   /// No description provided for @passport_foreign_writtenOn.
   ///
@@ -22627,12 +22687,6 @@ abstract class AppLocalizations {
   /// **'{hours}h {minutes}m'**
   String pdf_hoursMinutes(String hours, String minutes);
 
-  /// No description provided for @pdf_minutesShort.
-  ///
-  /// In en, this message translates to:
-  /// **'{minutes}m'**
-  String pdf_minutesShort(String minutes);
-
   /// No description provided for @pdf_minutes.
   ///
   /// In en, this message translates to:
@@ -23149,11 +23203,11 @@ abstract class AppLocalizations {
   /// **'End'**
   String get pdf_pressureEnd;
 
-  /// No description provided for @pdf_surfaceIntervalShort.
+  /// Short surface interval line in the NAUI logbook; interval is a formatted elapsed time
   ///
   /// In en, this message translates to:
-  /// **'SI: {minutes}min'**
-  String pdf_surfaceIntervalShort(String minutes);
+  /// **'SI: {interval}'**
+  String pdf_surfaceIntervalSpan(String interval);
 
   /// No description provided for @pdf_diveDataHeading.
   ///
@@ -44728,6 +44782,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Your last dive was 1 day ago} other{Your last dive was {count} days ago}}'**
   String insights_observations_diveGap(int count);
 
+  /// Observation when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d
+  ///
+  /// In en, this message translates to:
+  /// **'Your last dive was {span} ago'**
+  String insights_observations_diveGapSpan(String span);
+
   /// One site holds a large share of recent dives
   ///
   /// In en, this message translates to:
@@ -45134,21 +45194,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load surface interval data'**
   String get insights_timePatterns_surfaceInterval_error;
-
-  /// No description provided for @insights_timePatterns_surfaceInterval_formatHoursMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'{hours}h {minutes}m'**
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  );
-
-  /// No description provided for @insights_timePatterns_surfaceInterval_formatMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'{minutes} min'**
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes);
 
   /// No description provided for @insights_timePatterns_surfaceInterval_maximum.
   ///
@@ -71488,6 +71533,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{in {count}d} other{in {count}d}}'**
   String common_relativeTime_inDays(int count);
+
+  /// An elapsed time under an hour, such as a short surface interval
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String common_elapsed_minutes(int minutes);
+
+  /// An elapsed time from one hour up to a day
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String common_elapsed_hoursMinutes(int hours, int minutes);
+
+  /// An elapsed time from one day up to a year, minutes left out
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String common_elapsed_daysHours(int days, int hours);
+
+  /// An elapsed time of a year or more (365-day years), hours left out
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {days}d'**
+  String common_elapsed_yearsDays(int years, int days);
+
+  /// An exact elapsed time from one day up to a year, for the sync conflict dialog where two values must stay distinguishable
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h {minutes}m'**
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes);
+
+  /// An exact elapsed time of a year or more (365-day years), for the sync conflict dialog
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {days}d {hours}h'**
+  String common_elapsed_yearsDaysHours(int years, int days, int hours);
 
   /// Relative future time in whole hours (abbreviated)
   ///

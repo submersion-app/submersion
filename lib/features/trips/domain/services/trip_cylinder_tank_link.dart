@@ -8,7 +8,9 @@ import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fo
 /// material and preset from the slot when it has them (decided 2026-09-28).
 /// Whatever the slot does not know keeps the tank's own value; the end
 /// pressure is always the diver's to log. A tank a dive computer recorded
-/// keeps its mix: the computer logged what was breathed (issue #3021).
+/// keeps its mix: the computer logged what was breathed (issue #3021). A
+/// slot is a cylinder choice, so it replaces any tagged cylinder the tank
+/// named (issue #2650).
 DiveTank tankFromTripCylinder(DiveTank tank, TripCylinderState slot) {
   final c = slot.cylinder;
   final hasSpecs = c.volume != null || c.workingPressure != null;
@@ -24,6 +26,7 @@ DiveTank tankFromTripCylinder(DiveTank tank, TripCylinderState slot) {
     // the tank's old ones, or the tank would claim a cylinder it is not.
     clearPresetName: hasSpecs && c.presetName == null,
     clearMaterial: hasSpecs && c.material == null,
+    clearPassportId: true,
   );
 }
 

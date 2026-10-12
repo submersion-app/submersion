@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -37,7 +38,9 @@ void main() {
       PeerDeviceNameStore.prefsKey: jsonEncode({peerId: "Eric's MacBook"}),
     });
     db = await setUpTestDatabase();
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     LocalCacheDatabaseService.instance.setTestDatabase(cacheDb);
     container = ProviderContainer(
       overrides: [

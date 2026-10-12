@@ -112,6 +112,22 @@ void main() {
     },
   );
 
+  test(
+    'matches a name whose accented capital differs in case (#3032)',
+    () async {
+      await insertDiver(id: 'diver-1');
+      await insertSite(id: 'site-a', name: 'Épave du Lac');
+      await insertDiveAtSite(id: 'd1', siteId: 'site-a', diverId: 'diver-1');
+
+      final history = await repository.getSiteHistoryByName(
+        'épave du lac',
+        diverId: 'diver-1',
+      );
+
+      expect(history.diveCount, 1);
+    },
+  );
+
   test('unknown site returns zero count and null averages', () async {
     final history = await repository.getSiteHistoryByName(
       'Nowhere',

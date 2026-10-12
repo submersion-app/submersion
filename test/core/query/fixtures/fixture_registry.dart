@@ -12,9 +12,9 @@ const fixtureDives = QueryEntity(
   table: 'dives',
   diverScopeColumn: 'diver_id',
   textSearchSql: [
-    "{r}.notes LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.notes) LIKE ? ESCAPE '\\'",
     'EXISTS (SELECT 1 FROM dive_sites ts WHERE ts.id = {r}.site_id '
-        "AND ts.name LIKE ? ESCAPE '\\')",
+        "AND unicode_lower(ts.name) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: ['dive_sites'],
   fields: [

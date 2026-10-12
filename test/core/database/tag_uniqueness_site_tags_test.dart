@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 
@@ -7,7 +8,9 @@ void main() {
   test(
     'collapsing duplicate tags repoints site_tags and ORs the scopes',
     () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
       // A database that lost the tag index (a restore of an old file).
       await db.customStatement('DROP INDEX IF EXISTS $kTagsUniqueIndexName');
@@ -43,7 +46,9 @@ void main() {
   );
 
   test('a site holding both a loser and its survivor keeps one link', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement('DROP INDEX IF EXISTS $kTagsUniqueIndexName');
     await db.customStatement(

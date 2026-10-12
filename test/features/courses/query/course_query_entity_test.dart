@@ -80,7 +80,7 @@ void main() {
   test('agency, instructor, certification and dives are queryable', () async {
     expect(await ids('agency = tdi'), {'tec'});
     expect(await ids('instructor.name = Ian'), {'aow'});
-    // The certification side is the truth since v287 (#2515): Tec's
+    // The certification side is the truth since v288 (#2515): Tec's
     // course-side-only pointer is a stale representative, not a link.
     expect(await ids('certification.name = "AOW card"'), {'aow'});
     expect(await ids('certification.name = "Tec card"'), isEmpty);

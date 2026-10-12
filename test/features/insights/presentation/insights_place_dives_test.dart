@@ -206,6 +206,38 @@ void main() {
       }
     });
 
+    test('an accented capital in any case is one country (#3032)', () async {
+      // LOWER() folds ASCII only, so these were three rows here, and the
+      // dive list a row opened missed the other spellings.
+      await siteWithDives('a', country: 'Égypte', dives: 3);
+      await siteWithDives('b', country: 'égypte', dives: 2);
+      await siteWithDives('c', country: 'ÉGYPTE', dives: 1);
+      await siteWithDives('d', region: 'Île', country: 'Égypte', dives: 1);
+      await siteWithDives('e', region: 'île', country: 'égypte', dives: 1);
+
+      final countries = await repository.getCountriesVisited();
+      expect([for (final r in countries) r.count], [8]);
+      expect(
+        await divesOpenedBy(
+          countryDivesFilter(const DiveFilterState(), countries.single.name),
+        ),
+        8,
+      );
+
+      final regions = await repository.getRegionsExplored();
+      expect([for (final r in regions) r.count], [2]);
+      expect(
+        await divesOpenedBy(
+          regionDivesFilter(
+            const DiveFilterState(),
+            region: regions.single.name,
+            country: regions.single.subtitle,
+          ),
+        ),
+        2,
+      );
+    });
+
     test('under an Insights filter, the scope carries through', () async {
       await siteWithDives('a', country: 'Fiji', dives: 2, maxDepth: 40);
       await siteWithDives('b', country: 'Fiji', dives: 3, maxDepth: 12);

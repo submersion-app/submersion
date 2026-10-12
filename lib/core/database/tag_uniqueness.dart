@@ -33,9 +33,12 @@ const String kDiveTagsUniqueIndexName = 'idx_dive_tags_dive_tag_unique';
 /// a diver is resolved. `COALESCE(diver_id, '')` folds NULL into a single
 /// "unassigned" scope so those rows are constrained too.
 ///
-/// `lower(trim(name))` is the full normalization, and every lookup and writer
-/// applies exactly the same one, so the index cannot disagree with the read
-/// that decides whether to create a tag. `trim` is load-bearing rather than
+/// `lower(trim(name))` is the full normalization. Every lookup and writer
+/// folds at least as much, `unicode_lower(trim(name))`, so the index cannot
+/// reject a row the read that decides whether to create a tag let through.
+/// The lookups fold more than the index (a non-ASCII capital, #3032), which
+/// is the safe direction; the index itself cannot use unicode_lower, an app
+/// function that is absent from any connection the app did not open. `trim` is load-bearing rather than
 /// cosmetic: matching on a trimmed name while storing the untrimmed one let
 /// " Wreck" and "Wreck" exist as two rows that every lookup treats as one --
 /// the duplicate this index exists to forbid (PR #1033 review). All three

@@ -100,10 +100,10 @@ class TripRepository {
 
       final results = await _db.customSelect('''
         SELECT * FROM trips
-        WHERE (LOWER(name) LIKE ?
-           OR LOWER(location) LIKE ?
-           OR LOWER(resort_name) LIKE ?
-           OR LOWER(liveaboard_name) LIKE ?)
+        WHERE (unicode_lower(name) LIKE ?
+           OR unicode_lower(location) LIKE ?
+           OR unicode_lower(resort_name) LIKE ?
+           OR unicode_lower(liveaboard_name) LIKE ?)
         ${vis.whereClause}
         ORDER BY start_date DESC
       ''', variables: variables).get();

@@ -5331,6 +5331,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return '上次潜水 $span前';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => '今天潜过水';
 
   @override
@@ -12916,10 +12921,64 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从 $name 填入。此前用于 $count 次潜水。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => '气瓶标签';
 
   @override
   String get passport_foreign_notInGear => '此气瓶不在您的装备中。';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '您已使用此气瓶 $count 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => '潜水';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '用于 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return '上次使用：$date';
+  }
+
+  @override
+  String get passport_usage_noSite => '无潜点';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return '显示全部 $count 项';
+  }
+
+  @override
+  String get passport_usage_loadFailed => '无法加载您使用此气瓶的潜水记录';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -13298,11 +13357,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes分钟';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes 分钟';
   }
@@ -13582,8 +13636,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pdf_pressureEnd => '结束';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return '间隔：$minutes分钟';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return '间隔：$interval';
   }
 
   @override
@@ -26163,6 +26217,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return '您的上一次潜水是在 $span前';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -26393,19 +26452,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_timePatterns_surfaceInterval_error => '加载水面间隔数据失败';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours小时$minutes分钟';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes 分钟';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => '最大';
@@ -42014,6 +42060,36 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '$count天后',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hours小时$minutes分钟';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '$days天$hours小时';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$years年$days天';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '$days天$hours小时$minutes分钟';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '$years年$days天$hours小时';
   }
 
   @override

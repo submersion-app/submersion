@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 
@@ -52,6 +53,21 @@ void main() {
       await tester.pumpAndSettle();
       expect(controller.value.isActive, isTrue);
       expect(controller.value.checkedIds, {'a', 'b', 'c'});
+    });
+
+    testWidgets('Ctrl-A keeps the checks while rows are loading', (
+      tester,
+    ) async {
+      controller
+        ..selectAll(const ['a'])
+        ..pruneToSettled(const AsyncLoading<List<String>>(), (rows) => rows);
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyA);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+      expect(controller.value.checkedIds, {'a'});
     });
 
     // PopScope is generic, so find.byType(PopScope) matches nothing. A

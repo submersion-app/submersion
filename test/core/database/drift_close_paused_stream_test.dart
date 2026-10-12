@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 
 class _TinyDb extends GeneratedDatabase {
   _TinyDb(super.e);
@@ -17,7 +18,7 @@ class _TinyDb extends GeneratedDatabase {
 void main() {
   test('db.close() stalls when a watch() subscription is paused '
       '(the Riverpod 3 auto-pause scenario)', () async {
-    final db = _TinyDb(NativeDatabase.memory());
+    final db = _TinyDb(NativeDatabase.memory(setup: registerAppSqlFunctions));
     await db.customStatement('CREATE TABLE t (id INTEGER PRIMARY KEY)');
 
     final stream = db.customSelect('SELECT id FROM t').watch();

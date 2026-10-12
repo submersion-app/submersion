@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -35,8 +36,12 @@ void main() {
   setUp(() async {
     await setUpTestDatabase();
     mediaRepository = MediaRepository();
-    cacheDbA = LocalCacheDatabase(NativeDatabase.memory());
-    cacheDbB = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDbA = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    cacheDbB = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     rootA = await Directory.systemTemp.createTemp('e2e_q_a');
     rootB = await Directory.systemTemp.createTemp('e2e_q_b');
     bucket = InMemoryMediaObjectStore();

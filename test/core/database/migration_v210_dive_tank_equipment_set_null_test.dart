@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v210 gives dive_tanks.equipment_id the ON DELETE SET NULL action every
@@ -178,7 +179,9 @@ void main() {
   });
 
   test('a fresh database creates the link with ON DELETE SET NULL', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect((await _onDelete(db))['equipment_id'], 'SET NULL');

@@ -11,8 +11,8 @@ String formatSignedOffset(Duration offset) {
 
 /// The absolute size of [offset], with no sign.
 ///
-/// Used where the direction is already carried by the surrounding sentence,
-/// such as "3h 38m after the nearest dive".
+/// Used where the direction is already carried by the surrounding label, such
+/// as the capture-time correction bar's step-forward and step-back tooltips.
 String formatOffsetMagnitude(Duration offset) {
   final abs = offset.abs();
   final hours = abs.inHours;

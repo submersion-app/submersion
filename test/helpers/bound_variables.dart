@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/native.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 
@@ -14,7 +15,9 @@ const sqliteVariableLimit = 999;
 /// An in-memory database that logs every statement, installed as the
 /// [DatabaseService] database. Pair with [maxBoundVariables].
 AppDatabase setUpLoggingTestDatabase() {
-  final db = AppDatabase(NativeDatabase.memory(logStatements: true));
+  final db = AppDatabase(
+    NativeDatabase.memory(setup: registerAppSqlFunctions, logStatements: true),
+  );
   DatabaseService.instance.setTestDatabase(db);
   return db;
 }

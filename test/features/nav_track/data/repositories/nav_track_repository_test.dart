@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -1102,7 +1103,12 @@ void main() {
     test('never select the points column', () async {
       // Swap in a database that logs the SQL it runs.
       await tearDownTestDatabase();
-      db = AppDatabase(NativeDatabase.memory(logStatements: true));
+      db = AppDatabase(
+        NativeDatabase.memory(
+          setup: registerAppSqlFunctions,
+          logStatements: true,
+        ),
+      );
       DatabaseService.instance.setTestDatabase(db);
       await db.customStatement('PRAGMA foreign_keys = ON');
       await _insertMinimalDive(db, 'd1');

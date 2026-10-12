@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Minimal pre-v165 shape: a diver_settings table without the surfacing
@@ -43,7 +44,9 @@ void main() {
   test(
     'fresh databases get the trim_tank_pressure_at_surfacing column',
     () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
       final cols = await db
           .customSelect("PRAGMA table_info('diver_settings')")

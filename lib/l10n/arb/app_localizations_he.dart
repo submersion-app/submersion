@@ -5494,6 +5494,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'צלילה אחרונה לפני $span';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'צללת היום';
 
   @override
@@ -13246,10 +13251,68 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מולא מתוך $name. שימש ב-$count צלילות קודמות.',
+      one: 'מולא מתוך $name. שימש ב-$count צלילה קודמת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'תג מיכל';
 
   @override
   String get passport_foreign_notInGear => 'המיכל הזה אינו חלק מהציוד שלך.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'השתמשת במיכל הזה $count פעמים',
+      one: 'השתמשת במיכל הזה $count פעם',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'צלילות';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'שימש ב-$count צלילות',
+      one: 'שימש ב-$count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'שימוש אחרון: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'אין אתר';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'צלילה $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'הצג את כל $count';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'לא ניתן לטעון את הצלילות שלך עם המיכל הזה';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -13642,11 +13705,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes דק\'';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes דק\'';
   }
@@ -13928,8 +13986,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get pdf_pressureEnd => 'סיום';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'מרווח: $minutes דק\'';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'מרווח: $interval';
   }
 
   @override
@@ -27019,6 +27077,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'הצלילה האחרונה שלך הייתה לפני $span';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -27258,19 +27321,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'שגיאה בטעינת נתוני מרווח שטח';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours שע\' $minutes דק\'';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'מקסימום';
@@ -43683,6 +43733,36 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'בעוד יום',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes דקות';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hours שע\' $minutes דק\'';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '$days ימ\' $hours שע\'';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$years שנ\' $days ימ\'';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '$days ימ\' $hours שע\' $minutes דק\'';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '$years שנ\' $days ימ\' $hours שע\'';
   }
 
   @override

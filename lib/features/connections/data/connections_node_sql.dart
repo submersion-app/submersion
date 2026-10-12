@@ -73,7 +73,7 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
   final extra = t.extraColumns.map((c) => ', t.$c AS $c').join();
   final outerWhere = labelLike == null
       ? ''
-      : "\nWHERE t.${t.labelColumn} LIKE ? ESCAPE '\\'";
+      : "\nWHERE unicode_lower(t.${t.labelColumn}) LIKE ? ESCAPE '\\'";
   final limitClause = limit == null ? '' : '\nLIMIT ?';
   final sql =
       '''

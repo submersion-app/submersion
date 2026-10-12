@@ -3,6 +3,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -150,7 +151,9 @@ void main() {
     late LocalCacheDatabase local;
 
     setUp(() {
-      local = LocalCacheDatabase(NativeDatabase.memory());
+      local = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       LocalCacheDatabaseService.instance.setTestDatabase(local);
     });
 

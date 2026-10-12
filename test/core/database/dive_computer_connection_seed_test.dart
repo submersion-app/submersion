@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
@@ -332,7 +333,12 @@ void main() {
 
   test('reads the data sources once however many computers it seeds', () async {
     await tearDownTestDatabase();
-    db = AppDatabase(NativeDatabase.memory(logStatements: true));
+    db = AppDatabase(
+      NativeDatabase.memory(
+        setup: registerAppSqlFunctions,
+        logStatements: true,
+      ),
+    );
     DatabaseService.instance.setTestDatabase(db);
     for (final id in ['a', 'b', 'c']) {
       await insertComputer(id);

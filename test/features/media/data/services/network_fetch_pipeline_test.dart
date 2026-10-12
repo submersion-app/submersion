@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
@@ -85,7 +86,7 @@ UrlExtractionResult _err(String url, String message) =>
 void main() {
   late AppDatabase db;
   setUp(() {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
     // The pending-sync mark goes through SyncRepository, which resolves
     // the database via DatabaseService.
     DatabaseService.instance.setTestDatabase(db);

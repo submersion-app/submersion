@@ -175,7 +175,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Course requirement tracker (v121)
     CourseRequirements,
     CourseRequirementDives,
-    // A dive's courses (v287, issue #2515)
+    // A dive's courses (v288, issue #2515)
     DiveCourses,
     // Sync tables
     SyncMetadata,
@@ -264,7 +264,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 287;
+  static const int currentSchemaVersion = 288;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1231,10 +1231,15 @@ class AppDatabase extends _$AppDatabase {
     // v286: diver_settings.equipment_default_statuses (issue #2628).
     // Additive nullable column, so the floor stays at 280.
     286,
-    // v287: the dive_courses junction and the certification-side course link
-    // (issue #2515). A new table plus meaning-preserving backfills, so the
-    // floor stays at 280. Renumbered from 286, which #2628 shipped first.
+    // v287: dive_tanks.passport_id (issue #2650). Additive nullable column,
+    // so the floor stays at 280. Renumbered from 285 and 286, which #3306
+    // and #3319 shipped first.
     287,
+    // v288: the dive_courses junction and the certification-side course link
+    // (issue #2515). A new table plus meaning-preserving backfills, so the
+    // floor stays at 280. Renumbered from 286 and 287, which #2628 and #2650
+    // shipped first.
+    288,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

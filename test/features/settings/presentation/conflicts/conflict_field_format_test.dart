@@ -66,8 +66,19 @@ void main() {
     });
 
     test('renders a stored duration as hours and minutes', () {
-      expect(fmt(metric, FieldKind.durationSeconds, 2700), '45min');
+      expect(fmt(metric, FieldKind.durationSeconds, 2700), '45 min');
       expect(fmt(metric, FieldKind.durationSeconds, 4500), '1h 15m');
+    });
+
+    test('renders a long duration in days, then years', () {
+      expect(fmt(metric, FieldKind.durationMinutes, 3000), '2d 2h 0m');
+      expect(fmt(metric, FieldKind.durationMinutes, 576000), '1y 35d 0h');
+    });
+
+    test('two long durations that differ by minutes still look different', () {
+      // Elsewhere both read "6d 13h"; this dialog exists to tell them apart.
+      expect(fmt(metric, FieldKind.durationMinutes, 9430), '6d 13h 10m');
+      expect(fmt(metric, FieldKind.durationMinutes, 9462), '6d 13h 42m');
     });
 
     test('keeps a sub-minute duration distinguishable', () {
@@ -76,6 +87,16 @@ void main() {
       expect(fmt(metric, FieldKind.durationSeconds, 30), '30s');
       expect(fmt(metric, FieldKind.durationSeconds, 45), '45s');
       expect(fmt(metric, FieldKind.durationSeconds, 0), '0s');
+    });
+
+    test('a career total stays in hours and minutes', () {
+      // Divers count logged time in hours underwater, never days.
+      expect(
+        fmt(metric, FieldKind.totalDurationSeconds, 1150 * 3600 + 30 * 60),
+        '1150h 30m',
+      );
+      expect(fmt(metric, FieldKind.totalDurationSeconds, 2700), '45 min');
+      expect(fmt(metric, FieldKind.totalDurationSeconds, 42), '42s');
     });
 
     test('a negative duration shows itself', () {

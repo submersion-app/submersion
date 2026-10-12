@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_reset_providers.dart';
@@ -54,7 +55,11 @@ void main() {
   const bonaire = GeoPoint(12.16, -68.29);
 
   late LocalCacheDatabase db;
-  setUp(() => db = LocalCacheDatabase(NativeDatabase.memory()));
+  setUp(
+    () => db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    ),
+  );
   tearDown(() => db.close());
 
   ProviderContainer buildContainer({

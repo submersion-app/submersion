@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/reef/data/repositories/reef_cache_dao.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
@@ -10,7 +11,9 @@ void main() {
   late ReefCacheDao dao;
 
   setUp(() {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     clock = DateTime.utc(2026, 7, 25, 12);
     dao = ReefCacheDao(db, now: () => clock);
   });

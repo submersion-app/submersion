@@ -342,22 +342,23 @@ Performance tests ensure the app scales with large datasets.
 
 ## Test Database Helper
 
-All tests use the `TestDatabase` helper:
+Repository tests open an in-memory database through
+`test/helpers/test_database.dart`:
 
 ```dart
-class TestDatabase {
-  late AppDatabase database;
-
-  static Future<TestDatabase> create() async {
-    final db = TestDatabase();
-    db.database = AppDatabase(NativeDatabase.memory());
-    return db;
-  }
-
-  Future<void> dispose() async {
-    await database.close();
-  }
+AppDatabase createTestDatabase() {
+  return AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
 }
+```
+
+The `setup:` matters. The app registers its own SQL functions on every
+connection it opens (`unicode_lower`, which folds case for every script where
+SQLite's `LOWER()` folds ASCII only, issue #3032), and a test that builds its
+own `NativeDatabase` must register them too, or any query that folds case
+fails with `no such function: unicode_lower`. Pass `registerAppSqlFunctions`
+from `lib/core/database/app_sql_functions.dart`, or call it first inside a
+fixture's own `setup:` callback.
+
 ```text
 ### Usage
 

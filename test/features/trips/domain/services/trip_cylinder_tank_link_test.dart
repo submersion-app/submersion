@@ -119,6 +119,15 @@ void main() {
     });
   });
 
+  test('a slot replaces the tagged cylinder the tank named (#2650)', () {
+    final tank = tankFromTripCylinder(
+      const DiveTank(id: 'k', passportId: 'p-1'),
+      filled(slot('a')),
+    );
+    expect(tank.tripCylinderId, 'a');
+    expect(tank.passportId, isNull);
+  });
+
   test('a slot with specs but no material clears the tank\'s material', () {
     final steel = air.copyWith(material: TankMaterial.steel);
     final t = tankFromTripCylinder(

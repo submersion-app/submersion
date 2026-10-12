@@ -96,7 +96,9 @@ class ConnectionsRepository {
     final needle = text.trim();
     if (needle.isEmpty) return const [];
     final reader = ConnectionsReader(_db);
-    final pattern = '%${escapeLike(needle)}%';
+    // Lowered to meet unicode_lower on the label: LIKE folds ASCII only
+    // (#3032).
+    final pattern = '%${escapeLike(needle.toLowerCase())}%';
     final hits = <ConnectionNode>[
       for (final kind in ConnectionKind.values)
         ...await reader.nodes(

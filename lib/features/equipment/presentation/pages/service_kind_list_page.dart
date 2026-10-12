@@ -82,7 +82,12 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
         .toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(selectableIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          kindsAsync,
+          (rows) => rows.where((k) => !k.isBuiltIn).map((k) => k.id),
+        );
+      }
     });
 
     return SelectableListScope(

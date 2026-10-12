@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Minimal pre-v163 diver_settings stamped at v161, so opening it runs the
@@ -37,7 +38,9 @@ void main() {
   test(
     'a fresh database has diver_settings.default_show_estimated_tank_pressure',
     () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
 
       final cols = await db
@@ -49,7 +52,9 @@ void main() {
   );
 
   test('the column defaults to showing estimates', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db

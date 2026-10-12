@@ -15,7 +15,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/print_passport_labels.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -380,7 +379,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final rowLabels = equipmentRowLabelsOf(context, ref, sortedVisible);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && equipmentAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          equipmentAsync,
+          (rows) => rows.map((e) => e.id),
+        );
+      }
     });
 
     // Built inside the selection listener below so rows re-render as checks
@@ -776,7 +780,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // Same pruning the list path does: drop checked items that fell out of
     // the visible list, so the count always matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && equipmentAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          equipmentAsync,
+          (rows) => rows.map((e) => e.id),
+        );
+      }
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and

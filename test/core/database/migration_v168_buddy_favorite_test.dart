@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v168 adds `buddies.is_favorite` (issue #638): a diver can pin frequently
@@ -14,7 +15,9 @@ void main() {
   });
 
   test('a fresh database has buddies.is_favorite', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('buddies')").get();
@@ -23,7 +26,9 @@ void main() {
   });
 
   test('the column is NOT NULL with a false default', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('buddies')").get();

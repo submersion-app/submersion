@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -86,7 +87,12 @@ void main() {
     if (DatabaseService.instance.databaseOrNull != null) {
       await tearDownTestDatabase();
     }
-    db = AppDatabase(NativeDatabase.memory(logStatements: logStatements));
+    db = AppDatabase(
+      NativeDatabase.memory(
+        setup: registerAppSqlFunctions,
+        logStatements: logStatements,
+      ),
+    );
     DatabaseService.instance.setTestDatabase(db);
     final sync = SyncRepository(database: db);
     observations = EquipmentObservationRepository(db: db, syncRepository: sync);

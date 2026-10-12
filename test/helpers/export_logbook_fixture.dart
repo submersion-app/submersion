@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:drift/native.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -28,7 +29,9 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 /// An in-memory database that writes every statement it runs through
 /// `print`, installed as the one [DatabaseService] hands out.
 Future<AppDatabase> setUpStatementLoggingDatabase() async {
-  final db = AppDatabase(NativeDatabase.memory(logStatements: true));
+  final db = AppDatabase(
+    NativeDatabase.memory(setup: registerAppSqlFunctions, logStatements: true),
+  );
   DatabaseService.instance.setTestDatabase(db);
   return db;
 }

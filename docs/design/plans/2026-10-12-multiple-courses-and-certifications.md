@@ -4,7 +4,7 @@
 
 **Goal:** Let a dive belong to several training courses and a course earn several certifications (issue #2515).
 
-**Architecture:** A new synced junction `dive_courses` (deterministic UUIDv5 ids) is the source of truth for a dive's courses; `dives.course_id` stays as a denormalized representative. `certifications.course_id` becomes the source of truth for a course's certifications; `courses.certification_id` stays as a denormalized representative. One seed function copies representative-only links into the junction and runs in the v287 rung, in beforeOpen, and after every sync apply.
+**Architecture:** A new synced junction `dive_courses` (deterministic UUIDv5 ids) is the source of truth for a dive's courses; `dives.course_id` stays as a denormalized representative. `certifications.course_id` becomes the source of truth for a course's certifications; `courses.certification_id` stays as a denormalized representative. One seed function copies representative-only links into the junction and runs in the v288 rung, in beforeOpen, and after every sync apply.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, the in-house HLC sync engine, flutter_test.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema rung: **v287** (main is at 283; 282, 284 and 285 are held by open PRs #3133, #3299, #3306). `minimumCompatibleSchemaVersion` stays at 280.
+- Schema rung: **v288** (main is at 283; 282, 284 and 285 are held by open PRs #3133, #3299, #3306). `minimumCompatibleSchemaVersion` stays at 280.
 - Junction id: `Uuid().v5(Namespace.url.value, 'submersion:dive-course:$diveId:$courseId')`. Never change this string once shipped.
 - Representative order for a dive's courses: course `start_date`, then `name`, then `id`.
 - Representative order for a course's certifications: `issue_date` (NULL last), then `name`, then `id`.
@@ -41,7 +41,7 @@
 | `lib/core/database/dive_course_identity.dart` (new) | `diveCourseLinkId(diveId, courseId)` |
 | `lib/core/database/dive_course_links_schema.dart` (new) | Unique index assert, the idempotent `seedDiveCourseLinks(db)`, the certification-side backfill |
 | `lib/core/database/tables/buddy_tables.dart` | `DiveCourses` table next to `Courses` |
-| `lib/core/database/migrations/helpers/course_link_migrations.dart` (new part) | `_assertDiveCourseSchema()` and the v287 data step |
+| `lib/core/database/migrations/helpers/course_link_migrations.dart` (new part) | `_assertDiveCourseSchema()` and the v288 data step |
 | `lib/core/database/migrations/before_open_course_links.dart` (new part) | beforeOpen backstop |
 | `lib/features/courses/data/dive_course_links.dart` (new) | Junction reads and writes for repositories: hydrate, diff-write a set, bulk add/remove/replace, representative refresh |
 | `lib/features/courses/data/course_certification_links.dart` (new) | `setCourseCertifications`, certification representative refresh |
@@ -51,7 +51,7 @@
 
 ---
 
-### Task 1: Junction table, identity, uniqueness, seed and the v287 rung
+### Task 1: Junction table, identity, uniqueness, seed and the v288 rung
 
 **Files:**
 - Create: `lib/core/database/dive_course_identity.dart`
@@ -117,7 +117,7 @@ void main() {
   Future<List<Map<String, Object?>>> rows(AppDatabase db, String sql) async =>
       [for (final r in await db.customSelect(sql).get()) r.data];
 
-  test('v287 is in the ladder and leaves the sync floor alone', () {
+  test('v288 is in the ladder and leaves the sync floor alone', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(286));
     expect(AppDatabase.migrationVersions, contains(286));
     expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(286));
@@ -227,7 +227,7 @@ import 'package:uuid/uuid.dart';
 
 /// The id of the `dive_courses` row linking [diveId] to [courseId] (#2515).
 ///
-/// Deterministic, so the same link made on two devices, or seeded by the v287
+/// Deterministic, so the same link made on two devices, or seeded by the v288
 /// migration on two devices, is one row under sync upsert rather than two.
 /// The name string is frozen: changing it would fork every link in a synced
 /// fleet.
@@ -242,7 +242,7 @@ String diveCourseLinkId(String diveId, String courseId) => const Uuid().v5(
 Append to `lib/core/database/tables/buddy_tables.dart` after `CourseRequirementDives`:
 
 ```dart
-/// The courses a dive belongs to (v287, issue #2515). The source of truth for
+/// The courses a dive belongs to (v288, issue #2515). The source of truth for
 /// a dive's courses; `dives.course_id` stays as a denormalized representative
 /// for older app versions and single-value exports.
 ///
@@ -267,10 +267,10 @@ class DiveCourses extends Table {
 }
 ```
 
-In `database.dart`, add `DiveCourses,` to the `@DriftDatabase(tables: [...])` list right after `CourseRequirementDives,` with the comment `// A dive's courses (v287, issue #2515)`. Set `currentSchemaVersion = 286`. Append to `migrationVersions`:
+In `database.dart`, add `DiveCourses,` to the `@DriftDatabase(tables: [...])` list right after `CourseRequirementDives,` with the comment `// A dive's courses (v288, issue #2515)`. Set `currentSchemaVersion = 286`. Append to `migrationVersions`:
 
 ```dart
-    // v287: dive_courses junction and the certification-side course link
+    // v288: dive_courses junction and the certification-side course link
     // (issue #2515). 284 and 285 are held by open PRs #3299 and #3306.
     286,
 ```
@@ -324,7 +324,7 @@ Future<void> assertDiveCourseUniqueness(DatabaseConnectionUser db) async {
 /// Copies each dive's representative `dives.course_id` into `dive_courses`
 /// when that pair has no row yet. Returns how many rows it inserted.
 ///
-/// Runs in the v287 rung, on every open, and after every sync apply. It only
+/// Runs in the v288 rung, on every open, and after every sync apply. It only
 /// ever ADDS: an older app version writes just the representative column, and
 /// this is how its link reaches the set without stripping the dive's other
 /// courses. It cannot resurrect a removed link, because removing a dive's
@@ -363,7 +363,7 @@ Future<int> seedDiveCourseLinks(DatabaseConnectionUser db) async {
   return inserted;
 }
 
-/// The certification side becomes the truth (v287): a course's
+/// The certification side becomes the truth (v288): a course's
 /// `certification_id` that names a certification with no course claims it,
 /// then every course's representative is recomputed from the certification
 /// side. Runs in the rung only. Deterministic over synced data, so it marks
@@ -400,7 +400,7 @@ Future<void> backfillCertificationCourseLinks(
 // lib/core/database/migrations/helpers/course_link_migrations.dart
 part of '../app_database_migrations.dart';
 
-/// The `dive_courses` junction (v287, issue #2515).
+/// The `dive_courses` junction (v288, issue #2515).
 extension CourseLinkMigrations on AppDatabase {
   /// Schema only: the table and its unique index. Idempotent.
   Future<void> _assertDiveCourseSchema() async {
@@ -417,7 +417,7 @@ extension CourseLinkMigrations on AppDatabase {
 // lib/core/database/migrations/before_open_course_links.dart
 part of 'app_database_migrations.dart';
 
-/// beforeOpen backstop for the v287 course links, split out of before_open.dart
+/// beforeOpen backstop for the v288 course links, split out of before_open.dart
 /// to keep it under the migration file size limit. The seed only adds rows
 /// that `dives.course_id` names, so it cannot resurrect a removed link.
 extension BeforeOpenCourseLinks on AppDatabase {
@@ -433,7 +433,7 @@ In `app_database_migrations.dart`: add `import 'package:submersion/core/database
 Append in `rungs_v231_onward.dart` after the v283 block:
 
 ```dart
-    // v287: the dive_courses junction and the certification-side course link
+    // v288: the dive_courses junction and the certification-side course link
     // (issue #2515). Schema re-asserted and links re-seeded in beforeOpen;
     // the certification backfill runs here only.
     if (from < 286) {
@@ -453,7 +453,7 @@ In `sync_migrations.dart`, add `'dive_courses',` after `'dive_buddy_roles',`.
 In `performance_indexes.dart`, after `idx_courses_diver`:
 
 ```dart
-  // A course's dives through the junction (v287, issue #2515).
+  // A course's dives through the junction (v288, issue #2515).
   (
     name: 'idx_dive_courses_course_id',
     ddl:
@@ -472,7 +472,7 @@ Expected: all PASS.
 ```bash
 dart format lib/core/database test/core/database
 git add lib/core/database test/core/database/migration_v286_dive_courses_test.dart
-git commit -m "feat(courses): add dive_courses junction and v287 migration"
+git commit -m "feat(courses): add dive_courses junction and v288 migration"
 ```
 
 ---
@@ -913,7 +913,7 @@ Expected: PASS.
 In `dive.dart`: replace the `courseId` field with
 
 ```dart
-  // Training courses (v287, issue #2515). The representative (the
+  // Training courses (v288, issue #2515). The representative (the
   // `dives.course_id` column) comes first.
   final List<String> courseIds;
 ```
@@ -1184,7 +1184,7 @@ ORDER BY (c.id = d.course_id) DESC, c.start_date, c.name, c.id
 
 Keep the `// stats-scope-exempt: course credit is deliberate, not descriptive` marker. Delete `getCourseForDive`.
 
-- `getCourseForCertification`: `SELECT c.* FROM courses c JOIN certifications k ON k.course_id = c.id WHERE k.id = ?` and update the comment (the certification side is the truth since v287).
+- `getCourseForCertification`: `SELECT c.* FROM courses c JOIN certifications k ON k.course_id = c.id WHERE k.id = ?` and update the comment (the certification side is the truth since v288).
 - `getDiveCountForCourse`: `SELECT COUNT(*) AS count FROM dive_courses WHERE course_id = ?` (keep its doc comment and exemption marker).
 - `createCourse` / `updateCourse`: remove `certificationId: Value(course.certificationId)` from both companions. Add a one-line comment: `// certification_id is derived; CourseCertificationLinks owns it (#2515).`
 - `deleteCourse`, inside the transaction, replace the `UPDATE dives SET course_id = NULL ...` statement with:
@@ -1448,7 +1448,7 @@ Dives: `_junction('course', QuerySubject.courses, 'dive_courses', 'course_id', a
 Courses:
 
 ```dart
-    // The certification side is the truth since v287 (#2515).
+    // The certification side is the truth since v288 (#2515).
     QueryRelation(
       key: 'certification',
       target: QuerySubject.certifications,
@@ -1475,7 +1475,7 @@ Courses:
 Certifications:
 
 ```dart
-    // The certification side is the truth since v287 (#2515).
+    // The certification side is the truth since v288 (#2515).
     const QueryRelation(
       key: 'course',
       target: QuerySubject.courses,

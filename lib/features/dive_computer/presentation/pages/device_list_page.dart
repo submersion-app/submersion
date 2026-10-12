@@ -54,7 +54,12 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
         computersAsync.value?.map((c) => c.id).toList() ?? const <String>[];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          computersAsync,
+          (rows) => rows.map((c) => c.id),
+        );
+      }
     });
 
     return SelectableListScope(

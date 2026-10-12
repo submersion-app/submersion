@@ -41,9 +41,9 @@ final certificationQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   // The certification search route's columns.
   textSearchSql: const [
-    "{r}.name LIKE ? ESCAPE '\\'",
-    "{r}.agency LIKE ? ESCAPE '\\'",
-    "{r}.card_number LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.agency) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.card_number) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),
@@ -75,7 +75,7 @@ final certificationQueryEntity = QueryEntity(
   relations: [
     _buddy('buddy', 'buddy_id'),
     _buddy('instructor', 'instructor_id'),
-    // certifications.course_id is the truth since v287 (#2515).
+    // certifications.course_id is the truth since v288 (#2515).
     const QueryRelation(
       key: 'course',
       target: QuerySubject.courses,

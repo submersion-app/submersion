@@ -76,9 +76,9 @@ class SpeciesRepository {
         .customSelect(
           '''
       SELECT * FROM species
-      WHERE LOWER(common_name) LIKE ?
-         OR LOWER(scientific_name) LIKE ?
-         OR LOWER(taxonomy_class) LIKE ?
+      WHERE unicode_lower(common_name) LIKE ?
+         OR unicode_lower(scientific_name) LIKE ?
+         OR unicode_lower(taxonomy_class) LIKE ?
       ORDER BY category ASC, common_name COLLATE NOCASE ASC
       LIMIT 50
     ''',
@@ -152,7 +152,7 @@ class SpeciesRepository {
     if (needle.isEmpty) return null;
     final row = await _db
         .customSelect(
-          'SELECT id FROM species WHERE LOWER(scientific_name) = ? '
+          'SELECT id FROM species WHERE unicode_lower(scientific_name) = ? '
           'ORDER BY is_built_in DESC, rowid LIMIT 1',
           variables: [Variable.withString(needle)],
         )
@@ -164,33 +164,25 @@ class SpeciesRepository {
   /// Every species whose common name equals [commonName], ignoring case,
   /// built-in rows first and then in the order they were added.
   ///
-  /// SQLite's LOWER folds ASCII only, so "Étoile" and "étoile" never compare
-  /// equal in SQL. The query keeps the ASCII-folded matches plus any name of
-  /// the same length that holds a non-ASCII character, and Dart's Unicode
-  /// [String.toLowerCase] makes the final call.
+  /// unicode_lower, not LOWER: the built-in folds ASCII only, so "Étoile"
+  /// and "étoile" never compared equal in SQL and each import minted a
+  /// twin (#3032).
   Future<List<domain.Species>> findSpeciesByCommonName(
     String commonName,
   ) async {
     final needle = commonName.trim();
     if (needle.isEmpty) return const [];
-    final folded = needle.toLowerCase();
     final rows = await _db
         .customSelect(
           '''
       SELECT * FROM species
-      WHERE LOWER(common_name) = LOWER(?)
-         OR (LENGTH(common_name) = LENGTH(?)
-             AND common_name GLOB '*[^ -~]*')
+      WHERE unicode_lower(common_name) = ?
       ORDER BY is_built_in DESC, rowid
     ''',
-          variables: [Variable.withString(needle), Variable.withString(needle)],
+          variables: [Variable.withString(needle.toLowerCase())],
         )
         .get();
-    return [
-      for (final row in rows)
-        if ((row.data['common_name'] as String).toLowerCase() == folded)
-          _mapRawRowToSpecies(row),
-    ];
+    return rows.map(_mapRawRowToSpecies).toList();
   }
 
   /// Add sighting to a dive

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/equipment_share_uniqueness.dart';
 
@@ -150,7 +151,9 @@ void main() {
 
   test('a fresh database matches the upgraded one', () async {
     final upgraded = AppDatabase(setupDb());
-    final fresh = AppDatabase(NativeDatabase.memory());
+    final fresh = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(upgraded.close);
     addTearDown(fresh.close);
     for (final table in const [
@@ -194,7 +197,9 @@ void main() {
   });
 
   test('a duplicate share pair is rejected by the index', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     for (final id in ['d1', 'd2']) {
       await db.customStatement(

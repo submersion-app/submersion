@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -411,7 +412,12 @@ void main() {
 
   test('the samples come from exactly one statement', () async {
     await tearDownTestDatabase();
-    db = AppDatabase(NativeDatabase.memory(logStatements: true));
+    db = AppDatabase(
+      NativeDatabase.memory(
+        setup: registerAppSqlFunctions,
+        logStatements: true,
+      ),
+    );
     DatabaseService.instance.setTestDatabase(db);
     repo = EquipmentRepository();
     final reg = await repo.createEquipment(

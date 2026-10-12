@@ -96,7 +96,7 @@ New table `dive_courses`, defined under `lib/core/database/tables/` (never in
   row and left the old card's `course_id` pointing at it). A card the course
   does not name and that is older than the course row (`updated_at`) is such a
   leftover and loses its `course_id`; a card at least as new as the course is
-  a link the new app made (a device already on v287) and stays. Then, for each
+  a link the new app made (a device already on v288) and stays. Then, for each
   course whose `certification_id` names a certification with a NULL
   `course_id`, set that certification's `course_id`. A certification still
   pointing at a different course is left alone: the certification side wins.

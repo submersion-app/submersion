@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 import 'package:submersion/features/media/domain/value_objects/unmatched_diagnostic.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
-import 'package:submersion/features/media/presentation/utils/capture_time_offset_format.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -163,7 +163,8 @@ class FileReviewCard extends ConsumerWidget {
       case UnmatchedReason.outsideAllWindows:
         final gap = diagnostic.gapToNearest;
         if (gap == null) return l10n.media_photoPicker_files_reasonNoDives;
-        final magnitude = formatOffsetMagnitude(gap);
+        // The sentence carries the direction, so format the size only.
+        final magnitude = formatElapsed(l10n, gap.abs());
         return gap.isNegative
             ? l10n.media_photoPicker_files_reasonBeforeDive(magnitude)
             : l10n.media_photoPicker_files_reasonAfterDive(magnitude);

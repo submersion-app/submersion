@@ -11,6 +11,7 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/fill_summary.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_usage_card.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -197,6 +198,13 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.passport_foreign_notInGear),
           ),
+        ),
+        // A rental scanned again a season later: the diver's own history
+        // with this physical cylinder (issue #2650).
+        PassportUsageCard(
+          passportId: tag.passportId,
+          title: PassportUsageTitle.foreign,
+          topGap: 8,
         ),
         if (tag.formatVersion > CylinderPassportPayload.currentFormatVersion)
           Padding(

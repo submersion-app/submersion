@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_scope.dart';
 
@@ -397,7 +398,9 @@ void main() {
 
   test('a fresh install never ran the rung, so there is nothing to rewrite '
       'and the new rule already carries the TDI levels', () async {
-    final fresh = AppDatabase(NativeDatabase.memory());
+    final fresh = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(fresh.close);
 
     expect(

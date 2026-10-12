@@ -5525,6 +5525,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Last dive $span ago';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'Dove today';
 
   @override
@@ -13328,10 +13333,68 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Filled from $name. Used on $count earlier dives.',
+      one: 'Filled from $name. Used on $count earlier dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Cylinder tag';
 
   @override
   String get passport_foreign_notInGear => 'This cylinder is not in your gear.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You have used this cylinder $count times',
+      one: 'You have used this cylinder $count time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Dives';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Used on $count dives',
+      one: 'Used on $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Last used $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'No site';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'Dive $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Show all $count';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Could not load your dives with this cylinder';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -13727,11 +13790,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '${minutes}m';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes min';
   }
@@ -14012,8 +14070,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdf_pressureEnd => 'End';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'SI: ${minutes}min';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'SI: $interval';
   }
 
   @override
@@ -27244,6 +27302,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'Your last dive was $span ago';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -27486,19 +27549,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'Failed to load surface interval data';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '${hours}h ${minutes}m';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'Maximum';
@@ -44001,6 +44051,36 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'in ${count}d',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '${years}y ${days}d';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '${days}d ${hours}h ${minutes}m';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '${years}y ${days}d ${hours}h';
   }
 
   @override

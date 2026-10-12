@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/watched_folder_repository.dart';
 
@@ -9,7 +10,9 @@ void main() {
   late WatchedFolderRepository repo;
 
   setUp(() {
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     repo = WatchedFolderRepository(database: cacheDb);
   });
   tearDown(() => cacheDb.close());

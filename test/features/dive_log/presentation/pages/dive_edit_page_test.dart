@@ -71,6 +71,33 @@ void main() {
       expect(find.text('45 min'), findsOneWidget);
     });
 
+    testWidgets('shows a long surface interval in days', (tester) async {
+      final dive = createTestDiveWithBottomTime();
+      final createdDive = await repository.createDive(dive);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...buildOverrides(overrides).cast(),
+            surfaceIntervalProvider(
+              createdDive.id,
+            ).overrideWith((ref) async => const Duration(days: 400)),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(diveId: createdDive.id, embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1y 35d'), findsOneWidget);
+    });
+
     testWidgets('calculates exit from entry + bottomTime when no exitTime', (
       tester,
     ) async {

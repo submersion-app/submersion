@@ -128,7 +128,7 @@ void main() {
   test('team fields and a sub-hour surface interval print in French', () {
     expectPrinted(fr.pdf_buddy);
     expectPrinted(fr.pdf_diveCenter);
-    expectPrinted(fr.pdf_minutesShort('35'));
+    expectPrinted(fr.common_elapsed_minutes(35));
   });
 
   test('signature, verification and card blocks print in French', () {

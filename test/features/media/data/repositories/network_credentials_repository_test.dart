@@ -11,6 +11,7 @@
 // findByHostname null/present, delete, touchLastUsed) is preserved verbatim.
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/network_credentials_repository.dart';
 
@@ -19,7 +20,7 @@ void main() {
   late NetworkCredentialsRepository repo;
 
   setUp(() {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
     repo = NetworkCredentialsRepository(db: db);
   });
   tearDown(() async => db.close());
