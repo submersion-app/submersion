@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_history_rewri
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
@@ -157,8 +158,16 @@ class ComponentsCard extends ConsumerWidget {
                     ),
                   );
                 }
+                // Every part labelled as one list, so two identical parts
+                // gain the detail that tells them apart (#2791, #1549).
+                final labels = equipmentRowLabelsOf(context, ref, [
+                  for (final part in parts) ?part.component,
+                ]);
                 return _ComponentsList(
                   parts: parts,
+                  detailsFor: (part) =>
+                      labels[part.componentEquipmentId]?.subtitleParts ??
+                      const [],
                   dotColorFor: (part) => serviceSeverityDotColor(
                     context,
                     worstClocks[part.componentEquipmentId]?.status.severity,
@@ -186,6 +195,7 @@ class ComponentsCard extends ConsumerWidget {
 /// would otherwise snap it back for up to 300 ms before catching up.
 class _ComponentsList extends StatefulWidget {
   final List<EquipmentComponent> parts;
+  final List<String> Function(EquipmentComponent part) detailsFor;
   final Color Function(EquipmentComponent part) dotColorFor;
   final void Function(EquipmentComponent part) onEditRole;
   final void Function(EquipmentComponent part) onReplace;
@@ -194,6 +204,7 @@ class _ComponentsList extends StatefulWidget {
 
   const _ComponentsList({
     required this.parts,
+    required this.detailsFor,
     required this.dotColorFor,
     required this.onEditRole,
     required this.onReplace,
@@ -239,6 +250,7 @@ class _ComponentsListState extends State<_ComponentsList> {
             key: ValueKey(part.id),
             index: index,
             part: part,
+            details: widget.detailsFor(part),
             dotColor: widget.dotColorFor(part),
             onEditRole: () => widget.onEditRole(part),
             onReplace: () => widget.onReplace(part),
@@ -252,6 +264,10 @@ class _ComponentsListState extends State<_ComponentsList> {
 class _PartTile extends StatelessWidget {
   final int index;
   final EquipmentComponent part;
+
+  /// Brand and model, identifier and any tie-break, from the list's row
+  /// labels; they follow the role so the row still says what the part does.
+  final List<String> details;
   final Color dotColor;
   final VoidCallback onEditRole;
   final VoidCallback onReplace;
@@ -261,6 +277,7 @@ class _PartTile extends StatelessWidget {
     super.key,
     required this.index,
     required this.part,
+    required this.details,
     required this.dotColor,
     required this.onEditRole,
     required this.onReplace,
@@ -274,9 +291,10 @@ class _PartTile extends StatelessWidget {
     final name = item?.name ?? part.componentEquipmentId;
     final type = item?.type ?? EquipmentType.other;
     final departed = item == null ? null : departedStatusOf(item);
-    final subtitle = part.role.isNotEmpty
-        ? part.role
-        : type.localizedName(l10n);
+    final subtitle = [
+      part.role.isNotEmpty ? part.role : type.localizedName(l10n),
+      ...details,
+    ].join(' · ');
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
