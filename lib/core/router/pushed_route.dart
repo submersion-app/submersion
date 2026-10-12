@@ -47,7 +47,9 @@ bool _hasImperativeMatch(List<RouteMatchBase> matches, ValueKey<String> key) {
 /// linked gear, a buddy's shared dive) stays put, or the redirect's `go` would
 /// erase the page it came from and its back arrow with it (#764, #3292).
 /// Embedded pages, phone widths, table mode (which has no split to move into)
-/// and pages outside a router never redirect.
+/// and pages outside a router never redirect. Nor does a page that is not on
+/// top: one animating out after a pop rebuilds once its push has already left
+/// the router's stack, and would otherwise take itself for a URL visit.
 bool shouldRedirectToMasterDetail(
   BuildContext context, {
   required bool embedded,
@@ -55,6 +57,7 @@ bool shouldRedirectToMasterDetail(
 }) =>
     !embedded &&
     GoRouter.maybeOf(context) != null &&
+    (ModalRoute.of(context)?.isCurrent ?? true) &&
     !isImperativelyPushed(context) &&
     ResponsiveBreakpoints.isMasterDetail(context) &&
     viewMode != ListViewMode.table;

@@ -176,6 +176,13 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await pushed;
       expect(find.text('ROOT'), findsOneWidget);
+      // The page rebuilds while it animates out, after its push has left the
+      // router's stack; it must not take that for a URL visit and redirect.
+      expect(
+        locations.where((l) => l.startsWith('${c.section}?selected=')),
+        isEmpty,
+        reason: 'popping the ${c.name} page must not redirect',
+      );
     });
 
     testWidgets('${c.name}: a go() to its URL at desktop width redirects', (
