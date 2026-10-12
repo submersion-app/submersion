@@ -13712,6 +13712,9 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'مُلئ من $name. استُخدمت في $count غطسة سابقة.',
+      many: 'مُلئ من $name. استُخدمت في $count غطسة سابقة.',
+      few: 'مُلئ من $name. استُخدمت في $count غطسات سابقة.',
+      two: 'مُلئ من $name. استُخدمت في غطستين سابقتين.',
       one: 'مُلئ من $name. استُخدمت في $count غطسة سابقة.',
     );
     return '$_temp0';
@@ -13729,6 +13732,9 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'لقد استخدمت هذه الأسطوانة $count مرة',
+      many: 'لقد استخدمت هذه الأسطوانة $count مرة',
+      few: 'لقد استخدمت هذه الأسطوانة $count مرات',
+      two: 'لقد استخدمت هذه الأسطوانة مرتين',
       one: 'لقد استخدمت هذه الأسطوانة $count مرة',
     );
     return '$_temp0';
@@ -13743,6 +13749,9 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'استُخدمت في $count غطسة',
+      many: 'استُخدمت في $count غطسة',
+      few: 'استُخدمت في $count غطسات',
+      two: 'استُخدمت في غطستين',
       one: 'استُخدمت في $count غطسة',
     );
     return '$_temp0';
