@@ -70,9 +70,9 @@ void main() {
           diveDataSourcesProvider(
             dive.id,
           ).overrideWith((ref) async => <DiveDataSource>[]),
-          courseForDiveProvider(
+          coursesForDiveProvider(
             dive.id,
-          ).overrideWith((ref) async => dive.courseId == null ? null : course),
+          ).overrideWith((ref) async => dive.courseId == null ? [] : [course]),
           // The Signatures card also renders once a course is linked; stub its
           // dependencies so the test never reaches a real repository.
           signatureForDiveProvider(dive.id).overrideWith((ref) async => null),

@@ -16,6 +16,8 @@ import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
 /// Repository provider
 final courseRepositoryProvider = Provider<CourseRepository>((ref) {
@@ -124,8 +126,8 @@ final courseByIdProvider = FutureProvider.family<Course?, String>((
   return repository.getCourseById(id);
 });
 
-/// Course for a specific dive
-final courseForDiveProvider = FutureProvider.family<Course?, String>((
+/// A dive's courses, the representative first (#2515).
+final coursesForDiveProvider = FutureProvider.family<List<Course>, String>((
   ref,
   diveId,
 ) async {
@@ -133,7 +135,7 @@ final courseForDiveProvider = FutureProvider.family<Course?, String>((
   ref.invalidateSelfWhen(
     ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
   );
-  return repository.getCourseForDive(diveId);
+  return repository.getCoursesForDive(diveId);
 });
 
 /// Course for a specific certification
@@ -143,8 +145,18 @@ final courseForCertificationProvider = FutureProvider.family<Course?, String>((
 ) async {
   final repository = ref.watch(courseRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchCoursesChanges());
+  // The link lives on the certification row (#2515).
+  ref.invalidateSelfWhen(repository.watchCourseLinkChanges());
   return repository.getCourseForCertification(certificationId);
 });
+
+/// The certifications a course earned, earliest issued first (#2515).
+final certificationsForCourseProvider =
+    FutureProvider.family<List<Certification>, String>((ref, courseId) async {
+      final repository = ref.watch(certificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      return repository.getCertificationsForCourse(courseId);
+    });
 
 /// Dives for a specific course.
 ///
@@ -163,6 +175,10 @@ final courseDivesProvider = FutureProvider.family<List<Dive>, String>((
   final diveRepository = ref.watch(diveRepositoryProvider);
 
   ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+  // A link-only change touches dive_courses alone (#2515).
+  ref.invalidateSelfWhen(
+    ref.watch(courseRepositoryProvider).watchCourseLinkChanges(),
+  );
 
   return diveRepository.getDivesForCourse(courseId);
 });
@@ -173,7 +189,7 @@ final courseDivesProvider = FutureProvider.family<List<Dive>, String>((
 /// writes; `getDiveCountForCourse` counts the same rows.
 ///
 /// Deliberately does NOT take the courses tick: the count is over
-/// `dives.course_id`, so it changes only on dives-table writes and a course
+/// `dive_courses` (#2515), so it changes only on link writes and a course
 /// rename would rebuild it for nothing.
 final courseDiveCountProvider = FutureProvider.family<int, String>((
   ref,
@@ -183,6 +199,7 @@ final courseDiveCountProvider = FutureProvider.family<int, String>((
   final diveRepository = ref.watch(diveRepositoryProvider);
 
   ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+  ref.invalidateSelfWhen(repository.watchCourseLinkChanges());
 
   return repository.getDiveCountForCourse(courseId);
 });
@@ -323,25 +340,27 @@ class CourseListNotifier extends StateNotifier<AsyncValue<List<Course>>> {
 
   Future<void> linkDiveToCourse(String diveId, String courseId) async {
     await _repository.linkDiveToCourse(diveId, courseId);
-    _ref.invalidate(courseForDiveProvider(diveId));
+    _ref.invalidate(coursesForDiveProvider(diveId));
     _ref.invalidate(courseDivesProvider(courseId));
     _ref.invalidate(courseDiveCountProvider(courseId));
   }
 
   Future<void> unlinkDiveFromCourse(String diveId, String courseId) async {
-    await _repository.unlinkDiveFromCourse(diveId);
-    _ref.invalidate(courseForDiveProvider(diveId));
+    await _repository.unlinkDiveFromCourse(diveId, courseId);
+    _ref.invalidate(coursesForDiveProvider(diveId));
     _ref.invalidate(courseDivesProvider(courseId));
     _ref.invalidate(courseDiveCountProvider(courseId));
   }
 
-  Future<void> linkCourseToCertification(
+  /// Makes the course's earned certifications exactly [certificationIds]
+  /// (#2515).
+  Future<void> setCourseCertifications(
     String courseId,
-    String certificationId,
+    List<String> certificationIds,
   ) async {
-    await _repository.linkCourseToCertification(courseId, certificationId);
+    await _repository.setCourseCertifications(courseId, certificationIds);
     _ref.invalidate(courseByIdProvider(courseId));
-    _ref.invalidate(courseForCertificationProvider(certificationId));
+    _ref.invalidate(certificationsForCourseProvider(courseId));
     await refresh();
   }
 }

@@ -4527,7 +4527,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// for dives that actually carry a link; the row stays empty until the
   /// lookup resolves rather than reserving blank space.
   Widget _buildCourseRow(BuildContext context, WidgetRef ref, Dive dive) {
-    final course = ref.watch(courseForDiveProvider(dive.id)).valueOrNull;
+    final course = ref
+        .watch(coursesForDiveProvider(dive.id))
+        .whenData((l) => l.firstOrNull)
+        .valueOrNull;
     if (course == null) return const SizedBox.shrink();
 
     return Semantics(
@@ -5043,7 +5046,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final signatureAsync = ref.watch(signatureForDiveProvider(dive.id));
-    final courseAsync = ref.watch(courseForDiveProvider(dive.id));
+    final courseAsync = ref
+        .watch(coursesForDiveProvider(dive.id))
+        .whenData((l) => l.firstOrNull);
 
     return Card(
       child: Padding(
@@ -5157,7 +5162,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final courseAsync = ref.watch(courseForDiveProvider(dive.id));
+    final courseAsync = ref
+        .watch(coursesForDiveProvider(dive.id))
+        .whenData((l) => l.firstOrNull);
 
     // Get instructor name if available from course
     String? instructorName;
@@ -5213,7 +5220,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   ) {
     // Get instructor buddy ID if available from course
     String? instructorId;
-    final courseAsync = ref.read(courseForDiveProvider(dive.id));
+    final courseAsync = ref
+        .read(coursesForDiveProvider(dive.id))
+        .whenData((l) => l.firstOrNull);
     if (courseAsync.hasValue && courseAsync.value != null) {
       instructorId = courseAsync.value!.instructorId;
     }

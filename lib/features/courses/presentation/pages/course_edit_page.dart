@@ -474,7 +474,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
       if (oldCertId != newCertId) {
         if (newCertId != null) {
           // Link to new certification
-          await notifier.linkCourseToCertification(savedId, newCertId);
+          await notifier.setCourseCertifications(savedId, [newCertId]);
         }
         // Invalidate old certification's course provider if changed
         if (oldCertId != null) {

@@ -6419,7 +6419,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ref.invalidate(courseDiveCountProvider(newCourseId));
         }
         // Always invalidate the courseForDive provider for this dive
-        ref.invalidate(courseForDiveProvider(savedDiveId));
+        ref.invalidate(coursesForDiveProvider(savedDiveId));
       }
 
       // Record tide conditions if the site has coordinates. The recorder
