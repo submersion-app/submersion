@@ -3501,16 +3501,9 @@ class UddfEntityImporter {
       // number where a name belongs would otherwise throw out of this loop
       // and take the whole import with it, which is the opposite of the
       // best-effort contract above.
-      // A source may name the species outright, or only reference it. The
-      // scientific name beats the ref as a fallback: a Submersion ref is
-      // `species_<uuid>`, which makes a poor name.
       final scientific = trimmedOrNull(text(entry['speciesScientificName']));
-      final ref = trimmedOrNull(text(entry['speciesRef']));
-      final commonName =
-          trimmedOrNull(text(entry['speciesName'])) ??
-          scientific ??
-          (ref == null ? null : _speciesNameFromRef(ref));
-      if (commonName == null || commonName.isEmpty) continue;
+      final commonName = _sightingSpeciesName(entry);
+      if (commonName == null) continue;
 
       try {
         final category = entry['speciesCategory'];
@@ -3544,14 +3537,28 @@ class UddfEntityImporter {
           MarineSighting(
             id: _uuid.v4(),
             speciesId: speciesRef,
-            speciesName: switch (sightingData['speciesName']) {
-              final String name when name.trim().isNotEmpty => name.trim(),
-              _ => _speciesNameFromRef(speciesRef),
-            },
+            speciesName:
+                _sightingSpeciesName(sightingData) ??
+                _speciesNameFromRef(speciesRef),
             count: sightingData['count'] as int? ?? 1,
             notes: sightingData['notes'] as String? ?? '',
           ),
     ];
+  }
+
+  /// The name a sighting's species goes by, or null when it has none.
+  ///
+  /// A source may name the species outright, or only reference it. The
+  /// scientific name beats the ref as a fallback: a Submersion ref is
+  /// `species_<uuid>`, which makes a poor name. [_importSightings] and
+  /// [_buildSightings] share this so the dive and the species row agree.
+  String? _sightingSpeciesName(Map<dynamic, dynamic> entry) {
+    String? text(Object? value) =>
+        value is String ? trimmedOrNull(value) : null;
+    final ref = text(entry['speciesRef']);
+    return text(entry['speciesName']) ??
+        text(entry['speciesScientificName']) ??
+        (ref == null ? null : trimmedOrNull(_speciesNameFromRef(ref)));
   }
 
   String _speciesNameFromRef(String ref) {
