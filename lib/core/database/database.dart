@@ -175,6 +175,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Course requirement tracker (v121)
     CourseRequirements,
     CourseRequirementDives,
+    // A dive's courses (v286, issue #2515)
+    DiveCourses,
     // Sync tables
     SyncMetadata,
     SyncRecords,
@@ -262,7 +264,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 283;
+  static const int currentSchemaVersion = 286;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1218,6 +1220,10 @@ class AppDatabase extends _$AppDatabase {
     // the primary flags and the local revision history. Additive nullable
     // column, so the floor stays at 280. 282 is held by PR #3133.
     283,
+    // v286: the dive_courses junction and the certification-side course link
+    // (issue #2515). A new table plus meaning-preserving backfills, so the
+    // floor stays at 280. 284 and 285 are held by PRs #3299 and #3306.
+    286,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
