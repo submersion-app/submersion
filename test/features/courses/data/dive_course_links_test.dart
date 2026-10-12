@@ -147,4 +147,14 @@ void main() {
       expect(dive.updatedAt, 77);
     },
   );
+
+  test('re-adding a removed link clears its tombstone', () async {
+    await links.writeCourseSet('v1', ['c1'], now: 1);
+    await links.writeCourseSet('v1', [], now: 2);
+    await links.writeCourseSet('v1', ['c1'], now: 3);
+    final tombstones = await (db.select(
+      db.deletionLog,
+    )..where((t) => t.entityType.equals('diveCourses'))).get();
+    expect(tombstones, isEmpty);
+  });
 }

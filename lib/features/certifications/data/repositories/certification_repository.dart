@@ -285,6 +285,17 @@ class CertificationRepository {
         recordId: cert.id,
         localUpdatedAt: now,
       );
+      // The course's representative is its earliest-issued card, so an
+      // issue-date or name edit can move it (#2515).
+      final courseId = (await (_db.select(
+        _db.certifications,
+      )..where((t) => t.id.equals(cert.id))).getSingleOrNull())?.courseId;
+      if (courseId != null) {
+        await CourseCertificationLinks(
+          _db,
+          _syncRepository,
+        ).refreshRepresentative(courseId, now: now);
+      }
       await _saveCardImages(cert, notify: false);
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated certification: ${cert.id}');

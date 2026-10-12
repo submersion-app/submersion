@@ -86,4 +86,15 @@ void main() {
     )..where((t) => t.id.equals('k2'))).getSingle();
     expect(row.courseId, isNull);
   });
+
+  test('an issue-date edit moves the course representative', () async {
+    final k2 = await certs.getCertificationById('k2');
+    await certs.updateCertification(
+      k2!.copyWith(issueDate: DateTime.fromMillisecondsSinceEpoch(0)),
+    );
+    final course = await (db.select(
+      db.courses,
+    )..where((t) => t.id.equals('A'))).getSingle();
+    expect(course.certificationId, 'k2');
+  });
 }

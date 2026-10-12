@@ -62,9 +62,10 @@ Future<void> assertDiveCourseUniqueness(DatabaseConnectionUser db) async {
 /// Runs in the v287 rung, on every open, and after every sync apply. It only
 /// ever ADDS: an older app version writes just the representative column, and
 /// this is how its link reaches the set without stripping the dive's other
-/// courses. It cannot resurrect a removed link, because removing a dive's
-/// representative course always rewrites `dives.course_id` in the same
-/// transaction. Local and idempotent: no hlc, nothing marked pending; every
+/// courses. A local removal of a dive's representative course rewrites
+/// `dives.course_id` in the same transaction, so it is not undone here; a
+/// concurrent edit on another device that still names the old course can win
+/// whole-row last-writer-wins and bring it back, as for any other dive field. Local and idempotent: no hlc, nothing marked pending; every
 /// device derives the same rows from the same synced dives.
 Future<int> seedDiveCourseLinks(DatabaseConnectionUser db) async {
   if (!await _exists(db, 'table', 'dive_courses')) return 0;

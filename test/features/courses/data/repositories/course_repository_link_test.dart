@@ -275,4 +275,12 @@ void main() {
       },
     );
   });
+
+  test('getCoursesForDive falls back to a representative-only link', () async {
+    await insertDiver('alice');
+    await insertCourse(id: 'course-9', diverId: 'alice');
+    await insertDive(id: 'dive-9', diverId: 'alice', courseId: 'course-9');
+    final courses = await repository.getCoursesForDive('dive-9');
+    expect(courses.map((c) => c.id), ['course-9']);
+  });
 }

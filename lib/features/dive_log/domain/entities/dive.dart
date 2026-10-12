@@ -383,10 +383,10 @@ class Dive extends Equatable {
     return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
   }
 
-  /// Display name for the representative (first) dive type.
   /// The representative training course, or null when the dive is in none.
   String? get courseId => courseIds.isEmpty ? null : courseIds.first;
 
+  /// Display name for the representative (first) dive type.
   String get diveTypeName => diveType?.name ?? diveTypeDisplayName(diveTypeId);
 
   /// Representative (first) dive type slug. Always present (>= 1 invariant).

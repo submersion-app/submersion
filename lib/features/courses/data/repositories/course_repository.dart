@@ -164,12 +164,23 @@ class CourseRepository {
       final results = await _db
           .customSelect(
             '''
-        SELECT c.* FROM dive_courses dc
-        JOIN courses c ON c.id = dc.course_id
-        JOIN dives d ON d.id = dc.dive_id
-        WHERE dc.dive_id = ?
-        ORDER BY (c.id IS d.course_id) DESC, c.start_date, c.name, c.id
+        SELECT * FROM (
+          SELECT c.* FROM dive_courses dc
+          JOIN courses c ON c.id = dc.course_id
+          WHERE dc.dive_id = ?1
+          UNION
+          SELECT c.* FROM dives d
+          JOIN courses c ON c.id = d.course_id
+          WHERE d.id = ?1
+            AND NOT EXISTS (
+              SELECT 1 FROM dive_courses x WHERE x.dive_id = d.id
+            )
+        ) u
+        ORDER BY (u.id IS (SELECT course_id FROM dives WHERE id = ?1)) DESC,
+          u.start_date, u.name, u.id
       ''',
+            // The second arm is a representative-only link from an older app
+            // version that the seed has not reached yet.
             variables: [Variable.withString(diveId)],
             readsFrom: {_db.diveCourses, _db.courses, _db.dives},
           )
@@ -505,9 +516,8 @@ class CourseRepository {
             if (c != remove) c,
           ?add,
         ], now: now);
-        await _db.customStatement(
-          'UPDATE dives SET updated_at = ? WHERE id = ?',
-          [now, diveId],
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(updatedAt: Value(now)),
         );
         await _syncRepository.markRecordPending(
           entityType: 'dives',

@@ -73,6 +73,9 @@ class DiveCourseLinks {
     }
     for (final courseId in want.difference(have)) {
       final id = diveCourseLinkId(diveId, courseId);
+      // The id is deterministic, so a link removed and added back reuses it;
+      // drop the old tombstone so peers see only the latest action.
+      await _sync.removeDeletion(entityType: 'diveCourses', recordId: id);
       await _db
           .into(_db.diveCourses)
           .insert(
