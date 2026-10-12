@@ -42,9 +42,14 @@ There is no shared duration formatter in `lib/`; every site formats its own
 ## Format
 
 Each tier shows its two largest units, always both, even when the second is
-zero. The input is rounded once to whole minutes; every tier below that is
+zero. The formatter cuts its input down to whole minutes
+(`Duration.inMinutes`, as every site does today) and every tier below that is
 integer division, so dropped units are cut off, never rounded up ("it has been
-6d 13h" never overstates the time). A year is a fixed 365 days.
+6d 13h" never overstates the time). A year is a fixed 365 days. The two
+callers that hold fractional-minute averages (the Time patterns card and the
+Focus metric) round to the nearest whole minute before calling, as the card
+does today; cutting off whole seconds elsewhere keeps bottom time and runtime
+in the dive table exactly as they render now.
 
 | Input | Tier | en output |
 | --- | --- | --- |
@@ -53,8 +58,8 @@ integer division, so dropped units are cut off, never rounded up ("it has been
 | under 365 d | daysHours | `6d 13h`, `2d 0h`, `265d 19h` |
 | 365 d and up | yearsDays | `1y 35d`, `2y 0d` |
 
-Rounding whole minutes first also removes a latent `5h 60m` from the current
-card, which rounds the remainder after flooring the hours.
+Rounding the whole average first also removes a latent `5h 60m` from the
+current card, which rounds the remainder after flooring the hours.
 
 Day counts (the dashboard "Last dive" chip and the "time since last dive"
 observation) keep their current text under 365 days and switch to the
@@ -130,8 +135,8 @@ Day counts, via `formatElapsedDays`:
 
 ## Testing
 
-- `splitElapsed` at 0, 59 min, 59.6 min, 60 min, 23h59m, 24h, 364d23h59m,
-  365d and 730d, plus negative input.
+- `splitElapsed` at 0, 59 min 59 s, 60 min, 23h59m, 24h, 364d23h59m, 365d
+  and 730d, plus negative input; the card at an average of 59.6 min.
 - `formatElapsed` rendered text in en and de (generated methods take
   placeholders in `@placeholders` order, so assert the string, not the call).
 - `formatElapsedEnglish` at each tier; `formatElapsedDays` at 364 and 365.
