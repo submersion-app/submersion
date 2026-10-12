@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 
@@ -54,9 +55,6 @@ bool _showingOnTop(BuildContext context, String location) {
     context,
   ).routerDelegate.currentConfiguration.matches;
   if (matches.isEmpty) return false;
-  var top = matches.last;
-  while (top is ShellRouteMatch && top.matches.isNotEmpty) {
-    top = top.matches.last;
-  }
+  final top = leafMatch(matches.last);
   return top is ImperativeRouteMatch && top.matches.uri.toString() == location;
 }

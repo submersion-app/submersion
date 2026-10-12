@@ -11,6 +11,16 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 bool isPushedRoute(BuildContext context) =>
     ModalRoute.of(context)?.canPop ?? false;
 
+/// The match for the page actually on top of [match]: a shell reports its own
+/// prefix, so descend through shells to the leaf.
+RouteMatchBase leafMatch(RouteMatchBase match) {
+  var current = match;
+  while (current is ShellRouteMatch && current.matches.isNotEmpty) {
+    current = current.matches.last;
+  }
+  return current;
+}
+
 /// Whether the page holding [context] was put on the stack by a push, as
 /// opposed to built from a URL by go().
 ///

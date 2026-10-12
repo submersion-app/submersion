@@ -79,10 +79,4 @@ bool _stackContains(List<RouteMatchBase> matches, String location) {
 /// A shell reports its own prefix, so descend to the leaf. An
 /// [ImperativeRouteMatch] already reports the leaf of the list that produced
 /// it, so it needs no descent.
-String _leafLocation(RouteMatchBase match) {
-  var current = match;
-  while (current is ShellRouteMatch && current.matches.isNotEmpty) {
-    current = current.matches.last;
-  }
-  return current.matchedLocation;
-}
+String _leafLocation(RouteMatchBase match) => leafMatch(match).matchedLocation;
