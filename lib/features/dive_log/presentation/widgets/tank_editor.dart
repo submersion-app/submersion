@@ -18,6 +18,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1270,14 +1271,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             material: tag.material,
             mix: tag.fill?.gasMix,
           );
+          final name = tag.name ?? l10n.passport_foreign_defaultName;
+          // A rental used before is recognised (issue #2650).
+          final earlier = filled ? await _earlierUses(tag.passportId) : 0;
           messenger.showSnackBar(
             SnackBar(
               content: Text(
-                filled
-                    ? l10n.passport_scan_filledFrom(
-                        tag.name ?? l10n.passport_foreign_defaultName,
-                      )
-                    : l10n.passport_foreign_noDetails,
+                !filled
+                    ? l10n.passport_foreign_noDetails
+                    : earlier > 0
+                    ? l10n.passport_scan_filledFromUsed(name, earlier)
+                    : l10n.passport_scan_filledFrom(name),
               ),
             ),
           );
@@ -1296,6 +1300,27 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.passport_scan_openFailed)),
       );
+    }
+  }
+
+  /// How many of the active diver's other dives used the cylinder whose
+  /// passport id is [passportId] (issue #2650); this dive does not count.
+  /// Zero when the lookup fails: the fill already happened, and a count is
+  /// not worth reporting it as a failure.
+  Future<int> _earlierUses(String passportId) async {
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final dives = await ref
+          .read(passportUsageRepositoryProvider)
+          .usageFor(passportId, diverId: diverId, excludeDiveId: widget.diveId);
+      return dives.length;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count earlier uses of a cylinder',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return 0;
     }
   }
 
