@@ -750,6 +750,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 material: preset.material,
                 order: existing.order,
                 presetName: preset.name,
+                // A tag that described nothing still named the cylinder
+                // (issue #2650).
+                passportId: existing.passportId,
               ),
             ];
           }
@@ -837,6 +840,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               : t.material ?? base?.material,
           order: 0,
           presetName: describesCylinder ? t.presetName : base?.presetName,
+          passportId: t.passportId,
         ),
         ..._tanks.skip(1),
       ];
