@@ -18258,6 +18258,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_filter_apply => '应用';
 
   @override
+  String get media_library_thumbnailSize => '缩略图大小';
+
+  @override
   String get media_library_sort_title => '排序媒体';
 
   @override
@@ -20475,8 +20478,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_provider_webdav_edit => '编辑 WebDAV 配置';
 
   @override
-  String get settings_cloudSync_provider_webdav_subtitle =>
-      'Nextcloud、ownCloud、Synology、Koofr 及其他 WebDAV 服务器';
+  String get settings_cloudSync_provider_webdav_subtitle => '任意 WebDAV 服务器';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -24191,9 +24193,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
-  String get settings_webdavConfig_davRoot_label => 'WebDAV 地址';
-
-  @override
   String get settings_webdavConfig_error_conflict => '无法在服务器上创建文件夹。';
 
   @override
@@ -24209,8 +24208,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_webdavConfig_error_locked => '该文件在服务器上被锁定。请稍后重试。';
 
   @override
-  String get settings_webdavConfig_error_notFound =>
-      '此地址没有 WebDAV 文件夹。请检查服务器类型和地址。';
+  String get settings_webdavConfig_error_notFound => '此地址没有 WebDAV 文件夹。请检查地址。';
 
   @override
   String get settings_webdavConfig_error_notWebDav => '此地址不是 WebDAV 服务器。';
@@ -24260,52 +24258,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_webdavConfig_field_password_label => '密码';
 
   @override
-  String get settings_webdavConfig_field_preset_label => '服务器类型';
+  String get settings_webdavConfig_field_serverUrl_helper =>
+      '服务器设置中显示的完整 WebDAV 地址，包括路径';
 
   @override
   String get settings_webdavConfig_field_serverUrl_hintDav =>
       'https://example.com/dav';
 
   @override
-  String get settings_webdavConfig_field_serverUrl_hintHost =>
-      'https://cloud.example.com';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_hintSynology =>
-      'https://nas.local:5006';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_label => '服务器地址';
+  String get settings_webdavConfig_field_serverUrl_label => 'WebDAV 地址';
 
   @override
   String get settings_webdavConfig_field_username_label => '用户名';
-
-  @override
-  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
-
-  @override
-  String get settings_webdavConfig_preset_koofr => 'Koofr';
-
-  @override
-  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
-
-  @override
-  String get settings_webdavConfig_preset_other => '其他 WebDAV 服务器';
-
-  @override
-  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudEu => 'pCloud（欧盟）';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudUs => 'pCloud（美国）';
-
-  @override
-  String get settings_webdavConfig_preset_synology => 'Synology NAS';
-
-  @override
-  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
 
   @override
   String get settings_webdavConfig_remove_confirm_action => '移除';
@@ -24322,10 +24286,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_saved => 'WebDAV 配置已保存';
-
-  @override
-  String get settings_webdavConfig_synology_helper =>
-      '在套件中心启用 WebDAV Server。其 HTTPS 端口通常为 5006。';
 
   @override
   String get settings_webdavConfig_test_success => '连接成功';

@@ -4,11 +4,10 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:submersion/core/services/cloud_storage/webdav/nextcloud_chunked_upload.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/webdav_media_object_store.dart';
 
@@ -19,23 +18,19 @@ void main() {
   late WebDavMediaObjectStore store;
   late Directory tmp;
 
-  WebDavMediaObjectStore build({
-    WebDavPreset preset = WebDavPreset.other,
-    String serverUrl = 'https://dav.test/dav',
-  }) => WebDavMediaObjectStore(
-    client: WebDavClient(
-      WebDavConfig(
-        preset: preset,
-        serverUrl: serverUrl,
-        username: 'alice',
-        password: 'secret',
-        folder: kDefaultWebDavMediaFolder,
-        nextcloudUserId: 'alice',
-      ),
-      httpClient: server.client,
-      backoff: (_) => Duration.zero,
-    ),
-  );
+  WebDavMediaObjectStore build({String serverUrl = 'https://dav.test/dav'}) =>
+      WebDavMediaObjectStore(
+        client: WebDavClient(
+          WebDavConfig(
+            serverUrl: serverUrl,
+            username: 'alice',
+            password: 'secret',
+            folder: kDefaultWebDavMediaFolder,
+          ),
+          httpClient: server.client,
+          backoff: (_) => Duration.zero,
+        ),
+      );
 
   setUp(() async {
     server = FakeWebDavServer();
@@ -143,41 +138,59 @@ void main() {
     );
   });
 
-  test('a large Nextcloud upload is chunked and reports resume state', () async {
+  test(
+    'a large upload to a per-user files address is chunked and reports resume state',
+    () async {
+      server = FakeWebDavServer(
+        seedCollections: const [
+          '/remote.php/dav/files/alice',
+          '/remote.php/dav/uploads/alice',
+        ],
+      );
+      store = build(serverUrl: 'https://dav.test/remote.php/dav/files/alice');
+      final big = await fileWith(Uint8List(ChunkedUpload.chunkBytes + 1));
+      String? state;
+      await store.putFile(
+        'smv1/objects/ab/big.mp4',
+        big,
+        contentType: 'video/mp4',
+        onResumeStateChanged: (s) => state = s,
+      );
+      expect(state, isNotNull);
+      expect(
+        server
+            .files['/remote.php/dav/files/alice/Submersion Media/smv1/objects/ab/big.mp4']!
+            .length,
+        ChunkedUpload.chunkBytes + 1,
+      );
+      expect(
+        await store.reapStaleUploadSessions(olderThan: DateTime.utc(2030)),
+        0,
+      );
+    },
+  );
+
+  test('abandoning a chunked upload removes its upload directory', () async {
+    const dir = '/remote.php/dav/uploads/alice/submersion-t1';
     server = FakeWebDavServer(
       seedCollections: const [
         '/remote.php/dav/files/alice',
         '/remote.php/dav/uploads/alice',
+        dir,
       ],
     );
-    store = build(
-      preset: WebDavPreset.nextcloud,
-      serverUrl: 'https://dav.test',
+    store = build(serverUrl: 'https://dav.test/remote.php/dav/files/alice');
+    const state = ChunkedUploadState(
+      transferId: 'submersion-t1',
+      chunkSize: ChunkedUpload.chunkBytes,
+      total: ChunkedUpload.chunkBytes + 1,
+      dest: 'https://dav.test/remote.php/dav/files/alice/x.mp4',
     );
-    final big = await fileWith(
-      Uint8List(NextcloudChunkedUpload.chunkBytes + 1),
-    );
-    String? state;
-    await store.putFile(
-      'smv1/objects/ab/big.mp4',
-      big,
-      contentType: 'video/mp4',
-      onResumeStateChanged: (s) => state = s,
-    );
-    expect(state, isNotNull);
-    expect(
-      server
-          .files['/remote.php/dav/files/alice/Submersion Media/smv1/objects/ab/big.mp4']!
-          .length,
-      NextcloudChunkedUpload.chunkBytes + 1,
-    );
-    expect(
-      await store.reapStaleUploadSessions(olderThan: DateTime.utc(2030)),
-      0,
-    );
+    await store.abandonResume('k', state.toJsonString());
+    expect(server.collections, isNot(contains(dir)));
   });
 
-  test('non-Nextcloud stores have no sessions to reap', () async {
+  test('stores without chunked uploads have no sessions to reap', () async {
     expect(
       await store.reapStaleUploadSessions(olderThan: DateTime.utc(2030)),
       0,

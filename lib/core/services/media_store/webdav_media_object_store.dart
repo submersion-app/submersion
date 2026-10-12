@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:submersion/core/services/cloud_storage/webdav/nextcloud_chunked_upload.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
@@ -54,8 +54,6 @@ class WebDavMediaObjectStore implements MediaObjectStore {
     }
   }
 
-  bool get _chunks => _client.config.preset.supportsNextcloudChunking;
-
   @override
   Future<StoreObjectInfo?> head(String key) => _guard(() async {
     final entry = await _client.stat(_path(key));
@@ -78,8 +76,8 @@ class WebDavMediaObjectStore implements MediaObjectStore {
   }) => _guard(() async {
     final path = _path(key);
     final length = await source.length();
-    if (NextcloudChunkedUpload.appliesTo(_client, length)) {
-      final done = await NextcloudChunkedUpload(_client).upload(
+    if (ChunkedUpload.appliesTo(_client, length)) {
+      final done = await ChunkedUpload(_client).upload(
         path,
         source,
         resumeStateJson: resumeStateJson,
@@ -115,8 +113,7 @@ class WebDavMediaObjectStore implements MediaObjectStore {
 
   @override
   Future<void> abandonResume(String key, String? resumeStateJson) async {
-    if (!_chunks) return;
-    await NextcloudChunkedUpload(_client).abandon(resumeStateJson);
+    await ChunkedUpload(_client).abandon(resumeStateJson);
   }
 
   @override
@@ -154,7 +151,6 @@ class WebDavMediaObjectStore implements MediaObjectStore {
 
   @override
   Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
-    if (!_chunks) return 0;
-    return _guard(() => NextcloudChunkedUpload(_client).reapStale(olderThan));
+    return _guard(() => ChunkedUpload(_client).reapStale(olderThan));
   }
 }

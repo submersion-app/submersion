@@ -7,7 +7,6 @@ import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
@@ -26,7 +25,6 @@ void main() {
   late MediaStoreService service;
 
   final config = WebDavConfig(
-    preset: WebDavPreset.other,
     serverUrl: 'https://dav.test/dav',
     username: 'alice',
     password: 'secret',
@@ -114,24 +112,4 @@ void main() {
       ),
     );
   });
-
-  test(
-    'a server that refuses the principal lookup still connects with the login name',
-    () async {
-      server = FakeWebDavServer(
-        seedCollections: const ['/remote.php/dav/files/alice'],
-      );
-      server.forcedStatuses.add(405);
-      final result = await service.connectWebDav(
-        WebDavConfig(
-          preset: WebDavPreset.nextcloud,
-          serverUrl: 'https://dav.test',
-          username: 'alice',
-          password: 'secret',
-          folder: kDefaultWebDavMediaFolder,
-        ),
-      );
-      expect(result.storeId, isNotEmpty);
-    },
-  );
 }

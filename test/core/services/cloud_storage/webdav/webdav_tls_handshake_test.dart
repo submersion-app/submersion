@@ -7,7 +7,6 @@ import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 
 import '../../../../helpers/self_signed_tls.dart';
 
@@ -34,7 +33,6 @@ void main() {
       );
 
   WebDavConfig config({String? pin}) => WebDavConfig(
-    preset: WebDavPreset.other,
     serverUrl: 'https://127.0.0.1:${server.port}/dav',
     username: 'alice',
     password: 'secret',

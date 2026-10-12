@@ -19427,6 +19427,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_filter_apply => 'تطبيق';
 
   @override
+  String get media_library_thumbnailSize => 'حجم الصور المصغّرة';
+
+  @override
   String get media_library_sort_title => 'فرز الوسائط';
 
   @override
@@ -21830,8 +21833,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_provider_webdav_edit => 'تعديل إعدادات WebDAV';
 
   @override
-  String get settings_cloudSync_provider_webdav_subtitle =>
-      'Nextcloud وownCloud وSynology وKoofr وخوادم WebDAV أخرى';
+  String get settings_cloudSync_provider_webdav_subtitle => 'أي خادم WebDAV';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -25801,9 +25803,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
-  String get settings_webdavConfig_davRoot_label => 'عنوان WebDAV';
-
-  @override
   String get settings_webdavConfig_error_conflict =>
       'تعذر إنشاء المجلد على الخادم.';
 
@@ -25825,7 +25824,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_error_notFound =>
-      'لا يوجد مجلد WebDAV على هذا العنوان. تحقق من نوع الخادم والعنوان.';
+      'لا يوجد مجلد WebDAV على هذا العنوان. تحقق من العنوان.';
 
   @override
   String get settings_webdavConfig_error_notWebDav =>
@@ -25881,54 +25880,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_webdavConfig_field_password_label => 'كلمة المرور';
 
   @override
-  String get settings_webdavConfig_field_preset_label => 'نوع الخادم';
+  String get settings_webdavConfig_field_serverUrl_helper =>
+      'عنوان WebDAV الكامل من إعدادات الخادم، بما في ذلك مساره';
 
   @override
   String get settings_webdavConfig_field_serverUrl_hintDav =>
       'https://example.com/dav';
 
   @override
-  String get settings_webdavConfig_field_serverUrl_hintHost =>
-      'https://cloud.example.com';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_hintSynology =>
-      'https://nas.local:5006';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_label => 'عنوان الخادم';
+  String get settings_webdavConfig_field_serverUrl_label => 'عنوان WebDAV';
 
   @override
   String get settings_webdavConfig_field_username_label => 'اسم المستخدم';
-
-  @override
-  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
-
-  @override
-  String get settings_webdavConfig_preset_koofr => 'Koofr';
-
-  @override
-  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
-
-  @override
-  String get settings_webdavConfig_preset_other => 'خادم WebDAV آخر';
-
-  @override
-  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudEu =>
-      'pCloud (الاتحاد الأوروبي)';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudUs =>
-      'pCloud (الولايات المتحدة)';
-
-  @override
-  String get settings_webdavConfig_preset_synology => 'Synology NAS';
-
-  @override
-  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
 
   @override
   String get settings_webdavConfig_remove_confirm_action => 'إزالة';
@@ -25946,10 +25909,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_saved => 'تم حفظ إعدادات WebDAV';
-
-  @override
-  String get settings_webdavConfig_synology_helper =>
-      'فعّل WebDAV Server في مركز الحزم. منفذ HTTPS الخاص به عادةً 5006.';
 
   @override
   String get settings_webdavConfig_test_success => 'نجح الاتصال';

@@ -19177,6 +19177,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_library_filter_apply => 'Applica';
 
   @override
+  String get media_library_thumbnailSize => 'Dimensione delle miniature';
+
+  @override
   String get media_library_sort_title => 'Ordina media';
 
   @override
@@ -21555,7 +21558,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_cloudSync_provider_webdav_subtitle =>
-      'Nextcloud, ownCloud, Synology, Koofr e altri server WebDAV';
+      'Qualsiasi server WebDAV';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -25614,9 +25617,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
-  String get settings_webdavConfig_davRoot_label => 'Indirizzo WebDAV';
-
-  @override
   String get settings_webdavConfig_error_conflict =>
       'Impossibile creare la cartella sul server.';
 
@@ -25638,7 +25638,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_error_notFound =>
-      'Nessuna cartella WebDAV a questo indirizzo. Controlla il tipo di server e l\'indirizzo.';
+      'Nessuna cartella WebDAV a questo indirizzo. Controlla l\'indirizzo.';
 
   @override
   String get settings_webdavConfig_error_notWebDav =>
@@ -25694,53 +25694,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_webdavConfig_field_password_label => 'Password';
 
   @override
-  String get settings_webdavConfig_field_preset_label => 'Tipo di server';
+  String get settings_webdavConfig_field_serverUrl_helper =>
+      'L\'indirizzo WebDAV completo dalle impostazioni del server, percorso incluso';
 
   @override
   String get settings_webdavConfig_field_serverUrl_hintDav =>
       'https://example.com/dav';
 
   @override
-  String get settings_webdavConfig_field_serverUrl_hintHost =>
-      'https://cloud.example.com';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_hintSynology =>
-      'https://nas.local:5006';
-
-  @override
-  String get settings_webdavConfig_field_serverUrl_label =>
-      'Indirizzo del server';
+  String get settings_webdavConfig_field_serverUrl_label => 'Indirizzo WebDAV';
 
   @override
   String get settings_webdavConfig_field_username_label => 'Nome utente';
-
-  @override
-  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
-
-  @override
-  String get settings_webdavConfig_preset_koofr => 'Koofr';
-
-  @override
-  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
-
-  @override
-  String get settings_webdavConfig_preset_other => 'Altro server WebDAV';
-
-  @override
-  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudEu => 'pCloud (UE)';
-
-  @override
-  String get settings_webdavConfig_preset_pcloudUs => 'pCloud (USA)';
-
-  @override
-  String get settings_webdavConfig_preset_synology => 'NAS Synology';
-
-  @override
-  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
 
   @override
   String get settings_webdavConfig_remove_confirm_action => 'Rimuovi';
@@ -25758,10 +25723,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_saved => 'Configurazione WebDAV salvata';
-
-  @override
-  String get settings_webdavConfig_synology_helper =>
-      'Attiva WebDAV Server nel Centro pacchetti. La porta HTTPS è di solito 5006.';
 
   @override
   String get settings_webdavConfig_test_success => 'Connessione riuscita';

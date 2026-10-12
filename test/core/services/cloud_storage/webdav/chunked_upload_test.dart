@@ -3,10 +3,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:submersion/core/services/cloud_storage/webdav/nextcloud_chunked_upload.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 
 import '../../../../helpers/fake_webdav_server.dart';
 
@@ -17,17 +16,15 @@ void main() {
   late WebDavClient client;
   late Directory tmp;
   late File source;
-  const size = NextcloudChunkedUpload.chunkBytes * 2 + 123;
+  const size = ChunkedUpload.chunkBytes * 2 + 123;
 
   setUp(() async {
     server = FakeWebDavServer(seedCollections: const [files, uploads]);
     client = WebDavClient(
       WebDavConfig(
-        preset: WebDavPreset.nextcloud,
-        serverUrl: 'https://dav.test',
+        serverUrl: 'https://dav.test$files',
         username: 'alice',
         password: 'secret',
-        nextcloudUserId: 'alice',
       ),
       httpClient: server.client,
       backoff: (_) => Duration.zero,
@@ -42,14 +39,25 @@ void main() {
     await tmp.delete(recursive: true);
   });
 
-  NextcloudChunkedUpload uploader() =>
-      NextcloudChunkedUpload(client, newTransferId: () => 'submersion-t1');
+  ChunkedUpload uploader() =>
+      ChunkedUpload(client, newTransferId: () => 'submersion-t1');
 
-  test('applies only to Nextcloud files above the threshold', () {
-    expect(NextcloudChunkedUpload.appliesTo(client, size), isTrue);
-    expect(NextcloudChunkedUpload.appliesTo(client, 1024), isFalse);
+  test('applies only to per-user files addresses above the threshold', () {
+    expect(ChunkedUpload.appliesTo(client, size), isTrue);
+    expect(ChunkedUpload.appliesTo(client, 1024), isFalse);
     client.chunkingUnsupported = true;
-    expect(NextcloudChunkedUpload.appliesTo(client, size), isFalse);
+    expect(ChunkedUpload.appliesTo(client, size), isFalse);
+
+    final plain = WebDavClient(
+      WebDavConfig(
+        serverUrl: 'https://dav.test/dav',
+        username: 'alice',
+        password: 'secret',
+      ),
+      httpClient: server.client,
+    );
+    addTearDown(plain.close);
+    expect(ChunkedUpload.appliesTo(plain, size), isFalse);
   });
 
   test('uploads three chunks and assembles them at the destination', () async {
@@ -81,14 +89,14 @@ void main() {
   });
 
   test('resume skips chunks already on the server', () async {
-    const first = NextcloudChunkedUpload.chunkBytes;
+    const first = ChunkedUpload.chunkBytes;
     server
       ..seedCollection('$uploads/submersion-t1')
       ..seedFile(
         '$uploads/submersion-t1/00001',
         (await source.readAsBytes()).sublist(0, first),
       );
-    final state = NextcloudChunkState(
+    final state = ChunkedUploadState(
       transferId: 'submersion-t1',
       chunkSize: first,
       total: size,
@@ -107,9 +115,9 @@ void main() {
   });
 
   test('an expired upload directory restarts from the first chunk', () async {
-    final state = NextcloudChunkState(
+    final state = ChunkedUploadState(
       transferId: 'submersion-gone',
-      chunkSize: NextcloudChunkedUpload.chunkBytes,
+      chunkSize: ChunkedUpload.chunkBytes,
       total: size,
       dest: client.uriFor('Submersion/video.mp4').toString(),
     );
@@ -126,6 +134,25 @@ void main() {
     expect(await uploader().upload('Submersion/video.mp4', source), isFalse);
     expect(client.chunkingUnsupported, isTrue);
   });
+
+  // The address shape alone turns chunking on, so any refusal of the
+  // uploads collection short of an auth failure must fall back.
+  test(
+    'any client-side refusal of the uploads collection falls back',
+    () async {
+      for (final status in [400, 403, 404, 405, 409, 415, 501]) {
+        server.chunkingEnabled = false;
+        server.chunkingRefusedStatus = status;
+        client.chunkingUnsupported = false;
+        expect(
+          await uploader().upload('Submersion/video.mp4', source),
+          isFalse,
+          reason: '$status',
+        );
+        expect(client.chunkingUnsupported, isTrue, reason: '$status');
+      }
+    },
+  );
 
   test(
     'a MOVE whose reply was lost counts as done when the file is complete',
@@ -149,7 +176,7 @@ void main() {
       expect(server.collections, isNot(contains('$uploads/submersion-old')));
       expect(server.collections, contains('$uploads/other-app'));
 
-      const state = NextcloudChunkState(
+      const state = ChunkedUploadState(
         transferId: 'submersion-new',
         chunkSize: 1,
         total: 1,
@@ -163,10 +190,10 @@ void main() {
   );
 
   test(
-    'a MOVE that stays locked while Nextcloud assembles still succeeds',
+    'a MOVE that stays locked while the server assembles still succeeds',
     () async {
       server.moveLockedResponses = 10;
-      final upload = NextcloudChunkedUpload(
+      final upload = ChunkedUpload(
         client,
         newTransferId: () => 'submersion-t1',
         pollDelay: Duration.zero,
@@ -183,9 +210,9 @@ void main() {
         '$files/Submersion/video.mp4',
         await source.readAsBytes(),
       );
-      final state = NextcloudChunkState(
+      final state = ChunkedUploadState(
         transferId: 'submersion-gone',
-        chunkSize: NextcloudChunkedUpload.chunkBytes,
+        chunkSize: ChunkedUpload.chunkBytes,
         total: size,
         dest: client.uriFor('Submersion/video.mp4').toString(),
       );
@@ -202,12 +229,9 @@ void main() {
   );
 
   test('the assembly MOVE gets a deadline that grows with the file', () {
+    expect(ChunkedUpload.moveDeadline(1024), const Duration(minutes: 10));
     expect(
-      NextcloudChunkedUpload.moveDeadline(1024),
-      const Duration(minutes: 10),
-    );
-    expect(
-      NextcloudChunkedUpload.moveDeadline(10 << 30),
+      ChunkedUpload.moveDeadline(10 << 30),
       greaterThan(const Duration(minutes: 30)),
     );
   });

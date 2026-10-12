@@ -4,7 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/nextcloud_chunked_upload.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
@@ -13,36 +13,7 @@ import 'package:submersion/core/services/logger_service.dart';
 
 typedef WebDavClientFactory = WebDavClient Function(WebDavConfig config);
 
-/// [config] with its Nextcloud user id resolved from
-/// `current-user-principal`, or unchanged when the preset has no Nextcloud
-/// layout or the server will not say. Only failures that would also sink
-/// the probe (bad credentials, an untrusted certificate, an unreachable
-/// host) are raised; anything else falls back to the login name.
-Future<WebDavConfig> resolveNextcloudUserId(
-  WebDavConfig config,
-  WebDavClientFactory clientFactory,
-) async {
-  if (!config.preset.usesNextcloudLayout) return config;
-  final lookup = clientFactory(config);
-  try {
-    final id = await lookup.resolveNextcloudUserId();
-    return (id == null || id == config.nextcloudUserId)
-        ? config
-        : config.copyWith(nextcloudUserId: id);
-  } on WebDavException catch (e) {
-    if (e.code == WebDavErrorCode.unauthorized ||
-        e.code == WebDavErrorCode.untrustedCertificate ||
-        e.code == WebDavErrorCode.unreachable) {
-      rethrow;
-    }
-    return config;
-  } finally {
-    lookup.close();
-  }
-}
-
-/// WebDAV implementation of [CloudStorageProvider] (Nextcloud, ownCloud,
-/// Synology, Koofr, pCloud, Fastmail, Yandex and any other WebDAV server).
+/// WebDAV implementation of [CloudStorageProvider], for any WebDAV server.
 ///
 /// - fileId is the path relative to the DAV root (`Submersion/x.json`); the
 ///   sync folder is the configured folder.
@@ -113,20 +84,19 @@ class WebDavStorageProvider
   }
 
   /// Validates unsaved [config] with the same probe as [authenticate] and
-  /// returns it with the Nextcloud user id resolved. Saves nothing.
+  /// returns it. Saves nothing.
   Future<WebDavConfig> testConnection(WebDavConfig config) async {
     final error = config.validate();
     if (error != null) {
       throw WebDavException(error, code: WebDavErrorCode.invalidConfig);
     }
-    final resolved = await resolveNextcloudUserId(config, _clientFactory);
-    final client = _clientFactory(resolved);
+    final client = _clientFactory(config);
     try {
-      await probe(client, resolved.folder);
+      await probe(client, config.folder);
     } finally {
       client.close();
     }
-    return resolved;
+    return config;
   }
 
   /// The DAV root exists and is a collection; the folder can be created;
@@ -135,7 +105,7 @@ class WebDavStorageProvider
     final root = await client.stat('');
     if (root == null || !root.isCollection) {
       throw WebDavException(
-        'No WebDAV folder at this address. Check the server type and URL.',
+        'No WebDAV folder at this address. Check the address.',
         code: WebDavErrorCode.notFound,
       );
     }
@@ -209,8 +179,8 @@ class WebDavStorageProvider
     final source = File(sourcePath);
     final length = await source.length();
     var done = false;
-    if (NextcloudChunkedUpload.appliesTo(session.client, length)) {
-      done = await NextcloudChunkedUpload(session.client).upload(path, source);
+    if (ChunkedUpload.appliesTo(session.client, length)) {
+      done = await ChunkedUpload(session.client).upload(path, source);
     }
     if (!done) await session.client.putFile(path, source);
     return UploadResult(fileId: path, uploadTime: DateTime.now().toUtc());

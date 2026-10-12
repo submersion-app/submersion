@@ -7,7 +7,7 @@ import 'package:http/testing.dart';
 
 /// In-memory WebDAV server for MockClient: PROPFIND (Depth 0 and 1),
 /// GET, PUT, DELETE, MKCOL and MOVE over a tree of decoded absolute paths,
-/// Basic auth, Nextcloud `current-user-principal`, and Nextcloud chunking v2
+/// Basic auth, and chunked uploads (v2) under `remote.php/dav/uploads/`
 /// (`MOVE <uploadDir>/.file` assembles the numbered chunks).
 class FakeWebDavServer {
   FakeWebDavServer({
@@ -46,17 +46,18 @@ class FakeWebDavServer {
   /// PUT bodies above this many bytes answer 413.
   int? maxPutBytes;
 
-  /// Answer `current-user-principal` with this id; null answers 404.
-  String? principalUserId;
-
   /// False makes MKCOL under `/remote.php/dav/uploads` answer 501.
   bool chunkingEnabled = true;
+
+  /// The status MKCOL under `/remote.php/dav/uploads` answers while
+  /// [chunkingEnabled] is false.
+  int chunkingRefusedStatus = 501;
 
   /// The next chunk-assembly MOVE applies, then fails in transit.
   bool moveFailsAfterApplying = false;
 
   /// Chunk-assembly MOVEs answer 423 Locked this many times; the first of
-  /// them still assembles the file (Nextcloud finishing in the background).
+  /// them still assembles the file (the server finishing in the background).
   int moveLockedResponses = 0;
 
   /// Rewrites each href's decoded path before it is encoded, to mimic a
@@ -143,19 +144,6 @@ class FakeWebDavServer {
   }
 
   http.Response _propfind(http.Request request, String path) {
-    if (request.body.contains('current-user-principal')) {
-      final id = principalUserId;
-      if (id == null) return http.Response('', 404);
-      return http.Response(
-        '<d:multistatus xmlns:d="DAV:"><d:response><d:href>$path/</d:href>'
-        '<d:propstat><d:prop><d:current-user-principal>'
-        '<d:href>/remote.php/dav/principals/users/$id/</d:href>'
-        '</d:current-user-principal></d:prop>'
-        '<d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>'
-        '</d:multistatus>',
-        207,
-      );
-    }
     if (!collections.contains(path) && !files.containsKey(path)) {
       return http.Response('', 404);
     }
@@ -235,7 +223,7 @@ class FakeWebDavServer {
 
   http.Response _mkcol(String path) {
     if (!chunkingEnabled && path.startsWith('/remote.php/dav/uploads/')) {
-      return http.Response('', 501);
+      return http.Response('', chunkingRefusedStatus);
     }
     if (collections.contains(path) || files.containsKey(path)) {
       return http.Response('', 405);

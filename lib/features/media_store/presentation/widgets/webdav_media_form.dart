@@ -74,12 +74,7 @@ class _WebDavMediaFormState extends ConsumerState<WebDavMediaForm> {
   Future<void> _test() => _run(() async {
     final service = ref.read(mediaStoreServiceProvider);
     final l10n = context.l10n;
-    final resolved = await runWithCertificateTrust(
-      context,
-      _form,
-      service.testWebDav,
-    );
-    _form.nextcloudUserId = resolved.nextcloudUserId;
+    await runWithCertificateTrust(context, _form, service.testWebDav);
     _snack(l10n.settings_mediaStorage_test_success);
   });
 
