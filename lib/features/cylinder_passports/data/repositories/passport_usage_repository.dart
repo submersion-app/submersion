@@ -10,8 +10,8 @@ import 'package:submersion/features/cylinder_passports/domain/entities/passport_
 class PassportUsageRepository {
   AppDatabase get _db => DatabaseService.instance.database;
 
-  /// The distinct dives with a tank whose passport id is [passportId],
-  /// newest first. [diverId] limits them to that diver's dives (all dives
+  /// The distinct logged dives (never a planned one) with a tank whose
+  /// passport id is [passportId], newest first. [diverId] limits them to that diver's dives (all dives
   /// when null, like the dive list); [excludeDiveId] leaves one out.
   Future<List<PassportUsageDive>> usageFor(
     String passportId, {
@@ -29,6 +29,8 @@ class PassportUsageRepository {
           'LEFT JOIN dive_sites s ON s.id = d.site_id '
           'WHERE d.id IN (SELECT t.dive_id FROM dive_tanks t '
           'WHERE t.passport_id = ?) '
+          // A planned dive has not happened: the cylinder is not used yet.
+          'AND d.is_planned = 0 '
           '${diverId == null ? '' : 'AND d.diver_id = ? '}'
           '${excludeDiveId == null ? '' : 'AND d.id != ? '}'
           'ORDER BY d.dive_date_time DESC, d.id',

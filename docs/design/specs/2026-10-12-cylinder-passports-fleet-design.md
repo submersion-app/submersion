@@ -106,6 +106,8 @@ excludeDiveId})` in `lib/features/cylinder_passports/data/repositories/`
 returns `PassportUsage`: the distinct dives owned by `diverId` with a tank
 whose `passport_id` matches, as `(diveId, diveDateTime, diveNumber,
 siteName)`, newest first. A dive with two tanks from one tag counts once.
+A planned dive (`is_planned`) does not count: it has not happened yet
+(review, 2026-10-12).
 `excludeDiveId` leaves out the dive being edited (section 6.4).
 
 ## 6. Stamping

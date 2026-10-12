@@ -4,7 +4,7 @@
 
 **Goal:** Record which tagged cylinder each dive tank came from (`dive_tanks.passport_id`) and show "You have used this cylinder N times" with the dives on the foreign and own passports.
 
-**Architecture:** A nullable identity column on `dive_tanks` (rung 285), threaded through the entity and every hand-built tank row, stamped by the tank editor and the foreign passport's "Use on a dive". A read-only `PassportUsageRepository` derives the dives per passport id for the active diver; a shared `PassportUsageCard` renders them on both passport pages, and the tank editor's scan snack bar names the earlier-use count.
+**Architecture:** A nullable identity column on `dive_tanks` (rung 286), threaded through the entity and every hand-built tank row, stamped by the tank editor and the foreign passport's "Use on a dive". A read-only `PassportUsageRepository` derives the dives per passport id for the active diver; a shared `PassportUsageCard` renders them on both passport pages, and the tank editor's scan snack bar names the earlier-use count.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod 3, go_router, ARB l10n.
 
@@ -31,18 +31,18 @@
 
 ---
 
-### Task 1: Schema rung 285 and the entity field
+### Task 1: Schema rung 286 and the entity field
 
 **Files:**
 - Modify: `lib/core/database/tables/dive_tables.dart` (class `DiveTanks`, after `sourceId`)
 - Modify: `lib/core/database/migrations/helpers/dive_migrations.dart` (after `_assertTankUsageDurationColumn`)
-- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (after the v284 block)
+- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (after the v285 block)
 - Modify: `lib/core/database/migrations/before_open_child_columns.dart`
 - Modify: `lib/core/database/performance_indexes.dart` (after `idx_dive_tanks_equipment`)
 - Modify: `lib/core/database/database.dart:265` and the `migrationVersions` list
 - Modify: `lib/features/dive_log/domain/entities/dive.dart` (class `DiveTank`)
 - Modify: `test/core/database/migration_v284_profile_metric_colors_test.dart` only if it asserts the exact current version (it uses `greaterThanOrEqualTo`, so expect no change)
-- Create: `test/core/database/migration_v285_tank_passport_id_test.dart`
+- Create: `test/core/database/migration_v286_tank_passport_id_test.dart`
 - Create: `test/features/dive_log/domain/entities/dive_tank_passport_id_test.dart`
 
 **Interfaces:**
@@ -50,7 +50,7 @@
 
 - [ ] **Step 1: Write the failing migration test**
 
-`test/core/database/migration_v285_tank_passport_id_test.dart`:
+`test/core/database/migration_v286_tank_passport_id_test.dart`:
 
 ```dart
 import 'package:drift/native.dart';
@@ -58,13 +58,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v285: dive_tanks.passport_id, the tagged cylinder a tank came
+/// Schema v286: dive_tanks.passport_id, the tagged cylinder a tank came
 /// from (issue #2650).
 void main() {
-  /// A v284 database whose dive_tanks lacks the column.
+  /// A v285 database whose dive_tanks lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 284');
+      rawDb.execute('PRAGMA user_version = 285');
       rawDb.execute(
         'CREATE TABLE dive_tanks (id TEXT NOT NULL PRIMARY KEY, '
         "dive_id TEXT NOT NULL, tank_role TEXT NOT NULL DEFAULT 'backGas')",
@@ -76,20 +76,20 @@ void main() {
     },
   );
 
-  test('v285 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(285));
-    expect(AppDatabase.migrationVersions, contains(285));
+  test('v286 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(286));
+    expect(AppDatabase.migrationVersions, contains(286));
     expect(
-      AppDatabase.migrationStepCount(284),
-      AppDatabase.migrationStepCount(285) + 1,
+      AppDatabase.migrationStepCount(285),
+      AppDatabase.migrationStepCount(286) + 1,
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(285));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(286));
   });
 
-  test('upgrading from v284 adds a null passport_id and keeps the row', () async {
+  test('upgrading from v285 adds a null passport_id and keeps the row', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     final rows = await db
@@ -143,7 +143,7 @@ void main() {
 
 - [ ] **Step 3: Run both to verify they fail**
 
-Run: `flutter test test/core/database/migration_v285_tank_passport_id_test.dart test/features/dive_log/domain/entities/dive_tank_passport_id_test.dart`
+Run: `flutter test test/core/database/migration_v286_tank_passport_id_test.dart test/features/dive_log/domain/entities/dive_tank_passport_id_test.dart`
 Expected: FAIL (compile error: no named parameter `passportId`; migration test fails on the version).
 
 - [ ] **Step 4: Add the column**
@@ -151,7 +151,7 @@ Expected: FAIL (compile error: no named parameter `passportId`; migration test f
 In `lib/core/database/tables/dive_tables.dart`, class `DiveTanks`, directly after the `sourceId` column:
 
 ```dart
-  /// v285: the passport id of the tagged cylinder this tank was filled
+  /// v286: the passport id of the tagged cylinder this tank was filled
   /// from (issue #2650), set when the diver scanned a tag or picked a
   /// cylinder that has one. An identity, not a link: a rental's id has no
   /// equipment row. User-authored; downloads and re-parses never write it.
@@ -163,8 +163,8 @@ In `lib/core/database/tables/dive_tables.dart`, class `DiveTanks`, directly afte
 In `lib/core/database/migrations/helpers/dive_migrations.dart`, after `_assertTankUsageDurationColumn`:
 
 ```dart
-  /// Idempotent DDL for the v285 dive_tanks.passport_id column (issue
-  /// #2650). Called from the v285 rung and re-asserted in beforeOpen like
+  /// Idempotent DDL for the v286 dive_tanks.passport_id column (issue
+  /// #2650). Called from the v286 rung and re-asserted in beforeOpen like
   /// the other column-assert helpers. Its index is a performance index.
   Future<void> _assertTankPassportIdColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
@@ -177,32 +177,32 @@ In `lib/core/database/migrations/helpers/dive_migrations.dart`, after `_assertTa
 
 - [ ] **Step 6: Add the rung, the backstop and the index**
 
-Append to the end of the ladder method in `rungs_v231_onward.dart`, after the `if (from < 284) await reportProgress();` line:
+Append to the end of the ladder method in `rungs_v231_onward.dart`, after the `if (from < 285) await reportProgress();` line:
 
 ```dart
-    // v285: dive_tanks.passport_id (issue #2650). Column only, no backfill:
+    // v286: dive_tanks.passport_id (issue #2650). Column only, no backfill:
     // nothing recorded which tag an older tank came from. Re-asserted in
     // beforeOpen; the index is in performance_indexes.dart.
-    if (from < 285) {
+    if (from < 286) {
       await _assertTankPassportIdColumn();
     }
-    if (from < 285) await reportProgress();
+    if (from < 286) await reportProgress();
 ```
 
 In `before_open_child_columns.dart`, after `await _assertTankUsageDurationColumn();`:
 
 ```dart
 
-    // v285: dive_tanks.passport_id (issue #2650).
+    // v286: dive_tanks.passport_id (issue #2650).
     await _assertTankPassportIdColumn();
 ```
 
-and update the method's caller comment in `before_open.dart` ("v194, v254, v259 and v270 backstops") to read "v194, v254, v259, v270 and v285 backstops".
+and update the method's caller comment in `before_open.dart` ("v194, v254, v259 and v270 backstops") to read "v194, v254, v259, v270 and v286 backstops".
 
 In `performance_indexes.dart`, after the `idx_dive_tanks_equipment` entry:
 
 ```dart
-  // v285: a passport's usage card finds the dives whose tanks came from one
+  // v286: a passport's usage card finds the dives whose tanks came from one
   // tagged cylinder (issue #2650).
   (
     name: 'idx_dive_tanks_passport_id',
@@ -212,12 +212,12 @@ In `performance_indexes.dart`, after the `idx_dive_tanks_equipment` entry:
   ),
 ```
 
-In `database.dart`: `static const int currentSchemaVersion = 285;` and append after the `284,` entry:
+In `database.dart`: `static const int currentSchemaVersion = 286;` and append after the `285,` entry:
 
 ```dart
-    // v285: dive_tanks.passport_id (issue #2650). Additive nullable column,
+    // v286: dive_tanks.passport_id (issue #2650). Additive nullable column,
     // so the floor stays at 280.
-    285,
+    286,
 ```
 
 - [ ] **Step 7: Add the entity field**
@@ -227,7 +227,7 @@ In `lib/features/dive_log/domain/entities/dive.dart`, class `DiveTank`:
 Field, after `tripCylinderId`:
 
 ```dart
-  /// The passport id of the tagged cylinder this tank was filled from (v285,
+  /// The passport id of the tagged cylinder this tank was filled from (v286,
   /// issue #2650): set by a scan or a pick of a cylinder that has one,
   /// cleared by a preset or a trip slot. An identity, not a link, so a
   /// rental with no gear row still counts its uses. User-authored like
@@ -259,15 +259,15 @@ Expected: completes; `database.g.dart` gains `passportId` on `DiveTank` and `Div
 
 - [ ] **Step 9: Run the tests to verify they pass**
 
-Run: `flutter test test/core/database/migration_v285_tank_passport_id_test.dart test/features/dive_log/domain/entities/dive_tank_passport_id_test.dart test/core/database/`
-Expected: PASS. If an older migration test asserts `currentSchemaVersion` equals 284 exactly, relax it to `greaterThanOrEqualTo(284)` as the v259 test does.
+Run: `flutter test test/core/database/migration_v286_tank_passport_id_test.dart test/features/dive_log/domain/entities/dive_tank_passport_id_test.dart test/core/database/`
+Expected: PASS. If an older migration test asserts `currentSchemaVersion` equals 285 exactly, relax it to `greaterThanOrEqualTo(285)` as the v259 test does.
 
 - [ ] **Step 10: Commit**
 
 ```bash
 dart format lib/core/database lib/features/dive_log/domain test/core/database test/features/dive_log/domain
-git add lib/core/database/tables/dive_tables.dart lib/core/database/migrations/helpers/dive_migrations.dart lib/core/database/migrations/ladder/rungs_v231_onward.dart lib/core/database/migrations/before_open_child_columns.dart lib/core/database/migrations/before_open.dart lib/core/database/performance_indexes.dart lib/core/database/database.dart lib/features/dive_log/domain/entities/dive.dart test/core/database/migration_v285_tank_passport_id_test.dart test/features/dive_log/domain/entities/dive_tank_passport_id_test.dart
-git commit -m "feat(dive-log): add dive_tanks.passport_id (schema v285)"
+git add lib/core/database/tables/dive_tables.dart lib/core/database/migrations/helpers/dive_migrations.dart lib/core/database/migrations/ladder/rungs_v231_onward.dart lib/core/database/migrations/before_open_child_columns.dart lib/core/database/migrations/before_open.dart lib/core/database/performance_indexes.dart lib/core/database/database.dart lib/features/dive_log/domain/entities/dive.dart test/core/database/migration_v286_tank_passport_id_test.dart test/features/dive_log/domain/entities/dive_tank_passport_id_test.dart
+git commit -m "feat(dive-log): add dive_tanks.passport_id (schema v286)"
 ```
 
 ---

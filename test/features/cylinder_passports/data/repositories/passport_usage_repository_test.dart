@@ -26,10 +26,12 @@ void main() {
     String? diverId,
     int? number,
     DiveSite? site,
+    bool planned = false,
     List<String?> passports = const ['p-1'],
   }) => dives.createDive(
     Dive(
       id: id,
+      isPlanned: planned,
       diverId: diverId,
       diveNumber: number,
       dateTime: at,
@@ -78,6 +80,13 @@ void main() {
       excludeDiveId: 'b',
     );
     expect(result.map((d) => d.diveId), ['a']);
+  });
+
+  test('a planned dive has not used the cylinder yet', () async {
+    await dive('logged', DateTime.utc(2026, 1, 1));
+    await dive('planned', DateTime.utc(2026, 1, 5), planned: true);
+    final result = await usage.usageFor('p-1', diverId: null);
+    expect(result.map((d) => d.diveId), ['logged']);
   });
 
   test('a passport never used gives nothing', () async {
