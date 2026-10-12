@@ -8,15 +8,22 @@ class KeyboardNavStops {
   final List<String> _keys = [];
   final Map<String, String> _headerGroups = {};
   final Map<String, String> _rowHeaders = {};
+  final Map<String, String> _parentHeaders = {};
 
   /// Every stop, in display order.
   List<String> get keys => List.unmodifiable(_keys);
 
-  /// Adds the header stop [key] for the collapsible group [groupId].
-  void addHeader(String key, String groupId) {
+  /// Adds the header stop [key] for the collapsible group [groupId], nested
+  /// inside the group headed by [parent] if any.
+  void addHeader(String key, String groupId, {String? parent}) {
     _keys.add(key);
     _headerGroups[key] = groupId;
+    if (parent != null) _parentHeaders[key] = parent;
   }
+
+  /// The header of the group the header stop [key] is nested inside, or null
+  /// for a top-level header or a row.
+  String? parentHeaderOf(String key) => _parentHeaders[key];
 
   /// Adds the row stop [key], inside the group headed by [header] if any.
   void addRow(String key, {String? header}) {

@@ -328,6 +328,9 @@ final class SubHeaderRow<T> extends SiteListRow<T> {
   final SiteSubGroup<T> subgroup;
 
   final bool isExpanded;
+
+  /// This subgroup's key in the shared expansion set.
+  String get expansionKey => subGroupExpansionKey(outerKey, subgroup.key);
 }
 
 final class SiteRow<T> extends SiteListRow<T> {

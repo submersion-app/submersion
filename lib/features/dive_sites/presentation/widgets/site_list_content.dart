@@ -779,12 +779,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final filter = ref.watch(siteFilterProvider);
     final viewMode = ref.watch(siteListViewModeProvider);
     ref.listen(siteFilterProvider, (_, _) => _resetFilterCollapsed());
-    // A stored key from one grouping mode (a country) has no meaning in
-    // another (a body of water), so switching modes drops it rather than
-    // risk it matching an unrelated group by accident.
+    // The stored expansion resets itself on a mode switch (it watches
+    // siteGroupByProvider); the filter's local collapse keys need the same.
     ref.listen(siteGroupByProvider, (previous, next) {
       if (previous == null || previous == next) return;
-      ref.read(siteListExpandedGroupsProvider.notifier).state = null;
       _resetFilterCollapsed();
     });
 
@@ -1334,11 +1332,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           case OuterHeaderRow(:final group):
             header = _groupNavKey(group.key);
             navStops.addHeader(header, group.key);
-          case SubHeaderRow(:final outerKey, :final subgroup):
-            header = _groupNavKey(subGroupExpansionKey(outerKey, subgroup.key));
+          case SubHeaderRow(:final outerKey, :final expansionKey):
+            header = _groupNavKey(expansionKey);
             navStops.addHeader(
               header,
-              subGroupExpansionKey(outerKey, subgroup.key),
+              expansionKey,
+              parent: _groupNavKey(outerKey),
             );
           case SiteRow(:final item):
             navStops.addRow(item.site.id, header: header);
@@ -1381,8 +1380,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           final header = navStops.headerFor(key);
           if (header == null) return null;
           final groupKey = navStops.groupOfHeader(header)!;
-          if (expanded.contains(groupKey)) _toggleGroup(groupKey, expanded);
-          return header;
+          if (expanded.contains(groupKey)) {
+            _toggleGroup(groupKey, expanded);
+            return header;
+          }
+          // Already folded: Left climbs from a subgroup header to the outer
+          // group it sits in, as a tree view does.
+          return navStops.parentHeaderOf(header) ?? header;
         },
         child: ListView.builder(
           controller: _scrollController,
@@ -1404,14 +1408,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   ),
                 ),
               SubHeaderRow(
-                :final outerKey,
+                :final expansionKey,
                 :final subgroup,
                 :final isExpanded,
               ) =>
                 KeyboardListItem(
-                  navigationKey: _groupNavKey(
-                    subGroupExpansionKey(outerKey, subgroup.key),
-                  ),
+                  navigationKey: _groupNavKey(expansionKey),
                   child: SiteGroupHeader(
                     label: siteSubGroupLabel(
                       groupBy.innerNoGroupLabel(context.l10n) ?? '',
@@ -1420,10 +1422,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     siteCount: subgroup.items.length,
                     isExpanded: isExpanded,
                     indent: 40,
-                    onTap: () => _toggleGroup(
-                      subGroupExpansionKey(outerKey, subgroup.key),
-                      expanded,
-                    ),
+                    onTap: () => _toggleGroup(expansionKey, expanded),
                   ),
                 ),
               SiteRow(:final item) => _buildSiteTile(
@@ -1438,7 +1437,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     );
   }
 
-  /// The keyboard stop for the header of the outer group [groupKey].
+  /// The keyboard stop for the header of the group [groupKey]: an outer
+  /// group's key, or a subgroup's [subGroupExpansionKey].
   static String _groupNavKey(String groupKey) => 'group:$groupKey';
 
   Widget _buildSiteTile(

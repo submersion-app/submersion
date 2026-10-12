@@ -14,9 +14,11 @@ final siteGroupByProvider = StateProvider<SiteGroupBy>(
 /// without writing state during build. Kept in a provider so opening a site
 /// and coming back keeps the list as the diver left it.
 ///
-/// Reset to null whenever [siteGroupByProvider] changes, since a stored key
+/// Resets to null whenever [siteGroupByProvider] changes, since a stored key
 /// from one grouping mode (a country) has no meaning in another (a body of
-/// water).
-final siteListExpandedGroupsProvider = StateProvider<Set<String>?>(
-  (ref) => null,
-);
+/// water). Watching the mode here, rather than resetting from a widget, keeps
+/// that true however and wherever the mode changes.
+final siteListExpandedGroupsProvider = StateProvider<Set<String>?>((ref) {
+  ref.watch(siteGroupByProvider);
+  return null;
+});
