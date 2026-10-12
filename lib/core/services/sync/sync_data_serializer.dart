@@ -2115,7 +2115,10 @@ class SyncDataSerializer {
   }
 
   /// Build the full SyncData, filtering by [hlcSince] (null = full export).
-  Future<SyncData> _buildSyncData(String? hlcSince) async {
+  Future<SyncData> _buildSyncData(String? hlcSince) =>
+      _withLibrarySiteIdsMemo(() => _buildSyncDataUnmemoised(hlcSince));
+
+  Future<SyncData> _buildSyncDataUnmemoised(String? hlcSince) async {
     // A base (null hlcSince) already carries every row.
     final pendingChildren = hlcSince == null
         ? const <String, Set<String>>{}
@@ -8475,12 +8478,27 @@ class SyncDataSerializer {
   /// Ids of sites that belong to a club library (issue #2567): outside the
   /// personal sync in both directions.
   Future<Set<String>> librarySiteIds() async {
+    final memo = _librarySiteIdsMemo;
+    if (memo != null) return memo;
     final rows =
         await (_db.selectOnly(_db.diveSites)
               ..addColumns([_db.diveSites.id])
               ..where(_db.diveSites.sharedLibraryId.isNotNull()))
             .get();
     return rows.map((r) => r.read(_db.diveSites.id)!).toSet();
+  }
+
+  /// One read of the library site ids per export: set at the start of
+  /// [_buildSyncData] and the base export, cleared when they return.
+  Set<String>? _librarySiteIdsMemo;
+
+  Future<T> _withLibrarySiteIdsMemo<T>(Future<T> Function() body) async {
+    _librarySiteIdsMemo = await librarySiteIds();
+    try {
+      return await body();
+    } finally {
+      _librarySiteIdsMemo = null;
+    }
   }
 
   /// Drops the rows of [entityType] that belong to a library site.

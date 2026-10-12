@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -152,7 +153,9 @@ class SharedLibraryService {
         name: manifest['name'] as String?,
       );
       await _store.replaceMembers(libraryId, members);
-      var readOnly = library.readOnlyDetected;
+      // Probed afresh every sync: a refused upload sets it, so upgraded
+      // credentials clear the banner on the next run.
+      var readOnly = false;
       if (membership != null) {
         SharedLibraryMember? mine;
         for (final m in members) {
@@ -189,10 +192,11 @@ class SharedLibraryService {
       // 3. Pull.
       final states = await _store.siteStates(libraryId);
       final clock = MemberClock(
-        membership?.memberId ?? LibraryEditStamperMember.unknown,
+        membership?.memberId ?? LibraryEditStamper.unknownMember,
       );
       var pulled = 0;
-      for (final f in await t.listSites()) {
+      final siteFiles = await t.listSites();
+      for (final f in siteFiles) {
         final siteId = SharedLibraryTransport.siteIdOf(f);
         final state = states[siteId];
         final stamp = f.modifiedTime.toUtc().toIso8601String();
@@ -223,8 +227,7 @@ class SharedLibraryService {
       // 4. Push.
       var pushed = 0;
       final remoteFiles = {
-        for (final f in await t.listSites())
-          SharedLibraryTransport.siteIdOf(f): f.id,
+        for (final f in siteFiles) SharedLibraryTransport.siteIdOf(f): f.id,
       };
       for (final state in await _store.dirtySites(libraryId)) {
         if (readOnly) break;
@@ -443,9 +446,4 @@ class SharedLibraryService {
       }
     }
   }
-}
-
-/// The member id recorded when a sync runs without a membership.
-abstract final class LibraryEditStamperMember {
-  static const unknown = 'unknown';
 }

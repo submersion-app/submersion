@@ -181,17 +181,16 @@ class SharedLibraryMembershipService {
       // readable, and the sync retries the card.
       _log.warning('Could not write member card at $prefix: $e');
     }
-    final existing = await _store.getLibrary(libraryId);
-    final library =
-        existing?.copyWith(name: name, roles: roles) ??
-        SharedLibrary(
-          id: libraryId,
-          name: name,
-          connectedAccountId: account.id,
-          prefix: prefix,
-          formatVersion: found.formatVersion,
-          roles: roles,
-        );
+    // The account and prefix the member joined through now, even when the
+    // library row already exists from an earlier account.
+    final library = SharedLibrary(
+      id: libraryId,
+      name: name,
+      connectedAccountId: account.id,
+      prefix: prefix,
+      formatVersion: found.formatVersion,
+      roles: roles,
+    );
     await _store.upsertLibrary(library);
     await _store.replaceMembers(libraryId, [
       for (final m in members)
