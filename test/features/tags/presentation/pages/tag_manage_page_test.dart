@@ -153,6 +153,10 @@ TagStatistic _scopedStat(
   counts: counts,
 );
 
+/// Moved to make the tag statistics reload while holding their previous
+/// value, the way a dependency change does in the app.
+final _statsReloadProvider = StateProvider<int>((ref) => 0);
+
 Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
@@ -1430,6 +1434,51 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Night Dive'), findsOneWidget);
+    });
+  });
+
+  group('a reload holding its previous value', () {
+    testWidgets('keeps the checks', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tagStatisticsProvider.overrideWith((ref) {
+              ref.watch(_statsReloadProvider);
+              return Future.delayed(
+                const Duration(milliseconds: 50),
+                () => _testStats,
+              );
+            }),
+            tagListNotifierProvider.overrideWith(
+              (ref) => _MockTagListNotifier(_tagsFromStats(_testStats)),
+            ),
+            tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TagManagePage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      expect(find.text('2 selected'), findsOneWidget);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(TagManagePage)),
+      ).read(_statsReloadProvider.notifier).state++;
+      // Two frames inside the reload: one builds, the next runs the prune.
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('2 selected'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('2 selected'), findsOneWidget);
     });
   });
 }

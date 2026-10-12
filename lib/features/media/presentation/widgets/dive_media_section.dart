@@ -310,9 +310,11 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     // Drop checked media that is no longer attached to this dive, so an
     // unlink can never reach an item that is not on screen.
     final visibleIds =
-        mediaAsync.valueOrNull?.map((m) => m.id).toList() ?? const <String>[];
+        mediaAsync.value?.map((m) => m.id).toList() ?? const <String>[];
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
+      }
     });
 
     return SelectableListScope(

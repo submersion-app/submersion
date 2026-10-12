@@ -52,7 +52,12 @@ class _CylinderConfigListPageState
         configsAsync.value?.map((c) => c.id).toList() ?? const <String>[];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(selectableIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          configsAsync,
+          (rows) => rows.map((c) => c.id),
+        );
+      }
     });
 
     return SelectableListScope(

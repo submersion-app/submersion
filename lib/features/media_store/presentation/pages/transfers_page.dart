@@ -76,7 +76,12 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
     final selectableIds = rows.map((e) => e.id.toString()).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(selectableIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          entries,
+          (rows) => rows.map((e) => e.id.toString()),
+        );
+      }
     });
 
     return SelectableListScope(

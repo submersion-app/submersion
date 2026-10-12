@@ -211,7 +211,9 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     final visibleIds =
         mediaAsync.value?.map((m) => m.id).toList() ?? const <String>[];
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
+      }
     });
 
     return SelectableListScope(
