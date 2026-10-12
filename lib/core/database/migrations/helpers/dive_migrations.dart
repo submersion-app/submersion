@@ -595,8 +595,8 @@ extension DiveMigrations on AppDatabase {
     );
   }
 
-  /// Idempotent DDL for the v286 dive_tanks.passport_id column (issue
-  /// #2650). Called from the v286 rung and re-asserted in beforeOpen like
+  /// Idempotent DDL for the v287 dive_tanks.passport_id column (issue
+  /// #2650). Called from the v287 rung and re-asserted in beforeOpen like
   /// the other column-assert helpers. Its index is a performance index.
   Future<void> _assertTankPassportIdColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();

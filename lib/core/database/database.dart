@@ -262,7 +262,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 286;
+  static const int currentSchemaVersion = 287;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1226,10 +1226,13 @@ class AppDatabase extends _$AppDatabase {
     // column, so the floor stays at 280. Renumbered from 282, which PR
     // #3133 holds; 283 and 284 shipped first.
     285,
-    // v286: dive_tanks.passport_id (issue #2650). Additive nullable column,
-    // so the floor stays at 280. Renumbered from 285, which #3306 shipped
-    // first.
+    // v286: diver_settings.equipment_default_statuses (issue #2628).
+    // Additive nullable column, so the floor stays at 280.
     286,
+    // v287: dive_tanks.passport_id (issue #2650). Additive nullable column,
+    // so the floor stays at 280. Renumbered from 285 and 286, which #3306
+    // and #3319 shipped first.
+    287,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

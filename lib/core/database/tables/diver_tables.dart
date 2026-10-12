@@ -503,6 +503,10 @@ class DiverSettings extends Table {
   // #3120). Off by default; the app never resets it back to false.
   BoolColumn get hasAcceptedPlanningDisclaimer =>
       boolean().withDefault(const Constant(false))();
+  // v286: the statuses the Equipment list's default view shows (issue
+  // #2628), a JSON array of EquipmentStatus names. Null reads as the factory
+  // default, everything but retired, sold and wanted gear.
+  TextColumn get equipmentDefaultStatuses => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

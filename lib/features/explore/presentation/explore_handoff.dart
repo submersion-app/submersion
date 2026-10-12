@@ -45,7 +45,8 @@ String writeSubjectHandoff(Ref ref, ParsedSubject subject, QueryNode node) {
 }
 
 /// The equipment list's filter for an Explore query. The list's unset
-/// status hides retired and sold gear, so a status the sentence names
+/// status is the diver's default view (#2628), which by default hides
+/// retired and sold gear, so a status the sentence names
 /// ("my retired regulators") becomes that axis, lifted out of the query,
 /// rather than contradicting it. A negated status, or several, stays in the
 /// query and reads every status (#2590), as does a query on the active flag:

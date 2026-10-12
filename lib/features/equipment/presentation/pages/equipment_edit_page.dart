@@ -1145,6 +1145,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         status: status,
         beforeQuery: (tables) =>
             awaitServiceStatusIfReadFromWidget(ref, tables),
+        defaultStatuses: ref.read(equipmentDefaultStatusesProvider),
       );
       return (view: view, failed: false);
     } catch (e, st) {

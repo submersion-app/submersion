@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_cho
 import 'package:submersion/features/equipment/query/equipment_filter_query.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
+import 'package:submersion/features/settings/presentation/pages/equipment_default_view_page.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_filter_section.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -219,16 +220,33 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          context.l10n.equipment_filter_section_status,
-          style: Theme.of(context).textTheme.titleMedium,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                context.l10n.equipment_filter_section_status,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            // Opens over the panel, which keeps its draft; the list follows
+            // the new default as soon as it is saved (#2628).
+            TextButton(
+              key: const ValueKey('equipment_filter_editDefault'),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const EquipmentDefaultViewPage(),
+                ),
+              ),
+              child: Text(context.l10n.equipment_filter_editDefault),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
-            // The default view: everything but retired and sold gear (#636).
+            // The default view: the diver's chosen statuses (#636, #2628).
             ChoiceChip(
               key: const ValueKey('equipment_filter_status_current'),
               label: Text(context.l10n.equipment_list_filterCurrent),

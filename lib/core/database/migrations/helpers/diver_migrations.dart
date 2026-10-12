@@ -752,6 +752,21 @@ extension DiverMigrations on AppDatabase {
       }
     }
   }
+
+  /// v286: diver_settings.equipment_default_statuses (issue #2628). Column
+  /// only, nullable and never backfilled; re-asserted in beforeOpen.
+  Future<void> _assertEquipmentDefaultStatusesColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('equipment_default_statuses')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN equipment_default_statuses TEXT',
+      );
+    }
+  }
 }
 
 const List<String> _profileMetricColorColumns = [

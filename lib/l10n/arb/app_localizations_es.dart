@@ -15290,6 +15290,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Agrega tu equipo de buceo para rastrear el uso y servicio';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Tu vista predeterminada oculta el resto de tu equipo.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'No hay equipo en tu vista predeterminada';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'equipo';
 
   @override
@@ -15336,6 +15344,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay equipo en esta categoría';
 
   @override
+  String get equipment_list_emptyState_showAll => 'Mostrar todo el equipo';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Todo tu equipo está al día con el servicio!';
 
@@ -15356,7 +15367,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_list_filterAll => 'Todo el equipo';
 
   @override
-  String get equipment_list_filterCurrent => 'Equipo actual';
+  String get equipment_list_filterCurrent => 'Vista predeterminada';
 
   @override
   String get equipment_list_filterServiceDue => 'Servicio pendiente';
@@ -15395,6 +15406,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Estado';
+
+  @override
+  String get equipment_filter_editDefault => 'Editar predeterminada';
 
   @override
   String get equipment_filter_section_tags => 'Etiquetas';
@@ -22292,6 +22306,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Función';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Vista predeterminada del equipo';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Gravedad';
 
   @override
@@ -24912,6 +24930,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Dónde guardas, revisas o prestas tu equipo';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Sin filtro, la lista de equipo muestra el equipo con estos estados.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title =>
+      'Vista predeterminada del equipo';
 
   @override
   String get settings_manage_currencyRules => 'Vigencia de certificaciones';

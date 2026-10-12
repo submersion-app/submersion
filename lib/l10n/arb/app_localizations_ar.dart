@@ -15493,6 +15493,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'أضف معدات الغوص لتتبع الاستخدام والصيانة';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'يخفي العرض الافتراضي بقية معداتك.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'لا توجد معدات في العرض الافتراضي';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'معدات';
 
   @override
@@ -15539,6 +15547,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد معدات في هذه الفئة';
 
   @override
+  String get equipment_list_emptyState_showAll => 'عرض جميع المعدات';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'جميع معداتك محدثة الصيانة!';
 
@@ -15559,7 +15570,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_filterAll => 'جميع المعدات';
 
   @override
-  String get equipment_list_filterCurrent => 'المعدات الحالية';
+  String get equipment_list_filterCurrent => 'العرض الافتراضي';
 
   @override
   String get equipment_list_filterServiceDue => 'الصيانة مستحقة';
@@ -15598,6 +15609,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'الحالة';
+
+  @override
+  String get equipment_filter_editDefault => 'تعديل الافتراضي';
 
   @override
   String get equipment_filter_section_tags => 'الوسوم';
@@ -22520,6 +22534,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'الدور';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'العرض الافتراضي للمعدات';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'الخطورة';
 
   @override
@@ -25095,6 +25113,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'أين تُخزَّن معداتك أو تُصان أو تُعار';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'عند عدم تعيين أي عامل تصفية، تعرض قائمة المعدات المعدات ذات هذه الحالات.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => '، ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'العرض الافتراضي للمعدات';
 
   @override
   String get settings_manage_currencyRules => 'صلاحية الشهادات';

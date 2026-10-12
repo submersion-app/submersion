@@ -70,6 +70,8 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertTrendGapCollapseColumn();
     // v284 backstop: diver_settings.profile_color_*.
     await _assertProfileMetricColorColumns();
+    // v286 backstop: diver_settings.equipment_default_statuses.
+    await _assertEquipmentDefaultStatusesColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do
@@ -574,7 +576,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // only, so it cannot touch diver data.
     await _assertCcrPpO2LimitColumns();
 
-    // v194, v254, v259, v270 and v286 backstops: dive_tanks and weight columns
+    // v194, v254, v259, v270 and v287 backstops: dive_tanks and weight columns
     // every row read selects (before_open_child_columns.dart).
     await _assertChildRowColumns();
 

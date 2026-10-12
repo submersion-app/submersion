@@ -14982,6 +14982,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף את ציוד הצלילה שלך כדי לעקוב אחר שימוש וטיפול';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'תצוגת ברירת המחדל מסתירה את שאר הציוד שלך.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'אין ציוד בתצוגת ברירת המחדל שלך';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'ציוד';
 
   @override
@@ -15025,6 +15033,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_emptyState_noTypeMatch => 'אין ציוד בקטגוריה זו';
 
   @override
+  String get equipment_list_emptyState_showAll => 'הצגת כל הציוד';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'כל הציוד שלך מעודכן בטיפול!';
 
@@ -15045,7 +15056,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_filterAll => 'כל הציוד';
 
   @override
-  String get equipment_list_filterCurrent => 'ציוד נוכחי';
+  String get equipment_list_filterCurrent => 'תצוגת ברירת מחדל';
 
   @override
   String get equipment_list_filterServiceDue => 'טיפול נדרש';
@@ -15084,6 +15095,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'סטטוס';
+
+  @override
+  String get equipment_filter_editDefault => 'עריכת ברירת המחדל';
 
   @override
   String get equipment_filter_section_tags => 'תגיות';
@@ -21747,6 +21761,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'תפקיד';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'תצוגת ברירת מחדל של הציוד';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'חומרה';
 
   @override
@@ -24272,6 +24290,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'היכן הציוד שלך מאוחסן, בטיפול או מושאל';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'כשאין מסנן, רשימת הציוד מציגה ציוד בסטטוסים אלה.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'תצוגת ברירת מחדל של הציוד';
 
   @override
   String get settings_manage_currencyRules => 'תוקף הסמכות';

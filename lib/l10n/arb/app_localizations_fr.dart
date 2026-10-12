@@ -15336,6 +15336,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajoute ton équipement de plongée pour suivre l\'utilisation et la révision';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Votre vue par défaut masque le reste de votre équipement.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Aucun équipement dans votre vue par défaut';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'équipement';
 
   @override
@@ -15382,6 +15390,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun équipement dans cette catégorie';
 
   @override
+  String get equipment_list_emptyState_showAll => 'Afficher tout l\'équipement';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Tout ton équipement est à jour en matière de révision !';
 
@@ -15402,7 +15413,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_list_filterAll => 'Tout l\'équipement';
 
   @override
-  String get equipment_list_filterCurrent => 'Équipement actuel';
+  String get equipment_list_filterCurrent => 'Vue par défaut';
 
   @override
   String get equipment_list_filterServiceDue => 'Révision due';
@@ -15441,6 +15452,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Statut';
+
+  @override
+  String get equipment_filter_editDefault => 'Modifier la vue par défaut';
 
   @override
   String get equipment_filter_section_tags => 'Étiquettes';
@@ -22352,6 +22366,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Rôle';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Vue par défaut de l\'équipement';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Gravité';
 
   @override
@@ -24974,6 +24992,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Où votre équipement est rangé, entretenu ou prêté';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Sans filtre, la liste de l\'équipement affiche le matériel ayant ces statuts.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title =>
+      'Vue par défaut de l\'équipement';
 
   @override
   String get settings_manage_currencyRules => 'Validité des certifications';

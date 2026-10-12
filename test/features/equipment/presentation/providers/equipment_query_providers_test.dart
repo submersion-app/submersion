@@ -6,10 +6,13 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/models/list_entry_count.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -119,6 +122,102 @@ void main() {
 
   test('the default view hides retired gear', () async {
     expect((await settledItems()).map((e) => e.id).toSet(), {'bcd', 'reg'});
+  });
+
+  test(
+    'changing the default statuses re-queries the open list (#2628)',
+    () async {
+      expect((await settledItems()).map((e) => e.id).toSet(), {'bcd', 'reg'});
+      await container
+          .read(settingsProvider.notifier)
+          .setEquipmentDefaultStatuses({EquipmentStatus.retired});
+      // A refresh keeps the previous ids on screen until the new set lands
+      // (narrowByIds), so wait for it; a list that never re-queries stays on
+      // the old set and times out here.
+      var ids = <String>{};
+      for (var i = 0; i < 300; i++) {
+        ids = (await settledItems()).map((e) => e.id).toSet();
+        if (ids.contains('old')) break;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(ids, {'old'});
+    },
+  );
+
+  test('the list count total follows the default view (#2628)', () async {
+    final count = container.listen(equipmentListCountProvider, (_, _) {});
+    addTearDown(count.close);
+    await container.read(settingsProvider.notifier).setEquipmentDefaultStatuses(
+      {EquipmentStatus.retired},
+    );
+    container.read(equipmentFilterProvider.notifier).state =
+        const EquipmentFilterState(type: EquipmentType.regulator);
+    // Filtered to regulators: 'old' is the one retired regulator, and the
+    // total is the default view (retired only), not the factory kit.
+    ListEntryCount? c;
+    for (var i = 0; i < 300; i++) {
+      c = container.read(equipmentListCountProvider);
+      if (c != null && c.total == 1 && c.shown == 1) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(c?.shown, 1);
+    expect(c?.total, 1);
+  });
+
+  test('a service-due count totals the factory kit it reads', () async {
+    final count = container.listen(equipmentListCountProvider, (_, _) {});
+    addTearDown(count.close);
+    await container.read(settingsProvider.notifier).setEquipmentDefaultStatuses(
+      {EquipmentStatus.retired},
+    );
+    container.read(equipmentFilterProvider.notifier).state =
+        const EquipmentFilterState(serviceDue: ServiceDueFilter.overdue);
+    // 'reg' is the one overdue item of the kit {bcd, reg}; the diver's
+    // retired-only default must not set the total under a service view.
+    ListEntryCount? c;
+    for (var i = 0; i < 300; i++) {
+      c = container.read(equipmentListCountProvider);
+      if (c != null && c.shown == 1 && c.total == 2) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(c?.shown, 1);
+    expect(c?.total, 2);
+  });
+
+  test('toggles made before the settings load both land', () async {
+    // Each toggle applies to the latest settings after the load, so two
+    // taps in flight together cannot overwrite each other.
+    final notifier = container.read(settingsProvider.notifier);
+    await Future.wait([
+      notifier.setEquipmentDefaultStatusIncluded(EquipmentStatus.sold, true),
+      notifier.setEquipmentDefaultStatusIncluded(EquipmentStatus.wanted, true),
+    ]);
+    expect(container.read(equipmentDefaultStatusesProvider), {
+      ...factoryDefaultEquipmentStatuses,
+      EquipmentStatus.sold,
+      EquipmentStatus.wanted,
+    });
+  });
+
+  test('a toggle never empties the default view', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.setEquipmentDefaultStatuses({EquipmentStatus.active});
+    await notifier.setEquipmentDefaultStatusIncluded(
+      EquipmentStatus.active,
+      false,
+    );
+    expect(container.read(equipmentDefaultStatusesProvider), {
+      EquipmentStatus.active,
+    });
+  });
+
+  test('the real setter ignores an empty set', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.setEquipmentDefaultStatuses({EquipmentStatus.active});
+    await notifier.setEquipmentDefaultStatuses(const {});
+    expect(container.read(equipmentDefaultStatusesProvider), {
+      EquipmentStatus.active,
+    });
   });
 
   test(

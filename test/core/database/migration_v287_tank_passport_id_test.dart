@@ -3,13 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v286: dive_tanks.passport_id, the tagged cylinder a tank came
-/// from (issue #2650). Renumbered from 285, which #3306 shipped first.
+/// Schema v287: dive_tanks.passport_id, the tagged cylinder a tank came
+/// from (issue #2650). Renumbered from 285 and 286, which #3306 and
+/// #3319 shipped first.
 void main() {
-  /// A v285 database whose dive_tanks lacks the column.
+  /// A v286 database whose dive_tanks lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 285');
+      rawDb.execute('PRAGMA user_version = 286');
       rawDb.execute(
         'CREATE TABLE dive_tanks (id TEXT NOT NULL PRIMARY KEY, '
         "dive_id TEXT NOT NULL, tank_role TEXT NOT NULL DEFAULT 'backGas')",
@@ -21,21 +22,21 @@ void main() {
     },
   );
 
-  test('v286 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(286));
-    expect(AppDatabase.migrationVersions, contains(286));
+  test('v287 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(287));
+    expect(AppDatabase.migrationVersions, contains(287));
     expect(
-      AppDatabase.migrationStepCount(285),
-      AppDatabase.migrationStepCount(286) + 1,
+      AppDatabase.migrationStepCount(286),
+      AppDatabase.migrationStepCount(287) + 1,
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(286));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(287));
   });
 
   test(
-    'upgrading from v285 adds a null passport_id and keeps the row',
+    'upgrading from v286 adds a null passport_id and keeps the row',
     () async {
       final db = AppDatabase(setupDb());
       addTearDown(db.close);

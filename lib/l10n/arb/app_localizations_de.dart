@@ -15289,6 +15289,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fügen Sie Ihre Tauchausrüstung hinzu, um Nutzung und Wartung zu verfolgen';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Ihre Standardansicht blendet Ihre übrige Ausrüstung aus.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Keine Ausrüstung in Ihrer Standardansicht';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'Ausrüstung';
 
   @override
@@ -15335,6 +15343,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Ausrüstung in dieser Kategorie';
 
   @override
+  String get equipment_list_emptyState_showAll => 'Gesamte Ausrüstung anzeigen';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Alle Ihre Ausrüstungsgegenstände sind wartungstechnisch auf dem neuesten Stand!';
 
@@ -15355,7 +15366,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_filterAll => 'Gesamte Ausrüstung';
 
   @override
-  String get equipment_list_filterCurrent => 'Aktuelle Ausrüstung';
+  String get equipment_list_filterCurrent => 'Standardansicht';
 
   @override
   String get equipment_list_filterServiceDue => 'Wartung fällig';
@@ -15394,6 +15405,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_editDefault => 'Standard bearbeiten';
 
   @override
   String get equipment_filter_section_tags => 'Tags';
@@ -22253,6 +22267,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Rolle';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Standardansicht der Ausrüstung';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity =>
       'Schweregrad';
 
@@ -24858,6 +24876,17 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Wo Ihre Ausrüstung lagert, gewartet oder verliehen wird';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Ohne Filter zeigt die Ausrüstungsliste Ausrüstung mit diesen Status.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title =>
+      'Standardansicht der Ausrüstung';
 
   @override
   String get settings_manage_currencyRules => 'Gültigkeit der Zertifizierungen';
