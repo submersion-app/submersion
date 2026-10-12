@@ -75,7 +75,7 @@ final certificationQueryEntity = QueryEntity(
   relations: [
     _buddy('buddy', 'buddy_id'),
     _buddy('instructor', 'instructor_id'),
-    // certifications.course_id is the truth since v286 (#2515).
+    // certifications.course_id is the truth since v287 (#2515).
     const QueryRelation(
       key: 'course',
       target: QuerySubject.courses,

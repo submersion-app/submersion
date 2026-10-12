@@ -58,7 +58,7 @@ final courseQueryEntity = QueryEntity(
       isMany: false,
       labelKey: 'query_courses_instructor',
     ),
-    // certifications.course_id is the truth since v286 (#2515);
+    // certifications.course_id is the truth since v287 (#2515);
     // courses.certification_id is only a representative.
     QueryRelation(
       key: 'certification',

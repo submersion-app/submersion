@@ -300,7 +300,7 @@ class CourseRequirementDives extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// The courses a dive belongs to (v286, issue #2515). The source of truth for
+/// The courses a dive belongs to (v287, issue #2515). The source of truth for
 /// a dive's courses; `dives.course_id` stays as a denormalized representative
 /// for older app versions and single-value exports.
 ///

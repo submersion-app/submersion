@@ -190,7 +190,7 @@ class CourseRepository {
     String certificationId,
   ) async {
     try {
-      // The certification side is the truth since v286 (#2515);
+      // The certification side is the truth since v287 (#2515);
       // courses.certification_id is only a representative.
       final results = await _db
           .customSelect(

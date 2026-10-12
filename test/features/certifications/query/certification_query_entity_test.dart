@@ -82,7 +82,7 @@ void main() {
   );
 
   test('the course hop reads the certification side only (#2515)', () async {
-    // Since v286 certifications.course_id is the truth; a course-side-only
+    // Since v287 certifications.course_id is the truth; a course-side-only
     // pointer is a stale representative, and the detail page ignores it too.
     await db.customStatement(
       'INSERT INTO courses (id, diver_id, name, agency, start_date, '

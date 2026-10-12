@@ -4,7 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_course_identity.dart';
 import 'package:submersion/core/database/dive_course_links_schema.dart';
 
-/// v286 (issue #2515): the dive_courses junction, its seed from the
+/// v287 (issue #2515): the dive_courses junction, its seed from the
 /// representative dives.course_id, and the certification side becoming the
 /// truth for a course's certifications.
 void main() {
@@ -50,7 +50,7 @@ void main() {
       rawDb.execute(
         "INSERT INTO certifications VALUES ('k8','Gone',8,'c5',50)",
       );
-      // A device already on v286 linked two cards to c4: both written at or
+      // A device already on v287 linked two cards to c4: both written at or
       // after the course, so both are real links.
       rawDb.execute(
         "INSERT INTO courses VALUES ('c4','d','Multi','tdi',400,'k6',0,100)",
@@ -64,10 +64,10 @@ void main() {
     for (final r in await db.customSelect(sql).get()) r.data,
   ];
 
-  test('v286 is in the ladder and leaves the sync floor alone', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(286));
-    expect(AppDatabase.migrationVersions, contains(286));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(286));
+  test('v287 is in the ladder and leaves the sync floor alone', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(287));
+    expect(AppDatabase.migrationVersions, contains(287));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(287));
   });
 
   test('creates dive_courses with its columns', () async {
@@ -158,12 +158,12 @@ void main() {
   });
 
   test(
-    'beforeOpen heals a database already at 286 without the table',
+    'beforeOpen heals a database already at 287 without the table',
     () async {
       final db = AppDatabase(
         NativeDatabase.memory(
           setup: (rawDb) {
-            rawDb.execute('PRAGMA user_version = 286');
+            rawDb.execute('PRAGMA user_version = 287');
             rawDb.execute('CREATE TABLE courses (id TEXT PRIMARY KEY)');
             rawDb.execute(
               'CREATE TABLE dives (id TEXT PRIMARY KEY, course_id TEXT)',

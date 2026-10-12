@@ -347,14 +347,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileSeriesActivatedAt();
     }
     if (from < 283) await reportProgress();
-    // v286: the dive_courses junction and the certification-side course link
+    // v287: the dive_courses junction and the certification-side course link
     // (issue #2515). Schema re-asserted and links re-seeded in beforeOpen;
     // the certification backfill runs here only.
-    if (from < 286) {
+    if (from < 287) {
       await _assertDiveCourseSchema();
       await seedDiveCourseLinks(this);
       await backfillCertificationCourseLinks(this);
     }
-    if (from < 286) await reportProgress();
+    if (from < 287) await reportProgress();
   }
 }

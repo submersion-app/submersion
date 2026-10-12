@@ -59,7 +59,7 @@ Future<void> assertDiveCourseUniqueness(DatabaseConnectionUser db) async {
 /// Copies each dive's representative `dives.course_id` into `dive_courses`
 /// when that pair has no row yet. Returns how many rows it inserted.
 ///
-/// Runs in the v286 rung, on every open, and after every sync apply. It only
+/// Runs in the v287 rung, on every open, and after every sync apply. It only
 /// ever ADDS: an older app version writes just the representative column, and
 /// this is how its link reaches the set without stripping the dive's other
 /// courses. It cannot resurrect a removed link, because removing a dive's
@@ -98,7 +98,7 @@ Future<int> seedDiveCourseLinks(DatabaseConnectionUser db) async {
   return inserted;
 }
 
-/// The certification side becomes the truth (v286, issue #2515). Runs in the
+/// The certification side becomes the truth (v287, issue #2515). Runs in the
 /// rung only. Deterministic over synced data, so it marks nothing pending.
 ///
 /// 1. An older app version only half-unlinked: swapping or clearing a
@@ -106,7 +106,7 @@ Future<int> seedDiveCourseLinks(DatabaseConnectionUser db) async {
 ///    `course_id` pointing at it, invisibly, since its screens read only the
 ///    course side. Such a leftover is a card the course does not name and
 ///    that is older than the course row, so it is cleared. A card at least as
-///    new as the course is a link the new app made (a device already on v286
+///    new as the course is a link the new app made (a device already on v287
 ///    linking several cards), and it stays.
 /// 2. A course's `certification_id` that names a card with no course claims
 ///    it.
