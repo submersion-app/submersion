@@ -4,8 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v285: nav_tracks.source_metadata (issue #3047), a source's undocumented
-/// fields kept as-is. Renumbered from 282, which PR #3133 holds; 284 is held
-/// by PR #3299, so v283 is the rung directly below this one. Column only, no backfill: existing routes read null.
+/// fields kept as-is. Column only, no backfill: existing routes read null.
+/// Renumbered from 282, which PR #3133 holds; 284 is held by PR #3299, so
+/// the rung below this one depends on which lands first.
 /// The sync floor does not move: an older peer omits the column, and both
 /// apply paths keep a column a payload omits.
 void main() {
@@ -41,8 +42,12 @@ void main() {
   test('v285 is at or below the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(285));
     expect(AppDatabase.migrationVersions, contains(285));
+    // Compared with whichever rung sits directly below this one, so the
+    // test holds whether or not v284 (PR #3299) lands first.
+    const versions = AppDatabase.migrationVersions;
+    final below = versions[versions.indexOf(285) - 1];
     expect(
-      AppDatabase.migrationStepCount(283),
+      AppDatabase.migrationStepCount(below),
       AppDatabase.migrationStepCount(285) + 1,
     );
   });

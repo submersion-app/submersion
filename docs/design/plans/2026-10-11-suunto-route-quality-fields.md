@@ -12,7 +12,9 @@
 
 ## Global Constraints
 
-- No UI, no l10n strings.
+- No UI for the fields. The only new l10n string is the sync-conflict
+  dialog's label for the new column (added after the final review: the
+  conflict catalogue requires one for every synced column).
 - Values are stored exactly as parsed: no rounding, no int/double coercion.
 - Nothing about these fields may fail an import or a route read.
 - No backfill of existing routes; Skip and Replace source behave as today.

@@ -25,7 +25,9 @@ or weight it on the alignment page).
 
 ## Non-goals
 
-- No UI and no new strings. Nothing reads the fields yet.
+- No UI for the fields, and nothing reads them yet. The one new string is
+  the sync-conflict dialog's label for the new column, which the conflict
+  catalogue requires for every synced column (see Sync).
 - No interpretation: the values are kept exactly as parsed.
 - No backfill. Routes imported before this change stay without the fields.
   Skip on a duplicate behaves as today (it links a route only when the dive
@@ -98,6 +100,13 @@ the fields with no further change.
 
 The column rides the existing `navTracks` Drift JSON (`NavTrackRow.toJson` /
 `fromJson`): no serializer arm and no change to the sync floor.
+
+The sync-conflict dialog labels every synced column, and a coverage guard
+fails on a column without one. `sourceMetadata` joins the conflict catalogue
+(`site_trip_fields.dart`) as an opaque field, like `points`, so a conflict
+shows the label "Extra data from the source" and "changed" rather than raw
+JSON. The label (`settings_conflict_field_sourceMetadata`) is translated in
+every locale.
 
 A peer on an older build does not know the column. Its rows arrive without the
 key, and two existing layers keep the local value: `upsertRecord` first fills
