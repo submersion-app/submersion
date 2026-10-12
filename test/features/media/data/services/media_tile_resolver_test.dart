@@ -5,6 +5,7 @@ import 'dart:ui' show Size;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -80,7 +81,9 @@ void main() {
 
   setUp(() async {
     root = await Directory.systemTemp.createTemp('tile_resolver');
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     remote = _ScriptedRemote(
       store: InMemoryMediaObjectStore(),
       cache: MediaCacheStore(database: cacheDb, root: root),

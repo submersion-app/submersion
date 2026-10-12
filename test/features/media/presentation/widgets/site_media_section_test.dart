@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
@@ -91,11 +92,13 @@ void main() {
     List<MediaItem> attachments = const [],
     Future<List<MediaItem>>? pendingAttachments,
     Object? attachmentsError,
+    FutureOr<List<MediaItem>> Function(Ref ref)? loadAttachments,
     List<Override> extraOverrides = const [],
   }) async {
     return mediaTestApp(
       overrides: [
         mediaForSiteProvider('site-1').overrideWith((ref) {
+          if (loadAttachments != null) return loadAttachments(ref);
           if (pendingAttachments != null) return pendingAttachments;
           if (attachmentsError != null) throw attachmentsError;
           return attachments;
@@ -271,6 +274,32 @@ void main() {
   // covered here directly: the Select affordance below, and select-all, exit
   // and unlink in the groups that follow.
   group('select affordance', () {
+    testWidgets('a reload holding its rows keeps the bar and its exit', (
+      tester,
+    ) async {
+      final reload = StateProvider<int>((ref) => 0);
+      await tester.pumpWidget(
+        await host(
+          loadAttachments: (ref) async {
+            ref.watch(reload);
+            return [photoA, photoB];
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(SiteMediaSection)),
+      ).read(reload.notifier).state++;
+      // One frame inside the reload, before the attachments resolve again.
+      await tester.pump();
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+    });
+
     testWidgets('a visible Select button enters selection mode', (
       tester,
     ) async {

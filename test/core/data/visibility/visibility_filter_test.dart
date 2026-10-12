@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
@@ -70,7 +71,7 @@ void main() {
     late AppDatabase db;
 
     setUp(() async {
-      db = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
       const t = 1700000000000;
       for (final id in ['A', 'B', 'C']) {
         await db
@@ -145,7 +146,7 @@ void main() {
     late AppDatabase db;
 
     setUp(() async {
-      db = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
       const t = 1700000000000;
       for (final id in ['A', 'B', 'C']) {
         await db
@@ -216,7 +217,7 @@ void main() {
     late AppDatabase db;
 
     setUp(() async {
-      db = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
       const t = 1700000000000;
       for (final id in ['A', 'B', 'C']) {
         await db

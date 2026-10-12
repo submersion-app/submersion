@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/utils/lv95_transform.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
@@ -127,7 +128,9 @@ void main() {
 
   test('two distinct real Walensee sites at the production span yield distinct '
       'stitched grids and distinct rendered terrain meshes', () async {
-    final db = LocalCacheDatabase(NativeDatabase.memory());
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     final source = SwissBathy3dSource(
       tileCache: SwissBathyTileCacheRepository(db),

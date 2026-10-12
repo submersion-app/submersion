@@ -125,6 +125,27 @@ void main() {
       );
     });
 
+    testWidgets('a reload holding its rows keeps the bar and its exit', (
+      tester,
+    ) async {
+      final a = _item('a');
+      await tester.pumpWidget(host([a, _item('b')]));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveMediaSection)),
+      ).read(_mediaProvider.notifier).state = [
+        a,
+      ];
+      // One frame inside the reload, before the new media list resolves.
+      await tester.pump();
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+    });
+
     testWidgets('the Select button enters selection mode', (tester) async {
       await tester.pumpWidget(host([_item('a'), _item('b'), _item('c')]));
       await tester.pumpAndSettle();

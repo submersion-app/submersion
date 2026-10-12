@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v99 added the structured instructor link on certifications (issue #395):
@@ -10,7 +11,9 @@ import 'package:submersion/core/database/database.dart';
 /// the instructor_id column.)
 void main() {
   test('fresh v99+ schema has certifications.instructor_id', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     // certifications gained instructor_id.
@@ -24,7 +27,9 @@ void main() {
   test('v99 migration adds instructor_id to a pre-v99 certifications table '
       'and is idempotent', () async {
     // Simulate the guarded ALTER against a pre-v99 table shape.
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement('''
       CREATE TABLE certs_v93 (

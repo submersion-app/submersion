@@ -327,7 +327,7 @@ final Map<String, ConflictField> peoplePlanningFields = {
   ),
   'priorDiveTimeSeconds': ConflictField(
     (l) => l.settings_conflict_field_priorDiveTimeSeconds,
-    FieldKind.durationSeconds,
+    FieldKind.totalDurationSeconds,
   ),
   'problemSolvingMinutes': ConflictField(
     (l) => l.settings_conflict_field_problemSolvingMinutes,

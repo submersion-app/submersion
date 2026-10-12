@@ -5604,6 +5604,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Utolsó merülés $span ezelőtt';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'Ma merültél';
 
   @override
@@ -13509,11 +13514,69 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kitöltve innen: $name. $count korábbi merülésen használva.',
+      one: 'Kitöltve innen: $name. $count korábbi merülésen használva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Palackcímke';
 
   @override
   String get passport_foreign_notInGear =>
       'Ez a palack nem szerepel a felszerelésében.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ezt a palackot $count alkalommal használta',
+      one: 'Ezt a palackot $count alkalommal használta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Merülések';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésen használva',
+      one: '$count merülésen használva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Utoljára használva: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'Nincs merülőhely';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Mind a(z) $count megjelenítése';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Nem sikerült betölteni a palackkal végzett merüléseit';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -13908,11 +13971,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes p';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes perc';
   }
@@ -14193,8 +14251,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get pdf_pressureEnd => 'Záró';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'Felsz.: $minutes p';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'Felsz.: $interval';
   }
 
   @override
@@ -27858,6 +27916,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'Az utolsó merülése $span ezelőtt volt';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -28103,19 +28166,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'Nem sikerült a felszíni intervallum adatok betöltése';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hoursó ${minutes}p';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'Maximum';
@@ -44695,6 +44745,36 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '$count nap múlva',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes perc';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hoursó ${minutes}p';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}n $hoursó';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$yearsé ${days}n';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '${days}n $hoursó ${minutes}p';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '$yearsé ${days}n $hoursó';
   }
 
   @override

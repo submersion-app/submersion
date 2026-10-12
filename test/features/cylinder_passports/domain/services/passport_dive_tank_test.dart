@@ -37,4 +37,11 @@ void main() {
     expect(tank.presetName, isNull);
     expect(tank.gasMix, const GasMix());
   });
+
+  test('the tank names the tag it came from (#2650)', () {
+    final tank = tankFromPassport(
+      const CylinderPassportPayload(passportId: id, volumeL: 10),
+    );
+    expect(tank.passportId, id);
+  });
 }

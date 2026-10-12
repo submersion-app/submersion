@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -559,6 +560,99 @@ void main() {
       await tester.pumpAndSettle();
       expect(controller.value.isActive, isTrue);
       expect(controller.value.checkedIds, {'a'});
+    });
+  });
+
+  group('SelectionAppBar while rows are loading', () {
+    void startLoading() => controller.pruneToSettled(
+      const AsyncLoading<List<String>>(),
+      (rows) => rows,
+    );
+
+    BulkAction extra({bool alwaysEnabled = false, VoidCallback? onRun}) =>
+        BulkAction(
+          id: alwaysEnabled ? 'by_date' : 'export',
+          icon: Icons.ios_share,
+          label: alwaysEnabled ? 'By date' : 'Export',
+          alwaysEnabled: alwaysEnabled,
+          onInvoke: () {
+            onRun?.call();
+            return BulkActionOutcome.completed;
+          },
+        );
+
+    testWidgets('select all, extras and delete are disabled', (tester) async {
+      controller.selectAll(const ['a']);
+      startLoading();
+      await tester.pumpWidget(
+        host(actions: [extra(), extra(alwaysEnabled: true)]),
+      );
+      await tester.pumpAndSettle();
+
+      IconButton button(String key) =>
+          tester.widget<IconButton>(find.byKey(ValueKey(key)));
+      expect(button('selection_select_all').onPressed, isNull);
+      expect(button('selection_action_export').onPressed, isNull);
+      expect(button('selection_action_by_date').onPressed, isNull);
+
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.byKey(const ValueKey('selection_delete')),
+      );
+      expect(delete.enabled, isFalse);
+    });
+
+    testWidgets('close and deselect all stay live', (tester) async {
+      controller.selectAll(const ['a']);
+      startLoading();
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('selection_deselect_all')));
+      await tester.pumpAndSettle();
+      expect(controller.value.checkedIds, isEmpty);
+      await tester.tap(find.byKey(const ValueKey('selection_exit')));
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isFalse);
+    });
+
+    testWidgets('controls come back once the rows settle', (tester) async {
+      controller.selectAll(const ['a']);
+      startLoading();
+      await tester.pumpWidget(host(actions: [extra()]));
+      await tester.pumpAndSettle();
+
+      controller.pruneToSettled(const AsyncData(['a', 'b']), (rows) => rows);
+      await tester.pumpAndSettle();
+      final selectAll = tester.widget<IconButton>(
+        find.byKey(const ValueKey('selection_select_all')),
+      );
+      expect(selectAll.onPressed, isNotNull);
+      final export = tester.widget<IconButton>(
+        find.byKey(const ValueKey('selection_action_export')),
+      );
+      expect(export.onPressed, isNotNull);
+    });
+
+    testWidgets('a control painted before the rows unsettled runs nothing', (
+      tester,
+    ) async {
+      var ran = 0;
+      controller.selectAll(const ['a']);
+      await tester.pumpWidget(host(actions: [extra(onRun: () => ran++)]));
+      await tester.pumpAndSettle();
+      final export = tester.widget<IconButton>(
+        find.byKey(const ValueKey('selection_action_export')),
+      );
+
+      // The flag flips in a post-frame callback; a tap can land before the
+      // bar repaints, so the handler from the settled frame must check too.
+      startLoading();
+      export.onPressed!();
+      await tester.pumpAndSettle();
+      expect(ran, 0);
+      expect(controller.value.isActive, isTrue);
     });
   });
 }

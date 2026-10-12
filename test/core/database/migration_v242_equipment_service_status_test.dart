@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v242 adds equipment_service_status: the local service-due cache the
@@ -28,7 +29,9 @@ void main() {
   });
 
   test('a fresh database has the cache table and no hlc column', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     expect(await _tables(db), contains('equipment_service_status'));
     final cols = await db

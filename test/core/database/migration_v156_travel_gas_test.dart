@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Reads the SQL default expression declared for [column] on [table] and asks
@@ -25,7 +26,9 @@ void main() {
   });
 
   test('a fresh database has dive_plan_tanks.is_travel_gas', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db
@@ -36,7 +39,9 @@ void main() {
   });
 
   test('the column is not null and defaults false', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db

@@ -31,6 +31,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -3333,12 +3334,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             if (dive.surfaceInterval != null)
               Builder(
                 builder: (context) {
-                  final interval = dive.surfaceInterval!;
-                  final hours = interval.inHours;
-                  final minutes = interval.inMinutes % 60;
-                  final intervalText = hours > 0
-                      ? '${hours}h ${minutes}m'
-                      : '${minutes}m';
+                  final intervalText = formatElapsed(
+                    context.l10n,
+                    dive.surfaceInterval!,
+                  );
                   return _buildDetailRow(
                     context,
                     context.l10n.diveLog_detail_label_surfaceInterval,
@@ -3351,11 +3350,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               surfaceIntervalAsync.when(
                 data: (interval) {
                   if (interval == null) return const SizedBox.shrink();
-                  final hours = interval.inHours;
-                  final minutes = interval.inMinutes % 60;
-                  final intervalText = hours > 0
-                      ? '${hours}h ${minutes}m'
-                      : '${minutes}m';
+                  final intervalText = formatElapsed(context.l10n, interval);
                   return _buildDetailRow(
                     context,
                     context.l10n.diveLog_detail_label_surfaceInterval,

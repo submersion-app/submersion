@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
@@ -10,7 +11,9 @@ void main() {
   late MediaTransferQueueRepository repo;
 
   setUp(() {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     repo = MediaTransferQueueRepository(database: db);
   });
 
@@ -199,7 +202,9 @@ void main() {
     });
 
     test('a hold on one database does not reach another', () async {
-      final other = LocalCacheDatabase(NativeDatabase.memory());
+      final other = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(other.close);
 
       repo.recordHold(unreachable);

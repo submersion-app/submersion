@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -108,7 +109,7 @@ void main() {
     addTearDown(peer.close);
     DatabaseService.instance.resetForTesting();
     DatabaseService.instance.setTestDatabase(
-      AppDatabase(NativeDatabase.memory()),
+      AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions)),
     );
 
     final result = await SyncService(
@@ -139,7 +140,7 @@ void main() {
       addTearDown(peer.close);
       DatabaseService.instance.resetForTesting();
       DatabaseService.instance.setTestDatabase(
-        AppDatabase(NativeDatabase.memory()),
+        AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions)),
       );
 
       final result = await SyncService(
@@ -180,7 +181,7 @@ void main() {
       addTearDown(peer.close);
       DatabaseService.instance.resetForTesting();
       DatabaseService.instance.setTestDatabase(
-        AppDatabase(NativeDatabase.memory()),
+        AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions)),
       );
 
       // This device had the mission, then turned it off: the mission row and

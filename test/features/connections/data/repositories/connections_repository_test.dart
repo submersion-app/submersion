@@ -324,6 +324,15 @@ void main() {
       expect(jan.map((n) => n.ref), [_b('jane')]);
     });
 
+    test('an accented capital matches in any case (#3032)', () async {
+      await _site(d, 'Épave');
+      await _dive(d, id: 'dx', at: DateTime.utc(2024, 9, 1), siteId: 'Épave');
+      for (final q in ['Épave', 'épave', 'ÉPAVE']) {
+        final hits = await repo.searchEntities(q, diverId: 'me');
+        expect(hits.map((n) => n.ref), [_s('Épave')], reason: q);
+      }
+    });
+
     test('blank text finds nothing and LIKE characters are literal', () async {
       expect(await repo.searchEntities('   ', diverId: 'me'), isEmpty);
       expect(await repo.searchEntities('%', diverId: 'me'), isEmpty);

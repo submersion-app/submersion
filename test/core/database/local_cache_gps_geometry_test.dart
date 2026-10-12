@@ -3,13 +3,16 @@ import 'dart:typed_data';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 
 void main() {
   late LocalCacheDatabase db;
 
   setUp(() {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
   });
 

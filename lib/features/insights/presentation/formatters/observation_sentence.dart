@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/observations/observation.dart';
@@ -132,7 +133,10 @@ String observationSentence(
     (ObservationRuleId.newSpecies, final NewSpeciesFacts s) =>
       l10n.insights_observations_newSpecies(s.count, s.newestSpeciesName),
     (ObservationRuleId.diveGap, final DiveGapFacts g) =>
-      l10n.insights_observations_diveGap(g.days),
+      switch (formatElapsedDays(l10n, g.days)) {
+        final span? => l10n.insights_observations_diveGapSpan(span),
+        null => l10n.insights_observations_diveGap(g.days),
+      },
     (ObservationRuleId.favouriteSite, final ShareFacts s) =>
       l10n.insights_observations_favouriteSite(
         s.subjectName,

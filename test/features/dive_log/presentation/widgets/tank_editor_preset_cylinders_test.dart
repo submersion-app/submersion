@@ -351,6 +351,63 @@ void main() {
     expect(find.text(rentalAl80.name), findsNothing);
   });
 
+  group('passport id (#2650)', () {
+    testWidgets('a chosen cylinder stamps its passport id', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await choose(tester, rentalAl80.name);
+      expect(changed!.passportId, '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab');
+    });
+
+    testWidgets('a chosen cylinder with no passport id clears one', (
+      tester,
+    ) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+        tank: const DiveTank(id: 'tank-1', passportId: 'p-old'),
+      );
+      await choose(tester, faber.name);
+      expect(changed!.volume, 12);
+      expect(changed!.passportId, isNull);
+    });
+
+    testWidgets('a preset clears it', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        onChanged: (t) => changed = t,
+        tank: const DiveTank(id: 'tank-1', passportId: 'p-1'),
+      );
+      await choose(tester, 'AL80');
+      expect(changed!.presetName, 'al80');
+      expect(changed!.passportId, isNull);
+    });
+
+    testWidgets('no preset clears it', (tester) async {
+      DiveTank? changed;
+      final l10n = await pump(
+        tester,
+        onChanged: (t) => changed = t,
+        tank: const DiveTank(
+          id: 'tank-1',
+          volume: 11.1,
+          workingPressure: 207,
+          presetName: 'al80',
+          passportId: 'p-1',
+        ),
+      );
+      await choose(tester, l10n.diveLog_tank_selectPreset);
+      expect(changed!.passportId, isNull);
+    });
+  });
+
   testWidgets('choosing a preset after a cylinder still applies the preset', (
     tester,
   ) async {

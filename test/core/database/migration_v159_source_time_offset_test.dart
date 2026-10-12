@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v159 adds `dive_data_sources.time_offset_seconds`: the number of seconds
@@ -15,7 +16,9 @@ void main() {
   });
 
   test('a fresh database has dive_data_sources.time_offset_seconds', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db
@@ -26,7 +29,9 @@ void main() {
   });
 
   test('the column is nullable and carries no default', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db

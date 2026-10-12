@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
@@ -121,7 +122,9 @@ void main() {
   });
 
   test('fresh database exposes the checklist tables via Drift', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(() => db.close());
     expect(await db.select(db.checklistTemplates).get(), isEmpty);
     expect(await db.select(db.checklistTemplateItems).get(), isEmpty);

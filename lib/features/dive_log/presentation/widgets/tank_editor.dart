@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_p
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -135,6 +136,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// The regulator breathed from this cylinder (v202). Null until the diver
   /// picks one or a preset prefills it from the last pairing.
   String? _regulatorEquipmentId;
+
+  /// The tagged cylinder this tank came from (issue #2650). Set by a scan
+  /// or a cylinder pick, cleared by a preset or a trip slot, kept by hand
+  /// edits.
+  String? _passportId;
 
   /// Whether the regulator dropdown also lists retired and sold regulators,
   /// which the diver asks for with its last item (#3210).
@@ -244,6 +250,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _role = widget.tank.role;
     _material = widget.tank.material;
     _regulatorEquipmentId = widget.tank.regulatorEquipmentId;
+    _passportId = widget.tank.passportId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
     // Reset on every read, not only set: a re-read after a fill from a
@@ -474,6 +481,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Only the trip cylinder picker changes the link; every other edit
       // carries it, or updateDive would wipe it on the next save.
       tripCylinderId: widget.tank.tripCylinderId,
+      // Only a cylinder choice changes it; a hand edit is the same metal.
+      passportId: _passportId,
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
@@ -627,7 +636,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 _applyPreset(preset);
               } else {
                 _specChoice++;
-                setState(() => _selectedPreset = null);
+                setState(() {
+                  _selectedPreset = null;
+                  _passportId = null;
+                });
                 _notifyChange();
               }
             },
@@ -744,6 +756,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final slot = states.where((s) => s.cylinder.id == id).firstOrNull;
     widget.onChanged(
       slot == null
+          // None only unlinks the slot, keeping any tagged cylinder; a slot
+          // replaces it (issue #2650).
           ? current.copyWith(clearTripCylinderId: true)
           : tankFromTripCylinder(current, slot),
     );
@@ -1232,8 +1246,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   ) async {
     try {
       final fills = await ref.read(fillsForEquipmentProvider(item.id).future);
+      // Already resolved for the fills above.
+      final passportId = await ref.read(passportIdProvider(item.id).future);
       if (!mounted || choice != _specChoice) return;
-      await _useOwnCylinder(item, fills, messenger, l10n);
+      await _useOwnCylinder(item, fills, passportId, messenger, l10n);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to fill a tank from an own cylinder',
@@ -1298,23 +1314,27 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           if (item == null) {
             throw StateError('Scanned cylinder $equipmentId has no row');
           }
-          await _useOwnCylinder(item, fills, messenger, l10n);
+          await _useOwnCylinder(item, fills, tag.passportId, messenger, l10n);
         case ForeignCylinder(:final tag):
           if (choice != _specChoice) return;
           final filled = _applyScannedSpec(
+            passportId: tag.passportId,
             volumeL: tag.volumeL,
             workingPressureBar: tag.workingPressureBar?.toDouble(),
             material: tag.material,
             mix: tag.fill?.gasMix,
           );
+          final name = tag.name ?? l10n.passport_foreign_defaultName;
+          // A rental used before is recognised (issue #2650).
+          final earlier = filled ? await _earlierUses(tag.passportId) : 0;
           messenger.showSnackBar(
             SnackBar(
               content: Text(
-                filled
-                    ? l10n.passport_scan_filledFrom(
-                        tag.name ?? l10n.passport_foreign_defaultName,
-                      )
-                    : l10n.passport_foreign_noDetails,
+                !filled
+                    ? l10n.passport_foreign_noDetails
+                    : earlier > 0
+                    ? l10n.passport_scan_filledFromUsed(name, earlier)
+                    : l10n.passport_scan_filledFrom(name),
               ),
             ),
           );
@@ -1336,17 +1356,41 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     }
   }
 
+  /// How many of the active diver's other dives used the cylinder whose
+  /// passport id is [passportId] (issue #2650); this dive does not count.
+  /// Zero when the lookup fails: the fill already happened, and a count is
+  /// not worth reporting it as a failure.
+  Future<int> _earlierUses(String passportId) async {
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final dives = await ref
+          .read(passportUsageRepositoryProvider)
+          .usageFor(passportId, diverId: diverId, excludeDiveId: widget.diveId);
+      return dives.length;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count earlier uses of a cylinder',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return 0;
+    }
+  }
+
   /// The diver's own cylinder, scanned or picked, fills the tank with its
-  /// spec and newest of [fills], then goes to the host to join the dive's
-  /// gear: a copy, never a link (`DiveTank.equipmentId` belongs to the
-  /// transmitter registry). Throws what the host's gear add throws.
+  /// spec, newest of [fills] and [passportId] (issue #2650), then goes to
+  /// the host to join the dive's gear: a copy, never a link
+  /// (`DiveTank.equipmentId` belongs to the transmitter registry). Throws
+  /// what the host's gear add throws.
   Future<void> _useOwnCylinder(
     EquipmentItem item,
     List<CylinderFill> fills,
+    String? passportId,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
     final filled = _applyScannedSpec(
+      passportId: passportId,
       volumeL: item.volumeL,
       workingPressureBar: item.workingPressureBar,
       material: item.tankMaterial,
@@ -1362,15 +1406,19 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   /// Fills the spec fields (and the mix, when given) the way choosing a
-  /// preset does, in the diver's units, then reports the tank. Returns false,
-  /// changing nothing, when there is nothing to fill: a tag that carries only
-  /// its identity must not clear the tank's preset.
+  /// preset does, in the diver's units, and records [passportId], the
+  /// cylinder they came from (issue #2650), then reports the tank. Returns
+  /// false, changing only the passport id, when there is nothing to fill: a
+  /// tag that carries only its identity must not clear the tank's preset.
   bool _applyScannedSpec({
+    required String? passportId,
     double? volumeL,
     double? workingPressureBar,
     TankMaterial? material,
     GasMix? mix,
   }) {
+    final idChanged = passportId != _passportId;
+    _passportId = passportId;
     // A computer logged what this tank breathed; the cylinder's last fill
     // does not replace it (issue #3021).
     final fillMix = isComputerRecordedTank(widget.tank) ? null : mix;
@@ -1378,6 +1426,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         workingPressureBar == null &&
         material == null &&
         fillMix == null) {
+      // Nothing to fill, but the tag still says which cylinder this is.
+      if (idChanged) _notifyChange();
       return false;
     }
     final settings = ref.read(settingsProvider);
@@ -1441,6 +1491,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _prefillRegulatorFor(preset.name);
 
     setState(() {
+      // A preset describes a size, not this cylinder (issue #2650).
+      _passportId = null;
       _selectedPreset = preset;
       // For volume: use cuft (gas capacity) for imperial, liters (water volume) for metric
       // This is because "tank size" in imperial is rated by gas capacity (e.g., AL80 = 80 cuft),

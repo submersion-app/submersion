@@ -76,7 +76,8 @@ class SiteTypeRepository {
     final rows = await _db
         .customSelect(
           'SELECT * FROM site_types WHERE is_built_in = 0 AND diver_id = ? '
-          'AND lower(trim(name)) = lower(trim(?)) ORDER BY id LIMIT 1',
+          'AND unicode_lower(trim(name)) = unicode_lower(trim(?)) '
+          'ORDER BY id LIMIT 1',
           variables: [Variable.withString(diverId), Variable.withString(name)],
           readsFrom: {_db.siteTypes},
         )

@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/tide/entities/tide_constituent.dart';
 import 'package:submersion/core/tide/tide_calculator.dart';
@@ -52,7 +53,9 @@ void main() {
   late NoaaStationCacheRepository cache;
 
   setUp(() {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     cache = NoaaStationCacheRepository(db);
   });
 

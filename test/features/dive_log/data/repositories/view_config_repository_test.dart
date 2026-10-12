@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' hide FieldPreset;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -15,7 +16,7 @@ void main() {
   const testDiverId = 'diver-test-1';
 
   setUp(() async {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
     repository = ViewConfigRepository(db);
     // deletePreset logs a deletion through SyncRepository(), which reads
     // DatabaseService.instance -- point it at this same in-memory db.

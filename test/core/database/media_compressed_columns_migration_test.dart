@@ -1,10 +1,13 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
   test('media has the compressed rendition columns after open', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     final cols = await db.customSelect("PRAGMA table_info('media')").get();
     final names = cols.map((c) => c.read<String>('name')).toSet();

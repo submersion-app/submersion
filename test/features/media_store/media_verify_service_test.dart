@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -34,7 +35,9 @@ void main() {
 
   setUp(() async {
     db = await setUpTestDatabase();
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     queue = MediaTransferQueueRepository(database: cacheDb);
     repo = MediaRepository();
     store = InMemoryMediaObjectStore();

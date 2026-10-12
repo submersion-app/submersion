@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 
@@ -142,7 +143,9 @@ void main() {
   test('a fresh database matches the upgraded one', () async {
     final upgraded = AppDatabase(setupDb());
     addTearDown(upgraded.close);
-    final fresh = AppDatabase(NativeDatabase.memory());
+    final fresh = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(fresh.close);
 
     expect(
@@ -191,7 +194,9 @@ void main() {
   });
 
   test('a duplicate equipment tag pair is rejected by the index', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement(
       "INSERT INTO equipment (id, name, type, created_at, updated_at) "

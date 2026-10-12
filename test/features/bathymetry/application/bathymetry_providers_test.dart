@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
@@ -20,7 +21,9 @@ void main() {
   });
 
   test('repository provider builds once the cache DB exists', () {
-    final db = LocalCacheDatabase(NativeDatabase.memory());
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     LocalCacheDatabaseService.instance.setTestDatabase(db);
     final container = ProviderContainer();
@@ -82,7 +85,9 @@ void main() {
     );
 
     test('a failed fetch retries on the next read after the backoff', () async {
-      final db = LocalCacheDatabase(NativeDatabase.memory());
+      final db = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
       LocalCacheDatabaseService.instance.setTestDatabase(db);
       // First fetch fails transiently, the next succeeds.
@@ -116,7 +121,9 @@ void main() {
     test(
       'a failed patch-grid fetch retries on the next read after the backoff',
       () async {
-        final db = LocalCacheDatabase(NativeDatabase.memory());
+        final db = LocalCacheDatabase(
+          NativeDatabase.memory(setup: registerAppSqlFunctions),
+        );
         addTearDown(db.close);
         LocalCacheDatabaseService.instance.setTestDatabase(db);
         var calls = 0;
@@ -159,7 +166,9 @@ void main() {
     test(
       'a definitive empty for a patch span stays memoized (no refetch churn)',
       () async {
-        final db = LocalCacheDatabase(NativeDatabase.memory());
+        final db = LocalCacheDatabase(
+          NativeDatabase.memory(setup: registerAppSqlFunctions),
+        );
         addTearDown(db.close);
         LocalCacheDatabaseService.instance.setTestDatabase(db);
         var calls = 0;
@@ -206,7 +215,9 @@ void main() {
     );
 
     test('a definitive empty stays memoized (no refetch churn)', () async {
-      final db = LocalCacheDatabase(NativeDatabase.memory());
+      final db = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
       LocalCacheDatabaseService.instance.setTestDatabase(db);
       var calls = 0;

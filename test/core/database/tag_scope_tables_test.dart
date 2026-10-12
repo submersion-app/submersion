@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -71,7 +72,9 @@ void main() {
   });
 
   test('every registry entry names real schema', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     Future<Set<String>> columnsOf(String table) async => {

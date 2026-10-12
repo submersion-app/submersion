@@ -3,7 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' show Value;
+import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/tag_fill.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -53,6 +56,7 @@ void main() {
     WidgetTester tester,
     CylinderPassportPayload? tag, {
     MockSettingsNotifier? settings,
+    List<PassportUsageDive> usage = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 2000);
@@ -63,7 +67,10 @@ void main() {
     final overrides = await getBaseOverrides(settingsNotifier: settings);
     await tester.pumpWidget(
       testApp(
-        overrides: overrides,
+        overrides: [
+          ...overrides,
+          passportUsageProvider(id).overrideWith((ref) async => usage),
+        ],
         child: ForeignPassportPage(tag: tag),
       ),
     );
@@ -72,6 +79,45 @@ void main() {
       tester.element(find.byType(ForeignPassportPage)),
     );
   }
+
+  testWidgets('a cylinder used before says so above the spec (#2650)', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      full,
+      usage: [
+        PassportUsageDive(diveId: 'd1', dateTime: DateTime.utc(2025, 3, 12)),
+      ],
+    );
+    final title = find.text(l10n.passport_usage_foreignTitle(1));
+    expect(title, findsOneWidget);
+    // Directly under "not in your gear", above the spec rows.
+    expect(
+      tester.getTopLeft(title).dy,
+      greaterThan(
+        tester.getTopLeft(find.text(l10n.passport_foreign_notInGear)).dy,
+      ),
+    );
+    expect(
+      tester.getTopLeft(title).dy,
+      lessThan(
+        tester
+            .getTopLeft(
+              find.text(attributeLabel(l10n, EquipmentAttrKeys.volumeL)),
+            )
+            .dy,
+      ),
+    );
+  });
+
+  testWidgets('a cylinder never used shows no usage card (#2650)', (
+    tester,
+  ) async {
+    final l10n = await pump(tester, full);
+    expect(find.textContaining('You have used'), findsNothing);
+    expect(find.text(l10n.passport_foreign_notInGear), findsOneWidget);
+  });
 
   testWidgets('shows the snapshot the tag carries', (tester) async {
     final l10n = await pump(tester, full);
@@ -242,7 +288,11 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides.cast(),
+        overrides: [
+          ...overrides,
+          // Never used: the page as it was before usage counting (#2650).
+          passportUsageProvider(id).overrideWith((ref) async => const []),
+        ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -282,7 +332,11 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides.cast(),
+        overrides: [
+          ...overrides,
+          // Never used: the page as it was before usage counting (#2650).
+          passportUsageProvider(id).overrideWith((ref) async => const []),
+        ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -323,7 +377,11 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides.cast(),
+        overrides: [
+          ...overrides,
+          // Never used: the page as it was before usage counting (#2650).
+          passportUsageProvider(id).overrideWith((ref) async => const []),
+        ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,

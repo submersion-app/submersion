@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Minimal pre-v181 shape: divers and buddies without the photo column,
@@ -45,7 +46,9 @@ void main() {
   });
 
   test('fresh databases get the photo column', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     expect(await _columns(db, 'divers'), contains('photo'));
     expect(await _columns(db, 'buddies'), contains('photo'));

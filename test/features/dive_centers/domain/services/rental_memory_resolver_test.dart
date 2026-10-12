@@ -126,6 +126,19 @@ void main() {
     expect(copy.equipmentId, isNull);
   });
 
+  test('tanksForNewDive drops the tagged cylinder (#2650)', () {
+    // The shop may hand over a different cylinder of the same size.
+    final last = LastDiveAtCenter.fromDive(
+      dive(tanks: [al80.copyWith(passportId: 'p-1')]),
+    );
+    final copies = last.tanksForNewDive(
+      newId: () => 'fresh',
+      startPressure: 210,
+      endPressure: 50,
+    );
+    expect(copies.single.passportId, isNull);
+  });
+
   test('two reads of the same dive are equal', () {
     expect(
       LastDiveAtCenter.fromDive(dive(weights: const [belt])),

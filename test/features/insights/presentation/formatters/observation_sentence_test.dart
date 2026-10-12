@@ -109,6 +109,21 @@ void main() {
     expect(
       observationSentence(
         _o(
+          ObservationRuleId.diveGap,
+          DiveGapFacts(
+            days: 400,
+            lastDiveId: 'd',
+            lastDiveDate: DateTime.utc(2025),
+          ),
+        ),
+        en,
+        metric,
+      ),
+      'Your last dive was 1y 35d ago',
+    );
+    expect(
+      observationSentence(
+        _o(
           ObservationRuleId.busiestMonth,
           const MonthFacts(month: 8, years: 2),
         ),

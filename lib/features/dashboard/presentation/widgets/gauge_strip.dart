@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/certifications/presentation/certification_attention_navigation.dart';
@@ -276,6 +277,8 @@ class GaugeStrip extends ConsumerWidget {
           : days >= kCurrencyWarnDays
           ? _Tone.warn
           : _Tone.neutral;
+      // From a year on the bare day count stops being readable.
+      final longGap = days == null ? null : formatElapsedDays(l10n, days);
       chips.add(
         _chip(
           context,
@@ -284,6 +287,8 @@ class GaugeStrip extends ConsumerWidget {
               ? l10n.dashboard_gauges_noDivesYet
               : days == 0
               ? l10n.dashboard_gauges_lastDiveToday
+              : longGap != null
+              ? l10n.dashboard_gauges_lastDiveSpan(longGap)
               : l10n.dashboard_gauges_lastDiveDays(days),
           tone: tone,
           onTap: () => context.push('/dives'),

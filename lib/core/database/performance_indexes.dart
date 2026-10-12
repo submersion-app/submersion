@@ -134,6 +134,14 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dive_tanks_equipment '
         'ON dive_tanks(equipment_id)',
   ),
+  // v287: a passport's usage card finds the dives whose tanks came from one
+  // tagged cylinder (issue #2650).
+  (
+    name: 'idx_dive_tanks_passport_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_tanks_passport_id '
+        'ON dive_tanks(passport_id)',
+  ),
   (
     name: 'idx_dive_equipment_dive_id',
     ddl:

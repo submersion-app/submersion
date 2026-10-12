@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v131 reconciliation: legacy service intervals edited after the v122 backfill
@@ -10,7 +11,7 @@ void main() {
   late AppDatabase db;
 
   setUp(() {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
   });
   tearDown(() => db.close());
 

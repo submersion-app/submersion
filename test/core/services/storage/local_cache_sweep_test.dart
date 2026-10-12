@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/storage/local_cache_sweep.dart';
@@ -69,8 +70,12 @@ void main() {
     final now = DateTime.utc(2026, 9, 26, 12);
 
     setUp(() {
-      local = LocalCacheDatabase(NativeDatabase.memory());
-      library = AppDatabase(NativeDatabase.memory());
+      local = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      library = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
     });
 
     tearDown(() async {
@@ -312,7 +317,9 @@ void main() {
       dir = await Directory.systemTemp.createTemp('local_cache_sweep_');
       file = File(p.join(dir.path, 'submersion_local.db'));
       local = LocalCacheDatabase(NativeDatabase(file));
-      library = AppDatabase(NativeDatabase.memory());
+      library = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
     });
 
     tearDown(() async {

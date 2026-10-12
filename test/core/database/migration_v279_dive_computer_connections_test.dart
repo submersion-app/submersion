@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Schema v279: the download connections each dive computer has reached the
@@ -25,7 +26,9 @@ void main() {
   });
 
   test('a fresh database has the table and its computer index', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     expect(await columnsOf(db, 'dive_computer_connections'), {
       'id',

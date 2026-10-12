@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Schema v239: the built-in regulator service and O2 clean kinds apply to
@@ -88,7 +89,9 @@ void main() {
   });
 
   test('a fresh database seeds the regulator parts on both kinds', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(
@@ -127,7 +130,9 @@ void main() {
     // The seed is INSERT OR IGNORE, so it cannot fix an existing row, and the
     // backfill runs from the v239 rung only. The two must name the same
     // types or a fresh install and an upgraded one would disagree.
-    final fresh = AppDatabase(NativeDatabase.memory());
+    final fresh = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(fresh.close);
     final upgraded = AppDatabase(setupDb());
     addTearDown(upgraded.close);

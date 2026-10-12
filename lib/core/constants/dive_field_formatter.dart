@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
@@ -112,23 +113,11 @@ extension DiveFieldFormatter on DiveField {
   }
 }
 
-/// Format a [Duration] value as a human-readable string.
-///
-/// Produces "Xh Ym" for durations >= 1 hour, or "Xmin" otherwise.
+/// Format a [Duration] value as a compact elapsed time ("45min", "1h 15m",
+/// "6d 13h", "1y 35d"), or "--" when missing or under a minute.
 String _formatDuration(dynamic value) {
-  if (value == null) return '--';
-  if (value is! Duration) return '--';
-
-  final totalMinutes = value.inMinutes;
-  if (totalMinutes <= 0) return '--';
-
-  final hours = totalMinutes ~/ 60;
-  final minutes = totalMinutes % 60;
-
-  if (hours > 0) {
-    return '${hours}h ${minutes}m';
-  }
-  return '${minutes}min';
+  if (value is! Duration || value.inMinutes <= 0) return '--';
+  return formatElapsedEnglish(value);
 }
 
 /// A visibility range for a narrow table cell, unit attached like

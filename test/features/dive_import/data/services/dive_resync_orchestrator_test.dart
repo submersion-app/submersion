@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
@@ -37,7 +38,7 @@ void main() {
   late AppDatabase db;
 
   setUp(() async {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
   });
 
   tearDown(() async => db.close());

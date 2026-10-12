@@ -133,6 +133,18 @@ void main() {
     );
   });
 
+  test(
+    'matches a name whose accented capital differs in case (#3032)',
+    () async {
+      await repository.createSiteType(custom('Épave'));
+      final found = await repository.getCustomSiteTypeByName(
+        'épave',
+        diverId: 'diver-1',
+      );
+      expect(found?.name, 'Épave');
+    },
+  );
+
   test('statistics count the sites the diver can see', () async {
     final db = DatabaseService.instance.database;
     // s1 is the diver's own, s2 another profile's shared site, s3 another

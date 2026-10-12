@@ -595,6 +595,17 @@ extension DiveMigrations on AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the v287 dive_tanks.passport_id column (issue
+  /// #2650). Called from the v287 rung and re-asserted in beforeOpen like
+  /// the other column-assert helpers. Its index is a performance index.
+  Future<void> _assertTankPassportIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('passport_id')) return;
+    await customStatement('ALTER TABLE dive_tanks ADD COLUMN passport_id TEXT');
+  }
+
   /// One-time clear of weather descriptions this app generated itself.
   ///
   /// Only rows whose weather_source is 'openMeteo' are touched -- those are

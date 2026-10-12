@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v200 adds the transmitter registry (issue #1365) and the parsed-tank
@@ -30,7 +31,9 @@ void main() {
   test(
     'a fresh database has the transmitters table and the source index',
     () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
 
       expect(await _tables(db), contains('transmitters'));
@@ -87,7 +90,9 @@ void main() {
   });
 
   test('deleting the linked gear nulls equipment_id, not the entry', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     await db.customStatement(

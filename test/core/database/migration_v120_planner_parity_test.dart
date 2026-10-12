@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 // Minimal pre-v120 fixture: the three plan tables without the v120 columns,
@@ -45,7 +46,9 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 
 void main() {
   test('fresh database has the v120 planner columns', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     expect(await _columns(db, 'dive_plans'), contains('start_date_time'));
     expect(

@@ -1,3 +1,4 @@
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -76,7 +77,10 @@ class FocusMetricUnits {
     FocusMetric.maxDepth || FocusMetric.avgDepth => units.formatDepth(storage),
     FocusMetric.runtime || FocusMetric.bottomTime =>
       l10n.surfaceInterval_format_minutes(storage.toStringAsFixed(0)),
-    FocusMetric.surfaceInterval => _hoursMinutes(storage, l10n),
+    FocusMetric.surfaceInterval => formatElapsed(
+      l10n,
+      Duration(minutes: storage.round()),
+    ),
     FocusMetric.weight => units.formatWeight(storage),
     FocusMetric.waterTemp ||
     FocusMetric.airTemp => units.formatTemperature(storage),
@@ -85,15 +89,4 @@ class FocusMetricUnits {
     FocusMetric.cns => '${storage.round()}%',
     FocusMetric.otu => '${storage.round()}',
   };
-
-  /// Under an hour, the same minutes message as bottom time and the duration
-  /// row; from an hour up, the Time patterns page's hours-and-minutes form.
-  static String _hoursMinutes(double minutes, AppLocalizations l10n) {
-    final whole = minutes.round();
-    if (whole < 60) return l10n.surfaceInterval_format_minutes('$whole');
-    return l10n.insights_timePatterns_surfaceInterval_formatHoursMinutes(
-      whole ~/ 60,
-      whole % 60,
-    );
-  }
 }

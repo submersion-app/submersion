@@ -1926,6 +1926,7 @@ class DiveRepository {
                 tripCylinderId: Value(
                   validTripCylinderLink(tank.tripCylinderId, validSlots),
                 ),
+                passportId: Value(tank.passportId),
                 sourceTankIndex: Value(tank.sourceTankIndex),
                 sharedComputerIds: Value(
                   encodeSharedComputerIds(tank.sharedComputerIds),
@@ -2265,6 +2266,9 @@ class DiveRepository {
                 tripCylinderId: Value(
                   validTripCylinderLink(tank.tripCylinderId, validSlots),
                 ),
+                // The tagged cylinder is user-authored like the slot, so an
+                // edit writes it (issue #2650).
+                passportId: Value(tank.passportId),
               ),
             );
             // Log as pending update (assuming sync handles updates)
@@ -2301,6 +2305,7 @@ class DiveRepository {
                     tripCylinderId: Value(
                       validTripCylinderLink(tank.tripCylinderId, validSlots),
                     ),
+                    passportId: Value(tank.passportId),
                     sourceTankIndex: Value(tank.sourceTankIndex),
                     sharedComputerIds: Value(
                       encodeSharedComputerIds(tank.sharedComputerIds),
@@ -4243,6 +4248,7 @@ class DiveRepository {
               sourceId: t.sourceId,
               regulatorEquipmentId: t.regulatorEquipmentId,
               tripCylinderId: t.tripCylinderId,
+              passportId: t.passportId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
               sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
@@ -4694,6 +4700,7 @@ class DiveRepository {
           sourceId: t.sourceId,
           regulatorEquipmentId: t.regulatorEquipmentId,
           tripCylinderId: t.tripCylinderId,
+          passportId: t.passportId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
           sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
@@ -7192,6 +7199,9 @@ class DiveRepository {
     tripCylinderId: withLink
         ? Value(validTripCylinderLink(t.tripCylinderId, validSlots))
         : const Value.absent(),
+    // The tagged cylinder (issue #2650): one physical tank, so a template
+    // applied to many dives never carries it; only a restore writes it.
+    passportId: withLink ? Value(t.passportId) : const Value.absent(),
     // The registry's cylinder link, owned by the transmitter registry. A
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.

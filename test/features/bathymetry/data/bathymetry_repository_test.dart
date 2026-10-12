@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
@@ -140,7 +141,11 @@ void main() {
   const murgWest = GeoPoint(47.138, 9.148);
 
   late LocalCacheDatabase db;
-  setUp(() => db = LocalCacheDatabase(NativeDatabase.memory()));
+  setUp(
+    () => db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    ),
+  );
   tearDown(() => db.close());
 
   BathymetryRepository repo(BathymetrySource source) => BathymetryRepository(

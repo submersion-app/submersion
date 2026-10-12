@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
@@ -30,7 +31,9 @@ void main() {
   const assetId = 'local-1';
 
   setUp(() async {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     cache = LocalAssetCacheRepository(database: db);
     picker = MockPhotoPickerService();
 

@@ -9,6 +9,7 @@ import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
@@ -756,6 +757,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 material: preset.material,
                 order: existing.order,
                 presetName: preset.name,
+                // A tag that described nothing still named the cylinder
+                // (issue #2650).
+                passportId: existing.passportId,
               ),
             ];
           }
@@ -843,6 +847,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               : t.material ?? base?.material,
           order: 0,
           presetName: describesCylinder ? t.presetName : base?.presetName,
+          passportId: t.passportId,
         ),
         ..._tanks.skip(1),
       ];
@@ -2805,12 +2810,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         .watch(surfaceIntervalProvider(widget.diveId!))
         .valueOrNull;
     if (interval == null) return null;
-    final hours = interval.inHours;
-    final minutes = interval.inMinutes % 60;
-    final text = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
     return FormRow.display(
       label: context.l10n.diveLog_edit_row_surfaceInterval,
-      value: text,
+      value: formatElapsed(context.l10n, interval),
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
@@ -172,8 +173,28 @@ List<CellFilterOption> diveCellFilterOptions({
       final v = NumberValue(value, null);
       return ranged(cond(QueryOp.eq, v), v, v, displayed);
     case DiveColumnFilterKind.duration:
-      final minutes = NumberValue((raw as Duration).inMinutes.toDouble(), null);
-      return ranged(cond(QueryOp.eq, minutes), minutes, minutes, displayed);
+      final whole = (raw as Duration).inMinutes;
+      // Past a day the cell drops its minutes ("6d 13h"), and past a year its
+      // hours ("1y 35d"): filter on the whole span the cell shows, so a dive
+      // whose cell reads the same is never left out.
+      final step = switch (splitElapsed(raw).tier) {
+        ElapsedTier.minutes || ElapsedTier.hoursMinutes => 1,
+        ElapsedTier.daysHours => Duration.minutesPerHour,
+        ElapsedTier.yearsDays => Duration.minutesPerDay,
+      };
+      if (step == 1) {
+        final minutes = NumberValue(whole.toDouble(), null);
+        return ranged(cond(QueryOp.eq, minutes), minutes, minutes, displayed);
+      }
+      final start = whole ~/ step * step;
+      final lo = NumberValue(start.toDouble(), null);
+      final hi = NumberValue((start + step - 1).toDouble(), null);
+      return ranged(
+        cond(QueryOp.between, ListValue([lo, hi])),
+        lo,
+        hi,
+        displayed,
+      );
     case DiveColumnFilterKind.number:
       if (raw is! num) return const [];
       final queryField = _fieldOf(spec);

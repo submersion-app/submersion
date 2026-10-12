@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 // Minimal v103-shape fixture: only the tables/columns the v104 migration and
@@ -38,7 +39,9 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 
 void main() {
   test('fresh database has v104 tables and columns', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     final tables = await db
         .customSelect("SELECT name FROM sqlite_master WHERE type='table'")

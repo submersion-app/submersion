@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
@@ -131,7 +132,7 @@ void main() {
     const diverId = 'diver-test-1';
 
     setUp(() async {
-      db = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
       repository = ViewConfigRepository(db);
       DatabaseService.instance.setTestDatabase(db);
       final now = DateTime.now().millisecondsSinceEpoch;

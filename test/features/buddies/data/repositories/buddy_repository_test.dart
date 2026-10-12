@@ -542,6 +542,33 @@ void main() {
       });
     });
 
+    // #3032: SQLite's LOWER() folds ASCII only, so a name whose accented
+    // capital differed in case from the stored one minted a twin.
+    group('accented capitals', () {
+      test('findOrCreateByName reuses a person across accent case', () async {
+        final elodie = await repository.createBuddy(
+          createTestBuddy(name: 'Élodie Durand'),
+        );
+
+        final found = await repository.findOrCreateByName('élodie durand');
+
+        expect(found.id, elodie.id);
+      });
+
+      test('searches find a name by its accented first letter', () async {
+        await repository.createBuddy(createTestBuddy(name: 'Élodie Durand'));
+
+        for (final q in ['Élodie', 'élodie', 'ÉLODIE']) {
+          expect(await repository.searchBuddies(q), hasLength(1), reason: q);
+          expect(
+            await repository.getAllBuddiesWithDiveCount(query: q),
+            hasLength(1),
+            reason: q,
+          );
+        }
+      });
+    });
+
     group('dive role resolution', () {
       Future<void> insertDive(String id) async {
         final db = DatabaseService.instance.database;

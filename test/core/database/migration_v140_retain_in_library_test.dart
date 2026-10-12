@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Minimal pre-v140 shape: a media table without retain_in_library, stamped
@@ -41,7 +42,9 @@ void main() {
   });
 
   test('fresh databases get retain_in_library defaulting to 0', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('media')").get();

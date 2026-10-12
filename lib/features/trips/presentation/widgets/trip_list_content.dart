@@ -7,7 +7,6 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
-import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -230,10 +229,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     final loadedTrips = tripsAsync.value ?? const <TripWithStats>[];
     final visibleIds = loadedTrips.map((t) => t.trip.id).toList();
 
-    // Drop checked trips that fell out of the filtered list, so a bulk action
-    // can never reach a trip that is not on screen.
+    // Drop checked trips that fell out of the filtered list once its rows
+    // settle, so a bulk action can never reach a trip that is not on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && tripsAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          tripsAsync,
+          (rows) => rows.map((t) => t.trip.id),
+        );
+      }
     });
 
     if (!widget.showAppBar) {
@@ -492,7 +496,12 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     final visibleIds = loadedTrips.map((t) => t.trip.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && tripsAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          tripsAsync,
+          (rows) => rows.map((t) => t.trip.id),
+        );
+      }
     });
 
     return SelectableListScope(

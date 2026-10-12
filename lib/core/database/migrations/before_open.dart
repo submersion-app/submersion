@@ -576,7 +576,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // only, so it cannot touch diver data.
     await _assertCcrPpO2LimitColumns();
 
-    // v194, v254, v259 and v270 backstops: dive_tanks and weight columns
+    // v194, v254, v259, v270 and v287 backstops: dive_tanks and weight columns
     // every row read selects (before_open_child_columns.dart).
     await _assertChildRowColumns();
 

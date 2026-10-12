@@ -269,6 +269,40 @@ void main() {
       expect(find.text('3h 38m after the nearest dive'), findsOneWidget);
     });
 
+    testWidgets('a file weeks away from any dive reads in days', (
+      tester,
+    ) async {
+      await _pumpCard(
+        tester,
+        file: _ef('/tmp/photo.jpg'),
+        diagnostic: const UnmatchedDiagnostic(
+          reason: UnmatchedReason.outsideAllWindows,
+          nearestDiveId: 'dive-1',
+          gapToNearest: Duration(days: 20, hours: 5, minutes: 9),
+        ),
+      );
+
+      expect(find.text('20d 5h after the nearest dive'), findsOneWidget);
+    });
+
+    testWidgets('an early file far from any dive reads in days too', (
+      tester,
+    ) async {
+      // The gap is negative before a dive; the sentence carries the
+      // direction, so the size must not collapse to zero.
+      await _pumpCard(
+        tester,
+        file: _ef('/tmp/photo.jpg'),
+        diagnostic: const UnmatchedDiagnostic(
+          reason: UnmatchedReason.outsideAllWindows,
+          nearestDiveId: 'dive-1',
+          gapToNearest: Duration(days: -400),
+        ),
+      );
+
+      expect(find.text('1y 35d before the nearest dive'), findsOneWidget);
+    });
+
     testWidgets('reports how far an early file missed the nearest dive', (
       tester,
     ) async {
@@ -282,7 +316,7 @@ void main() {
         ),
       );
 
-      expect(find.text('1h 00m before the nearest dive'), findsOneWidget);
+      expect(find.text('1h 0m before the nearest dive'), findsOneWidget);
     });
 
     testWidgets('says so when there were no dives to match against', (

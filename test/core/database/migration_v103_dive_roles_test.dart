@@ -1,12 +1,15 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
   group('v103 dive_roles migration', () {
     test('fresh database has dive_roles with 9 built-in seeds and '
         'dives.diver_role column', () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(() => db.close());
 
       final seeds = await db

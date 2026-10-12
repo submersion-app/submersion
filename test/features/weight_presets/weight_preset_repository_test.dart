@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -112,7 +113,12 @@ void main() {
       // the statement log rather than the repository's Dart control flow.
       await tearDownTestDatabase();
       DatabaseService.instance.setTestDatabase(
-        AppDatabase(NativeDatabase.memory(logStatements: true)),
+        AppDatabase(
+          NativeDatabase.memory(
+            setup: registerAppSqlFunctions,
+            logStatements: true,
+          ),
+        ),
       );
       final divers = DiverRepository();
       final now = DateTime.now();

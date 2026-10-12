@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
@@ -15,7 +16,7 @@ void main() {
   const diverId = 'diver-1';
 
   setUp(() async {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
     // SyncRepository resolves the DatabaseService singleton for HLC stamping
     // and deletion tombstones; point it at the same in-memory db.
     DatabaseService.instance.setTestDatabase(db);

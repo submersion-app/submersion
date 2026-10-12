@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
@@ -10,7 +11,9 @@ void main() {
   });
 
   test('a fresh database has dives.visibility_meters', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('dives')").get();
@@ -19,7 +22,9 @@ void main() {
   });
 
   test('a fresh database keeps the legacy dives.visibility column', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('dives')").get();
@@ -28,7 +33,9 @@ void main() {
   });
 
   test('a fresh database has the diver_settings calibration columns', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db
@@ -42,7 +49,9 @@ void main() {
   });
 
   test('the calibration preset defaults to tropical', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db

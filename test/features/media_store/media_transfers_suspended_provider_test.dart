@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
@@ -31,7 +32,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await setUpTestDatabase();
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     root = await Directory.systemTemp.createTemp('suspended_provider');
     queue = MediaTransferQueueRepository(database: cacheDb);
     store = InMemoryMediaObjectStore();

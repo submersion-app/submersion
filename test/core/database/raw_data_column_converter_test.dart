@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 
@@ -13,7 +14,7 @@ void main() {
   late AppDatabase db;
 
   setUp(() {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
   });
 
   tearDown(() => db.close());

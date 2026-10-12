@@ -1007,11 +1007,11 @@ class EquipmentRepository {
         SELECT DISTINCT e.* FROM equipment e
         LEFT JOIN equipment_tags et ON et.equipment_id = e.id
         LEFT JOIN tags t ON t.id = et.tag_id
-        WHERE (LOWER(e.name) LIKE ?
-           OR LOWER(e.brand) LIKE ?
-           OR LOWER(e.model) LIKE ?
-           OR LOWER(e.serial_number) LIKE ?
-           OR LOWER(t.name) LIKE ?)
+        WHERE (unicode_lower(e.name) LIKE ?
+           OR unicode_lower(e.brand) LIKE ?
+           OR unicode_lower(e.model) LIKE ?
+           OR unicode_lower(e.serial_number) LIKE ?
+           OR unicode_lower(t.name) LIKE ?)
         ${visibility.whereClause}
         ORDER BY e.is_active DESC, e.type ASC, e.name COLLATE NOCASE ASC
       ''', variables: variables).get();

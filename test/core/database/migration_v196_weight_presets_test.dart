@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v196 adds the reusable weighting-rig tables (issue #1609).
@@ -29,7 +30,9 @@ void main() {
   });
 
   test('a fresh database has both weight-preset tables', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final tables = await _tables(db);
@@ -73,7 +76,9 @@ void main() {
   });
 
   test('deleting a preset cascades its entries', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     await db.customStatement(

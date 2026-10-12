@@ -96,9 +96,9 @@ class CertificationRepository {
 
     final results = await _db.customSelect('''
       SELECT * FROM certifications
-      WHERE (LOWER(name) LIKE ?
-         OR LOWER(agency) LIKE ?
-         OR LOWER(card_number) LIKE ?)
+      WHERE (unicode_lower(name) LIKE ?
+         OR unicode_lower(agency) LIKE ?
+         OR unicode_lower(card_number) LIKE ?)
       $diverFilter
       ORDER BY issue_date DESC, name ASC
     ''', variables: variables).get();

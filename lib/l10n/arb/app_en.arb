@@ -3569,6 +3569,8 @@
       }
     }
   },
+  "dashboard_gauges_lastDiveSpan": "Last dive {span} ago",
+  "@dashboard_gauges_lastDiveSpan": {"description": "Dashboard chip when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d", "placeholders": {"span": {"type": "String"}}},
   "dashboard_gauges_lastDiveToday": "Dove today",
   "dashboard_gauges_noDivesYet": "No dives yet",
   "settings_homeChips_pageTitle": "Home screen",
@@ -7943,8 +7945,48 @@
       "name": {"type": "String"}
     }
   },
+  "passport_scan_filledFromUsed": "{count, plural, one{Filled from {name}. Used on {count} earlier dive.} other{Filled from {name}. Used on {count} earlier dives.}}",
+  "@passport_scan_filledFromUsed": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
   "passport_foreign_title": "Cylinder tag",
   "passport_foreign_notInGear": "This cylinder is not in your gear.",
+  "passport_usage_foreignTitle": "{count, plural, one{You have used this cylinder {count} time} other{You have used this cylinder {count} times}}",
+  "@passport_usage_foreignTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "passport_usage_title": "Dives",
+  "passport_usage_ownTitle": "{count, plural, one{Used on {count} dive} other{Used on {count} dives}}",
+  "@passport_usage_ownTitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "passport_usage_lastUsed": "Last used {date}",
+  "@passport_usage_lastUsed": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "passport_usage_noSite": "No site",
+  "passport_usage_diveNumber": "Dive {number}",
+  "@passport_usage_diveNumber": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "passport_usage_showAll": "Show all {count}",
+  "@passport_usage_showAll": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "passport_usage_loadFailed": "Could not load your dives with this cylinder",
   "passport_foreign_writtenOn": "As written on the tag on {date}",
   "@passport_foreign_writtenOn": {
     "placeholders": {
@@ -8161,7 +8203,6 @@
   "pdf_averageDepth": "Average Depth",
   "pdf_uniqueSites": "Unique Sites",
   "pdf_hoursMinutes": "{hours}h {minutes}m",
-  "pdf_minutesShort": "{minutes}m",
   "pdf_minutes": "{minutes} min",
   "pdf_minutesCompact": "{minutes}min",
   "pdf_diverProfile": "Diver Profile",
@@ -8248,7 +8289,8 @@
   "pdf_avgShort": "Avg",
   "pdf_pressureStart": "Start",
   "pdf_pressureEnd": "End",
-  "pdf_surfaceIntervalShort": "SI: {minutes}min",
+  "pdf_surfaceIntervalSpan": "SI: {interval}",
+  "@pdf_surfaceIntervalSpan": {"description": "Short surface interval line in the NAUI logbook; interval is a formatted elapsed time", "placeholders": {"interval": {"type": "String"}}},
   "pdf_diveDataHeading": "DIVE DATA",
   "pdf_verificationHeading": "VERIFICATION",
   "pdf_labelValue": "{label}: {value}",
@@ -8332,13 +8374,6 @@
       }
     }
   },
-  "@pdf_minutesShort": {
-    "placeholders": {
-      "minutes": {
-        "type": "String"
-      }
-    }
-  },
   "@pdf_minutes": {
     "placeholders": {
       "minutes": {
@@ -8394,13 +8429,6 @@
   "@pdf_diveNumber": {
     "placeholders": {
       "number": {
-        "type": "String"
-      }
-    }
-  },
-  "@pdf_surfaceIntervalShort": {
-    "placeholders": {
-      "minutes": {
         "type": "String"
       }
     }
@@ -15987,6 +16015,8 @@
   "@insights_observations_newSpecies": {"description": "Species first seen in the last 90 days", "placeholders": {"count": {"type": "int"}, "name": {"type": "String"}}},
   "insights_observations_diveGap": "{count, plural, =1{Your last dive was 1 day ago} other{Your last dive was {count} days ago}}",
   "@insights_observations_diveGap": {"description": "Days since the last dive", "placeholders": {"count": {"type": "int"}}},
+  "insights_observations_diveGapSpan": "Your last dive was {span} ago",
+  "@insights_observations_diveGapSpan": {"description": "Observation when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d", "placeholders": {"span": {"type": "String"}}},
   "insights_observations_favouriteSite": "{site} hosted {dives} of your {total} dives in the last 12 months",
   "@insights_observations_favouriteSite": {"description": "One site holds a large share of recent dives", "placeholders": {"site": {"type": "String"}, "dives": {"type": "String"}, "total": {"type": "String"}}},
   "insights_observations_regularBuddy": "You dived with {buddyName} on {dives} of your {total} dives in the last 12 months",
@@ -16056,8 +16086,6 @@
   "insights_timePatterns_surfaceInterval_average": "Average",
   "insights_timePatterns_surfaceInterval_empty": "No surface interval data available",
   "insights_timePatterns_surfaceInterval_error": "Failed to load surface interval data",
-  "insights_timePatterns_surfaceInterval_formatHoursMinutes": "{hours}h {minutes}m",
-  "insights_timePatterns_surfaceInterval_formatMinutes": "{minutes} min",
   "insights_timePatterns_surfaceInterval_maximum": "Maximum",
   "insights_timePatterns_surfaceInterval_minimum": "Minimum",
   "insights_timePatterns_surfaceInterval_subtitle": "Time between dives",
@@ -16307,23 +16335,6 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
-    }
-  },
-  "@insights_timePatterns_surfaceInterval_formatHoursMinutes": {
-    "placeholders": {
-      "hours": {
-        "type": "Object"
-      },
-      "minutes": {
-        "type": "Object"
-      }
-    }
-  },
-  "@insights_timePatterns_surfaceInterval_formatMinutes": {
-    "placeholders": {
-      "minutes": {
-        "type": "Object"
       }
     }
   },
@@ -25795,6 +25806,18 @@
   "common_relativeTime_daysAgo": "{count, plural, one{{count}d ago} other{{count}d ago}}",
   "common_relativeTime_hoursAgo": "{count, plural, one{{count}h ago} other{{count}h ago}}",
   "common_relativeTime_inDays": "{count, plural, one{in {count}d} other{in {count}d}}",
+  "common_elapsed_minutes": "{minutes} min",
+  "@common_elapsed_minutes": {"description": "An elapsed time under an hour, such as a short surface interval", "placeholders": {"minutes": {"type": "int"}}},
+  "common_elapsed_hoursMinutes": "{hours}h {minutes}m",
+  "@common_elapsed_hoursMinutes": {"description": "An elapsed time from one hour up to a day", "placeholders": {"hours": {"type": "int"}, "minutes": {"type": "int"}}},
+  "common_elapsed_daysHours": "{days}d {hours}h",
+  "@common_elapsed_daysHours": {"description": "An elapsed time from one day up to a year, minutes left out", "placeholders": {"days": {"type": "int"}, "hours": {"type": "int"}}},
+  "common_elapsed_yearsDays": "{years}y {days}d",
+  "@common_elapsed_yearsDays": {"description": "An elapsed time of a year or more (365-day years), hours left out", "placeholders": {"years": {"type": "int"}, "days": {"type": "int"}}},
+  "common_elapsed_daysHoursMinutes": "{days}d {hours}h {minutes}m",
+  "@common_elapsed_daysHoursMinutes": {"description": "An exact elapsed time from one day up to a year, for the sync conflict dialog where two values must stay distinguishable", "placeholders": {"days": {"type": "int"}, "hours": {"type": "int"}, "minutes": {"type": "int"}}},
+  "common_elapsed_yearsDaysHours": "{years}y {days}d {hours}h",
+  "@common_elapsed_yearsDaysHours": {"description": "An exact elapsed time of a year or more (365-day years), for the sync conflict dialog", "placeholders": {"years": {"type": "int"}, "days": {"type": "int"}, "hours": {"type": "int"}}},
   "common_relativeTime_inHours": "{count, plural, one{in {count}h} other{in {count}h}}",
   "common_relativeTime_inLessThanMinute": "in <1m",
   "common_relativeTime_inMinutes": "{count, plural, one{in {count}m} other{in {count}m}}",

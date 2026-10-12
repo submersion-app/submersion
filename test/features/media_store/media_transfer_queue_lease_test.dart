@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
@@ -12,7 +13,9 @@ void main() {
   late MediaTransferQueueRepository repo;
 
   setUp(() {
-    db = LocalCacheDatabase(NativeDatabase.memory());
+    db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     repo = MediaTransferQueueRepository(database: db);
   });
 
@@ -121,7 +124,9 @@ void main() {
   // not stay taken: nothing would ever release it, and the row would be
   // hidden from every later drain in the process.
   test('a claim whose re-read fails is given back', () async {
-    final closing = LocalCacheDatabase(NativeDatabase.memory());
+    final closing = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     final repo = _ClosesAfterRead(closing);
     final id = await repo.enqueueUpload(mediaId: 'm1');
 
@@ -156,7 +161,9 @@ void main() {
   });
 
   test('a claim on one database does not cover another', () async {
-    final other = LocalCacheDatabase(NativeDatabase.memory());
+    final other = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(other.close);
     final otherRepo = MediaTransferQueueRepository(database: other);
     await repo.enqueueUpload(mediaId: 'm1');

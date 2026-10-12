@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/performance_indexes.dart';
 
@@ -12,7 +13,9 @@ Future<Set<String>> indexNames(AppDatabase db) async {
 
 void main() {
   test('fresh database has every canonical performance index', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     // Force open so onCreate + beforeOpen run.
     await db.customSelect('SELECT 1').get();
@@ -24,7 +27,9 @@ void main() {
   });
 
   test('ensurePerformanceIndexes is idempotent', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customSelect('SELECT 1').get();
 
@@ -33,7 +38,9 @@ void main() {
   });
 
   test('ensurePerformanceIndexes heals a dropped index', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customSelect('SELECT 1').get();
 

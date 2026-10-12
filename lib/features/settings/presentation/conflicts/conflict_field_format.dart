@@ -1,4 +1,5 @@
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
@@ -107,9 +108,19 @@ String _format(
     FieldKind.fraction => '${_trim(number * 100)}%',
     FieldKind.partialPressure =>
       '${formatFixedForDisplay(number, 2)} ${l10n.units_pressure_bar}',
-    FieldKind.durationSeconds => formatConflictSeconds(number.round()),
-    FieldKind.durationMinutes => formatConflictSeconds((number * 60).round()),
-    FieldKind.durationHours => formatConflictSeconds((number * 3600).round()),
+    FieldKind.durationSeconds => formatConflictSeconds(number.round(), l10n),
+    FieldKind.durationMinutes => formatConflictSeconds(
+      (number * 60).round(),
+      l10n,
+    ),
+    FieldKind.durationHours => formatConflictSeconds(
+      (number * 3600).round(),
+      l10n,
+    ),
+    FieldKind.totalDurationSeconds => _formatConflictTotal(
+      number.round(),
+      l10n,
+    ),
     _ => value.toString(),
   };
 }
@@ -140,17 +151,29 @@ DateTime? _wallClock(Object value) {
 String _trim(double value) =>
     formatFixedForDisplay(value, value == value.roundToDouble() ? 0 : 1);
 
-/// A stored count of seconds as "1h 5m" or "45min".
+/// A career total in seconds: hours and minutes from an hour up
+/// ("1150h 30m"), the elapsed form below.
+String _formatConflictTotal(int seconds, AppLocalizations l10n) {
+  if (seconds < Duration.secondsPerHour) {
+    return formatConflictSeconds(seconds, l10n);
+  }
+  final minutes = seconds ~/ Duration.secondsPerMinute;
+  return l10n.common_elapsed_hoursMinutes(
+    minutes ~/ Duration.minutesPerHour,
+    minutes % Duration.minutesPerHour,
+  );
+}
+
+/// A stored count of seconds as the exact elapsed time ("45 min", "1h 5m",
+/// "2d 2h 0m"): past a day the other screens drop a unit, which here would
+/// make two differing versions read the same.
 ///
-/// Anything under a minute keeps its seconds instead of collapsing to "0min":
-/// two versions differing only in a sub-minute value would otherwise render
-/// identically in the one dialog whose whole job is telling them apart. A
-/// negative value takes the same path and shows itself rather than wrapping
-/// into a plausible-looking positive minute count.
-String formatConflictSeconds(int seconds) {
+/// Anything under a minute keeps its seconds instead of collapsing to
+/// "0 min": two versions differing only in a sub-minute value would otherwise
+/// render identically in the one dialog whose whole job is telling them
+/// apart. A negative value takes the same path and shows itself rather than
+/// reading as zero.
+String formatConflictSeconds(int seconds, AppLocalizations l10n) {
   if (seconds < 60) return '${seconds}s';
-  final totalMinutes = seconds ~/ 60;
-  final hours = totalMinutes ~/ 60;
-  final minutes = totalMinutes % 60;
-  return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}min';
+  return formatElapsedExact(l10n, Duration(seconds: seconds));
 }

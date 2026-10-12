@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 
 /// v10 drops poisoned negative resolutions.
@@ -85,7 +86,9 @@ void main() {
   });
 
   test('a fresh database is at or past v10', () async {
-    final db = LocalCacheDatabase(NativeDatabase.memory());
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(db.schemaVersion, greaterThanOrEqualTo(10));

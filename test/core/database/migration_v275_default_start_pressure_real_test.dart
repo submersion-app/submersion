@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// A v274 diver_settings shape: the whole-bar start pressure between two
@@ -64,7 +65,9 @@ void main() {
   });
 
   test('a fresh install stores the start pressure as REAL', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(await _startPressureType(db), 'REAL');

@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
@@ -4006,8 +4007,11 @@ class SyncDataSerializer {
   /// migration's rule, so a device that healed by migration and a device that
   /// healed by merge land on the same tag.
   ///
-  /// Both sides normalize to `lower(trim(name))`, exactly as
-  /// `idx_tags_diver_name_unique` keys. Trimming only the INCOMING name made
+  /// Both sides normalize to `unicode_lower(trim(name))`: the trim and case
+  /// fold `idx_tags_diver_name_unique` keys on, with non-ASCII capitals folded
+  /// too (#3032). The index's lower() folds ASCII only, so a stored "Épave"
+  /// never met an incoming "épave"; folding more than the index can only find
+  /// more rivals, never fewer. Trimming only the INCOMING name made
   /// the comparison asymmetric -- a local " Wreck" would not match a remote
   /// "Wreck" while the reverse did -- so whether two devices converged
   /// depended on which of them happened to hold the padded spelling
@@ -4016,7 +4020,7 @@ class SyncDataSerializer {
     final rivals =
         await (_db.select(_db.tags)..where(
               (t) =>
-                  t.name.trim().lower().equals(
+                  t.name.trim().unicodeLower().equals(
                     remote.name.trim().toLowerCase(),
                   ) &
                   coalesce([

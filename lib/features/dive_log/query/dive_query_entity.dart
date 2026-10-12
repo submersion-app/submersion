@@ -174,33 +174,33 @@ final QueryEntity diveQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   scopesHopsToDiver: true,
   textSearchSql: const [
-    "{r}.notes LIKE ? ESCAPE '\\'",
-    "{r}.name LIKE ? ESCAPE '\\'",
-    "{r}.buddy LIKE ? ESCAPE '\\'",
-    "{r}.dive_master LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.notes) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.buddy) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.dive_master) LIKE ? ESCAPE '\\'",
     // Shown on the dive since #3229, so a search finds them too.
-    "{r}.dive_operator LIKE ? ESCAPE '\\'",
-    "{r}.boat_name LIKE ? ESCAPE '\\'",
-    "{r}.boat_captain LIKE ? ESCAPE '\\'",
-    "{r}.surface_conditions LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.dive_operator) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.boat_name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.boat_captain) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.surface_conditions) LIKE ? ESCAPE '\\'",
     'EXISTS (SELECT 1 FROM dive_sites ts WHERE ts.id = {r}.site_id '
-        "AND (ts.name LIKE ? ESCAPE '\\' OR ts.country LIKE ? ESCAPE '\\' "
-        "OR ts.region LIKE ? ESCAPE '\\'))",
+        "AND (unicode_lower(ts.name) LIKE ? ESCAPE '\\' OR unicode_lower(ts.country) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ts.region) LIKE ? ESCAPE '\\'))",
     'EXISTS (SELECT 1 FROM dive_centers tc WHERE tc.id = {r}.dive_center_id '
-        "AND tc.name LIKE ? ESCAPE '\\')",
+        "AND unicode_lower(tc.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_buddies tdb JOIN buddies tb '
         'ON tb.id = tdb.buddy_id WHERE tdb.dive_id = {r}.id '
-        "AND tb.name LIKE ? ESCAPE '\\')",
+        "AND unicode_lower(tb.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_tags tdt JOIN tags tt ON tt.id = tdt.tag_id '
-        "WHERE tdt.dive_id = {r}.id AND tt.name LIKE ? ESCAPE '\\')",
+        "WHERE tdt.dive_id = {r}.id AND unicode_lower(tt.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_custom_fields tcf WHERE tcf.dive_id = {r}.id '
-        "AND (tcf.field_key LIKE ? ESCAPE '\\' "
-        "OR tcf.field_value LIKE ? ESCAPE '\\'))",
+        "AND (unicode_lower(tcf.field_key) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tcf.field_value) LIKE ? ESCAPE '\\'))",
     // The stored name: a custom type's own, a built-in's English one. The
     // translations are kDiveTypeTranslatedTextSearch (issue #2884).
     'EXISTS (SELECT 1 FROM dive_dive_types tddt JOIN dive_types tdty '
         'ON tdty.id = tddt.dive_type_id WHERE tddt.dive_id = {r}.id '
-        "AND tdty.name LIKE ? ESCAPE '\\')",
+        "AND unicode_lower(tdty.name) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const [
     'dive_sites',

@@ -85,7 +85,7 @@ void main() {
         const StringValue('Manta'),
       ),
     );
-    expect(e.where, '(LOWER(r0.notes) = LOWER(?))');
+    expect(e.where, '(unicode_lower(r0.notes) = unicode_lower(?))');
     expect(e.params, ['Manta']);
     final k = c(
       ConditionNode(
@@ -94,7 +94,7 @@ void main() {
         const StringValue('100%_x'),
       ),
     );
-    expect(k.where, "(r0.notes LIKE ? ESCAPE '\\')");
+    expect(k.where, "(unicode_lower(r0.notes) LIKE ? ESCAPE '\\')");
     expect(k.params, ['%100\\%\\_x%']);
   });
 
@@ -233,8 +233,8 @@ void main() {
     final word = c(TextNode(['night']));
     expect(
       word.where,
-      "((r0.notes LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM dive_sites ts "
-      "WHERE ts.id = r0.site_id AND ts.name LIKE ? ESCAPE '\\')))",
+      "((unicode_lower(r0.notes) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM dive_sites ts "
+      "WHERE ts.id = r0.site_id AND unicode_lower(ts.name) LIKE ? ESCAPE '\\')))",
     );
     expect(word.params, ['%night%', '%night%']);
 
@@ -341,7 +341,10 @@ void main() {
         ),
       ),
     );
-    expect(q.where, "(NOT COALESCE((r0.notes LIKE ? ESCAPE '\\'), 0))");
+    expect(
+      q.where,
+      "(NOT COALESCE((unicode_lower(r0.notes) LIKE ? ESCAPE '\\'), 0))",
+    );
   });
 
   test(

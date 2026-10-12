@@ -75,6 +75,27 @@ void main() {
   // this feature exists to forbid: " Wreck" and "Wreck" are one tag to every
   // lookup, but were two rows to the index.
 
+  // #3032: SQLite's lower() folds ASCII only, so "Épave" and "épave" were
+  // two tags to every lookup. The index still folds ASCII alone; the lookup
+  // folding more than the index is safe, the other way round is not.
+  group('accented capitals are the same tag', () {
+    test('createTag returns the incumbent across accent case', () async {
+      final first = await repository.createTag(tagOf('', 'Épave'));
+
+      final second = await repository.createTag(tagOf('', 'épave'));
+
+      expect(second.id, first.id);
+      expect(await repository.getAllTags(), hasLength(1));
+    });
+
+    test('getTagByName and searchTags fold the accented capital', () async {
+      await repository.createTag(tagOf('', 'Épave'));
+
+      expect(await repository.getTagByName('ÉPAVE'), isNotNull);
+      expect(await repository.searchTags('épa'), hasLength(1));
+    });
+  });
+
   group('whitespace variants are the same tag', () {
     test('createTag stores the trimmed name', () async {
       final created = await repository.createTag(tagOf('', '  Wreck  '));
