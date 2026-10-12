@@ -99,8 +99,10 @@ The column rides the existing `navTracks` Drift JSON (`NavTrackRow.toJson` /
 `fromJson`): no serializer arm and no change to the sync floor.
 
 A peer on an older build does not know the column. Its rows arrive without the
-key, and the existing `insertOnConflictUpdate(NavTrackRow.fromJson(...))`
-upsert leaves null columns out (`nullToAbsent`), so the local value survives.
+key, and two existing layers keep the local value: `upsertRecord` first fills
+omitted keys from the local row (`overlayOntoLocal`, #2553), and the
+`insertOnConflictUpdate(NavTrackRow.fromJson(...))` upsert then leaves null
+columns out (`nullToAbsent`). Either alone is enough.
 The older peer itself never holds the value, which is acceptable for opaque
 fields with no UI.
 
