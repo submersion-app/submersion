@@ -31,7 +31,7 @@ void main() {
     await SiteRepository().createSite(
       const DiveSite(
         id: 'lib',
-        name: 'Club',
+        name: 'Reef Survey',
         hazards: 'h',
         sharedLibraryId: 'L',
       ),
@@ -48,7 +48,7 @@ void main() {
     () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
-          site: const DiveSite(id: 'lib', name: 'Club'),
+          site: const DiveSite(id: 'lib', name: 'Reef Survey'),
         ),
       );
       await SiteFeatureRepository().addFeature(
@@ -68,7 +68,7 @@ void main() {
       expect(kept.sharedLibraryId, isNull);
       expect(kept.diverId, 'd1');
       expect(kept.isShared, isTrue, reason: 'visible to every local profile');
-      expect(kept.name, 'Club');
+      expect(kept.name, 'Reef Survey');
       expect(kept.hazards, 'h');
       final dive = (await DiveRepository().getDiveById('dv'))!;
       expect(dive.site?.id, newId);
@@ -127,7 +127,7 @@ void main() {
   test('a detached site keeps the documents attached to it', () async {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
-        site: const DiveSite(id: 'lib', name: 'Club'),
+        site: const DiveSite(id: 'lib', name: 'Reef Survey'),
       ),
     );
     final doc = await DocumentRepository().save(
@@ -172,7 +172,7 @@ void main() {
       Future<String?> detachOnThisDevice() async {
         await DiveRepository().createDive(
           createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
-            site: const DiveSite(id: 'lib', name: 'Club'),
+            site: const DiveSite(id: 'lib', name: 'Reef Survey'),
           ),
         );
         return SiteDetacher().detachOrRemove(siteId: 'lib', ownerDiverId: 'd1');
@@ -195,7 +195,7 @@ void main() {
       await SiteRepository().createSite(
         const DiveSite(
           id: 'lib',
-          name: 'Club',
+          name: 'Reef Survey',
           hazards: 'h',
           sharedLibraryId: 'L',
         ),
@@ -215,13 +215,13 @@ void main() {
   test('a copy that already arrived from another device is reused', () async {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
-        site: const DiveSite(id: 'lib', name: 'Club'),
+        site: const DiveSite(id: 'lib', name: 'Reef Survey'),
       ),
     );
     // The phone detached first; its copy reached this device by personal
     // sync before this device's library sync saw the tombstone.
     await SiteRepository().createSite(
-      DiveSite(id: detachedSiteId('lib'), diverId: 'd1', name: 'Club'),
+      DiveSite(id: detachedSiteId('lib'), diverId: 'd1', name: 'Reef Survey'),
     );
 
     final id = await SiteDetacher().detachOrRemove(

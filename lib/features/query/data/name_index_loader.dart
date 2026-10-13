@@ -146,7 +146,7 @@ class NameIndexLoader {
         visible.add('t.$scope = ?');
         variables.add(Variable<String>(diverId));
       }
-      // An ownerless site that belongs to a club library is visible to the
+      // An ownerless site that belongs to a shared site library is visible to the
       // library's members only (issue #2567).
       visible.add(
         subject == QuerySubject.sites

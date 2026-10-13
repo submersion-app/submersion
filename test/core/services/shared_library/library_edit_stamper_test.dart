@@ -30,7 +30,7 @@ void main() {
         libraryId: 'L',
         memberId: 'm1',
         displayName: 'Ann',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );

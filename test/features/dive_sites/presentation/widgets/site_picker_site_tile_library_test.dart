@@ -18,7 +18,7 @@ void main() {
             (ref) => Stream.value(const [
               SharedLibrary(
                 id: 'L',
-                name: 'Club',
+                name: 'Reef Survey',
                 connectedAccountId: 'a',
                 prefix: 'p',
               ),

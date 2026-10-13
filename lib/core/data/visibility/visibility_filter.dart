@@ -46,7 +46,7 @@ class VisibilityFilter {
       (t) =>
           (t.diverId.equals(diverId) |
               t.isShared.equals(true) |
-              // A club library's sites, for its members (issue #2567).
+              // A shared site library's sites, for its members (issue #2567).
               t.sharedLibraryId.isInQuery(
                 db.selectOnly(memberships)
                   ..addColumns([memberships.libraryId])
@@ -115,7 +115,7 @@ class VisibilityFilter {
   static String ownerOrSharedSql(String tableAlias, String viewer) =>
       '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1)';
 
-  /// [ownerOrSharedSql] for `dive_sites`, which a club library's members
+  /// [ownerOrSharedSql] for `dive_sites`, which a shared site library's members
   /// also see (issue #2567). [viewer] appears twice, so a `?` placeholder
   /// needs two variables.
   static String ownerOrSharedOrLibrarySql(String tableAlias, String viewer) =>

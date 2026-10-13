@@ -38,9 +38,9 @@ void main() {
             (ref) => Stream.value(const [
               SharedLibrary(
                 id: 'L',
-                name: 'Club',
+                name: 'Reef Survey',
                 connectedAccountId: 'a',
-                prefix: 'club',
+                prefix: 'site-sync',
                 roles: SharedLibraryRoles(owners: {'m'}),
               ),
             ]),
@@ -53,7 +53,7 @@ void main() {
                 libraryId: 'L',
                 memberId: 'm',
                 displayName: 'Ann',
-                libraryName: 'Club',
+                libraryName: 'Reef Survey',
                 backendKind: 's3',
               ),
             ],
@@ -67,7 +67,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Club'), findsOneWidget);
+    expect(find.text('Reef Survey'), findsOneWidget);
     expect(find.textContaining('Owner'), findsOneWidget);
     expect(find.textContaining('2 members'), findsOneWidget);
   });
@@ -90,9 +90,9 @@ void main() {
                 libraryId: 'L',
                 memberId: 'm',
                 displayName: 'Ann',
-                libraryName: 'Reef Club',
+                libraryName: 'Reef Watch',
                 backendKind: 's3',
-                locationHint: 'Club bucket: reef',
+                locationHint: 'Survey bucket: reef',
               ),
             ],
           ),
@@ -102,7 +102,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Reef Club'), findsOneWidget);
+    expect(find.text('Reef Watch'), findsOneWidget);
     expect(find.text('Not connected on this device'), findsOneWidget);
     expect(find.text('No shared site library connected yet.'), findsNothing);
   });

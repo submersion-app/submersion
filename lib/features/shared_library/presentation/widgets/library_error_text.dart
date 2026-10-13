@@ -4,7 +4,7 @@ import 'package:submersion/core/services/shared_library/shared_library_membershi
 import 'package:submersion/features/settings/presentation/widgets/webdav_error_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// What a club library action that failed tells the user (issue #2567):
+/// What a shared site library action that failed tells the user (issue #2567):
 /// the refusals it knows in words, a WebDAV failure as the WebDAV settings
 /// put it, another storage failure as the provider does, anything else as a
 /// plain try-again.

@@ -470,7 +470,7 @@ class SiteRepository {
   ) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      // A club library clock goes only on a column whose value changes
+      // A shared site library clock goes only on a column whose value changes
       // (issue #2567): rewriting the same altitude must not beat a newer
       // edit by another member.
       final before = await getSiteById(siteId);
@@ -738,7 +738,7 @@ class SiteRepository {
       // tombstone for the peers, as deleteTrip does.
       if (ownership.allowed.isEmpty) return true;
       _log.info('Deleting site: $id');
-      // A club library site leaves no personal tombstone (issue #2567)
+      // A shared site library site leaves no personal tombstone (issue #2567)
       // unless the caller says otherwise.
       final tombstone =
           logTombstones ?? !((await getSiteById(id))?.isLibrarySite ?? false);
@@ -839,7 +839,7 @@ class SiteRepository {
       }
       if (allowed.isEmpty) return const SiteLinks();
       _log.info('Bulk deleting ${allowed.length} sites');
-      // Club library sites among them leave no personal tombstone (issue
+      // Shared site library sites among them leave no personal tombstone (issue
       // #2567).
       final libraryIds = {
         for (final site in await getSitesByIds(allowed))

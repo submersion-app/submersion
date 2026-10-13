@@ -47,9 +47,9 @@ Future<Widget> _page(
       (ref) => Stream.value([
         const SharedLibrary(
           id: 'L',
-          name: 'Club',
+          name: 'Reef Survey',
           connectedAccountId: 'a',
-          prefix: 'club',
+          prefix: 'site-sync',
           roles: SharedLibraryRoles(owners: {'me'}, editors: {'ed'}),
         ),
       ]),
@@ -62,7 +62,7 @@ Future<Widget> _page(
           libraryId: 'L',
           memberId: 'me',
           displayName: 'Ann',
-          libraryName: 'Club',
+          libraryName: 'Reef Survey',
           backendKind: 's3',
         ),
       ],

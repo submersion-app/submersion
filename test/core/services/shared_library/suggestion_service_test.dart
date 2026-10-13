@@ -37,16 +37,16 @@ void main() {
   setUp(() async {
     await setUpTestDatabase();
     cloud = FakeCloudStorageProvider();
-    t = SharedLibraryTransport(cloud, prefix: 'club');
+    t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await _diver('reader');
     await _diver('owner');
     final store = SharedLibraryStore();
     await store.upsertLibrary(
       const SharedLibrary(
         id: 'L',
-        name: 'Club',
+        name: 'Reef Survey',
         connectedAccountId: 'acc',
-        prefix: 'club',
+        prefix: 'site-sync',
         roles: SharedLibraryRoles(owners: {'o'}),
       ),
     );
@@ -57,7 +57,7 @@ void main() {
         libraryId: 'L',
         memberId: 'r',
         displayName: 'Ray',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );
@@ -68,7 +68,7 @@ void main() {
         libraryId: 'L',
         memberId: 'o',
         displayName: 'Olga',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );
@@ -183,7 +183,11 @@ void main() {
 
   test('an accept whose remote delete fails is not re-imported, and the '
       'next sync finishes the delete', () async {
-    await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+    await t.writeManifest({
+      'id': 'L',
+      'name': 'Reef Survey',
+      'formatVersion': 1,
+    });
     await t.writeRoles(const SharedLibraryRoles(owners: {'o'}));
     await t.writeSuggestion('g9', _incoming('g9', {'hazards': 'new'}).toJson());
     await SharedLibraryStore().putSuggestion(

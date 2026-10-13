@@ -557,7 +557,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     );
   }
 
-  /// Role and connection state of a club library site (issue #2567). A
+  /// Role and connection state of a shared site library site (issue #2567). A
   /// personal site is editable by the usual rules.
   ({bool isLibrary, bool connected, SharedLibraryRole role}) _libraryAccess(
     WidgetRef ref,
@@ -690,7 +690,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     final prefix = membership?.prefixHint ?? '';
     if (!context.mounted) return;
     context.push(
-      '/settings/club-libraries/connect?prefix=${Uri.encodeQueryComponent(prefix)}',
+      '/settings/shared-libraries/connect?prefix=${Uri.encodeQueryComponent(prefix)}',
     );
   }
 

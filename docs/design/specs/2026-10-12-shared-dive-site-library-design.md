@@ -5,21 +5,21 @@ Issue: #2567. Release: v1.8.3.
 ## Problem
 
 Sharing between profiles is all-or-nothing inside one synced library. A dive
-club cannot keep a common site catalogue (notes, hazards, access, mooring,
+group cannot keep a common site catalogue (notes, hazards, access, mooring,
 parking) without also sharing personal dives, and one member's deletion
-reaches every profile (#2151). The club in #2567 has about fifty divers who
+reaches every profile (#2151). The group in #2567 has about fifty divers who
 each keep a personal logbook and want one site catalogue that everyone reads,
 most edit, and a few referents control.
 
 ## Outcome
 
-A diver connects a club library hosted on storage the club controls (an S3
-bucket or a WebDAV folder, with a prefix). The club's sites appear in the
+A diver connects a shared site library hosted on storage its members control (an S3
+bucket or a WebDAV folder, with a prefix). The library's sites appear in the
 Sites list, map, filters and site picker beside personal sites, and dives link
-to them like any site. Edits to a club site sync both ways, field by field,
+to them like any site. Edits to a library site sync both ways, field by field,
 with the member who made each edit recorded. Members choose which personal
 sites to add to the library. Owners manage roles and review suggestions from
-read-only members. Personal dives never leave the personal library, and club
+read-only members. Personal dives never leave the personal library, and library
 sites never enter it.
 
 ## Decisions taken in design
@@ -39,7 +39,7 @@ sites never enter it.
 ## Storage layout
 
 Every library lives in `submersion-sites` at the top of the bucket or server,
-beside `submersion-sync` and `submersion-media`, under the folder the club
+beside `submersion-sync` and `submersion-media`, under the folder the owners
 chose (`site-sync` is `submersion-sites/site-sync/`; an empty folder is
 `submersion-sites` itself). All files are JSON.
 
@@ -74,7 +74,7 @@ local row on every device.
     "parkingInfo": "…", "altitude": null, "entryMethod": null,
     "exitMethod": null,
     "siteTypes": ["Reef", "Wall"],
-    "tags": ["Club favourite"],
+    "tags": ["Group favourite"],
     "species": [{ "name": "…", "scientificName": "…" }],
     "features": [{ "id": "…", "type": "…", "name": "…", "latitude": 0,
                    "longitude": 0, "bearingDeg": null, "depthMeters": null,
@@ -189,7 +189,7 @@ Three guards in the existing pipeline, nothing else changes there:
 A second device of the same member receives the membership through personal
 sync but holds no library rows until it connects the library with its own
 credentials. A dive linked to a library site on an unconnected device shows
-the site as "in club library, not connected on this device" with a link to
+the site as "in shared site library, not connected on this device" with a link to
 connect. A stale personal copy from before a push is adopted in place on
 connect, since the ids match.
 
@@ -197,7 +197,7 @@ connect, since the ids match.
 
 ### Connect, create, join
 
-Settings > Club libraries > Connect a library: pick or add an S3 or WebDAV
+Settings > Shared site libraries > Connect a library: pick or add an S3 or WebDAV
 connected account, enter the prefix, read the manifest. No manifest: "Create
 library" asks for a name, writes the manifest and `roles.json` with the
 creator as owner. Manifest present: "Join". Both write the member card and a
@@ -208,7 +208,7 @@ membership row, then run a first sync.
 Effective role on a device is the lower of the `roles.json` role (owner,
 editor, reader when unlisted) and what the credentials allow. The credential
 check is passive: a permission error on upload sets `readOnlyDetected` and the
-UI switches to the reader experience with an explanation. The documented club
+UI switches to the reader experience with an explanation. The documented
 storage policy: referents get full access; everyone else gets read everywhere
 plus write to `members/` and `suggestions/`.
 
@@ -221,7 +221,7 @@ plus write to `members/` and `suggestions/`.
 Owners manage roles on the Members page, which rewrites `roles.json`. The
 last owner cannot be demoted.
 
-### Push ("Add to club library")
+### Push ("Add to shared site library")
 
 Editors and owners, personal sites only. Sets `sharedLibraryId`, clears
 `diverId` and `isShared`, seeds a clock for every field with a fresh HLC
@@ -272,17 +272,17 @@ the member card and the membership row; history follows the id.
 
 ## Screens
 
-- **Settings > Club libraries** (`lib/features/shared_library/presentation/`):
+- **Settings > Shared site libraries** (`lib/features/shared_library/presentation/`):
   list of connected libraries (name, role, member count, last sync, status),
   Connect a library. Library page: Sync now, display name, role, Members
   (owners manage), Suggestions inbox (owners), Add my sites (editors and
   owners), Leave, error and read-only banners.
 - **Sites list and map**: a group badge on library site tiles and markers,
   library name in the tooltip; filter sheet gains Library (personal or each
-  library); group-by gains Library; bulk action Add to club library.
+  library); group-by gains Library; bulk action Add to shared site library.
 - **Site detail**: library name and attribution line in the header; History
   in the properties menu; actions by role (Edit and Delete, or Suggest
-  changes and pending suggestions); Add to club library on personal sites;
+  changes and pending suggestions); Add to shared site library on personal sites;
   Connect on this device on an unconnected device.
 - **Site edit page**: suggestion mode for readers; the Share-with-profiles
   toggle is hidden for library sites.
@@ -332,7 +332,7 @@ writes to a library site always succeed offline; the dirty flag carries them.
 
 ## Out of scope
 
-Encryption of the club folder (the existing decorator can wrap the provider
+Encryption of the library folder (the existing decorator can wrap the provider
 later), media in the library, Dropbox, Google Drive and iCloud as library
 backends (their folders are private to one account), standalone comments,
 conflict cards, and the public community backend of roadmap 14.2 and 14.3.

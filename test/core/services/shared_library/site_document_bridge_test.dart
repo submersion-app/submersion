@@ -50,7 +50,7 @@ void main() {
         'hazards': 'current',
         'entryMethod': 'shore',
         'siteTypes': ['Reef'],
-        'tags': ['Club'],
+        'tags': ['Reef Survey'],
         'species': [
           {'name': 'Grouper', 'scientificName': 'Epinephelus'},
         ],
@@ -89,7 +89,7 @@ void main() {
       (await SiteClassificationRepository().getTagsForSite(
         's1',
       )).map((t) => t.name),
-      ['Club'],
+      ['Reef Survey'],
     );
     final features = await SiteFeatureRepository().getFeaturesForSite('s1');
     expect(features.single.id, 'f1');

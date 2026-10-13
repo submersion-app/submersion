@@ -36,9 +36,9 @@ void main() {
       await store.upsertLibrary(
         const SharedLibrary(
           id: 'L',
-          name: 'Club',
+          name: 'Reef Survey',
           connectedAccountId: 'acc',
-          prefix: 'club',
+          prefix: 'site-sync',
         ),
       );
       await store.upsertMembership(
@@ -48,7 +48,7 @@ void main() {
           libraryId: 'L',
           memberId: 'm',
           displayName: 'Ann',
-          libraryName: 'Club',
+          libraryName: 'Reef Survey',
           backendKind: 's3',
         ),
       );
@@ -67,8 +67,8 @@ void main() {
       final cloud = FakeCloudStorageProvider();
       await SharedLibraryTransport(
         cloud,
-        prefix: 'club',
-      ).writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+        prefix: 'site-sync',
+      ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
       final container = ProviderContainer(
         overrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
@@ -188,9 +188,9 @@ void main() {
       await store.upsertLibrary(
         const SharedLibrary(
           id: 'L',
-          name: 'Club',
+          name: 'Reef Survey',
           connectedAccountId: 'acc',
-          prefix: 'club',
+          prefix: 'site-sync',
         ),
       );
       final container = ProviderContainer(
@@ -219,14 +219,19 @@ class _BrokenStore extends SharedLibraryStore {
       libraryId: 'L',
       memberId: 'm',
       displayName: 'Ann',
-      libraryName: 'Club',
+      libraryName: 'Reef Survey',
       backendKind: 's3',
     ),
   ];
 
   @override
   Future<List<SharedLibrary>> getLibraries() async => const [
-    SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'a', prefix: 'p'),
+    SharedLibrary(
+      id: 'L',
+      name: 'Reef Survey',
+      connectedAccountId: 'a',
+      prefix: 'p',
+    ),
   ];
 
   @override

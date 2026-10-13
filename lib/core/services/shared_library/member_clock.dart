@@ -1,6 +1,6 @@
 import 'package:submersion/core/services/sync/hlc.dart';
 
-/// A hybrid logical clock for one member of a club library (issue #2567).
+/// A hybrid logical clock for one member of a shared site library (issue #2567).
 ///
 /// Unlike `SyncClock` it is not a singleton: one per library sync or edit,
 /// seeded from the newest clock the device already holds, so a member's

@@ -3,7 +3,7 @@ import 'package:submersion/features/settings/presentation/conflicts/catalogue/co
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field_format.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// The localized label of a club library document field (issue #2567):
+/// The localized label of a shared site library document field (issue #2567):
 /// the site's own column labels, and the section names for its lists.
 String libraryFieldLabel(AppLocalizations l10n, String field) =>
     switch (field) {

@@ -36,7 +36,7 @@ class SharedLibrarySyncState {
   );
 }
 
-/// Runs club library syncs (issue #2567): on launch and resume under the
+/// Runs shared site library syncs (issue #2567): on launch and resume under the
 /// personal auto-sync preferences, after a debounce when a library site or
 /// suggestion changes locally, and on Sync now. Every run goes through
 /// [SyncCoordinator], so it never overlaps the personal sync.

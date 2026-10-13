@@ -19,9 +19,9 @@ import '../../../helpers/test_database.dart';
 
 const _lib = SharedLibrary(
   id: 'L',
-  name: 'Club',
+  name: 'Reef Survey',
   connectedAccountId: 'acc',
-  prefix: 'club',
+  prefix: 'site-sync',
 );
 
 /// A fresh device for [member], connected to the shared fake [cloud].
@@ -47,7 +47,7 @@ Future<SharedLibraryService> device(
       libraryId: 'L',
       memberId: member,
       displayName: member,
-      libraryName: 'Club',
+      libraryName: 'Reef Survey',
       backendKind: 's3',
     ),
   );
@@ -62,8 +62,8 @@ Future<void> seedLibrary(
   FakeCloudStorageProvider cloud, {
   Set<String> owners = const {'a'},
 }) async {
-  final t = SharedLibraryTransport(cloud, prefix: 'club');
-  await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+  final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+  await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
   await t.writeRoles(SharedLibraryRoles(owners: owners));
 }
 
@@ -156,12 +156,13 @@ void main() {
     site = (await SiteRepository().getSiteById('s1'))!;
     expect(site.parkingInfo, 'lot B');
     expect(site.hazards, 'current');
-    final doc = await SharedLibraryTransport(cloud, prefix: 'club').readSite(
-      (await SharedLibraryTransport(
-        cloud,
-        prefix: 'club',
-      ).listSites()).single.id,
-    );
+    final doc = await SharedLibraryTransport(cloud, prefix: 'site-sync')
+        .readSite(
+          (await SharedLibraryTransport(
+            cloud,
+            prefix: 'site-sync',
+          ).listSites()).single.id,
+        );
     expect(doc.fields['parkingInfo'], 'lot B');
     expect(doc.fields['hazards'], 'current');
     expect(doc.clocks['hazards']!.memberId, 'a');
@@ -185,7 +186,7 @@ void main() {
         actingDiverId: 'd-a',
       );
       // B overwrites the document before A uploads.
-      final t = SharedLibraryTransport(cloud, prefix: 'club');
+      final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
       final fileId = (await t.listSites()).single.id;
       final remote = await t.readSite(fileId);
       await t.writeSite(
@@ -253,8 +254,8 @@ void main() {
     final cloud = FakeCloudStorageProvider();
     await SharedLibraryTransport(
       cloud,
-      prefix: 'club',
-    ).writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 2});
+      prefix: 'site-sync',
+    ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 2});
     final svc = await device(cloud, 'a');
     expect(
       (await svc.sync('L', diverId: 'd-a')).status,
@@ -274,7 +275,7 @@ void main() {
     expect(lib.lastError, isNull);
     final members = await SharedLibraryTransport(
       cloud,
-      prefix: 'club',
+      prefix: 'site-sync',
     ).listMembers();
     expect(members.single.memberId, 'a');
   });
@@ -284,7 +285,7 @@ void main() {
     () async {
       final cloud = FakeCloudStorageProvider();
       await seedLibrary(cloud);
-      final t = SharedLibraryTransport(cloud, prefix: 'club');
+      final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
       await t.writeSite(
         const SiteDocument(
           id: 's1',
@@ -317,7 +318,7 @@ void main() {
   test('an unreadable document is skipped and retried next time', () async {
     final cloud = FakeCloudStorageProvider();
     await seedLibrary(cloud);
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await t.writeSite(const SiteDocument(id: 'ok', fields: {'name': 'OK'}));
     cloud.seedFile('site-bad.json', Uint8List.fromList('not json'.codeUnits));
     final svc = await device(cloud, 'b');

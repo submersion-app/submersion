@@ -18,7 +18,7 @@ void main() {
             (ref) => Stream.value(const [
               SharedLibrary(
                 id: 'L',
-                name: 'Club',
+                name: 'Reef Survey',
                 connectedAccountId: 'a',
                 prefix: 'p',
               ),
@@ -40,6 +40,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.groups_outlined), findsOneWidget);
-    expect(find.byTooltip('In Club'), findsOneWidget);
+    expect(find.byTooltip('In Reef Survey'), findsOneWidget);
   });
 }

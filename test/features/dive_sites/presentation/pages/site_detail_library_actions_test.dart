@@ -61,7 +61,7 @@ Future<void> _pump(
                 ? const [
                     SharedLibrary(
                       id: 'L',
-                      name: 'Club',
+                      name: 'Reef Survey',
                       connectedAccountId: 'a',
                       prefix: 'p',
                     ),
@@ -77,7 +77,7 @@ Future<void> _pump(
               libraryId: 'L',
               memberId: 'm',
               displayName: 'Ann',
-              libraryName: 'Club',
+              libraryName: 'Reef Survey',
               backendKind: 's3',
             ),
           ],
@@ -105,7 +105,11 @@ void main() {
     await _pump(tester, site: _librarySite, role: SharedLibraryRole.reader);
     expect(find.byTooltip('Edit Site'), findsNothing);
     expect(find.text('Suggest changes'), findsOneWidget);
-    expect(find.text('Club'), findsWidgets, reason: 'library chip in header');
+    expect(
+      find.text('Reef Survey'),
+      findsWidgets,
+      reason: 'library chip in header',
+    );
   });
 
   testWidgets('an editor gets Edit and a library delete dialog', (

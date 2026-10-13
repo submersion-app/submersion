@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/services/sync/hlc.dart';
 
-/// What a member may do in a club library (issue #2567).
+/// What a member may do in a shared site library (issue #2567).
 enum SharedLibraryRole { reader, editor, owner }
 
 /// The clock on one document field: when, and by which member.
@@ -124,7 +124,7 @@ class SharedLibraryMember extends Equatable {
   List<Object?> get props => [memberId, displayName, joinedAt];
 }
 
-/// A club library connected on this device.
+/// A shared site library connected on this device.
 class SharedLibrary extends Equatable {
   const SharedLibrary({
     required this.id,
@@ -240,7 +240,7 @@ class SharedLibraryMembership extends Equatable {
   ];
 }
 
-/// File and folder names inside the club prefix.
+/// File and folder names inside a library's folder.
 abstract final class SharedLibraryLayout {
   /// The folder at the top of the storage that holds every library, beside
   /// `submersion-sync` and `submersion-media`.

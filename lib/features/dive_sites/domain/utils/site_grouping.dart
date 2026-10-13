@@ -20,7 +20,7 @@ String siteCountryKey(DiveSite site) => _groupKey(site.country);
 /// or [noGroupKey] when it is null or blank.
 String siteBodyOfWaterKey(DiveSite site) => _groupKey(site.bodyOfWater);
 
-/// The group key of [site]'s club library (issue #2567): its id, folded
+/// The group key of [site]'s shared site library (issue #2567): its id, folded
 /// like every other key, or [noGroupKey] for a personal site.
 String siteLibraryKey(DiveSite site) => _groupKey(site.sharedLibraryId);
 
@@ -257,7 +257,7 @@ List<SiteOuterGroup<T>> groupSitesByLocation<T>(
   (site) => site.region ?? '',
 );
 
-/// Groups [items] by club library, with no further subgrouping (issue
+/// Groups [items] by shared site library, with no further subgrouping (issue
 /// #2567). The group label is the library id; the list maps it to the
 /// library's name, which the domain does not know.
 List<SiteOuterGroup<T>> groupSitesByLibrary<T>(

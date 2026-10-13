@@ -67,7 +67,7 @@ class SiteFilterState {
   /// axis above by `SiteFilterQuery.toQuery`.
   final QueryNode? query;
 
-  /// A club library id, or [personalLibrary] for sites in no library;
+  /// A shared site library id, or [personalLibrary] for sites in no library;
   /// null means every site (issue #2567).
   final String? libraryId;
 

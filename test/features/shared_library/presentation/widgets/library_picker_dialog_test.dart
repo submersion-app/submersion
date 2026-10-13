@@ -33,7 +33,7 @@ Future<String?> _pick(
       await store.upsertLibrary(
         SharedLibrary(
           id: id,
-          name: 'Club $id',
+          name: 'Library $id',
           connectedAccountId: 'x',
           prefix: id,
           roles: roles,
@@ -46,7 +46,7 @@ Future<String?> _pick(
           libraryId: id,
           memberId: 'm',
           displayName: 'Ann',
-          libraryName: 'Club $id',
+          libraryName: 'Library $id',
           backendKind: 's3',
         ),
       );

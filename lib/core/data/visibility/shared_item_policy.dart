@@ -49,7 +49,7 @@ bool canHideSharedItem({
   final destroy = <T>[];
   final hide = <T>[];
   for (final item in items) {
-    // A club library site is neither destroyed nor hidden by a bulk
+    // A shared site library site is neither destroyed nor hidden by a bulk
     // delete (issue #2567): its own role-gated action removes it.
     if (isLibraryOf?.call(item) ?? false) continue;
     final owner = ownerOf(item);
@@ -66,7 +66,7 @@ bool canHideSharedItem({
   return (destroy: destroy, hide: hide);
 }
 
-/// Role-gated actions on a club library site (issue #2567). The storage
+/// Role-gated actions on a shared site library site (issue #2567). The storage
 /// credentials are the hard boundary; these decide what the UI offers.
 bool canEditLibrarySite(SharedLibraryRole role) =>
     role != SharedLibraryRole.reader;

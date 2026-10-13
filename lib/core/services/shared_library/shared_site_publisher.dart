@@ -11,7 +11,7 @@ import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
-/// Moves sites into and out of a club library (issue #2567): push converts
+/// Moves sites into and out of a shared site library (issue #2567): push converts
 /// a personal site in place, delete stamps the tombstone and detaches the
 /// local row, undelete wins the site back with a newer clock.
 class SharedSitePublisher {

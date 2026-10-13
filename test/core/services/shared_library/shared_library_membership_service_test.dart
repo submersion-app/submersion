@@ -26,7 +26,7 @@ void main() {
   final account = ConnectedAccount(
     id: 'acc',
     kind: AccountKind.s3,
-    label: 'Club bucket',
+    label: 'Survey bucket',
     createdAt: DateTime.utc(2026),
     updatedAt: DateTime.utc(2026),
   );
@@ -49,35 +49,35 @@ void main() {
 
   test('probe, create, then a second profile joins', () async {
     expect(
-      (await service.probe(account: account, prefix: 'club')).exists,
+      (await service.probe(account: account, prefix: 'site-sync')).exists,
       isFalse,
     );
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
-    expect((await t.readManifest())!['name'], 'Club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    expect((await t.readManifest())!['name'], 'Reef Survey');
     final me = (await SharedLibraryStore().membership(
       diverId: 'd1',
       libraryId: lib.id,
     ))!;
     expect((await t.readRoles()).roleOf(me.memberId), SharedLibraryRole.owner);
     expect((await t.listMembers()).single.displayName, 'Ann');
-    expect(me.locationHint, 'Club bucket: club');
+    expect(me.locationHint, 'Survey bucket: site-sync');
     expect(me.backendKind, 's3');
-    final probe = await service.probe(account: account, prefix: 'club');
+    final probe = await service.probe(account: account, prefix: 'site-sync');
     expect(probe.exists, isTrue);
-    expect(probe.name, 'Club');
+    expect(probe.name, 'Reef Survey');
     expect(probe.id, lib.id);
 
     await _diver('d2');
     final joined = await service.join(
       account: account,
-      prefix: 'club',
+      prefix: 'site-sync',
       diverId: 'd2',
       displayName: 'Bob',
     );
@@ -122,8 +122,8 @@ void main() {
   test('join reads the folder through one transport', () async {
     await SharedLibraryTransport(
       cloud,
-      prefix: 'club',
-    ).writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+      prefix: 'site-sync',
+    ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
     var built = 0;
     final counting = SharedLibraryMembershipService(
       store: SharedLibraryStore(),
@@ -134,7 +134,7 @@ void main() {
     );
     await counting.join(
       account: account,
-      prefix: 'club',
+      prefix: 'site-sync',
       diverId: 'd1',
       displayName: 'Ann',
     );
@@ -145,8 +145,8 @@ void main() {
   test('setRole rewrites roles and refuses to demote the last owner', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
@@ -172,7 +172,7 @@ void main() {
     );
     final roles = await SharedLibraryTransport(
       cloud,
-      prefix: 'club',
+      prefix: 'site-sync',
     ).readRoles();
     expect(roles.roleOf('other'), SharedLibraryRole.editor);
     expect(
@@ -193,8 +193,8 @@ void main() {
   test('rename updates the card, the membership and the cache', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
@@ -203,7 +203,7 @@ void main() {
       diverId: 'd1',
       displayName: 'Annie',
     );
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     expect((await t.listMembers()).single.displayName, 'Annie');
     final me = (await SharedLibraryStore().membership(
       diverId: 'd1',
@@ -218,13 +218,13 @@ void main() {
     () async {
       final lib = await service.create(
         account: account,
-        prefix: 'club',
-        name: 'Club',
+        prefix: 'site-sync',
+        name: 'Reef Survey',
         diverId: 'd1',
         displayName: 'Ann',
       );
       await SiteRepository().createSite(
-        DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: lib.id),
+        DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: lib.id),
       );
       await SharedLibraryStore().putSiteState(
         SharedSiteState(siteId: 'lib', libraryId: lib.id),
@@ -237,7 +237,7 @@ void main() {
       expect(await SharedLibraryStore().getLibrary(lib.id), isNull);
       expect(await SiteRepository().getSiteById('lib'), isNull);
       expect(
-        await SharedLibraryTransport(cloud, prefix: 'club').listMembers(),
+        await SharedLibraryTransport(cloud, prefix: 'site-sync').listMembers(),
         isEmpty,
       );
     },
@@ -246,20 +246,20 @@ void main() {
   test('leave keeps the library while another profile is a member', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
     await _diver('d2');
     await service.join(
       account: account,
-      prefix: 'club',
+      prefix: 'site-sync',
       diverId: 'd2',
       displayName: 'Bob',
     );
     await SiteRepository().createSite(
-      DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: lib.id),
+      DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: lib.id),
     );
     await service.leave(libraryId: lib.id, diverId: 'd2');
     expect(await SharedLibraryStore().getLibrary(lib.id), isNotNull);
@@ -278,8 +278,8 @@ void main() {
       'so leave ends the membership', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
@@ -291,7 +291,7 @@ void main() {
 
     await service.join(
       account: account,
-      prefix: 'club',
+      prefix: 'site-sync',
       diverId: 'd1',
       displayName: 'Ann',
     );
@@ -308,8 +308,8 @@ void main() {
   test('create refuses a location that already holds a library', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
@@ -317,14 +317,14 @@ void main() {
     await expectLater(
       service.create(
         account: account,
-        prefix: 'club',
+        prefix: 'site-sync',
         name: 'Rival',
         diverId: 'd2',
         displayName: 'Bob',
       ),
       throwsStateError,
     );
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     expect((await t.readManifest())!['id'], lib.id);
   });
 
@@ -333,8 +333,8 @@ void main() {
     () async {
       final lib = await service.create(
         account: account,
-        prefix: 'club',
-        name: 'Club',
+        prefix: 'site-sync',
+        name: 'Reef Survey',
         diverId: 'd1',
         displayName: 'Ann',
       );
@@ -342,7 +342,7 @@ void main() {
         diverId: 'd1',
         libraryId: lib.id,
       ))!;
-      final t = SharedLibraryTransport(cloud, prefix: 'club');
+      final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
       // Another owner promoted Carol since this device last synced.
       await t.writeRoles(
         (await t.readRoles()).withRole('carol', SharedLibraryRole.editor),
@@ -363,15 +363,15 @@ void main() {
   test('the only owner cannot leave while other members remain', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
     await _diver('d2');
     await service.join(
       account: account,
-      prefix: 'club',
+      prefix: 'site-sync',
       diverId: 'd2',
       displayName: 'Bob',
     );
@@ -388,8 +388,8 @@ void main() {
   test('leave waits for a library sync in flight', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
@@ -413,15 +413,15 @@ void main() {
   test('leaving gives up the member\'s role in the library', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
     await _diver('d2');
     await service.join(
       account: account,
-      prefix: 'club',
+      prefix: 'site-sync',
       diverId: 'd2',
       displayName: 'Bob',
     );
@@ -444,7 +444,7 @@ void main() {
 
     final roles = await SharedLibraryTransport(
       cloud,
-      prefix: 'club',
+      prefix: 'site-sync',
     ).readRoles();
     expect(roles.roleOf(bob.memberId), SharedLibraryRole.reader);
     expect(roles.roleOf(ann.memberId), SharedLibraryRole.owner);
@@ -453,15 +453,15 @@ void main() {
   test('the last-owner rule reads the roles in the folder', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
     await _diver('d2');
     await service.join(
       account: account,
-      prefix: 'club',
+      prefix: 'site-sync',
       diverId: 'd2',
       displayName: 'Bob',
     );
@@ -475,7 +475,7 @@ void main() {
       role: SharedLibraryRole.owner,
     );
     // Another device demoted Bob since; this device's cache still lists him.
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await t.writeRoles(SharedLibraryRoles(owners: {ann.memberId}));
 
     await expectLater(
@@ -488,13 +488,13 @@ void main() {
   test('a library no local profile belongs to any more is released', () async {
     final lib = await service.create(
       account: account,
-      prefix: 'club',
-      name: 'Club',
+      prefix: 'site-sync',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );
     await SiteRepository().createSite(
-      DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: lib.id),
+      DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: lib.id),
     );
     // The profile left on its other device: the membership tombstone
     // arrived here, the library row and its sites did not go.

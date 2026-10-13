@@ -26,9 +26,9 @@ void main() {
     await SharedLibraryStore().upsertLibrary(
       const SharedLibrary(
         id: 'L',
-        name: 'Club',
+        name: 'Reef Survey',
         connectedAccountId: 'acc',
-        prefix: 'club',
+        prefix: 'site-sync',
         roles: SharedLibraryRoles(editors: {'m1'}),
       ),
     );
@@ -39,7 +39,7 @@ void main() {
         libraryId: 'L',
         memberId: 'm1',
         displayName: 'Ann',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );
@@ -146,7 +146,7 @@ void main() {
     'deleteFromLibrary stamps the tombstone and removes the unlinked row',
     () async {
       await SiteRepository().createSite(
-        const DiveSite(id: 'lib', name: 'Club', sharedLibraryId: 'L'),
+        const DiveSite(id: 'lib', name: 'Reef Survey', sharedLibraryId: 'L'),
       );
       await SharedLibraryStore().putSiteState(
         const SharedSiteState(siteId: 'lib', libraryId: 'L'),
@@ -195,12 +195,12 @@ void main() {
         libraryId: 'L',
         memberId: 'm2',
         displayName: 'Bob',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );
     await SiteRepository().createSite(
-      const DiveSite(id: 'c', name: 'Club', sharedLibraryId: 'L'),
+      const DiveSite(id: 'c', name: 'Reef Survey', sharedLibraryId: 'L'),
     );
     await SharedLibraryStore().putSiteState(
       const SharedSiteState(siteId: 'c', libraryId: 'L'),
@@ -225,7 +225,7 @@ void main() {
         libraryId: 'L',
         memberId: 'm2',
         displayName: 'Bob',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );

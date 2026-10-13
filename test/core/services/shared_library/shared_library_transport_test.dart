@@ -13,7 +13,7 @@ void main() {
 
   setUp(() {
     cloud = FakeCloudStorageProvider();
-    t = SharedLibraryTransport(cloud, prefix: 'club');
+    t = SharedLibraryTransport(cloud, prefix: 'site-sync');
   });
 
   test(
@@ -21,9 +21,13 @@ void main() {
     () async {
       expect(await t.readManifest(), isNull);
       expect(await t.readRoles(), SharedLibraryRoles.empty);
-      await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+      await t.writeManifest({
+        'id': 'L',
+        'name': 'Reef Survey',
+        'formatVersion': 1,
+      });
       await t.writeRoles(const SharedLibraryRoles(owners: {'m1'}));
-      expect((await t.readManifest())!['name'], 'Club');
+      expect((await t.readManifest())!['name'], 'Reef Survey');
       expect((await t.readRoles()).roleOf('m1'), SharedLibraryRole.owner);
     },
   );
@@ -64,7 +68,7 @@ void main() {
     'writeSite returns null for a same-length write by another member',
     () async {
       final racing = _OverwriteBeforeReadBack();
-      final rt = SharedLibraryTransport(racing, prefix: 'club');
+      final rt = SharedLibraryTransport(racing, prefix: 'site-sync');
       const mine = SiteDocument(id: 's1', fields: {'name': 'AAAA'});
       const theirs = SiteDocument(id: 's1', fields: {'name': 'BBBB'});
       expect(
@@ -80,7 +84,7 @@ void main() {
     'writeSite returns null when another write lands before the read-back',
     () async {
       final racing = _OverwriteBeforeReadBack();
-      final rt = SharedLibraryTransport(racing, prefix: 'club');
+      final rt = SharedLibraryTransport(racing, prefix: 'site-sync');
       racing.overwrite = SiteDocument.encode(
         const SiteDocument(
           id: 's1',
@@ -100,7 +104,11 @@ void main() {
     // An S3 account whose personal sync lives under 'submersion-sync/'.
     final s3 = _S3LikeFolders(syncPrefix: 'submersion-sync/');
     final t = SharedLibraryTransport(s3, prefix: 'site-sync');
-    await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+    await t.writeManifest({
+      'id': 'L',
+      'name': 'Reef Survey',
+      'formatVersion': 1,
+    });
     await t.writeSite(const SiteDocument(id: 's1', fields: {'name': 'A'}));
     expect(s3.uploadFolders, [
       'submersion-sites/site-sync/',
@@ -118,11 +126,11 @@ void main() {
 
   test('an empty folder does not read a nested library as its own', () async {
     // S3 lists a prefix recursively: submersion-sites/ also holds every
-    // library below it, and club-a's files sort before the root's.
+    // library below it, and library-a's files sort before the root's.
     final bucket = _S3Bucket();
-    final clubA = SharedLibraryTransport(bucket, prefix: 'club-a');
-    await clubA.writeManifest({'id': 'A', 'name': 'A', 'formatVersion': 1});
-    await clubA.writeRoles(const SharedLibraryRoles(owners: {'m1'}));
+    final libraryA = SharedLibraryTransport(bucket, prefix: 'library-a');
+    await libraryA.writeManifest({'id': 'A', 'name': 'A', 'formatVersion': 1});
+    await libraryA.writeRoles(const SharedLibraryRoles(owners: {'m1'}));
     final root = SharedLibraryTransport(bucket, prefix: '');
     expect(await root.readManifest(), isNull);
     expect(await root.readRoles(), SharedLibraryRoles.empty);
@@ -143,7 +151,7 @@ void main() {
   );
 
   test('a folder with . or .. segments is refused', () async {
-    expect(SharedLibraryTransport.isValidPrefix('clubs/site-sync'), isTrue);
+    expect(SharedLibraryTransport.isValidPrefix('groups/site-sync'), isTrue);
     expect(SharedLibraryTransport.isValidPrefix(''), isTrue);
     expect(SharedLibraryTransport.isValidPrefix('../submersion-sync'), isFalse);
     expect(SharedLibraryTransport.isValidPrefix('a/./b'), isFalse);

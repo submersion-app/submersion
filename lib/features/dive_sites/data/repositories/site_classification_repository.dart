@@ -195,7 +195,7 @@ class SiteClassificationRepository {
       return removed || added.isNotEmpty;
     });
     if (notify) {
-      // A club library clock only for a real change (issue #2567): a fresh
+      // A shared site library clock only for a real change (issue #2567): a fresh
       // clock on an unchanged list would beat another member's edit.
       if (changed) await _libraryStamper.stamp(siteId, {'siteTypes'});
       SyncEventBus.notifyLocalChange();

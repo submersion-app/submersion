@@ -49,7 +49,7 @@ void main() {
     await store.upsertLibrary(
       const SharedLibrary(
         id: 'L',
-        name: 'Club',
+        name: 'Reef Survey',
         connectedAccountId: 'a',
         prefix: 'p',
       ),
@@ -61,7 +61,7 @@ void main() {
         libraryId: 'L',
         memberId: 'r',
         displayName: 'Ray',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );

@@ -45,7 +45,7 @@ extension SiteFilterQuery on SiteFilterState {
       );
     }
     if (libraryId != null) {
-      // Club library membership (issue #2567): a library's id, or the
+      // Shared site library membership (issue #2567): a library's id, or the
       // personal sentinel for sites in no library.
       parts.add(
         libraryId == SiteFilterState.personalLibrary

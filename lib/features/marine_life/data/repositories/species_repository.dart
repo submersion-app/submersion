@@ -802,7 +802,7 @@ class SpeciesRepository {
   }
 
   /// Add expected species to a site
-  /// [stampLibrary] false is for the club library bridge, which applies a
+  /// [stampLibrary] false is for the shared site library bridge, which applies a
   /// pulled list whose clocks it writes itself (issue #2567).
   Future<domain.SiteSpeciesEntry> addExpectedSpecies({
     required String siteId,

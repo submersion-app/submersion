@@ -150,7 +150,7 @@ class SharedSiteSuggestion {
   }
 }
 
-/// Device-local storage for club libraries, their member and role caches,
+/// Device-local storage for shared site libraries, their member and role caches,
 /// per-site clocks and suggestions, plus the synced membership rows
 /// (issue #2567).
 class SharedLibraryStore {

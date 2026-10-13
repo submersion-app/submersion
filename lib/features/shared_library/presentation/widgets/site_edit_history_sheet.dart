@@ -9,7 +9,7 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 import 'package:submersion/features/shared_library/presentation/widgets/site_attribution_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Each field of a club library site with its last editor and time
+/// Each field of a shared site library site with its last editor and time
 /// (issue #2567).
 Future<void> showSiteEditHistorySheet(
   BuildContext context, {

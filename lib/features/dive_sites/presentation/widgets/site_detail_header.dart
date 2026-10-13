@@ -155,7 +155,7 @@ class _Rating extends StatelessWidget {
   }
 }
 
-/// The club library a site belongs to and who last edited it (issue
+/// The shared site library a site belongs to and who last edited it (issue
 /// #2567).
 class _LibraryLine extends ConsumerWidget {
   const _LibraryLine({required this.site});

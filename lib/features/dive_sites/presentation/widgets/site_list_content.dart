@@ -1280,7 +1280,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         minCount: 2,
         onInvoke: _startMerge,
       ),
-      // Personal sites into a club library (issue #2567); a library site
+      // Personal sites into a shared site library (issue #2567); a library site
       // already belongs to one.
       BulkAction(
         id: 'addToLibrary',

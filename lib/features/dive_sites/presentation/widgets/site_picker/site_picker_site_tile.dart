@@ -35,7 +35,7 @@ class SitePickerSiteTile extends StatelessWidget {
             ? colorScheme.tertiaryContainer
             : colorScheme.surfaceContainerHighest,
         child: Icon(
-          // A club library site wears the group glyph (issue #2567).
+          // A shared site library site wears the group glyph (issue #2567).
           site.isLibrarySite
               ? Icons.groups_outlined
               : isNearby

@@ -37,7 +37,7 @@ typedef LibraryTransportFactory =
       required String prefix,
     });
 
-/// Connecting, creating, joining and leaving club libraries, member
+/// Connecting, creating, joining and leaving shared site libraries, member
 /// display names and owner role changes (issue #2567).
 /// Leaving would leave the library without an owner while other members
 /// remain: one of them must be made owner first.

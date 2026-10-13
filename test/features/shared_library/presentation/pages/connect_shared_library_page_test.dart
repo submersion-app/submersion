@@ -131,7 +131,11 @@ void main() {
       ),
     ];
     final probes = <String, LibraryProbe>{
-      'club': const LibraryProbe(exists: true, id: 'L', name: 'Club'),
+      'site-sync': const LibraryProbe(
+        exists: true,
+        id: 'L',
+        name: 'Reef Survey',
+      ),
       'old': const LibraryProbe(
         exists: true,
         id: 'O',
@@ -164,10 +168,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Bucket'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const Key('library-prefix')), 'club');
+    await tester.enterText(
+      find.byKey(const Key('library-prefix')),
+      'site-sync',
+    );
     await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
-    expect(find.text('Join Club'), findsOneWidget);
+    expect(find.text('Join Reef Survey'), findsOneWidget);
     expect(find.text('Ann'), findsOneWidget, reason: 'display name prefilled');
 
     await tester.enterText(find.byKey(const Key('library-prefix')), 'other');
@@ -212,7 +219,10 @@ void main() {
       _connectApp(await getBaseOverrides(), () => [_bucket()]),
     );
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('library-prefix')), 'club');
+    await tester.enterText(
+      find.byKey(const Key('library-prefix')),
+      'site-sync',
+    );
     await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Create library'));

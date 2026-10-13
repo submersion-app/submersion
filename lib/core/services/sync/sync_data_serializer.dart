@@ -8539,7 +8539,7 @@ class SyncDataSerializer {
   }
 
   /// Child entities of `dive_sites` whose rows follow the site out of the
-  /// personal sync when the site belongs to a club library (issue #2567).
+  /// personal sync when the site belongs to a shared site library (issue #2567).
   /// `siteHides` is not one: a hide is the profile's own preference and
   /// syncs to its other devices; the parent gate drops it on a device that
   /// holds no copy of the site.
@@ -8550,7 +8550,7 @@ class SyncDataSerializer {
     'siteFeatures',
   };
 
-  /// Ids of sites that belong to a club library (issue #2567): outside the
+  /// Ids of sites that belong to a shared site library (issue #2567): outside the
   /// personal sync in both directions.
   Future<Set<String>> librarySiteIds() async {
     final memo = _librarySiteIdsMemo;

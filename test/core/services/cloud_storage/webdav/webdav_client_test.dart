@@ -418,7 +418,7 @@ void main() {
         backoff: (_) => Duration.zero,
       );
       addTearDown(readOnly.close);
-      await readOnly.ensureCollection('club');
+      await readOnly.ensureCollection('site-sync');
       await expectLater(
         readOnly.ensureCollection('missing'),
         throwsA(

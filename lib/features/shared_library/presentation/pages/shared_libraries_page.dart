@@ -7,12 +7,12 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings > Club libraries: the libraries connected on this device that
+/// Settings > Shared site libraries: the libraries connected on this device that
 /// the active profile belongs to (issue #2567).
 class SharedLibrariesPage extends ConsumerWidget {
   const SharedLibrariesPage({super.key});
 
-  static const connectRoute = '/settings/club-libraries/connect';
+  static const connectRoute = '/settings/shared-libraries/connect';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -126,7 +126,7 @@ class _LibraryTile extends ConsumerWidget {
       title: Text(library.name),
       subtitle: Text(parts.join(' · ')),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.push('/settings/club-libraries/${library.id}'),
+      onTap: () => context.push('/settings/shared-libraries/${library.id}'),
     );
   }
 }
@@ -145,7 +145,7 @@ class _NotConnectedTile extends StatelessWidget {
     subtitle: Text(context.l10n.sharedLibrary_list_notConnected),
     trailing: const Icon(Icons.chevron_right),
     onTap: () => context.push(
-      '/settings/club-libraries/connect?prefix='
+      '/settings/shared-libraries/connect?prefix='
       '${Uri.encodeQueryComponent(membership.prefixHint)}',
     ),
   );

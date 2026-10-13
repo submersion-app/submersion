@@ -19,7 +19,7 @@ class DenseSiteListTile extends StatelessWidget {
   final bool isHighlighted;
   final bool showSharedBadge;
 
-  /// The site, when the row should show a club library badge (issue #2567).
+  /// The site, when the row should show a shared site library badge (issue #2567).
   final DiveSite? site;
 
   const DenseSiteListTile({

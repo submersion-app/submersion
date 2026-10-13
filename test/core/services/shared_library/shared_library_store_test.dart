@@ -30,9 +30,9 @@ void main() {
     await store.upsertLibrary(
       const SharedLibrary(
         id: 'L',
-        name: 'Club',
+        name: 'Reef Survey',
         connectedAccountId: 'acc',
-        prefix: 'club/',
+        prefix: 'site-sync/',
       ),
     );
     await store.replaceMembers('L', [
@@ -49,7 +49,7 @@ void main() {
     );
     final lib = (await store.getLibrary('L'))!;
     expect(lib.lastError, 'boom');
-    expect(lib.prefix, 'club/');
+    expect(lib.prefix, 'site-sync/');
     expect(lib.roles.roleOf('m1'), SharedLibraryRole.owner);
     expect(await store.memberNames('L'), {'m1': 'Ann'});
     await store.setLibraryStatus('L', clearError: true, readOnlyDetected: true);
@@ -71,7 +71,7 @@ void main() {
         libraryId: 'L',
         memberId: first,
         displayName: 'Ann',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );
@@ -93,7 +93,7 @@ void main() {
         libraryId: 'L',
         memberId: 'm',
         displayName: 'Ann',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );
@@ -160,7 +160,7 @@ void main() {
     await store.upsertLibrary(
       const SharedLibrary(
         id: 'L',
-        name: 'Club',
+        name: 'Reef Survey',
         connectedAccountId: 'a',
         prefix: 'p',
       ),
@@ -201,7 +201,7 @@ void main() {
         libraryId: 'L',
         memberId: 'm',
         displayName: 'Ann',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );

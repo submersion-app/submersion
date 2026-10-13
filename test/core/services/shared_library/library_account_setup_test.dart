@@ -27,7 +27,7 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  S3Config s3({String key = 'AKIACLUB'}) => S3Config(
+  S3Config s3({String key = 'AKIALIBRARY'}) => S3Config(
     endpoint: 'https://s3.eu-west-1.amazonaws.com',
     region: 'eu-west-1',
     bucket: 'submersion-sync',
@@ -58,7 +58,7 @@ void main() {
       expect(label, contains('submersion-sites'));
       expect(label, isNot('submersion-sync @ s3.eu-west-1.amazonaws.com'));
       final stored = jsonDecode((await credentials.read(account.id))!) as Map;
-      expect(stored['accessKeyId'], 'AKIACLUB');
+      expect(stored['accessKeyId'], 'AKIALIBRARY');
       expect(stored['prefix'], 'submersion-sites/');
       final sync = jsonDecode((await credentials.read(syncId))!) as Map;
       expect(sync['accessKeyId'], 'AKIASYNC', reason: 'sync keys untouched');
@@ -99,7 +99,7 @@ void main() {
         WebDavConfig(serverUrl: url, username: 'alice', password: 'secret');
 
     test('reaches the server without writing to it', () async {
-      // A club may hand out a login that can only read.
+      // A library may hand out a login that can only read.
       final config = at('https://dav.test/dav');
       expect(await setup.reachWebDav(config), config);
       expect(

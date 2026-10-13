@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A club-controlled S3 or WebDAV folder holds a shared dive-site library that members connect to, read, edit field by field with attribution, push personal sites into, and govern with owner, editor and reader roles, independently of the personal sync.
+**Goal:** A group-controlled S3 or WebDAV folder holds a shared dive-site library that members connect to, read, edit field by field with attribution, push personal sites into, and govern with owner, editor and reader roles, independently of the personal sync.
 
 **Architecture:** A new subsystem under `lib/core/services/shared_library/` (transport, codec, merge, clocks, local store) and `lib/features/shared_library/` (providers, pages, widgets) that shares only `CloudStorageProvider` and connected accounts with personal sync. Library sites are ordinary `dive_sites` rows carrying `shared_library_id`; per-field clocks and dirty flags live in `shared_site_state`. Personal sync gains three guards so library rows never cross it.
 
@@ -28,7 +28,7 @@
 2. A `roles.json` that lists a member as both owner and editor, or lists an unknown id: owner wins, unknown ids are kept verbatim so a later join resolves them. Pinned in Task 11.
 3. A library site hidden by the member, then edited remotely: the hide must survive the merge (hides are per profile, not part of the document). Pinned in Task 10.
 4. A push of a site that another profile on the same device shared (`isShared` true with hides): hides are left in place and the row loses `isShared`. Pinned in Task 12.
-5. The manifest disappears after a library was connected (club moved folders): sync must stop with a clear state and never delete local rows. Pinned in Task 11.
+5. The manifest disappears after a library was connected (the owners moved folders): sync must stop with a clear state and never delete local rows. Pinned in Task 11.
 
 ---
 
@@ -105,7 +105,7 @@ import 'package:drift/drift.dart';
 import 'diver_tables.dart';
 import 'site_tables.dart';
 
-/// A club library this device connected (issue #2567). Device-local: the
+/// A shared site library this device connected (issue #2567). Device-local: the
 /// credentials live on the connected account, the role and member caches
 /// are refreshed from the folder on every sync.
 class SharedLibraries extends Table {
@@ -208,7 +208,7 @@ class SharedSiteSuggestions extends Table {
 Add to `site_tables.dart` directly after `isShared` (line 53):
 
 ```dart
-  /// The club library this site belongs to (issue #2567); null for a
+  /// The shared site library this site belongs to (issue #2567); null for a
   /// personal site. Set rows never enter the personal sync.
   TextColumn get sharedLibraryId => text().nullable()();
 ```
@@ -395,7 +395,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/services/sync/hlc.dart';
 
-/// What a member may do in a club library (issue #2567).
+/// What a member may do in a shared site library (issue #2567).
 enum SharedLibraryRole { reader, editor, owner }
 
 /// The clock on one document field: when, and by which member.
@@ -561,7 +561,7 @@ class SharedLibraryMembership extends Equatable {
         libraryName, backendKind, locationHint];
 }
 
-/// Manifest file name and folder names inside the club prefix.
+/// Manifest file name and folder names inside the library prefix.
 abstract final class SharedLibraryLayout {
   static const manifestFile = 'submersion-shared-library.json';
   static const rolesFile = 'roles.json';
@@ -684,7 +684,7 @@ import 'dart:typed_data';
 
 import 'shared_library_models.dart';
 
-/// One site as stored in `sites/<id>.json` of a club library (issue #2567).
+/// One site as stored in `sites/<id>.json` of a shared site library (issue #2567).
 class SiteDocument {
   const SiteDocument({
     required this.id,
@@ -1038,7 +1038,7 @@ bool _newer(FieldClock? a, FieldClock? b) {
 // lib/core/services/shared_library/member_clock.dart
 import 'package:submersion/core/services/sync/hlc.dart';
 
-/// A hybrid logical clock for one member of a club library (issue #2567).
+/// A hybrid logical clock for one member of a shared site library (issue #2567).
 /// Unlike [SyncClock] it is not a singleton: one per library sync, seeded
 /// from the newest clock the device already holds.
 class MemberClock {
@@ -1144,7 +1144,7 @@ void main() {
 
   test('library round trip, status update and cascade delete', () async {
     await store.upsertLibrary(const SharedLibrary(
-      id: 'L', name: 'Club', connectedAccountId: 'acc', prefix: 'club/'));
+      id: 'L', name: 'Reef Survey', connectedAccountId: 'acc', prefix: 'site-sync/'));
     await store.replaceMembers('L', [
       SharedLibraryMember(memberId: 'm1', displayName: 'Ann', joinedAt: DateTime.utc(2026)),
     ]);
@@ -1162,7 +1162,7 @@ void main() {
     final first = await store.memberIdForDiver('d1');
     await store.upsertMembership(SharedLibraryMembership(
       id: 'ms1', diverId: 'd1', libraryId: 'L', memberId: first,
-      displayName: 'Ann', libraryName: 'Club', backendKind: 's3'));
+      displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3'));
     expect(await store.memberIdForDiver('d1'), first);
     final rows = await store.membershipsForDiver('d1');
     expect(rows.single.memberId, first);
@@ -1171,7 +1171,7 @@ void main() {
   test('upsertMembership stamps an hlc for personal sync', () async {
     await store.upsertMembership(const SharedLibraryMembership(
       id: 'ms1', diverId: 'd1', libraryId: 'L', memberId: 'm',
-      displayName: 'Ann', libraryName: 'Club', backendKind: 's3'));
+      displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3'));
     final hlc = (await DatabaseService.instance.database
             .customSelect("SELECT hlc FROM shared_library_memberships WHERE id = 'ms1'")
             .getSingle())
@@ -1342,7 +1342,7 @@ void main() {
       fields: {
         'name': 'Blue Hole', 'latitude': 1.5, 'longitude': 2.5, 'maxDepth': 30.0,
         'hazards': 'current', 'entryMethod': 'shore',
-        'siteTypes': ['Reef'], 'tags': ['Club'],
+        'siteTypes': ['Reef'], 'tags': ['Reef Survey'],
         'species': [{'name': 'Grouper', 'scientificName': 'Epinephelus'}],
         'features': [{'id': 'f1', 'type': 'mooring', 'name': 'M1',
           'latitude': 1.0, 'longitude': 2.0, 'bearingDeg': null, 'depthMeters': 5.0, 'notes': ''}],
@@ -1358,7 +1358,7 @@ void main() {
     expect(site.hazards, 'current');
     expect(site.location?.latitude, 1.5);
     expect((await SiteClassificationRepository().getTypesForSite('s1')).map((t) => t.name), ['Reef']);
-    expect((await SiteClassificationRepository().getTagsForSite('s1')).map((t) => t.name), ['Club']);
+    expect((await SiteClassificationRepository().getTagsForSite('s1')).map((t) => t.name), ['Reef Survey']);
     expect((await SiteFeatureRepository().getFeaturesForSite('s1')).single.id, 'f1');
     final tag = (await TagRepository().getAllTags(diverId: 'd1')).single;
     expect(tag.diverId, 'd1', reason: 'vocabulary belongs to the subscribing diver');
@@ -1513,8 +1513,8 @@ void main() {
     await DiverRepository().createDiver(const Diver(id: 'd1', name: 'Ann'));
     await SharedLibraryStore().upsertMembership(const SharedLibraryMembership(
       id: 'ms1', diverId: 'd1', libraryId: 'L', memberId: 'm1',
-      displayName: 'Ann', libraryName: 'Club', backendKind: 's3',
-      locationHint: 'bucket/club'));
+      displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3',
+      locationHint: 'bucket/site-sync'));
     var svc = SyncService(syncRepository: SyncRepository(),
         serializer: SyncDataSerializer(), cloudProvider: cloud);
     expect((await svc.performSync()).status, SyncResultStatus.success);
@@ -1525,7 +1525,7 @@ void main() {
         serializer: SyncDataSerializer(), cloudProvider: cloud);
     expect((await svc.performSync()).status, SyncResultStatus.success);
     final rows = await SharedLibraryStore().membershipsForDiver('d1');
-    expect(rows.single.locationHint, 'bucket/club');
+    expect(rows.single.locationHint, 'bucket/site-sync');
     await tearDownTestDatabase();
   });
 }
@@ -1558,7 +1558,7 @@ Follow the `diveComputerConnections` lines listed above one by one, with `shared
 mergeOrder entry, after the diver settings entries so the diver exists:
 
 ```dart
-          // v285: a profile's club-library memberships (issue #2567).
+          // v285: a profile's shared site library memberships (issue #2567).
           (
             type: 'sharedLibraryMemberships',
             records: data.sharedLibraryMemberships,
@@ -1575,7 +1575,7 @@ Expected: PASS, including the previously skipped hlc test.
 
 ```bash
 git add lib/core/services/sync/sync_data_serializer.dart lib/core/services/sync/sync_service.dart lib/core/data/repositories/sync_repository.dart test/core/services/sync/shared_library_membership_sync_test.dart test/core/services/shared_library/shared_library_store_test.dart
-git commit -m "feat(shared-library): sync club memberships across a profile's devices"
+git commit -m "feat(shared-library): sync library memberships across a profile's devices"
 ```
 
 ---
@@ -1629,7 +1629,7 @@ void main() {
     await DiverRepository().createDiver(const Diver(id: 'd1', name: 'Ann'));
     await SharedLibraryStore().upsertMembership(const SharedLibraryMembership(
       id: 'ms', diverId: 'd1', libraryId: 'L', memberId: 'm1',
-      displayName: 'Ann', libraryName: 'Club', backendKind: 's3'));
+      displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3'));
     await SiteRepository().createSite(const DiveSite(id: 's', name: 'S', sharedLibraryId: 'L'));
   });
   tearDown(tearDownTestDatabase);
@@ -1774,7 +1774,7 @@ void main() {
   test('a library site is never exported', () async {
     final cloud = FakeCloudStorageProvider();
     await setUpTestDatabase();
-    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'));
+    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: 'L'));
     await SiteRepository().createSite(const DiveSite(id: 'mine', name: 'Mine'));
     expect((await _svc(cloud).performSync()).status, SyncResultStatus.success);
     await tearDownTestDatabase();
@@ -1796,7 +1796,7 @@ void main() {
 
     // Device B holds the same id as a library row.
     await setUpTestDatabase();
-    await SiteRepository().createSite(const DiveSite(id: 'x', name: 'Club', notes: 'new', sharedLibraryId: 'L'));
+    await SiteRepository().createSite(const DiveSite(id: 'x', name: 'Reef Survey', notes: 'new', sharedLibraryId: 'L'));
     expect((await _svc(cloud).performSync()).status, SyncResultStatus.success);
     var site = (await SiteRepository().getSiteById('x'))!;
     expect(site.notes, 'new');
@@ -1811,7 +1811,7 @@ void main() {
     await tearDownTestDatabase();
 
     await setUpTestDatabase();
-    await SiteRepository().createSite(const DiveSite(id: 'x', name: 'Club', notes: 'new', sharedLibraryId: 'L'));
+    await SiteRepository().createSite(const DiveSite(id: 'x', name: 'Reef Survey', notes: 'new', sharedLibraryId: 'L'));
     expect((await _svc(cloud).performSync()).status, SyncResultStatus.success);
     site = (await SiteRepository().getSiteById('x'))!;
     expect(site.sharedLibraryId, 'L');
@@ -1820,7 +1820,7 @@ void main() {
 
   test('deleting a library row logs no tombstone', () async {
     await setUpTestDatabase();
-    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Club', sharedLibraryId: 'L'));
+    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Reef Survey', sharedLibraryId: 'L'));
     await SiteRepository().deleteSite('lib');
     final rows = await DatabaseService.instance.database
         .customSelect("SELECT 1 FROM deletion_log WHERE entity_type = 'diveSites' AND record_id = 'lib'")
@@ -1851,7 +1851,7 @@ Export: add `..where((t) => t.sharedLibraryId.isNull())` to `_exportDiveSites`, 
 ). `_exportSiteFeatures` filters on its own `hlc` and must also drop rows whose `siteId` is a library site. The pending-children union (`_withPendingChildren`) must drop the same ids. Base export: find how `_baseTables` streams rows (`exportBaseToTempFile` near 1492) and add an optional `excludeWhere` per entry, set for `diveSites` (`shared_library_id IS NULL`) and the four children (`site_id NOT IN (SELECT id FROM dive_sites WHERE shared_library_id IS NOT NULL)`).
 
 ```dart
-  /// Ids of sites that belong to a club library (issue #2567): outside the
+  /// Ids of sites that belong to a shared site library (issue #2567): outside the
   /// personal sync in both directions.
   Future<Set<String>> librarySiteIds() async {
     final rows = await (_db.selectOnly(_db.diveSites)
@@ -1934,8 +1934,8 @@ void main() {
     await DiverRepository().createDiver(const Diver(id: 'other', name: 'Bob'));
     await SharedLibraryStore().upsertMembership(const SharedLibraryMembership(
       id: 'ms', diverId: 'member', libraryId: 'L', memberId: 'm',
-      displayName: 'Ann', libraryName: 'Club', backendKind: 's3'));
-    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'));
+      displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3'));
+    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: 'L'));
   });
   tearDown(tearDownTestDatabase);
 
@@ -1945,8 +1945,8 @@ void main() {
   });
 
   test('search honours the same rule', () async {
-    expect(await SiteRepository().searchSites('Club', diverId: 'other'), isEmpty);
-    expect(await SiteRepository().searchSites('Club', diverId: 'member'), hasLength(1));
+    expect(await SiteRepository().searchSites('Reef Survey', diverId: 'other'), isEmpty);
+    expect(await SiteRepository().searchSites('Reef Survey', diverId: 'member'), hasLength(1));
   });
 
   test('a hide removes a library site for that profile and survives a remote edit', () async {
@@ -2041,7 +2041,7 @@ git commit -m "feat(shared-library): library sites visible to members, role poli
 - Produces:
 
 ```dart
-/// File operations on one club library folder. File names carry a kind
+/// File operations on one shared site library folder. File names carry a kind
 /// prefix (site-, member-, suggestion-) as well as living in their own
 /// subfolder, so a backend that flattens folders (the test fake, some
 /// S3-compatible stores) still lists each kind apart.
@@ -2086,7 +2086,7 @@ class SharedLibraryService {
 }
 ```
 
-The prefix the transport receives is the club prefix relative to the account's sync folder; the transport resolves `root = createFolder(prefix, parentFolderId: await getOrCreateSyncFolder())` once (S3 returns the key prefix, WebDAV ensures the collection), then `members`, `sites` and `suggestions` the same way under root. All reads and writes pass those folder ids. An empty prefix uses the sync folder itself as root.
+The prefix the transport receives is the library prefix relative to the account's sync folder; the transport resolves `root = createFolder(prefix, parentFolderId: await getOrCreateSyncFolder())` once (S3 returns the key prefix, WebDAV ensures the collection), then `members`, `sites` and `suggestions` the same way under root. All reads and writes pass those folder ids. An empty prefix uses the sync folder itself as root.
 
 - [ ] **Step 1: Write the failing transport test**
 
@@ -2105,15 +2105,15 @@ void main() {
   late SharedLibraryTransport t;
   setUp(() {
     cloud = FakeCloudStorageProvider();
-    t = SharedLibraryTransport(cloud, prefix: 'club');
+    t = SharedLibraryTransport(cloud, prefix: 'site-sync');
   });
 
   test('manifest and roles round trip; absent reads as null and empty', () async {
     expect(await t.readManifest(), isNull);
     expect(await t.readRoles(), SharedLibraryRoles.empty);
-    await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+    await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
     await t.writeRoles(const SharedLibraryRoles(owners: {'m1'}));
-    expect((await t.readManifest())!['name'], 'Club');
+    expect((await t.readManifest())!['name'], 'Reef Survey');
     expect((await t.readRoles()).roleOf('m1'), SharedLibraryRole.owner);
   });
 
@@ -2155,7 +2155,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
 
-const _lib = SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'acc', prefix: 'club');
+const _lib = SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'acc', prefix: 'site-sync');
 
 /// A fresh device for [member] joined to the shared fake [cloud].
 Future<SharedLibraryService> device(FakeCloudStorageProvider cloud, String member) async {
@@ -2165,7 +2165,7 @@ Future<SharedLibraryService> device(FakeCloudStorageProvider cloud, String membe
   await store.upsertLibrary(_lib);
   await store.upsertMembership(SharedLibraryMembership(
     id: 'ms-$member', diverId: 'd-$member', libraryId: 'L', memberId: member,
-    displayName: member, libraryName: 'Club', backendKind: 's3'));
+    displayName: member, libraryName: 'Reef Survey', backendKind: 's3'));
   return SharedLibraryService(
     store: store,
     transportFor: (lib) async => SharedLibraryTransport(cloud, prefix: lib.prefix),
@@ -2173,8 +2173,8 @@ Future<SharedLibraryService> device(FakeCloudStorageProvider cloud, String membe
 }
 
 Future<void> seedLibrary(FakeCloudStorageProvider cloud, {Set<String> owners = const {'a'}}) async {
-  final t = SharedLibraryTransport(cloud, prefix: 'club');
-  await t.writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+  final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+  await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
   await t.writeRoles(SharedLibraryRoles(owners: owners));
 }
 
@@ -2229,7 +2229,7 @@ void main() {
     site = (await SiteRepository().getSiteById('s1'))!;
     expect(site.parkingInfo, 'lot B');
     expect(site.hazards, 'current');
-    final doc = await SharedLibraryTransport(cloud, prefix: 'club').readSite('site-s1.json');
+    final doc = await SharedLibraryTransport(cloud, prefix: 'site-sync').readSite('site-s1.json');
     expect(doc.fields['parkingInfo'], 'lot B');
     expect(doc.clocks['hazards']!.memberId, 'a');
   });
@@ -2244,7 +2244,7 @@ void main() {
     var site = (await SiteRepository().getSiteById('s1'))!;
     await SiteRepository().updateSite(site.copyWith(hazards: 'A says'), actingDiverId: 'd-a');
     // B overwrites the document before A uploads (simulated by writing straight to the cloud).
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     final remote = await t.readSite('site-s1.json');
     await t.writeSite(remote.copyWith(
       fields: {...remote.fields, 'notes': 'B says'},
@@ -2285,7 +2285,7 @@ void main() {
 
   test('a newer format version stops the sync', () async {
     final cloud = FakeCloudStorageProvider();
-    await SharedLibraryTransport(cloud, prefix: 'club').writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 2});
+    await SharedLibraryTransport(cloud, prefix: 'site-sync').writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 2});
     final svc = await device(cloud, 'a');
     expect((await svc.sync('L', diverId: 'd-a')).status, SharedLibrarySyncStatus.needsNewerApp);
   });
@@ -2302,7 +2302,7 @@ void main() {
   test('a remote tombstone removes an unlinked local row and keeps its state', () async {
     final cloud = FakeCloudStorageProvider();
     await seedLibrary(cloud);
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await t.writeSite(SiteDocument(id: 's1', fields: {'name': 'Gone'},
       clocks: {'name': FieldClock(hlc: Hlc(1, 0, 'a'), memberId: 'a')}));
     final svc = await device(cloud, 'b');
@@ -2477,7 +2477,7 @@ Expected: PASS.
 
 ```bash
 git add lib/core/services/shared_library/shared_library_transport.dart lib/core/services/shared_library/shared_library_service.dart test/helpers/fake_cloud_storage_provider.dart test/core/services/shared_library/shared_library_transport_test.dart test/core/services/shared_library/shared_library_service_test.dart
-git commit -m "feat(shared-library): club folder transport and the library sync"
+git commit -m "feat(shared-library): library folder transport and the library sync"
 ```
 
 ---
@@ -2543,7 +2543,7 @@ void main() {
   setUp(() async {
     await setUpTestDatabase();
     await DiverRepository().createDiver(const Diver(id: 'd1', name: 'Ann'));
-    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Club', sharedLibraryId: 'L'));
+    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Reef Survey', sharedLibraryId: 'L'));
     await SharedLibraryStore().putSiteState(SharedSiteState(siteId: 'lib', libraryId: 'L'));
   });
   tearDown(tearDownTestDatabase);
@@ -2556,7 +2556,7 @@ void main() {
     final kept = (await SiteRepository().getSiteById(newId!))!;
     expect(kept.sharedLibraryId, isNull);
     expect(kept.diverId, 'd1');
-    expect(kept.name, 'Club');
+    expect(kept.name, 'Reef Survey');
     final dive = (await DiveRepository().getDiveById('dv'))!;
     expect(dive.siteId, newId);
     expect(await SharedLibraryStore().getSiteState('lib'), isNull);
@@ -2580,9 +2580,9 @@ void main() {
   setUp(() async {
     await setUpTestDatabase();
     await DiverRepository().createDiver(const Diver(id: 'd1', name: 'Ann'));
-    await SharedLibraryStore().upsertLibrary(const SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'acc', prefix: 'club'));
+    await SharedLibraryStore().upsertLibrary(const SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'acc', prefix: 'site-sync'));
     await SharedLibraryStore().upsertMembership(const SharedLibraryMembership(
-      id: 'ms', diverId: 'd1', libraryId: 'L', memberId: 'm1', displayName: 'Ann', libraryName: 'Club', backendKind: 's3'));
+      id: 'ms', diverId: 'd1', libraryId: 'L', memberId: 'm1', displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3'));
   });
   tearDown(tearDownTestDatabase);
 
@@ -2604,7 +2604,7 @@ void main() {
   });
 
   test('deleteFromLibrary stamps the tombstone and removes the unlinked row', () async {
-    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Club', sharedLibraryId: 'L'));
+    await SiteRepository().createSite(const DiveSite(id: 'lib', name: 'Reef Survey', sharedLibraryId: 'L'));
     await SharedLibraryStore().putSiteState(SharedSiteState(siteId: 'lib', libraryId: 'L'));
     await SharedSitePublisher().deleteFromLibrary(siteId: 'lib', diverId: 'd1');
     final state = (await SharedLibraryStore().getSiteState('lib'))!;
@@ -2621,7 +2621,7 @@ void main() {
 void main() {
   late FakeCloudStorageProvider cloud;
   late SharedLibraryMembershipService service;
-  final account = ConnectedAccount(id: 'acc', kind: AccountKind.s3, label: 'Club bucket', createdAt: DateTime.utc(2026), updatedAt: DateTime.utc(2026));
+  final account = ConnectedAccount(id: 'acc', kind: AccountKind.s3, label: 'Survey bucket', createdAt: DateTime.utc(2026), updatedAt: DateTime.utc(2026));
   setUp(() async {
     await setUpTestDatabase();
     await DiverRepository().createDiver(const Diver(id: 'd1', name: 'Ann'));
@@ -2634,30 +2634,30 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   test('probe, create, then a second profile joins', () async {
-    expect((await service.probe(account: account, prefix: 'club')).exists, isFalse);
-    final lib = await service.create(account: account, prefix: 'club', name: 'Club', diverId: 'd1', displayName: 'Ann');
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
-    expect((await t.readManifest())!['name'], 'Club');
+    expect((await service.probe(account: account, prefix: 'site-sync')).exists, isFalse);
+    final lib = await service.create(account: account, prefix: 'site-sync', name: 'Reef Survey', diverId: 'd1', displayName: 'Ann');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    expect((await t.readManifest())!['name'], 'Reef Survey');
     final me = (await SharedLibraryStore().membership(diverId: 'd1', libraryId: lib.id))!;
     expect((await t.readRoles()).roleOf(me.memberId), SharedLibraryRole.owner);
     expect((await t.listMembers()).single.displayName, 'Ann');
-    expect((await service.probe(account: account, prefix: 'club')).name, 'Club');
+    expect((await service.probe(account: account, prefix: 'site-sync')).name, 'Reef Survey');
 
     await DiverRepository().createDiver(const Diver(id: 'd2', name: 'Bob'));
-    await service.join(account: account, prefix: 'club', diverId: 'd2', displayName: 'Bob');
+    await service.join(account: account, prefix: 'site-sync', diverId: 'd2', displayName: 'Bob');
     expect(await t.listMembers(), hasLength(2));
     expect(await SharedLibraryStore().getLibraries(), hasLength(1));
   });
 
   test('setRole refuses to demote the last owner', () async {
-    final lib = await service.create(account: account, prefix: 'club', name: 'Club', diverId: 'd1', displayName: 'Ann');
+    final lib = await service.create(account: account, prefix: 'site-sync', name: 'Reef Survey', diverId: 'd1', displayName: 'Ann');
     final me = (await SharedLibraryStore().membership(diverId: 'd1', libraryId: lib.id))!;
     expect(() => service.setRole(libraryId: lib.id, memberId: me.memberId, role: SharedLibraryRole.editor), throwsStateError);
   });
 
   test('leave removes the membership, detaches linked sites, drops the library when unused', () async {
-    final lib = await service.create(account: account, prefix: 'club', name: 'Club', diverId: 'd1', displayName: 'Ann');
-    await SiteRepository().createSite(DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: lib.id));
+    final lib = await service.create(account: account, prefix: 'site-sync', name: 'Reef Survey', diverId: 'd1', displayName: 'Ann');
+    await SiteRepository().createSite(DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: lib.id));
     await SharedLibraryStore().putSiteState(SharedSiteState(siteId: 'lib', libraryId: lib.id));
     await service.leave(libraryId: lib.id, diverId: 'd1');
     expect(await SharedLibraryStore().membership(diverId: 'd1', libraryId: lib.id), isNull);
@@ -2754,10 +2754,10 @@ void main() {
     await DiverRepository().createDiver(const Diver(id: 'reader', name: 'Ray'));
     await DiverRepository().createDiver(const Diver(id: 'owner', name: 'Olga'));
     final store = SharedLibraryStore();
-    await store.upsertLibrary(const SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'acc', prefix: 'club',
+    await store.upsertLibrary(const SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'acc', prefix: 'site-sync',
         roles: SharedLibraryRoles(owners: {'o'})));
-    await store.upsertMembership(const SharedLibraryMembership(id: 'm-r', diverId: 'reader', libraryId: 'L', memberId: 'r', displayName: 'Ray', libraryName: 'Club', backendKind: 's3'));
-    await store.upsertMembership(const SharedLibraryMembership(id: 'm-o', diverId: 'owner', libraryId: 'L', memberId: 'o', displayName: 'Olga', libraryName: 'Club', backendKind: 's3'));
+    await store.upsertMembership(const SharedLibraryMembership(id: 'm-r', diverId: 'reader', libraryId: 'L', memberId: 'r', displayName: 'Ray', libraryName: 'Reef Survey', backendKind: 's3'));
+    await store.upsertMembership(const SharedLibraryMembership(id: 'm-o', diverId: 'owner', libraryId: 'L', memberId: 'o', displayName: 'Olga', libraryName: 'Reef Survey', backendKind: 's3'));
     await SiteRepository().createSite(const DiveSite(id: 's', name: 'S', hazards: 'old', sharedLibraryId: 'L'));
     await store.putSiteState(SharedSiteState(siteId: 's', libraryId: 'L'));
     service = SuggestionService(transportFor: (lib) async => SharedLibraryTransport(cloud, prefix: lib.prefix));
@@ -2774,7 +2774,7 @@ void main() {
   });
 
   test('accept applies with the suggester as editor and removes the file', () async {
-    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await t.writeSuggestion('g1', {'id': 'g1', 'siteId': 's', 'memberId': 'r', 'memberName': 'Ray', 'note': '', 'fields': {'hazards': 'new'}, 'createdAt': '2026-10-12T00:00:00Z'});
     await SharedLibraryStore().putSuggestion(SharedSiteSuggestion(id: 'g1', libraryId: 'L', siteId: 's', memberId: 'r', memberName: 'Ray',
         fields: const {'hazards': 'new'}, createdAt: DateTime.utc(2026), direction: 'incoming', status: 'pending'));
@@ -2834,7 +2834,7 @@ git commit -m "feat(shared-library): reader suggestions and owner review"
 
 ```dart
 /// Serialises every sync that merges into the database (issue #2567): the
-/// personal changeset sync and each club library sync wait for one another.
+/// personal changeset sync and each shared site library sync wait for one another.
 abstract final class SyncCoordinator {
   static Future<T> run<T>(Future<T> Function() body);
   static bool get busy;
@@ -2883,10 +2883,10 @@ void main() {
     addTearDown(tearDownTestDatabase);
     await DiverRepository().createDiver(const Diver(id: 'd1', name: 'Ann'));
     final store = SharedLibraryStore();
-    await store.upsertLibrary(const SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'acc', prefix: 'club'));
-    await store.upsertMembership(const SharedLibraryMembership(id: 'ms', diverId: 'd1', libraryId: 'L', memberId: 'm', displayName: 'Ann', libraryName: 'Club', backendKind: 's3'));
+    await store.upsertLibrary(const SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'acc', prefix: 'site-sync'));
+    await store.upsertMembership(const SharedLibraryMembership(id: 'ms', diverId: 'd1', libraryId: 'L', memberId: 'm', displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3'));
     final cloud = FakeCloudStorageProvider();
-    await SharedLibraryTransport(cloud, prefix: 'club').writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+    await SharedLibraryTransport(cloud, prefix: 'site-sync').writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
     final container = ProviderContainer(overrides: [
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
       sharedLibraryTransportFactoryProvider.overrideWithValue((lib) async => SharedLibraryTransport(cloud, prefix: lib.prefix)),
@@ -2958,13 +2958,13 @@ git commit -m "feat(shared-library): library sync notifier, coordinator and trig
 
 | Key | English |
 | --- | --- |
-| `sharedLibrary_settings_title` | Club libraries |
+| `sharedLibrary_settings_title` | Shared site libraries |
 | `sharedLibrary_settings_subtitle` | Shared dive-site catalogues |
-| `sharedLibrary_list_empty` | No club library connected yet. |
+| `sharedLibrary_list_empty` | No shared site library connected yet. |
 | `sharedLibrary_connect_action` | Connect a library |
 | `sharedLibrary_connect_account_label` | Storage account |
 | `sharedLibrary_connect_prefix_label` | Folder (prefix) |
-| `sharedLibrary_connect_prefix_help` | The folder inside the account where the club keeps its library. |
+| `sharedLibrary_connect_prefix_help` | The folder inside the account where the library is kept. |
 | `sharedLibrary_connect_probe_action` | Check |
 | `sharedLibrary_connect_join_action` | Join {name} |
 | `sharedLibrary_connect_create_action` | Create library |
@@ -2972,7 +2972,7 @@ git commit -m "feat(shared-library): library sync notifier, coordinator and trig
 | `sharedLibrary_connect_displayName_label` | Your name in this library |
 | `sharedLibrary_connect_notALibrary` | No library here yet. |
 | `sharedLibrary_connect_needsNewerApp` | This library needs a newer version of Submersion. |
-| `sharedLibrary_connect_onlyS3Webdav` | Club libraries work with S3 and WebDAV accounts. |
+| `sharedLibrary_connect_onlyS3Webdav` | Shared site libraries work with S3 and WebDAV accounts. |
 | `sharedLibrary_role_reader` | Reader |
 | `sharedLibrary_role_editor` | Editor |
 | `sharedLibrary_role_owner` | Owner |
@@ -2987,21 +2987,21 @@ git commit -m "feat(shared-library): library sync notifier, coordinator and trig
 | `sharedLibrary_library_suggestions` | Suggestions |
 | `sharedLibrary_library_leave` | Leave library |
 | `sharedLibrary_library_leaveConfirm_title` | Leave {name}? |
-| `sharedLibrary_library_leaveConfirm_body` | Club sites your dives use stay as personal copies. Other club sites are removed from this device. |
+| `sharedLibrary_library_leaveConfirm_body` | Library sites your dives use stay as personal copies. Other library sites are removed from this device. |
 | `sharedLibrary_library_rename_label` | Display name |
 | `sharedLibrary_members_setRole` | Change role |
 | `sharedLibrary_members_lastOwner` | The last owner cannot be demoted. |
 | `sharedLibrary_site_badgeTooltip` | In {name} |
 | `sharedLibrary_site_lastEdited` | Last edited by {name}, {when} |
 | `sharedLibrary_site_history` | Edit history |
-| `sharedLibrary_site_addToLibrary` | Add to club library |
+| `sharedLibrary_site_addToLibrary` | Add to shared site library |
 | `sharedLibrary_site_chooseLibrary` | Choose a library |
 | `sharedLibrary_site_added` | Added to {name} |
 | `sharedLibrary_site_notConnectedHere` | This site is in {name}, which is not connected on this device. |
 | `sharedLibrary_site_connectHere` | Connect on this device |
-| `sharedLibrary_site_deleteFromLibrary_title` | Delete from the club library? |
+| `sharedLibrary_site_deleteFromLibrary_title` | Delete from the shared site library? |
 | `sharedLibrary_site_deleteFromLibrary_body` | Members whose dives use this site keep a personal copy. |
-| `sharedLibrary_site_readerCannotDelete` | Only editors and owners delete club sites. |
+| `sharedLibrary_site_readerCannotDelete` | Only editors and owners delete library sites. |
 | `sharedLibrary_suggest_title` | Suggest changes |
 | `sharedLibrary_suggest_note_label` | Note for the referents |
 | `sharedLibrary_suggest_send` | Send |
@@ -3021,7 +3021,7 @@ git commit -m "feat(shared-library): library sync notifier, coordinator and trig
 | `sharedLibrary_filter_personal` | Personal sites |
 | `sharedLibrary_groupBy_library` | Library |
 | `sharedLibrary_groupBy_personalGroup` | Personal |
-| `sharedLibrary_bulk_addToLibrary` | Add to club library |
+| `sharedLibrary_bulk_addToLibrary` | Add to shared site library |
 
 Plural keys need `@` metadata with `placeholders`; placeholder keys for `{name}`, `{when}`, `{error}` need their `@` entries with `"type": "String"`.
 
@@ -3057,8 +3057,8 @@ git commit -m "feat(shared-library): localised strings"
 - Create: `lib/features/shared_library/presentation/pages/suggestion_inbox_page.dart`
 - Create: `lib/features/shared_library/presentation/widgets/library_role_chip.dart`
 - Create: `lib/features/shared_library/presentation/widgets/suggestion_review_sheet.dart`
-- Modify: `lib/core/router/app_router.dart` (after the `cloud-sync` route near line 1478: `club-libraries`, `club-libraries/connect`, `club-libraries/:libraryId`, `club-libraries/:libraryId/members`, `club-libraries/:libraryId/suggestions`)
-- Modify: `lib/features/settings/presentation/pages/settings_page.dart:2758-2767` (a `ListTile` after Cloud Sync: icon `Icons.groups_outlined`, title `sharedLibrary_settings_title`, subtitle `sharedLibrary_settings_subtitle`, `context.push('/settings/club-libraries')`)
+- Modify: `lib/core/router/app_router.dart` (after the `cloud-sync` route near line 1478: `shared-libraries`, `shared-libraries/connect`, `shared-libraries/:libraryId`, `shared-libraries/:libraryId/members`, `shared-libraries/:libraryId/suggestions`)
+- Modify: `lib/features/settings/presentation/pages/settings_page.dart:2758-2767` (a `ListTile` after Cloud Sync: icon `Icons.groups_outlined`, title `sharedLibrary_settings_title`, subtitle `sharedLibrary_settings_subtitle`, `context.push('/settings/shared-libraries')`)
 - Test: `test/features/shared_library/presentation/pages/shared_libraries_page_test.dart`
 - Test: `test/features/shared_library/presentation/pages/shared_library_page_test.dart`
 - Test: `test/features/shared_library/presentation/pages/connect_shared_library_page_test.dart`
@@ -3066,7 +3066,7 @@ git commit -m "feat(shared-library): localised strings"
 
 **Interfaces:**
 - Consumes the Task 10 and 14 providers, `SharedLibraryMembershipService` (Task 12), `SuggestionService` (Task 13), `connectedAccountsRepositoryProvider` and the add-account flows in `connected_accounts_page.dart` (reuse by pushing `/settings/connected-accounts` with a "come back" result, or by invoking the same dialogs; read that page first and reuse its `_addAccount` entry points as a shared function if they are private).
-- Produces routes `/settings/club-libraries...` and the pages above.
+- Produces routes `/settings/shared-libraries...` and the pages above.
 
 - [ ] **Step 1: Write the failing page tests**
 
@@ -3082,7 +3082,7 @@ void main() {
       child: const SharedLibrariesPage(),
     ));
     await tester.pumpAndSettle();
-    expect(find.text('No club library connected yet.'), findsOneWidget);
+    expect(find.text('No shared site library connected yet.'), findsOneWidget);
     expect(find.text('Connect a library'), findsOneWidget);
   });
 
@@ -3090,19 +3090,19 @@ void main() {
     await tester.pumpWidget(testApp(
       overrides: [
         sharedLibrariesProvider.overrideWith((ref) => Stream.value(const [
-          SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'a', prefix: 'club',
+          SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'a', prefix: 'site-sync',
               roles: SharedLibraryRoles(owners: {'m'})),
         ])),
         currentMembershipsProvider.overrideWith((ref) async => const [
           SharedLibraryMembership(id: 'ms', diverId: 'd', libraryId: 'L', memberId: 'm',
-              displayName: 'Ann', libraryName: 'Club', backendKind: 's3'),
+              displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3'),
         ]),
         libraryMemberNamesProvider('L').overrideWith((ref) async => {'m': 'Ann', 'x': 'Bob'}),
       ],
       child: const SharedLibrariesPage(),
     ));
     await tester.pumpAndSettle();
-    expect(find.text('Club'), findsOneWidget);
+    expect(find.text('Reef Survey'), findsOneWidget);
     expect(find.text('Owner'), findsOneWidget);
     expect(find.text('2 members'), findsOneWidget);
   });
@@ -3115,7 +3115,7 @@ void main() {
   Widget page(SharedLibraryRole role, {bool readOnly = false, String? error}) => testApp(
     overrides: [
       sharedLibrariesProvider.overrideWith((ref) => Stream.value([
-        SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'a', prefix: 'club',
+        SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'a', prefix: 'site-sync',
             readOnlyDetected: readOnly, lastError: error,
             roles: SharedLibraryRoles(
               owners: role == SharedLibraryRole.owner ? {'m'} : {},
@@ -3123,7 +3123,7 @@ void main() {
       ])),
       currentMembershipsProvider.overrideWith((ref) async => const [
         SharedLibraryMembership(id: 'ms', diverId: 'd', libraryId: 'L', memberId: 'm',
-            displayName: 'Ann', libraryName: 'Club', backendKind: 's3')]),
+            displayName: 'Ann', libraryName: 'Reef Survey', backendKind: 's3')]),
       libraryRoleProvider('L').overrideWith((ref) async => effectiveRole(listed: role, readOnlyDetected: readOnly)),
       libraryMemberNamesProvider('L').overrideWith((ref) async => {'m': 'Ann'}),
       pendingIncomingSuggestionCountProvider('L').overrideWith((ref) async => 2),
@@ -3162,7 +3162,7 @@ void main() {
 void main() {
   testWidgets('a non-S3/WebDAV account list shows the hint; probe routes to Join or Create', (tester) async {
     final accounts = [ConnectedAccount(id: 'a', kind: AccountKind.s3, label: 'Bucket', createdAt: DateTime.utc(2026), updatedAt: DateTime.utc(2026))];
-    final probes = <String, LibraryProbe>{'club': const LibraryProbe(exists: true, id: 'L', name: 'Club', formatVersion: 1)};
+    final probes = <String, LibraryProbe>{'site-sync': const LibraryProbe(exists: true, id: 'L', name: 'Reef Survey', formatVersion: 1)};
     await tester.pumpWidget(testApp(
       overrides: [
         eligibleLibraryAccountsProvider.overrideWith((ref) async => accounts),
@@ -3173,10 +3173,10 @@ void main() {
       child: const ConnectSharedLibraryPage(),
     ));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('library-prefix')), 'club');
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'site-sync');
     await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
-    expect(find.text('Join Club'), findsOneWidget);
+    expect(find.text('Join Reef Survey'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('library-prefix')), 'other');
     await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
@@ -3228,7 +3228,7 @@ Expected: FAIL (pages missing).
 
 First add to `shared_library_providers.dart` the providers these pages and tests name: `eligibleLibraryAccountsProvider` (`FutureProvider<List<ConnectedAccount>>`, `getAll()` filtered to `AccountKind.s3` and `AccountKind.webdav`), `libraryMembersProvider` (`FutureProvider.family<List<SharedLibraryMember>, String>` over `store.getMembers`), `pendingIncomingSuggestionCountProvider` (`FutureProvider.family<int, String>`), `incomingSuggestionsProvider` (`FutureProvider.family<List<SharedSiteSuggestion>, String>`, direction incoming, status pending, refreshed by `store.watchSuggestions()`), `outgoingSuggestionsForSiteProvider` (`FutureProvider.family<List<SharedSiteSuggestion>, String>` by site id, for Task 18), and `suggestionDiffProvider` (`FutureProvider.family<Map<String, (Object?, Object?)>, String>` by suggestion id through `SuggestionService.diff`).
 
-`SharedLibrariesPage`: `Scaffold` + `AppBar(title: sharedLibrary_settings_title)`, body from `sharedLibrariesProvider` joined with `currentMembershipsProvider` (only libraries the active profile belongs to; others show greyed with "not a member on this profile" is out of scope, so simply filter), each a `ListTile(leading: Icon(Icons.groups_outlined), title: name, subtitle: "<role> · <n members> · <last sync>", trailing: chevron, onTap: push('/settings/club-libraries/$id'))`; empty state text plus a `FilledButton.icon` "Connect a library" (also in the app bar as `IconButton(Icons.add)`), pushing `/settings/club-libraries/connect`.
+`SharedLibrariesPage`: `Scaffold` + `AppBar(title: sharedLibrary_settings_title)`, body from `sharedLibrariesProvider` joined with `currentMembershipsProvider` (only libraries the active profile belongs to; others show greyed with "not a member on this profile" is out of scope, so simply filter), each a `ListTile(leading: Icon(Icons.groups_outlined), title: name, subtitle: "<role> · <n members> · <last sync>", trailing: chevron, onTap: push('/settings/shared-libraries/$id'))`; empty state text plus a `FilledButton.icon` "Connect a library" (also in the app bar as `IconButton(Icons.add)`), pushing `/settings/shared-libraries/connect`.
 
 `SharedLibraryPage(libraryId)`: banners (`MaterialBanner`-style `Card`s) for `readOnlyDetected` and `lastError`; a status card with "Last sync" and a `FilledButton.tonal` "Sync now" calling `ref.read(sharedLibrarySyncProvider.notifier).syncOne(libraryId)`; a `ListTile` "Display name" editing via `showDialog` with a `TextField`, saving through `membershipService.rename`; role chip; `ListTile` "Members" (count) pushing the members page; owners: `ListTile` "Suggestions" with a `Badge` count from `pendingIncomingSuggestionCountProvider(libraryId)` (new provider in the providers file: `store.suggestions(libraryId, direction: 'incoming', status: 'pending').length`), pushing the inbox; editors and owners: `ListTile` "Add my sites" pushing `/sites?select=1&library=$libraryId` is heavier than needed, so open the Sites list in selection mode is out: instead show a `showModalBottomSheet` listing the profile's personal sites with checkboxes and an "Add" button calling `SharedSitePublisher.push` for each; `ListTile` "Leave library" (destructive) with the confirm dialog, calling `membershipService.leave` then `context.pop()`.
 
@@ -3247,7 +3247,7 @@ Expected: PASS.
 
 ```bash
 git add lib/features/shared_library lib/core/router/app_router.dart lib/features/settings/presentation/pages/settings_page.dart test/features/shared_library
-git commit -m "feat(shared-library): club library settings pages"
+git commit -m "feat(shared-library): shared site library settings pages"
 ```
 
 ---
@@ -3285,7 +3285,7 @@ void main() {
   testWidgets('shows the library name as tooltip for a library site and nothing otherwise', (tester) async {
     await tester.pumpWidget(testApp(
       overrides: [sharedLibrariesProvider.overrideWith((ref) => Stream.value(const [
-        SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'a', prefix: 'p')]))],
+        SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'a', prefix: 'p')]))],
       child: const Column(children: [
         LibrarySiteBadge(site: DiveSite(id: '1', name: 'a', sharedLibraryId: 'L')),
         LibrarySiteBadge(site: DiveSite(id: '2', name: 'b')),
@@ -3293,7 +3293,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.groups_outlined), findsOneWidget);
-    expect(find.byTooltip('In Club'), findsOneWidget);
+    expect(find.byTooltip('In Reef Survey'), findsOneWidget);
   });
 }
 ```
@@ -3371,7 +3371,7 @@ git commit -m "feat(shared-library): library badges, filter, grouping and bulk a
 - Create: `lib/features/shared_library/presentation/widgets/site_attribution_line.dart`
 - Create: `lib/features/shared_library/presentation/widgets/site_edit_history_sheet.dart`
 - Modify: `lib/features/dive_sites/presentation/widgets/site_detail_header.dart:26-120` (library name chip plus `SiteAttributionLine` under the name for a library site)
-- Modify: `lib/features/dive_sites/presentation/pages/site_detail_page.dart:255-270` (edit button becomes "Suggest changes" for readers, hidden on an unconnected device), `:400-440` (`canDestroy` false for library rows; new menu entries), `:500-540` (menu: Delete from library for editors and owners, Edit history, Add to club library for personal sites, Connect on this device when `libraryConnectedHereProvider` is false), `:580-600` (delete dialog text for library sites)
+- Modify: `lib/features/dive_sites/presentation/pages/site_detail_page.dart:255-270` (edit button becomes "Suggest changes" for readers, hidden on an unconnected device), `:400-440` (`canDestroy` false for library rows; new menu entries), `:500-540` (menu: Delete from library for editors and owners, Edit history, Add to shared site library for personal sites, Connect on this device when `libraryConnectedHereProvider` is false), `:580-600` (delete dialog text for library sites)
 - Test: `test/features/shared_library/presentation/widgets/site_attribution_line_test.dart`
 - Test: `test/features/dive_sites/presentation/pages/site_detail_library_actions_test.dart`
 
@@ -3423,9 +3423,9 @@ void main() {
 // test/features/dive_sites/presentation/pages/site_detail_library_actions_test.dart
 // Pump SiteDetailPage for a library site under each role and assert:
 //  reader: 'Suggest changes' present, no Edit tooltip, delete menu entry absent
-//  editor: Edit tooltip present, 'Delete from the club library?' dialog title on delete
+//  editor: Edit tooltip present, 'Delete from the shared site library?' dialog title on delete
 //  unconnected device (libraryConnectedHereProvider false): 'Connect on this device' present, no Edit
-//  personal site: 'Add to club library' in the properties menu when a library with editor role is connected
+//  personal site: 'Add to shared site library' in the properties menu when a library with editor role is connected
 ```
 
 Write the four `testWidgets` cases using the overrides pattern `site_detail_page_test.dart` already uses (read it for the site and diver provider overrides it needs), plus `libraryRoleProvider('L')`, `libraryConnectedHereProvider('L')`, `sharedLibrariesProvider`, `currentMembershipsProvider`.
@@ -3437,7 +3437,7 @@ Expected: FAIL.
 
 - [ ] **Step 3: Implement**
 
-`SiteAttributionLine`: watch the state and names; newest = `state.clocks.entries.reduce` by `hlc.compareTo`; name = `names[memberId] ?? memberId.substring(0, min(8, length))`; date = `DateTime.fromMillisecondsSinceEpoch(hlc.physicalTime)` formatted with the app's date formatter (`formatDateTime` with `l10n:` per the l10n index). Header: when `site.isLibrarySite`, a `Chip` with the library name and the attribution line under the title. Detail page: compute `role = ref.watch(libraryRoleProvider(libraryId))`, `connected = ref.watch(libraryConnectedHereProvider(libraryId))`; edit `IconButton` shown when `!isLibrarySite || (connected && canEditLibrarySite(role))`; a `TextButton.icon(Icons.rate_review_outlined, "Suggest changes")` when `connected && canSuggestOnLibrarySite(role)`, pushing `/sites/$siteId/edit?suggest=1`; menu entries as listed; delete for library sites calls `SharedSitePublisher().deleteFromLibrary` after the library-specific dialog; "Add to club library" uses `showLibraryPickerDialog` then `push`; "Connect on this device" pushes `/settings/club-libraries/connect` with the prefix prefilled from the membership's `locationHint` (`extra:`).
+`SiteAttributionLine`: watch the state and names; newest = `state.clocks.entries.reduce` by `hlc.compareTo`; name = `names[memberId] ?? memberId.substring(0, min(8, length))`; date = `DateTime.fromMillisecondsSinceEpoch(hlc.physicalTime)` formatted with the app's date formatter (`formatDateTime` with `l10n:` per the l10n index). Header: when `site.isLibrarySite`, a `Chip` with the library name and the attribution line under the title. Detail page: compute `role = ref.watch(libraryRoleProvider(libraryId))`, `connected = ref.watch(libraryConnectedHereProvider(libraryId))`; edit `IconButton` shown when `!isLibrarySite || (connected && canEditLibrarySite(role))`; a `TextButton.icon(Icons.rate_review_outlined, "Suggest changes")` when `connected && canSuggestOnLibrarySite(role)`, pushing `/sites/$siteId/edit?suggest=1`; menu entries as listed; delete for library sites calls `SharedSitePublisher().deleteFromLibrary` after the library-specific dialog; "Add to shared site library" uses `showLibraryPickerDialog` then `push`; "Connect on this device" pushes `/settings/shared-libraries/connect` with the prefix prefilled from the membership's `locationHint` (`extra:`).
 
 - [ ] **Step 4: Run the tests, then commit**
 
@@ -3469,8 +3469,8 @@ void main() {
     addTearDown(tearDownTestDatabase);
     await DiverRepository().createDiver(const Diver(id: 'd', name: 'Ray'));
     final store = SharedLibraryStore();
-    await store.upsertLibrary(const SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'a', prefix: 'p'));
-    await store.upsertMembership(const SharedLibraryMembership(id: 'ms', diverId: 'd', libraryId: 'L', memberId: 'r', displayName: 'Ray', libraryName: 'Club', backendKind: 's3'));
+    await store.upsertLibrary(const SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'a', prefix: 'p'));
+    await store.upsertMembership(const SharedLibraryMembership(id: 'ms', diverId: 'd', libraryId: 'L', memberId: 'r', displayName: 'Ray', libraryName: 'Reef Survey', backendKind: 's3'));
     await SiteRepository().createSite(const DiveSite(id: 's', name: 'Blue', hazards: 'old', sharedLibraryId: 'L'));
     await tester.pumpWidget(testApp(
       overrides: [validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd')],
@@ -3526,7 +3526,7 @@ void main() {
   testWidgets('picker tile shows the library badge for a library site', (tester) async {
     await tester.pumpWidget(testApp(
       overrides: [sharedLibrariesProvider.overrideWith((ref) => Stream.value(const [
-        SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'a', prefix: 'p')]))],
+        SharedLibrary(id: 'L', name: 'Reef Survey', connectedAccountId: 'a', prefix: 'p')]))],
       child: SitePickerSiteTile(site: const DiveSite(id: 's', name: 'Blue', sharedLibraryId: 'L'), onTap: () {}),
     ));
     await tester.pumpAndSettle();

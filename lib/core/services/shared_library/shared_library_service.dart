@@ -50,7 +50,7 @@ typedef LibrarySiteRemover =
       required String ownerDiverId,
     });
 
-/// One sync of one club library (issue #2567): manifest, roles and members,
+/// One sync of one shared site library (issue #2567): manifest, roles and members,
 /// pull and per-field merge, push of dirty sites, suggestions, status.
 class SharedLibraryService {
   SharedLibraryService({

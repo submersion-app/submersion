@@ -120,7 +120,7 @@ final siteQueryEntity = QueryEntity(
       emptySql: '({r}.latitude IS NULL OR {r}.longitude IS NULL)',
       labelKey: 'query_sites_coordinates',
     ),
-    // The club library a site belongs to (issue #2567), by id; `:none` is
+    // The shared site library a site belongs to (issue #2567), by id; `:none` is
     // a personal site.
     _text('library', 'shared_library_id'),
     diveCountField('sites', 'ad.site_id = {r}.id'),

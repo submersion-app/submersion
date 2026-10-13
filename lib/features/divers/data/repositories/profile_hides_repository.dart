@@ -120,7 +120,7 @@ class ProfileHidesRepository {
     final t = _of(kind);
     if (ids.isEmpty) return 0;
     try {
-      // A club library site is hideable by any member who sees it (issue
+      // A shared site library site is hideable by any member who sees it (issue
       // #2567); only dive_sites carries the column.
       final isSite = kind == SharedItemKind.site;
       final parents = await _db

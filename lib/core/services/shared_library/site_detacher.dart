@@ -6,7 +6,7 @@ import 'package:submersion/core/services/shared_library/shared_library_store.dar
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 
-/// The id of the personal copy a detached club site [siteId] survives as.
+/// The id of the personal copy a detached library site [siteId] survives as.
 ///
 /// Deterministic, so every device of a diver that detaches the same site
 /// makes the same row and personal sync merges one copy instead of two. It
@@ -57,7 +57,7 @@ class SiteDetacher {
     await _db.transaction(() async {
       if (!arrived) {
         await _sites.createSite(
-          // Shared with every local profile, as the club site was visible to
+          // Shared with every local profile, as the library site was visible to
           // all of them; the owner may unshare it later.
           site.copyWith(
             id: newId,

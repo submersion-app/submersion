@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 
-/// One site as stored in `sites/<id>.json` of a club library (issue #2567).
+/// One site as stored in `sites/<id>.json` of a shared site library (issue #2567).
 ///
 /// Every value in [fields] is plain JSON: scalars for the site columns and
 /// lists for the children (`siteTypes`, `tags`, `species`, `features`).

@@ -472,7 +472,7 @@ class WebDavClient {
       );
     } on WebDavException catch (e) {
       // Read-only credentials refuse MKCOL even for a collection that is
-      // there (a club library shared for reading, issue #2567): one that
+      // there (a shared site library shared for reading, issue #2567): one that
       // exists is all a reader needs.
       if (e.code != WebDavErrorCode.forbidden) rethrow;
       final entry = await stat(normalized);

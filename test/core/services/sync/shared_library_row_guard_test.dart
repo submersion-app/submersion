@@ -47,7 +47,7 @@ void main() {
     await setUpTestDatabase();
     await _addDiver();
     await SiteRepository().createSite(
-      const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'),
+      const DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: 'L'),
     );
     final types = await SiteTypeRepository().getAllSiteTypes(diverId: 'd1');
     await SiteClassificationRepository().replaceTypes('lib', [types.first.id]);
@@ -81,7 +81,7 @@ void main() {
       await SiteRepository().createSite(
         const DiveSite(
           id: 'x',
-          name: 'Club',
+          name: 'Reef Survey',
           notes: 'new',
           sharedLibraryId: 'L',
         ),
@@ -89,7 +89,7 @@ void main() {
       await _sync(cloud);
       final site = (await SiteRepository().getSiteById('x'))!;
       expect(site.notes, 'new');
-      expect(site.name, 'Club');
+      expect(site.name, 'Reef Survey');
       expect(site.sharedLibraryId, 'L');
       await tearDownTestDatabase();
     },
@@ -102,7 +102,7 @@ void main() {
       await setUpTestDatabase();
       await _addDiver();
       await SiteRepository().createSite(
-        const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'),
+        const DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: 'L'),
       );
       expect(
         await ProfileHidesRepository().hide(SharedItemKind.site, 'lib', 'd1'),
@@ -114,7 +114,7 @@ void main() {
       // The profile's tablet, connected to the same library.
       await setUpTestDatabase();
       await SiteRepository().createSite(
-        const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'),
+        const DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: 'L'),
       );
       await _sync(cloud);
       expect(
@@ -131,7 +131,7 @@ void main() {
   );
 
   test('an edit on a device without the library keeps the dive at its '
-      'club site', () async {
+      'library site', () async {
     final cloud = FakeCloudStorageProvider();
     final dir = Directory.systemTemp.createTempSync('row_guard_dive_');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -140,21 +140,21 @@ void main() {
       AppDatabase(NativeDatabase(aFile)),
     );
 
-    // The phone holds the club library and a dive at one of its sites.
+    // The phone holds the shared site library and a dive at one of its sites.
     openA();
     await _addDiver();
     await SiteRepository().createSite(
-      const DiveSite(id: 'club', name: 'Club wall', sharedLibraryId: 'L'),
+      const DiveSite(id: 'site-sync', name: 'Reef wall', sharedLibraryId: 'L'),
     );
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
-        site: const DiveSite(id: 'club', name: 'Club wall'),
+        site: const DiveSite(id: 'site-sync', name: 'Reef wall'),
       ),
     );
     await _sync(cloud);
     await tearDownTestDatabase();
 
-    // The tablet has no copy of the club site, so the dive lands without
+    // The tablet has no copy of the library site, so the dive lands without
     // it; the diver adds a note there.
     await setUpTestDatabase();
     await _sync(cloud);
@@ -163,14 +163,14 @@ void main() {
     await _sync(cloud);
     await tearDownTestDatabase();
 
-    // Back on the phone: the note arrives, the club site stays.
+    // Back on the phone: the note arrives, the library site stays.
     openA();
     await _sync(cloud);
     final rows = await DatabaseService.instance.database
         .customSelect("SELECT site_id, notes FROM dives WHERE id = 'dv'")
         .get();
     expect(rows.single.read<String>('notes'), 'great vis');
-    expect(rows.single.read<String?>('site_id'), 'club');
+    expect(rows.single.read<String?>('site_id'), 'site-sync');
     await tearDownTestDatabase();
   });
 
@@ -185,7 +185,7 @@ void main() {
 
     await setUpTestDatabase();
     await SiteRepository().createSite(
-      const DiveSite(id: 'x', name: 'Club', sharedLibraryId: 'L'),
+      const DiveSite(id: 'x', name: 'Reef Survey', sharedLibraryId: 'L'),
     );
     await _sync(cloud);
     expect((await SiteRepository().getSiteById('x'))?.sharedLibraryId, 'L');
@@ -250,7 +250,7 @@ void main() {
   test('deleting a library row logs no tombstone', () async {
     await setUpTestDatabase();
     await SiteRepository().createSite(
-      const DiveSite(id: 'lib', name: 'Club', sharedLibraryId: 'L'),
+      const DiveSite(id: 'lib', name: 'Reef Survey', sharedLibraryId: 'L'),
     );
     expect(await SiteRepository().deleteSite('lib'), isTrue);
     final rows = await DatabaseService.instance.database
@@ -267,7 +267,7 @@ void main() {
   test('a mixed bulk delete tombstones only the personal rows', () async {
     await setUpTestDatabase();
     await SiteRepository().createSite(
-      const DiveSite(id: 'lib', name: 'Club', sharedLibraryId: 'L'),
+      const DiveSite(id: 'lib', name: 'Reef Survey', sharedLibraryId: 'L'),
     );
     await SiteRepository().createSite(const DiveSite(id: 'mine', name: 'Mine'));
     await SiteRepository().bulkDeleteSites(['lib', 'mine']);

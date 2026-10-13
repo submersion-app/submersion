@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 /// Serialises every sync that merges into the database (issue #2567): the
-/// personal changeset sync and each club library sync wait for one another,
+/// personal changeset sync and each shared site library sync wait for one another,
 /// so two merges never touch the database at once. Bodies run in the order
 /// they were queued; a throwing body releases the gate for the next.
 abstract final class SyncCoordinator {

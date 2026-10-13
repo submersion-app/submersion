@@ -5,7 +5,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 
-/// File operations on one club library folder (issue #2567).
+/// File operations on one shared site library folder (issue #2567).
 ///
 /// Every kind of file lives in its own subfolder and also carries a kind
 /// prefix in its name (`site-`, `member-`, `suggestion-`), so a backend

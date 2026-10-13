@@ -18,7 +18,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 ///
 /// The account's folder is `submersion-sites`, which is also its identity:
 /// on a bucket or server that already holds `submersion-sync` and
-/// `submersion-media`, it is a third account, so a club's (perhaps
+/// `submersion-media`, it is a third account, so a library's (perhaps
 /// read-only) keys never replace the sync or media keys. Its label names
 /// the folder too, as the sync account on the same server has the same
 /// `bucket @ host` label.
@@ -50,7 +50,7 @@ class LibraryAccountSetup {
     return account;
   }
 
-  /// Reaches the top folder of [server], read only, and returns it. A club
+  /// Reaches the top folder of [server], read only, and returns it. A library
   /// may hand out logins that cannot write, which the sync settings' write
   /// probe would refuse. A self-signed certificate surfaces as
   /// [WebDavUntrustedCertificateException], for the caller to offer trust.

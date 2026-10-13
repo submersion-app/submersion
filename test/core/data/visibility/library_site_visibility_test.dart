@@ -32,12 +32,12 @@ void main() {
         libraryId: 'L',
         memberId: 'm',
         displayName: 'Ann',
-        libraryName: 'Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );
     await SiteRepository().createSite(
-      const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'),
+      const DiveSite(id: 'lib', name: 'Library site', sharedLibraryId: 'L'),
     );
   });
 
@@ -53,11 +53,11 @@ void main() {
 
   test('search honours the same rule', () async {
     expect(
-      await SiteRepository().searchSites('Club', diverId: 'other'),
+      await SiteRepository().searchSites('Library', diverId: 'other'),
       isEmpty,
     );
     expect(
-      await SiteRepository().searchSites('Club', diverId: 'member'),
+      await SiteRepository().searchSites('Library', diverId: 'member'),
       hasLength(1),
     );
   });
@@ -68,7 +68,7 @@ void main() {
     final forMember = await loader.load(diverId: 'member', l10n: l10n);
     final forOther = await loader.load(diverId: 'other', l10n: l10n);
     bool has(NameIndex index) => index.entries.any(
-      (e) => e.subject == QuerySubject.sites && e.label == 'Club site',
+      (e) => e.subject == QuerySubject.sites && e.label == 'Library site',
     );
     expect(has(forMember), isTrue);
     expect(has(forOther), isFalse);

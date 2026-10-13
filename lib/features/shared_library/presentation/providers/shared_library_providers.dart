@@ -15,7 +15,7 @@ import 'package:submersion/core/services/shared_library/site_detacher.dart';
 import 'package:submersion/core/services/shared_library/suggestion_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
-/// The device-local store for club libraries (issue #2567).
+/// The device-local store for shared site libraries (issue #2567).
 final sharedLibraryStoreProvider = Provider<SharedLibraryStore>(
   (ref) => SharedLibraryStore(),
 );
@@ -117,7 +117,7 @@ final _siteStateTickProvider = StreamProvider<void>((ref) async* {
   yield* ref.watch(sharedLibraryStoreProvider).watchSiteStates();
 });
 
-/// Connected accounts that can back a club library.
+/// Connected accounts that can back a shared site library.
 final eligibleLibraryAccountsProvider = FutureProvider<List<ConnectedAccount>>((
   ref,
 ) async {

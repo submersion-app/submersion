@@ -415,7 +415,7 @@ void main() {
   group('launch sync behind another merge', () {
     test('is dropped, not run, once the notifier is disposed', () async {
       await LibraryEpochStore(prefs).setPendingReplace(marker);
-      // Another merge (a club library sync) holds the coordinator, so the
+      // Another merge (a shared site library sync) holds the coordinator, so the
       // pending-replace launch sync queues behind it.
       final gate = Completer<void>();
       final blocker = SyncCoordinator.run(() => gate.future);

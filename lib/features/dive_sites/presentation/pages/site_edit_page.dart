@@ -74,7 +74,7 @@ class SiteEditPage extends ConsumerStatefulWidget {
   /// searched the site picker for (#1501).
   final String? initialName;
 
-  /// A reader's view of a club library site (issue #2567): Save becomes
+  /// A reader's view of a shared site library site (issue #2567): Save becomes
   /// Send and writes a suggestion instead of the site.
   final bool suggest;
 
@@ -1284,7 +1284,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return canDestroySharedItemOnceKnown(
       ref.watch(validatedCurrentDiverIdProvider),
       ownerId: _originalSite?.diverId,
-      // A club library site is deleted through its role-gated action on
+      // A shared site library site is deleted through its role-gated action on
       // the detail page, never through the personal delete (issue #2567).
       isLibrarySite: _originalSite?.isLibrarySite ?? false,
     );
@@ -1822,7 +1822,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         NumberInvalid() => null, // unreachable: validate() ran first
       };
 
-  /// Suggestion mode: asked for, or forced on a club library site this
+  /// Suggestion mode: asked for, or forced on a shared site library site this
   /// profile may not edit, so a deep link to the plain edit route cannot
   /// write the site (issue #2567). Plain editing while the role loads; the
   /// save decides again with the settled role.
@@ -1863,7 +1863,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
-  /// A reader's save on a club library site (issue #2567): the changed
+  /// A reader's save on a shared site library site (issue #2567): the changed
   /// fields and the note become a suggestion; the site is untouched.
   Future<void> _sendSuggestion(
     DiveSite site,
@@ -2046,7 +2046,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             )
           : null;
 
-      // A club library not connected on this device: neither an edit nor a
+      // A shared site library not connected on this device: neither an edit nor a
       // suggestion could ever reach it from here (issue #2567).
       final libraryId = _originalSite?.sharedLibraryId;
       if (libraryId != null && await _libraryRoleNow(libraryId) == null) {

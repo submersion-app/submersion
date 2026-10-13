@@ -154,7 +154,7 @@ class DiveHeroHeader extends ConsumerWidget {
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                             ),
-                            // A club library site wears its badge beside the
+                            // A shared site library site wears its badge beside the
                             // name it shows as (issue #2567).
                             if (dive.effectiveName == null && dive.site != null)
                               LibrarySiteBadge(site: dive.site!),

@@ -14,7 +14,7 @@ import 'package:submersion/features/weight_presets/presentation/widgets/name_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
-/// One connected club library (issue #2567): status, display name, role,
+/// One connected shared site library (issue #2567): status, display name, role,
 /// members, suggestions, adding personal sites, leaving.
 class SharedLibraryPage extends ConsumerWidget {
   const SharedLibraryPage({super.key, required this.libraryId});
@@ -120,7 +120,7 @@ class SharedLibraryPage extends ConsumerWidget {
                 : Text(l10n.sharedLibrary_library_memberCount(names.length)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () =>
-                context.push('/settings/club-libraries/$libraryId/members'),
+                context.push('/settings/shared-libraries/$libraryId/members'),
           ),
           if (canManageLibrary(role))
             ListTile(
@@ -130,7 +130,7 @@ class SharedLibraryPage extends ConsumerWidget {
                   ? Badge.count(count: pending)
                   : const Icon(Icons.chevron_right),
               onTap: () => context.push(
-                '/settings/club-libraries/$libraryId/suggestions',
+                '/settings/shared-libraries/$libraryId/suggestions',
               ),
             ),
           if (canEditLibrarySite(role))

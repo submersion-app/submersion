@@ -16,7 +16,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Connect a club library (issue #2567): pick an S3 or WebDAV account,
+/// Connect a shared site library (issue #2567): pick an S3 or WebDAV account,
 /// name the prefix, then join what is there or create a new library.
 class ConnectSharedLibraryPage extends ConsumerStatefulWidget {
   const ConnectSharedLibraryPage({super.key, this.initialPrefix});
@@ -393,7 +393,7 @@ class _ConnectSharedLibraryPageState
       await ref.read(sharedLibrarySyncProvider.notifier).syncOne(library.id);
       ref.invalidate(sitesProvider);
       if (!mounted) return;
-      context.pushReplacement('/settings/club-libraries/${library.id}');
+      context.pushReplacement('/settings/shared-libraries/${library.id}');
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = libraryErrorText(context.l10n, e));

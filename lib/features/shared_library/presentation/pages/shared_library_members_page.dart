@@ -8,7 +8,7 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The members of a club library with their roles; owners change roles
+/// The members of a shared site library with their roles; owners change roles
 /// here (issue #2567).
 class SharedLibraryMembersPage extends ConsumerWidget {
   const SharedLibraryMembersPage({super.key, required this.libraryId});

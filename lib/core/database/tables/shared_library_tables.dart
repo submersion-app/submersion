@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/diver_tables.dart';
 
-/// A club library this device connected (issue #2567). Device-local: the
+/// A shared site library this device connected (issue #2567). Device-local: the
 /// credentials live on the connected account, the role and member caches
 /// are refreshed from the folder on every sync.
 @DataClassName('SharedLibraryRow')

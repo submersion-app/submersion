@@ -2805,7 +2805,7 @@ class SyncService {
     },
   };
 
-  /// A device that has not connected a club library holds no copy of its
+  /// A device that has not connected a shared site library holds no copy of its
   /// sites, so the FK repair clears its rows' links to one, and its next
   /// edit of such a row sends that null back (issue #2567). Where the club
   /// site exists, the null is the peer's blindness, not an unlink: keep the

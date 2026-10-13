@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// A small group glyph beside the name of a club library site, with the
+/// A small group glyph beside the name of a shared site library site, with the
 /// library's name as tooltip (issue #2567). Nothing for a personal site.
 class LibrarySiteBadge extends ConsumerWidget {
   const LibrarySiteBadge({super.key, required this.site, this.size = 16});

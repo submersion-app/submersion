@@ -32,9 +32,9 @@ Future<Widget> _page(
       (ref) => Stream.value([
         SharedLibrary(
           id: 'L',
-          name: 'Club',
+          name: 'Reef Survey',
           connectedAccountId: 'a',
-          prefix: 'club',
+          prefix: 'site-sync',
           readOnlyDetected: readOnly,
           lastError: error,
           roles: SharedLibraryRoles(
@@ -52,7 +52,7 @@ Future<Widget> _page(
           libraryId: 'L',
           memberId: 'm',
           displayName: 'Ann',
-          libraryName: 'Club',
+          libraryName: 'Reef Survey',
           backendKind: 's3',
         ),
       ],
@@ -66,7 +66,7 @@ Future<Widget> _page(
       (ref) async => const [
         DiveSite(id: 'p1', name: 'Reef'),
         DiveSite(id: 'p2', name: 'Wreck'),
-        DiveSite(id: 'l1', name: 'Club wall', sharedLibraryId: 'L'),
+        DiveSite(id: 'l1', name: 'Reef wall', sharedLibraryId: 'L'),
       ],
     ),
   ],
@@ -125,7 +125,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Leave library'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Club'), findsWidgets);
+    expect(find.textContaining('Reef Survey'), findsWidgets);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
@@ -140,7 +140,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Reef'), findsOneWidget);
     expect(find.text('Wreck'), findsOneWidget);
-    expect(find.text('Club wall'), findsNothing);
+    expect(find.text('Reef wall'), findsNothing);
     final button = find.widgetWithText(
       FilledButton,
       'Add to shared site library',

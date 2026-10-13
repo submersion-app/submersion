@@ -64,7 +64,7 @@ class DiveSite extends Equatable {
   final EntryMethod? exitMethod;
   final bool isShared;
 
-  /// The club library this site belongs to (issue #2567); null for a
+  /// The shared site library this site belongs to (issue #2567); null for a
   /// personal site.
   final String? sharedLibraryId;
 
@@ -97,7 +97,7 @@ class DiveSite extends Equatable {
     this.sharedLibraryId,
   });
 
-  /// Whether this site belongs to a club library (issue #2567).
+  /// Whether this site belongs to a shared site library (issue #2567).
   bool get isLibrarySite => sharedLibraryId != null;
 
   /// The town a site belongs to: its [city], falling back to its [island],
