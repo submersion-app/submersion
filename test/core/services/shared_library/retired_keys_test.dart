@@ -41,7 +41,9 @@ void main() {
 
     test('an edit signed before it counts, one after does not', () async {
       final key = (await testMemberKey('x')).publicKey;
-      final retired = {'x': (key, 5000)};
+      final retired = {
+        'x': [(key, 5000)],
+      };
       final before = await dropUnverified(
         await signedAt(4000),
         local: const SiteDocument(id: 's'),
@@ -68,11 +70,10 @@ void main() {
       );
       final at = DateTime.utc(2026, 10, 1);
       final demoted = roles.changeRole('e', SharedLibraryRole.reader, at: at);
-      expect(demoted.retired['e'], (
-        key: 'ke',
-        untilMs: at.millisecondsSinceEpoch,
-      ));
-      expect(demoted.retiredKeys['e'], ('ke', at.millisecondsSinceEpoch));
+      expect(demoted.retired['e'], [
+        (key: 'ke', untilMs: at.millisecondsSinceEpoch),
+      ]);
+      expect(demoted.retiredKeys['e'], [('ke', at.millisecondsSinceEpoch)]);
       // A reader never edited: nothing to keep.
       expect(
         roles.changeRole('r', SharedLibraryRole.reader, at: at).retired,
@@ -81,9 +82,35 @@ void main() {
       // Roles without retired keys sign as they always did.
       expect(roles.unsignedJson().containsKey('retired'), isFalse);
       expect(demoted.unsignedJson()['retired'], {
-        'e': {'key': 'ke', 'until': at.millisecondsSinceEpoch},
+        'e': [
+          {'key': 'ke', 'until': at.millisecondsSinceEpoch},
+        ],
       });
       expect(SharedLibraryRoles.fromJson(demoted.toJson()), demoted);
+    });
+
+    test("an editor's new key keeps the old key's edits, every one", () {
+      const roles = SharedLibraryRoles(
+        editors: {'e'},
+        approvedKeys: {'e': 'k1'},
+      );
+      final first = DateTime.utc(2026, 10, 1);
+      final second = DateTime.utc(2026, 11, 1);
+      final once = roles.approveKey('e', 'k2', at: first);
+      expect(once.approvedKeys['e'], 'k2');
+      final twice = once.approveKey('e', 'k3', at: second);
+      expect(twice.approvedKeys['e'], 'k3');
+      expect(twice.retiredKeys['e'], [
+        ('k1', first.millisecondsSinceEpoch),
+        ('k2', second.millisecondsSinceEpoch),
+      ]);
+      // The same key again, or a reader's new key, keeps nothing.
+      expect(
+        twice.approveKey('e', 'k3', at: second).retired['e'],
+        hasLength(2),
+      );
+      const reader = SharedLibraryRoles(approvedKeys: {'r': 'k1'});
+      expect(reader.approveKey('r', 'k2', at: first).retired, isEmpty);
     });
   });
 

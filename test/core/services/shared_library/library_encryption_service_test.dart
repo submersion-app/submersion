@@ -264,6 +264,36 @@ void main() {
     expect((await folder().readManifest())!['rewriting'], isNull);
   });
 
+  test(
+    'a passphrase change cut short leaves the earlier keys readable',
+    () async {
+      await encryption.turnOn(
+        libraryId: lib.id,
+        diverId: 'd1',
+        passphrase: 'first passphrase',
+      );
+      final first = (await SharedLibraryStore().libraryCipherFor(lib.id))!;
+      await encryption.changePassphrase(
+        libraryId: lib.id,
+        diverId: 'd1',
+        passphrase: 'second passphrase',
+      );
+      final second = (await SharedLibraryStore().libraryCipherFor(lib.id))!;
+      // A change to a third key writes its list, then stops before the
+      // library switches to it.
+      final third = await LibraryCipher.generate();
+      await folder().writePreviousKeys([first, second], under: third);
+
+      final t = folder()
+        ..cipher = second
+        ..encrypting = true;
+      expect(
+        (await t.readPreviousKeys()).keys,
+        contains(first.keyId.toLowerCase()),
+      );
+    },
+  );
+
   test('a new recovery code also opens the encrypted library', () async {
     final first = await encryption.turnOn(
       libraryId: lib.id,

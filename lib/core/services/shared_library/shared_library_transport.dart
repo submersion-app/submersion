@@ -60,8 +60,9 @@ class SharedLibraryTransport {
 
   Map<String, LibraryCipher>? _previous;
 
-  /// The earlier library key [keyId], from [SharedLibraryLayout.previousKeysFile],
-  /// read once and only when a file under an old key turns up.
+  /// The earlier library key [keyId], from the current key's
+  /// [SharedLibraryLayout.previousKeysFileFor] list, read once and only
+  /// when a file under an old key turns up.
   Future<LibraryCipher?> _previousCipher(String keyId) async =>
       (_previous ??= await readPreviousKeys())[keyId];
 
@@ -70,19 +71,12 @@ class SharedLibraryTransport {
   Future<Map<String, LibraryCipher>> readPreviousKeys() async {
     final c = cipher;
     if (c == null) return {};
-    final f = await _find(
-      await _rootId(),
-      SharedLibraryLayout.previousKeysFile,
-    );
+    final name = SharedLibraryLayout.previousKeysFileFor(c.keyId);
+    final f = await _find(await _rootId(), name);
     if (f == null) return {};
     try {
       final decoded = jsonDecode(
-        utf8.decode(
-          await c.open(
-            SharedLibraryLayout.previousKeysFile,
-            await _provider.downloadFile(f.id),
-          ),
-        ),
+        utf8.decode(await c.open(name, await _provider.downloadFile(f.id))),
       );
       if (decoded is! List) return {};
       final out = <String, LibraryCipher>{};
@@ -106,27 +100,32 @@ class SharedLibraryTransport {
     Iterable<LibraryCipher> keys, {
     required LibraryCipher under,
   }) async {
-    final c = under;
+    final name = SharedLibraryLayout.previousKeysFileFor(under.keyId);
     final json = [
       for (final k in keys) {'keyId': k.keyId, 'key': await k.exportKey()},
     ];
     await _provider.uploadFile(
-      await c.seal(
-        SharedLibraryLayout.previousKeysFile,
-        Uint8List.fromList(utf8.encode(jsonEncode(json))),
-      ),
-      SharedLibraryLayout.previousKeysFile,
+      await under.seal(name, Uint8List.fromList(utf8.encode(jsonEncode(json)))),
+      name,
       folderId: await _rootId(),
     );
     _previous = null;
   }
 
+  /// Removes every list of earlier keys: the library is no longer
+  /// encrypted.
   Future<void> deletePreviousKeys() async {
-    final f = await _find(
-      await _rootId(),
-      SharedLibraryLayout.previousKeysFile,
-    );
-    if (f != null) await _provider.deleteFile(f.id);
+    final root = await _rootId();
+    for (final f in await _provider.listFiles(
+      folderId: root,
+      namePattern: SharedLibraryLayout.previousKeysPrefix,
+    )) {
+      final name = f.name.split('/').last;
+      if (name.startsWith(SharedLibraryLayout.previousKeysPrefix) &&
+          _directlyIn(root, f)) {
+        await _provider.deleteFile(f.id);
+      }
+    }
     _previous = null;
   }
 
@@ -621,13 +620,15 @@ class SharedLibraryTransport {
 
   /// Reads the file at [path] ([fileId]) and writes it back in the
   /// library's current form: sealed under [cipher] when encrypting, plain
-  /// otherwise. [previous] opens a file sealed under an older key.
+  /// otherwise. [previous] opens a file sealed under an older key; [raw]
+  /// is the file when the caller has already read it.
   Future<void> rewrite(
     String path,
     String fileId, {
     LibraryCipher? previous,
+    Uint8List? raw,
   }) async {
-    final raw = await _provider.downloadFile(fileId);
+    raw ??= await _provider.downloadFile(fileId);
     Uint8List plain;
     if (LibraryCipher.isSealed(raw)) {
       final keyOfFile = LibraryCipher.keyIdOf(raw);
@@ -677,7 +678,7 @@ class SharedLibraryTransport {
               LibraryCipher.keyIdOf(raw) == c.keyId.toLowerCase()
         : !sealed;
     if (inForm) return false;
-    await rewrite(path, fileId);
+    await rewrite(path, fileId, raw: raw);
     return true;
   }
 

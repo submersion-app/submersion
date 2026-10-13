@@ -82,6 +82,23 @@ Future<bool> _signedBy(
       );
 }
 
+/// Whether one of a member's [retired] keys signed [field] before it
+/// stopped editing.
+Future<bool> _signedByRetired(
+  List<(String, int)>? retired,
+  SiteDocument doc,
+  String field,
+  String libraryId,
+) async {
+  final at = doc.clocks[field]!.hlc.physicalTime;
+  for (final (key, until) in retired ?? const <(String, int)>[]) {
+    if (at <= until && await _signedBy(key, doc, field, libraryId)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// [remote] without the fields it would win over [local] but cannot prove
 /// with a key in [approvedKeys]. A field signed by a member still waiting
 /// for approval ([pendingKeys]) is held: [local]'s value and clock stand in
@@ -96,7 +113,7 @@ Future<SiteDocument> dropUnverified(
   required String libraryId,
   required Map<String, String> approvedKeys,
   Map<String, String> pendingKeys = const {},
-  Map<String, (String, int)> retiredKeys = const {},
+  Map<String, List<(String, int)>> retiredKeys = const {},
 }) async {
   final fields = {...remote.fields};
   final clocks = {...remote.clocks};
@@ -110,10 +127,7 @@ Future<SiteDocument> dropUnverified(
       continue;
     }
     // An edit made before the member's editing role ended still counts.
-    final retired = retiredKeys[member];
-    if (retired != null &&
-        e.value.hlc.physicalTime <= retired.$2 &&
-        await _signedBy(retired.$1, remote, e.key, libraryId)) {
+    if (await _signedByRetired(retiredKeys[member], remote, e.key, libraryId)) {
       continue;
     }
     final held = await _signedBy(pendingKeys[member], remote, e.key, libraryId);
@@ -154,7 +168,7 @@ Future<List<SiteDocument>> dropUnverifiedAll(
   required String libraryId,
   required Map<String, String> approvedKeys,
   Map<String, String> pendingKeys = const {},
-  Map<String, (String, int)> retiredKeys = const {},
+  Map<String, List<(String, int)>> retiredKeys = const {},
 }) async {
   Future<List<SiteDocument>> run(List<(SiteDocument, SiteDocument)> part) =>
       Future.wait([

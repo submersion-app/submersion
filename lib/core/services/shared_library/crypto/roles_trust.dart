@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -60,4 +62,4 @@ Future<RolesVerdict> judgeRoles({
 /// member: [judgeRoles] asks for an owner of the roles it trusts.)
 Future<bool> isSelfConsistent(SharedLibraryRoles roles) async =>
     await _signedWith(roles, _signerKey(roles, roles.signedBy)) ||
-    await _signedWith(roles, roles.retired[roles.signedBy]?.key);
+    await _signedWith(roles, roles.retired[roles.signedBy]?.lastOrNull?.key);

@@ -109,14 +109,31 @@ class SharedLibraryRoles extends Equatable {
   /// trusting it.
   final bool reset;
 
-  /// Members whose editing role ended (left, demoted, role removed): the
-  /// key they edited with and when the role ended. Their edits signed
-  /// before then still count.
-  final Map<String, ({String key, int untilMs})> retired;
+  /// Keys that no longer edit, by member: an editing role that ended
+  /// (left, demoted, role removed) or a key an owner replaced. Each holds
+  /// when it stopped; the edits it signed before then still count.
+  final Map<String, List<({String key, int untilMs})>> retired;
 
   /// [retired] as `(key, until)` pairs, for checking signatures.
-  Map<String, (String, int)> get retiredKeys => {
-    for (final e in retired.entries) e.key: (e.value.key, e.value.untilMs),
+  Map<String, List<(String, int)>> get retiredKeys => {
+    for (final e in retired.entries)
+      e.key: [for (final r in e.value) (r.key, r.untilMs)],
+  };
+
+  /// [retired] with [key] of [memberId] stopping at [at]; a key already
+  /// retired keeps the later time.
+  Map<String, List<({String key, int untilMs})>> _retiring(
+    String memberId,
+    String key,
+    DateTime at,
+  ) => {
+    ...retired,
+    memberId: [
+      for (final r
+          in retired[memberId] ?? const <({String key, int untilMs})>[])
+        if (r.key != key) r,
+      (key: key, untilMs: at.millisecondsSinceEpoch),
+    ],
   };
 
   /// The member id that signed, or [recoverySigner].
@@ -144,12 +161,15 @@ class SharedLibraryRoles extends Equatable {
         retired: {
           if (json['retired'] case final Map raw)
             for (final e in raw.entries)
-              if (e.key is String)
-                if (e.value case {
-                  'key': final String key,
-                  'until': final num until,
-                })
-                  e.key as String: (key: key, untilMs: until.toInt()),
+              if (e.key is String && e.value is List)
+                e.key as String: [
+                  for (final r in e.value as List)
+                    if (r case {
+                      'key': final String key,
+                      'until': final num until,
+                    })
+                      (key: key, untilMs: until.toInt()),
+                ],
         },
         signedBy: json['signedBy'] as String?,
         signature: json['signature'] as String?,
@@ -171,7 +191,9 @@ class SharedLibraryRoles extends Equatable {
         ? null
         : {
             for (final e in retired.entries)
-              e.key: {'key': e.value.key, 'until': e.value.untilMs},
+              e.key: [
+                for (final r in e.value) {'key': r.key, 'until': r.untilMs},
+              ],
           }),
     'signedBy': ?signedBy,
   };
@@ -199,7 +221,7 @@ class SharedLibraryRoles extends Equatable {
     RolesRecovery? recovery,
     bool clearRecovery = false,
     bool? reset,
-    Map<String, ({String key, int untilMs})>? retired,
+    Map<String, List<({String key, int untilMs})>>? retired,
     String? signedBy,
     String? signature,
     bool clearSignature = false,
@@ -244,12 +266,24 @@ class SharedLibraryRoles extends Equatable {
         key == null) {
       return moved;
     }
-    return moved.copyWith(
-      retired: {
-        ...retired,
-        memberId: (key: key, untilMs: at.millisecondsSinceEpoch),
-      },
-    );
+    return moved.copyWith(retired: _retiring(memberId, key, at));
+  }
+
+  /// [memberId]'s [key] approved at [at]. An editor's or owner's earlier
+  /// key, when it differs, is retired so what it signed keeps counting.
+  SharedLibraryRoles approveKey(
+    String memberId,
+    String key, {
+    required DateTime at,
+  }) {
+    final old = approvedKeys[memberId];
+    final approved = copyWith(approvedKeys: {...approvedKeys, memberId: key});
+    if (old == null ||
+        old == key ||
+        roleOf(memberId) == SharedLibraryRole.reader) {
+      return approved;
+    }
+    return approved.copyWith(retired: _retiring(memberId, old, at));
   }
 
   /// [memberId] moved to [role]; the version and signature are the
@@ -613,10 +647,14 @@ abstract final class SharedLibraryLayout {
   /// The wrapped library key of an encrypted library; always plain.
   static const keyslotsFile = 'keyslots.json';
 
-  /// The library's earlier keys, sealed under the current one: a file left
-  /// under an old key (a passphrase change cut short, or a member's upload
-  /// during one) still opens, and an owner's sync re-seals it.
-  static const previousKeysFile = 'previous-keys.bin';
+  /// The library's earlier keys, sealed under the key [keyId] names: a
+  /// file left under an old key (a passphrase change cut short, or a
+  /// member's upload during one) still opens, and an owner's sync re-seals
+  /// it. One file per sealing key, so a change cut short before the library
+  /// switched leaves the current key's list as it was.
+  static String previousKeysFileFor(String keyId) =>
+      '$previousKeysPrefix${keyId.toLowerCase()}.bin';
+  static const previousKeysPrefix = 'previous-keys-';
   static const backupsDir = 'backups';
   static const membersDir = 'members';
   static const sitesDir = 'sites';

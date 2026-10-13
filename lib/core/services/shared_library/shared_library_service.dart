@@ -334,17 +334,21 @@ class SharedLibraryService {
       // 4. Push. Each field is signed by the local profile that edited it:
       // another member profile on this device may have, and a field left
       // unsigned counts for no other member.
-      final localKeys = {
-        for (final m in await _store.membershipsForLibrary(libraryId))
-          m.memberId: m.signingKey ?? await _store.ensureSigningKey(m.diverId),
-        membership.memberId: myKey,
-      };
+      final dirty = await _store.dirtySites(libraryId);
+      final localKeys = dirty.isEmpty
+          ? const <String, LibrarySigningKey>{}
+          : {
+              for (final m in await _store.membershipsForLibrary(libraryId))
+                m.memberId:
+                    m.signingKey ?? await _store.ensureSigningKey(m.diverId),
+              membership.memberId: myKey,
+            };
       var pushed = 0;
       var uploadAttempted = false;
       final remoteFiles = {
         for (final f in siteFiles) SharedLibraryTransport.siteIdOf(f): f.id,
       };
-      for (final state in await _store.dirtySites(libraryId)) {
+      for (final state in dirty) {
         if (readOnly) break;
         SiteDocument doc;
         try {

@@ -787,9 +787,7 @@ class SharedLibraryMembershipService {
     await writeSignedRoles(
       library,
       t,
-      roles.copyWith(
-        approvedKeys: {...roles.approvedKeys, memberId: card.publicKey!},
-      ),
+      roles.approveKey(memberId, card.publicKey!, at: DateTime.now()),
       signer: actingMemberId,
     );
     await _store.replaceMembers(libraryId, await t.listMembers());
