@@ -20652,6 +20652,88 @@ class AppLocalizationsHe extends AppLocalizations {
       'משפט הסיסמה הזה לא פותח את הספרייה.';
 
   @override
+  String get sharedLibrary_backups_title => 'גיבויים';
+
+  @override
+  String get sharedLibrary_backups_subtitle => 'גיבוי הספרייה ושחזורה';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'גיבוי עכשיו';
+
+  @override
+  String get sharedLibrary_backups_import => 'ייבוא גיבוי';
+
+  @override
+  String get sharedLibrary_backups_note => 'הערה (רשות)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'אוטומטי';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'לפני שחזור';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'במכשיר הזה';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'באחסון';
+
+  @override
+  String get sharedLibrary_backups_both => 'במכשיר הזה ובאחסון';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'אתרים: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'הצמדה';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'ביטול הצמדה';
+
+  @override
+  String get sharedLibrary_backups_delete => 'מחיקה';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => 'למחוק את הגיבוי הזה?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere => 'מאיפה למחוק את הגיבוי הזה?';
+
+  @override
+  String get sharedLibrary_backups_export => 'ייצוא';
+
+  @override
+  String get sharedLibrary_backups_restore => 'שחזור';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'לשחזר את הספרייה למצבה ב-$date? כל חבר יקבל גרסה זו בסנכרון הבא שלו. קודם נוצר גיבוי מוצמד של הספרייה במצבה הנוכחי.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'הספרייה שוחזרה';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'הגיבוי הזה נחתם במשפט סיסמה קודם. הזינו את משפט הסיסמה ההוא או את קוד השחזור מאותה עת.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'אין עדיין גיבויים. מכשירי הבעלים יוצרים גיבוי בכל יום, ו״גיבוי עכשיו״ יוצר אחד מיד.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'הקובץ הזה אינו גיבוי של הספרייה הזו.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly => 'רק בעלים מנהלים גיבויים.';
+
+  @override
+  String get sharedLibrary_backups_done => 'הגיבוי נוצר';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'הזינו את משפט הסיסמה של $library.';
   }

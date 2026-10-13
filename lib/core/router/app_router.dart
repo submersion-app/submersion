@@ -111,6 +111,7 @@ import 'package:submersion/features/settings/presentation/pages/manage_currency_
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
+import 'package:submersion/features/shared_library/presentation/pages/library_backups_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_libraries_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_page.dart';
@@ -1548,6 +1549,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         path: 'suggestions',
                         name: 'sharedLibrarySuggestions',
                         builder: (context, state) => SuggestionInboxPage(
+                          libraryId: state.pathParameters['libraryId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'backups',
+                        name: 'sharedLibraryBackups',
+                        builder: (context, state) => LibraryBackupsPage(
                           libraryId: state.pathParameters['libraryId']!,
                         ),
                       ),

@@ -20809,6 +20809,90 @@ class AppLocalizationsEn extends AppLocalizations {
       'That passphrase does not open this library.';
 
   @override
+  String get sharedLibrary_backups_title => 'Backups';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'Back up the library and restore it';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'Back up now';
+
+  @override
+  String get sharedLibrary_backups_import => 'Import a backup';
+
+  @override
+  String get sharedLibrary_backups_note => 'Note (optional)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'Automatic';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'Before a restore';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'On this device';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'In storage';
+
+  @override
+  String get sharedLibrary_backups_both => 'On this device and in storage';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'Sites: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'Pin';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'Unpin';
+
+  @override
+  String get sharedLibrary_backups_delete => 'Delete';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => 'Delete this backup?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'Delete this backup from where?';
+
+  @override
+  String get sharedLibrary_backups_export => 'Export';
+
+  @override
+  String get sharedLibrary_backups_restore => 'Restore';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'Restore the library to how it was on $date? Every member gets this version on their next sync. A pinned backup of the library as it is now is made first.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'Library restored';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'This backup was sealed with an earlier passphrase. Enter that passphrase or the recovery code from that time.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'No backups yet. Owners\' devices make one each day, and Back up now makes one at once.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'That file is not a backup of this library.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly => 'Only owners manage backups.';
+
+  @override
+  String get sharedLibrary_backups_done => 'Backup made';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Enter the passphrase for $library.';
   }

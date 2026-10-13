@@ -151,6 +151,15 @@ class SharedLibraryPage extends ConsumerWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _addMySites(context, ref, library!),
             ),
+          if (role == SharedLibraryRole.owner)
+            ListTile(
+              leading: const Icon(Icons.inventory_2_outlined),
+              title: Text(l10n.sharedLibrary_backups_title),
+              subtitle: Text(l10n.sharedLibrary_backups_subtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  context.push('/settings/shared-libraries/$libraryId/backups'),
+            ),
           const Divider(height: 1),
           LibraryOwnershipSection(
             library: library,

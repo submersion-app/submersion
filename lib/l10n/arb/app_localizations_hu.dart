@@ -21054,6 +21054,91 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez a jelmondat nem nyitja meg ezt a könyvtárat.';
 
   @override
+  String get sharedLibrary_backups_title => 'Biztonsági mentések';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'A könyvtár mentése és visszaállítása';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'Mentés most';
+
+  @override
+  String get sharedLibrary_backups_import => 'Mentés importálása';
+
+  @override
+  String get sharedLibrary_backups_note => 'Megjegyzés (nem kötelező)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'Automatikus';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'Visszaállítás előtt';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'Ezen az eszközön';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'A tárhelyen';
+
+  @override
+  String get sharedLibrary_backups_both => 'Ezen az eszközön és a tárhelyen';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'Helyszínek: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'Rögzítés';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'Rögzítés feloldása';
+
+  @override
+  String get sharedLibrary_backups_delete => 'Törlés';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => 'Törlöd ezt a mentést?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'Honnan törlöd ezt a mentést?';
+
+  @override
+  String get sharedLibrary_backups_export => 'Exportálás';
+
+  @override
+  String get sharedLibrary_backups_restore => 'Visszaállítás';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'Visszaállítod a könyvtárat a(z) $date állapotára? Minden tag a következő szinkronizáláskor megkapja ezt a változatot. Előbb rögzített mentés készül a könyvtár jelenlegi állapotáról.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'A könyvtár visszaállítva';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'Ezt a mentést egy korábbi jelmondattal pecsételték le. Add meg azt a jelmondatot vagy az akkori helyreállítási kódot.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'Még nincs mentés. A tulajdonosok eszközei naponta készítenek egyet, a Mentés most pedig azonnal.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'Ez a fájl nem ennek a könyvtárnak a mentése.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly =>
+      'Csak a tulajdonosok kezelik a mentéseket.';
+
+  @override
+  String get sharedLibrary_backups_done => 'Mentés elkészült';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Add meg a(z) $library jelmondatát.';
   }

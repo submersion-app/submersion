@@ -21099,6 +21099,93 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Passphrase öffnet diese Bibliothek nicht.';
 
   @override
+  String get sharedLibrary_backups_title => 'Backups';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'Die Bibliothek sichern und wiederherstellen';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'Jetzt sichern';
+
+  @override
+  String get sharedLibrary_backups_import => 'Backup importieren';
+
+  @override
+  String get sharedLibrary_backups_note => 'Notiz (optional)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'Automatisch';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore =>
+      'Vor einer Wiederherstellung';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'Auf diesem Gerät';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'Im Speicher';
+
+  @override
+  String get sharedLibrary_backups_both => 'Auf diesem Gerät und im Speicher';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'Tauchplätze: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'Anheften';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'Lösen';
+
+  @override
+  String get sharedLibrary_backups_delete => 'Löschen';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => 'Dieses Backup löschen?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'Wo soll dieses Backup gelöscht werden?';
+
+  @override
+  String get sharedLibrary_backups_export => 'Exportieren';
+
+  @override
+  String get sharedLibrary_backups_restore => 'Wiederherstellen';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'Die Bibliothek auf den Stand vom $date zurücksetzen? Jedes Mitglied erhält diese Fassung bei seiner nächsten Synchronisierung. Zuvor wird ein angeheftetes Backup des aktuellen Stands angelegt.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone =>
+      'Bibliothek wiederhergestellt';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'Dieses Backup wurde mit einer früheren Passphrase versiegelt. Geben Sie diese Passphrase oder den damaligen Wiederherstellungscode ein.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'Noch keine Backups. Die Geräte der Eigentümer legen täglich eines an, und „Jetzt sichern“ legt sofort eines an.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'Diese Datei ist kein Backup dieser Bibliothek.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly =>
+      'Nur Eigentümer verwalten Backups.';
+
+  @override
+  String get sharedLibrary_backups_done => 'Backup angelegt';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Geben Sie die Passphrase für $library ein.';
   }

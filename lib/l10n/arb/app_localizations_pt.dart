@@ -21126,6 +21126,92 @@ class AppLocalizationsPt extends AppLocalizations {
       'Essa frase-passe não abre esta biblioteca.';
 
   @override
+  String get sharedLibrary_backups_title => 'Cópias de segurança';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'Faça cópias da biblioteca e restaure-a';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'Fazer cópia agora';
+
+  @override
+  String get sharedLibrary_backups_import => 'Importar uma cópia';
+
+  @override
+  String get sharedLibrary_backups_note => 'Nota (opcional)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'Automática';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'Antes de um restauro';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'Neste dispositivo';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'No armazenamento';
+
+  @override
+  String get sharedLibrary_backups_both =>
+      'Neste dispositivo e no armazenamento';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'Locais: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'Fixar';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'Desafixar';
+
+  @override
+  String get sharedLibrary_backups_delete => 'Eliminar';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => 'Eliminar esta cópia?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'Eliminar esta cópia de onde?';
+
+  @override
+  String get sharedLibrary_backups_export => 'Exportar';
+
+  @override
+  String get sharedLibrary_backups_restore => 'Restaurar';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'Restaurar a biblioteca ao estado de $date? Cada membro recebe esta versão na próxima sincronização. Antes é feita uma cópia fixada da biblioteca tal como está agora.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'Biblioteca restaurada';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'Esta cópia foi selada com uma frase-passe anterior. Introduza essa frase-passe ou o código de recuperação dessa altura.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'Ainda não há cópias. Os dispositivos dos proprietários fazem uma por dia, e Fazer cópia agora faz uma de imediato.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'Esse ficheiro não é uma cópia desta biblioteca.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly =>
+      'Só os proprietários gerem as cópias.';
+
+  @override
+  String get sharedLibrary_backups_done => 'Cópia feita';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Introduza a frase-passe de $library.';
   }

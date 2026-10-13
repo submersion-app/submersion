@@ -20988,6 +20988,91 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze wachtwoordzin opent deze bibliotheek niet.';
 
   @override
+  String get sharedLibrary_backups_title => 'Back-ups';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'Maak back-ups van de bibliotheek en zet ze terug';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'Nu back-up maken';
+
+  @override
+  String get sharedLibrary_backups_import => 'Back-up importeren';
+
+  @override
+  String get sharedLibrary_backups_note => 'Notitie (optioneel)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'Automatisch';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'Vóór een herstel';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'Op dit apparaat';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'In de opslag';
+
+  @override
+  String get sharedLibrary_backups_both => 'Op dit apparaat en in de opslag';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'Duiklocaties: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'Vastmaken';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'Losmaken';
+
+  @override
+  String get sharedLibrary_backups_delete => 'Verwijderen';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => 'Deze back-up verwijderen?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'Waar moet deze back-up worden verwijderd?';
+
+  @override
+  String get sharedLibrary_backups_export => 'Exporteren';
+
+  @override
+  String get sharedLibrary_backups_restore => 'Herstellen';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'De bibliotheek herstellen naar hoe die was op $date? Elk lid krijgt deze versie bij de volgende synchronisatie. Eerst wordt een vastgemaakte back-up van de huidige bibliotheek gemaakt.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'Bibliotheek hersteld';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'Deze back-up is verzegeld met een eerdere wachtwoordzin. Voer die wachtwoordzin of de herstelcode van toen in.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'Nog geen back-ups. De apparaten van eigenaars maken er elke dag een, en Nu back-up maken maakt er meteen een.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'Dat bestand is geen back-up van deze bibliotheek.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly =>
+      'Alleen eigenaars beheren back-ups.';
+
+  @override
+  String get sharedLibrary_backups_done => 'Back-up gemaakt';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Voer de wachtwoordzin voor $library in.';
   }

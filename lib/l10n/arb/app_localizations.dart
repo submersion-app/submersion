@@ -33831,6 +33831,156 @@ abstract class AppLocalizations {
   /// **'That passphrase does not open this library.'**
   String get sharedLibrary_encrypted_wrong;
 
+  /// Title of a shared site library backups page, and its entry on the library page
+  ///
+  /// In en, this message translates to:
+  /// **'Backups'**
+  String get sharedLibrary_backups_title;
+
+  /// No description provided for @sharedLibrary_backups_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up the library and restore it'**
+  String get sharedLibrary_backups_subtitle;
+
+  /// No description provided for @sharedLibrary_backups_backUpNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get sharedLibrary_backups_backUpNow;
+
+  /// No description provided for @sharedLibrary_backups_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a backup'**
+  String get sharedLibrary_backups_import;
+
+  /// No description provided for @sharedLibrary_backups_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get sharedLibrary_backups_note;
+
+  /// No description provided for @sharedLibrary_backups_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get sharedLibrary_backups_automatic;
+
+  /// No description provided for @sharedLibrary_backups_beforeRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before a restore'**
+  String get sharedLibrary_backups_beforeRestore;
+
+  /// No description provided for @sharedLibrary_backups_onDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device'**
+  String get sharedLibrary_backups_onDevice;
+
+  /// No description provided for @sharedLibrary_backups_inStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'In storage'**
+  String get sharedLibrary_backups_inStorage;
+
+  /// No description provided for @sharedLibrary_backups_both.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device and in storage'**
+  String get sharedLibrary_backups_both;
+
+  /// Second line of a shared site library backup: how many dive sites it holds and its file size
+  ///
+  /// In en, this message translates to:
+  /// **'Sites: {sites} · {size}'**
+  String sharedLibrary_backups_summary(int sites, String size);
+
+  /// No description provided for @sharedLibrary_backups_pin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get sharedLibrary_backups_pin;
+
+  /// No description provided for @sharedLibrary_backups_unpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get sharedLibrary_backups_unpin;
+
+  /// No description provided for @sharedLibrary_backups_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get sharedLibrary_backups_delete;
+
+  /// No description provided for @sharedLibrary_backups_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this backup?'**
+  String get sharedLibrary_backups_deleteConfirm;
+
+  /// No description provided for @sharedLibrary_backups_deleteWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this backup from where?'**
+  String get sharedLibrary_backups_deleteWhere;
+
+  /// No description provided for @sharedLibrary_backups_export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get sharedLibrary_backups_export;
+
+  /// No description provided for @sharedLibrary_backups_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get sharedLibrary_backups_restore;
+
+  /// Asks an owner to confirm restoring a shared site library backup; date is when the backup was made
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the library to how it was on {date}? Every member gets this version on their next sync. A pinned backup of the library as it is now is made first.'**
+  String sharedLibrary_backups_restoreConfirm(String date);
+
+  /// No description provided for @sharedLibrary_backups_restoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Library restored'**
+  String get sharedLibrary_backups_restoreDone;
+
+  /// No description provided for @sharedLibrary_backups_oldKey.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup was sealed with an earlier passphrase. Enter that passphrase or the recovery code from that time.'**
+  String get sharedLibrary_backups_oldKey;
+
+  /// No description provided for @sharedLibrary_backups_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No backups yet. Owners\' devices make one each day, and Back up now makes one at once.'**
+  String get sharedLibrary_backups_empty;
+
+  /// No description provided for @sharedLibrary_backups_importRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a backup of this library.'**
+  String get sharedLibrary_backups_importRefused;
+
+  /// No description provided for @sharedLibrary_backups_ownersOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only owners manage backups.'**
+  String get sharedLibrary_backups_ownersOnly;
+
+  /// No description provided for @sharedLibrary_backups_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup made'**
+  String get sharedLibrary_backups_done;
+
   /// No description provided for @sharedLibrary_encrypted_locked.
   ///
   /// In en, this message translates to:

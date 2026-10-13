@@ -21186,6 +21186,93 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette phrase secrète n\'ouvre pas cette bibliothèque.';
 
   @override
+  String get sharedLibrary_backups_title => 'Sauvegardes';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'Sauvegarder la bibliothèque et la restaurer';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'Sauvegarder maintenant';
+
+  @override
+  String get sharedLibrary_backups_import => 'Importer une sauvegarde';
+
+  @override
+  String get sharedLibrary_backups_note => 'Note (facultatif)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'Automatique';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'Avant une restauration';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'Sur cet appareil';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'Dans le stockage';
+
+  @override
+  String get sharedLibrary_backups_both =>
+      'Sur cet appareil et dans le stockage';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'Sites : $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'Épingler';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'Désépingler';
+
+  @override
+  String get sharedLibrary_backups_delete => 'Supprimer';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm =>
+      'Supprimer cette sauvegarde ?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'Supprimer cette sauvegarde d\'où ?';
+
+  @override
+  String get sharedLibrary_backups_export => 'Exporter';
+
+  @override
+  String get sharedLibrary_backups_restore => 'Restaurer';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'Restaurer la bibliothèque telle qu\'elle était le $date ? Chaque membre reçoit cette version à sa prochaine synchronisation. Une sauvegarde épinglée de la bibliothèque dans son état actuel est d\'abord créée.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'Bibliothèque restaurée';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'Cette sauvegarde a été scellée avec une ancienne phrase secrète. Saisissez cette phrase secrète ou le code de récupération de l\'époque.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'Aucune sauvegarde pour l\'instant. Les appareils des propriétaires en font une chaque jour, et Sauvegarder maintenant en fait une tout de suite.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'Ce fichier n\'est pas une sauvegarde de cette bibliothèque.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly =>
+      'Seuls les propriétaires gèrent les sauvegardes.';
+
+  @override
+  String get sharedLibrary_backups_done => 'Sauvegarde créée';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Saisissez la phrase secrète de $library.';
   }

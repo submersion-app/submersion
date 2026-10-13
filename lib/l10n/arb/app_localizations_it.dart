@@ -21124,6 +21124,92 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questa passphrase non apre questa libreria.';
 
   @override
+  String get sharedLibrary_backups_title => 'Backup';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'Esegui il backup della libreria e ripristinala';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'Esegui backup ora';
+
+  @override
+  String get sharedLibrary_backups_import => 'Importa un backup';
+
+  @override
+  String get sharedLibrary_backups_note => 'Nota (facoltativa)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'Automatico';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'Prima di un ripristino';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'Su questo dispositivo';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'Nello spazio di archiviazione';
+
+  @override
+  String get sharedLibrary_backups_both =>
+      'Su questo dispositivo e nello spazio di archiviazione';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'Siti: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'Fissa';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'Sblocca';
+
+  @override
+  String get sharedLibrary_backups_delete => 'Elimina';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => 'Eliminare questo backup?';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'Da dove eliminare questo backup?';
+
+  @override
+  String get sharedLibrary_backups_export => 'Esporta';
+
+  @override
+  String get sharedLibrary_backups_restore => 'Ripristina';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'Ripristinare la libreria com\'era il $date? Ogni membro riceve questa versione alla prossima sincronizzazione. Prima viene creato un backup fissato della libreria com\'è ora.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'Libreria ripristinata';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'Questo backup è stato sigillato con una passphrase precedente. Inserisci quella passphrase o il codice di recupero di allora.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'Ancora nessun backup. I dispositivi dei proprietari ne creano uno ogni giorno, ed Esegui backup ora ne crea uno subito.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'Questo file non è un backup di questa libreria.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly =>
+      'Solo i proprietari gestiscono i backup.';
+
+  @override
+  String get sharedLibrary_backups_done => 'Backup creato';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Inserisci la passphrase di $library.';
   }

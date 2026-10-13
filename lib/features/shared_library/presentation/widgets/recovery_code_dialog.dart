@@ -60,12 +60,18 @@ Future<void> showRecoveryCodeDialog(BuildContext context, String code) =>
 
 /// Asks for a library's passphrase or recovery code (hidden while typed).
 /// Null when cancelled.
-Future<String?> promptLibrarySecret(BuildContext context) =>
-    showDialog<String>(context: context, builder: (_) => const _SecretDialog());
+Future<String?> promptLibrarySecret(BuildContext context, {String? message}) =>
+    showDialog<String>(
+      context: context,
+      builder: (_) => _SecretDialog(message: message),
+    );
 
 /// Owns its controller, so the field outlives the closing animation.
 class _SecretDialog extends StatefulWidget {
-  const _SecretDialog();
+  const _SecretDialog({this.message});
+
+  /// Why the secret is asked for, above the field.
+  final String? message;
 
   @override
   State<_SecretDialog> createState() => _SecretDialogState();
@@ -85,17 +91,27 @@ class _SecretDialogState extends State<_SecretDialog> {
     final l10n = context.l10n;
     return AlertDialog(
       title: Text(l10n.sharedLibrary_encrypted_unlock),
-      content: TextField(
-        key: const Key('secret-field'),
-        controller: _controller,
-        autofocus: true,
-        obscureText: true,
-        autocorrect: false,
-        enableSuggestions: false,
-        decoration: InputDecoration(
-          labelText: l10n.sharedLibrary_encrypted_passphrase,
-        ),
-        onSubmitted: (v) => Navigator.pop(context, v),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.message != null) ...[
+            Text(widget.message!),
+            const SizedBox(height: 12),
+          ],
+          TextField(
+            key: const Key('secret-field'),
+            controller: _controller,
+            autofocus: true,
+            obscureText: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: InputDecoration(
+              labelText: l10n.sharedLibrary_encrypted_passphrase,
+            ),
+            onSubmitted: (v) => Navigator.pop(context, v),
+          ),
+        ],
       ),
       actions: [
         TextButton(

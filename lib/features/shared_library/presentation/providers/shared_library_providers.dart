@@ -4,7 +4,9 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
+import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -228,6 +230,24 @@ final libraryBackupServiceProvider = Provider<LibraryBackupService>(
     backupsDirectory: BackupService.defaultBackupsDirectoryPath,
   ),
 );
+
+// no-tick: a service object; it restores at action time.
+final libraryRestoreServiceProvider = Provider<LibraryRestoreService>(
+  (ref) => LibraryRestoreService(
+    store: ref.watch(sharedLibraryStoreProvider),
+    memberships: ref.watch(sharedLibraryMembershipServiceProvider),
+    backups: ref.watch(libraryBackupServiceProvider),
+  ),
+);
+
+/// The backups of [libraryId] on this device and in storage, newest first.
+/// The backups page refreshes it after each action.
+// no-tick: read when the page opens and re-read after each action on it.
+final libraryBackupsProvider = FutureProvider.autoDispose
+    .family<List<LibraryBackupRecord>, String>(
+      (ref, libraryId) =>
+          ref.watch(libraryBackupServiceProvider).list(libraryId: libraryId),
+    );
 
 final sharedSitePublisherProvider = Provider<SharedSitePublisher>(
   (ref) => SharedSitePublisher(store: ref.watch(sharedLibraryStoreProvider)),

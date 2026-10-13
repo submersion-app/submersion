@@ -20072,6 +20072,85 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_encrypted_wrong => '该口令无法打开此资料库。';
 
   @override
+  String get sharedLibrary_backups_title => '备份';
+
+  @override
+  String get sharedLibrary_backups_subtitle => '备份并恢复资料库';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => '立即备份';
+
+  @override
+  String get sharedLibrary_backups_import => '导入备份';
+
+  @override
+  String get sharedLibrary_backups_note => '备注（可选）';
+
+  @override
+  String get sharedLibrary_backups_automatic => '自动';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => '恢复之前';
+
+  @override
+  String get sharedLibrary_backups_onDevice => '在此设备上';
+
+  @override
+  String get sharedLibrary_backups_inStorage => '在存储中';
+
+  @override
+  String get sharedLibrary_backups_both => '在此设备上和存储中';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return '潜点：$sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => '置顶';
+
+  @override
+  String get sharedLibrary_backups_unpin => '取消置顶';
+
+  @override
+  String get sharedLibrary_backups_delete => '删除';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm => '删除此备份？';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere => '从哪里删除此备份？';
+
+  @override
+  String get sharedLibrary_backups_export => '导出';
+
+  @override
+  String get sharedLibrary_backups_restore => '恢复';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return '将资料库恢复到 $date 的状态？每位成员会在下次同步时获得此版本。恢复前会先为资料库的当前状态创建一个置顶备份。';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => '资料库已恢复';
+
+  @override
+  String get sharedLibrary_backups_oldKey => '此备份使用之前的口令加密。请输入那个口令或当时的恢复码。';
+
+  @override
+  String get sharedLibrary_backups_empty => '尚无备份。所有者的设备每天创建一个，“立即备份”会马上创建一个。';
+
+  @override
+  String get sharedLibrary_backups_importRefused => '该文件不是此资料库的备份。';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly => '只有所有者可以管理备份。';
+
+  @override
+  String get sharedLibrary_backups_done => '备份已创建';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return '请输入 $library 的口令。';
   }

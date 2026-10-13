@@ -111,6 +111,26 @@ void main() {
     },
   );
 
+  for (final role in SharedLibraryRole.values) {
+    testWidgets('Backups is offered to owners only (${role.name})', (
+      tester,
+    ) async {
+      await tester.pumpWidget(await _page(role));
+      await tester.pumpAndSettle();
+      final backups = find.text('Back up the library and restore it');
+      if (role == SharedLibraryRole.owner) {
+        await tester.scrollUntilVisible(
+          backups,
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(backups, findsOneWidget);
+      } else {
+        expect(backups, findsNothing);
+      }
+    });
+  }
+
   testWidgets('a reader sees neither Add my sites nor Suggestions', (
     tester,
   ) async {

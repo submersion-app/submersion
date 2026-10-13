@@ -21391,6 +21391,92 @@ class AppLocalizationsAr extends AppLocalizations {
       'عبارة المرور هذه لا تفتح هذه المكتبة.';
 
   @override
+  String get sharedLibrary_backups_title => 'النسخ الاحتياطية';
+
+  @override
+  String get sharedLibrary_backups_subtitle =>
+      'انسخ المكتبة احتياطيًا واستعدها';
+
+  @override
+  String get sharedLibrary_backups_backUpNow => 'نسخ احتياطي الآن';
+
+  @override
+  String get sharedLibrary_backups_import => 'استيراد نسخة احتياطية';
+
+  @override
+  String get sharedLibrary_backups_note => 'ملاحظة (اختيارية)';
+
+  @override
+  String get sharedLibrary_backups_automatic => 'تلقائية';
+
+  @override
+  String get sharedLibrary_backups_beforeRestore => 'قبل الاستعادة';
+
+  @override
+  String get sharedLibrary_backups_onDevice => 'على هذا الجهاز';
+
+  @override
+  String get sharedLibrary_backups_inStorage => 'في التخزين';
+
+  @override
+  String get sharedLibrary_backups_both => 'على هذا الجهاز وفي التخزين';
+
+  @override
+  String sharedLibrary_backups_summary(int sites, String size) {
+    return 'المواقع: $sites · $size';
+  }
+
+  @override
+  String get sharedLibrary_backups_pin => 'تثبيت';
+
+  @override
+  String get sharedLibrary_backups_unpin => 'إلغاء التثبيت';
+
+  @override
+  String get sharedLibrary_backups_delete => 'حذف';
+
+  @override
+  String get sharedLibrary_backups_deleteConfirm =>
+      'هل تريد حذف هذه النسخة الاحتياطية؟';
+
+  @override
+  String get sharedLibrary_backups_deleteWhere =>
+      'من أين تريد حذف هذه النسخة الاحتياطية؟';
+
+  @override
+  String get sharedLibrary_backups_export => 'تصدير';
+
+  @override
+  String get sharedLibrary_backups_restore => 'استعادة';
+
+  @override
+  String sharedLibrary_backups_restoreConfirm(String date) {
+    return 'هل تريد إعادة المكتبة إلى حالتها في $date؟ يحصل كل عضو على هذه النسخة في مزامنته التالية. تُنشأ أولًا نسخة احتياطية مثبتة من المكتبة بحالتها الحالية.';
+  }
+
+  @override
+  String get sharedLibrary_backups_restoreDone => 'تمت استعادة المكتبة';
+
+  @override
+  String get sharedLibrary_backups_oldKey =>
+      'خُتمت هذه النسخة الاحتياطية بعبارة مرور سابقة. أدخل تلك العبارة أو رمز الاسترداد من ذلك الوقت.';
+
+  @override
+  String get sharedLibrary_backups_empty =>
+      'لا توجد نسخ احتياطية بعد. تنشئ أجهزة المالكين نسخة كل يوم، وينشئ زر نسخ احتياطي الآن نسخة فورًا.';
+
+  @override
+  String get sharedLibrary_backups_importRefused =>
+      'هذا الملف ليس نسخة احتياطية من هذه المكتبة.';
+
+  @override
+  String get sharedLibrary_backups_ownersOnly =>
+      'يدير المالكون وحدهم النسخ الاحتياطية.';
+
+  @override
+  String get sharedLibrary_backups_done => 'تم إنشاء النسخة الاحتياطية';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'أدخل عبارة المرور لـ $library.';
   }
