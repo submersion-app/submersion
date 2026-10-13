@@ -148,12 +148,16 @@ void main() {
         ),
         key: key,
       );
-      expect(
-        (await LibraryBackupArchive.read(
-          await zipOf('sites/site-s1.json'),
-        )).files.keys,
-        contains('sites/site-s1.json'),
-      );
+      for (final good in [
+        'sites/site-s1.json',
+        'sites/site-Blue Hole 2.json',
+      ]) {
+        expect(
+          (await LibraryBackupArchive.read(await zipOf(good))).files.keys,
+          contains(good),
+          reason: good,
+        );
+      }
       for (final bad in [
         '..',
         'evil.sh',
@@ -162,6 +166,8 @@ void main() {
         'members/notes.txt',
         'backups/index.json',
         'sites/nested/site-x.json',
+        r'sites/site-a\b.json',
+        'sites/site-.json',
       ]) {
         await expectLater(
           LibraryBackupArchive.read(await zipOf(bad)),

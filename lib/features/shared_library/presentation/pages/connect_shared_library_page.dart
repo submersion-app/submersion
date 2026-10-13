@@ -181,11 +181,15 @@ class _ConnectSharedLibraryPageState
           child: TextButton.icon(
             icon: const Icon(Icons.help_outline),
             label: Text(l10n.sharedLibrary_setup_title),
-            onPressed: () => showStorageSetupSheet(
-              context,
-              bucket: _bucketForGuide(),
-              folder: _prefix.text,
-            ),
+            onPressed: () async {
+              final bucket = await _bucketForGuide();
+              if (!mounted) return;
+              await showStorageSetupSheet(
+                context,
+                bucket: bucket,
+                folder: _prefix.text,
+              );
+            },
           ),
         ),
       ],
@@ -193,16 +197,19 @@ class _ConnectSharedLibraryPageState
   }
 
   /// The bucket the example policies name: the one being typed in, or the
-  /// selected S3 account's (its label starts with it), else a placeholder.
-  String _bucketForGuide() {
+  /// selected S3 account's own (from its stored settings: an account made
+  /// for personal sync carries a label of its own), else a placeholder.
+  Future<String> _bucketForGuide() async {
     if (_addingAccount && _newKind == AccountKind.s3) {
       final typed = _s3.bucket.text.trim();
       if (typed.isNotEmpty) return typed;
     }
     final account = _account;
     if (account != null && account.kind == AccountKind.s3) {
-      final bucket = account.label.split(' @ ').first.trim();
-      if (bucket.isNotEmpty) return bucket;
+      final stored = await ref
+          .read(libraryAccountSetupProvider)
+          .s3Bucket(account.id);
+      if (stored != null) return stored;
     }
     return 'your-bucket';
   }

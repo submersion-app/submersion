@@ -94,7 +94,14 @@ class LibraryRestoreService {
     }
     // Everything is opened before anything changes: a missing key stops
     // the restore with the library untouched.
-    final opened = await _openAll(contents.files, t.cipher, oldSecret);
+    // The library's earlier keys open a backup sealed before a passphrase
+    // change; only a key it no longer keeps is asked for.
+    final opened = await _openAll(
+      contents.files,
+      t.cipher,
+      oldSecret,
+      earlier: await t.readPreviousKeys(),
+    );
     final backupRoles = _rolesIn(opened);
     _checkCreator(contents.header, backupRoles);
 
@@ -194,8 +201,9 @@ class LibraryRestoreService {
   Future<Map<String, Uint8List>> _openAll(
     Map<String, Uint8List> files,
     LibraryCipher? current,
-    String? oldSecret,
-  ) async {
+    String? oldSecret, {
+    Map<String, LibraryCipher> earlier = const {},
+  }) async {
     LibraryCipher? older;
     final out = <String, Uint8List>{};
     for (final e in files.entries) {
@@ -208,7 +216,7 @@ class LibraryRestoreService {
       final keyId = LibraryCipher.keyIdOf(raw);
       var opener = current != null && current.keyId.toLowerCase() == keyId
           ? current
-          : older;
+          : earlier[keyId] ?? older;
       if (opener == null || opener.keyId.toLowerCase() != keyId) {
         final slots = files[SharedLibraryLayout.keyslotsFile];
         older = slots == null || oldSecret == null

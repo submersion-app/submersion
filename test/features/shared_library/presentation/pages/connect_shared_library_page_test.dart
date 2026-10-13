@@ -537,13 +537,39 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      _connectApp(await getBaseOverrides(), () => [_bucket()]),
+      _connectApp([
+        ...await getBaseOverrides(),
+        libraryAccountSetupProvider.overrideWithValue(_BucketSetup()),
+      ], () => [_bucket()]),
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
     await tester.tap(find.text('How to set up storage'));
     await tester.pumpAndSettle();
     expect(find.textContaining('submersion-sites/reef/'), findsWidgets);
+  });
+
+  testWidgets("the storage guide names the account's own bucket", (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _connectApp([
+        ...await getBaseOverrides(),
+        libraryAccountSetupProvider.overrideWithValue(
+          _BucketSetup('reef-bucket'),
+        ),
+      ], () => [_bucket()]),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
+    await tester.tap(find.text('How to set up storage'));
+    await tester.pumpAndSettle();
+    // The account is labelled 'Bucket'; its stored bucket is reef-bucket.
+    expect(find.textContaining('arn:aws:s3:::reef-bucket'), findsWidgets);
+    expect(find.textContaining('arn:aws:s3:::Bucket'), findsNothing);
   });
 
   testWidgets('the folder field sits above the account picker', (tester) async {
@@ -598,6 +624,17 @@ void main() {
     );
     expect(find.text('No library here yet.'), findsNothing);
   });
+}
+
+/// An account whose stored S3 settings name [bucket] (its label does not),
+/// or none, without reaching the device's secure storage.
+class _BucketSetup extends LibraryAccountSetup {
+  _BucketSetup([this.bucket]);
+
+  final String? bucket;
+
+  @override
+  Future<String?> s3Bucket(String accountId) async => bucket;
 }
 
 class _RecordingSetup extends LibraryAccountSetup {

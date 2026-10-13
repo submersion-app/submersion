@@ -137,13 +137,16 @@ abstract final class LibraryBackupArchive {
     SharedLibraryLayout.rolesFile,
   };
 
+  // Any id that stays one segment: no separator, control character or
+  // `..` (checked below), which is all that keeps a file in its folder.
   static final _kindFile = RegExp(
     r'^(members/member|sites/site|suggestions/suggestion)-'
-    r'[A-Za-z0-9][A-Za-z0-9._-]*\.json$',
+    r'[^/\\\x00-\x1f]+\.json$',
   );
 
   /// Whether [path] is one of a library's own files: a root file it keeps,
-  /// or a member card, site document or suggestion by a plain id.
+  /// or a member card, site document or suggestion whose id stays in its
+  /// folder.
   static bool isLibraryFile(String path) =>
       _rootFiles.contains(path) ||
       (_kindFile.hasMatch(path) && !path.contains('..'));

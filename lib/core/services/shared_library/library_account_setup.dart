@@ -44,6 +44,21 @@ class LibraryAccountSetup {
         : '${SharedLibraryLayout.librariesDir}/$f';
   }
 
+  /// The bucket the stored settings of the S3 account [accountId] name, or
+  /// null when it holds none.
+  Future<String?> s3Bucket(String accountId) async {
+    try {
+      final json = await _credentials.read(accountId);
+      if (json == null) return null;
+      final decoded = jsonDecode(json);
+      if (decoded is! Map<String, dynamic>) return null;
+      final bucket = S3Config.fromJson(decoded).bucket.trim();
+      return bucket.isEmpty ? null : bucket;
+    } on Object {
+      return null;
+    }
+  }
+
   Future<domain.ConnectedAccount> saveS3(
     S3Config server, {
     required String folder,

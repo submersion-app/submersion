@@ -216,7 +216,7 @@ void main() {
     expect(roles.roleOf(me.memberId), SharedLibraryRole.owner);
   });
 
-  test('a backup sealed under an old key asks for it', () async {
+  Future<String> backupUnderAnEarlierKey() async {
     final encryption = LibraryEncryptionService(
       store: SharedLibraryStore(),
       memberships: memberships,
@@ -233,20 +233,53 @@ void main() {
       diverId: 'd1',
       passphrase: 'second passphrase',
     );
-    await expectLater(
-      restorer().restore(libraryId: lib.id, diverId: 'd1', backupId: backupId),
-      throwsA(isA<BackupNeedsOldKeyError>()),
-    );
-    await restorer().restore(
-      libraryId: lib.id,
-      diverId: 'd1',
-      backupId: backupId,
-      oldSecret: 'first passphrase',
-    );
-    await syncer().sync(lib.id, diverId: 'd1');
-    expect(await nameOf('s1'), 'Blue');
-    expect(await nameOf('s3'), isNull);
-  });
+    return backupId;
+  }
+
+  test(
+    'a backup under an earlier key the library keeps needs no secret',
+    () async {
+      final backupId = await backupUnderAnEarlierKey();
+      await restorer().restore(
+        libraryId: lib.id,
+        diverId: 'd1',
+        backupId: backupId,
+      );
+      await syncer().sync(lib.id, diverId: 'd1');
+      expect(await nameOf('s1'), 'Blue');
+      expect(await nameOf('s3'), isNull);
+    },
+  );
+
+  test(
+    'a backup under a key the library no longer keeps asks for it',
+    () async {
+      final backupId = await backupUnderAnEarlierKey();
+      // Lost, as after the library was turned off and on again.
+      final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+      for (final f in await cloud.listFiles(namePattern: 'previous-keys-')) {
+        await cloud.deleteFile(f.id);
+      }
+      expect(await t.readManifest(), isNotNull);
+      await expectLater(
+        restorer().restore(
+          libraryId: lib.id,
+          diverId: 'd1',
+          backupId: backupId,
+        ),
+        throwsA(isA<BackupNeedsOldKeyError>()),
+      );
+      await restorer().restore(
+        libraryId: lib.id,
+        diverId: 'd1',
+        backupId: backupId,
+        oldSecret: 'first passphrase',
+      );
+      await syncer().sync(lib.id, diverId: 'd1');
+      expect(await nameOf('s1'), 'Blue');
+      expect(await nameOf('s3'), isNull);
+    },
+  );
 
   test('restore into an empty folder keeps the library id', () async {
     final record = await backups.backUp(libraryId: lib.id, diverId: 'd1');

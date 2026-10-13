@@ -160,8 +160,10 @@ Owners can back a library up and restore it, much like the logbook's own
   makes a pinned backup of the library as it is now, so a restore can be
   undone.
 
-A backup made before the passphrase was changed asks for the passphrase, or
-the recovery code, of that time.
+A backup made before the passphrase was changed opens with the library's
+earlier key, which the library keeps. Only a backup older than that, such as
+one from before encryption was turned off and on again, asks for the
+passphrase or recovery code of its time.
 
 If the library's storage is lost, or you want to move it, connect to an empty
 folder and choose **Restore from a backup file**. The library keeps its
