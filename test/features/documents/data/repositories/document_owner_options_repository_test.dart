@@ -1,0 +1,95 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+
+import '../../../../helpers/test_database.dart';
+
+void main() {
+  late DocumentOwnerOptionsRepository repo;
+
+  setUp(() async {
+    final db = await setUpTestDatabase();
+    Future<void> sql(String s) => db.customStatement(s);
+    await sql(
+      'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+      "VALUES ('d1', 'Ana', 1, 0, 0), ('d2', 'Ben', 0, 0, 0)",
+    );
+    await sql(
+      'INSERT INTO trips (id, diver_id, name, start_date, end_date, '
+      "created_at, updated_at) VALUES ('t1', 'd1', 'Bonaire', 0, 0, 0, 0), "
+      "('t2', 'd1', 'Red Sea', 1000, 1000, 0, 0), "
+      "('t3', 'd2', 'Not mine', 0, 0, 0, 0)",
+    );
+    await sql(
+      'INSERT INTO dive_sites (id, diver_id, name, shared_library_id, '
+      "created_at, updated_at) VALUES ('s1', 'd1', 'Salt Pier', NULL, 0, 0), "
+      "('s2', 'd1', 'Club wreck', 'lib1', 0, 0)",
+    );
+    final when = DateTime.utc(2026, 9, 1, 9).millisecondsSinceEpoch;
+    await sql(
+      'INSERT INTO dives (id, diver_id, dive_number, dive_date_time, site_id, '
+      "created_at, updated_at) VALUES ('v1', 'd1', 12, $when, 's1', 0, 0)",
+    );
+    await sql(
+      'INSERT INTO buddies (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('b1', 'd1', 'zoe', 0, 0), ('b2', 'd1', 'Adam', 0, 0)",
+    );
+    repo = DocumentOwnerOptionsRepository();
+  });
+  tearDown(tearDownTestDatabase);
+
+  test("lists the diver's trips, latest first", () async {
+    final trips = await repo.optionsFor(DocumentOwnerKind.trip, diverId: 'd1');
+    expect(trips.map((o) => o.label), ['Red Sea', 'Bonaire']);
+    expect(trips.map((o) => o.id), ['t2', 't1']);
+  });
+
+  test('names sort without regard to case', () async {
+    final buddies = await repo.optionsFor(
+      DocumentOwnerKind.buddy,
+      diverId: 'd1',
+    );
+    expect(buddies.map((o) => o.label), ['Adam', 'zoe']);
+  });
+
+  test('a dive reads its number, site and wall-clock date', () async {
+    final dives = await repo.optionsFor(DocumentOwnerKind.dive, diverId: 'd1');
+    expect(dives.single.label, '#12');
+    expect(dives.single.subtitle, 'Salt Pier');
+    expect(dives.single.date, DateTime.utc(2026, 9, 1, 9));
+  });
+
+  test('club library sites are not offered', () async {
+    final sites = await repo.optionsFor(DocumentOwnerKind.site, diverId: 'd1');
+    expect(sites.map((o) => o.label), ['Salt Pier']);
+  });
+
+  test('personal has no options', () async {
+    expect(
+      await repo.optionsFor(DocumentOwnerKind.personal, diverId: 'd1'),
+      isEmpty,
+    );
+  });
+
+  test(
+    'labelFor names a record and is null for personal or a gone one',
+    () async {
+      expect(
+        await repo.labelFor(const DocumentOwner(DocumentOwnerKind.trip, 't1')),
+        'Bonaire',
+      );
+      expect(
+        await repo.labelFor(const DocumentOwner(DocumentOwnerKind.dive, 'v1')),
+        '#12',
+      );
+      expect(await repo.labelFor(const DocumentOwner.personal()), isNull);
+      expect(
+        await repo.labelFor(
+          const DocumentOwner(DocumentOwnerKind.trip, 'gone'),
+        ),
+        isNull,
+      );
+    },
+  );
+}
