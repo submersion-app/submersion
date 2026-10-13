@@ -528,6 +528,11 @@ class SharedLibraryTransport {
     await _provider.uploadFile(bytes, name, folderId: folder);
   }
 
+  /// Writes [plain] at [path] in the library's current form: sealed when
+  /// encrypting.
+  Future<void> writeOpened(String path, Uint8List plain) async =>
+      writeRaw(path, await _seal(path, plain));
+
   /// Removes the file at [path], when there is one.
   Future<void> deleteRaw(String path) async {
     final (folder, name) = await _place(path);

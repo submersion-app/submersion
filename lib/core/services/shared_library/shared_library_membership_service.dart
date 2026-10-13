@@ -128,6 +128,12 @@ class SharedLibraryMembershipService {
   final _log = LoggerService.forClass(SharedLibraryMembershipService);
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// A transport for the folder at [prefix] of [account], with no key set.
+  Future<SharedLibraryTransport> transportAt({
+    required domain.ConnectedAccount account,
+    required String prefix,
+  }) => _transportFor(account: account, prefix: prefix);
+
   Future<SharedLibraryTransport> transportForLibrary(SharedLibrary lib) async {
     final account =
         await _accountById(lib.connectedAccountId) ??
