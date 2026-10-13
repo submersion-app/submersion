@@ -674,12 +674,7 @@ class SharedLibraryMembershipService {
       t,
       roles
           .withRole(membership.memberId, SharedLibraryRole.owner)
-          .copyWith(
-            approvedKeys: {
-              ...roles.approvedKeys,
-              membership.memberId: myKey.publicKey,
-            },
-          ),
+          .approveKey(membership.memberId, myKey.publicKey, at: DateTime.now()),
       signer: SharedLibraryRoles.recoverySigner,
       key: key,
     );
@@ -727,12 +722,14 @@ class SharedLibraryMembershipService {
     final folder = await t.readRoles();
     final version =
         (folder.version > roles.version ? folder.version : roles.version) + 1;
-    final reset = await SharedLibraryRoles(
-      version: version,
-      owners: {membership.memberId},
-      approvedKeys: {membership.memberId: myKey.publicKey},
-      reset: true,
-    ).signed(signedBy: membership.memberId, key: myKey);
+    final reset = await roles
+        .resetTo(
+          membership.memberId,
+          myKey.publicKey,
+          version: version,
+          at: DateTime.now(),
+        )
+        .signed(signedBy: membership.memberId, key: myKey);
     await t.writeRoles(reset);
     await _store.setLibraryStatus(
       libraryId,

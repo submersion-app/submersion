@@ -130,6 +130,24 @@ class LibraryBackupContents {
 abstract final class LibraryBackupArchive {
   static const headerFile = 'backup.json';
 
+  static const _rootFiles = {
+    SharedLibraryLayout.manifestFile,
+    SharedLibraryLayout.keyslotsFile,
+    SharedLibraryLayout.infoFile,
+    SharedLibraryLayout.rolesFile,
+  };
+
+  static final _kindFile = RegExp(
+    r'^(members/member|sites/site|suggestions/suggestion)-'
+    r'[A-Za-z0-9][A-Za-z0-9._-]*\.json$',
+  );
+
+  /// Whether [path] is one of a library's own files: a root file it keeps,
+  /// or a member card, site document or suggestion by a plain id.
+  static bool isLibraryFile(String path) =>
+      _rootFiles.contains(path) ||
+      (_kindFile.hasMatch(path) && !path.contains('..'));
+
   /// SHA-256 over every path in sorted order, each followed by a zero byte
   /// and the SHA-256 of its bytes.
   static String contentHash(Map<String, Uint8List> files) {
@@ -186,6 +204,10 @@ abstract final class LibraryBackupArchive {
           throw const BackupRefusedError('notABackup');
         }
       } else {
+        // Restore writes these into storage: only the library's own files.
+        if (!isLibraryFile(f.name)) {
+          throw const BackupRefusedError('notABackup');
+        }
         files[f.name] = f.content;
       }
     }

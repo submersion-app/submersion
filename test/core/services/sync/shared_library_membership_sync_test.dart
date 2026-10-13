@@ -249,4 +249,61 @@ void main() {
       await tearDownTestDatabase();
     },
   );
+
+  test("the library's current key wins over a newer row's old one", () async {
+    final cloud = FakeCloudStorageProvider();
+    Future<void> profile() => DiverRepository().createDiver(
+      Diver(
+        id: 'd1',
+        name: 'Ann',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    SharedLibraryMembership membership(String keyId) => SharedLibraryMembership(
+      id: 'ms1',
+      diverId: 'd1',
+      libraryId: 'L',
+      memberId: 'm1',
+      displayName: 'Ann',
+      libraryName: 'Reef Survey',
+      backendKind: 's3',
+      libraryKeyId: keyId,
+      libraryKey: 'key-$keyId',
+    );
+
+    // The tablet changed the passphrase: it holds the new key.
+    await setUpTestDatabase();
+    await profile();
+    await SharedLibraryStore().upsertMembership(membership('k2'));
+    expect(
+      (await _service(cloud).performSync()).status,
+      SyncResultStatus.success,
+    );
+    await tearDownTestDatabase();
+
+    // The phone's row is newer but holds the key from before; its library
+    // row already names the new key.
+    await setUpTestDatabase();
+    await profile();
+    await SharedLibraryStore().upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'acc',
+        prefix: 'site-sync',
+        encrypted: true,
+        keyId: 'k2',
+      ),
+    );
+    await SharedLibraryStore().upsertMembership(membership('k1'));
+    expect(
+      (await _service(cloud).performSync()).status,
+      SyncResultStatus.success,
+    );
+    final row = (await SharedLibraryStore().membershipsForDiver('d1')).single;
+    expect(row.libraryKeyId, 'k2');
+    expect(row.libraryKey, 'key-k2');
+    await tearDownTestDatabase();
+  });
 }

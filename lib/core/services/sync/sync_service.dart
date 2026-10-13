@@ -2859,6 +2859,19 @@ class SyncService {
   /// are never lost to a row written before they reached that device: an
   /// incoming row without them keeps the local ones, and a local row
   /// without them adopts the incoming ones whichever row wins.
+  /// The key id the library's manifest names on this device, lowercased,
+  /// or null when this device has not connected the library.
+  Future<String?> _currentLibraryKeyId(Object? libraryId) async {
+    if (libraryId is! String) return null;
+    final row = await DatabaseService.instance.database
+        .customSelect(
+          'SELECT key_id FROM shared_libraries WHERE id = ?',
+          variables: [Variable.withString(libraryId)],
+        )
+        .getSingleOrNull();
+    return row?.read<String?>('key_id')?.toLowerCase();
+  }
+
   Future<List<Map<String, dynamic>>> _keepLibraryMembershipKeys(
     String entityType,
     List<Map<String, dynamic>> records,
@@ -2883,7 +2896,30 @@ class SyncService {
       for (final fields in [_signingKeyFields, _libraryKeyFields]) {
         final incomingHas = fields.every((f) => r[f] != null);
         final localHas = fields.every((f) => mine[f] != null);
-        if (!incomingHas && localHas) {
+        if (incomingHas &&
+            localHas &&
+            identical(fields, _libraryKeyFields) &&
+            r['libraryKeyId'] != mine['libraryKeyId']) {
+          // Two keys: the library's current one stays, whichever row wins.
+          final current = await _currentLibraryKeyId(r['libraryId']);
+          if (current == null) continue;
+          if (current == (mine['libraryKeyId'] as String).toLowerCase()) {
+            for (final f in fields) {
+              merged[f] = mine[f];
+            }
+          } else if (current == (r['libraryKeyId'] as String).toLowerCase()) {
+            await db.customUpdate(
+              'UPDATE shared_library_memberships SET library_key_id = ?, '
+              'library_key = ? WHERE id = ?',
+              variables: [
+                Variable.withString(r['libraryKeyId'] as String),
+                Variable.withString(r['libraryKey'] as String),
+                Variable.withString(r['id'] as String),
+              ],
+              updates: {db.sharedLibraryMemberships},
+            );
+          }
+        } else if (!incomingHas && localHas) {
           for (final f in fields) {
             merged[f] = mine[f];
           }

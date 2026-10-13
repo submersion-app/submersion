@@ -115,14 +115,14 @@ class LibraryRestoreService {
     await _memberships.writeSignedRoles(
       library,
       t,
-      (backupRoles ?? roles)
+      // The backup's roles, checked above, with this owner kept as owner
+      // (an earlier key of theirs retired, its edits still counting) and
+      // the current recovery key.
+      backupRoles!
           .withRole(me.memberId, SharedLibraryRole.owner)
+          .approveKey(me.memberId, key.publicKey, at: DateTime.now())
           .copyWith(
             version: roles.version,
-            approvedKeys: {
-              ...?backupRoles?.approvedKeys,
-              me.memberId: key.publicKey,
-            },
             recovery: roles.recovery,
             clearRecovery: roles.recovery == null,
           ),

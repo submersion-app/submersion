@@ -124,4 +124,51 @@ void main() {
       );
     }
   });
+
+  test(
+    'a backup holding files outside the library layout is refused',
+    () async {
+      final key = await LibrarySigner.generate();
+      Future<Uint8List> zipOf(String name) => LibraryBackupArchive.build(
+        files: {
+          'roles.json': Uint8List.fromList('{}'.codeUnits),
+          name: Uint8List.fromList('x'.codeUnits),
+        },
+        header: LibraryBackupHeader(
+          backupId: 'b1',
+          libraryId: 'L',
+          createdAt: DateTime.utc(2026),
+          createdBy: 'o',
+          createdByKey: key.publicKey,
+          appVersion: 'x',
+          automatic: false,
+          note: '',
+          siteCount: 0,
+          memberCount: 0,
+        ),
+        key: key,
+      );
+      expect(
+        (await LibraryBackupArchive.read(
+          await zipOf('sites/site-s1.json'),
+        )).files.keys,
+        contains('sites/site-s1.json'),
+      );
+      for (final bad in [
+        '..',
+        'evil.sh',
+        'sites/../roles.json',
+        'sites/..',
+        'members/notes.txt',
+        'backups/index.json',
+        'sites/nested/site-x.json',
+      ]) {
+        await expectLater(
+          LibraryBackupArchive.read(await zipOf(bad)),
+          throwsA(isA<BackupRefusedError>()),
+          reason: bad,
+        );
+      }
+    },
+  );
 }

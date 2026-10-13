@@ -269,6 +269,30 @@ class SharedLibraryRoles extends Equatable {
     return moved.copyWith(retired: _retiring(memberId, key, at));
   }
 
+  /// Roles that make [ownerId] (with [key]) the only owner, marked as an
+  /// ownership reset. Every editor's and owner's key is retired at [at]:
+  /// the library they built keeps counting for members who join after.
+  SharedLibraryRoles resetTo(
+    String ownerId,
+    String key, {
+    required int version,
+    required DateTime at,
+  }) {
+    var retiring = retired;
+    for (final id in {...owners, ...editors}) {
+      final old = approvedKeys[id];
+      if (old == null || id == ownerId) continue;
+      retiring = copyWith(retired: retiring)._retiring(id, old, at);
+    }
+    return SharedLibraryRoles(
+      version: version,
+      owners: {ownerId},
+      approvedKeys: {ownerId: key},
+      retired: retiring,
+      reset: true,
+    );
+  }
+
   /// [memberId]'s [key] approved at [at]. An editor's or owner's earlier
   /// key, when it differs, is retired so what it signed keeps counting.
   SharedLibraryRoles approveKey(

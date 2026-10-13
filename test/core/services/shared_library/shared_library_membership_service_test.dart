@@ -416,6 +416,12 @@ void main() {
     final reset = await t.readRoles();
     expect(reset.reset, isTrue);
     expect(reset.owners, {bo.memberId});
+    // The former owner's edits keep counting for members who join later.
+    final ann = before.owners.single;
+    expect(
+      reset.retiredKeys[ann]?.map((r) => r.$1),
+      contains(before.approvedKeys[ann]),
+    );
     expect(
       await judgeRoles(trusted: before, incoming: reset),
       RolesVerdict.resetPending,
