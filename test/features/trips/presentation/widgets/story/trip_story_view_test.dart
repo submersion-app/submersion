@@ -179,6 +179,24 @@ void main() {
       );
     }
 
+    testWidgets('the Documents card sits with the hero, above today', (
+      tester,
+    ) async {
+      await pumpView(tester, longTrip(todayOffset: 0));
+      final docs = find.byKey(
+        const ValueKey('documents-section-trip'),
+        skipOffstage: false,
+      );
+      final today = find.byType(TripStoryDayHeader).first;
+      expect(tester.getTopLeft(docs).dy, lessThan(tester.getTopLeft(today).dy));
+      expect(
+        tester.getTopLeft(docs).dy,
+        greaterThan(
+          tester.getTopLeft(find.byType(TripStatStrip, skipOffstage: false)).dy,
+        ),
+      );
+    });
+
     testWidgets('opens with today at the top', (tester) async {
       await pumpView(
         tester,
@@ -604,5 +622,25 @@ void main() {
       find.byType(FlutterMap, skipOffstage: false).evaluate().length,
       lessThan(6),
     );
+  });
+
+  testWidgets('a past trip shows its Documents before the first day', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 27),
+      end: DateTime(2026, 3, 29),
+    );
+    final story = _story(
+      trip,
+      dives: [_dive('d1', DateTime(2026, 3, 27, 9))],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story);
+    final docs = tester.getTopLeft(
+      find.byKey(const ValueKey('documents-section-trip')),
+    );
+    final firstDay = tester.getTopLeft(find.byType(TripStoryDayHeader).first);
+    expect(docs.dy, lessThan(firstDay.dy));
   });
 }

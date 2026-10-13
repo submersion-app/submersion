@@ -145,6 +145,16 @@ class TripStoryView extends ConsumerWidget {
       SliverToBoxAdapter(
         child: TripStatStrip(stats: stats, siteCount: _siteCount),
       ),
+      // Right under the stats: below the day chapters a long trip's papers
+      // were out of reach (issue #3333).
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+        sliver: SliverToBoxAdapter(
+          child: DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
+          ),
+        ),
+      ),
     ];
     // The cards that matter while the trip is under way: what is left in the
     // cylinders, and how long until the no-fly window before the flight home.
@@ -193,14 +203,6 @@ class TripStoryView extends ConsumerWidget {
             ),
           ),
         ),
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        sliver: SliverToBoxAdapter(
-          child: DocumentsSection(
-            owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
-          ),
-        ),
-      ),
       const SliverToBoxAdapter(child: SizedBox(height: 32)),
     ];
     final dayCount = story.days.length;
