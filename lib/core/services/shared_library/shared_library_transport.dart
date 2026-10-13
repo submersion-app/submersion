@@ -480,6 +480,15 @@ class SharedLibraryTransport {
     path: '${SharedLibraryLayout.backupsDir}/$_backupIndex',
   );
 
+  /// The backup index by path, when there is one: sealed like the
+  /// library, so a change of key rewrites it too.
+  Future<MapEntry<String, String>?> backupIndexFile() async {
+    final f = await _find(await _backupsId(), _backupIndex);
+    return f == null
+        ? null
+        : MapEntry('${SharedLibraryLayout.backupsDir}/$_backupIndex', f.id);
+  }
+
   /// Every stored file of the library by path, as stored (sealed files
   /// stay sealed): what a backup keeps. Backups themselves are left out.
   Future<Map<String, Uint8List>> snapshot() async {
@@ -507,6 +516,7 @@ class SharedLibraryTransport {
       SharedLibraryLayout.membersDir => await _membersId(),
       SharedLibraryLayout.sitesDir => await _sitesId(),
       SharedLibraryLayout.suggestionsDir => await _suggestionsId(),
+      SharedLibraryLayout.backupsDir => await _backupsId(),
       _ => throw ArgumentError.value(path, 'path'),
     };
     return (folder, name);

@@ -221,4 +221,34 @@ void main() {
       throwsStateError,
     );
   });
+
+  for (final change in ['passphrase', 'off']) {
+    test(
+      'the backup index follows a ${change == 'off' ? 'turn-off' : 'new passphrase'}',
+      () async {
+        await encryption.turnOn(
+          libraryId: lib.id,
+          diverId: 'd1',
+          passphrase: 'first passphrase',
+        );
+        final sealed = await memberships.transportForLibrary(
+          (await SharedLibraryStore().getLibrary(lib.id))!,
+        );
+        await sealed.writeBackupIndex({'b1': 'pinned'});
+        if (change == 'off') {
+          await encryption.turnOff(libraryId: lib.id, diverId: 'd1');
+        } else {
+          await encryption.changePassphrase(
+            libraryId: lib.id,
+            diverId: 'd1',
+            passphrase: 'second passphrase',
+          );
+        }
+        final t = await memberships.transportForLibrary(
+          (await SharedLibraryStore().getLibrary(lib.id))!,
+        );
+        expect(await t.readBackupIndex(), {'b1': 'pinned'});
+      },
+    );
+  }
 }

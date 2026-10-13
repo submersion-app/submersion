@@ -152,7 +152,11 @@ class LibraryEncryptionService {
     LibraryCipher? previous,
     RewriteProgress? progress,
   }) async {
-    final files = await t.sealableFiles();
+    final index = await t.backupIndexFile();
+    final files = {
+      ...await t.sealableFiles(),
+      if (index != null) index.key: index.value,
+    };
     var done = 0;
     for (final e in files.entries) {
       await t.rewrite(e.key, e.value, previous: previous);
