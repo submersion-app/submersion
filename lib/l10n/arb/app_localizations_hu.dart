@@ -23132,6 +23132,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_sharedLibraryLocation => 'Könyvtár helye';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey => 'Aláírókulcs';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => 'Könyvtárkulcs';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Utazógáz';
 
   @override

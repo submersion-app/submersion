@@ -473,6 +473,23 @@ final Map<String, ConflictField> siteTripOverrides = {
     (l) => l.settings_conflict_field_sharedLibraryLocation,
     FieldKind.shortText,
   ),
+  // Keys: opaque, so a conflict never shows them.
+  'sharedLibraryMemberships.signingPublicKey': ConflictField(
+    (l) => l.settings_conflict_field_sharedLibrarySigningKey,
+    FieldKind.opaque,
+  ),
+  'sharedLibraryMemberships.signingPrivateKey': ConflictField(
+    (l) => l.settings_conflict_field_sharedLibrarySigningKey,
+    FieldKind.opaque,
+  ),
+  'sharedLibraryMemberships.libraryKeyId': ConflictField(
+    (l) => l.settings_conflict_field_sharedLibraryKey,
+    FieldKind.opaque,
+  ),
+  'sharedLibraryMemberships.libraryKey': ConflictField(
+    (l) => l.settings_conflict_field_sharedLibraryKey,
+    FieldKind.opaque,
+  ),
   'checklistTemplateItems.category': ConflictField(
     (l) => l.settings_conflict_field_checklistTemplateItems_category,
     FieldKind.shortText,

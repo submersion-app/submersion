@@ -22651,6 +22651,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_sharedLibraryLocation => 'מיקום הספרייה';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey => 'מפתח חתימה';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => 'מפתח הספרייה';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'גז מעבר';
 
   @override

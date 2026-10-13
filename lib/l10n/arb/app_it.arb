@@ -6514,6 +6514,8 @@
   "settings_conflict_field_sharedLibraryName": "Nome della libreria",
   "settings_conflict_field_sharedLibraryBackend": "Tipo di archiviazione",
   "settings_conflict_field_sharedLibraryLocation": "Posizione della libreria",
+  "settings_conflict_field_sharedLibrarySigningKey": "Chiave di firma",
+  "settings_conflict_field_sharedLibraryKey": "Chiave della libreria",
   "settings_conflict_field_isTravelGas": "Gas di trasferimento",
   "settings_conflict_field_issueTags": "Problemi",
   "settings_conflict_field_itemType": "Tipo di voce",

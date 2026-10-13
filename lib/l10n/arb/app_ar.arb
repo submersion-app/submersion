@@ -6614,6 +6614,8 @@
   "settings_conflict_field_sharedLibraryName": "اسم المكتبة",
   "settings_conflict_field_sharedLibraryBackend": "نوع التخزين",
   "settings_conflict_field_sharedLibraryLocation": "موقع المكتبة",
+  "settings_conflict_field_sharedLibrarySigningKey": "مفتاح التوقيع",
+  "settings_conflict_field_sharedLibraryKey": "مفتاح المكتبة",
   "settings_conflict_field_isTravelGas": "غاز العبور",
   "settings_conflict_field_issueTags": "المشكلات",
   "settings_conflict_field_itemType": "نوع العنصر",

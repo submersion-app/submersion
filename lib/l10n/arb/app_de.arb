@@ -6745,6 +6745,8 @@
   "settings_conflict_field_sharedLibraryName": "Name der Bibliothek",
   "settings_conflict_field_sharedLibraryBackend": "Speichertyp",
   "settings_conflict_field_sharedLibraryLocation": "Speicherort der Bibliothek",
+  "settings_conflict_field_sharedLibrarySigningKey": "Signaturschlüssel",
+  "settings_conflict_field_sharedLibraryKey": "Bibliotheksschlüssel",
   "settings_conflict_field_isTravelGas": "Travelgas",
   "settings_conflict_field_issueTags": "Probleme",
   "settings_conflict_field_itemType": "Art des Punkts",

@@ -22844,6 +22844,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Library location';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey => 'Signing key';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => 'Library key';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Travel gas';
 
   @override

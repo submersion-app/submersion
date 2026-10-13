@@ -6514,6 +6514,8 @@
   "settings_conflict_field_sharedLibraryName": "Könyvtár neve",
   "settings_conflict_field_sharedLibraryBackend": "Tárhely típusa",
   "settings_conflict_field_sharedLibraryLocation": "Könyvtár helye",
+  "settings_conflict_field_sharedLibrarySigningKey": "Aláírókulcs",
+  "settings_conflict_field_sharedLibraryKey": "Könyvtárkulcs",
   "settings_conflict_field_isTravelGas": "Utazógáz",
   "settings_conflict_field_issueTags": "Problémák",
   "settings_conflict_field_itemType": "Elem típusa",

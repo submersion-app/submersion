@@ -6614,6 +6614,8 @@
   "settings_conflict_field_sharedLibraryName": "Nome da biblioteca",
   "settings_conflict_field_sharedLibraryBackend": "Tipo de armazenamento",
   "settings_conflict_field_sharedLibraryLocation": "Localização da biblioteca",
+  "settings_conflict_field_sharedLibrarySigningKey": "Chave de assinatura",
+  "settings_conflict_field_sharedLibraryKey": "Chave da biblioteca",
   "settings_conflict_field_isTravelGas": "Gás de travessia",
   "settings_conflict_field_issueTags": "Problemas",
   "settings_conflict_field_itemType": "Tipo de item",

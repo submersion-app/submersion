@@ -23238,6 +23238,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ubicación de la biblioteca';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey =>
+      'Clave de firma';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey =>
+      'Clave de la biblioteca';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Gas de viaje';
 
   @override

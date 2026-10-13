@@ -23192,6 +23192,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Speicherort der Bibliothek';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey =>
+      'Signaturschlüssel';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => 'Bibliotheksschlüssel';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Travelgas';
 
   @override

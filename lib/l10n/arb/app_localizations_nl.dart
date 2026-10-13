@@ -23077,6 +23077,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Locatie van de bibliotheek';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey =>
+      'Ondertekeningssleutel';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => 'Bibliotheeksleutel';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Travelgas';
 
   @override

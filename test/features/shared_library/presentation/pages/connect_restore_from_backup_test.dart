@@ -10,12 +10,14 @@ import 'package:submersion/core/services/shared_library/backup/library_backup_se
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
@@ -90,6 +92,16 @@ class _FakeRestore extends LibraryRestoreService {
   }
 }
 
+/// Records syncs: a real one would outlive the test and hold the
+/// process-wide SyncCoordinator for the next file in the bundle.
+class _RecordingSync extends SharedLibrarySyncNotifier {
+  _RecordingSync(super.ref);
+
+  @override
+  Future<SharedLibrarySyncResult> syncOne(String libraryId) async =>
+      const SharedLibrarySyncResult(status: SharedLibrarySyncStatus.success);
+}
+
 ConnectedAccount _bucket() => ConnectedAccount(
   id: 'acc',
   kind: AccountKind.s3,
@@ -135,6 +147,7 @@ void main() {
             _EmptyFolders(),
           ),
           libraryRestoreServiceProvider.overrideWithValue(restore),
+          sharedLibrarySyncProvider.overrideWith(_RecordingSync.new),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
           currentDiverProvider.overrideWith(
             (ref) async => Diver(

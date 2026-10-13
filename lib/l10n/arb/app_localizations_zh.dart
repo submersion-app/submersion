@@ -21965,6 +21965,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_sharedLibraryLocation => '库位置';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey => '签名密钥';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => '资料库密钥';
+
+  @override
   String get settings_conflict_field_isTravelGas => '过渡气';
 
   @override

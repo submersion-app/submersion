@@ -23449,6 +23449,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sharedLibraryLocation => 'موقع المكتبة';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey => 'مفتاح التوقيع';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => 'مفتاح المكتبة';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'غاز العبور';
 
   @override

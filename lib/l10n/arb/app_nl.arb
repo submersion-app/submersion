@@ -6614,6 +6614,8 @@
   "settings_conflict_field_sharedLibraryName": "Naam van de bibliotheek",
   "settings_conflict_field_sharedLibraryBackend": "Opslagtype",
   "settings_conflict_field_sharedLibraryLocation": "Locatie van de bibliotheek",
+  "settings_conflict_field_sharedLibrarySigningKey": "Ondertekeningssleutel",
+  "settings_conflict_field_sharedLibraryKey": "Bibliotheeksleutel",
   "settings_conflict_field_isTravelGas": "Travelgas",
   "settings_conflict_field_issueTags": "Problemen",
   "settings_conflict_field_itemType": "Soort item",

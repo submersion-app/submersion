@@ -6766,6 +6766,8 @@
   "settings_conflict_field_sharedLibraryName": "库名称",
   "settings_conflict_field_sharedLibraryBackend": "存储类型",
   "settings_conflict_field_sharedLibraryLocation": "库位置",
+  "settings_conflict_field_sharedLibrarySigningKey": "签名密钥",
+  "settings_conflict_field_sharedLibraryKey": "资料库密钥",
   "settings_conflict_field_isTravelGas": "过渡气",
   "settings_conflict_field_issueTags": "问题",
   "settings_conflict_field_itemType": "条目类型",

@@ -23219,6 +23219,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Localização da biblioteca';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey =>
+      'Chave de assinatura';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey => 'Chave da biblioteca';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Gás de travessia';
 
   @override

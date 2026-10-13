@@ -6618,6 +6618,8 @@
   "settings_conflict_field_sharedLibraryName": "שם הספרייה",
   "settings_conflict_field_sharedLibraryBackend": "סוג אחסון",
   "settings_conflict_field_sharedLibraryLocation": "מיקום הספרייה",
+  "settings_conflict_field_sharedLibrarySigningKey": "מפתח חתימה",
+  "settings_conflict_field_sharedLibraryKey": "מפתח הספרייה",
   "settings_conflict_field_isTravelGas": "גז מעבר",
   "settings_conflict_field_issueTags": "בעיות",
   "settings_conflict_field_itemType": "סוג הפריט",

@@ -37138,6 +37138,18 @@ abstract class AppLocalizations {
   /// **'Library location'**
   String get settings_conflict_field_sharedLibraryLocation;
 
+  /// Sync conflict label for a shared site library membership's signing key (its value is never shown)
+  ///
+  /// In en, this message translates to:
+  /// **'Signing key'**
+  String get settings_conflict_field_sharedLibrarySigningKey;
+
+  /// Sync conflict label for a shared site library membership's encryption key (its value is never shown)
+  ///
+  /// In en, this message translates to:
+  /// **'Library key'**
+  String get settings_conflict_field_sharedLibraryKey;
+
   /// No description provided for @settings_conflict_field_isTravelGas.
   ///
   /// In en, this message translates to:

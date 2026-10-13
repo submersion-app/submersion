@@ -692,18 +692,18 @@ void main() {
     expect((await SiteRepository().getSiteById('s1'))!.name, 'Blue Hole');
   });
 
-  test('verifying 500 sites of 20 signed fields takes under 10 s', () async {
+  // The timing lives in test/performance/library_signature_benchmark_test.dart.
+  test('many documents are checked in parallel, each on its own', () async {
     final key = await testMemberKey('a');
     final docs = <SiteDocument>[];
-    for (var i = 0; i < 500; i++) {
+    for (var i = 0; i < 40; i++) {
       docs.add(
         await signOwnFields(
           SiteDocument(
             id: 's$i',
-            fields: {for (var f = 0; f < 20; f++) 'f$f': 'value $f'},
+            fields: {'name': 'Site $i'},
             clocks: {
-              for (var f = 0; f < 20; f++)
-                'f$f': FieldClock(hlc: Hlc(1000 + f, 0, 'a'), memberId: 'a'),
+              'name': const FieldClock(hlc: Hlc(1000, 0, 'a'), memberId: 'a'),
             },
           ),
           libraryId: 'L',
@@ -712,16 +712,17 @@ void main() {
         ),
       );
     }
-    final watch = Stopwatch()..start();
+    // One forged document among them: the rest still count.
+    docs[17] = docs[17].copyWith(fields: {'name': 'Forged'});
     final checked = await dropUnverifiedAll(
       [for (final d in docs) (d, SiteDocument(id: d.id))],
       libraryId: 'L',
       approvedKeys: {'a': key.publicKey},
     );
-    watch.stop();
-    expect(checked.every((d) => d.fields.length == 20), isTrue);
-    expect(watch.elapsed, lessThan(const Duration(seconds: 10)));
-  }, timeout: const Timeout(Duration(minutes: 3)));
+    expect([for (final d in checked) d.id], [for (final d in docs) d.id]);
+    expect(checked[17].fields, isEmpty);
+    expect(checked[16].fields, {'name': 'Site 16'});
+  });
 
   test('suggestions are signed, and an owner takes only proven ones', () async {
     final cloud = FakeCloudStorageProvider();

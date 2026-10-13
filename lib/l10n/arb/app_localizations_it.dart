@@ -23236,6 +23236,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Posizione della libreria';
 
   @override
+  String get settings_conflict_field_sharedLibrarySigningKey =>
+      'Chiave di firma';
+
+  @override
+  String get settings_conflict_field_sharedLibraryKey =>
+      'Chiave della libreria';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Gas di trasferimento';
 
   @override
