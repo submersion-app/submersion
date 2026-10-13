@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
@@ -17,6 +14,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_backup_tile.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/picked_file_path.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -190,25 +188,14 @@ class _LibraryBackupsPageState extends ConsumerState<LibraryBackupsPage> {
     }
     final file = picked;
     if (file == null) return;
-    await _run((_) async {
-      // A content URI (Android's picker, some iOS providers) has no path:
-      // its bytes go through a temporary copy named as the original.
-      final path = file.path;
-      Directory? copy;
-      try {
-        var source = path;
-        if (source == null) {
-          copy = await Directory.systemTemp.createTemp('library_backup_');
-          source = p.join(copy.path, p.basename(file.name));
-          await File(source).writeAsBytes(await file.readAsBytes());
-        }
-        await ref
+    await _run(
+      (_) => withLocalPath(
+        file,
+        (path) => ref
             .read(libraryBackupServiceProvider)
-            .import(libraryId: _libraryId, path: source);
-      } finally {
-        if (copy != null) await copy.delete(recursive: true);
-      }
-    });
+            .import(libraryId: _libraryId, path: path),
+      ),
+    );
   }
 
   Future<void> _export(BuildContext tileContext, LibraryBackupRecord r) async {

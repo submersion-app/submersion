@@ -54,7 +54,9 @@ logbook.
 3. Choose the storage account, or **Add storage account** with the bucket or
    server details and the key you were given.
 4. Tap **Check**. Submersion looks in the folder and offers to **Join** the
-   library that is there, or to **Create library** if the folder is empty.
+   library that is there. If the folder is empty, it offers to
+   **Create library**, or to **Restore from a backup file** (see
+   [Backups](#backups)).
 
 ### Creating a library
 
@@ -155,6 +157,12 @@ Owners can back a library up and restore it, much like the logbook's own
 
 A backup made before the passphrase was changed asks for the passphrase, or
 the recovery code, of that time.
+
+If the library's storage is lost, or you want to move it, connect to an empty
+folder and choose **Restore from a backup file**. The library keeps its
+identity, so members only need to connect to the new folder. If the old folder
+still holds the library, Submersion says so: members who stay connected there
+keep using that copy until they move.
 
 ## Setting Up Storage
 

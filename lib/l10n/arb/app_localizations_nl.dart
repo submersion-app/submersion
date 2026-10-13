@@ -21089,6 +21089,22 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action =>
+      'Herstellen uit een back-upbestand';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey =>
+      'Deze back-up is versleuteld. Voer de wachtwoordzin of herstelcode in.';
+
+  @override
+  String get sharedLibrary_restoreInto_refused =>
+      'Dat bestand is geen bibliotheekback-up die door een eigenaar is gemaakt.';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      'De bibliotheek staat ook nog in de oude map. Leden daar blijven die kopie gebruiken tot ze verbinding maken met deze map.';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Voer de wachtwoordzin voor $library in.';
   }

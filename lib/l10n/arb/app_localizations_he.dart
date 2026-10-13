@@ -20750,6 +20750,21 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action => 'שחזור מקובץ גיבוי';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey =>
+      'הגיבוי הזה מוצפן. הזינו את משפט הסיסמה או את קוד השחזור שלו.';
+
+  @override
+  String get sharedLibrary_restoreInto_refused =>
+      'הקובץ הזה אינו גיבוי ספרייה שנוצר על ידי בעלים.';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      'הספרייה עדיין נמצאת גם בתיקייה הישנה. החברים שם ממשיכים להשתמש בעותק הזה עד שיתחברו לתיקייה הזו.';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'הזינו את משפט הסיסמה של $library.';
   }

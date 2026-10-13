@@ -20909,6 +20909,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action => 'Restore from a backup file';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey =>
+      'This backup is encrypted. Enter its passphrase or recovery code.';
+
+  @override
+  String get sharedLibrary_restoreInto_refused =>
+      'That file is not a library backup made by an owner.';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      'The library is still in its old folder too. Members there keep using that copy until they connect to this folder.';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Enter the passphrase for $library.';
   }

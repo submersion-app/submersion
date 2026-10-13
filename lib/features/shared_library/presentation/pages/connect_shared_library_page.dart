@@ -1,9 +1,12 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
+import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -14,6 +17,7 @@ import 'package:submersion/features/settings/presentation/widgets/webdav_server_
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/picked_file_path.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/storage_setup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -421,6 +425,14 @@ class _ConnectSharedLibraryPageState
                 : l10n.sharedLibrary_connect_create_action,
           ),
         ),
+        if (!probe.exists) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.restore),
+            label: Text(l10n.sharedLibrary_restoreInto_action),
+            onPressed: _busy ? null : _restoreFromBackup,
+          ),
+        ],
       ],
     );
   }
@@ -538,16 +550,105 @@ class _ConnectSharedLibraryPageState
               displayName: displayName,
             );
       if (library == null) return;
-      ref.invalidate(currentMembershipsProvider);
-      ref.invalidate(sitesProvider);
-      if (!mounted) return;
-      await ref.read(sharedLibrarySyncProvider.notifier).syncOne(library.id);
-      ref.invalidate(sitesProvider);
-      if (!mounted) return;
-      context.pushReplacement('/settings/shared-libraries/${library.id}');
+      await _opened(library);
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = libraryErrorText(context.l10n, e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// After a join, create or restore: syncs the library here, then opens
+  /// its page.
+  Future<void> _opened(SharedLibrary library) async {
+    ref.invalidate(currentMembershipsProvider);
+    ref.invalidate(sitesProvider);
+    if (!mounted) return;
+    await ref.read(sharedLibrarySyncProvider.notifier).syncOne(library.id);
+    ref.invalidate(sitesProvider);
+    if (!mounted) return;
+    context.pushReplacement('/settings/shared-libraries/${library.id}');
+  }
+
+  /// Restores a backup file into the empty folder just checked, keeping the
+  /// library's id (issue #2567). An encrypted backup asks for its
+  /// passphrase, with the page idle while it does.
+  Future<void> _restoreFromBackup() async {
+    final account = _account;
+    final prefix = _probedPrefix;
+    if (account == null || prefix == null) return;
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null || !mounted) return;
+    final displayName = _displayName.text.trim();
+    if (displayName.isEmpty) return;
+    final PlatformFile? picked;
+    try {
+      picked = await FilePicker.pickFile(type: FileType.any);
+    } on Exception catch (e) {
+      if (mounted) setState(() => _error = libraryErrorText(context.l10n, e));
+      return;
+    }
+    final file = picked;
+    if (file == null || !mounted) return;
+    final l10n = context.l10n;
+    final restore = ref.read(libraryRestoreServiceProvider);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      String? secret;
+      RestoredLibrary? restored;
+      while (restored == null) {
+        try {
+          restored = await withLocalPath(
+            file,
+            (path) => restore.restoreInto(
+              account: account,
+              prefix: prefix,
+              diverId: diverId,
+              displayName: displayName,
+              path: path,
+              secret: secret,
+            ),
+          );
+        } on BackupNeedsOldKeyError {
+          if (!mounted) return;
+          setState(() => _busy = false);
+          final typed = await promptLibrarySecret(
+            context,
+            message: secret == null
+                ? l10n.sharedLibrary_restoreInto_needsKey
+                : l10n.sharedLibrary_encrypted_wrong,
+          );
+          if (typed == null || !mounted) return;
+          secret = typed;
+          setState(() => _busy = true);
+        }
+      }
+      if (restored.oldStillThere && mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            content: Text(l10n.sharedLibrary_restoreInto_oldStillThere),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(MaterialLocalizations.of(ctx).okButtonLabel),
+              ),
+            ],
+          ),
+        );
+      }
+      if (!mounted) return;
+      await _opened(restored.library);
+    } on BackupRefusedError {
+      if (mounted) {
+        setState(() => _error = l10n.sharedLibrary_restoreInto_refused);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = libraryErrorText(l10n, e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

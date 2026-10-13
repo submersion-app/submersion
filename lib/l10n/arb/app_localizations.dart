@@ -33993,6 +33993,30 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 suggestion waits until you approve its author} other{{count} suggestions wait until you approve their authors}}'**
   String sharedLibrary_suggest_held(int count);
 
+  /// Connect page button for an empty folder: restore a shared site library backup file into it
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup file'**
+  String get sharedLibrary_restoreInto_action;
+
+  /// No description provided for @sharedLibrary_restoreInto_needsKey.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is encrypted. Enter its passphrase or recovery code.'**
+  String get sharedLibrary_restoreInto_needsKey;
+
+  /// No description provided for @sharedLibrary_restoreInto_refused.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a library backup made by an owner.'**
+  String get sharedLibrary_restoreInto_refused;
+
+  /// No description provided for @sharedLibrary_restoreInto_oldStillThere.
+  ///
+  /// In en, this message translates to:
+  /// **'The library is still in its old folder too. Members there keep using that copy until they connect to this folder.'**
+  String get sharedLibrary_restoreInto_oldStillThere;
+
   /// No description provided for @sharedLibrary_encrypted_locked.
   ///
   /// In en, this message translates to:

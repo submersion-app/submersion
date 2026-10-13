@@ -21228,6 +21228,22 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action =>
+      'Restaurar a partir de um ficheiro de cópia';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey =>
+      'Esta cópia está encriptada. Introduza a frase-passe ou o código de recuperação.';
+
+  @override
+  String get sharedLibrary_restoreInto_refused =>
+      'Esse ficheiro não é uma cópia de uma biblioteca feita por um proprietário.';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      'A biblioteca também ainda está na pasta antiga. Os membros que a usam lá mantêm essa cópia até se ligarem a esta pasta.';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Introduza a frase-passe de $library.';
   }

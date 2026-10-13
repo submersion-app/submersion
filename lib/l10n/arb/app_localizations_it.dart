@@ -21226,6 +21226,22 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action =>
+      'Ripristina da un file di backup';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey =>
+      'Questo backup è cifrato. Inserisci la sua passphrase o il codice di recupero.';
+
+  @override
+  String get sharedLibrary_restoreInto_refused =>
+      'Questo file non è un backup di libreria creato da un proprietario.';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      'La libreria è ancora anche nella vecchia cartella. I membri che la usano lì continuano con quella copia finché non si collegano a questa cartella.';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Inserisci la passphrase di $library.';
   }

@@ -20166,6 +20166,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action => '从备份文件恢复';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey => '此备份已加密。请输入它的口令或恢复码。';
+
+  @override
+  String get sharedLibrary_restoreInto_refused => '该文件不是所有者创建的资料库备份。';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      '资料库仍在其旧文件夹中。那里的成员会继续使用该副本，直到他们连接到此文件夹。';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return '请输入 $library 的口令。';
   }

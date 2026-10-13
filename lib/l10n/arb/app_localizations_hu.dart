@@ -21155,6 +21155,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action => 'Visszaállítás mentésfájlból';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey =>
+      'Ez a mentés titkosított. Add meg a jelmondatát vagy a helyreállítási kódját.';
+
+  @override
+  String get sharedLibrary_restoreInto_refused =>
+      'Ez a fájl nem tulajdonos által készített könyvtármentés.';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      'A könyvtár a régi mappájában is megvan még. Az ottani tagok azt a példányt használják, amíg nem csatlakoznak ehhez a mappához.';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Add meg a(z) $library jelmondatát.';
   }

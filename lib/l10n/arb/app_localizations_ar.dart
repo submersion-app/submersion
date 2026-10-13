@@ -21496,6 +21496,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_restoreInto_action =>
+      'الاستعادة من ملف نسخة احتياطية';
+
+  @override
+  String get sharedLibrary_restoreInto_needsKey =>
+      'هذه النسخة الاحتياطية مشفرة. أدخل عبارة المرور أو رمز الاسترداد الخاص بها.';
+
+  @override
+  String get sharedLibrary_restoreInto_refused =>
+      'هذا الملف ليس نسخة احتياطية لمكتبة أنشأها مالك.';
+
+  @override
+  String get sharedLibrary_restoreInto_oldStillThere =>
+      'لا تزال المكتبة في مجلدها القديم أيضًا. يواصل الأعضاء هناك استخدام تلك النسخة حتى يتصلوا بهذا المجلد.';
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'أدخل عبارة المرور لـ $library.';
   }
