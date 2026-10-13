@@ -101,6 +101,16 @@ class SharedSitePublisher {
         ),
       );
     });
+    // Its notes and rating stay the profile's: kept for personal sync,
+    // which no longer carries the site row.
+    if (row.notes.isNotEmpty || row.rating != null) {
+      await _store.putSiteNotes(
+        diverId: diverId,
+        siteId: siteId,
+        notes: row.notes,
+        rating: row.rating,
+      );
+    }
     SyncEventBus.notifyLocalChange();
   }
 

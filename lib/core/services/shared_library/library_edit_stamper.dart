@@ -60,6 +60,34 @@ class LibraryEditStamper {
     );
   }
 
+  /// Keeps the private notes and rating of [siteId] for the profile
+  /// [actingDiverId] (or the library's sole local profile), to reach its
+  /// other devices through personal sync.
+  Future<void> keepPrivate(
+    String siteId, {
+    required String notes,
+    required double? rating,
+    String? actingDiverId,
+  }) async {
+    final row = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+    final libraryId = row?.sharedLibraryId;
+    if (libraryId == null) return;
+    var diverId = actingDiverId;
+    if (diverId == null) {
+      final all = await _store.membershipsForLibrary(libraryId);
+      if (all.length != 1) return;
+      diverId = all.single.diverId;
+    }
+    await _store.putSiteNotes(
+      diverId: diverId,
+      siteId: siteId,
+      notes: notes,
+      rating: rating,
+    );
+  }
+
   Future<String> _resolveMember(String libraryId, String? diverId) async {
     if (diverId != null) {
       final own = await _store.membership(

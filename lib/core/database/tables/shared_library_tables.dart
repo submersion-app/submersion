@@ -166,3 +166,25 @@ class SharedLibraryBackups extends Table {
   @override
   Set<Column> get primaryKey => {backupId};
 }
+
+/// A profile's private notes and rating on a shared site library site
+/// (issue #2567): never in the library, carried to the profile's other
+/// devices by personal sync, which keeps library site rows out. The id is
+/// `<diverId>:<siteId>`, so two devices writing it offline meet on one row.
+/// No FK to dive_sites: a device that has not connected the library holds
+/// the notes before the site arrives.
+@DataClassName('LibrarySiteNoteRow')
+class LibrarySiteNotes extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get siteId => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  RealColumn get rating => real().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

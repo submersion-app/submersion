@@ -73,6 +73,10 @@ void main() {
       await columnsOf(db, 'shared_library_backups'),
       contains('backup_id'),
     );
+    expect(
+      await columnsOf(db, 'library_site_notes'),
+      containsAll(['diver_id', 'site_id', 'notes', 'rating', 'hlc']),
+    );
   });
 
   test('a database already at 290 gains them through the backstop', () async {
@@ -122,5 +126,6 @@ void main() {
       contains('pending_roles_json'),
     );
     expect(await columnsOf(old, 'shared_library_backups'), contains('pinned'));
+    expect(await columnsOf(old, 'library_site_notes'), contains('notes'));
   });
 }

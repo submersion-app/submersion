@@ -41,8 +41,9 @@ and features. Before a site is added, Submersion lists exactly what every
 member will see.
 
 Your **notes** and **rating** on a site stay yours, even on library sites:
-every member keeps their own. Your dives and photos never leave your personal
-logbook.
+every member keeps their own, and no other member sees them. They follow you to
+your other devices through [Multi-Device Sync](multi-device-sync.md). Your dives
+and photos never leave your personal logbook.
 
 ## Connecting a Library
 

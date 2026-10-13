@@ -334,6 +334,16 @@ class SiteRepository {
           changed,
           actingDiverId: actingDiverId,
         );
+        // The profile's private notes and rating: never in the library,
+        // kept for personal sync to carry to its other devices.
+        if (before.notes != site.notes || before.rating != site.rating) {
+          await _libraryStamper.keepPrivate(
+            site.id,
+            notes: site.notes,
+            rating: site.rating,
+            actingDiverId: actingDiverId,
+          );
+        }
       }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated site: ${site.id}');

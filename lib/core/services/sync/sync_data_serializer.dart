@@ -375,6 +375,10 @@ class SyncData {
 
   /// Shared site library memberships per profile (v289, issue #2567).
   final List<Map<String, dynamic>> sharedLibraryMemberships;
+
+  /// A profile's private notes on shared site library sites (v289, issue
+  /// #2567).
+  final List<Map<String, dynamic>> librarySiteNotes;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
@@ -495,6 +499,7 @@ class SyncData {
     this.equipmentLocationMoves = const [],
     this.diveComputerConnections = const [],
     this.sharedLibraryMemberships = const [],
+    this.librarySiteNotes = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
@@ -614,6 +619,7 @@ class SyncData {
     'equipmentLocationMoves': equipmentLocationMoves,
     'diveComputerConnections': diveComputerConnections,
     'sharedLibraryMemberships': sharedLibraryMemberships,
+    'librarySiteNotes': librarySiteNotes,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
@@ -748,6 +754,7 @@ class SyncData {
       equipmentLocationMoves: _parseList(json['equipmentLocationMoves']),
       diveComputerConnections: _parseList(json['diveComputerConnections']),
       sharedLibraryMemberships: _parseList(json['sharedLibraryMemberships']),
+      librarySiteNotes: _parseList(json['librarySiteNotes']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
@@ -1344,6 +1351,12 @@ class SyncDataSerializer {
     (
       key: 'sharedLibraryMemberships',
       table: _db.sharedLibraryMemberships,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'librarySiteNotes',
+      table: _db.librarySiteNotes,
       blob: false,
       full: null,
     ),
@@ -2674,6 +2687,10 @@ class SyncDataSerializer {
         'sharedLibraryMemberships',
         () => _exportSharedLibraryMemberships(hlcSince),
       ),
+      librarySiteNotes: await _safeExport(
+        'librarySiteNotes',
+        () => _exportLibrarySiteNotes(hlcSince),
+      ),
       siteTypes: await _safeExport(
         'siteTypes',
         () => _exportSiteTypes(hlcSince),
@@ -3356,6 +3373,11 @@ class SyncDataSerializer {
           _db.sharedLibraryMemberships,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'librarySiteNotes':
+        final row = await (_db.select(
+          _db.librarySiteNotes,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'transmitters':
         final row = await (_db.select(
           _db.transmitters,
@@ -3825,6 +3847,11 @@ class SyncDataSerializer {
       case 'sharedLibraryMemberships':
         final rows = await (_db.select(
           _db.sharedLibraryMemberships,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'librarySiteNotes':
+        final rows = await (_db.select(
+          _db.librarySiteNotes,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'transmitters':
@@ -5188,6 +5215,15 @@ class SyncDataSerializer {
             .into(_db.sharedLibraryMemberships)
             .insertOnConflictUpdate(
               SharedLibraryMembershipRow.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
+            );
+        return;
+      case 'librarySiteNotes':
+        await _db
+            .into(_db.librarySiteNotes)
+            .insertOnConflictUpdate(
+              LibrarySiteNoteRow.fromJson(
                 _withTimestampDefaults(data),
               ).toCompanion(false),
             );
@@ -6656,6 +6692,20 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'librarySiteNotes':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.librarySiteNotes,
+            records
+                .map(
+                  (r) => LibrarySiteNoteRow.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'transmitters':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -7196,6 +7246,8 @@ class SyncDataSerializer {
           _db.sharedLibraryMemberships,
           _db.sharedLibraryMemberships.id,
         );
+      case 'librarySiteNotes':
+        return plain(_db.librarySiteNotes, _db.librarySiteNotes.id);
       case 'transmitters':
         return plain(_db.transmitters, _db.transmitters.id);
       case 'cylinderFills':
@@ -7658,6 +7710,8 @@ class SyncDataSerializer {
         return _db.diveComputerConnections;
       case 'sharedLibraryMemberships':
         return _db.sharedLibraryMemberships;
+      case 'librarySiteNotes':
+        return _db.librarySiteNotes;
       case 'transmitters':
         return _db.transmitters;
       case 'cylinderFills':
@@ -8249,6 +8303,11 @@ class SyncDataSerializer {
       case 'sharedLibraryMemberships':
         await (_db.delete(
           _db.sharedLibraryMemberships,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'librarySiteNotes':
+        await (_db.delete(
+          _db.librarySiteNotes,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'transmitters':
@@ -9538,6 +9597,19 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.sharedLibraryMemberships);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Private notes on shared site library sites (v289, issue #2567),
+  /// incremental by hlc.
+  Future<List<Map<String, dynamic>>> _exportLibrarySiteNotes(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.librarySiteNotes);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

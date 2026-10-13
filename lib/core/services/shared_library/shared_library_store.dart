@@ -178,6 +178,7 @@ class SharedLibraryStore {
   final _uuid = const Uuid();
 
   static const membershipEntity = 'sharedLibraryMemberships';
+  static const siteNotesEntity = 'librarySiteNotes';
 
   // Libraries
 
@@ -474,6 +475,54 @@ class SharedLibraryStore {
         _db.sharedLibraryMemberships,
       )..where((t) => t.id.equals(id))).go();
       await _sync.logDeletions(entityType: membershipEntity, recordIds: [id]);
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// [diverId]'s private notes and rating on the library site [siteId],
+  /// or null when the profile has none there.
+  Future<({String notes, double? rating})?> siteNotes({
+    required String diverId,
+    required String siteId,
+  }) async {
+    final row = await (_db.select(
+      _db.librarySiteNotes,
+    )..where((t) => t.id.equals('$diverId:$siteId'))).getSingleOrNull();
+    return row == null ? null : (notes: row.notes, rating: row.rating);
+  }
+
+  /// Keeps [diverId]'s private notes and rating on the library site
+  /// [siteId] for personal sync to carry to the profile's other devices.
+  Future<void> putSiteNotes({
+    required String diverId,
+    required String siteId,
+    required String notes,
+    required double? rating,
+  }) async {
+    final id = '$diverId:$siteId';
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      final existing = await (_db.select(
+        _db.librarySiteNotes,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      await _db
+          .into(_db.librarySiteNotes)
+          .insertOnConflictUpdate(
+            LibrarySiteNotesCompanion.insert(
+              id: id,
+              diverId: diverId,
+              siteId: siteId,
+              notes: Value(notes),
+              rating: Value(rating),
+              createdAt: existing?.createdAt ?? now,
+              updatedAt: now,
+            ),
+          );
+      await _sync.markRecordPending(
+        entityType: siteNotesEntity,
+        recordId: id,
+        localUpdatedAt: now,
+      );
     });
     SyncEventBus.notifyLocalChange();
   }

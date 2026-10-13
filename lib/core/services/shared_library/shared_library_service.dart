@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/core/services/shared_library/crypto/library_cipher.da
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -321,6 +323,12 @@ class SharedLibraryService {
             pulled++;
           }
         }
+      }
+
+      // A site that arrived (or changed) here takes the private notes and
+      // rating the profile wrote for it on another device.
+      if (pulled > 0) {
+        await applyLibrarySiteNotes(DatabaseService.instance.database);
       }
 
       // 4. Push. Each field is signed by the local profile that edited it:

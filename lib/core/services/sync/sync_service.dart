@@ -49,6 +49,8 @@ import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dar
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
+import 'package:submersion/core/services/shared_library/library_site_notes.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
@@ -1546,6 +1548,12 @@ class SyncService {
             records: data.sharedLibraryMemberships,
             hasUpdatedAt: true,
           ),
+          // v289: a profile's private notes on library sites (issue #2567).
+          (
+            type: 'librarySiteNotes',
+            records: data.librarySiteNotes,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'transmitters',
             records: data.transmitters,
@@ -2668,6 +2676,7 @@ class SyncService {
     'diveComputers': true,
     'diveComputerConnections': true,
     'sharedLibraryMemberships': true,
+    'librarySiteNotes': true,
     'transmitters': true,
     'cylinderFills': true,
     'connectionMaps': true,
@@ -2937,6 +2946,9 @@ class SyncService {
     'sharedLibraryMemberships': [
       (field: 'diverId', parent: 'divers', nullable: false),
     ],
+    // v289: private notes belong to their profile (issue #2567). The site
+    // is no parent: library sites never cross the personal sync.
+    'librarySiteNotes': [(field: 'diverId', parent: 'divers', nullable: false)],
     // Both gear FKs are nullable: the registry entry outlives a deleted
     // cylinder or computer (set null), so a missing parent must not drop it.
     'transmitters': [
@@ -3777,6 +3789,12 @@ class SyncService {
           '${hints.retry.length + hints.remap.length} media rows: $e',
         );
       }
+    }
+
+    // A profile's private notes on shared site library sites (issue #2567)
+    // reach the library site rows, which personal sync never carries.
+    if (entityType == SharedLibraryStore.siteNotesEntity && applied > 0) {
+      await applyLibrarySiteNotes(DatabaseService.instance.database);
     }
 
     return _MergeResult(

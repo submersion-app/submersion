@@ -1,6 +1,6 @@
 part of '../app_database_migrations.dart';
 
-/// Shared dive-site library schema (issue #2567, v289): six tables, the
+/// Shared dive-site library schema (issue #2567, v289): seven tables, the
 /// `dive_sites.shared_library_id` column, and the key, trust and backup
 /// columns added before v289 shipped. Idempotent, so it serves as the rung
 /// and the beforeOpen backstop, which is how a database already past 289
@@ -15,6 +15,7 @@ extension SharedLibraryMigrations on AppDatabase {
       sharedSiteStates,
       sharedSiteSuggestions,
       sharedLibraryBackups,
+      librarySiteNotes,
     ];
     for (final table in tables) {
       if (!await _tableExists(table.actualTableName)) {

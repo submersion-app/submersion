@@ -178,6 +178,10 @@ void main() {
             type: 'sharedLibraryMemberships',
             table: db.sharedLibraryMemberships.actualTableName,
           ),
+          (
+            type: 'librarySiteNotes',
+            table: db.librarySiteNotes.actualTableName,
+          ),
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),
           (type: 'savedQueries', table: db.savedQueries.actualTableName),
           (

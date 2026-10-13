@@ -9,6 +9,8 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
@@ -202,4 +204,49 @@ void main() {
     expect(a.signingKey?.publicKey, key.publicKey);
     await tearDownTestDatabase();
   });
+
+  test(
+    "private notes on a library site reach the profile's second device",
+    () async {
+      final cloud = FakeCloudStorageProvider();
+      Future<void> deviceWithLibrarySite() async {
+        await setUpTestDatabase();
+        await DiverRepository().createDiver(
+          Diver(
+            id: 'd1',
+            name: 'Ann',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+        // The library pull put the site here; it never crosses personal sync.
+        await SiteRepository().createSite(
+          const DiveSite(id: 's', name: 'Blue', sharedLibraryId: 'L'),
+        );
+      }
+
+      await deviceWithLibrarySite();
+      await SharedLibraryStore().putSiteNotes(
+        diverId: 'd1',
+        siteId: 's',
+        notes: 'surge at the corner',
+        rating: 4,
+      );
+      expect(
+        (await _service(cloud).performSync()).status,
+        SyncResultStatus.success,
+      );
+      await tearDownTestDatabase();
+
+      await deviceWithLibrarySite();
+      expect(
+        (await _service(cloud).performSync()).status,
+        SyncResultStatus.success,
+      );
+      final site = (await SiteRepository().getSiteById('s'))!;
+      expect(site.notes, 'surge at the corner');
+      expect(site.rating, 4);
+      await tearDownTestDatabase();
+    },
+  );
 }

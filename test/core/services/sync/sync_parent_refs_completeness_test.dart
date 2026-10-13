@@ -58,6 +58,7 @@ void main() {
     'dive_computers': 'diveComputers',
     'dive_computer_connections': 'diveComputerConnections',
     'shared_library_memberships': 'sharedLibraryMemberships',
+    'library_site_notes': 'librarySiteNotes',
     'species': 'species',
     'tags': 'tags',
     'courses': 'courses',
