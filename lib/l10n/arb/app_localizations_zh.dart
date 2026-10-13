@@ -9742,6 +9742,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_menu_separate => '拆分合并的潜水';
 
   @override
+  String get diveLog_sources_menu_adjustTime => '调整时间对齐';
+
+  @override
+  String get diveLog_timeAlign_title => '时间对齐';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return '$name 在主电脑时间轴上的位置。移动它会同时平移其剖面、气压、事件和换气；当该电脑的时钟不准时使用。';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview => '前 10 分钟：主电脑与此电脑';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value 秒';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return '提前（$amount）';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return '推后（$amount）';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return '当前 $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return '深度曲线在 $value 时对齐最佳。';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit => '深度曲线吻合度不足，无法给出建议偏移；请手动调整。';
+
+  @override
+  String get diveLog_timeAlign_useFit => '使用深度匹配';
+
+  @override
+  String get diveLog_timeAlign_unavailable => '无法读取此电脑的深度曲线，因此无法对齐。';
+
+  @override
+  String get diveLog_timeAlign_updated => '时间对齐已更新';
+
+  @override
+  String get diveLog_timeAlign_failed => '无法更改时间对齐';
+
+  @override
   String get diveLog_sources_separateDialog_title => '要拆分合并的潜水吗？';
 
   @override

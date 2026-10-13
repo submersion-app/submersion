@@ -10073,6 +10073,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Separate combined dives';
 
   @override
+  String get diveLog_sources_menu_adjustTime => 'Adjust time alignment';
+
+  @override
+  String get diveLog_timeAlign_title => 'Time alignment';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Where $name sits on the primary computer\'s timeline. Moving it shifts its profile, pressures, events and gas switches; use it when that computer\'s clock was off.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'First 10 minutes: primary and this computer';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Earlier ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Later ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Currently $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'The depth traces line up best at $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'The depth traces do not match closely enough to suggest an offset; adjust it by hand.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Use depth match';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'This computer\'s depth trace could not be read, so it cannot be aligned.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Time alignment updated';
+
+  @override
+  String get diveLog_timeAlign_failed => 'Could not change the time alignment';
+
+  @override
   String get diveLog_sources_separateDialog_title => 'Separate combined dives?';
 
   @override

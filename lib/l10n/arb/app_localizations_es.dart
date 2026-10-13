@@ -10233,6 +10233,65 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Separar inmersiones combinadas';
 
   @override
+  String get diveLog_sources_menu_adjustTime =>
+      'Ajustar la alineación temporal';
+
+  @override
+  String get diveLog_timeAlign_title => 'Alineación temporal';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Dónde se sitúa $name en la línea de tiempo del ordenador principal. Moverlo desplaza su perfil, presiones, eventos y cambios de gas; úselo cuando el reloj de ese ordenador estaba desajustado.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'Primeros 10 minutos: principal y este ordenador';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Antes ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Después ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Actualmente $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'Los perfiles de profundidad coinciden mejor en $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'Los perfiles de profundidad no coinciden lo bastante para sugerir un desfase; ajústelo a mano.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Usar coincidencia de profundidad';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'No se pudo leer el perfil de profundidad de este ordenador, así que no se puede alinear.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Alineación temporal actualizada';
+
+  @override
+  String get diveLog_timeAlign_failed =>
+      'No se pudo cambiar la alineación temporal';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       '¿Separar las inmersiones combinadas?';
 

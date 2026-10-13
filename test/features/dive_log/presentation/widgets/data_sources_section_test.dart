@@ -1389,6 +1389,56 @@ void main() {
       expect(splitId, equals('src-2'));
     });
 
+    group('adjust time alignment (#2894)', () {
+      Future<void> pumpSection(
+        WidgetTester tester,
+        void Function(String) onAdjustTime, {
+        bool multiSource = true,
+      }) async {
+        await tester.pumpWidget(
+          testApp(
+            child: SingleChildScrollView(
+              child: DataSourcesSection(
+                dataSources: [
+                  _makeSource(id: 'src-1', isPrimary: true),
+                  if (multiSource)
+                    _makeSource(
+                      id: 'src-2',
+                      isPrimary: false,
+                      computerModel: 'Suunto Ocean',
+                    ),
+                ],
+                diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+                diveId: 'dive-1',
+                units: _units,
+                onAdjustTime: onAdjustTime,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('fires for a secondary source', (tester) async {
+        String? adjusted;
+        await pumpSection(tester, (id) => adjusted = id);
+
+        // Only the secondary has a menu: the primary cannot move.
+        expect(find.byIcon(Icons.more_vert), findsOneWidget);
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Adjust time alignment'));
+        await tester.pumpAndSettle();
+
+        expect(adjusted, 'src-2');
+      });
+
+      testWidgets('is not offered on a single-source dive', (tester) async {
+        await pumpSection(tester, (_) {}, multiSource: false);
+        expect(find.byIcon(Icons.more_vert), findsNothing);
+      });
+    });
+
     testWidgets('three sources show three dividers', (tester) async {
       final src1 = _makeSource(
         id: 'src-1',

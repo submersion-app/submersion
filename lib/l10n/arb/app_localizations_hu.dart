@@ -10213,6 +10213,63 @@ class AppLocalizationsHu extends AppLocalizations {
       'Összevont merülések szétválasztása';
 
   @override
+  String get diveLog_sources_menu_adjustTime => 'Időigazítás módosítása';
+
+  @override
+  String get diveLog_timeAlign_title => 'Időigazítás';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Hol helyezkedik el a(z) $name az elsődleges komputer idővonalán. Az eltolás a profilt, a nyomásokat, az eseményeket és a gázváltásokat is mozgatja; akkor használja, ha a komputer órája eltért.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'Első 10 perc: elsődleges és ez a komputer';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value mp';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Korábbra ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Későbbre ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Jelenleg $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'A mélységgörbék $value értéknél illeszkednek a legjobban.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'A mélységgörbék nem egyeznek elég pontosan eltolás javaslatához; állítsa be kézzel.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Mélységillesztés használata';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'A komputer mélységgörbéje nem olvasható, ezért nem igazítható.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Időigazítás frissítve';
+
+  @override
+  String get diveLog_timeAlign_failed => 'Az időigazítás nem módosítható';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'Szétválasztja az összevont merüléseket?';
 

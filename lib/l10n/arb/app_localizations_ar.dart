@@ -10360,6 +10360,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'فصل الغوصات المدمجة';
 
   @override
+  String get diveLog_sources_menu_adjustTime => 'ضبط المحاذاة الزمنية';
+
+  @override
+  String get diveLog_timeAlign_title => 'المحاذاة الزمنية';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'موضع $name على المخطط الزمني للحاسوب الأساسي. تحريكه يزيح المقطع والضغوط والأحداث وتبديلات الغاز؛ استخدمه عندما كانت ساعة ذلك الحاسوب غير مضبوطة.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview => 'أول 10 دقائق: الأساسي وهذا الحاسوب';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value ث';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'أبكر ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'لاحقًا ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'حاليًا $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'تتطابق منحنيات العمق على أفضل وجه عند $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'منحنيات العمق غير متطابقة بما يكفي لاقتراح إزاحة؛ اضبطها يدويًا.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'استخدام مطابقة العمق';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'تعذرت قراءة منحنى العمق لهذا الحاسوب، لذا لا يمكن محاذاته.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'تم تحديث المحاذاة الزمنية';
+
+  @override
+  String get diveLog_timeAlign_failed => 'تعذر تغيير المحاذاة الزمنية';
+
+  @override
   String get diveLog_sources_separateDialog_title => 'فصل الغوصات المدمجة؟';
 
   @override

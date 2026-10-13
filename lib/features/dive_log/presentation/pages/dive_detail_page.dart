@@ -107,6 +107,7 @@ import 'package:submersion/features/dive_log/domain/services/bottom_time_calcula
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/source_time_alignment_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_switch_efficiency_card.dart';
@@ -621,6 +622,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   readingId: readingId,
                 ),
                 onSplit: (readingId) => _confirmAndSplit(dive, readingId),
+                onAdjustTime: (readingId) => _adjustSourceTime(
+                  dive,
+                  readingId,
+                  resolveSourceName(
+                    dataSources.firstWhere((s) => s.id == readingId),
+                    sourceNameLabelsFor(context),
+                  ),
+                ),
                 onSeparate: segmentCount >= 2
                     ? () => _confirmAndSeparate(dive, segmentCount)
                     : null,
@@ -5201,6 +5210,77 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.diveLog_sources_splitFailed)));
     }
+  }
+
+  /// Moves one secondary computer of [dive] in time (#2894): the dialog
+  /// picks the offset, the service shifts everything that computer recorded.
+  Future<void> _adjustSourceTime(
+    Dive dive,
+    String sourceId,
+    String sourceName,
+  ) async {
+    final l10n = context.l10n;
+    final offset = await SourceTimeAlignmentDialog.show(
+      context,
+      diveId: dive.id,
+      sourceId: sourceId,
+      sourceName: sourceName,
+    );
+    if (offset == null || !mounted) return;
+    final service = ref.read(sourceTimeAlignmentServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+
+    void refresh() {
+      scheduleQualityScan([dive.id]);
+      scheduleSensorSummaryRefresh([dive.id]);
+      scheduleDerivedMetricsRefresh([dive.id]);
+      if (!mounted) return;
+      ref.invalidate(diveProvider(dive.id));
+      ref.invalidate(diveProfileProvider(dive.id));
+      ref.invalidate(sourceProfilesProvider(dive.id));
+      ref.invalidate(diveDataSourcesProvider(dive.id));
+    }
+
+    final int previous;
+    try {
+      previous = await service.setOffset(
+        diveId: dive.id,
+        sourceId: sourceId,
+        offsetSeconds: offset,
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.diveLog_timeAlign_failed)),
+      );
+      return;
+    }
+    refresh();
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.diveLog_timeAlign_updated),
+        duration: const Duration(seconds: 5),
+        persist: false,
+        showCloseIcon: true,
+        action: SnackBarAction(
+          label: l10n.diveLog_bulkDelete_undo,
+          onPressed: () async {
+            try {
+              await service.setOffset(
+                diveId: dive.id,
+                sourceId: sourceId,
+                offsetSeconds: previous,
+              );
+              refresh();
+            } catch (_) {
+              messenger.showSnackBar(
+                SnackBar(content: Text(l10n.diveLog_timeAlign_failed)),
+              );
+            }
+          },
+        ),
+      ),
+    );
   }
 
   /// Confirms and runs "Separate combined dives": the inverse of Combine,

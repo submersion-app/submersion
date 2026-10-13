@@ -10012,6 +10012,62 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'הפרדת צלילות ממוזגות';
 
   @override
+  String get diveLog_sources_menu_adjustTime => 'התאמת יישור הזמן';
+
+  @override
+  String get diveLog_timeAlign_title => 'יישור זמן';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'היכן $name ממוקם על ציר הזמן של המחשב הראשי. הזזה מסיטה את הפרופיל, הלחצים, האירועים והחלפות הגז שלו; השתמשו בה כשהשעון של המחשב היה שגוי.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview => '10 הדקות הראשונות: הראשי ומחשב זה';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value שנ׳';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'מוקדם יותר ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'מאוחר יותר ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'כרגע $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'עקומות העומק מתיישרות בצורה הטובה ביותר ב-$value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'עקומות העומק אינן תואמות מספיק כדי להציע היסט; כוונו אותו ידנית.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'שימוש בהתאמת עומק';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'לא ניתן לקרוא את עקומת העומק של מחשב זה, ולכן אי אפשר ליישר אותו.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'יישור הזמן עודכן';
+
+  @override
+  String get diveLog_timeAlign_failed => 'לא ניתן לשנות את יישור הזמן';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'להפריד את הצלילות הממוזגות?';
 

@@ -10168,6 +10168,64 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Samengevoegde duiken scheiden';
 
   @override
+  String get diveLog_sources_menu_adjustTime => 'Tijduitlijning aanpassen';
+
+  @override
+  String get diveLog_timeAlign_title => 'Tijduitlijning';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Waar $name op de tijdlijn van de primaire computer staat. Verschuiven verplaatst het profiel, de drukken, gebeurtenissen en gaswissels; gebruik dit als de klok van die computer afweek.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'Eerste 10 minuten: primair en deze computer';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Eerder ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Later ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Nu $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'De dieptecurves vallen het best samen bij $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'De dieptecurves komen niet goed genoeg overeen om een verschuiving voor te stellen; pas die met de hand aan.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Diepte-overeenkomst gebruiken';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'De dieptecurve van deze computer kon niet worden gelezen, dus uitlijnen is niet mogelijk.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Tijduitlijning bijgewerkt';
+
+  @override
+  String get diveLog_timeAlign_failed =>
+      'Tijduitlijning kon niet worden gewijzigd';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'Samengevoegde duiken scheiden?';
 

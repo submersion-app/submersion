@@ -10232,6 +10232,65 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Separar mergulhos combinados';
 
   @override
+  String get diveLog_sources_menu_adjustTime =>
+      'Ajustar o alinhamento temporal';
+
+  @override
+  String get diveLog_timeAlign_title => 'Alinhamento temporal';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Onde $name fica na linha do tempo do computador principal. Movê-lo desloca o perfil, as pressões, os eventos e as trocas de gás; use quando o relógio desse computador estava errado.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'Primeiros 10 minutos: principal e este computador';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Mais cedo ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Mais tarde ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Atualmente $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'Os perfis de profundidade coincidem melhor em $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'Os perfis de profundidade não coincidem o suficiente para sugerir um deslocamento; ajuste-o manualmente.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Usar correspondência de profundidade';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'Não foi possível ler o perfil de profundidade deste computador, por isso não pode ser alinhado.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Alinhamento temporal atualizado';
+
+  @override
+  String get diveLog_timeAlign_failed =>
+      'Não foi possível alterar o alinhamento temporal';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'Separar os mergulhos combinados?';
 

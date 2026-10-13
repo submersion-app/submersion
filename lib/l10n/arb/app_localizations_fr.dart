@@ -10271,6 +10271,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Séparer les plongées combinées';
 
   @override
+  String get diveLog_sources_menu_adjustTime =>
+      'Ajuster l\'alignement temporel';
+
+  @override
+  String get diveLog_timeAlign_title => 'Alignement temporel';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Position de $name sur la chronologie de l\'ordinateur principal. Le déplacer décale son profil, ses pressions, ses événements et ses changements de gaz ; à utiliser quand l\'horloge de cet ordinateur était décalée.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      '10 premières minutes : principal et cet ordinateur';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Plus tôt ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Plus tard ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Actuellement $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'Les courbes de profondeur s\'alignent le mieux à $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'Les courbes de profondeur ne concordent pas assez pour proposer un décalage ; ajustez-le à la main.';
+
+  @override
+  String get diveLog_timeAlign_useFit =>
+      'Utiliser la correspondance de profondeur';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'La courbe de profondeur de cet ordinateur est illisible ; il ne peut pas être aligné.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Alignement temporel mis à jour';
+
+  @override
+  String get diveLog_timeAlign_failed =>
+      'Impossible de modifier l\'alignement temporel';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'Séparer les plongées combinées ?';
 
