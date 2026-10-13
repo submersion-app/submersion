@@ -96,6 +96,7 @@ Future<SiteDocument> dropUnverified(
   required String libraryId,
   required Map<String, String> approvedKeys,
   Map<String, String> pendingKeys = const {},
+  Map<String, (String, int)> retiredKeys = const {},
 }) async {
   final fields = {...remote.fields};
   final clocks = {...remote.clocks};
@@ -106,6 +107,13 @@ Future<SiteDocument> dropUnverified(
     if (!newer) continue;
     final member = e.value.memberId;
     if (await _signedBy(approvedKeys[member], remote, e.key, libraryId)) {
+      continue;
+    }
+    // An edit made before the member's editing role ended still counts.
+    final retired = retiredKeys[member];
+    if (retired != null &&
+        e.value.hlc.physicalTime <= retired.$2 &&
+        await _signedBy(retired.$1, remote, e.key, libraryId)) {
       continue;
     }
     final held = await _signedBy(pendingKeys[member], remote, e.key, libraryId);
@@ -146,6 +154,7 @@ Future<List<SiteDocument>> dropUnverifiedAll(
   required String libraryId,
   required Map<String, String> approvedKeys,
   Map<String, String> pendingKeys = const {},
+  Map<String, (String, int)> retiredKeys = const {},
 }) async {
   Future<List<SiteDocument>> run(List<(SiteDocument, SiteDocument)> part) =>
       Future.wait([
@@ -156,6 +165,7 @@ Future<List<SiteDocument>> dropUnverifiedAll(
             libraryId: libraryId,
             approvedKeys: approvedKeys,
             pendingKeys: pendingKeys,
+            retiredKeys: retiredKeys,
           ),
       ]);
   if (pairs.length < _parallelFrom) return run(pairs);

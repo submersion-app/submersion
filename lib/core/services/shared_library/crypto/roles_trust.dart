@@ -53,6 +53,11 @@ Future<RolesVerdict> judgeRoles({
 }
 
 /// Signed by one of its own owners or its own recovery key: all a joining
-/// device, with nothing trusted yet, can check.
-Future<bool> isSelfConsistent(SharedLibraryRoles roles) =>
-    _signedWith(roles, _signerKey(roles, roles.signedBy));
+/// device, with nothing trusted yet, can check. A file an owner signed as
+/// they left lists them as retired, no longer as an owner, and counts too:
+/// without it nobody could join until another owner rewrote the roles.
+/// (A device that trusts roles already never takes one from a retired
+/// member: [judgeRoles] asks for an owner of the roles it trusts.)
+Future<bool> isSelfConsistent(SharedLibraryRoles roles) async =>
+    await _signedWith(roles, _signerKey(roles, roles.signedBy)) ||
+    await _signedWith(roles, roles.retired[roles.signedBy]?.key);

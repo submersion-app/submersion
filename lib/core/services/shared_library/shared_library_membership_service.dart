@@ -502,7 +502,11 @@ class SharedLibraryMembershipService {
             await writeSignedRoles(
               library!,
               t,
-              roles.withRole(membership.memberId, SharedLibraryRole.reader),
+              roles.changeRole(
+                membership.memberId,
+                SharedLibraryRole.reader,
+                at: DateTime.now(),
+              ),
               signer: membership.memberId,
               // The membership row is gone by now; its key is not.
               key:
@@ -808,9 +812,13 @@ class SharedLibraryMembershipService {
     await writeSignedRoles(
       library,
       t,
+      // Rejected: nothing the member wrote counts, before or after.
       roles
           .withRole(memberId, SharedLibraryRole.reader)
-          .copyWith(approvedKeys: keys),
+          .copyWith(
+            approvedKeys: keys,
+            retired: {...roles.retired}..remove(memberId),
+          ),
       signer: actingMemberId,
     );
     await _store.replaceMembers(libraryId, await t.listMembers());
@@ -857,7 +865,7 @@ class SharedLibraryMembershipService {
     await writeSignedRoles(
       library,
       t,
-      roles.withRole(memberId, role),
+      roles.changeRole(memberId, role, at: DateTime.now()),
       signer: actingMemberId,
     );
   }

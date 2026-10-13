@@ -92,7 +92,10 @@ library page and the Suggestions page say how many are waiting, and they reach
 the Suggestions page as soon as you approve their author.
 
 A member who leaves keeps their role in the library's records until an owner
-taps **Remove role**, so their earlier edits stay attributed.
+taps **Remove role**. When an editor or owner leaves, is made a reader, or has
+their role removed, the edits they made until then keep counting for every
+member, including members who join later; anything they write afterwards does
+not.
 
 ## Encryption
 

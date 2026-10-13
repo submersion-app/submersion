@@ -90,6 +90,7 @@ class SharedLibraryRoles extends Equatable {
     this.approvedKeys = const {},
     this.recovery,
     this.reset = false,
+    this.retired = const {},
     this.signedBy,
     this.signature,
   });
@@ -107,6 +108,16 @@ class SharedLibraryRoles extends Equatable {
   /// Written by "reset ownership": each member's device asks before
   /// trusting it.
   final bool reset;
+
+  /// Members whose editing role ended (left, demoted, role removed): the
+  /// key they edited with and when the role ended. Their edits signed
+  /// before then still count.
+  final Map<String, ({String key, int untilMs})> retired;
+
+  /// [retired] as `(key, until)` pairs, for checking signatures.
+  Map<String, (String, int)> get retiredKeys => {
+    for (final e in retired.entries) e.key: (e.value.key, e.value.untilMs),
+  };
 
   /// The member id that signed, or [recoverySigner].
   final String? signedBy;
@@ -130,6 +141,16 @@ class SharedLibraryRoles extends Equatable {
         },
         recovery: RolesRecovery.fromJson(json['recovery']),
         reset: json['reset'] == true,
+        retired: {
+          if (json['retired'] case final Map raw)
+            for (final e in raw.entries)
+              if (e.key is String)
+                if (e.value case {
+                  'key': final String key,
+                  'until': final num until,
+                })
+                  e.key as String: (key: key, untilMs: until.toInt()),
+        },
         signedBy: json['signedBy'] as String?,
         signature: json['signature'] as String?,
       );
@@ -145,6 +166,13 @@ class SharedLibraryRoles extends Equatable {
     'approvedKeys': approvedKeys,
     'recovery': ?recovery?.toJson(),
     'reset': reset,
+    // Absent when empty, so roles written before it sign as they did.
+    'retired': ?(retired.isEmpty
+        ? null
+        : {
+            for (final e in retired.entries)
+              e.key: {'key': e.value.key, 'until': e.value.untilMs},
+          }),
     'signedBy': ?signedBy,
   };
 
@@ -171,6 +199,7 @@ class SharedLibraryRoles extends Equatable {
     RolesRecovery? recovery,
     bool clearRecovery = false,
     bool? reset,
+    Map<String, ({String key, int untilMs})>? retired,
     String? signedBy,
     String? signature,
     bool clearSignature = false,
@@ -181,6 +210,7 @@ class SharedLibraryRoles extends Equatable {
     approvedKeys: approvedKeys ?? this.approvedKeys,
     recovery: clearRecovery ? null : recovery ?? this.recovery,
     reset: reset ?? this.reset,
+    retired: retired ?? this.retired,
     signedBy: signedBy ?? this.signedBy,
     signature: clearSignature ? null : signature ?? this.signature,
   );
@@ -197,6 +227,29 @@ class SharedLibraryRoles extends Equatable {
     if (owners.contains(memberId)) return SharedLibraryRole.owner;
     if (editors.contains(memberId)) return SharedLibraryRole.editor;
     return SharedLibraryRole.reader;
+  }
+
+  /// [memberId] moved to [role] at [at]. A member leaving an editing role
+  /// for reader is recorded in [retired], so the edits they signed until
+  /// then keep counting. The version and signature are the caller's to set.
+  SharedLibraryRoles changeRole(
+    String memberId,
+    SharedLibraryRole role, {
+    required DateTime at,
+  }) {
+    final moved = withRole(memberId, role);
+    final key = approvedKeys[memberId];
+    if (role != SharedLibraryRole.reader ||
+        roleOf(memberId) == SharedLibraryRole.reader ||
+        key == null) {
+      return moved;
+    }
+    return moved.copyWith(
+      retired: {
+        ...retired,
+        memberId: (key: key, untilMs: at.millisecondsSinceEpoch),
+      },
+    );
   }
 
   /// [memberId] moved to [role]; the version and signature are the
@@ -223,6 +276,7 @@ class SharedLibraryRoles extends Equatable {
     approvedKeys,
     recovery,
     reset,
+    retired,
     signedBy,
     signature,
   ];

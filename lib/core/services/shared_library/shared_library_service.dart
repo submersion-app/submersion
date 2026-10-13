@@ -307,6 +307,7 @@ class SharedLibraryService {
           [for (final p in batch) (p.remote, p.local)],
           libraryId: libraryId,
           approvedKeys: roles.editingKeys,
+          retiredKeys: roles.retiredKeys,
           pendingKeys: pendingKeys,
         );
         for (var k = 0; k < batch.length; k++) {
@@ -358,6 +359,7 @@ class SharedLibraryService {
                 local: doc,
                 libraryId: libraryId,
                 approvedKeys: roles.editingKeys,
+                retiredKeys: roles.retiredKeys,
               );
               doc = mergeSiteDocuments(local: doc, remote: proven).merged;
             }
