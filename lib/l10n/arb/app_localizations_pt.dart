@@ -38048,6 +38048,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Fontes em conflito';
 
   @override
+  String get dataQuality_detector_source_alignment => 'Computador desalinhado';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Este computador está a $stored do principal, mas o seu perfil de profundidade coincide em $fitted. O relógio provavelmente estava adiantado ou atrasado.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Alinhar ao perfil de profundidade ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'Equipamento partilhado em mergulhos sobrepostos';
 

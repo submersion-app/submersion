@@ -244,6 +244,19 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             findingId: f.id,
           ),
         );
+      case AlignSourceRepair(
+        :final diveId,
+        :final sourceId,
+        :final offsetSeconds,
+      ):
+        await withUndo(
+          () => executor.alignSource(
+            diveId: diveId,
+            sourceId: sourceId,
+            offsetSeconds: offsetSeconds,
+            findingId: f.id,
+          ),
+        );
       case SplitSourceRepair(:final diveId, :final sourceId):
         // Split does not return a RepairResult, so withUndo cannot wrap it.
         // It still has to report a failure: it refuses a source that no

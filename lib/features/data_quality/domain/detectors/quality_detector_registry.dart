@@ -7,6 +7,7 @@ import 'package:submersion/features/data_quality/domain/detectors/pressure_anoma
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/sample_gap_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/shared_gear_overlap_detector.dart';
+import 'package:submersion/features/data_quality/domain/detectors/source_alignment_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/source_conflict_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/split_pair_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/tank_assignment_detector.dart';
@@ -26,6 +27,7 @@ const List<QualityDetector> kQualityDetectors = [
   TankAssignmentDetector(),
   UnknownTransmitterDetector(),
   SourceConflictDetector(),
+  SourceAlignmentDetector(),
   SharedGearOverlapDetector(),
 ];
 

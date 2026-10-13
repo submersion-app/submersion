@@ -60170,6 +60170,24 @@ abstract class AppLocalizations {
   /// **'Conflicting sources'**
   String get dataQuality_detector_source_conflict;
 
+  /// Data quality check: a secondary computer's recording is out of step in time with the primary.
+  ///
+  /// In en, this message translates to:
+  /// **'Computer out of step'**
+  String get dataQuality_detector_source_alignment;
+
+  /// Finding detail: stored and fitted offsets, each a signed number of seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'This computer is placed {stored} from the primary, but its depth trace matches at {fitted}. Its clock had probably drifted.'**
+  String dataQuality_msg_sourceAlignment(String stored, String fitted);
+
+  /// Repair button: move the computer to the fitted offset.
+  ///
+  /// In en, this message translates to:
+  /// **'Align to depth match ({value})'**
+  String dataQuality_repairLabel_alignSource(String value);
+
   /// No description provided for @dataQuality_detector_shared_gear_overlap.
   ///
   /// In en, this message translates to:

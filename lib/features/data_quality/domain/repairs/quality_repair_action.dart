@@ -74,6 +74,20 @@ class SetPrimarySourceRepair extends QualityRepairAction {
   final String sourceId;
 }
 
+/// Move a secondary computer to where its depth trace matches the primary's
+/// (#2894). Information-preserving: the stored offset changes and the old one
+/// comes back with an undo.
+class AlignSourceRepair extends QualityRepairAction {
+  const AlignSourceRepair({
+    required this.diveId,
+    required this.sourceId,
+    required this.offsetSeconds,
+  });
+  final String diveId;
+  final String sourceId;
+  final int offsetSeconds;
+}
+
 class SplitSourceRepair extends QualityRepairAction {
   const SplitSourceRepair({required this.diveId, required this.sourceId});
   final String diveId;
@@ -407,6 +421,21 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
           SetPrimarySourceRepair(diveId: diveId, sourceId: sourceId),
           SplitSourceRepair(diveId: diveId, sourceId: sourceId),
           CompareSourcesRepair(diveId),
+        ];
+      }
+      return [GoToDiveRepair(diveId)];
+
+    case 'source_alignment':
+      final sourceId = p['sourceId'] as String?;
+      final fitted = (p['fittedOffsetSeconds'] as num?)?.toInt();
+      if (sourceId != null && fitted != null) {
+        return [
+          AlignSourceRepair(
+            diveId: diveId,
+            sourceId: sourceId,
+            offsetSeconds: fitted,
+          ),
+          GoToDiveRepair(diveId),
         ];
       }
       return [GoToDiveRepair(diveId)];

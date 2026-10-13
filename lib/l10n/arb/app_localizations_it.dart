@@ -38063,6 +38063,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Fonti in conflitto';
 
   @override
+  String get dataQuality_detector_source_alignment => 'Computer sfasato';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Questo computer è posizionato a $stored dal principale, ma il suo profilo di profondità coincide a $fitted. Probabilmente il suo orologio era sfasato.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Allinea al profilo di profondità ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'Attrezzatura condivisa su immersioni sovrapposte';
 

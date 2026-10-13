@@ -37428,6 +37428,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Conflicting sources';
 
   @override
+  String get dataQuality_detector_source_alignment => 'Computer out of step';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'This computer is placed $stored from the primary, but its depth trace matches at $fitted. Its clock had probably drifted.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Align to depth match ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'Shared gear on overlapping dives';
 

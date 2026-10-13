@@ -37129,6 +37129,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'מקורות סותרים';
 
   @override
+  String get dataQuality_detector_source_alignment => 'מחשב לא מסונכרן';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'מחשב זה ממוקם $stored מהראשי, אך עקומת העומק שלו תואמת ב-$fitted. כנראה שהשעון שלו סטה.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'יישור לפי התאמת העומק ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'ציוד משותף בצלילות חופפות';
 

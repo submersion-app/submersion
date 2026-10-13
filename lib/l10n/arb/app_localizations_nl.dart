@@ -37800,6 +37800,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Tegenstrijdige bronnen';
 
   @override
+  String get dataQuality_detector_source_alignment =>
+      'Computer loopt niet gelijk';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Deze computer staat op $stored van de primaire, maar zijn dieptecurve valt samen bij $fitted. Zijn klok liep waarschijnlijk uit de pas.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Uitlijnen op dieptecurve ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'Gedeelde uitrusting bij overlappende duiken';
 

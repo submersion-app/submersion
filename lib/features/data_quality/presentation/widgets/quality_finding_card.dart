@@ -83,6 +83,12 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       CombineSplitRepair() => l10n.dataQuality_repairLabel_combine,
       SetPrimarySourceRepair() => l10n.dataQuality_repairLabel_setPrimary,
       SplitSourceRepair() => l10n.dataQuality_repairLabel_split,
+      AlignSourceRepair(:final offsetSeconds) =>
+        l10n.dataQuality_repairLabel_alignSource(
+          l10n.diveLog_timeAlign_seconds(
+            offsetSeconds > 0 ? '+$offsetSeconds' : '$offsetSeconds',
+          ),
+        ),
       DespikeRepair() => l10n.dataQuality_repairLabel_despike,
       SmoothRatesRepair() => l10n.dataQuality_repairLabel_smoothRates,
       ClampNegativeDepthsRepair() => l10n.dataQuality_repairLabel_clampNegative,

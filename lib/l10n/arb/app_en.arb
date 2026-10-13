@@ -23334,6 +23334,12 @@
   "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
   "dataQuality_detector_tank_assignment": "Wrong cylinder",
   "dataQuality_detector_source_conflict": "Conflicting sources",
+  "dataQuality_detector_source_alignment": "Computer out of step",
+  "@dataQuality_detector_source_alignment": {"description": "Data quality check: a secondary computer's recording is out of step in time with the primary."},
+  "dataQuality_msg_sourceAlignment": "This computer is placed {stored} from the primary, but its depth trace matches at {fitted}. Its clock had probably drifted.",
+  "@dataQuality_msg_sourceAlignment": {"description": "Finding detail: stored and fitted offsets, each a signed number of seconds.", "placeholders": {"stored": {"type": "String"}, "fitted": {"type": "String"}}},
+  "dataQuality_repairLabel_alignSource": "Align to depth match ({value})",
+  "@dataQuality_repairLabel_alignSource": {"description": "Repair button: move the computer to the fitted offset.", "placeholders": {"value": {"type": "String"}}},
   "dataQuality_detector_shared_gear_overlap": "Shared gear on overlapping dives",
   "dataQuality_msg_clock_future": "Dive is dated in the future ({date})",
   "@dataQuality_msg_clock_future": {

@@ -38168,6 +38168,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Sources contradictoires';
 
   @override
+  String get dataQuality_detector_source_alignment => 'Ordinateur décalé';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Cet ordinateur est placé à $stored du principal, mais sa courbe de profondeur concorde à $fitted. Son horloge avait probablement dérivé.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Aligner sur la courbe de profondeur ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'Équipement partagé sur des plongées qui se chevauchent';
 

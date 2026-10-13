@@ -38559,6 +38559,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'مصادر متعارضة';
 
   @override
+  String get dataQuality_detector_source_alignment => 'حاسوب غير متزامن';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'وُضع هذا الحاسوب على بُعد $stored من الأساسي، لكن منحنى عمقه يتطابق عند $fitted. يُرجَّح أن ساعته انحرفت.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'المحاذاة وفق مطابقة العمق ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'معدات مشتركة في غطسات متداخلة';
 

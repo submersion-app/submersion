@@ -37847,6 +37847,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Ütköző források';
 
   @override
+  String get dataQuality_detector_source_alignment => 'Elcsúszott komputer';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Ez a komputer $stored távolságra van az elsődlegestől, de a mélységgörbéje $fitted értéknél illeszkedik. Az órája valószínűleg elcsúszott.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Igazítás a mélységgörbéhez ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'Közös felszerelés átfedő merüléseken';
 

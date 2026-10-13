@@ -37987,6 +37987,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Widersprüchliche Quellen';
 
   @override
+  String get dataQuality_detector_source_alignment =>
+      'Computer zeitlich versetzt';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Dieser Computer liegt $stored vom primären entfernt, sein Tiefenverlauf passt aber bei $fitted. Seine Uhr ging vermutlich falsch.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Am Tiefenverlauf ausrichten ($value)';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap =>
       'Geteilte Ausrüstung bei überlappenden Tauchgängen';
 

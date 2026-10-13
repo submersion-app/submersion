@@ -112,9 +112,9 @@ void main() {
     expect(candidates['unknown_transmitter'], {'real'});
   });
 
-  test('registry contains all 13 detectors with unique ids', () {
+  test('registry contains all 14 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
-    expect(ids.toSet(), hasLength(13));
+    expect(ids.toSet(), hasLength(14));
     expect(
       ids.toSet(),
       containsAll({
@@ -130,6 +130,7 @@ void main() {
         'tank_assignment',
         'unknown_transmitter',
         'source_conflict',
+        'source_alignment',
         'shared_gear_overlap',
       }),
     );

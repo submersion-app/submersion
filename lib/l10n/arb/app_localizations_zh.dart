@@ -35901,6 +35901,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_detector_source_conflict => '来源冲突';
 
   @override
+  String get dataQuality_detector_source_alignment => '电脑时间不同步';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return '此电脑被放在距主电脑 $stored 处，但其深度曲线在 $fitted 处吻合。它的时钟可能有漂移。';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return '按深度匹配对齐（$value）';
+  }
+
+  @override
   String get dataQuality_detector_shared_gear_overlap => '重叠潜水中的共享装备';
 
   @override
