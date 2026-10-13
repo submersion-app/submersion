@@ -26,7 +26,7 @@ When you open Submersion you land on the **Dashboard**, your home screen, with a
 | **Your dive world** | [Dive sites](dive-sites.md) and maps, [trips](trips.md), [buddies and dive centers](buddies-and-dive-centers.md), and [marine life and photos](marine-life-and-photos.md), with their own **Media** and **Species** destinations. |
 | **Diver and gear** | Your [certifications and courses](certifications-and-courses.md), your [equipment](equipment.md) and service reminders, and your [diver profile](diver-profile.md). |
 | **Insights and planning** | [Insights](statistics.md): statistics, records and trends across your diving, plus the [dive planner and calculators](planning.md). |
-| **Setup and data** | [Settings](settings.md), [backup and restore](backup-and-restore.md), [multi-device sync](multi-device-sync.md), and [debug mode](debug-mode.md). |
+| **Setup and data** | [Settings](settings.md), [backup and restore](backup-and-restore.md), [multi-device sync](multi-device-sync.md), [shared site libraries](shared-site-libraries.md), and [debug mode](debug-mode.md). |
 
 > [!TIP]
 > "Home" in the navigation always takes you back to the [Dashboard](dashboard.md).

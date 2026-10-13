@@ -1,0 +1,234 @@
+# Shared Site Libraries
+
+A **shared site library** is a set of dive sites kept together by a group of
+divers: a dive shop's house reefs, a survey team's transects, or the sites a
+group of friends dives every season. Each member sees the same sites, with the
+same names, coordinates, depths, hazards and access notes, and changes made by
+one member reach everyone on their next sync.
+
+The library lives in a folder of cloud storage the group controls, an
+S3-compatible bucket or a WebDAV server. There is no Submersion server and no
+Submersion account. You can belong to more than one library, each in its own
+folder.
+
+Open **Settings > Data > Shared Site Libraries** to see your libraries and
+connect new ones.
+
+## Roles
+
+Every member has one role in each library:
+
+| Role | Can do |
+| --- | --- |
+| **Owner** | Everything an editor can, plus review suggestions, change roles, approve members, manage encryption, and make and restore backups. |
+| **Editor** | Add sites to the library, and edit or delete library sites directly. |
+| **Reader** | See every library site, and suggest changes for an owner or editor to review. |
+
+A reader who opens a library site and taps edit sees **Suggest changes**: the
+changed fields and an optional note are sent as a suggestion when they tap
+**Send**, and the site itself is not touched until an owner accepts it.
+
+> [!IMPORTANT]
+> Roles in the app decide what each member's edits count for. What stops a key
+> from writing files at all is the storage itself, so give each member a key
+> with only the rights their role needs. See [Setting Up Storage](#setting-up-storage).
+
+## What Stays Private
+
+Adding a site to a library shares its name, location, depths, description,
+hazards, access, entry and exit, mooring, parking, site types, tags, species
+and features. Before a site is added, Submersion lists exactly what every
+member will see.
+
+Your **notes** and **rating** on a site stay yours, even on library sites:
+every member keeps their own. Your dives and photos never leave your personal
+logbook.
+
+## Connecting a Library
+
+1. Tap **Connect a library**.
+2. Enter the **library folder**. Each library is a folder inside
+   `submersion-sites` at the top of your bucket or server, beside the
+   `submersion-sync` and `submersion-media` folders. A folder name cannot start
+   with `sites`, `members`, `suggestions` or `backups`.
+3. Choose the storage account, or **Add storage account** with the bucket or
+   server details and the key you were given.
+4. Tap **Check**. Submersion looks in the folder and offers to **Join** the
+   library that is there, or to **Create library** if the folder is empty.
+
+### Creating a library
+
+The diver who creates a library is its first owner. Submersion then shows the
+library's **recovery code** once. Store it somewhere safe, apart from the
+storage keys: it can make whoever holds it an owner of the library, and it
+also opens the library if it is encrypted.
+
+### Joining a library
+
+A new member's device writes a signed member card to the library and waits for
+an owner's approval. Until then the member reads the library, but nothing they
+write counts.
+
+Each member has one **signing key** per profile, which Submersion makes for
+you and carries to your other devices through
+[Multi-Device Sync](multi-device-sync.md). Every edit, suggestion and role
+change is signed, and every device checks the signatures, so a member cannot
+pass off an edit as someone else's.
+
+## Approving Members
+
+Owners see new members under **Waiting for approval** on the library's
+**Members** page, with the first characters of each member's key. Approve only
+members you expect: if a name you do not recognize is waiting, ask the group
+before tapping **Approve**. **Reject** removes their card, and nothing they
+write counts. Only new storage keys stop a rejected member from writing files
+at all.
+
+A member who leaves keeps their role in the library's records until an owner
+taps **Remove role**, so their earlier edits stay attributed.
+
+## Encryption
+
+By default anyone with access to the storage folder can read the library.
+Owners can turn on **encryption** from the library page:
+
+- **Turn on encryption** asks for a passphrase. Every file in the library is
+  rewritten sealed, and a new recovery code is shown. Each member enters the
+  passphrase once per profile.
+- **Change passphrase** makes a new key and a new recovery code, and rewrites
+  every file under the new key. Share the new passphrase only with the members
+  who stay: anyone who knew the old one, or kept a copy of its key, can no
+  longer read anything written afterwards.
+- **Turn off encryption** rewrites every file readable by anyone with storage
+  access.
+
+The passphrase or the recovery code opens an encrypted library. File names,
+sizes, and the number of sites and members are not hidden.
+
+> [!NOTE]
+> If a member saves a site at the same moment an owner changes the passphrase,
+> that one site may stay sealed under the old key until someone saves it again.
+
+## If an Owner Is Lost
+
+A library with only one owner shows a warning on its page. Choose a second
+owner when you can: either owner can then manage the library alone.
+
+If every owner has lost access, for example after reinstalling without their
+synced profile:
+
+1. **Recover ownership** with the library's recovery code makes you an owner.
+   An owner can also issue a **New recovery code**, for example if the old one
+   may have leaked.
+2. If the recovery code is lost too, any member can **Reset ownership** and
+   become the only owner. Every other member's device then asks them to accept
+   the reset, and stops writing to the library until they do, so a reset
+   cannot take a library over unnoticed.
+
+## Backups
+
+Owners can back a library up and restore it, much like the logbook's own
+[backups](backup-and-restore.md). Open **Backups** from the library page.
+
+- **Where they are kept.** Each backup is kept on the owner's device, beside
+  the logbook backups, and in a `backups` folder beside the library, so every
+  owner sees the same list. A backup kept in both places asks which copy to
+  delete.
+- **Automatic backups.** An owner's device makes one backup a day after a
+  successful sync, unless another owner made one in the last 20 hours. The
+  last 7 unpinned backups are kept in each place; pin a backup to keep it.
+- **Back up now** makes a backup at once, with an optional note.
+- **Export** shares a backup file, and **Import a backup** adds one saved
+  elsewhere. Every backup is signed by the owner who made it, and a file that
+  is not a backup of this library, or was not made by an owner, is refused.
+- **Restore** puts the library back exactly as it was in the backup. Sites
+  added since are removed, roles return as they were (with you kept as an
+  owner), and members who joined since wait for approval again. Every member
+  gets the restored library on their next sync. Before restoring, Submersion
+  makes a pinned backup of the library as it is now, so a restore can be
+  undone.
+
+A backup made before the passphrase was changed asks for the passphrase, or
+the recovery code, of that time.
+
+## Setting Up Storage
+
+The connect page links to **How to set up storage**, which shows these
+examples filled in with your bucket and folder, with a **Copy** button for
+each.
+
+### S3-compatible storage
+
+Make two kinds of keys. Owners and editors get a key that reads and writes the
+library folder:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::BUCKET"],
+      "Condition": {
+        "StringLike": { "s3:prefix": ["submersion-sites/FOLDER/*"] }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": ["arn:aws:s3:::BUCKET/submersion-sites/FOLDER/*"]
+    }
+  ]
+}
+```
+
+Readers get a key that reads the folder and writes only its `members` and
+`suggestions` folders:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::BUCKET"],
+      "Condition": {
+        "StringLike": { "s3:prefix": ["submersion-sites/FOLDER/*"] }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::BUCKET/submersion-sites/FOLDER/*"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:DeleteObject"],
+      "Resource": [
+        "arn:aws:s3:::BUCKET/submersion-sites/FOLDER/members/*",
+        "arn:aws:s3:::BUCKET/submersion-sites/FOLDER/suggestions/*"
+      ]
+    }
+  ]
+}
+```
+
+Replace `BUCKET` with your bucket and `FOLDER` with the library folder. Other
+S3-compatible services (Backblaze B2, Wasabi, MinIO, Cloudflare R2) accept the
+same policy or have an equivalent per-key prefix setting.
+
+### WebDAV
+
+Share the library folder read-only with readers, and its `members` and
+`suggestions` folders writable, where your server allows per-folder rights
+(for example Nextcloud share permissions). Owners and editors need write
+access to the whole folder.
+
+## Related
+
+- [Dive Sites](dive-sites.md)
+- [Multi-Device Sync](multi-device-sync.md)
+- [Encrypted Sync](encrypted-sync.md)
+- [Backup & Restore](backup-and-restore.md)

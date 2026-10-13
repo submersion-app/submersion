@@ -37,6 +37,7 @@
 - [Multi-Device Sync](multi-device-sync.md)
 - [Media Sync](media-sync.md)
 - [Encrypted Sync](encrypted-sync.md)
+- [Shared Site Libraries](shared-site-libraries.md)
 - [Debug Mode](debug-mode.md)
 
 **Reference**
