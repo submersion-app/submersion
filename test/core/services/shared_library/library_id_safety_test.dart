@@ -1,4 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
+import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
@@ -69,6 +74,54 @@ void main() {
     );
     for (final bad in ['', '..', '../x', 'a/b', r'a\b', 'x' * 200]) {
       expect(SharedLibraryLayout.isValidLibraryId(bad), isFalse, reason: bad);
+    }
+  });
+
+  test('a backup whose id could leave a folder is refused', () async {
+    final key = await LibrarySigner.generate();
+    final zip = await LibraryBackupArchive.build(
+      files: {'roles.json': Uint8List.fromList('{}'.codeUnits)},
+      header: LibraryBackupHeader(
+        backupId: '../../escape',
+        libraryId: 'L',
+        createdAt: DateTime.utc(2026),
+        createdBy: 'o',
+        createdByKey: key.publicKey,
+        appVersion: 'x',
+        automatic: false,
+        note: '',
+        siteCount: 0,
+        memberCount: 0,
+      ),
+      key: key,
+    );
+    await expectLater(
+      LibraryBackupArchive.read(zip),
+      throwsA(isA<BackupRefusedError>()),
+    );
+  });
+
+  test('a backup index entry naming a path is dropped', () {
+    Map<String, Object?> entry(String id, String name) => {
+      'backupId': id,
+      'fileName': name,
+      'createdAt': '2026-10-01T00:00:00Z',
+    };
+    expect(
+      LibraryBackupRecord.fromIndexJson('L', entry('b1', 'b1.zip')),
+      isNotNull,
+    );
+    for (final (id, name) in [
+      ('b1', '../b1.zip'),
+      ('b1', 'a/b1.zip'),
+      ('b1', r'a\b1.zip'),
+      ('../b1', 'b1.zip'),
+    ]) {
+      expect(
+        LibraryBackupRecord.fromIndexJson('L', entry(id, name)),
+        isNull,
+        reason: '$id $name',
+      );
     }
   });
 }

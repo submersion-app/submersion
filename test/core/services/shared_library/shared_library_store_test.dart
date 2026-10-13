@@ -27,6 +27,27 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
+  test('two first calls for a signing key agree on one', () async {
+    await store.upsertMembership(
+      const SharedLibraryMembership(
+        id: 'ms',
+        diverId: 'd1',
+        libraryId: 'L',
+        memberId: 'm1',
+        displayName: 'Ann',
+        libraryName: 'Reef Survey',
+        backendKind: 's3',
+      ),
+    );
+    final both = await Future.wait([
+      store.ensureSigningKey('d1'),
+      store.ensureSigningKey('d1'),
+    ]);
+    final stored = (await store.signingKeyForDiver('d1'))!;
+    expect(both[0].publicKey, stored.publicKey);
+    expect(both[1].publicKey, stored.publicKey);
+  });
+
   test(
     "the library's current key wins over another profile's stale one",
     () async {

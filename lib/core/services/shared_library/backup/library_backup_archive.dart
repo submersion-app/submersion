@@ -196,6 +196,11 @@ abstract final class LibraryBackupArchive {
     } on Object {
       throw const BackupRefusedError('notABackup');
     }
+    // Both ids name local files and folders: nothing that could leave them.
+    if (!SharedLibraryLayout.isValidLibraryId(header.backupId) ||
+        !SharedLibraryLayout.isValidLibraryId(header.libraryId)) {
+      throw const BackupRefusedError('notABackup');
+    }
     if (contentHash(files) != header.contentSha256) {
       throw const BackupRefusedError('hash');
     }

@@ -84,9 +84,13 @@ class LibraryEncryptionService {
       throw StateError('$libraryId is not encrypted here');
     }
     final manifest = await t.readManifest() ?? {};
-    await t.writeManifest({...manifest, 'encrypted': false}..remove('keyId'));
+    await t.writeManifest(
+      {...manifest, 'encrypted': false, SharedLibraryLayout.rewritingFlag: true}
+        ..remove('keyId'),
+    );
     t.encrypting = false;
     await _rewriteAll(t, progress: progress);
+    await t.clearRewritingFlag();
     await t.deleteKeyslots();
     await t.deletePreviousKeys();
     for (final m in await _store.membershipsForLibrary(libraryId)) {
@@ -130,6 +134,7 @@ class LibraryEncryptionService {
       ...manifest,
       'encrypted': true,
       'keyId': cipher.keyId,
+      SharedLibraryLayout.rewritingFlag: true,
     });
     t
       ..cipher = cipher
@@ -153,6 +158,7 @@ class LibraryEncryptionService {
       signer: me.memberId,
     );
     await _rewriteAll(t, previous: previous, progress: progress);
+    await t.clearRewritingFlag();
     return recovery.code;
   }
 

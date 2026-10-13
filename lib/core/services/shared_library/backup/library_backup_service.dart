@@ -148,9 +148,21 @@ class LibraryBackupService {
     final last = library.lastAutoBackupAt;
     if (last != null && now.difference(last) < autoInterval) return false;
     final existing = await list(libraryId: libraryId);
-    if (existing.any(
-      (r) => r.inStorage && now.difference(r.createdAt) < storageFresh,
-    )) {
+    final fresh = [
+      for (final r in existing)
+        if (r.inStorage && now.difference(r.createdAt) < storageFresh) r,
+    ];
+    if (fresh.isNotEmpty) {
+      // Next due when the newest of them turns [storageFresh] old: recorded
+      // as a last backup [autoInterval] before then, so syncs until that
+      // time need no look at storage.
+      final newest = fresh
+          .map((r) => r.createdAt)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+      await _store.setLibraryStatus(
+        libraryId,
+        lastAutoBackupAt: newest.subtract(autoInterval - storageFresh),
+      );
       return false;
     }
     await backUp(libraryId: libraryId, diverId: diverId, automatic: true);
@@ -300,7 +312,13 @@ class LibraryBackupService {
       throw const BackupRefusedError('otherLibrary');
     }
     final h = contents.header;
-    final name = p.basename(path);
+    // Named for the backup it holds, as backups made here are: two files
+    // saved under one name elsewhere never share a copy here.
+    final id8 = h.backupId.length > 8 ? h.backupId.substring(0, 8) : h.backupId;
+    var name = p.basename(path);
+    if (!name.contains(id8)) {
+      name = '${p.basenameWithoutExtension(name)}-$id8.zip';
+    }
     final local = p.join(await _dirOf(libraryId), name);
     if (p.canonicalize(local) != p.canonicalize(path)) {
       await File(local).writeAsBytes(bytes, flush: true);

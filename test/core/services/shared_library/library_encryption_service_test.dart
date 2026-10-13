@@ -216,6 +216,54 @@ void main() {
     expect((await fresh.readSite(file.id)).id, doc.id);
   });
 
+  test('a turn-off cut short is finished by the next owner sync', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'correct horse battery',
+    );
+    // This device has read every document since: unchanged ones are not
+    // read again.
+    await syncer().sync(lib.id, diverId: 'd1');
+    await expectLater(
+      encryption.turnOff(
+        libraryId: lib.id,
+        diverId: 'd1',
+        progress: (done, total) {
+          if (done == 1) throw StateError('connection lost');
+        },
+      ),
+      throwsStateError,
+    );
+    expect((await sealedByPath()).values, contains(true));
+
+    await syncer().sync(lib.id, diverId: 'd1');
+
+    expect((await sealedByPath()).values, everyElement(isFalse));
+    expect((await folder().readManifest())!['rewriting'], isNull);
+    expect(await SharedLibraryStore().libraryCipherFor(lib.id), isNull);
+  });
+
+  test('a turn-on cut short is finished by the next owner sync', () async {
+    await expectLater(
+      encryption.turnOn(
+        libraryId: lib.id,
+        diverId: 'd1',
+        passphrase: 'correct horse battery',
+        progress: (done, total) {
+          if (done == 1) throw StateError('connection lost');
+        },
+      ),
+      throwsStateError,
+    );
+    expect((await sealedByPath()).values, contains(false));
+
+    await syncer().sync(lib.id, diverId: 'd1');
+
+    expect((await sealedByPath()).values, everyElement(isTrue));
+    expect((await folder().readManifest())!['rewriting'], isNull);
+  });
+
   test('a new recovery code also opens the encrypted library', () async {
     final first = await encryption.turnOn(
       libraryId: lib.id,

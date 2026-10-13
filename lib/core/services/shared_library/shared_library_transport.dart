@@ -651,6 +651,36 @@ class SharedLibraryTransport {
     mismatched.remove(path);
   }
 
+  /// Clears the manifest's [SharedLibraryLayout.rewritingFlag] once every
+  /// file is in the library's current form.
+  Future<void> clearRewritingFlag() async {
+    final manifest = await readManifest();
+    if (manifest == null ||
+        !manifest.containsKey(SharedLibraryLayout.rewritingFlag)) {
+      return;
+    }
+    await writeManifest(
+      {...manifest}..remove(SharedLibraryLayout.rewritingFlag),
+    );
+  }
+
+  /// Rewrites the file at [path] ([fileId]) when it is not in the
+  /// library's current form: plain when not encrypting, sealed under the
+  /// current key when encrypting. True when it was rewritten.
+  Future<bool> settle(String path, String fileId) async {
+    final raw = await _provider.downloadFile(fileId);
+    final sealed = LibraryCipher.isSealed(raw);
+    final c = cipher;
+    final inForm = encrypting
+        ? sealed &&
+              c != null &&
+              LibraryCipher.keyIdOf(raw) == c.keyId.toLowerCase()
+        : !sealed;
+    if (inForm) return false;
+    await rewrite(path, fileId);
+    return true;
+  }
+
   Future<void> deleteSuggestion(String id) async {
     final f = await _find(await _suggestionsId(), suggestionFileName(id));
     if (f != null) await _provider.deleteFile(f.id);

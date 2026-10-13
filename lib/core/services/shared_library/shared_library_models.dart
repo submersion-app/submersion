@@ -539,6 +539,11 @@ abstract final class SharedLibraryLayout {
   };
   static const manifestFile = 'submersion-shared-library.json';
 
+  /// Manifest flag set while an owner rewrites every file into a new form
+  /// (encryption on, off or a new key): until it is cleared no device drops
+  /// its key, and an owner's sync finishes a rewrite that was cut short.
+  static const rewritingFlag = 'rewriting';
+
   static final _libraryId = RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$');
 
   /// Whether [id], read from a library's manifest, is safe to name a local

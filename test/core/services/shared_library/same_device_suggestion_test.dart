@@ -9,6 +9,7 @@ import 'package:submersion/core/services/shared_library/shared_library_store.dar
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/shared_library/suggestion_service.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
+import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -262,5 +263,38 @@ void main() {
     await t.writeSite(forged);
     await syncer().sync(lib.id, diverId: 'owner');
     expect((await SiteRepository().getSiteById('s1'))!.hazards, 'old');
+  });
+
+  test("another local profile's edit goes up signed by that profile", () async {
+    final editor = await memberOf('reader');
+    await memberships.setRole(
+      libraryId: lib.id,
+      actingMemberId: await memberOf('owner'),
+      memberId: editor,
+      role: SharedLibraryRole.editor,
+    );
+    await syncer().sync(lib.id, diverId: 'reader');
+    final site = (await SiteRepository().getSiteById('s1'))!;
+    await SiteRepository().updateSite(
+      site.copyWith(hazards: 'edited by the editor'),
+      actingDiverId: 'reader',
+    );
+    // The owner profile's sync is the one that uploads it.
+    await syncer().sync(lib.id, diverId: 'owner');
+
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final remote = await t.readSite((await t.listSites()).single.id);
+    expect(remote.clocks['hazards']!.memberId, editor);
+    final proven = await dropUnverified(
+      remote,
+      local: SiteDocument(id: remote.id),
+      libraryId: lib.id,
+      approvedKeys: {
+        editor: (await SharedLibraryStore().signingKeyForDiver(
+          'reader',
+        ))!.publicKey,
+      },
+    );
+    expect(proven.fields['hazards'], 'edited by the editor');
   });
 }

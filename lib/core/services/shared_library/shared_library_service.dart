@@ -176,6 +176,7 @@ class SharedLibraryService {
       // Encryption, as the manifest declares it.
       final encrypted = manifest['encrypted'] == true;
       final keyId = manifest['keyId'] as String?;
+      final rewriting = manifest[SharedLibraryLayout.rewritingFlag] == true;
       await _store.setLibraryStatus(
         libraryId,
         encrypted: encrypted,
@@ -197,15 +198,9 @@ class SharedLibraryService {
         t.encrypting = true;
       } else {
         t.encrypting = false;
-        // Turned off by an owner: the key is no longer needed here.
-        for (final m in await _store.membershipsForLibrary(libraryId)) {
-          if (m.libraryKey != null) {
-            await _store.setLibraryKey(
-              diverId: m.diverId,
-              libraryId: libraryId,
-            );
-          }
-        }
+        // Turned off by an owner: the key is no longer needed here, once
+        // every file has been rewritten plain.
+        if (!rewriting) await _dropLibraryKeys(libraryId);
       }
 
       // 2. Roles and members. Only roles this device can trust count: a
@@ -327,7 +322,14 @@ class SharedLibraryService {
         }
       }
 
-      // 4. Push.
+      // 4. Push. Each field is signed by the local profile that edited it:
+      // another member profile on this device may have, and a field left
+      // unsigned counts for no other member.
+      final localKeys = {
+        for (final m in await _store.membershipsForLibrary(libraryId))
+          m.memberId: m.signingKey ?? await _store.ensureSigningKey(m.diverId),
+        membership.memberId: myKey,
+      };
       var pushed = 0;
       var uploadAttempted = false;
       final remoteFiles = {
@@ -370,12 +372,15 @@ class SharedLibraryService {
             // Nothing readable to keep.
           }
         }
-        doc = await signOwnFields(
-          _claimUnattributed(doc, membership.memberId, clock),
-          libraryId: libraryId,
-          memberId: membership.memberId,
-          key: myKey,
-        );
+        doc = _claimUnattributed(doc, membership.memberId, clock);
+        for (final e in localKeys.entries) {
+          doc = await signOwnFields(
+            doc,
+            libraryId: libraryId,
+            memberId: e.key,
+            key: e.value,
+          );
+        }
         try {
           uploadAttempted = true;
           final modified = await t.writeSite(doc);
@@ -412,6 +417,17 @@ class SharedLibraryService {
             if (!SharedLibraryTransport.isPermissionError(err)) rethrow;
           }
         }
+      }
+
+      // A rewrite into a new form (encryption on, off, a new key) cut short:
+      // an owner finishes it, so no file is left sealed under a key that
+      // is about to be dropped, or plain in an encrypted library.
+      if (rewriting &&
+          !holdWrites &&
+          roles.roleOf(membership.memberId) == SharedLibraryRole.owner &&
+          await _finishRewrite(t, libraryId) &&
+          !encrypted) {
+        await _dropLibraryKeys(libraryId);
       }
 
       // 6. Status.
@@ -508,6 +524,44 @@ class SharedLibraryService {
   ) async {
     await _store.setLibraryStatus(libraryId, lastError: error);
     return SharedLibrarySyncResult(status: status, error: error);
+  }
+
+  /// Forgets [libraryId]'s key on every local profile.
+  Future<void> _dropLibraryKeys(String libraryId) async {
+    for (final m in await _store.membershipsForLibrary(libraryId)) {
+      if (m.libraryKey != null) {
+        await _store.setLibraryKey(diverId: m.diverId, libraryId: libraryId);
+      }
+    }
+  }
+
+  /// Rewrites every file not yet in the library's current form, then
+  /// clears the rewriting flag. False when one could not be rewritten here
+  /// (under a key this device lacks, or without the rights): the flag
+  /// stays for another owner.
+  Future<bool> _finishRewrite(
+    SharedLibraryTransport t,
+    String libraryId,
+  ) async {
+    final index = await t.backupIndexFile();
+    final files = {
+      ...await t.sealableFiles(),
+      if (index != null) index.key: index.value,
+    };
+    try {
+      for (final e in files.entries) {
+        await t.settle(e.key, e.value);
+      }
+    } on LibraryLockedException catch (e) {
+      _log.warning('Rewrite of $libraryId not finished here: $e');
+      return false;
+    } catch (e) {
+      if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
+      _log.warning('No rights to finish the rewrite of $libraryId');
+      return false;
+    }
+    await t.clearRewritingFlag();
+    return true;
   }
 
   /// Pulls in at most this many documents at a time.
@@ -662,12 +716,11 @@ class SharedLibraryService {
     }
   }
 
-  /// Uploads the pending outgoing suggestions. True when the storage
-  /// refused one for lack of rights: it and the rest stay pending.
   /// Uploads the device's pending suggestions, each signed by the local
   /// profile that wrote it: another profile on this device may have
   /// written one, and a signature by the syncing profile would never
-  /// verify as its author's.
+  /// verify as its author's. True when the storage refused one for lack of
+  /// rights: it and the rest stay pending.
   Future<bool> _uploadSuggestions(
     SharedLibraryTransport t,
     String libraryId,

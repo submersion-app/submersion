@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
+import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -173,6 +174,30 @@ void main() {
     expect(ids, containsAll([first.backupId, second.backupId]));
   });
 
+  test(
+    'two imported backups with one file name keep their own files',
+    () async {
+      final a = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+      final b = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+      final imported = <LibraryBackupRecord>[];
+      for (final (i, r) in [a, b].indexed) {
+        final from = Directory(p.join(dir.path, 'from$i'))..createSync();
+        final path = p.join(from.path, 'backup.zip');
+        File(r.localPath!).copySync(path);
+        imported.add(await backups.import(libraryId: lib.id, path: path));
+      }
+      expect(imported[0].localPath, isNot(imported[1].localPath));
+      expect(
+        File(imported[0].localPath!).readAsBytesSync(),
+        File(a.localPath!).readAsBytesSync(),
+      );
+      expect(
+        File(imported[1].localPath!).readAsBytesSync(),
+        File(b.localPath!).readAsBytesSync(),
+      );
+    },
+  );
+
   test('an imported backup of this library is listed on the device', () async {
     final record = await backups.backUp(libraryId: lib.id, diverId: 'd1');
     final copy = File(p.join(dir.path, 'elsewhere.zip'))
@@ -257,6 +282,17 @@ void main() {
         expect(
           await backups.backUpIfDue(libraryId: lib.id, diverId: 'd1'),
           isFalse,
+        );
+        // Remembered, so syncs until that backup is 20 hours old need no
+        // look at storage.
+        expect(
+          (await SharedLibraryStore().getLibrary(
+            lib.id,
+          ))!.lastAutoBackupAt!.toUtc(),
+          DateTime.utc(2026, 10, 1, 9).subtract(
+            LibraryBackupService.autoInterval -
+                LibraryBackupService.storageFresh,
+          ),
         );
         clock = clock.add(const Duration(hours: 2));
         expect(

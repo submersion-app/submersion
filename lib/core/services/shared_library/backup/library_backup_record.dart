@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+
 /// A library backup as the Backups list shows it (issue #2567): merged
 /// from this device's copy and the copy beside the library in storage.
 class LibraryBackupRecord {
@@ -51,12 +53,20 @@ class LibraryBackupRecord {
     'sizeBytes': sizeBytes,
   };
 
+  static final _fileName = RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,200}$');
+
   static LibraryBackupRecord? fromIndexJson(String libraryId, Object? raw) {
     if (raw is! Map) return null;
     final id = raw['backupId'];
     final name = raw['fileName'];
     final at = DateTime.tryParse('${raw['createdAt']}');
     if (id is! String || name is! String || at == null) return null;
+    // Both name local files: an entry that could leave the folder is dropped.
+    if (!SharedLibraryLayout.isValidLibraryId(id) ||
+        !_fileName.hasMatch(name) ||
+        name.contains('..')) {
+      return null;
+    }
     int n(String k) => (raw[k] as num?)?.toInt() ?? 0;
     return LibraryBackupRecord(
       backupId: id,

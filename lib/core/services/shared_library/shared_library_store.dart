@@ -503,14 +503,17 @@ class SharedLibraryStore {
     final have = await signingKeyForDiver(diverId);
     if (have != null) return have;
     final made = await LibrarySigner.generate();
+    // Only where no key landed meanwhile: two first callers agree on the
+    // key whichever wrote first.
     await _writeKeys(
       diverId,
       SharedLibraryMembershipsCompanion(
         signingPublicKey: Value(made.publicKey),
         signingPrivateKey: Value(made.privateKey),
       ),
+      onlyWithoutSigningKey: true,
     );
-    return made;
+    return await signingKeyForDiver(diverId) ?? made;
   }
 
   /// The key of [libraryId] when any local profile holds it: the
@@ -557,6 +560,7 @@ class SharedLibraryStore {
     String diverId,
     SharedLibraryMembershipsCompanion keys, {
     String? libraryId,
+    bool onlyWithoutSigningKey = false,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
@@ -566,7 +570,10 @@ class SharedLibraryStore {
                     t.diverId.equals(diverId) &
                     (libraryId == null
                         ? const Constant(true)
-                        : t.libraryId.equals(libraryId)),
+                        : t.libraryId.equals(libraryId)) &
+                    (onlyWithoutSigningKey
+                        ? t.signingPrivateKey.isNull()
+                        : const Constant(true)),
               ))
               .get();
       for (final r in rows) {
