@@ -112,9 +112,8 @@ with another library.
 
 Each diver profile has one Ed25519 key pair, made the first time it creates
 or joins a library and used for every library. The private key lives in a
-new table `shared_library_signing_keys` (diverId, memberId, publicKey,
-privateKey, createdAt), carried to the profile's other devices by personal
-sync: encrypted in transit and at rest only when personal sync encryption is
+pair of columns on the profile's membership rows (see Local data model),
+carried to the profile's other devices by personal sync: encrypted in transit and at rest only when personal sync encryption is
 on. The member card `members/member-<id>.json` carries `publicKey` and is
 signed by that key.
 
@@ -257,8 +256,8 @@ files can coexist while a library is converted.
 
 Check on an encrypted library says "Encrypted library. Enter the passphrase."
 and accepts the passphrase or the recovery code; then it shows the name and
-Join. The unlocked key is stored in `shared_library_keys` (diverId,
-libraryId, keyId, key), carried by personal sync like the signing key, so a
+Join. The unlocked key is stored on the profile's membership row for the
+library, carried by personal sync like the signing key, so a
 member enters it once per profile. A device that meets a `keyId` it does not
 hold stops uploading to that library and asks for the passphrase.
 
@@ -370,19 +369,23 @@ both; they are not merged, so that member's own edits are never lost.
 
 ## Local data model
 
-New rung after the latest on main at implementation time.
+Added to the v289 schema helper, which has not shipped and runs again in
+`beforeOpen`, so no new rung is needed.
 
 | Table or column | Synced (personal) | Content |
 | --- | --- | --- |
-| `shared_library_signing_keys` | yes | diverId, memberId, publicKey, privateKey, createdAt |
-| `shared_library_keys` | yes | diverId, libraryId, keyId, key |
-| `shared_libraries.trustedRolesJson` | no | last trusted `roles.json` |
-| `shared_libraries.encrypted`, `keyId` | no | manifest state |
-| `shared_libraries.pendingReset` | no | a reset waiting for the member's answer |
-| `shared_library_backups` | no | backupId, libraryId, location, note, pinned, counts, localPath |
+| `shared_library_memberships.signing_public_key`, `signing_private_key` | yes | the profile's key pair, the same on every membership row of the profile |
+| `shared_library_memberships.library_key_id`, `library_key` | yes | the unlocked library key |
+| `shared_libraries.rolesJson` | no | now the last trusted `roles.json` |
+| `shared_libraries.roles_rejected`, `pending_roles_json` | no | the warning, and a reset waiting for the member's answer |
+| `shared_libraries.encrypted`, `key_id` | no | manifest state |
+| `shared_libraries.last_auto_backup_at` | no | this device's last automatic backup |
+| `shared_library_backups` | no | backupId, libraryId, note, pinned, automatic, counts, size, localPath, inStorage |
 
-Both synced tables get the personal sync guards the existing library tables
-have (serializer arms, guard tests).
+The member id already lives on the membership rows and is the same on all of
+a profile's rows; the keys follow the same pattern, so personal sync carries
+them with no new serializer arms. A membership row arriving without keys
+never erases keys a device already holds.
 
 ## Error handling
 
