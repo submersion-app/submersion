@@ -103,6 +103,18 @@ class LibraryCipher {
     ],
   );
 
+  /// A recovery slot for [recoveryCode], to replace the old one in the
+  /// keyslots when a new code is issued.
+  Future<Keyslot> recoverySlot(
+    String recoveryCode, {
+    KdfParams kdf = const KdfParams(),
+  }) => Keyslots.createSlot(
+    type: 'recovery',
+    secret: RecoveryCode.normalize(recoveryCode),
+    mlk: _libraryKey,
+    kdf: kdf,
+  );
+
   /// The cipher [secret] (the passphrase or the recovery code) unlocks
   /// from [file], or null when it unlocks nothing.
   static Future<LibraryCipher?> unlock(KeyslotFile file, String secret) async {

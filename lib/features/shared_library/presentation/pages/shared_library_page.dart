@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/add_to_library_confirmation.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_encryption_section.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_ownership_section.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
@@ -152,6 +153,11 @@ class SharedLibraryPage extends ConsumerWidget {
             ),
           const Divider(height: 1),
           LibraryOwnershipSection(
+            library: library,
+            role: role,
+            membership: membership,
+          ),
+          LibraryEncryptionSection(
             library: library,
             role: role,
             membership: membership,

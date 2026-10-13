@@ -20662,6 +20662,48 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'הצפנה';
+
+  @override
+  String get sharedLibrary_encryption_statusOn => 'מוצפנת במשפט סיסמה';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'לא מוצפנת: כל מי שיש לו גישה לאחסון יכול לקרוא אותה';
+
+  @override
+  String get sharedLibrary_encryption_on => 'הפעלת הצפנה';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'החברים מזינים את משפט הסיסמה פעם אחת לכל פרופיל. רק משפט הסיסמה או קוד השחזור פותחים את הספרייה.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'כיבוי הצפנה';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'כל קובץ ייכתב מחדש כך שכל מי שיש לו גישה לאחסון יוכל לקרוא אותו. לכבות את ההצפנה?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'שינוי משפט סיסמה';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'יוצר מפתח חדש וקוד שחזור חדש. שתפו את משפט הסיסמה החדש רק עם החברים שנשארים.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'משפט סיסמה';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'משפט הסיסמה שוב';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return 'נכתבים מחדש $done מתוך $total קבצים';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

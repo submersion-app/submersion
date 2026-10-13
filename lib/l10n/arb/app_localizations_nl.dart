@@ -20998,6 +20998,49 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Versleuteling';
+
+  @override
+  String get sharedLibrary_encryption_statusOn =>
+      'Versleuteld met een wachtwoordzin';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Niet versleuteld: iedereen met toegang tot de opslag kan haar lezen';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Versleuteling inschakelen';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'Leden voeren de wachtwoordzin één keer per profiel in. Alleen de wachtwoordzin of de herstelcode opent de bibliotheek.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Versleuteling uitschakelen';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Elk bestand wordt opnieuw geschreven, leesbaar voor iedereen met toegang tot de opslag. Versleuteling uitschakelen?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'Wachtwoordzin wijzigen';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Maakt een nieuwe sleutel en een nieuwe herstelcode. Deel de nieuwe wachtwoordzin alleen met de leden die blijven.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Wachtwoordzin';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'Wachtwoordzin opnieuw';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return '$done van $total bestanden opnieuw geschreven';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override

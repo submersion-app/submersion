@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
@@ -23,9 +24,11 @@ Future<Widget> _page(
   bool rolesRejected = false,
   SharedLibraryRoles? pendingRoles,
   String? keyId,
+  String? memberKeyId,
   String? error,
   SharedLibraryMembershipService? service,
   SharedSitePublisher? publisher,
+  LibraryEncryptionService? encryption,
 }) async => testApp(
   overrides: [
     ...await getBaseOverrides(),
@@ -33,6 +36,8 @@ Future<Widget> _page(
       sharedLibraryMembershipServiceProvider.overrideWithValue(service),
     if (publisher != null)
       sharedSitePublisherProvider.overrideWithValue(publisher),
+    if (encryption != null)
+      libraryEncryptionServiceProvider.overrideWithValue(encryption),
     validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
     sharedLibrariesProvider.overrideWith(
       (ref) => Stream.value([
@@ -55,7 +60,7 @@ Future<Widget> _page(
       ]),
     ),
     currentMembershipsProvider.overrideWith(
-      (ref) async => const [
+      (ref) async => [
         SharedLibraryMembership(
           id: 'ms',
           diverId: 'd',
@@ -64,6 +69,8 @@ Future<Widget> _page(
           displayName: 'Ann',
           libraryName: 'Reef Survey',
           backendKind: 's3',
+          libraryKeyId: memberKeyId,
+          libraryKey: memberKeyId == null ? null : 'key',
         ),
       ],
     ),
@@ -94,13 +101,13 @@ void main() {
       expect(find.text('Suggestions'), findsOneWidget);
       expect(find.text('2'), findsOneWidget);
       expect(find.text('Add my sites'), findsOneWidget);
+      expect(find.text('Sync now'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Leave library'),
         100,
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Leave library'), findsOneWidget);
-      expect(find.text('Sync now'), findsOneWidget);
     },
   );
 
@@ -149,6 +156,90 @@ void main() {
     await tester.tap(find.text('Unlock').last);
     await tester.pumpAndSettle();
     expect(service.secrets, ['pw']);
+  });
+
+  testWidgets('an owner turns encryption on and sees the new code', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final encryption = _RecordingEncryption();
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.owner, encryption: encryption),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Turn on encryption'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Turn on encryption'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('passphrase-field')), 'short');
+    await tester.enterText(
+      find.byKey(const Key('passphrase-confirm')),
+      'short',
+    );
+    await tester.tap(find.text('Turn on encryption').last);
+    await tester.pumpAndSettle();
+    expect(encryption.calls, isEmpty);
+    await tester.enterText(
+      find.byKey(const Key('passphrase-field')),
+      'long enough phrase',
+    );
+    await tester.enterText(
+      find.byKey(const Key('passphrase-confirm')),
+      'long enough phrase',
+    );
+    await tester.tap(find.text('Turn on encryption').last);
+    await tester.pumpAndSettle();
+    expect(encryption.calls, ['on:long enough phrase']);
+    expect(find.text('new-recovery-code'), findsOneWidget);
+  });
+
+  testWidgets('an encrypted library offers a new passphrase and turning off', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final encryption = _RecordingEncryption();
+    await tester.pumpWidget(
+      await _page(
+        SharedLibraryRole.owner,
+        encryption: encryption,
+        keyId: 'k',
+        memberKeyId: 'k',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Turn off encryption'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Change passphrase'), findsOneWidget);
+    await tester.tap(find.text('Turn off encryption'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Turn off encryption').last);
+    await tester.pumpAndSettle();
+    expect(encryption.calls, ['off']);
+  });
+
+  testWidgets('a reader sees the state but no encryption actions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.reader, keyId: 'k', memberKeyId: 'k'),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Encrypted with a passphrase'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Turn off encryption'), findsNothing);
   });
 
   testWidgets('a lone owner is warned', (tester) async {
@@ -368,4 +459,37 @@ class _OwnerLoss extends SharedLibraryMembershipService {
     codes.add(code);
     throw WrongRecoveryCodeError();
   }
+}
+
+/// Records encryption actions instead of rewriting storage.
+class _RecordingEncryption extends LibraryEncryptionService {
+  _RecordingEncryption()
+    : super(
+        store: SharedLibraryStore(),
+        memberships: SharedLibraryMembershipService(
+          store: SharedLibraryStore(),
+          transportFor: ({required account, required prefix}) =>
+              throw UnimplementedError(),
+        ),
+      );
+
+  final calls = <String>[];
+
+  @override
+  Future<String> turnOn({
+    required String libraryId,
+    required String diverId,
+    required String passphrase,
+    RewriteProgress? progress,
+  }) async {
+    calls.add('on:$passphrase');
+    return 'new-recovery-code';
+  }
+
+  @override
+  Future<void> turnOff({
+    required String libraryId,
+    required String diverId,
+    RewriteProgress? progress,
+  }) async => calls.add('off');
 }

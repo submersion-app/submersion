@@ -20082,6 +20082,46 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => '加密';
+
+  @override
+  String get sharedLibrary_encryption_statusOn => '已使用口令加密';
+
+  @override
+  String get sharedLibrary_encryption_statusOff => '未加密：任何能访问存储的人都可以读取';
+
+  @override
+  String get sharedLibrary_encryption_on => '开启加密';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      '成员每个档案只需输入一次口令。只有口令或恢复码能打开资料库。';
+
+  @override
+  String get sharedLibrary_encryption_off => '关闭加密';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      '所有文件都将重写为能访问存储的任何人可读。要关闭加密吗？';
+
+  @override
+  String get sharedLibrary_encryption_change => '更改口令';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp => '生成新密钥和新恢复码。仅将新口令告知留下的成员。';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => '口令';
+
+  @override
+  String get sharedLibrary_encryption_confirm => '再次输入口令';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return '正在重写第 $done 个文件，共 $total 个';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

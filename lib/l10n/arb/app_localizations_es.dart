@@ -21138,6 +21138,51 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Cifrado';
+
+  @override
+  String get sharedLibrary_encryption_statusOn =>
+      'Cifrada con una frase de contraseña';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Sin cifrar: cualquiera con acceso al almacenamiento puede leerla';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Activar el cifrado';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'Los miembros introducen la frase una vez por perfil. Solo la frase de contraseña o el código de recuperación abren la biblioteca.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Desactivar el cifrado';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Todos los archivos se reescriben legibles para cualquiera con acceso al almacenamiento. ¿Desactivar el cifrado?';
+
+  @override
+  String get sharedLibrary_encryption_change =>
+      'Cambiar la frase de contraseña';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Crea una clave nueva y un código de recuperación nuevo. Comparte la nueva frase solo con los miembros que se quedan.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Frase de contraseña';
+
+  @override
+  String get sharedLibrary_encryption_confirm =>
+      'Repite la frase de contraseña';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return 'Reescribiendo $done de $total archivos';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Comprobar';
 
   @override

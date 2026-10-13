@@ -5,6 +5,7 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
+import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
@@ -206,6 +207,14 @@ final libraryAccountSetupProvider = Provider<LibraryAccountSetup>(
   (ref) => LibraryAccountSetup(
     accounts: ref.watch(connectedAccountsRepositoryProvider),
     credentials: ref.watch(accountCredentialsStoreProvider),
+  ),
+);
+
+// no-tick: a service object; it rewrites the library at action time.
+final libraryEncryptionServiceProvider = Provider<LibraryEncryptionService>(
+  (ref) => LibraryEncryptionService(
+    store: ref.watch(sharedLibraryStoreProvider),
+    memberships: ref.watch(sharedLibraryMembershipServiceProvider),
   ),
 );
 

@@ -21109,6 +21109,49 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Verschlüsselung';
+
+  @override
+  String get sharedLibrary_encryption_statusOn =>
+      'Mit einer Passphrase verschlüsselt';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Nicht verschlüsselt: Wer Zugriff auf den Speicher hat, kann sie lesen';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Verschlüsselung aktivieren';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'Mitglieder geben die Passphrase einmal pro Profil ein. Nur die Passphrase oder der Wiederherstellungscode öffnet die Bibliothek.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Verschlüsselung deaktivieren';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Jede Datei wird so neu geschrieben, dass sie jeder mit Speicherzugriff lesen kann. Verschlüsselung deaktivieren?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'Passphrase ändern';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Erzeugt einen neuen Schlüssel und einen neuen Wiederherstellungscode. Geben Sie die neue Passphrase nur den Mitgliedern, die bleiben.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Passphrase';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'Passphrase wiederholen';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return '$done von $total Dateien neu geschrieben';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Prüfen';
 
   @override

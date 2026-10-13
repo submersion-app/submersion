@@ -21401,6 +21401,48 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'التشفير';
+
+  @override
+  String get sharedLibrary_encryption_statusOn => 'مشفرة بعبارة مرور';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'غير مشفرة: يمكن لأي شخص لديه وصول إلى التخزين قراءتها';
+
+  @override
+  String get sharedLibrary_encryption_on => 'تشغيل التشفير';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'يدخل الأعضاء عبارة المرور مرة واحدة لكل ملف شخصي. وحدها عبارة المرور أو رمز الاسترداد تفتح المكتبة.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'إيقاف التشفير';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'ستُعاد كتابة كل الملفات بحيث يقرؤها أي شخص لديه وصول إلى التخزين. هل توقف التشفير؟';
+
+  @override
+  String get sharedLibrary_encryption_change => 'تغيير عبارة المرور';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'ينشئ مفتاحًا جديدًا ورمز استرداد جديدًا. شارك عبارة المرور الجديدة مع الأعضاء الباقين فقط.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'عبارة المرور';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'عبارة المرور مرة أخرى';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return 'إعادة كتابة $done من $total ملفات';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

@@ -21134,6 +21134,48 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Cifratura';
+
+  @override
+  String get sharedLibrary_encryption_statusOn => 'Cifrata con una passphrase';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Non cifrata: chiunque abbia accesso allo spazio di archiviazione può leggerla';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Attiva la cifratura';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'I membri inseriscono la passphrase una volta per profilo. Solo la passphrase o il codice di recupero aprono la libreria.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Disattiva la cifratura';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Ogni file viene riscritto leggibile da chiunque abbia accesso allo spazio di archiviazione. Disattivare la cifratura?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'Cambia passphrase';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Crea una nuova chiave e un nuovo codice di recupero. Condividi la nuova passphrase solo con i membri che restano.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Passphrase';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'Ripeti la passphrase';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return 'Riscrittura di $done file su $total';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
 
   @override

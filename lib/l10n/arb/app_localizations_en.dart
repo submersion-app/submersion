@@ -20819,6 +20819,48 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Encryption';
+
+  @override
+  String get sharedLibrary_encryption_statusOn => 'Encrypted with a passphrase';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Not encrypted: anyone with storage access can read it';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Turn on encryption';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'Members enter the passphrase once per profile. Only the passphrase or the recovery code opens the library.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Turn off encryption';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Every file is rewritten readable by anyone with storage access. Turn off encryption?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'Change passphrase';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Makes a new key and a new recovery code. Share the new passphrase only with the members who stay.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Passphrase';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'Passphrase again';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return 'Rewriting $done of $total files';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Check';
 
   @override

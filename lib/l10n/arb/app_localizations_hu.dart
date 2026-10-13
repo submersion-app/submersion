@@ -21064,6 +21064,48 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Titkosítás';
+
+  @override
+  String get sharedLibrary_encryption_statusOn => 'Jelmondattal titkosítva';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Nincs titkosítva: aki hozzáfér a tárhelyhez, olvashatja';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Titkosítás bekapcsolása';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'A tagok profilonként egyszer adják meg a jelmondatot. Csak a jelmondat vagy a helyreállítási kód nyitja meg a könyvtárat.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Titkosítás kikapcsolása';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Minden fájl úgy íródik újra, hogy bárki olvashassa, aki hozzáfér a tárhelyhez. Kikapcsolod a titkosítást?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'Jelmondat módosítása';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Új kulcsot és új helyreállítási kódot készít. Az új jelmondatot csak a maradó tagokkal oszd meg.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Jelmondat';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'Jelmondat újra';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return '$done / $total fájl újraírása';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

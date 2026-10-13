@@ -21196,6 +21196,49 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Chiffrement';
+
+  @override
+  String get sharedLibrary_encryption_statusOn =>
+      'Chiffrée avec une phrase secrète';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Non chiffrée : toute personne ayant accès au stockage peut la lire';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Activer le chiffrement';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'Les membres saisissent la phrase secrète une fois par profil. Seuls la phrase secrète ou le code de récupération ouvrent la bibliothèque.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Désactiver le chiffrement';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Chaque fichier est réécrit lisible par toute personne ayant accès au stockage. Désactiver le chiffrement ?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'Changer la phrase secrète';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Crée une nouvelle clé et un nouveau code de récupération. Ne partagez la nouvelle phrase secrète qu\'avec les membres qui restent.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Phrase secrète';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'Phrase secrète à nouveau';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return 'Réécriture de $done fichiers sur $total';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
 
   @override

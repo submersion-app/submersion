@@ -21136,6 +21136,49 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_encryption_title => 'Encriptação';
+
+  @override
+  String get sharedLibrary_encryption_statusOn =>
+      'Encriptada com uma frase-passe';
+
+  @override
+  String get sharedLibrary_encryption_statusOff =>
+      'Não encriptada: quem tiver acesso ao armazenamento pode lê-la';
+
+  @override
+  String get sharedLibrary_encryption_on => 'Ativar a encriptação';
+
+  @override
+  String get sharedLibrary_encryption_onHelp =>
+      'Os membros introduzem a frase-passe uma vez por perfil. Só a frase-passe ou o código de recuperação abrem a biblioteca.';
+
+  @override
+  String get sharedLibrary_encryption_off => 'Desativar a encriptação';
+
+  @override
+  String get sharedLibrary_encryption_offConfirm =>
+      'Todos os ficheiros são reescritos legíveis por quem tiver acesso ao armazenamento. Desativar a encriptação?';
+
+  @override
+  String get sharedLibrary_encryption_change => 'Alterar a frase-passe';
+
+  @override
+  String get sharedLibrary_encryption_changeHelp =>
+      'Cria uma chave nova e um código de recuperação novo. Partilhe a nova frase-passe só com os membros que ficam.';
+
+  @override
+  String get sharedLibrary_encryption_passphrase => 'Frase-passe';
+
+  @override
+  String get sharedLibrary_encryption_confirm => 'Repita a frase-passe';
+
+  @override
+  String sharedLibrary_encryption_progress(int done, int total) {
+    return 'A reescrever $done de $total ficheiros';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override

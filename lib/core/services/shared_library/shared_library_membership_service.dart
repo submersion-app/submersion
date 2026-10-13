@@ -682,6 +682,17 @@ class SharedLibraryMembershipService {
     final (library, t, membership) = await _mine(libraryId, diverId);
     final (_, _, roles) = await _asOwner(libraryId, membership.memberId);
     final recovery = await LibraryRecovery.create(kdf: _recoveryKdf);
+    // On an encrypted library the code also opens the key: its slot is
+    // replaced too, so the old code opens nothing.
+    final cipher = t.cipher;
+    final slots = library.encrypted ? await t.readKeyslots() : null;
+    if (cipher != null && slots != null) {
+      await t.writeKeyslots(
+        slots.withReplacedSlot(
+          await cipher.recoverySlot(recovery.code, kdf: _recoveryKdf),
+        ),
+      );
+    }
     await writeSignedRoles(
       library,
       t,

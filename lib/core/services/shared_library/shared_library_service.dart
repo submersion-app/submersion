@@ -400,6 +400,19 @@ class SharedLibraryService {
         await _pullSuggestions(t, libraryId, roles: roles);
       }
 
+      // Files read in the wrong form (a member wrote plain after the
+      // library was encrypted, or the reverse): an owner rewrites them.
+      if (!holdWrites &&
+          roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
+        for (final e in {...t.mismatched}.entries) {
+          try {
+            await t.rewrite(e.key, e.value);
+          } catch (err) {
+            if (!SharedLibraryTransport.isPermissionError(err)) rethrow;
+          }
+        }
+      }
+
       // 6. Status.
       // The read-only flag records the last upload's verdict; a sync that
       // uploaded nothing leaves it as it was.

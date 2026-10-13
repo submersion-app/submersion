@@ -33843,6 +33843,78 @@ abstract class AppLocalizations {
   /// **'The passphrase of {library} changed. Enter the new one.'**
   String sharedLibrary_encrypted_changed(String library);
 
+  /// No description provided for @sharedLibrary_encryption_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Encryption'**
+  String get sharedLibrary_encryption_title;
+
+  /// No description provided for @sharedLibrary_encryption_statusOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted with a passphrase'**
+  String get sharedLibrary_encryption_statusOn;
+
+  /// No description provided for @sharedLibrary_encryption_statusOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Not encrypted: anyone with storage access can read it'**
+  String get sharedLibrary_encryption_statusOff;
+
+  /// No description provided for @sharedLibrary_encryption_on.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on encryption'**
+  String get sharedLibrary_encryption_on;
+
+  /// No description provided for @sharedLibrary_encryption_onHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Members enter the passphrase once per profile. Only the passphrase or the recovery code opens the library.'**
+  String get sharedLibrary_encryption_onHelp;
+
+  /// No description provided for @sharedLibrary_encryption_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off encryption'**
+  String get sharedLibrary_encryption_off;
+
+  /// No description provided for @sharedLibrary_encryption_offConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Every file is rewritten readable by anyone with storage access. Turn off encryption?'**
+  String get sharedLibrary_encryption_offConfirm;
+
+  /// No description provided for @sharedLibrary_encryption_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change passphrase'**
+  String get sharedLibrary_encryption_change;
+
+  /// No description provided for @sharedLibrary_encryption_changeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Makes a new key and a new recovery code. Share the new passphrase only with the members who stay.'**
+  String get sharedLibrary_encryption_changeHelp;
+
+  /// No description provided for @sharedLibrary_encryption_passphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get sharedLibrary_encryption_passphrase;
+
+  /// No description provided for @sharedLibrary_encryption_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase again'**
+  String get sharedLibrary_encryption_confirm;
+
+  /// No description provided for @sharedLibrary_encryption_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewriting {done} of {total} files'**
+  String sharedLibrary_encryption_progress(int done, int total);
+
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
   /// In en, this message translates to:
