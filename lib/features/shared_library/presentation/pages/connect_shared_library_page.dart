@@ -223,6 +223,9 @@ class _ConnectSharedLibraryPageState
     if (SharedLibraryTransport.startsReserved(folder)) {
       return context.l10n.sharedLibrary_connect_reservedFolder;
     }
+    if (SharedLibraryTransport.hasPolicyWildcards(folder)) {
+      return context.l10n.sharedLibrary_connect_folderChars;
+    }
     return null;
   }
 

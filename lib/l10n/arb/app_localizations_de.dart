@@ -20945,6 +20945,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein Bibliotheksordner darf nicht mit sites, members, suggestions oder backups beginnen.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'Ein Bibliotheksordner darf weder *, ? noch Dollarzeichen enthalten.';
+
+  @override
   String get sharedLibrary_setup_title => 'So richten Sie den Speicher ein';
 
   @override

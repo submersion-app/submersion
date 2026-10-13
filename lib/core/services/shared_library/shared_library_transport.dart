@@ -194,6 +194,12 @@ class SharedLibraryTransport {
   static bool leavesLibraries(String prefix) =>
       _segments(prefix).any((s) => s == '.' || s == '..');
 
+  /// Whether [prefix] holds a character an S3 access policy reads as a
+  /// wildcard or a variable (`*`, `?`, `$`): the example policies would
+  /// grant more than this library's folder.
+  static bool hasPolicyWildcards(String prefix) =>
+      prefix.contains(RegExp(r'[*?$]'));
+
   /// A first segment named after a library's own subfolder.
   static bool startsReserved(String prefix) {
     final segments = _segments(prefix);

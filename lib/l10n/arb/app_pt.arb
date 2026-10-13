@@ -5866,6 +5866,7 @@
   "sharedLibrary_connect_prefix_label": "Pasta (prefixo)",
   "sharedLibrary_connect_prefix_help": "Uma pasta dentro de submersion-sites, na raiz do bucket ou do servidor, por exemplo site-sync.",
   "sharedLibrary_connect_reservedFolder": "Uma pasta de biblioteca não pode começar por sites, members, suggestions ou backups.",
+  "sharedLibrary_connect_folderChars": "Uma pasta de biblioteca não pode conter *, ? nem cifrões.",
   "sharedLibrary_setup_title": "Como configurar o armazenamento",
   "sharedLibrary_setup_where": "Esta biblioteca fica em {folder}, no topo do bucket ou do servidor, ao lado das pastas de sincronização e de multimédia.",
   "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},

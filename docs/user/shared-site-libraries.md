@@ -235,6 +235,12 @@ Readers get a key that reads the folder and writes only its `members` and
 }
 ```
 
+Readers need write access to `members` and `suggestions` for their own card
+and suggestions, and S3 cannot limit a key to its own files there. A reader's
+key could therefore delete another member's card or suggestion. It cannot
+change one unnoticed: every card and suggestion is signed, and an altered one
+counts for nothing.
+
 Replace `BUCKET` with your bucket and `FOLDER` with the library folder. Other
 S3-compatible services (Backblaze B2, Wasabi, MinIO, Cloudflare R2) accept the
 same policy or have an equivalent per-key prefix setting.

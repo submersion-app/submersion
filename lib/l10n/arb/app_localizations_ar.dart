@@ -21239,6 +21239,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن أن يبدأ مجلد المكتبة بـ sites أو members أو suggestions أو backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'لا يمكن أن يحتوي مجلد المكتبة على * أو ? أو علامات الدولار.';
+
+  @override
   String get sharedLibrary_setup_title => 'كيفية إعداد التخزين';
 
   @override

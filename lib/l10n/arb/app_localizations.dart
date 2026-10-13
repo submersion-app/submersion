@@ -33581,6 +33581,12 @@ abstract class AppLocalizations {
   /// **'A library folder cannot start with sites, members, suggestions or backups.'**
   String get sharedLibrary_connect_reservedFolder;
 
+  /// Connect page: the typed library folder holds a character storage access policies treat as a wildcard or variable
+  ///
+  /// In en, this message translates to:
+  /// **'A library folder cannot contain *, ? or dollar signs.'**
+  String get sharedLibrary_connect_folderChars;
+
   /// No description provided for @sharedLibrary_setup_title.
   ///
   /// In en, this message translates to:

@@ -20974,6 +20974,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Una carpeta de biblioteca no puede empezar por sites, members, suggestions ni backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'Una carpeta de biblioteca no puede contener *, ? ni signos de dólar.';
+
+  @override
   String get sharedLibrary_setup_title => 'Cómo configurar el almacenamiento';
 
   @override

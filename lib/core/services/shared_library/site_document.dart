@@ -86,7 +86,7 @@ class SiteDocument {
     if (rawClocks is Map) {
       for (final entry in rawClocks.entries) {
         final value = entry.value;
-        if (value is! Map) continue;
+        if (value is! Map || privateFields.contains(entry.key)) continue;
         try {
           clocks[entry.key as String] = FieldClock.fromJson(
             value.cast<String, dynamic>(),
@@ -121,8 +121,16 @@ class SiteDocument {
     'id': id,
     'formatVersion': SharedLibraryLayout.formatVersion,
     'deleted': deleted,
-    'fields': fields,
-    'clocks': {for (final e in clocks.entries) e.key: e.value.toJson()},
+    // Never a member's private fields, nor when they were edited: a state
+    // from an older build may still hold their clocks.
+    'fields': {
+      for (final e in fields.entries)
+        if (!privateFields.contains(e.key)) e.key: e.value,
+    },
+    'clocks': {
+      for (final e in clocks.entries)
+        if (!privateFields.contains(e.key)) e.key: e.value.toJson(),
+    },
   };
 
   static Uint8List encode(SiteDocument doc) =>

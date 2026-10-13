@@ -20972,6 +20972,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Uma pasta de biblioteca não pode começar por sites, members, suggestions ou backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'Uma pasta de biblioteca não pode conter *, ? nem cifrões.';
+
+  @override
   String get sharedLibrary_setup_title => 'Como configurar o armazenamento';
 
   @override

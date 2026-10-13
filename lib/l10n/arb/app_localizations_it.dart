@@ -20969,6 +20969,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una cartella di libreria non può iniziare con sites, members, suggestions o backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'Una cartella di libreria non può contenere *, ? o simboli del dollaro.';
+
+  @override
   String get sharedLibrary_setup_title =>
       'Come configurare lo spazio di archiviazione';
 

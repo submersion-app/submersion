@@ -572,6 +572,21 @@ void main() {
     expect(find.textContaining('arn:aws:s3:::Bucket'), findsNothing);
   });
 
+  testWidgets('a folder with policy wildcards is refused', (tester) async {
+    await tester.pumpWidget(
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'reef*');
+    await tester.tap(find.text('Check'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('A library folder cannot contain *, ? or dollar signs.'),
+      findsOneWidget,
+    );
+    expect(find.text('Create library'), findsNothing);
+  });
+
   testWidgets('the folder field sits above the account picker', (tester) async {
     await tester.pumpWidget(
       _connectApp(await getBaseOverrides(), () => [_bucket()]),

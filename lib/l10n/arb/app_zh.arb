@@ -6018,6 +6018,7 @@
   "sharedLibrary_connect_prefix_label": "文件夹（前缀）",
   "sharedLibrary_connect_prefix_help": "存储桶或服务器顶层 submersion-sites 中的文件夹，例如 site-sync。",
   "sharedLibrary_connect_reservedFolder": "资料库文件夹不能以 sites、members、suggestions 或 backups 开头。",
+  "sharedLibrary_connect_folderChars": "资料库文件夹不能包含 *、? 或美元符号。",
   "sharedLibrary_setup_title": "如何设置存储",
   "sharedLibrary_setup_where": "此资料库位于存储桶或服务器顶层的 {folder}，与 submersion-sync 和 submersion-media 并列。",
   "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},

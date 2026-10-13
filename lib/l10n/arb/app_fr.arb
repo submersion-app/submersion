@@ -5766,6 +5766,7 @@
   "sharedLibrary_connect_prefix_label": "Dossier (préfixe)",
   "sharedLibrary_connect_prefix_help": "Un dossier dans submersion-sites, à la racine du bucket ou du serveur, par exemple site-sync.",
   "sharedLibrary_connect_reservedFolder": "Un dossier de bibliothèque ne peut pas commencer par sites, members, suggestions ou backups.",
+  "sharedLibrary_connect_folderChars": "Un dossier de bibliothèque ne peut contenir ni *, ni ?, ni symbole dollar.",
   "sharedLibrary_setup_title": "Comment configurer le stockage",
   "sharedLibrary_setup_where": "Cette bibliothèque se trouve dans {folder}, à la racine du bucket ou du serveur, à côté de submersion-sync et submersion-media.",
   "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},

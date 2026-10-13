@@ -20657,6 +20657,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'A library folder cannot start with sites, members, suggestions or backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'A library folder cannot contain *, ? or dollar signs.';
+
+  @override
   String get sharedLibrary_setup_title => 'How to set up storage';
 
   @override

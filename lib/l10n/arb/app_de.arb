@@ -5997,6 +5997,7 @@
   "sharedLibrary_connect_prefix_label": "Ordner (Präfix)",
   "sharedLibrary_connect_prefix_help": "Ein Ordner in submersion-sites auf der obersten Ebene des Buckets oder Servers, etwa site-sync.",
   "sharedLibrary_connect_reservedFolder": "Ein Bibliotheksordner darf nicht mit sites, members, suggestions oder backups beginnen.",
+  "sharedLibrary_connect_folderChars": "Ein Bibliotheksordner darf weder *, ? noch Dollarzeichen enthalten.",
   "sharedLibrary_setup_title": "So richten Sie den Speicher ein",
   "sharedLibrary_setup_where": "Diese Bibliothek liegt in {folder} auf der obersten Ebene des Buckets oder Servers, neben submersion-sync und submersion-media.",
   "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},

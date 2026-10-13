@@ -20900,6 +20900,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A könyvtármappa nem kezdődhet így: sites, members, suggestions vagy backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'A könyvtár mappája nem tartalmazhat *, ? vagy dollárjel karaktert.';
+
+  @override
   String get sharedLibrary_setup_title => 'A tárhely beállítása';
 
   @override

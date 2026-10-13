@@ -19932,6 +19932,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '资料库文件夹不能以 sites、members、suggestions 或 backups 开头。';
 
   @override
+  String get sharedLibrary_connect_folderChars => '资料库文件夹不能包含 *、? 或美元符号。';
+
+  @override
   String get sharedLibrary_setup_title => '如何设置存储';
 
   @override

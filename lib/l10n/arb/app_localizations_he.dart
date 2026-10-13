@@ -20502,6 +20502,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'תיקיית ספרייה אינה יכולה להתחיל ב-sites, ‏members, ‏suggestions או backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'תיקיית ספרייה אינה יכולה להכיל *, ? או סימני דולר.';
+
+  @override
   String get sharedLibrary_setup_title => 'איך להגדיר את האחסון';
 
   @override

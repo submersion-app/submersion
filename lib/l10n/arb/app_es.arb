@@ -5866,6 +5866,7 @@
   "sharedLibrary_connect_prefix_label": "Carpeta (prefijo)",
   "sharedLibrary_connect_prefix_help": "Una carpeta dentro de submersion-sites, en la raíz del bucket o del servidor, por ejemplo site-sync.",
   "sharedLibrary_connect_reservedFolder": "Una carpeta de biblioteca no puede empezar por sites, members, suggestions ni backups.",
+  "sharedLibrary_connect_folderChars": "Una carpeta de biblioteca no puede contener *, ? ni signos de dólar.",
   "sharedLibrary_setup_title": "Cómo configurar el almacenamiento",
   "sharedLibrary_setup_where": "Esta biblioteca está en {folder}, en la raíz del bucket o del servidor, junto a submersion-sync y submersion-media.",
   "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},

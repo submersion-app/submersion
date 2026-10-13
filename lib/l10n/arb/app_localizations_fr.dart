@@ -21031,6 +21031,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un dossier de bibliothèque ne peut pas commencer par sites, members, suggestions ou backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'Un dossier de bibliothèque ne peut contenir ni *, ni ?, ni symbole dollar.';
+
+  @override
   String get sharedLibrary_setup_title => 'Comment configurer le stockage';
 
   @override

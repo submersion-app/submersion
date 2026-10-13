@@ -77,4 +77,26 @@ void main() {
     });
     expect(doc.fields.keys, ['name']);
   });
+
+  test('private fields and their clocks never travel', () {
+    const clock = FieldClock(hlc: Hlc(1, 0, 'm'), memberId: 'm');
+    final read = SiteDocument.fromJson({
+      'id': 's1',
+      'fields': {'name': 'Blue', 'notes': 'mine', 'rating': 4},
+      'clocks': {
+        'name': clock.toJson(),
+        'notes': clock.toJson(),
+        'rating': clock.toJson(),
+      },
+    });
+    expect(read.clocks.keys, ['name']);
+    // A state written by an older build still holds their clocks.
+    final written = const SiteDocument(
+      id: 's1',
+      fields: {'name': 'Blue'},
+      clocks: {'name': clock, 'notes': clock, 'rating': clock},
+    ).toJson();
+    expect((written['clocks'] as Map).keys, ['name']);
+    expect((written['fields'] as Map).keys, ['name']);
+  });
 }

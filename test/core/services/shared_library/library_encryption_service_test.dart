@@ -313,6 +313,25 @@ void main() {
     );
   });
 
+  test(
+    'a new recovery code that could not be recorded keeps the old one',
+    () async {
+      final first = await encryption.turnOn(
+        libraryId: lib.id,
+        diverId: 'd1',
+        passphrase: 'correct horse battery',
+      );
+      cloud.failUploadsNamed = SharedLibraryLayout.rolesFile;
+      await expectLater(
+        memberships.reissueRecoveryCode(libraryId: lib.id, diverId: 'd1'),
+        throwsA(anything),
+      );
+      cloud.failUploadsNamed = null;
+      final slots = (await folder().readKeyslots())!;
+      expect(await LibraryCipher.unlock(slots, first), isNotNull);
+    },
+  );
+
   test('a non-owner cannot change encryption', () async {
     await DiverRepository().createDiver(
       Diver(

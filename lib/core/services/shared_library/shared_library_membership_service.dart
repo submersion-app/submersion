@@ -689,14 +689,21 @@ class SharedLibraryMembershipService {
     final (library, t, membership) = await _mine(libraryId, diverId);
     final (_, _, roles) = await _asOwner(libraryId, membership.memberId);
     final recovery = await LibraryRecovery.create(kdf: _recoveryKdf);
-    // On an encrypted library the code also opens the key: its slot is
-    // replaced too, so the old code opens nothing.
+    // On an encrypted library the code also opens the key. The new slot
+    // joins the old one first; the old goes only once the roles name the
+    // new code, so a write that fails in between leaves the old code
+    // working rather than neither.
     final cipher = t.cipher;
     final slots = library.encrypted ? await t.readKeyslots() : null;
-    if (cipher != null && slots != null) {
+    final slot = cipher != null && slots != null
+        ? await cipher.recoverySlot(recovery.code, kdf: _recoveryKdf)
+        : null;
+    if (slots != null && slot != null) {
       await t.writeKeyslots(
-        slots.withReplacedSlot(
-          await cipher.recoverySlot(recovery.code, kdf: _recoveryKdf),
+        KeyslotFile(
+          version: slots.version,
+          libraryKeyId: slots.libraryKeyId,
+          slots: [...slots.slots, slot],
         ),
       );
     }
@@ -706,6 +713,15 @@ class SharedLibraryMembershipService {
       roles.copyWith(recovery: RolesRecovery.fromJson(recovery.toRolesJson())),
       signer: membership.memberId,
     );
+    if (slots != null && slot != null) {
+      try {
+        await t.writeKeyslots(slots.withReplacedSlot(slot));
+      } catch (e) {
+        // The new code is recorded; the old one opens the key until the
+        // next new code. Not worth losing the new one over.
+        _log.warning('Old recovery slot of $libraryId kept: $e');
+      }
+    }
     return recovery.code;
   });
 

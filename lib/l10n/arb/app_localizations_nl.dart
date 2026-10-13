@@ -20835,6 +20835,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een bibliotheekmap kan niet beginnen met sites, members, suggestions of backups.';
 
   @override
+  String get sharedLibrary_connect_folderChars =>
+      'Een bibliotheekmap mag geen *, ? of dollartekens bevatten.';
+
+  @override
   String get sharedLibrary_setup_title => 'Opslag instellen';
 
   @override

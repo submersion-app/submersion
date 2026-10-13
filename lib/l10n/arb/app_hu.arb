@@ -5766,6 +5766,7 @@
   "sharedLibrary_connect_prefix_label": "Mappa (előtag)",
   "sharedLibrary_connect_prefix_help": "Egy mappa a submersion-sites mappában, a bucket vagy a szerver legfelső szintjén, például site-sync.",
   "sharedLibrary_connect_reservedFolder": "A könyvtármappa nem kezdődhet így: sites, members, suggestions vagy backups.",
+  "sharedLibrary_connect_folderChars": "A könyvtár mappája nem tartalmazhat *, ? vagy dollárjel karaktert.",
   "sharedLibrary_setup_title": "A tárhely beállítása",
   "sharedLibrary_setup_where": "Ez a könyvtár itt található: {folder}, a bucket vagy a szerver legfelső szintjén, a submersion-sync és a submersion-media mellett.",
   "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},

@@ -112,6 +112,9 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   @override
   Future<String?> getUserEmail() async => 'tester@example.com';
 
+  /// When set, every upload of a file with this name fails.
+  String? failUploadsNamed;
+
   /// When set, the next upload of the named file is at once replaced by
   /// these bytes, as if another device wrote it just after.
   (String, Uint8List)? afterNextUpload;
@@ -125,7 +128,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     operationLog.add('upload:$filename');
     uploadAttempts++;
     if (hangOperations) return _hang<UploadResult>();
-    if (failUploads) {
+    if (failUploads || filename == failUploadsNamed) {
       throw uploadException ??
           const CloudStorageException('upload failed (test)');
     }
