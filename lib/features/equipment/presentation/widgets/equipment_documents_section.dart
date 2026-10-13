@@ -5,26 +5,20 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The paperwork filed against a piece of gear (issue #1517): invoices,
-/// receipts and warranty documents, which is what an insurer asks for after
-/// lost luggage, theft or fire.
+/// Files still linked to a piece of gear by the older attachment card
+/// (issue #1517). Gear paperwork now lives in the Documents library, and
+/// `EquipmentFileConverter` moves each linked file there once this device
+/// can read it (issue #3333). What stays here is what Documents cannot hold
+/// (a kind it does not accept, or a file over its page cap) or cannot read
+/// yet, so the card shows only while something is left, with no way to add
+/// more.
 ///
-/// A list rather than the photo grid the dive and site sections use: an item
-/// carries a handful of documents whose filenames are the whole point, and a
-/// thumbnail of a PDF invoice tells the diver nothing a name does not.
-///
-/// Documents are linked by reference, never copied -- the media store upload
-/// is what makes them durable, exactly as on the dive and site sections.
-///
-/// Attaching and opening are injected by the page rather than called here,
-/// mirroring [SiteMediaSection]: both reach the file picker, the platform
-/// opener and the PDF viewer, so keeping them out leaves this widget a pure
-/// function of its provider and its callbacks.
+/// Opening is injected by the page rather than called here, mirroring
+/// [SiteMediaSection]: it reaches the platform opener and the PDF viewer, so
+/// keeping it out leaves this widget a pure function of its provider and
+/// its callback.
 class EquipmentDocumentsSection extends ConsumerWidget {
   final String equipmentId;
-
-  /// Opens the document picker. Null hides the attach action.
-  final VoidCallback? onAttachPressed;
 
   /// Routes a tapped document (PDF viewer, or the platform opener).
   final void Function(MediaItem)? onOpenDocument;
@@ -32,15 +26,17 @@ class EquipmentDocumentsSection extends ConsumerWidget {
   const EquipmentDocumentsSection({
     super.key,
     required this.equipmentId,
-    this.onAttachPressed,
     this.onOpenDocument,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final documentsAsync = ref.watch(mediaForEquipmentProvider(equipmentId));
+    // Nothing left behind: no card at all.
+    if (documentsAsync.value?.isEmpty ?? false) return const SizedBox.shrink();
 
     return Card(
+      margin: const EdgeInsets.only(top: 24),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -55,35 +51,25 @@ class EquipmentDocumentsSection extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    context.l10n.equipment_documents_title,
+                    context.l10n.equipment_documents_linkedTitle,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                if (onAttachPressed != null)
-                  TextButton.icon(
-                    key: const ValueKey('equipment-documents-attach'),
-                    onPressed: onAttachPressed,
-                    icon: const Icon(Icons.attach_file),
-                    label: Text(context.l10n.equipment_documents_attachButton),
-                  ),
               ],
             ),
             Text(
-              context.l10n.equipment_documents_subtitle,
+              context.l10n.equipment_documents_linkedSubtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             documentsAsync.when(
-              data: (documents) => documents.isEmpty
-                  ? _buildEmpty(context)
-                  : Column(
-                      children: [
-                        for (final item in documents)
-                          _buildTile(context, ref, item),
-                      ],
-                    ),
+              data: (documents) => Column(
+                children: [
+                  for (final item in documents) _buildTile(context, ref, item),
+                ],
+              ),
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(child: CircularProgressIndicator()),
@@ -101,16 +87,6 @@ class EquipmentDocumentsSection extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildEmpty(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Text(
-      context.l10n.equipment_documents_empty,
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    ),
-  );
 
   Widget _buildTile(BuildContext context, WidgetRef ref, MediaItem item) {
     return ListTile(

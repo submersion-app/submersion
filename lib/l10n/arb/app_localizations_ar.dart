@@ -46191,17 +46191,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_remove => 'إزالة';
 
   @override
-  String get equipment_documents_title => 'المستندات';
+  String get equipment_documents_linkedTitle => 'Linked files';
 
   @override
-  String get equipment_documents_subtitle =>
-      'الفواتير والإيصالات وأوراق الضمان';
-
-  @override
-  String get equipment_documents_attachButton => 'إرفاق';
-
-  @override
-  String get equipment_documents_empty => 'لا توجد مستندات مرفقة بعد';
+  String get equipment_documents_linkedSubtitle =>
+      'Too large, or a format Documents cannot hold';
 
   @override
   String get equipment_documents_removeTitle => 'إزالة المستند؟';

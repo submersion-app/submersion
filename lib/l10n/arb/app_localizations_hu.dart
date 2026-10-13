@@ -45380,17 +45380,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_remove => 'Eltávolítás';
 
   @override
-  String get equipment_documents_title => 'Dokumentumok';
+  String get equipment_documents_linkedTitle => 'Linked files';
 
   @override
-  String get equipment_documents_subtitle =>
-      'Számlák, nyugták és garancialevelek';
-
-  @override
-  String get equipment_documents_attachButton => 'Csatolás';
-
-  @override
-  String get equipment_documents_empty => 'Még nincs csatolt dokumentum';
+  String get equipment_documents_linkedSubtitle =>
+      'Too large, or a format Documents cannot hold';
 
   @override
   String get equipment_documents_removeTitle => 'Eltávolítja a dokumentumot?';

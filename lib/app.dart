@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -156,6 +157,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();
       _republishOwnedMedia();
+      _convertGearFiles();
       _fileShareHandler.initialize();
       _passportLinks.start();
       // Fill the per-dive sensor summary cache for dives that predate it or
@@ -245,6 +247,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// provider contains its own failures, so it is safe to leave unawaited.
   void _republishOwnedMedia() {
     unawaited(ref.read(mediaOriginRepublishProvider)());
+  }
+
+  /// Moves files linked to gear by the older attachment card into Documents
+  /// (issue #3333). Same database timing argument as [_resumeMediaTransfers],
+  /// and the provider contains its own failures, so it is safe to leave
+  /// unawaited.
+  void _convertGearFiles() {
+    unawaited(ref.read(equipmentFileConversionProvider)());
   }
 
   Future<void> _maybeSyncOnLaunch() async {

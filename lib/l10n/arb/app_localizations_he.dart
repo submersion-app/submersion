@@ -44648,16 +44648,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_remove => 'הסר';
 
   @override
-  String get equipment_documents_title => 'מסמכים';
+  String get equipment_documents_linkedTitle => 'Linked files';
 
   @override
-  String get equipment_documents_subtitle => 'חשבוניות, קבלות ומסמכי אחריות';
-
-  @override
-  String get equipment_documents_attachButton => 'צירוף';
-
-  @override
-  String get equipment_documents_empty => 'עדיין לא צורפו מסמכים';
+  String get equipment_documents_linkedSubtitle =>
+      'Too large, or a format Documents cannot hold';
 
   @override
   String get equipment_documents_removeTitle => 'להסיר את המסמך?';

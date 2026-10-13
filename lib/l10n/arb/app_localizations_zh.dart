@@ -42913,16 +42913,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_remove => '移除';
 
   @override
-  String get equipment_documents_title => '文档';
+  String get equipment_documents_linkedTitle => 'Linked files';
 
   @override
-  String get equipment_documents_subtitle => '发票、收据和保修文件';
-
-  @override
-  String get equipment_documents_attachButton => '附加';
-
-  @override
-  String get equipment_documents_empty => '尚未附加任何文档';
+  String get equipment_documents_linkedSubtitle =>
+      'Too large, or a format Documents cannot hold';
 
   @override
   String get equipment_documents_removeTitle => '移除文档？';

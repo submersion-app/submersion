@@ -45328,17 +45328,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_remove => 'Verwijderen';
 
   @override
-  String get equipment_documents_title => 'Documenten';
+  String get equipment_documents_linkedTitle => 'Linked files';
 
   @override
-  String get equipment_documents_subtitle =>
-      'Facturen, bonnen en garantiepapieren';
-
-  @override
-  String get equipment_documents_attachButton => 'Bijvoegen';
-
-  @override
-  String get equipment_documents_empty => 'Nog geen documenten bijgevoegd';
+  String get equipment_documents_linkedSubtitle =>
+      'Too large, or a format Documents cannot hold';
 
   @override
   String get equipment_documents_removeTitle => 'Document verwijderen?';

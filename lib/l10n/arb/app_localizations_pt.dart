@@ -45625,17 +45625,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_remove => 'Remover';
 
   @override
-  String get equipment_documents_title => 'Documentos';
+  String get equipment_documents_linkedTitle => 'Linked files';
 
   @override
-  String get equipment_documents_subtitle =>
-      'Faturas, recibos e documentos de garantia';
-
-  @override
-  String get equipment_documents_attachButton => 'Anexar';
-
-  @override
-  String get equipment_documents_empty => 'Ainda sem documentos anexados';
+  String get equipment_documents_linkedSubtitle =>
+      'Too large, or a format Documents cannot hold';
 
   @override
   String get equipment_documents_removeTitle => 'Remover documento?';

@@ -272,14 +272,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
             const SizedBox(height: 24),
             UnitConfigurationsCard(equipmentId: equipmentId),
           ],
-          const SizedBox(height: 24),
+          // Brings its own top gap: it hides itself once every linked file
+          // has moved into Documents.
           EquipmentDocumentsSection(
             equipmentId: equipmentId,
-            onAttachPressed: () => DocumentOpenHelper.pickAndAttach(
-              context: context,
-              ref: ref,
-              equipmentId: equipmentId,
-            ),
             onOpenDocument: (item) =>
                 DocumentOpenHelper.open(context, ref, item),
           ),

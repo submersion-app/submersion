@@ -45530,17 +45530,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get common_action_remove => 'Entfernen';
 
   @override
-  String get equipment_documents_title => 'Dokumente';
+  String get equipment_documents_linkedTitle => 'Linked files';
 
   @override
-  String get equipment_documents_subtitle =>
-      'Rechnungen, Belege und Garantieunterlagen';
-
-  @override
-  String get equipment_documents_attachButton => 'Anhängen';
-
-  @override
-  String get equipment_documents_empty => 'Noch keine Dokumente angehängt';
+  String get equipment_documents_linkedSubtitle =>
+      'Too large, or a format Documents cannot hold';
 
   @override
   String get equipment_documents_removeTitle => 'Dokument entfernen?';
