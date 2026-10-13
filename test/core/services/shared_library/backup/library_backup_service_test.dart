@@ -174,4 +174,80 @@ void main() {
       throwsStateError,
     );
   });
+
+  group('automatic', () {
+    var clock = DateTime.utc(2026, 10, 1, 9);
+
+    setUp(() {
+      clock = DateTime.utc(2026, 10, 1, 9);
+      backups = LibraryBackupService(
+        store: SharedLibraryStore(),
+        memberships: memberships,
+        backupsDirectory: () async => dir.path,
+        now: () => clock,
+      );
+    });
+
+    test('is due once a day', () async {
+      expect(
+        await backups.backUpIfDue(libraryId: lib.id, diverId: 'd1'),
+        isTrue,
+      );
+      clock = clock.add(const Duration(hours: 23));
+      expect(
+        await backups.backUpIfDue(libraryId: lib.id, diverId: 'd1'),
+        isFalse,
+      );
+      clock = clock.add(const Duration(hours: 2));
+      expect(
+        await backups.backUpIfDue(libraryId: lib.id, diverId: 'd1'),
+        isTrue,
+      );
+      final all = await backups.list(libraryId: lib.id);
+      expect(all, hasLength(2));
+      expect(all.every((r) => r.automatic), isTrue);
+    });
+
+    test(
+      "is skipped while another owner's backup is under 20 hours old",
+      () async {
+        await backups.backUp(libraryId: lib.id, diverId: 'd1');
+        // This device has never backed up automatically, but storage holds
+        // a fresh backup (another owner's, as far as this device knows).
+        await SharedLibraryStore().setLibraryStatus(lib.id);
+        clock = clock.add(const Duration(hours: 19));
+        expect(
+          await backups.backUpIfDue(libraryId: lib.id, diverId: 'd1'),
+          isFalse,
+        );
+        clock = clock.add(const Duration(hours: 2));
+        expect(
+          await backups.backUpIfDue(libraryId: lib.id, diverId: 'd1'),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'keeps the newest 7 unpinned in each place and every pinned one',
+      () async {
+        final first = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+        await backups.setPinned(
+          first.backupId,
+          libraryId: lib.id,
+          diverId: 'd1',
+          pinned: true,
+        );
+        for (var i = 0; i < 9; i++) {
+          clock = clock.add(const Duration(days: 1));
+          await backups.backUpIfDue(libraryId: lib.id, diverId: 'd1');
+        }
+        final all = await backups.list(libraryId: lib.id);
+        final unpinned = all.where((r) => !r.pinned).toList();
+        expect(unpinned.where((r) => r.onDevice), hasLength(7));
+        expect(unpinned.where((r) => r.inStorage), hasLength(7));
+        expect(all.where((r) => r.pinned).single.backupId, first.backupId);
+      },
+    );
+  });
 }

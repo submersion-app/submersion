@@ -4,6 +4,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/core/services/shared_library/shared_library_transport
 import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
 import 'package:submersion/core/services/shared_library/site_detacher.dart';
 import 'package:submersion/core/services/shared_library/suggestion_service.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// The device-local store for shared site libraries (issue #2567).
@@ -215,6 +217,15 @@ final libraryEncryptionServiceProvider = Provider<LibraryEncryptionService>(
   (ref) => LibraryEncryptionService(
     store: ref.watch(sharedLibraryStoreProvider),
     memberships: ref.watch(sharedLibraryMembershipServiceProvider),
+  ),
+);
+
+// no-tick: a service object; it writes backups at action time.
+final libraryBackupServiceProvider = Provider<LibraryBackupService>(
+  (ref) => LibraryBackupService(
+    store: ref.watch(sharedLibraryStoreProvider),
+    memberships: ref.watch(sharedLibraryMembershipServiceProvider),
+    backupsDirectory: BackupService.defaultBackupsDirectoryPath,
   ),
 );
 

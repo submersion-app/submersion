@@ -121,6 +121,74 @@ class LibraryBackupService {
     return record;
   }
 
+  /// A day between this device's automatic backups.
+  static const autoInterval = Duration(hours: 24);
+
+  /// No automatic backup while any backup in storage is younger: several
+  /// owners make one a day between them.
+  static const storageFresh = Duration(hours: 20);
+
+  /// Unpinned backups kept in each place.
+  static const keep = 7;
+
+  /// Makes the daily automatic backup when it is due, then prunes. True
+  /// when a backup was made.
+  Future<bool> backUpIfDue({
+    required String libraryId,
+    required String diverId,
+  }) async {
+    final library = await _store.getLibrary(libraryId);
+    if (library == null) return false;
+    final now = _now().toUtc();
+    final last = library.lastAutoBackupAt;
+    if (last != null && now.difference(last) < autoInterval) return false;
+    final existing = await list(libraryId: libraryId);
+    if (existing.any(
+      (r) => r.inStorage && now.difference(r.createdAt) < storageFresh,
+    )) {
+      return false;
+    }
+    await backUp(libraryId: libraryId, diverId: diverId, automatic: true);
+    await _store.setLibraryStatus(libraryId, lastAutoBackupAt: now);
+    await prune(libraryId: libraryId, diverId: diverId);
+    return true;
+  }
+
+  /// Keeps the newest [keep] unpinned backups on this device and in
+  /// storage; pinned ones are never removed.
+  Future<void> prune({
+    required String libraryId,
+    required String diverId,
+  }) async {
+    final all = await list(libraryId: libraryId);
+    final onDevice = [
+      for (final r in all)
+        if (!r.pinned && r.onDevice) r,
+    ];
+    final inStorage = [
+      for (final r in all)
+        if (!r.pinned && r.inStorage) r,
+    ];
+    for (final r in onDevice.skip(keep)) {
+      await delete(
+        r.backupId,
+        libraryId: libraryId,
+        diverId: diverId,
+        fromDevice: true,
+        fromStorage: false,
+      );
+    }
+    for (final r in inStorage.skip(keep)) {
+      await delete(
+        r.backupId,
+        libraryId: libraryId,
+        diverId: diverId,
+        fromDevice: false,
+        fromStorage: true,
+      );
+    }
+  }
+
   static int _count(Map<String, Uint8List> files, String dir) =>
       files.keys.where((k) => k.startsWith('$dir/')).length;
 
