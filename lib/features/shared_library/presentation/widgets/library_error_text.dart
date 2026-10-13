@@ -13,6 +13,7 @@ String libraryErrorText(AppLocalizations l10n, Object error) => switch (error) {
   LastOwnerDemoteError() => l10n.sharedLibrary_members_lastOwner,
   LastOwnerLeaveError() => l10n.sharedLibrary_library_lastOwnerLeave,
   WrongRecoveryCodeError() => l10n.sharedLibrary_owner_wrongCode,
+  WrongPassphraseError() => l10n.sharedLibrary_encrypted_wrong,
   UntrustedRolesError() => l10n.sharedLibrary_connect_untrusted,
   WebDavException() => webDavErrorText(l10n, error),
   CloudStorageException() => error.displayMessage,

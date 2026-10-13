@@ -483,6 +483,8 @@ class SharedLibraryMembership extends Equatable {
     String? backendKind,
     String? locationHint,
     LibrarySigningKey? signingKey,
+    String? libraryKeyId,
+    String? libraryKey,
   }) => SharedLibraryMembership(
     id: id,
     diverId: diverId,
@@ -493,8 +495,8 @@ class SharedLibraryMembership extends Equatable {
     backendKind: backendKind ?? this.backendKind,
     locationHint: locationHint ?? this.locationHint,
     signingKey: signingKey ?? this.signingKey,
-    libraryKeyId: libraryKeyId,
-    libraryKey: libraryKey,
+    libraryKeyId: libraryKeyId ?? this.libraryKeyId,
+    libraryKey: libraryKey ?? this.libraryKey,
   );
 
   @override

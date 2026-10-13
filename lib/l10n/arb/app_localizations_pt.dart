@@ -21111,6 +21111,31 @@ class AppLocalizationsPt extends AppLocalizations {
       'Esta biblioteca foi criada por uma versão de teste do Submersion. Crie-a de novo.';
 
   @override
+  String get sharedLibrary_encrypted_probe =>
+      'Biblioteca encriptada. Introduza a frase-passe ou o código de recuperação.';
+
+  @override
+  String get sharedLibrary_encrypted_passphrase =>
+      'Frase-passe ou código de recuperação';
+
+  @override
+  String get sharedLibrary_encrypted_unlock => 'Desbloquear';
+
+  @override
+  String get sharedLibrary_encrypted_wrong =>
+      'Essa frase-passe não abre esta biblioteca.';
+
+  @override
+  String sharedLibrary_encrypted_locked(String library) {
+    return 'Introduza a frase-passe de $library.';
+  }
+
+  @override
+  String sharedLibrary_encrypted_changed(String library) {
+    return 'A frase-passe de $library mudou. Introduza a nova.';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override

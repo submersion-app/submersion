@@ -37,6 +37,11 @@ class _ConnectSharedLibraryPageState
   );
   final _libraryName = TextEditingController();
   final _displayName = TextEditingController();
+
+  /// The passphrase or recovery code of an encrypted library, and whether
+  /// it unlocked the probed one.
+  final _secret = TextEditingController();
+  bool _unlocked = false;
   ConnectedAccount? _account;
   LibraryProbe? _probe;
   String? _probedPrefix;
@@ -62,6 +67,7 @@ class _ConnectSharedLibraryPageState
     _prefix.dispose();
     _libraryName.dispose();
     _displayName.dispose();
+    _secret.dispose();
     _s3.dispose();
     _webdav.dispose();
     super.dispose();
@@ -357,6 +363,33 @@ class _ConnectSharedLibraryPageState
     if (probe.needsNewerApp) {
       return Text(l10n.sharedLibrary_connect_needsNewerApp);
     }
+    if (probe.encrypted && !_unlocked) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(l10n.sharedLibrary_encrypted_probe),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('library-secret'),
+            controller: _secret,
+            obscureText: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: InputDecoration(
+              labelText: l10n.sharedLibrary_encrypted_passphrase,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: FilledButton.tonal(
+              onPressed: _busy ? null : _unlockProbe,
+              child: Text(l10n.sharedLibrary_encrypted_unlock),
+            ),
+          ),
+        ],
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -392,6 +425,33 @@ class _ConnectSharedLibraryPageState
     );
   }
 
+  /// Opens the probed encrypted library with the typed secret to show its
+  /// name; the secret is used again to join.
+  Future<void> _unlockProbe() async {
+    final account = _account;
+    final prefix = _probedPrefix;
+    if (account == null || prefix == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final probe = await ref
+          .read(sharedLibraryMembershipServiceProvider)
+          .unlockProbe(account: account, prefix: prefix, secret: _secret.text);
+      if (!mounted) return;
+      setState(() {
+        _probe = probe;
+        _unlocked = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = libraryErrorText(context.l10n, e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _runProbe() async {
     final account = _account;
     if (account == null) return;
@@ -412,6 +472,7 @@ class _ConnectSharedLibraryPageState
       setState(() {
         _probe = probe;
         _probedPrefix = _prefix.text.trim();
+        _unlocked = false;
       });
     } catch (e) {
       if (!mounted) return;
@@ -464,6 +525,7 @@ class _ConnectSharedLibraryPageState
               prefix: prefix,
               diverId: diverId,
               displayName: displayName,
+              secret: probe.encrypted ? _secret.text : null,
             )
           : await _createShowingRecovery(
               service,

@@ -20060,6 +20060,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_retired => '此资料库由 Submersion 的测试版本创建。请重新创建。';
 
   @override
+  String get sharedLibrary_encrypted_probe => '加密资料库。请输入口令或恢复码。';
+
+  @override
+  String get sharedLibrary_encrypted_passphrase => '口令或恢复码';
+
+  @override
+  String get sharedLibrary_encrypted_unlock => '解锁';
+
+  @override
+  String get sharedLibrary_encrypted_wrong => '该口令无法打开此资料库。';
+
+  @override
+  String sharedLibrary_encrypted_locked(String library) {
+    return '请输入 $library 的口令。';
+  }
+
+  @override
+  String sharedLibrary_encrypted_changed(String library) {
+    return '$library 的口令已更改。请输入新口令。';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

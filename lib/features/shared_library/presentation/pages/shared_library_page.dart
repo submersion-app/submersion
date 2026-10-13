@@ -60,6 +60,7 @@ class SharedLibraryPage extends ConsumerWidget {
       body: ListView(
         children: [
           PendingResetBanner(library: library, names: names ?? const {}),
+          LockedLibraryBanner(library: library, membership: membership),
           if (library.readOnlyDetected)
             _Banner(
               icon: Icons.lock_outline,

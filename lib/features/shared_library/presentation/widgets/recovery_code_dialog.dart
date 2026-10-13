@@ -57,3 +57,56 @@ Future<void> showRecoveryCodeDialog(BuildContext context, String code) =>
         );
       },
     );
+
+/// Asks for a library's passphrase or recovery code (hidden while typed).
+/// Null when cancelled.
+Future<String?> promptLibrarySecret(BuildContext context) =>
+    showDialog<String>(context: context, builder: (_) => const _SecretDialog());
+
+/// Owns its controller, so the field outlives the closing animation.
+class _SecretDialog extends StatefulWidget {
+  const _SecretDialog();
+
+  @override
+  State<_SecretDialog> createState() => _SecretDialogState();
+}
+
+class _SecretDialogState extends State<_SecretDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.sharedLibrary_encrypted_unlock),
+      content: TextField(
+        key: const Key('secret-field'),
+        controller: _controller,
+        autofocus: true,
+        obscureText: true,
+        autocorrect: false,
+        enableSuggestions: false,
+        decoration: InputDecoration(
+          labelText: l10n.sharedLibrary_encrypted_passphrase,
+        ),
+        onSubmitted: (v) => Navigator.pop(context, v),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: Text(l10n.sharedLibrary_encrypted_unlock),
+        ),
+      ],
+    );
+  }
+}

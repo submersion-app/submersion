@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_recovery.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
@@ -461,6 +462,69 @@ void main() {
     final probe = await service.probe(account: account, prefix: 'old');
     expect(probe.exists, isTrue);
     expect(probe.retired, isTrue);
+  });
+
+  group('an encrypted library', () {
+    late LibraryCipher cipher;
+
+    setUp(() async {
+      cipher = await sealTestLibrary(
+        SharedLibraryTransport(cloud, prefix: 'sealed'),
+        roles: await signedTestRoles(owners: {'o'}),
+      );
+    });
+
+    test('probes as encrypted, with no name', () async {
+      final probe = await service.probe(account: account, prefix: 'sealed');
+      expect(probe.exists, isTrue);
+      expect(probe.encrypted, isTrue);
+      expect(probe.keyId, cipher.keyId);
+      expect(probe.name, isNull);
+    });
+
+    test('the passphrase unlocks the name; a wrong one is refused', () async {
+      await expectLater(
+        service.unlockProbe(account: account, prefix: 'sealed', secret: 'no'),
+        throwsA(isA<WrongPassphraseError>()),
+      );
+      final probe = await service.unlockProbe(
+        account: account,
+        prefix: 'sealed',
+        secret: testPassphrase,
+      );
+      expect(probe.name, 'Reef Survey');
+    });
+
+    test('join keeps the key for the profile', () async {
+      await expectLater(
+        service.join(
+          account: account,
+          prefix: 'sealed',
+          diverId: 'd1',
+          displayName: 'Ann',
+        ),
+        throwsA(isA<WrongPassphraseError>()),
+      );
+      final lib = await service.join(
+        account: account,
+        prefix: 'sealed',
+        diverId: 'd1',
+        displayName: 'Ann',
+        secret: testPassphrase,
+      );
+      expect(lib.name, 'Reef Survey');
+      final me = (await SharedLibraryStore().membership(
+        diverId: 'd1',
+        libraryId: 'L',
+      ))!;
+      expect(me.libraryKeyId, cipher.keyId);
+      expect(me.libraryKey, await cipher.exportKey());
+      // The card went up sealed: unreadable without the key.
+      await expectLater(
+        SharedLibraryTransport(cloud, prefix: 'sealed').listMembers(),
+        throwsA(isA<LibraryLockedException>()),
+      );
+    });
   });
 
   test('join reads the folder through one transport', () async {

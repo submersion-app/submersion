@@ -67,6 +67,79 @@ class PendingResetBanner extends ConsumerWidget {
   }
 }
 
+/// An encrypted library this device holds no key for, or an older one
+/// (issue #2567): nothing syncs until the passphrase is entered.
+class LockedLibraryBanner extends ConsumerWidget {
+  const LockedLibraryBanner({
+    super.key,
+    required this.library,
+    required this.membership,
+  });
+
+  final SharedLibrary library;
+  final SharedLibraryMembership? membership;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final me = membership;
+    if (!library.encrypted || me == null || me.libraryKeyId == library.keyId) {
+      return const SizedBox.shrink();
+    }
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.all(12),
+      color: scheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              me.libraryKeyId == null
+                  ? l10n.sharedLibrary_encrypted_locked(library.name)
+                  : l10n.sharedLibrary_encrypted_changed(library.name),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FilledButton(
+                onPressed: () => _unlock(context, ref, me),
+                child: Text(l10n.sharedLibrary_encrypted_unlock),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _unlock(
+    BuildContext context,
+    WidgetRef ref,
+    SharedLibraryMembership me,
+  ) async {
+    final secret = await promptLibrarySecret(context);
+    if (secret == null || secret.isEmpty || !context.mounted) return;
+    final l10n = context.l10n;
+    try {
+      await ref
+          .read(sharedLibraryMembershipServiceProvider)
+          .unlockLibrary(
+            libraryId: library.id,
+            diverId: me.diverId,
+            secret: secret,
+          );
+      ref.invalidate(currentMembershipsProvider);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(libraryErrorText(l10n, e))));
+    }
+  }
+}
+
 /// Keeping a library owned (issue #2567): a warning while one owner is
 /// left, a new recovery code for owners, and for everyone else recovery
 /// with the code or, as a last resort, a reset the members must accept.

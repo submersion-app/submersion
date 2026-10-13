@@ -41,6 +41,37 @@ class _FakeMembershipService extends SharedLibraryMembershipService {
   /// A library made by Create; null refuses it as already there.
   CreatedLibrary? created;
 
+  /// The secret each join was given.
+  final joinSecrets = <String?>[];
+
+  @override
+  Future<LibraryProbe> unlockProbe({
+    required ConnectedAccount account,
+    required String prefix,
+    required String secret,
+  }) async {
+    if (secret != 'pw') throw WrongPassphraseError();
+    return const LibraryProbe(
+      exists: true,
+      id: 'S',
+      name: 'Sealed',
+      encrypted: true,
+      keyId: 'k',
+    );
+  }
+
+  @override
+  Future<SharedLibrary> join({
+    required ConnectedAccount account,
+    required String prefix,
+    required String diverId,
+    required String displayName,
+    String? secret,
+  }) async {
+    joinSecrets.add(secret);
+    throw StateError('stop here');
+  }
+
   @override
   Future<CreatedLibrary> createWithRecovery({
     required ConnectedAccount account,
@@ -362,6 +393,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('keychain locked'), findsOneWidget);
+  });
+
+  testWidgets('an encrypted library asks for its passphrase first', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final service = _FakeMembershipService({
+      'sealed': const LibraryProbe(exists: true, id: 'S', encrypted: true),
+    });
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          eligibleLibraryAccountsProvider.overrideWith(
+            (ref) async => [_bucket()],
+          ),
+          sharedLibraryMembershipServiceProvider.overrideWithValue(service),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
+          currentDiverProvider.overrideWith(
+            (ref) async => Diver(
+              id: 'd',
+              name: 'Ann',
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          ),
+        ],
+        locale: const Locale('en'),
+        child: const ConnectSharedLibraryPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'sealed');
+    await tester.tap(find.text('Check'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Encrypted library'), findsOneWidget);
+    expect(find.textContaining('Join'), findsNothing);
+
+    await tester.enterText(find.byKey(const Key('library-secret')), 'nope');
+    await tester.tap(find.text('Unlock'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('That passphrase does not open this library.'),
+      findsOneWidget,
+    );
+
+    await tester.enterText(find.byKey(const Key('library-secret')), 'pw');
+    await tester.tap(find.text('Unlock'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Join Sealed'));
+    await tester.pumpAndSettle();
+    expect(service.joinSecrets, ['pw']);
   });
 
   testWidgets('a library from a test build cannot be joined', (tester) async {

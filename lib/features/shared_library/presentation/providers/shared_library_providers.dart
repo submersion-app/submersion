@@ -162,7 +162,12 @@ final sharedLibraryTransportFactoryProvider =
             'The account for ${library.name} is no longer on this device',
           );
         }
-        return byAccount(account: account, prefix: library.prefix);
+        final t = await byAccount(account: account, prefix: library.prefix);
+        return t
+          ..cipher = await ref
+              .read(sharedLibraryStoreProvider)
+              .libraryCipherFor(library.id)
+          ..encrypting = library.encrypted;
       };
     });
 

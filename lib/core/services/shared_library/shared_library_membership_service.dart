@@ -7,6 +7,7 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_recovery.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
@@ -73,6 +74,12 @@ class UntrustedRolesError extends StateError {
     : super('The roles of the library at $prefix are not signed by an owner');
 }
 
+/// The passphrase or recovery code typed in opens no keyslot of the
+/// library.
+class WrongPassphraseError extends StateError {
+  WrongPassphraseError() : super('That passphrase does not open this library');
+}
+
 /// The recovery code typed in does not stand for the library's recovery
 /// key.
 class WrongRecoveryCodeError extends StateError {
@@ -131,7 +138,74 @@ class SharedLibraryMembershipService {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
-    return _transportFor(account: account, prefix: lib.prefix);
+    final t = await _transportFor(account: account, prefix: lib.prefix);
+    t
+      ..cipher = await _store.libraryCipherFor(lib.id)
+      ..encrypting = lib.encrypted;
+    return t;
+  }
+
+  /// Unlocks the encrypted library [t] reaches with [secret] (the
+  /// passphrase or the recovery code) and sets its cipher.
+  Future<LibraryCipher> _unlock(
+    SharedLibraryTransport t,
+    String? secret,
+  ) async {
+    final slots = await t.readKeyslots();
+    final cipher = slots == null || secret == null
+        ? null
+        : await LibraryCipher.unlock(slots, secret);
+    if (cipher == null) throw WrongPassphraseError();
+    t
+      ..cipher = cipher
+      ..encrypting = true;
+    return cipher;
+  }
+
+  /// [probe] of an encrypted library, unlocked with [secret] to read its
+  /// name. Throws [WrongPassphraseError] when [secret] opens nothing.
+  Future<LibraryProbe> unlockProbe({
+    required domain.ConnectedAccount account,
+    required String prefix,
+    required String secret,
+  }) async {
+    final t = await _transportFor(account: account, prefix: prefix);
+    final found = await _probeWith(t);
+    if (!found.encrypted) return found;
+    await _unlock(t, secret);
+    return LibraryProbe(
+      exists: true,
+      id: found.id,
+      name: (await t.readInfo())?['name'] as String?,
+      formatVersion: found.formatVersion,
+      encrypted: true,
+      keyId: found.keyId,
+    );
+  }
+
+  /// Keeps the key of [libraryId] for the profile [diverId] after its
+  /// passphrase or recovery code [secret] opened it (a library encrypted,
+  /// or re-keyed, since this device joined).
+  Future<void> unlockLibrary({
+    required String libraryId,
+    required String diverId,
+    required String secret,
+  }) async {
+    final library = await _store.getLibrary(libraryId);
+    if (library == null) throw StateError('library $libraryId not connected');
+    final t = await transportForLibrary(library);
+    final cipher = await _unlock(t, secret);
+    await _store.setLibraryKey(
+      diverId: diverId,
+      libraryId: libraryId,
+      keyId: cipher.keyId,
+      key: await cipher.exportKey(),
+    );
+    await _store.setLibraryStatus(
+      libraryId,
+      encrypted: true,
+      keyId: cipher.keyId,
+    );
   }
 
   Future<LibraryProbe> probe({
@@ -252,10 +326,12 @@ class SharedLibraryMembershipService {
     required String prefix,
     required String diverId,
     required String displayName,
+    String? secret,
   }) async {
     // One transport for the whole join: each resolves its folders afresh.
     final t = await _transportFor(account: account, prefix: prefix);
     final found = await _probeWith(t);
+    final cipher = found.encrypted ? await _unlock(t, secret) : null;
     if (!found.exists || found.id == null || found.id!.isEmpty) {
       throw StateError('No library at $prefix');
     }
@@ -268,7 +344,9 @@ class SharedLibraryMembershipService {
       );
     }
     final libraryId = found.id!;
-    final name = found.name ?? prefix;
+    final name =
+        found.name ?? (await t.readInfo())?['name'] as String? ?? prefix;
+    final libraryKey = await cipher?.exportKey();
     final memberId = await _store.memberIdForDiver(diverId);
     final roles = await t.readRoles();
     // Nothing is trusted yet: the roles must at least be signed by one of
@@ -305,6 +383,8 @@ class SharedLibraryMembershipService {
       prefix: prefix,
       formatVersion: found.formatVersion,
       roles: roles,
+      encrypted: found.encrypted,
+      keyId: cipher?.keyId,
     );
     // Connecting on another device finds the profile's membership already
     // synced in: keep its id, or the profile ends up with two and leaving
@@ -324,15 +404,15 @@ class SharedLibraryMembershipService {
       signingKey: myKey,
     );
     await _store.upsertMembership(
-      existing == null
-          ? fresh
-          : existing.copyWith(
-              displayName: displayName,
-              libraryName: name,
-              backendKind: fresh.backendKind,
-              locationHint: fresh.locationHint,
-              signingKey: myKey,
-            ),
+      (existing ?? fresh).copyWith(
+        displayName: displayName,
+        libraryName: name,
+        backendKind: fresh.backendKind,
+        locationHint: fresh.locationHint,
+        signingKey: myKey,
+        libraryKeyId: cipher?.keyId,
+        libraryKey: libraryKey,
+      ),
     );
     await _store.upsertLibrary(library);
     await _store.replaceMembers(libraryId, [

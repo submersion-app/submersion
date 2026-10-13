@@ -20973,6 +20973,31 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze bibliotheek is gemaakt met een testversie van Submersion. Maak haar opnieuw.';
 
   @override
+  String get sharedLibrary_encrypted_probe =>
+      'Versleutelde bibliotheek. Voer de wachtwoordzin of de herstelcode in.';
+
+  @override
+  String get sharedLibrary_encrypted_passphrase =>
+      'Wachtwoordzin of herstelcode';
+
+  @override
+  String get sharedLibrary_encrypted_unlock => 'Ontgrendelen';
+
+  @override
+  String get sharedLibrary_encrypted_wrong =>
+      'Deze wachtwoordzin opent deze bibliotheek niet.';
+
+  @override
+  String sharedLibrary_encrypted_locked(String library) {
+    return 'Voer de wachtwoordzin voor $library in.';
+  }
+
+  @override
+  String sharedLibrary_encrypted_changed(String library) {
+    return 'De wachtwoordzin van $library is gewijzigd. Voer de nieuwe in.';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override

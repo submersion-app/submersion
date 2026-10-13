@@ -6,6 +6,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
@@ -26,6 +27,10 @@ enum SharedLibrarySyncStatus {
 
   /// Made by a test build before format 2: it can only be created again.
   retired,
+
+  /// Encrypted, and this device holds no key for it (or an older one):
+  /// nothing is read or written until the passphrase is entered.
+  locked,
   notConnected,
   failed,
 }
@@ -168,6 +173,41 @@ class SharedLibraryService {
         );
       }
 
+      // Encryption, as the manifest declares it.
+      final encrypted = manifest['encrypted'] == true;
+      final keyId = manifest['keyId'] as String?;
+      await _store.setLibraryStatus(
+        libraryId,
+        encrypted: encrypted,
+        keyId: keyId,
+        clearKeyId: keyId == null,
+      );
+      t.cipher ??= await _store.libraryCipherFor(libraryId);
+      if (encrypted) {
+        final held = t.cipher;
+        if (held == null || held.keyId != keyId) {
+          return await _fail(
+            libraryId,
+            SharedLibrarySyncStatus.locked,
+            held == null
+                ? 'Enter the passphrase for this library'
+                : "This library's passphrase changed",
+          );
+        }
+        t.encrypting = true;
+      } else {
+        t.encrypting = false;
+        // Turned off by an owner: the key is no longer needed here.
+        for (final m in await _store.membershipsForLibrary(libraryId)) {
+          if (m.libraryKey != null) {
+            await _store.setLibraryKey(
+              diverId: m.diverId,
+              libraryId: libraryId,
+            );
+          }
+        }
+      }
+
       // 2. Roles and members. Only roles this device can trust count: a
       // file rewritten by someone who is no owner changes nothing here.
       final roles = await _trustRoles(library, await t.readRoles());
@@ -244,6 +284,10 @@ class SharedLibraryService {
             remote = await t.readSite(f.id);
           } on FormatException catch (e) {
             _log.warning('Skipping unreadable site document ${f.name}: $e');
+            continue;
+          } on LibraryLockedException {
+            // Sealed under another key mid passphrase change: next time.
+            _log.warning('Skipping ${f.name}, sealed under another key');
             continue;
           }
           if (remote.id != siteId) {

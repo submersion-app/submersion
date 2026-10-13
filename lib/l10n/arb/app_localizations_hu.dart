@@ -21039,6 +21039,31 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezt a könyvtárat a Submersion egy tesztverziója hozta létre. Hozd létre újra.';
 
   @override
+  String get sharedLibrary_encrypted_probe =>
+      'Titkosított könyvtár. Add meg a jelmondatot vagy a helyreállítási kódot.';
+
+  @override
+  String get sharedLibrary_encrypted_passphrase =>
+      'Jelmondat vagy helyreállítási kód';
+
+  @override
+  String get sharedLibrary_encrypted_unlock => 'Feloldás';
+
+  @override
+  String get sharedLibrary_encrypted_wrong =>
+      'Ez a jelmondat nem nyitja meg ezt a könyvtárat.';
+
+  @override
+  String sharedLibrary_encrypted_locked(String library) {
+    return 'Add meg a(z) $library jelmondatát.';
+  }
+
+  @override
+  String sharedLibrary_encrypted_changed(String library) {
+    return 'A(z) $library jelmondata megváltozott. Add meg az újat.';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

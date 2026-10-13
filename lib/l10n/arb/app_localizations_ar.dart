@@ -21376,6 +21376,31 @@ class AppLocalizationsAr extends AppLocalizations {
       'أُنشئت هذه المكتبة بإصدار تجريبي من Submersion. أنشئها من جديد.';
 
   @override
+  String get sharedLibrary_encrypted_probe =>
+      'مكتبة مشفرة. أدخل عبارة المرور أو رمز الاسترداد.';
+
+  @override
+  String get sharedLibrary_encrypted_passphrase =>
+      'عبارة المرور أو رمز الاسترداد';
+
+  @override
+  String get sharedLibrary_encrypted_unlock => 'فتح';
+
+  @override
+  String get sharedLibrary_encrypted_wrong =>
+      'عبارة المرور هذه لا تفتح هذه المكتبة.';
+
+  @override
+  String sharedLibrary_encrypted_locked(String library) {
+    return 'أدخل عبارة المرور لـ $library.';
+  }
+
+  @override
+  String sharedLibrary_encrypted_changed(String library) {
+    return 'تغيرت عبارة مرور $library. أدخل العبارة الجديدة.';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

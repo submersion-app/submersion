@@ -22,6 +22,7 @@ Future<Widget> _page(
   bool readOnly = false,
   bool rolesRejected = false,
   SharedLibraryRoles? pendingRoles,
+  String? keyId,
   String? error,
   SharedLibraryMembershipService? service,
   SharedSitePublisher? publisher,
@@ -43,6 +44,8 @@ Future<Widget> _page(
           readOnlyDetected: readOnly,
           rolesRejected: rolesRejected,
           pendingRoles: pendingRoles,
+          encrypted: keyId != null,
+          keyId: keyId,
           lastError: error,
           roles: SharedLibraryRoles(
             owners: role == SharedLibraryRole.owner ? {'m'} : {},
@@ -129,6 +132,23 @@ void main() {
       find.textContaining('changed by someone who is not an owner'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('an encrypted library without its key asks to be unlocked', (
+    tester,
+  ) async {
+    final service = _OwnerLoss();
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.reader, service: service, keyId: 'k2'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Enter the passphrase for Reef Survey.'), findsOneWidget);
+    await tester.tap(find.text('Unlock'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('secret-field')), 'pw');
+    await tester.tap(find.text('Unlock').last);
+    await tester.pumpAndSettle();
+    expect(service.secrets, ['pw']);
   });
 
   testWidgets('a lone owner is warned', (tester) async {
@@ -327,6 +347,14 @@ class _OwnerLoss extends SharedLibraryMembershipService {
 
   final accepted = <String>[];
   final codes = <String>[];
+  final secrets = <String>[];
+
+  @override
+  Future<void> unlockLibrary({
+    required String libraryId,
+    required String diverId,
+    required String secret,
+  }) async => secrets.add(secret);
 
   @override
   Future<void> acceptReset(String libraryId) async => accepted.add(libraryId);

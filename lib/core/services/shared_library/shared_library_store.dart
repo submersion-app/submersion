@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -496,6 +497,25 @@ class SharedLibraryStore {
       ),
     );
     return made;
+  }
+
+  /// The key of [libraryId] when any local profile holds it.
+  Future<LibraryCipher?> libraryCipherFor(String libraryId) async {
+    final row =
+        await (_db.select(_db.sharedLibraryMemberships)
+              ..where(
+                (t) =>
+                    t.libraryId.equals(libraryId) &
+                    t.libraryKey.isNotNull() &
+                    t.libraryKeyId.isNotNull(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    if (row == null) return null;
+    return LibraryCipher.fromExported(
+      keyId: row.libraryKeyId!,
+      key: row.libraryKey!,
+    );
   }
 
   /// Stores (or, with no [key], clears) the unlocked key of [libraryId]

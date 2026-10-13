@@ -20638,6 +20638,30 @@ class AppLocalizationsHe extends AppLocalizations {
       'הספרייה הזו נוצרה בגרסת ניסיון של Submersion. צרו אותה מחדש.';
 
   @override
+  String get sharedLibrary_encrypted_probe =>
+      'ספרייה מוצפנת. הזינו את משפט הסיסמה או את קוד השחזור.';
+
+  @override
+  String get sharedLibrary_encrypted_passphrase => 'משפט סיסמה או קוד שחזור';
+
+  @override
+  String get sharedLibrary_encrypted_unlock => 'שחרור נעילה';
+
+  @override
+  String get sharedLibrary_encrypted_wrong =>
+      'משפט הסיסמה הזה לא פותח את הספרייה.';
+
+  @override
+  String sharedLibrary_encrypted_locked(String library) {
+    return 'הזינו את משפט הסיסמה של $library.';
+  }
+
+  @override
+  String sharedLibrary_encrypted_changed(String library) {
+    return 'משפט הסיסמה של $library השתנה. הזינו את החדש.';
+  }
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

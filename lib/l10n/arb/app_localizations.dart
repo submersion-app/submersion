@@ -33807,6 +33807,42 @@ abstract class AppLocalizations {
   /// **'This library was made by a test build of Submersion. Create it again.'**
   String get sharedLibrary_retired;
 
+  /// No description provided for @sharedLibrary_encrypted_probe.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted library. Enter the passphrase or the recovery code.'**
+  String get sharedLibrary_encrypted_probe;
+
+  /// No description provided for @sharedLibrary_encrypted_passphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase or recovery code'**
+  String get sharedLibrary_encrypted_passphrase;
+
+  /// No description provided for @sharedLibrary_encrypted_unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get sharedLibrary_encrypted_unlock;
+
+  /// No description provided for @sharedLibrary_encrypted_wrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That passphrase does not open this library.'**
+  String get sharedLibrary_encrypted_wrong;
+
+  /// No description provided for @sharedLibrary_encrypted_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the passphrase for {library}.'**
+  String sharedLibrary_encrypted_locked(String library);
+
+  /// No description provided for @sharedLibrary_encrypted_changed.
+  ///
+  /// In en, this message translates to:
+  /// **'The passphrase of {library} changed. Enter the new one.'**
+  String sharedLibrary_encrypted_changed(String library);
+
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
   /// In en, this message translates to:

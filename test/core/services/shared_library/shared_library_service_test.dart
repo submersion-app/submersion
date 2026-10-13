@@ -11,6 +11,8 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
+import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -832,6 +834,37 @@ void main() {
     final svc = await device(cloud, 'a');
     final r = await svc.sync('L', diverId: 'd-a');
     expect(r.status, SharedLibrarySyncStatus.retired);
+  });
+
+  test('without its key a library is locked; unlocked, it syncs', () async {
+    final cloud = FakeCloudStorageProvider();
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final cipher = await sealTestLibrary(
+      t,
+      roles: await signedTestRoles(owners: {'a'}, editors: {'b'}),
+    );
+    final svc = await device(cloud, 'b');
+    await SiteRepository().createSite(
+      const DiveSite(id: 's1', name: 'Blue', sharedLibraryId: 'L'),
+    );
+    await markDirty('s1');
+    cloud.operationLog.clear();
+    final locked = await svc.sync('L', diverId: 'd-b');
+    expect(locked.status, SharedLibrarySyncStatus.locked);
+    expect(cloud.operationLog.where((op) => op.startsWith('upload')), isEmpty);
+
+    await SharedLibraryMembershipService(
+      store: SharedLibraryStore(),
+      transportFor: ({required account, required prefix}) async =>
+          SharedLibraryTransport(cloud, prefix: prefix),
+    ).unlockLibrary(libraryId: 'L', diverId: 'd-b', secret: testPassphrase);
+    final r = await svc.sync('L', diverId: 'd-b');
+    expect(r.status, SharedLibrarySyncStatus.success);
+    expect(r.pushed, 1);
+    final file = (await t.listSites()).single;
+    expect(LibraryCipher.isSealed(await cloud.downloadFile(file.id)), isTrue);
+    expect((await t.readSite(file.id)).fields['name'], 'Blue');
+    expect(cipher.keyId, (await SharedLibraryStore().getLibrary('L'))!.keyId);
   });
 }
 
