@@ -29712,6 +29712,19 @@
   "settings_storageUsage_group_exports": "Exported Files",
   "settings_storageUsage_group_importedFiles": "Raw imported data",
   "settings_storageUsage_category_database": "Dive log database",
+  "settings_storageUsage_reclaimable": "{size} reclaimable",
+  "@settings_storageUsage_reclaimable": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_storageUsage_compact": "Compact",
+  "settings_storageUsage_compactTitle": "Compact the database?",
+  "settings_storageUsage_compactBody": "Runs the next time Submersion starts. A large log may take a minute and needs free space about the size of the database.",
+  "settings_storageUsage_compactScheduled": "Scheduled for next launch",
+  "settings_storageUsage_quitNow": "Quit now",
   "settings_storageUsage_category_localCache": "Local cache database",
   "settings_storageUsage_category_mediaCacheOriginals": "Original photos and videos",
   "settings_storageUsage_category_mediaCacheThumbs": "Thumbnails",

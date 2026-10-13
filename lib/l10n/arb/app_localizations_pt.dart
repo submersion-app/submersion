@@ -49725,6 +49725,28 @@ class AppLocalizationsPt extends AppLocalizations {
       'Base de dados do registo de mergulhos';
 
   @override
+  String settings_storageUsage_reclaimable(String size) {
+    return '$size reclaimable';
+  }
+
+  @override
+  String get settings_storageUsage_compact => 'Compact';
+
+  @override
+  String get settings_storageUsage_compactTitle => 'Compact the database?';
+
+  @override
+  String get settings_storageUsage_compactBody =>
+      'Runs the next time Submersion starts. A large log may take a minute and needs free space about the size of the database.';
+
+  @override
+  String get settings_storageUsage_compactScheduled =>
+      'Scheduled for next launch';
+
+  @override
+  String get settings_storageUsage_quitNow => 'Quit now';
+
+  @override
   String get settings_storageUsage_category_localCache =>
       'Base de dados de cache local';
 
