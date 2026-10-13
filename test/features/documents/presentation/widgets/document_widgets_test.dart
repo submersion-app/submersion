@@ -7,6 +7,7 @@ import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_expiry_badge.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_form_fields.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
 
@@ -87,6 +88,59 @@ void main() {
     expect(find.textContaining('Dr Lee'), findsOneWidget);
     await t.tap(find.byType(DocumentTile));
     expect(tapped, isTrue);
+  });
+
+  testWidgets('a card tile names its certification once', (t) async {
+    await t.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: DocumentTile(
+          document: Document(
+            id: 'x',
+            diverId: 'd',
+            owner: const DocumentOwner(DocumentOwnerKind.certification, 'c1'),
+            type: DocumentType.certificationCard,
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          ownerLabel: 'Advanced Nitrox',
+          thumbnail: const SizedBox(),
+        ),
+      ),
+    );
+    expect(find.text('Advanced Nitrox'), findsOneWidget);
+    expect(find.text('Certification card'), findsNothing);
+  });
+
+  testWidgets('a card document has no Title field', (t) async {
+    final controllers = DocumentFormControllers();
+    addTearDown(controllers.dispose);
+    Widget form(DocumentType type) => testApp(
+      locale: const Locale('en'),
+      child: SingleChildScrollView(
+        child: DocumentFormFields(
+          type: type,
+          typeChoices: [type],
+          controllers: controllers,
+          issueDate: null,
+          expiryDate: null,
+          reminderLeadDays: 30,
+          isPrimary: false,
+          formatDate: (d) => '$d',
+          onTypeChanged: (_) {},
+          onPickIssueDate: () {},
+          onPickExpiryDate: () {},
+          onClearIssueDate: () {},
+          onClearExpiryDate: () {},
+          onLeadChanged: (_) {},
+          onPrimaryChanged: (_) {},
+        ),
+      ),
+    );
+    await t.pumpWidget(form(DocumentType.certificationCard));
+    expect(find.byKey(const Key('document-title')), findsNothing);
+    await t.pumpWidget(form(DocumentType.permit));
+    expect(find.byKey(const Key('document-title')), findsOneWidget);
   });
 
   testWidgets('viewer shows a Word page as a file tile with Open with', (

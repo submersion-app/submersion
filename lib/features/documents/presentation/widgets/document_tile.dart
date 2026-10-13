@@ -32,8 +32,11 @@ class DocumentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final status = documentExpiryStatus(document, DateTime.now());
+    // A card is titled by its certification, so naming it again below
+    // would only repeat the title.
+    final card = document.type == DocumentType.certificationCard;
     final details = [
-      ?ownerLabel,
+      if (!card) ?ownerLabel,
       if (document.issuer?.trim() case final issuer? when issuer.isNotEmpty)
         issuer,
     ].join(' · ');
@@ -42,7 +45,7 @@ class DocumentTile extends StatelessWidget {
       onTap: onTap,
       leading: thumbnail ?? DocumentPageThumbnail(document: document),
       title: Text(
-        documentDisplayTitle(l10n, document),
+        documentDisplayTitle(l10n, document, ownerLabel: ownerLabel),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),

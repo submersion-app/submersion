@@ -104,15 +104,19 @@ class DocumentFormFields extends StatelessWidget {
                   if (t != null) onTypeChanged(t);
                 },
         ),
-        gap,
-        TextFormField(
-          key: const Key('document-title'),
-          controller: controllers.title,
-          decoration: InputDecoration(
-            labelText: l10n.documents_field_title,
-            hintText: documentTypeLabel(l10n, type),
+        // A card is titled by its certification, so it has no title of
+        // its own to edit.
+        if (!_card) ...[
+          gap,
+          TextFormField(
+            key: const Key('document-title'),
+            controller: controllers.title,
+            decoration: InputDecoration(
+              labelText: l10n.documents_field_title,
+              hintText: documentTypeLabel(l10n, type),
+            ),
           ),
-        ),
+        ],
         gap,
         TextFormField(
           controller: controllers.issuer,

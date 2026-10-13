@@ -90,7 +90,9 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: !widget.embedded,
-            title: Text(documentDisplayTitle(l10n, doc)),
+            title: Text(
+              documentDisplayTitle(l10n, doc, ownerLabel: entry.ownerLabel),
+            ),
             actions: [
               IconButton(
                 tooltip: l10n.common_action_edit,

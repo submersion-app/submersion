@@ -44,4 +44,35 @@ void main() {
     expect(documentDisplayTitle(l10n, doc('  ')), 'Permit');
     expect(documentDisplayTitle(l10n, doc('Marine park')), 'Marine park');
   });
+
+  test('a certification card is titled by its certification', () {
+    final card = Document(
+      id: 'x',
+      diverId: 'd',
+      owner: const DocumentOwner(DocumentOwnerKind.certification, 'c1'),
+      type: DocumentType.certificationCard,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    expect(
+      documentDisplayTitle(l10n, card, ownerLabel: 'Advanced Nitrox'),
+      'Advanced Nitrox',
+    );
+    // No certification name to hand: the type name, as before.
+    expect(documentDisplayTitle(l10n, card), 'Certification card');
+    expect(
+      documentDisplayTitle(l10n, card, ownerLabel: ' '),
+      'Certification card',
+    );
+    // Any other document keeps its own title.
+    final permit = card.copyWith(
+      type: DocumentType.permit,
+      title: 'Marine park',
+      owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+    );
+    expect(
+      documentDisplayTitle(l10n, permit, ownerLabel: 'Bonaire'),
+      'Marine park',
+    );
+  });
 }
