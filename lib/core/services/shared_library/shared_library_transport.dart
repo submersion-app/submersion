@@ -64,6 +64,7 @@ class SharedLibraryTransport {
   String? _members;
   String? _sites;
   String? _suggestions;
+  String? _backups;
 
   static const _sitePrefix = 'site-';
   static const _memberPrefix = 'member-';
@@ -440,6 +441,44 @@ class SharedLibraryTransport {
     final f = await _find(await _rootId(), SharedLibraryLayout.keyslotsFile);
     if (f != null) await _provider.deleteFile(f.id);
   }
+
+  // Backups, in `backups/` inside the library
+
+  static const _backupIndex = 'index.json';
+
+  Future<String> _backupsId() async =>
+      _backups ??= await _provider.createFolder(
+        SharedLibraryLayout.backupsDir,
+        parentFolderId: await _rootId(),
+      );
+
+  Future<void> writeBackup(String name, Uint8List zip) async =>
+      _provider.uploadFile(zip, name, folderId: await _backupsId());
+
+  Future<Uint8List?> readBackup(String name) async {
+    final f = await _find(await _backupsId(), name);
+    return f == null ? null : _provider.downloadFile(f.id);
+  }
+
+  Future<void> deleteBackup(String name) async {
+    final f = await _find(await _backupsId(), name);
+    if (f != null) await _provider.deleteFile(f.id);
+  }
+
+  /// Notes, pins and counts of the backups in storage (sealed when the
+  /// library is encrypted).
+  Future<Map<String, dynamic>?> readBackupIndex() async => _readJson(
+    await _backupsId(),
+    _backupIndex,
+    path: '${SharedLibraryLayout.backupsDir}/$_backupIndex',
+  );
+
+  Future<void> writeBackupIndex(Map<String, dynamic> index) async => _writeJson(
+    await _backupsId(),
+    _backupIndex,
+    index,
+    path: '${SharedLibraryLayout.backupsDir}/$_backupIndex',
+  );
 
   /// Every stored file of the library by path, as stored (sealed files
   /// stay sealed): what a backup keeps. Backups themselves are left out.

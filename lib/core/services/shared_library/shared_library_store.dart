@@ -639,6 +639,24 @@ class SharedLibraryStore {
         ),
       );
 
+  // Backups (device-local)
+
+  Future<void> putBackup(SharedLibraryBackupsCompanion row) =>
+      _db.into(_db.sharedLibraryBackups).insertOnConflictUpdate(row);
+
+  Future<List<SharedLibraryBackupRow>> backupRows(String libraryId) =>
+      (_db.select(
+        _db.sharedLibraryBackups,
+      )..where((t) => t.libraryId.equals(libraryId))).get();
+
+  Future<SharedLibraryBackupRow?> backupRow(String backupId) => (_db.select(
+    _db.sharedLibraryBackups,
+  )..where((t) => t.backupId.equals(backupId))).getSingleOrNull();
+
+  Future<void> deleteBackupRow(String backupId) => (_db.delete(
+    _db.sharedLibraryBackups,
+  )..where((t) => t.backupId.equals(backupId))).go();
+
   /// Forgets when [libraryId]'s documents were last read, so the next
   /// pull reads every one again.
   Future<void> clearRemoteStamps(String libraryId) =>
