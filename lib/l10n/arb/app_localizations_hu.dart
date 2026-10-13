@@ -24023,16 +24023,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get documents_detail_owner => 'Ide sorolva';
 
   @override
-  String get documents_owner_pickerTitle => 'File under';
+  String get documents_owner_pickerTitle => 'Ide sorolás';
 
   @override
-  String get documents_owner_search => 'Search';
+  String get documents_owner_search => 'Keresés';
 
   @override
-  String get documents_owner_none => 'Nothing to file under yet';
+  String get documents_owner_none => 'Még nincs mihez sorolni';
 
   @override
-  String get documents_owner_locked => 'A card stays with its certification';
+  String get documents_owner_locked => 'A kártya a képesítésénél marad';
 
   @override
   String get documents_profileHub_documents => 'Dokumentumok';
@@ -45380,11 +45380,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_remove => 'Eltávolítás';
 
   @override
-  String get equipment_documents_linkedTitle => 'Linked files';
+  String get equipment_documents_linkedTitle => 'Csatolt fájlok';
 
   @override
   String get equipment_documents_linkedSubtitle =>
-      'Too large, or a format Documents cannot hold';
+      'Túl nagy, vagy olyan formátumú, amelyet a Dokumentumok nem tud tárolni';
 
   @override
   String get equipment_documents_removeTitle => 'Eltávolítja a dokumentumot?';
@@ -47309,7 +47309,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get startup_compacting => 'Optimizing storage...';
+  String get startup_compacting => 'Tárhely optimalizálása...';
 
   @override
   String get startup_error_title => 'A Submersion nem tudott elindulni';
@@ -49455,25 +49455,25 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_storageUsage_reclaimable(String size) {
-    return '$size reclaimable';
+    return '$size felszabadítható';
   }
 
   @override
-  String get settings_storageUsage_compact => 'Compact';
+  String get settings_storageUsage_compact => 'Tömörítés';
 
   @override
-  String get settings_storageUsage_compactTitle => 'Compact the database?';
+  String get settings_storageUsage_compactTitle => 'Tömöríted az adatbázist?';
 
   @override
   String get settings_storageUsage_compactBody =>
-      'Runs the next time Submersion starts. A large log may take a minute and needs free space about the size of the database.';
+      'A Submersion következő indításakor fut le. Egy nagy napló egy percig is eltarthat, és körülbelül az adatbázis méretének megfelelő szabad hely kell hozzá.';
 
   @override
   String get settings_storageUsage_compactScheduled =>
-      'Scheduled for next launch';
+      'A következő indításra ütemezve';
 
   @override
-  String get settings_storageUsage_quitNow => 'Quit now';
+  String get settings_storageUsage_quitNow => 'Kilépés most';
 
   @override
   String get settings_storageUsage_category_localCache =>

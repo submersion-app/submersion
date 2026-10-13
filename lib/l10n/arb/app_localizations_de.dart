@@ -24089,16 +24089,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get documents_detail_owner => 'Abgelegt unter';
 
   @override
-  String get documents_owner_pickerTitle => 'File under';
+  String get documents_owner_pickerTitle => 'Ablegen unter';
 
   @override
-  String get documents_owner_search => 'Search';
+  String get documents_owner_search => 'Suchen';
 
   @override
-  String get documents_owner_none => 'Nothing to file under yet';
+  String get documents_owner_none => 'Noch nichts zum Ablegen vorhanden';
 
   @override
-  String get documents_owner_locked => 'A card stays with its certification';
+  String get documents_owner_locked => 'Eine Karte bleibt bei ihrem Brevet';
 
   @override
   String get documents_profileHub_documents => 'Dokumente';
@@ -45530,11 +45530,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get common_action_remove => 'Entfernen';
 
   @override
-  String get equipment_documents_linkedTitle => 'Linked files';
+  String get equipment_documents_linkedTitle => 'Verknüpfte Dateien';
 
   @override
   String get equipment_documents_linkedSubtitle =>
-      'Too large, or a format Documents cannot hold';
+      'Zu groß oder ein Format, das Dokumente nicht aufnehmen kann';
 
   @override
   String get equipment_documents_removeTitle => 'Dokument entfernen?';
@@ -47464,7 +47464,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get startup_compacting => 'Optimizing storage...';
+  String get startup_compacting => 'Speicher wird optimiert...';
 
   @override
   String get startup_error_title => 'Submersion konnte nicht starten';
@@ -49615,25 +49615,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_storageUsage_reclaimable(String size) {
-    return '$size reclaimable';
+    return '$size freigebbar';
   }
 
   @override
-  String get settings_storageUsage_compact => 'Compact';
+  String get settings_storageUsage_compact => 'Komprimieren';
 
   @override
-  String get settings_storageUsage_compactTitle => 'Compact the database?';
+  String get settings_storageUsage_compactTitle => 'Datenbank komprimieren?';
 
   @override
   String get settings_storageUsage_compactBody =>
-      'Runs the next time Submersion starts. A large log may take a minute and needs free space about the size of the database.';
+      'Wird beim nächsten Start von Submersion ausgeführt. Ein großes Tauchbuch kann eine Minute dauern und braucht freien Speicher etwa in Größe der Datenbank.';
 
   @override
   String get settings_storageUsage_compactScheduled =>
-      'Scheduled for next launch';
+      'Für den nächsten Start geplant';
 
   @override
-  String get settings_storageUsage_quitNow => 'Quit now';
+  String get settings_storageUsage_quitNow => 'Jetzt beenden';
 
   @override
   String get settings_storageUsage_category_localCache =>

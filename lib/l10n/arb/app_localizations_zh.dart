@@ -22800,16 +22800,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get documents_detail_owner => '归档于';
 
   @override
-  String get documents_owner_pickerTitle => 'File under';
+  String get documents_owner_pickerTitle => '归档到';
 
   @override
-  String get documents_owner_search => 'Search';
+  String get documents_owner_search => '搜索';
 
   @override
-  String get documents_owner_none => 'Nothing to file under yet';
+  String get documents_owner_none => '暂无可归档的位置';
 
   @override
-  String get documents_owner_locked => 'A card stays with its certification';
+  String get documents_owner_locked => '证书卡始终归属于其证书';
 
   @override
   String get documents_profileHub_documents => '文档';
@@ -42913,11 +42913,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_remove => '移除';
 
   @override
-  String get equipment_documents_linkedTitle => 'Linked files';
+  String get equipment_documents_linkedTitle => '已链接的文件';
 
   @override
-  String get equipment_documents_linkedSubtitle =>
-      'Too large, or a format Documents cannot hold';
+  String get equipment_documents_linkedSubtitle => '文件过大，或文档无法保存该格式';
 
   @override
   String get equipment_documents_removeTitle => '移除文档？';
@@ -44696,7 +44695,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get startup_compacting => 'Optimizing storage...';
+  String get startup_compacting => '正在优化存储...';
 
   @override
   String get startup_error_title => 'Submersion 无法启动';
@@ -46675,25 +46674,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_storageUsage_reclaimable(String size) {
-    return '$size reclaimable';
+    return '可回收 $size';
   }
 
   @override
-  String get settings_storageUsage_compact => 'Compact';
+  String get settings_storageUsage_compact => '压缩';
 
   @override
-  String get settings_storageUsage_compactTitle => 'Compact the database?';
+  String get settings_storageUsage_compactTitle => '压缩数据库？';
 
   @override
   String get settings_storageUsage_compactBody =>
-      'Runs the next time Submersion starts. A large log may take a minute and needs free space about the size of the database.';
+      '将在下次启动 Submersion 时执行。较大的日志可能需要一分钟，并需要与数据库大小相当的可用空间。';
 
   @override
-  String get settings_storageUsage_compactScheduled =>
-      'Scheduled for next launch';
+  String get settings_storageUsage_compactScheduled => '已安排在下次启动时执行';
 
   @override
-  String get settings_storageUsage_quitNow => 'Quit now';
+  String get settings_storageUsage_quitNow => '立即退出';
 
   @override
   String get settings_storageUsage_category_localCache => '本地缓存数据库';

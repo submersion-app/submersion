@@ -23517,16 +23517,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get documents_detail_owner => 'מתויק תחת';
 
   @override
-  String get documents_owner_pickerTitle => 'File under';
+  String get documents_owner_pickerTitle => 'תיוק תחת';
 
   @override
-  String get documents_owner_search => 'Search';
+  String get documents_owner_search => 'חיפוש';
 
   @override
-  String get documents_owner_none => 'Nothing to file under yet';
+  String get documents_owner_none => 'עדיין אין במה לתייק';
 
   @override
-  String get documents_owner_locked => 'A card stays with its certification';
+  String get documents_owner_locked => 'כרטיס נשאר עם ההסמכה שלו';
 
   @override
   String get documents_profileHub_documents => 'מסמכים';
@@ -44648,11 +44648,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_remove => 'הסר';
 
   @override
-  String get equipment_documents_linkedTitle => 'Linked files';
+  String get equipment_documents_linkedTitle => 'קבצים מקושרים';
 
   @override
   String get equipment_documents_linkedSubtitle =>
-      'Too large, or a format Documents cannot hold';
+      'גדולים מדי, או בפורמט שמסמכים לא יכולים לשמור';
 
   @override
   String get equipment_documents_removeTitle => 'להסיר את המסמך?';
@@ -46594,7 +46594,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get startup_compacting => 'Optimizing storage...';
+  String get startup_compacting => 'מייעל את האחסון...';
 
   @override
   String get startup_error_title => 'Submersion לא הצליחה להיפתח';
@@ -48674,25 +48674,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_storageUsage_reclaimable(String size) {
-    return '$size reclaimable';
+    return '$size ניתנים לפינוי';
   }
 
   @override
-  String get settings_storageUsage_compact => 'Compact';
+  String get settings_storageUsage_compact => 'דחיסה';
 
   @override
-  String get settings_storageUsage_compactTitle => 'Compact the database?';
+  String get settings_storageUsage_compactTitle => 'לדחוס את מסד הנתונים?';
 
   @override
   String get settings_storageUsage_compactBody =>
-      'Runs the next time Submersion starts. A large log may take a minute and needs free space about the size of the database.';
+      'יתבצע בהפעלה הבאה של Submersion. יומן גדול עשוי להימשך דקה ודורש שטח פנוי בערך בגודל מסד הנתונים.';
 
   @override
-  String get settings_storageUsage_compactScheduled =>
-      'Scheduled for next launch';
+  String get settings_storageUsage_compactScheduled => 'מתוזמן להפעלה הבאה';
 
   @override
-  String get settings_storageUsage_quitNow => 'Quit now';
+  String get settings_storageUsage_quitNow => 'יציאה עכשיו';
 
   @override
   String get settings_storageUsage_category_localCache =>
