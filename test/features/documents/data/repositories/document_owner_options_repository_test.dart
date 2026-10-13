@@ -22,6 +22,12 @@ void main() {
       "('t3', 'd2', 'Not mine', 0, 0, 0, 0)",
     );
     await sql(
+      'INSERT INTO equipment (id, diver_id, name, brand, model, type, '
+      "created_at, updated_at) VALUES ('e1', 'd1', 'Regulator', 'Apeks', "
+      "'XTX50', 'regulator', 0, 0), ('e2', 'd1', 'Regulator', NULL, NULL, "
+      "'regulator', 0, 0)",
+    );
+    await sql(
       'INSERT INTO dive_sites (id, diver_id, name, shared_library_id, '
       "created_at, updated_at) VALUES ('s1', 'd1', 'Salt Pier', NULL, 0, 0), "
       "('s2', 'd1', 'Club wreck', 'lib1', 0, 0)",
@@ -43,6 +49,16 @@ void main() {
     final trips = await repo.optionsFor(DocumentOwnerKind.trip, diverId: 'd1');
     expect(trips.map((o) => o.label), ['Red Sea', 'Bonaire']);
     expect(trips.map((o) => o.id), ['t2', 't1']);
+  });
+
+  test('trips carry their start date and gear its make', () async {
+    final trips = await repo.optionsFor(DocumentOwnerKind.trip, diverId: 'd1');
+    expect(trips.first.date, DateTime.fromMillisecondsSinceEpoch(1000));
+    final gear = await repo.optionsFor(
+      DocumentOwnerKind.equipment,
+      diverId: 'd1',
+    );
+    expect(gear.map((o) => o.subtitle), unorderedEquals(['Apeks XTX50', null]));
   });
 
   test('names sort without regard to case', () async {

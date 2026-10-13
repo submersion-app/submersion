@@ -124,6 +124,26 @@ void main() {
     );
   });
 
+  testWidgets('a document with no pages shows its details at once', (t) async {
+    docId = (await DocumentRepository().save(
+      Document(
+        id: '',
+        diverId: 'd1',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.insurance,
+        issuer: 'DAN',
+        emergencyPhone: '+1 555 0100',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      const [],
+    )).id;
+    await pumpDetail(t, const Size(420, 900));
+    expect(find.text('+1 555 0100'), findsOneWidget);
+    expect(find.byKey(const ValueKey('document-details-toggle')), findsNothing);
+    expect(find.byType(DocumentPageViewer), findsNothing);
+  });
+
   testWidgets('wide screens put the details beside the pages', (t) async {
     await pumpDetail(t, const Size(1200, 800));
     final viewer = t.getRect(find.byType(DocumentPageViewer));

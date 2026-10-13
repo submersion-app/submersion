@@ -50,19 +50,44 @@ class DocumentOwnerOptionsRepository {
         ? 'AND shared_library_id IS NULL '
         : '';
     // Trips read best latest first; everything else alphabetically.
-    final order = kind == DocumentOwnerKind.trip
+    final trip = kind == DocumentOwnerKind.trip;
+    final gear = kind == DocumentOwnerKind.equipment;
+    // What tells two same-named records apart: a trip's dates (a "Bonaire"
+    // every year), a piece of gear's make.
+    final extra = trip
+        ? ', start_date'
+        : gear
+        ? ', brand, model'
+        : '';
+    final order = trip
         ? 'start_date DESC, name COLLATE NOCASE'
         : 'name COLLATE NOCASE';
     final rows = await _db
         .customSelect(
-          'SELECT id, name FROM $table WHERE diver_id = ? $libraryFilter'
-          'ORDER BY $order',
+          'SELECT id, name$extra FROM $table WHERE diver_id = ? '
+          '${libraryFilter}ORDER BY $order',
           variables: [Variable.withString(diverId)],
         )
         .get();
+    String? make(QueryRow r) {
+      final parts = [
+        for (final c in ['brand', 'model'])
+          if (r.readNullable<String>(c)?.trim() case final v? when v.isNotEmpty)
+            v,
+      ];
+      return parts.isEmpty ? null : parts.join(' ');
+    }
+
     return [
       for (final r in rows)
-        DocumentOwnerOption(r.read<String>('id'), r.read<String>('name')),
+        DocumentOwnerOption(
+          r.read<String>('id'),
+          r.read<String>('name'),
+          subtitle: gear ? make(r) : null,
+          date: trip
+              ? DateTime.fromMillisecondsSinceEpoch(r.read<int>('start_date'))
+              : null,
+        ),
     ];
   }
 

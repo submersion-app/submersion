@@ -91,16 +91,22 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
           ),
           body: LayoutBuilder(
             builder: (context, constraints) {
+              // Nothing to show but the details (an insurance kept as its
+              // numbers alone): show them, not an empty viewer over a
+              // folded panel.
+              if (pages.value?.isEmpty ?? false) {
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    DocumentDetailsCard(
+                      document: doc,
+                      ownerLabel: entry.ownerLabel,
+                    ),
+                  ],
+                );
+              }
               final viewer = pages.when(
-                data: (list) => list.isEmpty
-                    ? Center(
-                        child: Icon(
-                          documentTypeIcon(doc.type),
-                          size: 64,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                      )
-                    : DocumentPageViewer(pages: list),
+                data: (list) => DocumentPageViewer(pages: list),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('$e')),
               );
