@@ -28,18 +28,6 @@ Future<DocumentOwner?> showDocumentOwnerPicker(
   ),
 );
 
-IconData _kindIcon(DocumentOwnerKind kind) => switch (kind) {
-  DocumentOwnerKind.personal => Icons.person_outline,
-  DocumentOwnerKind.dive => Icons.scuba_diving,
-  DocumentOwnerKind.site => Icons.place_outlined,
-  DocumentOwnerKind.trip => Icons.luggage_outlined,
-  DocumentOwnerKind.equipment => Icons.backpack_outlined,
-  DocumentOwnerKind.course => Icons.school_outlined,
-  DocumentOwnerKind.certification => Icons.card_membership_outlined,
-  DocumentOwnerKind.buddy => Icons.people_outline,
-  DocumentOwnerKind.diveCenter => Icons.storefront_outlined,
-};
-
 class _OwnerPickerSheet extends ConsumerStatefulWidget {
   final DocumentOwner current;
   final ScrollController scrollController;
@@ -94,7 +82,7 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
               for (final k in DocumentOwnerKind.values)
                 ChoiceChip(
                   key: ValueKey('owner-kind-${k.name}'),
-                  avatar: Icon(_kindIcon(k), size: 18),
+                  avatar: Icon(documentOwnerKindIcon(k), size: 18),
                   label: Text(documentOwnerKindLabel(l10n, k)),
                   selected: k == kind,
                   onSelected: (_) => _choose(k),
@@ -160,7 +148,7 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
                 ].join(' · ');
                 final owner = DocumentOwner(kind, o.id);
                 return ListTile(
-                  leading: Icon(_kindIcon(kind)),
+                  leading: Icon(documentOwnerKindIcon(kind)),
                   title: Text(title),
                   subtitle: subtitle.isEmpty ? null : Text(subtitle),
                   selected: owner == widget.current,

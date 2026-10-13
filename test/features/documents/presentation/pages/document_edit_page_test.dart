@@ -312,7 +312,16 @@ void main() {
       expect(find.text('Personal'), findsOneWidget);
       await t.tap(find.byKey(const ValueKey('document-owner-field')));
       await t.pumpAndSettle();
-      expect(find.textContaining('Bonaire'), findsOneWidget);
+      // The record's name, with its kind as the icon.
+      expect(find.text('Bonaire'), findsOneWidget);
+      expect(find.textContaining('Trips'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('document-owner-field')),
+          matching: find.byIcon(Icons.luggage_outlined),
+        ),
+        findsOneWidget,
+      );
       await t.tap(find.text('Save'));
       await t.pumpAndSettle();
       final after = (await DocumentRepository().getById(doc.id))!;

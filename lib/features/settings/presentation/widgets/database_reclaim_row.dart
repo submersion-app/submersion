@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/settings/presentation/providers/database_reclaim_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -70,11 +71,15 @@ class _DatabaseReclaimRowState extends ConsumerState<DatabaseReclaimRow> {
 
   Future<void> _quit() async {
     if (widget.quitOverride case final quit?) return quit();
+    // Both databases closed first, as the startup page's close does, so
+    // exit does not tear down a worker isolate mid-statement.
     try {
       await DatabaseService.instance.close();
-    } finally {
-      exit(0);
-    }
+    } catch (_) {}
+    try {
+      await LocalCacheDatabaseService.instance.close();
+    } catch (_) {}
+    exit(0);
   }
 
   @override

@@ -23,19 +23,24 @@ class DocumentOwnerField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final kind = documentOwnerKindLabel(l10n, owner.kind);
     final name = owner.isPersonal
         ? null
         : ref.watch(documentOwnerLabelProvider(owner)).value;
+    // The record's name, its kind shown by the icon; the kind's own label
+    // only when there is no name (Personal, or an unnumbered dive).
+    final text = name == null || name.isEmpty
+        ? documentOwnerKindLabel(l10n, owner.kind)
+        : name;
     return InkWell(
       onTap: locked ? null : onTap,
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: l10n.documents_detail_owner,
+          prefixIcon: Icon(documentOwnerKindIcon(owner.kind)),
           helperText: locked ? l10n.documents_owner_locked : null,
           suffixIcon: Icon(locked ? Icons.lock_outline : Icons.arrow_drop_down),
         ),
-        child: Text(name == null || name.isEmpty ? kind : '$kind: $name'),
+        child: Text(text),
       ),
     );
   }

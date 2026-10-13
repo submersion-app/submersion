@@ -32,11 +32,16 @@ class EquipmentDocumentsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final documentsAsync = ref.watch(mediaForEquipmentProvider(equipmentId));
-    // Nothing left behind: no card at all.
-    if (documentsAsync.value?.isEmpty ?? false) return const SizedBox.shrink();
+    // Nothing left behind, or not known yet: no card at all. Almost every
+    // item has nothing linked, so a card shown while loading would only
+    // flash and vanish.
+    final unknown = !documentsAsync.hasValue && !documentsAsync.hasError;
+    if (unknown || (documentsAsync.value?.isEmpty ?? false)) {
+      return const SizedBox.shrink();
+    }
 
-    return Card(
-      margin: const EdgeInsets.only(top: 24),
+    // Brings its own gap above, so a hidden card leaves none.
+    final card = Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -86,6 +91,7 @@ class EquipmentDocumentsSection extends ConsumerWidget {
         ),
       ),
     );
+    return Padding(padding: const EdgeInsets.only(top: 24), child: card);
   }
 
   Widget _buildTile(BuildContext context, WidgetRef ref, MediaItem item) {

@@ -153,16 +153,19 @@ void main() {
     expect(tile.onTap, isNotNull);
   });
 
-  testWidgets('a still-loading provider shows a spinner', (tester) async {
+  testWidgets('nothing shows while loading: most gear has no linked files', (
+    tester,
+  ) async {
     final completer = Completer<List<MediaItem>>();
     await tester.pumpWidget(await host(pending: completer.future));
     await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-    completer.complete(const []);
-    await tester.pumpAndSettle();
+    expect(find.byType(Card), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    completer.complete([invoice]);
+    await tester.pumpAndSettle();
+    expect(find.text('Linked files'), findsOneWidget);
   });
 
   testWidgets('a failing provider reports rather than rendering empty', (
