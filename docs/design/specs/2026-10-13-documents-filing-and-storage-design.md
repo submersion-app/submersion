@@ -65,7 +65,9 @@ One generic sheet, `DocumentOwnerPickerSheet`, returning a `DocumentOwner`:
 - Below it, for a non-personal kind, a search field and the active diver's
   records of that kind, each as a label and optional subtitle. Dives read
   `#<number>` with the site name and date as subtitle; every other kind reads
-  its name.
+  its name. Club library sites (#3324, `dive_sites.shared_library_id` set)
+  are not offered: their rows belong to another library, so a personal
+  document filed there would sync a link that other devices may lack.
 - Choosing Personal, or a record, pops the sheet with that owner. The current
   owner is marked.
 
@@ -107,9 +109,11 @@ traffic. List search already matches `ownerLabel`, so it needs no change.
 1. Select every `media` row with a non-null `equipment_id` whose equipment
    row exists. The diver is the equipment's `diver_id`.
 2. Skip, without retrying, a row that can never convert: an extension
-   `checkDocumentFile` rejects (`.gpx`), or a PDF, Word or text file over
-   `kMaxDocumentPageBytes` (10 MB). These are recognised from the stored file
-   name and size, so no state is stored for them.
+   `checkDocumentFile` rejects (`.gpx`), recognised from the file name, or a
+   file already found over `kMaxDocumentPageBytes` (10 MB). The media table
+   holds no size for a linked file, so an oversize file is only found by
+   reading it; its media id then goes into the per-device preference
+   `equipmentFileConversionSkipped`, so it is not re-read every launch.
 3. Resolve the bytes through the media byte resolver the old viewer uses. A
    row whose bytes are unavailable on this device is left for a later run.
 4. Run `checkDocumentFile` on the bytes actually read (an image is not
@@ -202,11 +206,13 @@ set:
 
 1. Clear the preference first, so a crash during the rewrite cannot bring the
    next launch back into it.
-2. On the exclusive main-isolate connection, before the background worker
-   opens the file, run `VACUUM`, then `PRAGMA wal_checkpoint(TRUNCATE)` so the
-   file shrinks.
-3. Report one progress step through `onMigrationProgress`; the startup screen
-   shows "Optimizing storage...".
+2. Before the background worker opens the file, on a connection of its own
+   in a separate isolate (`Isolate.run`), run `VACUUM`, then
+   `PRAGMA wal_checkpoint(TRUNCATE)` so the file shrinks. A separate isolate
+   keeps the startup screen responsive during the rewrite.
+3. Tell the startup page through a new `onCompacting` callback; it shows an
+   indeterminate bar and "Optimizing storage...". (The existing migration
+   progress bar only appears when a pre-check predicted a migration.)
 4. On failure (busy lock, no space for the temporary copy), log a warning and
    record `compactDatabaseBackoffUntil` seven days ahead, during which the
    monitor does not schedule another. The database stays correct, only
