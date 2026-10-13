@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 
 /// What a member may do in a shared site library (issue #2567).
@@ -182,7 +183,8 @@ class SharedLibrary extends Equatable {
 }
 
 /// A diver profile's membership of a library; synced across the profile's
-/// devices. Carries a location hint, never credentials.
+/// devices. Carries a location hint and the profile's keys (its signing key,
+/// and the library key once unlocked), never storage credentials.
 class SharedLibraryMembership extends Equatable {
   const SharedLibraryMembership({
     required this.id,
@@ -193,6 +195,9 @@ class SharedLibraryMembership extends Equatable {
     required this.libraryName,
     required this.backendKind,
     this.locationHint = '',
+    this.signingKey,
+    this.libraryKeyId,
+    this.libraryKey,
   });
 
   final String id;
@@ -203,6 +208,13 @@ class SharedLibraryMembership extends Equatable {
   final String libraryName;
   final String backendKind;
   final String locationHint;
+
+  /// The profile's signing key, the same on all of its memberships.
+  final LibrarySigningKey? signingKey;
+
+  /// The unlocked key of an encrypted library, base64, with its id.
+  final String? libraryKeyId;
+  final String? libraryKey;
 
   /// The folder prefix [locationHint] names (`<account label>: <prefix>`),
   /// to prefill Connect on a device that has not connected the library.
@@ -225,6 +237,9 @@ class SharedLibraryMembership extends Equatable {
     libraryName: libraryName ?? this.libraryName,
     backendKind: backendKind ?? this.backendKind,
     locationHint: locationHint ?? this.locationHint,
+    signingKey: signingKey,
+    libraryKeyId: libraryKeyId,
+    libraryKey: libraryKey,
   );
 
   @override
@@ -237,6 +252,8 @@ class SharedLibraryMembership extends Equatable {
     libraryName,
     backendKind,
     locationHint,
+    signingKey?.publicKey,
+    libraryKeyId,
   ];
 }
 

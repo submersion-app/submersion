@@ -165,6 +165,7 @@ class SharedLibraryMembershipService {
     );
     await _store.upsertLibrary(library);
     await _store.replaceMembers(libraryId, [me]);
+    await _store.ensureSigningKey(diverId);
     return library;
   }
 
@@ -250,6 +251,7 @@ class SharedLibraryMembershipService {
         if (m.memberId != memberId) m,
       me,
     ]);
+    await _store.ensureSigningKey(diverId);
     return library;
   }
 

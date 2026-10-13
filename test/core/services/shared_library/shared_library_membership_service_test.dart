@@ -119,6 +119,28 @@ void main() {
     );
   });
 
+  test('create and join give the profile a signing key', () async {
+    await service.create(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final key = await SharedLibraryStore().signingKeyForDiver('d1');
+    expect(key, isNotNull);
+    await _diver('d2');
+    await service.join(
+      account: account,
+      prefix: 'site-sync',
+      diverId: 'd2',
+      displayName: 'Bo',
+    );
+    final other = await SharedLibraryStore().signingKeyForDiver('d2');
+    expect(other, isNotNull);
+    expect(other!.publicKey, isNot(key!.publicKey));
+  });
+
   test('join reads the folder through one transport', () async {
     await SharedLibraryTransport(
       cloud,

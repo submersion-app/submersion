@@ -212,4 +212,47 @@ void main() {
         .get();
     expect(rows.single.read<String?>('hlc'), isNotNull);
   });
+
+  SharedLibraryMembership membershipOf(String id, String libraryId) =>
+      SharedLibraryMembership(
+        id: id,
+        diverId: 'd1',
+        libraryId: libraryId,
+        memberId: 'm1',
+        displayName: 'Ann',
+        libraryName: 'Library $libraryId',
+        backendKind: 's3',
+      );
+
+  test('a profile has one signing key across its memberships', () async {
+    final store = SharedLibraryStore();
+    await store.upsertMembership(membershipOf('ms-a', 'A'));
+    final key = await store.ensureSigningKey('d1');
+    await store.upsertMembership(membershipOf('ms-b', 'B'));
+    expect((await store.signingKeyForDiver('d1'))!.publicKey, key.publicKey);
+    final b = await store.membership(diverId: 'd1', libraryId: 'B');
+    expect(b!.signingKey!.publicKey, key.publicKey);
+    expect((await store.ensureSigningKey('d1')).publicKey, key.publicKey);
+  });
+
+  test('a keyless write never erases a key', () async {
+    final store = SharedLibraryStore();
+    await store.upsertMembership(membershipOf('ms-a', 'A'));
+    final key = await store.ensureSigningKey('d1');
+    await store.setLibraryKey(
+      diverId: 'd1',
+      libraryId: 'A',
+      keyId: 'k1',
+      key: 'secret',
+    );
+    await store.upsertMembership(membershipOf('ms-a', 'A'));
+    final a = (await store.membership(diverId: 'd1', libraryId: 'A'))!;
+    expect(a.signingKey!.privateKey, key.privateKey);
+    expect(a.libraryKeyId, 'k1');
+    expect(a.libraryKey, 'secret');
+    await store.setLibraryKey(diverId: 'd1', libraryId: 'A');
+    final cleared = (await store.membership(diverId: 'd1', libraryId: 'A'))!;
+    expect(cleared.libraryKey, isNull);
+    expect(cleared.signingKey, isNotNull);
+  });
 }

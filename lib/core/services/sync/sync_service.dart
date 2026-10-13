@@ -6,6 +6,8 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:drift/drift.dart' show Variable;
+
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -2841,6 +2843,68 @@ class SyncService {
     ];
   }
 
+  static const _signingKeyFields = ['signingPublicKey', 'signingPrivateKey'];
+  static const _libraryKeyFields = ['libraryKeyId', 'libraryKey'];
+
+  /// A profile's keys on its shared site library memberships (issue #2567)
+  /// are never lost to a row written before they reached that device: an
+  /// incoming row without them keeps the local ones, and a local row
+  /// without them adopts the incoming ones whichever row wins.
+  Future<List<Map<String, dynamic>>> _keepLibraryMembershipKeys(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (entityType != 'sharedLibraryMemberships' || records.isEmpty) {
+      return records;
+    }
+    final ids = [
+      for (final r in records)
+        if (r['id'] is String) r['id'] as String,
+    ];
+    final local = await _serializer.fetchRecords(entityType, ids);
+    final db = DatabaseService.instance.database;
+    final kept = <Map<String, dynamic>>[];
+    for (final r in records) {
+      final mine = local[r['id']];
+      if (mine == null) {
+        kept.add(r);
+        continue;
+      }
+      final merged = {...r};
+      for (final fields in [_signingKeyFields, _libraryKeyFields]) {
+        final incomingHas = fields.every((f) => r[f] != null);
+        final localHas = fields.every((f) => mine[f] != null);
+        if (!incomingHas && localHas) {
+          for (final f in fields) {
+            merged[f] = mine[f];
+          }
+        } else if (incomingHas && !localHas) {
+          // Adopted in place, without a pending stamp: the key came from
+          // the peer, so there is nothing new to send back.
+          final signing = identical(fields, _signingKeyFields);
+          await db.customUpdate(
+            signing
+                ? 'UPDATE shared_library_memberships SET signing_public_key = ?, '
+                      'signing_private_key = ? WHERE diver_id = ? AND '
+                      'signing_private_key IS NULL'
+                : 'UPDATE shared_library_memberships SET library_key_id = ?, '
+                      'library_key = ? WHERE id = ? AND library_key IS NULL',
+            variables: [
+              Variable.withString(r[fields[0]] as String),
+              Variable.withString(r[fields[1]] as String),
+              Variable.withString(
+                signing ? mine['diverId'] as String : r['id'] as String,
+              ),
+            ],
+            updates: {db.sharedLibraryMemberships},
+          );
+        }
+      }
+      kept.add(merged);
+    }
+    return kept;
+  }
+
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [
@@ -3224,6 +3288,7 @@ class SyncService {
       }
     }
     records = await _keepLibrarySiteLinks(entityType, records);
+    records = await _keepLibraryMembershipKeys(entityType, records);
 
     var applied = 0;
     var conflicts = 0;

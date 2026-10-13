@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
@@ -326,12 +327,16 @@ class SharedLibraryStore {
 
   // Memberships (synced)
 
+  /// Writes [m]. Keys it does not carry are kept, never erased: the
+  /// profile's signing key comes from its other memberships, and only
+  /// [setLibraryKey] clears a library key.
   Future<void> upsertMembership(SharedLibraryMembership m) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       final existing = await (_db.select(
         _db.sharedLibraryMemberships,
       )..where((t) => t.id.equals(m.id))).getSingleOrNull();
+      final profileKey = m.signingKey ?? await signingKeyForDiver(m.diverId);
       await _db
           .into(_db.sharedLibraryMemberships)
           .insertOnConflictUpdate(
@@ -346,6 +351,14 @@ class SharedLibraryStore {
               locationHint: Value(m.locationHint),
               createdAt: existing?.createdAt ?? now,
               updatedAt: now,
+              signingPublicKey: Value(
+                profileKey?.publicKey ?? existing?.signingPublicKey,
+              ),
+              signingPrivateKey: Value(
+                profileKey?.privateKey ?? existing?.signingPrivateKey,
+              ),
+              libraryKeyId: Value(m.libraryKeyId ?? existing?.libraryKeyId),
+              libraryKey: Value(m.libraryKey ?? existing?.libraryKey),
             ),
           );
       await _sync.markRecordPending(
@@ -400,6 +413,87 @@ class SharedLibraryStore {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// The profile's signing key, from any of its memberships.
+  Future<LibrarySigningKey?> signingKeyForDiver(String diverId) async {
+    final row =
+        await (_db.select(_db.sharedLibraryMemberships)
+              ..where(
+                (t) =>
+                    t.diverId.equals(diverId) &
+                    t.signingPrivateKey.isNotNull() &
+                    t.signingPublicKey.isNotNull(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    if (row == null) return null;
+    return LibrarySigningKey(
+      publicKey: row.signingPublicKey!,
+      privateKey: row.signingPrivateKey!,
+    );
+  }
+
+  /// The profile's signing key, made and written to every one of its
+  /// memberships when it has none yet (issue #2567).
+  Future<LibrarySigningKey> ensureSigningKey(String diverId) async {
+    final have = await signingKeyForDiver(diverId);
+    if (have != null) return have;
+    final made = await LibrarySigner.generate();
+    await _writeKeys(
+      diverId,
+      SharedLibraryMembershipsCompanion(
+        signingPublicKey: Value(made.publicKey),
+        signingPrivateKey: Value(made.privateKey),
+      ),
+    );
+    return made;
+  }
+
+  /// Stores (or, with no [key], clears) the unlocked key of [libraryId]
+  /// on the profile's membership: the one write allowed to erase it.
+  Future<void> setLibraryKey({
+    required String diverId,
+    required String libraryId,
+    String? keyId,
+    String? key,
+  }) => _writeKeys(
+    diverId,
+    SharedLibraryMembershipsCompanion(
+      libraryKeyId: Value(key == null ? null : keyId),
+      libraryKey: Value(key),
+    ),
+    libraryId: libraryId,
+  );
+
+  Future<void> _writeKeys(
+    String diverId,
+    SharedLibraryMembershipsCompanion keys, {
+    String? libraryId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      final rows =
+          await (_db.select(_db.sharedLibraryMemberships)..where(
+                (t) =>
+                    t.diverId.equals(diverId) &
+                    (libraryId == null
+                        ? const Constant(true)
+                        : t.libraryId.equals(libraryId)),
+              ))
+              .get();
+      for (final r in rows) {
+        await (_db.update(_db.sharedLibraryMemberships)
+              ..where((t) => t.id.equals(r.id)))
+            .write(keys.copyWith(updatedAt: Value(now)));
+        await _sync.markRecordPending(
+          entityType: membershipEntity,
+          recordId: r.id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// The member id this profile uses in every library: the one on an
   /// existing membership, else a fresh one.
   Future<String> memberIdForDiver(String diverId) async {
@@ -421,6 +515,14 @@ class SharedLibraryStore {
         libraryName: r.libraryName,
         backendKind: r.backendKind,
         locationHint: r.locationHint,
+        signingKey: r.signingPublicKey == null || r.signingPrivateKey == null
+            ? null
+            : LibrarySigningKey(
+                publicKey: r.signingPublicKey!,
+                privateKey: r.signingPrivateKey!,
+              ),
+        libraryKeyId: r.libraryKeyId,
+        libraryKey: r.libraryKey,
       );
 
   // Site state
