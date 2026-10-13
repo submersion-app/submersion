@@ -16,7 +16,7 @@ import '../../../../helpers/mock_providers.dart';
 
 const _librarySite = DiveSite(
   id: 'site-1',
-  name: 'Club Reef',
+  name: 'Library Reef',
   sharedLibraryId: 'L',
 );
 const _personalSite = DiveSite(id: 'site-1', name: 'My Reef', diverId: 'd');

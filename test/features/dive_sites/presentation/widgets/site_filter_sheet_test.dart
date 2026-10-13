@@ -318,13 +318,13 @@ void main() {
           (ref) => Stream.value(const [
             SharedLibrary(
               id: 'mine',
-              name: 'My club',
+              name: 'My library',
               connectedAccountId: 'a',
               prefix: 'p',
             ),
             SharedLibrary(
               id: 'theirs',
-              name: 'Another profile\'s club',
+              name: 'Another profile\'s library',
               connectedAccountId: 'b',
               prefix: 'q',
             ),
@@ -338,7 +338,7 @@ void main() {
               libraryId: 'mine',
               memberId: 'm',
               displayName: 'Ann',
-              libraryName: 'My club',
+              libraryName: 'My library',
               backendKind: 's3',
             ),
           ],
@@ -348,9 +348,9 @@ void main() {
     addTearDown(container.dispose);
     await _openSheet(tester, container);
 
-    expect(find.widgetWithText(FilterChip, 'My club'), findsOneWidget);
+    expect(find.widgetWithText(FilterChip, 'My library'), findsOneWidget);
     expect(
-      find.widgetWithText(FilterChip, 'Another profile\'s club'),
+      find.widgetWithText(FilterChip, 'Another profile\'s library'),
       findsNothing,
     );
   });

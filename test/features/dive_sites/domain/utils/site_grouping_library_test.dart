@@ -6,9 +6,9 @@ void main() {
   test('siteLibraryKey groups by library id, personal sites to noGroupKey', () {
     expect(
       siteLibraryKey(
-        const DiveSite(id: '1', name: 'a', sharedLibraryId: 'club-1'),
+        const DiveSite(id: '1', name: 'a', sharedLibraryId: 'library-1'),
       ),
-      'club-1',
+      'library-1',
     );
     expect(siteLibraryKey(const DiveSite(id: '2', name: 'b')), noGroupKey);
   });

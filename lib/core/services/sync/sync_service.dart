@@ -1538,7 +1538,7 @@ class SyncService {
             records: data.diveComputerConnections,
             hasUpdatedAt: true,
           ),
-          // v289: a profile's club-library memberships (issue #2567).
+          // v289: a profile's shared site library memberships (issue #2567).
           (
             type: 'sharedLibraryMemberships',
             records: data.sharedLibraryMemberships,
@@ -2807,7 +2807,7 @@ class SyncService {
 
   /// A device that has not connected a shared site library holds no copy of its
   /// sites, so the FK repair clears its rows' links to one, and its next
-  /// edit of such a row sends that null back (issue #2567). Where the club
+  /// edit of such a row sends that null back (issue #2567). Where the library
   /// site exists, the null is the peer's blindness, not an unlink: keep the
   /// local link. The rest of the row merges as usual.
   Future<List<Map<String, dynamic>>> _keepLibrarySiteLinks(
@@ -3207,7 +3207,7 @@ class SyncService {
     if (records.isEmpty) {
       return const _MergeResult(recordsApplied: 0, conflictsFound: 0);
     }
-    // A row of a club-library site never arrives through the personal sync
+    // A row of a shared site library site never arrives through the personal sync
     // (issue #2567): a peer's stale personal copy must not overwrite it.
     if (entityType == 'diveSites' ||
         SyncDataSerializer.librarySiteChildEntities.contains(entityType)) {

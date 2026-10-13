@@ -394,7 +394,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   /// Personal sites or one shared site library (issue #2567). Hidden while no
   /// library is connected, since every site is personal then.
   Widget _buildLibrarySection() {
-    // The active profile's libraries only: another profile's club would
+    // The active profile's libraries only: another profile's library would
     // filter to nothing, as its sites are not visible here.
     final mine = {
       for (final m

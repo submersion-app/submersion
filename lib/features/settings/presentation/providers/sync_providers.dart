@@ -1373,7 +1373,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
       var runAuto = auto;
       var followUpAllowed = true;
       while (true) {
-        // One merge into the database at a time, shared with the club
+        // One merge into the database at a time, shared with the library
         // library sync (issue #2567).
         final succeeded = await SyncCoordinator.run(
           () => _runSyncOnce(auto: runAuto),

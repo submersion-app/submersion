@@ -667,7 +667,7 @@ class SiteRepository {
           : const <DocumentSnapshotEntry>[];
       await DocumentRepository().deleteForOwners(DocumentOwnerKind.site, ids);
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
-      // One batch for every tombstone, not a transaction per site. A club
+      // One batch for every tombstone, not a transaction per site. A library
       // library site has no personal tombstone (issue #2567).
       final tombstoned = [
         for (final id in ids)

@@ -37,7 +37,7 @@ void main() {
         displayName: 'Ann',
         libraryName: 'Reef Survey',
         backendKind: 's3',
-        locationHint: 'bucket/club',
+        locationHint: 'bucket/site-sync',
       ),
     );
     expect(
@@ -52,7 +52,7 @@ void main() {
       SyncResultStatus.success,
     );
     final rows = await SharedLibraryStore().membershipsForDiver('d1');
-    expect(rows.single.locationHint, 'bucket/club');
+    expect(rows.single.locationHint, 'bucket/site-sync');
     expect(rows.single.memberId, 'm1');
     await tearDownTestDatabase();
   });
