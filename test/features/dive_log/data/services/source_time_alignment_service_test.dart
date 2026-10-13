@@ -312,4 +312,83 @@ void main() {
       expect(after.map((s) => s.id), before.map((s) => s.id));
     });
   });
+
+  group('placeReimported', () {
+    /// What a Replace Source leaves behind: the secondary's samples back on
+    /// its own timeline, with no stored offset.
+    Future<void> reimportSecondary({List<(int, double)>? trace}) async {
+      await profileSeries.deleteByIds([
+        for (final s in await profileSeries.getSeriesForDive(diveId))
+          if (s.sourceId == secondarySource) s.id,
+      ]);
+      await (db.update(
+        db.diveDataSources,
+      )..where((t) => t.id.equals(secondarySource))).write(
+        const DiveDataSourcesCompanion(timeOffsetSeconds: Value(null)),
+      );
+      await profileSeries.insertSeries(
+        diveId: diveId,
+        computerId: secondaryComputer,
+        sourceId: secondarySource,
+        isPrimary: false,
+        samples: [
+          for (final (t, d) in trace ?? reefTrace())
+            ProfileSample(timestamp: t, depth: d),
+        ],
+      );
+    }
+
+    Future<int> secondaryStart() async =>
+        (await profileSeries.getSeriesForDive(diveId))
+            .singleWhere((s) => s.sourceId == secondarySource)
+            .samples
+            .first
+            .timestamp;
+
+    test('reads the stored offset of a secondary computer', () async {
+      await seedConsolidatedDive();
+      expect(await service.secondaryOffsetOf(diveId, secondaryComputer), 100);
+      expect(await service.secondaryOffsetOf(diveId, primaryComputer), isNull);
+    });
+
+    test('a strong fit that disagrees with the old offset wins', () async {
+      await seedConsolidatedDive();
+      await reimportSecondary();
+      await service.placeReimported(
+        diveId: diveId,
+        computerId: secondaryComputer,
+        previousOffsetSeconds: 100,
+      );
+      // Already on its own timeline, which is where the fit puts it; a null
+      // offset reads as 0 everywhere.
+      expect(await storedOffsetOf(secondarySource) ?? 0, 0);
+      expect(await secondaryStart(), 0);
+    });
+
+    test('an old offset within the tolerance of the fit is kept', () async {
+      await seedConsolidatedDive(storedOffset: 3);
+      await reimportSecondary();
+      await service.placeReimported(
+        diveId: diveId,
+        computerId: secondaryComputer,
+        previousOffsetSeconds: 3,
+      );
+      expect(await storedOffsetOf(secondarySource), 3);
+      expect(await secondaryStart(), 3);
+    });
+
+    test('without a usable fit the old offset is restored', () async {
+      await seedConsolidatedDive();
+      await reimportSecondary(
+        trace: [for (var t = 0; t <= 2880; t += 10) (t, t == 0 ? 0.0 : 3.0)],
+      );
+      await service.placeReimported(
+        diveId: diveId,
+        computerId: secondaryComputer,
+        previousOffsetSeconds: 100,
+      );
+      expect(await storedOffsetOf(secondarySource), 100);
+      expect(await secondaryStart(), 100);
+    });
+  });
 }

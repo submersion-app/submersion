@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/dive_log/data/services/source_time_alignment_service.dart';
 
 /// Mode for importing dives.
 enum ImportMode {
@@ -261,6 +262,7 @@ class DiveImportService {
   final GpsTrackMatchService? _gpsTrackMatchService;
   final DefaultTankPresetLoader? _defaultTankPresetForImports;
   final TransmitterMatcherLoader? _transmitterMatcherForImports;
+  final SourceTimeAlignmentService? _sourceAlignment;
   final Set<String> _unmatchedSerials = {};
   static final _log = LoggerService.forClass(DiveImportService);
 
@@ -271,7 +273,9 @@ class DiveImportService {
     GpsTrackMatchService? gpsTrackMatchService,
     DefaultTankPresetLoader? defaultTankPresetForImports,
     TransmitterMatcherLoader? transmitterMatcherForImports,
+    SourceTimeAlignmentService? sourceAlignment,
   }) : _repository = repository,
+       _sourceAlignment = sourceAlignment,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser(),
        _gpsTrackMatchService = gpsTrackMatchService,
@@ -840,6 +844,10 @@ class DiveImportService {
     int? descriptorModel,
     String? libdivecomputerVersion,
   }) async {
+    // Where this computer sat on a consolidated dive, read before the clear
+    // below drops it with the source row (#2894).
+    final previousOffset = await _secondaryOffset(existingDiveId, computerId);
+
     // Remove the existing profile + source row so importProfile won't
     // short-circuit on the "already exists" check.
     final wasPrimary = await _repository.clearSourceAndProfiles(
@@ -902,6 +910,48 @@ class DiveImportService {
       otu: dive.otu,
       addMissingTanks: true,
     );
+
+    // importProfile lands a secondary reading on its own timeline: put it
+    // back on the primary's.
+    if (!wasPrimary && previousOffset != null) {
+      await _placeReimported(existingDiveId, computerId, previousOffset);
+    }
+  }
+
+  /// The stored offset of [computerId]'s secondary reading, or null when it
+  /// has none or the alignment service is not wired (tests with mocks).
+  Future<int?> _secondaryOffset(String diveId, String computerId) async {
+    final alignment = _sourceAlignment;
+    if (alignment == null) return null;
+    try {
+      return await alignment.secondaryOffsetOf(diveId, computerId);
+    } catch (e, st) {
+      _log.error('Could not read the source offset', error: e, stackTrace: st);
+      return null;
+    }
+  }
+
+  /// Re-places a replaced secondary reading. A failure is logged, never
+  /// thrown: the download itself succeeded, and the reading can still be
+  /// aligned from the dive page or the data quality inbox.
+  Future<void> _placeReimported(
+    String diveId,
+    String computerId,
+    int previousOffset,
+  ) async {
+    try {
+      await _sourceAlignment!.placeReimported(
+        diveId: diveId,
+        computerId: computerId,
+        previousOffsetSeconds: previousOffset,
+      );
+    } catch (e, st) {
+      _log.error(
+        'Could not re-align the replaced reading',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   /// Attach [dive]'s download to the planned dive [plannedDiveId] (issue

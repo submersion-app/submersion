@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
@@ -189,6 +190,51 @@ class SourceTimeAlignmentService {
     await SafetyFindingsRepository.clearReviewForDive(_db, _sync, diveId);
     SyncEventBus.notifyLocalChange();
     return previous;
+  }
+
+  /// The stored offset of [computerId]'s secondary reading on [diveId], or
+  /// null when that computer is the primary or has no reading there. Read
+  /// before a Replace Source clears the reading, so [placeReimported] can put
+  /// the fresh one back where it was.
+  Future<int?> secondaryOffsetOf(String diveId, String computerId) async {
+    final source = (await _sources(
+      diveId,
+    )).where((s) => !s.isPrimary && s.computerId == computerId).firstOrNull;
+    if (source == null) return null;
+    return source.timeOffsetSeconds ?? 0;
+  }
+
+  /// Places [computerId]'s freshly re-imported secondary reading on [diveId].
+  ///
+  /// A Replace Source re-imports the samples, events and gas switches on the
+  /// reading's own timeline and drops the stored offset, which lines its start
+  /// up with the primary's however far apart the two really started. This
+  /// applies the rule consolidation uses, with the old offset in place of
+  /// the entry-time difference: [previousOffsetSeconds] stands unless the
+  /// depth trace clearly matches elsewhere, as a re-download at a finer rate
+  /// can show.
+  Future<void> placeReimported({
+    required String diveId,
+    required String computerId,
+    required int? previousOffsetSeconds,
+  }) async {
+    final source = (await _sources(
+      diveId,
+    )).where((s) => !s.isPrimary && s.computerId == computerId).firstOrNull;
+    if (source == null) return;
+    final check = (await this.check(
+      diveId,
+    )).where((c) => c.sourceId == source.id).firstOrNull;
+    final previous = previousOffsetSeconds ?? 0;
+    final fit = check?.fit;
+    final target =
+        fit != null &&
+            fit.isStrongMatch &&
+            (fit.offsetSeconds - previous).abs() >
+                DiveConsolidationBuilder.clockToleranceSeconds
+        ? fit.offsetSeconds
+        : previous;
+    await setOffset(diveId: diveId, sourceId: source.id, offsetSeconds: target);
   }
 
   Future<List<DiveDataSourcesData>> _sources(String diveId) => (_db.select(

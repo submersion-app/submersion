@@ -45,6 +45,7 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
     // Settings applies to the very next download (issue #386).
     defaultTankPresetForImports: () => loadDefaultTankPresetForDownloads(ref),
     transmitterMatcherForImports: () => loadTransmitterMatcher(ref),
+    sourceAlignment: ref.watch(sourceTimeAlignmentServiceProvider),
   );
 });
 
