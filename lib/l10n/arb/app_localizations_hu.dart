@@ -37793,6 +37793,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_repair_failed => 'A javítás sikertelen';
 
   @override
+  String get dataQuality_repair_undone => 'Javítás visszavonva';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'A visszavonás sikertelen';
+
+  @override
   String get dataQuality_chip_all => 'Mind';
 
   @override

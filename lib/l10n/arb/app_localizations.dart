@@ -60062,6 +60062,18 @@ abstract class AppLocalizations {
   /// **'Repair failed'**
   String get dataQuality_repair_failed;
 
+  /// Snackbar after a repair is undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair undone'**
+  String get dataQuality_repair_undone;
+
+  /// Snackbar prefix when undoing a repair fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo failed'**
+  String get dataQuality_repair_undoFailed;
+
   /// No description provided for @dataQuality_chip_all.
   ///
   /// In en, this message translates to:

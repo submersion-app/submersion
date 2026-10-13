@@ -11387,6 +11387,8 @@
   "dataQuality_repair_noChange": "Itt nincs mit javítani",
   "dataQuality_repair_needsReview": "Nincs automatikus javítás. Nyisd meg a merülést a javításhoz.",
   "dataQuality_repair_failed": "A javítás sikertelen",
+  "dataQuality_repair_undone": "Javítás visszavonva",
+  "dataQuality_repair_undoFailed": "A visszavonás sikertelen",
   "dataQuality_chip_all": "Mind",
   "dataQuality_chip_time": "Idő",
   "dataQuality_chip_profile": "Profil",

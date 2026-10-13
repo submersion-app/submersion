@@ -11387,6 +11387,8 @@
   "dataQuality_repair_noChange": "אין כאן מה לתקן",
   "dataQuality_repair_needsReview": "אין תיקון אוטומטי. פתח את הצלילה כדי לתקן זאת.",
   "dataQuality_repair_failed": "התיקון נכשל",
+  "dataQuality_repair_undone": "התיקון בוטל",
+  "dataQuality_repair_undoFailed": "הביטול נכשל",
   "dataQuality_chip_all": "הכול",
   "dataQuality_chip_time": "זמן",
   "dataQuality_chip_profile": "פרופיל",

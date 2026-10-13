@@ -37075,6 +37075,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_repair_failed => 'התיקון נכשל';
 
   @override
+  String get dataQuality_repair_undone => 'התיקון בוטל';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'הביטול נכשל';
+
+  @override
   String get dataQuality_chip_all => 'הכול';
 
   @override

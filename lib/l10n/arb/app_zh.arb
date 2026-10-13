@@ -11387,6 +11387,8 @@
   "dataQuality_repair_noChange": "这里没有需要修正的内容",
   "dataQuality_repair_needsReview": "无法自动修复。打开该次潜水进行更正。",
   "dataQuality_repair_failed": "修复失败",
+  "dataQuality_repair_undone": "已撤销修复",
+  "dataQuality_repair_undoFailed": "撤销失败",
   "dataQuality_chip_all": "全部",
   "dataQuality_chip_time": "时间",
   "dataQuality_chip_profile": "剖面",

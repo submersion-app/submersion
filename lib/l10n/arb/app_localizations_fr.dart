@@ -38114,6 +38114,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_repair_failed => 'Échec de la correction';
 
   @override
+  String get dataQuality_repair_undone => 'Réparation annulée';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Échec de l\'annulation';
+
+  @override
   String get dataQuality_chip_all => 'Tous';
 
   @override

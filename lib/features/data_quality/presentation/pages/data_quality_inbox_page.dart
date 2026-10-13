@@ -147,6 +147,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
       try {
         final result = await run();
         final undo = result.undo;
+        // Only the latest repair's bar: a queued one names no dive, so its
+        // Undo would revert an older repair the diver has lost track of.
+        messenger.clearSnackBars();
         messenger.showSnackBar(
           SnackBar(
             duration: undoWindow,
@@ -159,7 +162,24 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                 ? null
                 : SnackBarAction(
                     label: l10n.dataQuality_action_undo,
-                    onPressed: () => unawaited(undo()),
+                    onPressed: () => unawaited(() async {
+                      try {
+                        await undo();
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.dataQuality_repair_undone),
+                          ),
+                        );
+                      } catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '${l10n.dataQuality_repair_undoFailed}: $e',
+                            ),
+                          ),
+                        );
+                      }
+                    }()),
                   ),
           ),
         );

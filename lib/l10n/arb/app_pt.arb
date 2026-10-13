@@ -11387,6 +11387,8 @@
   "dataQuality_repair_noChange": "Não há nada a corrigir aqui",
   "dataQuality_repair_needsReview": "Sem correção automática. Abra o mergulho para corrigir.",
   "dataQuality_repair_failed": "Falha na correção",
+  "dataQuality_repair_undone": "Reparação desfeita",
+  "dataQuality_repair_undoFailed": "Falha ao desfazer",
   "dataQuality_chip_all": "Todos",
   "dataQuality_chip_time": "Hora",
   "dataQuality_chip_profile": "Perfil",

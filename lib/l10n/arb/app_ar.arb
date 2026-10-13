@@ -11387,6 +11387,8 @@
   "dataQuality_repair_noChange": "لا يوجد ما يمكن إصلاحه هنا",
   "dataQuality_repair_needsReview": "لا يوجد إصلاح تلقائي. افتح الغطسة لتصحيح ذلك.",
   "dataQuality_repair_failed": "فشل الإصلاح",
+  "dataQuality_repair_undone": "تم التراجع عن الإصلاح",
+  "dataQuality_repair_undoFailed": "فشل التراجع",
   "dataQuality_chip_all": "الكل",
   "dataQuality_chip_time": "الوقت",
   "dataQuality_chip_profile": "المخطط",

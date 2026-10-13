@@ -37994,6 +37994,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dataQuality_repair_failed => 'Falha na correção';
 
   @override
+  String get dataQuality_repair_undone => 'Reparação desfeita';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Falha ao desfazer';
+
+  @override
   String get dataQuality_chip_all => 'Todos';
 
   @override

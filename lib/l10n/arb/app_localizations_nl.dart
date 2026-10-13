@@ -37746,6 +37746,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_repair_failed => 'Herstel mislukt';
 
   @override
+  String get dataQuality_repair_undone => 'Reparatie ongedaan gemaakt';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Ongedaan maken mislukt';
+
+  @override
   String get dataQuality_chip_all => 'Alle';
 
   @override

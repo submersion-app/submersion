@@ -37374,6 +37374,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_repair_failed => 'Repair failed';
 
   @override
+  String get dataQuality_repair_undone => 'Repair undone';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Undo failed';
+
+  @override
   String get dataQuality_chip_all => 'All';
 
   @override

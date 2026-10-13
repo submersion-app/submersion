@@ -11387,6 +11387,8 @@
   "dataQuality_repair_noChange": "Hier valt niets te herstellen",
   "dataQuality_repair_needsReview": "Geen automatische correctie. Open de duik om dit te corrigeren.",
   "dataQuality_repair_failed": "Herstel mislukt",
+  "dataQuality_repair_undone": "Reparatie ongedaan gemaakt",
+  "dataQuality_repair_undoFailed": "Ongedaan maken mislukt",
   "dataQuality_chip_all": "Alle",
   "dataQuality_chip_time": "Tijd",
   "dataQuality_chip_profile": "Profiel",

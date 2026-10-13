@@ -11387,6 +11387,8 @@
   "dataQuality_repair_noChange": "Aquí no hay nada que corregir",
   "dataQuality_repair_needsReview": "Sin corrección automática. Abre la inmersión para corregirlo.",
   "dataQuality_repair_failed": "La corrección falló",
+  "dataQuality_repair_undone": "Reparación deshecha",
+  "dataQuality_repair_undoFailed": "No se pudo deshacer",
   "dataQuality_chip_all": "Todos",
   "dataQuality_chip_time": "Tiempo",
   "dataQuality_chip_profile": "Perfil",

@@ -35847,6 +35847,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_repair_failed => '修复失败';
 
   @override
+  String get dataQuality_repair_undone => '已撤销修复';
+
+  @override
+  String get dataQuality_repair_undoFailed => '撤销失败';
+
+  @override
   String get dataQuality_chip_all => '全部';
 
   @override

@@ -38505,6 +38505,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_repair_failed => 'فشل الإصلاح';
 
   @override
+  String get dataQuality_repair_undone => 'تم التراجع عن الإصلاح';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'فشل التراجع';
+
+  @override
   String get dataQuality_chip_all => 'الكل';
 
   @override

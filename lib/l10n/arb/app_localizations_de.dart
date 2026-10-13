@@ -37933,6 +37933,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_repair_failed => 'Korrektur fehlgeschlagen';
 
   @override
+  String get dataQuality_repair_undone => 'Reparatur rückgängig gemacht';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Rückgängig fehlgeschlagen';
+
+  @override
   String get dataQuality_chip_all => 'Alle';
 
   @override

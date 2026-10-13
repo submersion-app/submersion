@@ -11535,6 +11535,8 @@
   "dataQuality_repair_noChange": "Hier gibt es nichts zu korrigieren",
   "dataQuality_repair_needsReview": "Keine automatische Korrektur. Öffne den Tauchgang, um das zu beheben.",
   "dataQuality_repair_failed": "Korrektur fehlgeschlagen",
+  "dataQuality_repair_undone": "Reparatur rückgängig gemacht",
+  "dataQuality_repair_undoFailed": "Rückgängig fehlgeschlagen",
   "dataQuality_chip_all": "Alle",
   "dataQuality_chip_time": "Zeit",
   "dataQuality_chip_profile": "Profil",
