@@ -192,6 +192,41 @@ void main() {
     expect(prefs.getStringList(EquipmentFileConverter.skippedKey), ['m4']);
   });
 
+  test(
+    'a file a dive also uses keeps its row, losing only the gear link',
+    () async {
+      await db.customStatement(
+        'INSERT INTO dives (id, diver_id, dive_date_time, created_at, '
+        "updated_at) VALUES ('v1', 'd1', 0, 0, 0)",
+      );
+      await db.customStatement(
+        "UPDATE media SET dive_id = 'v1' WHERE id = 'm1'",
+      );
+      await converter().run();
+      expect(
+        await DocumentRepository().getById(documentEquipmentFileId('m1')),
+        isNotNull,
+      );
+      final row = await db
+          .customSelect(
+            "SELECT dive_id, equipment_id FROM media WHERE id = 'm1'",
+          )
+          .getSingle();
+      expect(row.read<String?>('dive_id'), 'v1');
+      expect(row.read<String?>('equipment_id'), isNull);
+    },
+  );
+
+  test('links are dropped through the injected unlink', () async {
+    final unlinked = <String>[];
+    await EquipmentFileConverter(
+      readBytes: reader,
+      prefs: prefs,
+      unlink: (id) async => unlinked.add(id),
+    ).run();
+    expect(unlinked, ['m1']);
+  });
+
   test('a second run is a no-op', () async {
     await converter().run();
     final second = await converter().run();

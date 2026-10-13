@@ -98,9 +98,16 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                 return ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    DocumentDetailsCard(
-                      document: doc,
-                      ownerLabel: entry.ownerLabel,
+                    // A readable line length on a wide window.
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 640),
+                        child: DocumentDetailsCard(
+                          document: doc,
+                          ownerLabel: entry.ownerLabel,
+                        ),
+                      ),
                     ),
                   ],
                 );

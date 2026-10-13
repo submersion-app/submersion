@@ -14,6 +14,7 @@ import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 /// Reads a media item's full content; null when this device cannot.
@@ -46,10 +47,12 @@ class EquipmentFileConverter {
     required SharedPreferences prefs,
     DocumentRepository? documents,
     MediaRepository? media,
+    Future<void> Function(String mediaId)? unlink,
   }) : _readBytes = readBytes,
        _prefs = prefs,
        _documents = documents ?? DocumentRepository(),
-       _media = media ?? MediaRepository();
+       _media = media ?? MediaRepository(),
+       _unlinkOverride = unlink;
 
   /// Per device, never synced: whether a file fits is the same everywhere,
   /// but only a device that read it knows.
@@ -59,6 +62,20 @@ class EquipmentFileConverter {
   final SharedPreferences _prefs;
   final DocumentRepository _documents;
   final MediaRepository _media;
+
+  /// Drops a converted file's gear link the way the gear card's Remove
+  /// does: a row a dive or site still uses keeps it with the gear link
+  /// cleared, the rest leave the library. The app wires the deletion
+  /// coordinator, which also queues the removal of an uploaded copy from
+  /// the media store; without it, the rows are deleted directly.
+  final Future<void> Function(String mediaId)? _unlinkOverride;
+
+  Future<void> _unlink(String mediaId) =>
+      (_unlinkOverride ??
+      (id) => MediaUnlinkService(
+        repository: _media,
+        deleteMedia: _media.deleteMultipleMedia,
+      ).unlinkFromEquipment([id]))(mediaId);
   final _log = LoggerService.forClass(EquipmentFileConverter);
 
   AppDatabase get _db => DatabaseService.instance.database;
@@ -143,7 +160,7 @@ class EquipmentFileConverter {
   Future<_Outcome> _convert(MediaItem item, String diverId) async {
     final docId = documentEquipmentFileId(item.id);
     if (await _documents.getById(docId) != null) {
-      await _media.deleteMedia(item.id);
+      await _unlink(item.id);
       return _Outcome.converted;
     }
     // Checked before reading: an old link can be a PDF of hundreds of MB,
@@ -185,7 +202,7 @@ class EquipmentFileConverter {
         ],
         notify: false,
       );
-      await _media.deleteMedia(item.id);
+      await _unlink(item.id);
     });
     return _Outcome.converted;
   }

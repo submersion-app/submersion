@@ -144,6 +144,26 @@ void main() {
     expect(find.byType(DocumentPageViewer), findsNothing);
   });
 
+  testWidgets('a pageless document stays readable on a wide screen', (t) async {
+    docId = (await DocumentRepository().save(
+      Document(
+        id: '',
+        diverId: 'd1',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.insurance,
+        issuer: 'DAN',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      const [],
+    )).id;
+    await pumpDetail(t, const Size(1400, 900));
+    expect(
+      t.getSize(find.byType(DocumentDetailsCard)).width,
+      lessThanOrEqualTo(720),
+    );
+  });
+
   testWidgets('wide screens put the details beside the pages', (t) async {
     await pumpDetail(t, const Size(1200, 800));
     final viewer = t.getRect(find.byType(DocumentPageViewer));

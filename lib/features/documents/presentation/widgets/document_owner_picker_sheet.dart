@@ -45,13 +45,23 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
   late DocumentOwnerKind? _kind = widget.current.isPersonal
       ? null
       : widget.current.kind;
+  final _search = TextEditingController();
   String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   void _choose(DocumentOwnerKind kind) {
     if (kind == DocumentOwnerKind.personal) {
       Navigator.of(context).pop(const DocumentOwner.personal());
       return;
     }
+    // The field and the filter clear together, so what is typed is what
+    // filters.
+    _search.clear();
     setState(() {
       _kind = kind;
       _query = '';
@@ -63,6 +73,9 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final kind = _kind;
+    // Personal has no records to choose, so it is marked from the owner.
+    final current =
+        kind ?? (widget.current.isPersonal ? DocumentOwnerKind.personal : null);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -84,7 +97,7 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
                   key: ValueKey('owner-kind-${k.name}'),
                   avatar: Icon(documentOwnerKindIcon(k), size: 18),
                   label: Text(documentOwnerKindLabel(l10n, k)),
-                  selected: k == kind,
+                  selected: k == current,
                   onSelected: (_) => _choose(k),
                 ),
             ],
@@ -95,6 +108,7 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: TextField(
               key: const ValueKey('owner-search'),
+              controller: _search,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 hintText: l10n.documents_owner_search,

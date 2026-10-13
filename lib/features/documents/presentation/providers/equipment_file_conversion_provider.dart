@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/documents/data/services/equipment_file_converter.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 
 /// Builds the converter; a seam for tests.
 // no-tick: the value is a factory closure, not a query result.
@@ -18,6 +19,10 @@ final equipmentFileConverterFactoryProvider =
           return resolved.isUnavailable ? null : resolved.bytes;
         },
         prefs: await SharedPreferences.getInstance(),
+        // Through the deletion coordinator, so an uploaded copy is queued
+        // for removal from the media store with the row.
+        unlink: (id) =>
+            ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([id]),
       );
     });
 

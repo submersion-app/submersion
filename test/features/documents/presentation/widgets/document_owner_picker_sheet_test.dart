@@ -108,6 +108,33 @@ void main() {
     expect(find.textContaining('Salt Pier'), findsOneWidget);
   });
 
+  testWidgets('switching kinds clears the search', (t) async {
+    await openPicker(t);
+    await t.tap(find.byKey(const ValueKey('owner-kind-trip')));
+    await t.pumpAndSettle();
+    await t.enterText(find.byKey(const ValueKey('owner-search')), 'bon');
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const ValueKey('owner-kind-dive')));
+    await t.pumpAndSettle();
+    // The field shows what filters: nothing.
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('owner-search')),
+        matching: find.text('bon'),
+      ),
+      findsNothing,
+    );
+    expect(find.text('#12'), findsOneWidget);
+  });
+
+  testWidgets('a personal document shows Personal as current', (t) async {
+    await openPicker(t);
+    final chip = t.widget<ChoiceChip>(
+      find.byKey(const ValueKey('owner-kind-personal')),
+    );
+    expect(chip.selected, isTrue);
+  });
+
   testWidgets('an empty kind says so', (t) async {
     await openPicker(t);
     await t.tap(find.byKey(const ValueKey('owner-kind-buddy')));
