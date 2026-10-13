@@ -5,6 +5,8 @@ import 'package:collection/collection.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
+import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -195,37 +197,72 @@ class SharedLibraryService {
           _log.warning('Could not write member card for $libraryId: $e');
         }
       }
-      // 3. Pull.
+      // Members with a genuine card whose key no owner approved yet: their
+      // edits are held, neither applied nor overwritten.
+      final pendingKeys = {
+        for (final m in members)
+          if (m.cardVerified &&
+              m.publicKey != null &&
+              roles.approvedKeys[m.memberId] != m.publicKey)
+            m.memberId: m.publicKey!,
+      };
+
+      // 3. Pull, in batches: each batch's documents are read, their
+      // signatures checked together (in parallel), then merged in order.
       final states = await _store.siteStates(libraryId);
       final clock = MemberClock(membership.memberId);
       var pulled = 0;
       final siteFiles = await t.listSites();
-      for (final f in siteFiles) {
-        final siteId = SharedLibraryTransport.siteIdOf(f);
-        final stamp = f.modifiedTime.toUtc().toIso8601String();
-        if (states[siteId]?.remoteModifiedTime == stamp) continue;
-        // Read afresh: an edit saved since the sync began has new clocks.
-        final state = await _store.getSiteState(siteId);
-        final SiteDocument remote;
-        try {
-          remote = await t.readSite(f.id);
-        } on FormatException catch (e) {
-          _log.warning('Skipping unreadable site document ${f.name}: $e');
-          continue;
+      final changed = [
+        for (final f in siteFiles)
+          if (states[SharedLibraryTransport.siteIdOf(f)]?.remoteModifiedTime !=
+              f.modifiedTime.toUtc().toIso8601String())
+            f,
+      ];
+      for (var i = 0; i < changed.length; i += _pullBatch) {
+        final batch = <_Pulled>[];
+        for (final f in changed.skip(i).take(_pullBatch)) {
+          final siteId = SharedLibraryTransport.siteIdOf(f);
+          final SiteDocument remote;
+          try {
+            remote = await t.readSite(f.id);
+          } on FormatException catch (e) {
+            _log.warning('Skipping unreadable site document ${f.name}: $e');
+            continue;
+          }
+          if (remote.id != siteId) {
+            _log.warning('Site document ${f.name} names another id; skipped');
+            continue;
+          }
+          // Read afresh: an edit saved since the sync began has new clocks.
+          final state = await _store.getSiteState(siteId);
+          final hasRow = await SiteRepository().getSiteById(siteId) != null;
+          batch.add(
+            _Pulled(
+              remote: remote,
+              stamp: f.modifiedTime.toUtc().toIso8601String(),
+              state: state,
+              hasRow: hasRow,
+              local: await _localDocument(siteId, state, hasRow: hasRow),
+            ),
+          );
         }
-        if (remote.id != siteId) {
-          _log.warning('Site document ${f.name} names another id; skipped');
-          continue;
-        }
-        if (await _mergeRemote(
-          library,
-          remote,
-          stamp,
-          state,
-          diverId: diverId,
-          clock: clock,
-        )) {
-          pulled++;
+        final checked = await dropUnverifiedAll(
+          [for (final p in batch) (p.remote, p.local)],
+          libraryId: libraryId,
+          approvedKeys: roles.approvedKeys,
+          pendingKeys: pendingKeys,
+        );
+        for (var k = 0; k < batch.length; k++) {
+          if (await _mergeRemote(
+            library,
+            batch[k],
+            checked[k],
+            diverId: diverId,
+            clock: clock,
+          )) {
+            pulled++;
+          }
         }
       }
 
@@ -245,20 +282,43 @@ class SharedLibraryService {
           await _store.deleteSiteState(state.siteId);
           continue;
         }
-        if (state.deleted && remoteFiles.containsKey(state.siteId)) {
-          // A tombstone keeps the document's fields, so an undelete wins
-          // the site back intact.
+        final remoteId = remoteFiles[state.siteId];
+        if (remoteId != null && (state.deleted || pendingKeys.isNotEmpty)) {
           try {
-            final remote = await t.readSite(remoteFiles[state.siteId]!);
-            doc = mergeSiteDocuments(local: doc, remote: remote).merged;
+            final remote = await t.readSite(remoteId);
+            if (state.deleted) {
+              // A tombstone keeps the document's fields, so an undelete
+              // wins the site back intact; only fields that prove
+              // themselves.
+              final proven = await dropUnverified(
+                remote,
+                local: doc,
+                libraryId: libraryId,
+                approvedKeys: roles.approvedKeys,
+              );
+              doc = mergeSiteDocuments(local: doc, remote: proven).merged;
+            }
+            // An edit waiting for an owner's approval is never erased.
+            doc = await carryHeld(
+              doc,
+              remote,
+              libraryId: libraryId,
+              pendingKeys: pendingKeys,
+            );
           } on FormatException {
-            // Nothing readable to keep; the bare tombstone goes up.
+            // Nothing readable to keep.
           }
         }
+        doc = await signOwnFields(
+          _claimUnattributed(doc, membership.memberId, clock),
+          libraryId: libraryId,
+          memberId: membership.memberId,
+          key: myKey,
+        );
         try {
           uploadAttempted = true;
           final modified = await t.writeSite(doc);
-          await _recordUpload(state, modified);
+          await _recordUpload(state, modified, uploaded: doc);
           pushed++;
         } catch (e) {
           if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
@@ -343,6 +403,9 @@ class SharedLibraryService {
           rolesRejected: false,
           clearPendingRoles: true,
         );
+        // An approval (held edits now count) or a rejection (held edits
+        // now repair): documents this device already read are read again.
+        await _store.clearRemoteStamps(library.id);
         return incoming;
       case RolesVerdict.resetPending:
         await _store.setLibraryStatus(library.id, pendingRoles: incoming);
@@ -363,27 +426,56 @@ class SharedLibraryService {
     return SharedLibrarySyncResult(status: status, error: error);
   }
 
-  /// Folds [remote] into the local site. Returns true when the local row
-  /// changed.
+  /// Pulls in at most this many documents at a time.
+  static const _pullBatch = 200;
+
+  /// The local side of a merge: the row as a document, or just its clocks
+  /// when the row is gone or a tombstone.
+  Future<SiteDocument> _localDocument(
+    String siteId,
+    SharedSiteState? state, {
+    required bool hasRow,
+  }) async => state == null
+      ? SiteDocument(id: siteId)
+      : hasRow && !state.deleted
+      ? await _bridge.build(siteId, state)
+      : SiteDocument(id: siteId, deleted: state.deleted, clocks: state.clocks);
+
+  /// Fields going up with no clock, or stamped without a known member (a
+  /// device with two member profiles and no acting one), go up as this
+  /// profile's edits: a field nobody signed is dropped by every other
+  /// member.
+  static SiteDocument _claimUnattributed(
+    SiteDocument doc,
+    String memberId,
+    MemberClock clock,
+  ) {
+    final clocks = <String, FieldClock>{
+      for (final e in doc.clocks.entries)
+        e.key: e.value.memberId == LibraryEditStamper.unknownMember
+            ? e.value.copyWith(memberId: memberId, clearSig: true)
+            : e.value,
+    };
+    for (final field in [...doc.fields.keys, SiteDocument.deletedField]) {
+      clocks[field] ??= FieldClock(hlc: clock.next(), memberId: memberId);
+    }
+    return doc.copyWith(clocks: clocks);
+  }
+
+  /// Folds [remote] (only the fields that proved themselves) into the
+  /// local site. Returns true when the local row changed.
   Future<bool> _mergeRemote(
     SharedLibrary library,
-    SiteDocument remote,
-    String stamp,
-    SharedSiteState? state, {
+    _Pulled pulled,
+    SiteDocument remote, {
     required String diverId,
     required MemberClock clock,
   }) async {
     final siteId = remote.id;
-    final hasRow = await SiteRepository().getSiteById(siteId) != null;
-    final local = state == null
-        ? SiteDocument(id: siteId)
-        : hasRow && !state.deleted
-        ? await _bridge.build(siteId, state)
-        : SiteDocument(
-            id: siteId,
-            deleted: state.deleted,
-            clocks: state.clocks,
-          );
+    final hasRow = pulled.hasRow;
+    final state = pulled.state;
+    final stamp = pulled.stamp;
+    final local = pulled.local;
     final outcome = mergeSiteDocuments(local: local, remote: remote);
     for (final c in remote.clocks.values) {
       clock.receive(c.hlc);
@@ -426,11 +518,15 @@ class SharedLibraryService {
     return changedLocal;
   }
 
-  /// Marks [sent] uploaded at [modified]. An edit saved while the upload
-  /// was on the wire changed the clocks: it keeps them and stays dirty for
-  /// the next sync. A null [modified] clears the stamp so the next pull
-  /// re-reads the document.
-  Future<void> _recordUpload(SharedSiteState sent, DateTime? modified) async {
+  /// Marks [sent] uploaded at [modified], keeping the signed clocks of
+  /// [uploaded]. An edit saved while the upload was on the wire changed
+  /// the clocks: it keeps them and stays dirty for the next sync. A null
+  /// [modified] clears the stamp so the next pull re-reads the document.
+  Future<void> _recordUpload(
+    SharedSiteState sent,
+    DateTime? modified, {
+    required SiteDocument uploaded,
+  }) async {
     final current = await _store.getSiteState(sent.siteId) ?? sent;
     final editedMeanwhile =
         current.deleted != sent.deleted ||
@@ -440,6 +536,7 @@ class SharedLibraryService {
         );
     await _store.putSiteState(
       current.copyWith(
+        clocks: editedMeanwhile ? null : uploaded.clocks,
         dirty: editedMeanwhile,
         remoteModifiedTime: modified?.toUtc().toIso8601String(),
         clearRemoteModifiedTime: modified == null,
@@ -541,4 +638,22 @@ class SharedLibraryService {
       }
     }
   }
+}
+
+/// A pulled document with what its merge needs, read before the batch's
+/// signatures are checked.
+class _Pulled {
+  const _Pulled({
+    required this.remote,
+    required this.stamp,
+    required this.state,
+    required this.hasRow,
+    required this.local,
+  });
+
+  final SiteDocument remote;
+  final String stamp;
+  final SharedSiteState? state;
+  final bool hasRow;
+  final SiteDocument local;
 }

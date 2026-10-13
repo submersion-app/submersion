@@ -9,22 +9,34 @@ import 'package:submersion/core/services/sync/hlc.dart';
 /// What a member may do in a shared site library (issue #2567).
 enum SharedLibraryRole { reader, editor, owner }
 
-/// The clock on one document field: when, and by which member.
+/// The clock on one document field: when, by which member, and that
+/// member's signature over the field (issue #2567). Two clocks are the same
+/// edit when time and member match; the signature is not part of that.
 class FieldClock extends Equatable {
-  const FieldClock({required this.hlc, required this.memberId});
+  const FieldClock({required this.hlc, required this.memberId, this.sig});
 
   final Hlc hlc;
   final String memberId;
+  final String? sig;
 
   factory FieldClock.fromJson(Map<String, dynamic> json) => FieldClock(
     hlc: Hlc.parse(json['hlc'] as String),
     memberId: json['memberId'] as String,
+    sig: json['sig'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
     'hlc': hlc.toString(),
     'memberId': memberId,
+    'sig': ?sig,
   };
+
+  FieldClock copyWith({String? memberId, String? sig, bool clearSig = false}) =>
+      FieldClock(
+        hlc: hlc,
+        memberId: memberId ?? this.memberId,
+        sig: clearSig ? null : sig ?? this.sig,
+      );
 
   @override
   List<Object?> get props => [hlc, memberId];

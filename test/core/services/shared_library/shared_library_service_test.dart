@@ -1,9 +1,15 @@
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:path/path.dart' as p;
+import 'package:drift/native.dart';
+import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -26,12 +32,22 @@ const _lib = SharedLibrary(
   prefix: 'site-sync',
 );
 
-/// A fresh device for [member], connected to the shared fake [cloud].
+/// A device for [member], connected to the shared fake [cloud]: fresh,
+/// or the one kept in [file] when a test returns to it.
 Future<SharedLibraryService> device(
   FakeCloudStorageProvider cloud,
-  String member,
-) async {
-  await setUpTestDatabase();
+  String member, {
+  File? file,
+}) async {
+  if (file != null && file.existsSync()) {
+    DatabaseService.instance.setTestDatabase(AppDatabase(NativeDatabase(file)));
+    return _service(cloud);
+  }
+  if (file != null) {
+    DatabaseService.instance.setTestDatabase(AppDatabase(NativeDatabase(file)));
+  } else {
+    await setUpTestDatabase();
+  }
   await DiverRepository().createDiver(
     Diver(
       id: 'd-$member',
@@ -54,21 +70,54 @@ Future<SharedLibraryService> device(
       signingKey: await testMemberKey(member),
     ),
   );
-  return SharedLibraryService(
-    store: store,
-    transportFor: (lib) async =>
-        SharedLibraryTransport(cloud, prefix: lib.prefix),
-  );
+  return _service(cloud);
 }
+
+SharedLibraryService _service(FakeCloudStorageProvider cloud) =>
+    SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (lib) async =>
+          SharedLibraryTransport(cloud, prefix: lib.prefix),
+    );
+
+/// [doc] as [member] signs it in library L.
+Future<SiteDocument> signedAs(String member, SiteDocument doc) async =>
+    signOwnFields(
+      doc,
+      libraryId: 'L',
+      memberId: member,
+      key: await testMemberKey(member),
+    );
 
 Future<void> seedLibrary(
   FakeCloudStorageProvider cloud, {
   Set<String> owners = const {'a'},
+  Set<String> editors = const {},
+  Set<String>? approved,
 }) async {
   final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
   await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
+  final roles = await signedTestRoles(
+    owners: owners,
+    editors: editors,
+    members: {'a', 'b', 'c'},
+  );
+  if (approved == null) {
+    await t.writeRoles(roles);
+    return;
+  }
   await t.writeRoles(
-    await signedTestRoles(owners: owners, members: {'a', 'b', 'c'}),
+    await roles
+        .copyWith(
+          approvedKeys: {
+            for (final e in roles.approvedKeys.entries)
+              if (approved.contains(e.key)) e.key: e.value,
+          },
+        )
+        .signed(
+          signedBy: (owners.toList()..sort()).first,
+          key: await testMemberKey((owners.toList()..sort()).first),
+        ),
   );
 }
 
@@ -195,15 +244,18 @@ void main() {
       final fileId = (await t.listSites()).single.id;
       final remote = await t.readSite(fileId);
       await t.writeSite(
-        remote.copyWith(
-          fields: {...remote.fields, 'parkingInfo': 'B says'},
-          clocks: {
-            ...remote.clocks,
-            'parkingInfo': FieldClock(
-              hlc: Hlc(DateTime.now().millisecondsSinceEpoch + 1000, 0, 'b'),
-              memberId: 'b',
-            ),
-          },
+        await signedAs(
+          'b',
+          remote.copyWith(
+            fields: {...remote.fields, 'parkingInfo': 'B says'},
+            clocks: {
+              ...remote.clocks,
+              'parkingInfo': FieldClock(
+                hlc: Hlc(DateTime.now().millisecondsSinceEpoch + 1000, 0, 'b'),
+                memberId: 'b',
+              ),
+            },
+          ),
         ),
       );
       final r = await svc.sync('L', diverId: 'd-a');
@@ -292,20 +344,26 @@ void main() {
       await seedLibrary(cloud);
       final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
       await t.writeSite(
-        const SiteDocument(
-          id: 's1',
-          fields: {'name': 'Gone'},
-          clocks: {'name': FieldClock(hlc: Hlc(1, 0, 'a'), memberId: 'a')},
+        await signedAs(
+          'a',
+          const SiteDocument(
+            id: 's1',
+            fields: {'name': 'Gone'},
+            clocks: {'name': FieldClock(hlc: Hlc(1, 0, 'a'), memberId: 'a')},
+          ),
         ),
       );
       final svc = await device(cloud, 'b');
       await svc.sync('L', diverId: 'd-b');
       expect(await SiteRepository().getSiteById('s1'), isNotNull);
       await t.writeSite(
-        const SiteDocument(
-          id: 's1',
-          deleted: true,
-          clocks: {'deleted': FieldClock(hlc: Hlc(2, 0, 'a'), memberId: 'a')},
+        await signedAs(
+          'a',
+          const SiteDocument(
+            id: 's1',
+            deleted: true,
+            clocks: {'deleted': FieldClock(hlc: Hlc(2, 0, 'a'), memberId: 'a')},
+          ),
         ),
       );
       await svc.sync('L', diverId: 'd-b');
@@ -324,7 +382,16 @@ void main() {
     final cloud = FakeCloudStorageProvider();
     await seedLibrary(cloud);
     final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
-    await t.writeSite(const SiteDocument(id: 'ok', fields: {'name': 'OK'}));
+    await t.writeSite(
+      await signedAs(
+        'a',
+        const SiteDocument(
+          id: 'ok',
+          fields: {'name': 'OK'},
+          clocks: {'name': FieldClock(hlc: Hlc(1, 0, 'a'), memberId: 'a')},
+        ),
+      ),
+    );
     cloud.seedFile('site-bad.json', Uint8List.fromList('not json'.codeUnits));
     final svc = await device(cloud, 'b');
     final r = await svc.sync('L', diverId: 'd-b');
@@ -536,6 +603,121 @@ void main() {
     expect(card.cardVerified, isTrue);
     expect(card.publicKey, (await testMemberKey('b')).publicKey);
   });
+
+  test(
+    'a forged field is ignored and rewritten by the next honest upload',
+    () async {
+      final cloud = FakeCloudStorageProvider();
+      await seedLibrary(cloud, owners: {'a'}, editors: {'b'});
+      var svc = await device(cloud, 'a');
+      await SiteRepository().createSite(
+        const DiveSite(id: 's1', name: 'Blue', sharedLibraryId: 'L'),
+      );
+      await markDirty('s1');
+      await svc.sync('L', diverId: 'd-a');
+      await tearDownTestDatabase();
+
+      svc = await device(cloud, 'b');
+      await svc.sync('L', diverId: 'd-b');
+      // Someone with write keys claims a newer edit by a, unsigned.
+      final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+      final file = (await t.listSites()).single;
+      final doc = await t.readSite(file.id);
+      await t.writeSite(
+        doc.copyWith(
+          fields: {...doc.fields, 'name': 'Forged'},
+          clocks: {
+            ...doc.clocks,
+            'name': FieldClock(
+              hlc: Hlc(doc.clocks['name']!.hlc.physicalTime + 1000, 0, 'a'),
+              memberId: 'a',
+            ),
+          },
+        ),
+      );
+      await svc.sync('L', diverId: 'd-b');
+      expect((await SiteRepository().getSiteById('s1'))!.name, 'Blue');
+      final repaired = await t.readSite((await t.listSites()).single.id);
+      expect(repaired.fields['name'], 'Blue');
+    },
+  );
+
+  test('approval re-reads held edits', () async {
+    final cloud = FakeCloudStorageProvider();
+    final dir = Directory.systemTemp.createTempSync('held_edits_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final aFile = File(p.join(dir.path, 'a.sqlite'));
+    // p edits, but no owner approved p's key yet.
+    await seedLibrary(cloud, owners: {'a'}, editors: {'p'}, approved: {'a'});
+    var svc = await device(cloud, 'a', file: aFile);
+    await SiteRepository().createSite(
+      const DiveSite(id: 's1', name: 'Blue', sharedLibraryId: 'L'),
+    );
+    await markDirty('s1');
+    await svc.sync('L', diverId: 'd-a');
+    await tearDownTestDatabase();
+
+    svc = await device(cloud, 'p');
+    await svc.sync('L', diverId: 'd-p');
+    final site = (await SiteRepository().getSiteById('s1'))!;
+    await SiteRepository().updateSite(
+      site.copyWith(name: 'Blue Hole'),
+      actingDiverId: 'd-p',
+    );
+    await svc.sync('L', diverId: 'd-p');
+    await tearDownTestDatabase();
+
+    svc = await device(cloud, 'a', file: aFile);
+    await svc.sync('L', diverId: 'd-a');
+    expect((await SiteRepository().getSiteById('s1'))!.name, 'Blue');
+    // The owner approves p's key; the held edit now applies.
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final roles = await t.readRoles();
+    await t.writeRoles(
+      await roles
+          .copyWith(
+            version: roles.version + 1,
+            approvedKeys: {
+              ...roles.approvedKeys,
+              'p': (await testMemberKey('p')).publicKey,
+            },
+          )
+          .signed(signedBy: 'a', key: await testMemberKey('a')),
+    );
+    await svc.sync('L', diverId: 'd-a');
+    expect((await SiteRepository().getSiteById('s1'))!.name, 'Blue Hole');
+  });
+
+  test('verifying 500 sites of 20 signed fields takes under 10 s', () async {
+    final key = await testMemberKey('a');
+    final docs = <SiteDocument>[];
+    for (var i = 0; i < 500; i++) {
+      docs.add(
+        await signOwnFields(
+          SiteDocument(
+            id: 's$i',
+            fields: {for (var f = 0; f < 20; f++) 'f$f': 'value $f'},
+            clocks: {
+              for (var f = 0; f < 20; f++)
+                'f$f': FieldClock(hlc: Hlc(1000 + f, 0, 'a'), memberId: 'a'),
+            },
+          ),
+          libraryId: 'L',
+          memberId: 'a',
+          key: key,
+        ),
+      );
+    }
+    final watch = Stopwatch()..start();
+    final checked = await dropUnverifiedAll(
+      [for (final d in docs) (d, SiteDocument(id: d.id))],
+      libraryId: 'L',
+      approvedKeys: {'a': key.publicKey},
+    );
+    watch.stop();
+    expect(checked.every((d) => d.fields.length == 20), isTrue);
+    expect(watch.elapsed, lessThan(const Duration(seconds: 10)));
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }
 
 /// Runs [beforeSiteUpload] once before the next site upload, and refuses

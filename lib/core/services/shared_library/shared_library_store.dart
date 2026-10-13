@@ -619,6 +619,15 @@ class SharedLibraryStore {
         ),
       );
 
+  /// Forgets when [libraryId]'s documents were last read, so the next
+  /// pull reads every one again.
+  Future<void> clearRemoteStamps(String libraryId) =>
+      (_db.update(
+        _db.sharedSiteStates,
+      )..where((t) => t.libraryId.equals(libraryId))).write(
+        const SharedSiteStatesCompanion(remoteModifiedTime: Value(null)),
+      );
+
   Future<void> deleteSiteState(String siteId) => (_db.delete(
     _db.sharedSiteStates,
   )..where((t) => t.siteId.equals(siteId))).go();
