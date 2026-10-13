@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
+import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
@@ -223,6 +225,77 @@ void main() {
     );
     await t.writeMember(forged, appVersion: '1');
     expect((await t.listMembers()).single.cardVerified, isFalse);
+  });
+
+  group('encrypted', () {
+    late LibraryCipher cipher;
+
+    setUp(() async {
+      cipher = await LibraryCipher.generate();
+      t
+        ..cipher = cipher
+        ..encrypting = true;
+    });
+
+    test('site files are sealed and read back', () async {
+      await t.writeSite(const SiteDocument(id: 's1', fields: {'name': 'A'}));
+      final file = (await t.listSites()).single;
+      expect(LibraryCipher.isSealed(await cloud.downloadFile(file.id)), isTrue);
+      expect((await t.readSite(file.id)).fields['name'], 'A');
+    });
+
+    test(
+      'the manifest and keyslots stay plain; roles and info are sealed',
+      () async {
+        await t.writeManifest({'id': 'L', 'formatVersion': 2});
+        await t.writeRoles(const SharedLibraryRoles(owners: {'m1'}));
+        await t.writeInfo({'name': 'Reef Survey'});
+        await t.writeKeyslots(
+          await cipher.keyslots(
+            passphrase: 'pw',
+            recoveryCode: 'code',
+            kdf: const KdfParams(m: 1024, t: 1),
+          ),
+        );
+        Future<Uint8List> raw(String name) async => cloud.downloadFile(
+          (await cloud.listFiles(namePattern: name)).single.id,
+        );
+        expect(
+          LibraryCipher.isSealed(await raw('submersion-shared-library')),
+          isFalse,
+        );
+        expect(LibraryCipher.isSealed(await raw('keyslots')), isFalse);
+        expect(LibraryCipher.isSealed(await raw('roles')), isTrue);
+        expect(LibraryCipher.isSealed(await raw('info')), isTrue);
+        expect((await t.readInfo())!['name'], 'Reef Survey');
+        expect((await t.readKeyslots())!.libraryKeyId, cipher.keyId);
+      },
+    );
+
+    test('a plain file in an encrypted library is read and noted', () async {
+      t.encrypting = false;
+      await t.writeSite(const SiteDocument(id: 's1', fields: {'name': 'A'}));
+      t.encrypting = true;
+      final file = (await t.listSites()).single;
+      expect((await t.readSite(file.id)).fields['name'], 'A');
+      expect(t.mismatched.keys, ['sites/site-s1.json']);
+      await t.rewrite(
+        'sites/site-s1.json',
+        t.mismatched['sites/site-s1.json']!,
+      );
+      final id = (await t.listSites()).single.id;
+      expect(LibraryCipher.isSealed(await cloud.downloadFile(id)), isTrue);
+    });
+
+    test('a sealed file without the key is locked', () async {
+      await t.writeSite(const SiteDocument(id: 's1', fields: {'name': 'A'}));
+      final locked = SharedLibraryTransport(cloud, prefix: 'site-sync');
+      final file = (await locked.listSites()).single;
+      await expectLater(
+        locked.readSite(file.id),
+        throwsA(isA<LibraryLockedException>()),
+      );
+    });
   });
 }
 

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
+import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 
@@ -19,6 +21,45 @@ class SharedLibraryTransport {
 
   final CloudStorageProvider _provider;
   final String _prefix;
+
+  /// The library key when this device holds it (issue #2567).
+  LibraryCipher? cipher;
+
+  /// Whether files are written sealed: the manifest says the library is
+  /// encrypted. The manifest and `keyslots.json` are always plain.
+  bool encrypting = false;
+
+  /// Files read in the wrong form for the library (plain while encrypting,
+  /// sealed while not, or under an older key), by path: an owner's sync
+  /// rewrites them.
+  final Map<String, String> mismatched = {};
+
+  static const _plainFiles = {
+    SharedLibraryLayout.manifestFile,
+    SharedLibraryLayout.keyslotsFile,
+  };
+
+  /// [raw], as read at [path], opened when sealed.
+  Future<Uint8List> _open(String path, String fileId, Uint8List raw) async {
+    if (!LibraryCipher.isSealed(raw)) {
+      if (encrypting && !_plainFiles.contains(path)) mismatched[path] = fileId;
+      return raw;
+    }
+    final c = cipher;
+    if (c == null) throw LibraryLockedException(LibraryCipher.keyIdOf(raw));
+    if (!encrypting) mismatched[path] = fileId;
+    return c.open(path, raw);
+  }
+
+  /// [plain], sealed when the library is encrypted.
+  Future<Uint8List> _seal(String path, Uint8List plain) async {
+    final c = cipher;
+    if (!encrypting || _plainFiles.contains(path)) return plain;
+    if (c == null) throw const LibraryLockedException('');
+    return c.seal(path, plain);
+  }
+
+  static String _base(String fileId) => fileId.split('/').last;
   String? _root;
   String? _members;
   String? _sites;
@@ -155,19 +196,33 @@ class SharedLibraryTransport {
     return null;
   }
 
-  Future<Map<String, dynamic>?> _readJson(String folderId, String name) async {
+  /// Root files keep their name as their path; others are `<kind>/<name>`.
+  Future<Map<String, dynamic>?> _readJson(
+    String folderId,
+    String name, {
+    String? path,
+  }) async {
     final f = await _find(folderId, name);
     if (f == null) return null;
-    final decoded = jsonDecode(utf8.decode(await _provider.downloadFile(f.id)));
+    final bytes = await _open(
+      path ?? name,
+      f.id,
+      await _provider.downloadFile(f.id),
+    );
+    final decoded = jsonDecode(utf8.decode(bytes));
     return decoded is Map<String, dynamic> ? decoded : null;
   }
 
   Future<void> _writeJson(
     String folderId,
     String name,
-    Map<String, dynamic> json,
-  ) => _provider.uploadFile(
-    Uint8List.fromList(utf8.encode(jsonEncode(json))),
+    Map<String, dynamic> json, {
+    String? path,
+  }) async => _provider.uploadFile(
+    await _seal(
+      path ?? name,
+      Uint8List.fromList(utf8.encode(jsonEncode(json))),
+    ),
     name,
     folderId: folderId,
   );
@@ -197,6 +252,33 @@ class SharedLibraryTransport {
   Future<Map<String, dynamic>?> readInfo() async =>
       _readJson(await _rootId(), SharedLibraryLayout.infoFile);
 
+  /// Every file of the library but the manifest and keyslots, by path:
+  /// what turning encryption on or off rewrites.
+  Future<Map<String, String>> sealableFiles() async {
+    final root = await _rootId();
+    final files = <String, String>{};
+    for (final name in [
+      SharedLibraryLayout.infoFile,
+      SharedLibraryLayout.rolesFile,
+    ]) {
+      final f = await _find(root, name);
+      if (f != null) files[name] = f.id;
+    }
+    for (final (dir, list) in [
+      (
+        SharedLibraryLayout.membersDir,
+        await _listKind(await _membersId(), _memberPrefix),
+      ),
+      (SharedLibraryLayout.sitesDir, await listSites()),
+      (SharedLibraryLayout.suggestionsDir, await listSuggestions()),
+    ]) {
+      for (final f in list) {
+        files['$dir/${_base(f.id)}'] = f.id;
+      }
+    }
+    return files;
+  }
+
   Future<void> writeInfo(Map<String, dynamic> info) async =>
       _writeJson(await _rootId(), SharedLibraryLayout.infoFile, info);
 
@@ -224,7 +306,13 @@ class SharedLibraryTransport {
     for (final f in files) {
       try {
         final decoded = jsonDecode(
-          utf8.decode(await _provider.downloadFile(f.id)),
+          utf8.decode(
+            await _open(
+              '${SharedLibraryLayout.membersDir}/${_base(f.id)}',
+              f.id,
+              await _provider.downloadFile(f.id),
+            ),
+          ),
         );
         if (decoded is Map<String, dynamic>) {
           final card = SharedLibraryMember.fromJson(memberIdOf(f), decoded);
@@ -251,6 +339,7 @@ class SharedLibraryTransport {
     await _membersId(),
     memberFileName(m.memberId),
     m.toJson(appVersion: appVersion),
+    path: '${SharedLibraryLayout.membersDir}/${memberFileName(m.memberId)}',
   );
 
   Future<void> deleteMember(String memberId) async {
@@ -263,8 +352,13 @@ class SharedLibraryTransport {
   Future<List<CloudFileInfo>> listSites() async =>
       _listKind(await _sitesId(), _sitePrefix);
 
-  Future<SiteDocument> readSite(String fileId) async =>
-      SiteDocument.decode(await _provider.downloadFile(fileId));
+  Future<SiteDocument> readSite(String fileId) async => SiteDocument.decode(
+    await _open(
+      '${SharedLibraryLayout.sitesDir}/${_base(fileId)}',
+      fileId,
+      await _provider.downloadFile(fileId),
+    ),
+  );
 
   /// Uploads [doc] and returns the stored modification time when it is
   /// provably this write's: read after the time, the stored bytes are the
@@ -273,7 +367,10 @@ class SharedLibraryTransport {
   /// their edit as its own. A write after the read changes the time again,
   /// which the next pull notices.
   Future<DateTime?> writeSite(SiteDocument doc) async {
-    final bytes = SiteDocument.encode(doc);
+    final bytes = await _seal(
+      '${SharedLibraryLayout.sitesDir}/${siteFileName(doc.id)}',
+      SiteDocument.encode(doc),
+    );
     final result = await _provider.uploadFile(
       bytes,
       siteFileName(doc.id),
@@ -303,7 +400,13 @@ class SharedLibraryTransport {
 
   Future<Map<String, dynamic>> readSuggestion(String fileId) async {
     final decoded = jsonDecode(
-      utf8.decode(await _provider.downloadFile(fileId)),
+      utf8.decode(
+        await _open(
+          '${SharedLibraryLayout.suggestionsDir}/${_base(fileId)}',
+          fileId,
+          await _provider.downloadFile(fileId),
+        ),
+      ),
     );
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('suggestion is not an object');
@@ -312,7 +415,70 @@ class SharedLibraryTransport {
   }
 
   Future<void> writeSuggestion(String id, Map<String, dynamic> json) async =>
-      _writeJson(await _suggestionsId(), suggestionFileName(id), json);
+      _writeJson(
+        await _suggestionsId(),
+        suggestionFileName(id),
+        json,
+        path: '${SharedLibraryLayout.suggestionsDir}/${suggestionFileName(id)}',
+      );
+
+  // Keyslots (always plain)
+
+  Future<KeyslotFile?> readKeyslots() async {
+    final f = await _find(await _rootId(), SharedLibraryLayout.keyslotsFile);
+    if (f == null) return null;
+    return KeyslotFile.fromJsonBytes(await _provider.downloadFile(f.id));
+  }
+
+  Future<void> writeKeyslots(KeyslotFile file) async => _provider.uploadFile(
+    file.toJsonBytes(),
+    SharedLibraryLayout.keyslotsFile,
+    folderId: await _rootId(),
+  );
+
+  Future<void> deleteKeyslots() async {
+    final f = await _find(await _rootId(), SharedLibraryLayout.keyslotsFile);
+    if (f != null) await _provider.deleteFile(f.id);
+  }
+
+  /// Reads the file at [path] ([fileId]) and writes it back in the
+  /// library's current form: sealed under [cipher] when encrypting, plain
+  /// otherwise. [previous] opens a file sealed under an older key.
+  Future<void> rewrite(
+    String path,
+    String fileId, {
+    LibraryCipher? previous,
+  }) async {
+    final raw = await _provider.downloadFile(fileId);
+    Uint8List plain;
+    if (LibraryCipher.isSealed(raw)) {
+      final keyOfFile = LibraryCipher.keyIdOf(raw);
+      final opener =
+          previous != null && previous.keyId.toLowerCase() == keyOfFile
+          ? previous
+          : cipher;
+      if (opener == null) throw LibraryLockedException(keyOfFile);
+      plain = await opener.open(path, raw);
+    } else {
+      plain = raw;
+    }
+    final slash = path.lastIndexOf('/');
+    final name = slash < 0 ? path : path.substring(slash + 1);
+    final folderId = slash < 0
+        ? await _rootId()
+        : switch (path.substring(0, slash)) {
+            SharedLibraryLayout.membersDir => await _membersId(),
+            SharedLibraryLayout.sitesDir => await _sitesId(),
+            SharedLibraryLayout.suggestionsDir => await _suggestionsId(),
+            _ => throw ArgumentError.value(path, 'path'),
+          };
+    await _provider.uploadFile(
+      await _seal(path, plain),
+      name,
+      folderId: folderId,
+    );
+    mismatched.remove(path);
+  }
 
   Future<void> deleteSuggestion(String id) async {
     final f = await _find(await _suggestionsId(), suggestionFileName(id));
