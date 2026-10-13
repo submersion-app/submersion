@@ -748,8 +748,21 @@ void main() {
       (await t.listSuggestions()).single.id,
     );
     expect(
-      await verifySuggestion(uploaded, (await testMemberKey('b')).publicKey),
+      await verifySuggestion(
+        uploaded,
+        (await testMemberKey('b')).publicKey,
+        libraryId: 'L',
+      ),
       isTrue,
+    );
+    // Signed for this library: it proves nothing copied into another.
+    expect(
+      await verifySuggestion(
+        uploaded,
+        (await testMemberKey('b')).publicKey,
+        libraryId: 'other',
+      ),
+      isFalse,
     );
 
     // c (approved) signs one that is then altered; p (not approved) signs
@@ -757,6 +770,7 @@ void main() {
     final tampered = await signSuggestion(
       outgoing('g2', 'c').toJson(),
       await testMemberKey('c'),
+      libraryId: 'L',
     );
     await t.writeSuggestion('g2', {...tampered, 'note': 'altered'});
     await t.writeSuggestion(
@@ -764,6 +778,7 @@ void main() {
       await signSuggestion(
         outgoing('g3', 'p').toJson(),
         await testMemberKey('p'),
+        libraryId: 'L',
       ),
     );
 

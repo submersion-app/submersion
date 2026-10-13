@@ -513,19 +513,24 @@ class SharedLibraryStore {
     return made;
   }
 
-  /// The key of [libraryId] when any local profile holds it.
+  /// The key of [libraryId] when any local profile holds it: the
+  /// library's current key first, so another profile's key from before a
+  /// passphrase change never stands in for it.
   Future<LibraryCipher?> libraryCipherFor(String libraryId) async {
-    final row =
-        await (_db.select(_db.sharedLibraryMemberships)
-              ..where(
-                (t) =>
-                    t.libraryId.equals(libraryId) &
-                    t.libraryKey.isNotNull() &
-                    t.libraryKeyId.isNotNull(),
-              )
-              ..limit(1))
-            .getSingleOrNull();
-    if (row == null) return null;
+    final current = (await getLibrary(libraryId))?.keyId?.toLowerCase();
+    final rows =
+        await (_db.select(_db.sharedLibraryMemberships)..where(
+              (t) =>
+                  t.libraryId.equals(libraryId) &
+                  t.libraryKey.isNotNull() &
+                  t.libraryKeyId.isNotNull(),
+            ))
+            .get();
+    if (rows.isEmpty) return null;
+    final row = rows.firstWhere(
+      (r) => r.libraryKeyId!.toLowerCase() == current,
+      orElse: () => rows.first,
+    );
     return LibraryCipher.fromExported(
       keyId: row.libraryKeyId!,
       key: row.libraryKey!,

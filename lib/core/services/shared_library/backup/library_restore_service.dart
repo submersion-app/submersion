@@ -149,6 +149,9 @@ class LibraryRestoreService {
       await File(path).readAsBytes(),
     );
     final h = contents.header;
+    if (!SharedLibraryLayout.isValidLibraryId(h.libraryId)) {
+      throw const BackupRefusedError('notABackup');
+    }
     final t = await _memberships.transportAt(account: account, prefix: prefix);
     if (await t.readManifest() != null) throw LibraryExistsError(prefix);
     final opened = await _openAll(contents.files, null, secret);

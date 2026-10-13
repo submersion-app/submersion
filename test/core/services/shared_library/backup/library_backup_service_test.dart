@@ -135,6 +135,44 @@ void main() {
     },
   );
 
+  test('two backups in the same second keep their own files', () async {
+    final sameSecond = LibraryBackupService(
+      store: SharedLibraryStore(),
+      memberships: memberships,
+      backupsDirectory: () async => dir.path,
+      now: () => DateTime.utc(2026, 10, 1, 9),
+    );
+    final a = await sameSecond.backUp(libraryId: lib.id, diverId: 'd1');
+    final b = await sameSecond.backUp(
+      libraryId: lib.id,
+      diverId: 'd1',
+      note: 'second',
+    );
+    expect(a.fileName, isNot(b.fileName));
+    expect(File(a.localPath!).existsSync(), isTrue);
+    expect(File(b.localPath!).existsSync(), isTrue);
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    expect(await t.readBackup(a.fileName), isNotNull);
+    expect(await t.readBackup(b.fileName), isNotNull);
+  });
+
+  test("another owner's index written meanwhile keeps this backup", () async {
+    final first = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+    // The next index write is followed at once by another owner's write
+    // of the index as they read it before this backup.
+    final stale = await cloud.downloadFile('index.json');
+    cloud.afterNextUpload = ('index.json', stale);
+    final second = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+    final index = await SharedLibraryTransport(
+      cloud,
+      prefix: 'site-sync',
+    ).readBackupIndex();
+    final ids = [
+      for (final e in index!['entries'] as List) (e as Map)['backupId'],
+    ];
+    expect(ids, containsAll([first.backupId, second.backupId]));
+  });
+
   test('an imported backup of this library is listed on the device', () async {
     final record = await backups.backUp(libraryId: lib.id, diverId: 'd1');
     final copy = File(p.join(dir.path, 'elsewhere.zip'))

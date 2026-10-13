@@ -112,6 +112,10 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   @override
   Future<String?> getUserEmail() async => 'tester@example.com';
 
+  /// When set, the next upload of the named file is at once replaced by
+  /// these bytes, as if another device wrote it just after.
+  (String, Uint8List)? afterNextUpload;
+
   @override
   Future<UploadResult> uploadFile(
     Uint8List data,
@@ -126,6 +130,12 @@ class FakeCloudStorageProvider extends CloudStorageProvider
           const CloudStorageException('upload failed (test)');
     }
     _files[filename] = _FakeFile(data, DateTime.now());
+    // Another device's write landing right after this one.
+    final after = afterNextUpload;
+    if (after != null && after.$1 == filename) {
+      afterNextUpload = null;
+      _files[filename] = _FakeFile(after.$2, DateTime.now());
+    }
     if (timeoutUploadsAfterWrite) {
       throw TimeoutException('upload timed out (test)');
     }

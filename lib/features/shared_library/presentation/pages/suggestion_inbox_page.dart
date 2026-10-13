@@ -20,8 +20,7 @@ class SuggestionInboxPage extends ConsumerWidget {
     final l10n = context.l10n;
     final suggestions = ref.watch(incomingSuggestionsProvider(libraryId));
     final held =
-        ref.watch(heldIncomingSuggestionCountProvider(libraryId)).valueOrNull ??
-        0;
+        ref.watch(heldIncomingSuggestionCountProvider(libraryId)).value ?? 0;
     // Suggestions by members no owner approved yet: Members approves them.
     final heldTile = held == 0
         ? null

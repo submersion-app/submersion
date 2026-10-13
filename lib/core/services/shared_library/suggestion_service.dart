@@ -117,17 +117,25 @@ class SuggestionService {
       await dismiss(suggestionId, diverId: diverId);
       return;
     }
-    await _bridge.apply(
-      SiteDocument(id: s.siteId, fields: s.fields),
-      libraryId: s.libraryId,
-      vocabularyDiverId: diverId,
-      fields: s.fields.keys.toSet(),
-    );
-    await _stamper.stamp(
-      s.siteId,
-      s.fields.keys.toSet(),
-      actingDiverId: diverId,
-    );
+    // Only shared document fields: a suggestion from an older or altered
+    // build may carry an owner's private notes or rating, never applied.
+    final fields = {
+      for (final e in s.fields.entries)
+        if (SiteDocument.fieldNames.contains(e.key)) e.key: e.value,
+    };
+    if (fields.isNotEmpty) {
+      await _bridge.apply(
+        SiteDocument(id: s.siteId, fields: fields),
+        libraryId: s.libraryId,
+        vocabularyDiverId: diverId,
+        fields: fields.keys.toSet(),
+      );
+      await _stamper.stamp(
+        s.siteId,
+        fields.keys.toSet(),
+        actingDiverId: diverId,
+      );
+    }
     await _finish(s, SharedSiteSuggestion.resolved);
     SyncEventBus.notifyLocalChange();
   }

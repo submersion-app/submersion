@@ -49,13 +49,9 @@ class SharedLibraryPage extends ConsumerWidget {
         .valueOrNull;
     final names = ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull;
     final pending =
-        ref
-            .watch(pendingIncomingSuggestionCountProvider(libraryId))
-            .valueOrNull ??
-        0;
+        ref.watch(pendingIncomingSuggestionCountProvider(libraryId)).value ?? 0;
     final held =
-        ref.watch(heldIncomingSuggestionCountProvider(libraryId)).valueOrNull ??
-        0;
+        ref.watch(heldIncomingSuggestionCountProvider(libraryId)).value ?? 0;
     final syncState = ref.watch(sharedLibrarySyncProvider);
     final syncing =
         syncState.syncing && syncState.syncingLibraryId == libraryId;

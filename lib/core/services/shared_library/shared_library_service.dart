@@ -687,7 +687,10 @@ class SharedLibraryService {
       // Its author no longer belongs here: nothing can sign it.
       if (key == null) continue;
       try {
-        await t.writeSuggestion(s.id, await signSuggestion(s.toJson(), key));
+        await t.writeSuggestion(
+          s.id,
+          await signSuggestion(s.toJson(), key, libraryId: libraryId),
+        );
       } catch (e) {
         if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
         _log.warning('Library $libraryId refused a suggestion: read-only');
@@ -742,9 +745,15 @@ class SharedLibraryService {
         final approved = roles.approvedKeys[author];
         final String status;
         if (approved != null) {
-          if (!await verifySuggestion(json, approved)) continue;
+          if (!await verifySuggestion(json, approved, libraryId: libraryId)) {
+            continue;
+          }
           status = SharedSiteSuggestion.pending;
-        } else if (await verifySuggestion(json, cardKeys[author])) {
+        } else if (await verifySuggestion(
+          json,
+          cardKeys[author],
+          libraryId: libraryId,
+        )) {
           status = SharedSiteSuggestion.held;
         } else {
           // Its author was rejected or left: nothing is waiting any more.

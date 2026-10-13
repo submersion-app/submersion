@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
@@ -25,6 +26,59 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
+
+  test(
+    "the library's current key wins over another profile's stale one",
+    () async {
+      await DiverRepository().createDiver(
+        Diver(
+          id: 'd2',
+          name: 'Bo',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      final stale = await LibraryCipher.generate();
+      final current = await LibraryCipher.generate();
+      await store.upsertLibrary(
+        SharedLibrary(
+          id: 'L',
+          name: 'Reef Survey',
+          connectedAccountId: 'acc',
+          prefix: 'site-sync',
+          encrypted: true,
+          keyId: current.keyId,
+        ),
+      );
+      for (final (id, diver) in [('ms1', 'd1'), ('ms2', 'd2')]) {
+        await store.upsertMembership(
+          SharedLibraryMembership(
+            id: id,
+            diverId: diver,
+            libraryId: 'L',
+            memberId: 'm-$diver',
+            displayName: diver,
+            libraryName: 'Reef Survey',
+            backendKind: 's3',
+          ),
+        );
+      }
+      // The first profile still holds the key from before a passphrase change.
+      await store.setLibraryKey(
+        diverId: 'd1',
+        libraryId: 'L',
+        keyId: stale.keyId,
+        key: await stale.exportKey(),
+      );
+      await store.setLibraryKey(
+        diverId: 'd2',
+        libraryId: 'L',
+        keyId: current.keyId,
+        key: await current.exportKey(),
+      );
+      expect((await store.libraryCipherFor('L'))!.keyId, current.keyId);
+    },
+  );
 
   test('library round trip, status update and cascade delete', () async {
     await store.upsertLibrary(

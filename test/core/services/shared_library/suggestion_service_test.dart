@@ -136,6 +136,29 @@ void main() {
     expect(await SharedLibraryStore().suggestions('L'), isEmpty);
   });
 
+  test("accept never touches the owner's private notes or rating", () async {
+    final site = (await SiteRepository().getSiteById('s'))!;
+    await SiteRepository().updateSite(
+      site.copyWith(notes: 'mine', rating: 4),
+      actingDiverId: 'owner',
+    );
+    // From an older or altered build: private fields in the suggestion.
+    final s = _incoming('g9', {
+      'hazards': 'new',
+      'notes': 'theirs',
+      'rating': 1,
+    });
+    await t.writeSuggestion('g9', s.toJson());
+    await SharedLibraryStore().putSuggestion(s);
+    await service.accept('g9', diverId: 'owner');
+    final after = (await SiteRepository().getSiteById('s'))!;
+    expect(after.hazards, 'new');
+    expect(after.notes, 'mine');
+    expect(after.rating, 4);
+    final state = (await SharedLibraryStore().getSiteState('s'))!;
+    expect(state.clocks.keys, isNot(contains('notes')));
+  });
+
   test('accept applies as the accepting owner and removes the file', () async {
     await t.writeSuggestion('g1', _incoming('g1', {'hazards': 'new'}).toJson());
     await SharedLibraryStore().putSuggestion(

@@ -338,7 +338,9 @@ class SharedLibraryMembershipService {
     final t = await _transportFor(account: account, prefix: prefix);
     final found = await _probeWith(t);
     final cipher = found.encrypted ? await _unlock(t, secret) : null;
-    if (!found.exists || found.id == null || found.id!.isEmpty) {
+    if (!found.exists ||
+        found.id == null ||
+        !SharedLibraryLayout.isValidLibraryId(found.id!)) {
       throw StateError('No library at $prefix');
     }
     if (found.retired) {

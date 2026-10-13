@@ -41,6 +41,9 @@ class LibraryBackupService {
   final _log = LoggerService.forClass(LibraryBackupService);
 
   Future<String> _dirOf(String libraryId) async {
+    if (!SharedLibraryLayout.isValidLibraryId(libraryId)) {
+      throw ArgumentError.value(libraryId, 'libraryId', 'not a library id');
+    }
     final dir = Directory(
       p.join(await _backupsDirectory(), 'shared-libraries', libraryId),
     );
@@ -48,7 +51,9 @@ class LibraryBackupService {
     return dir.path;
   }
 
-  static String _fileName(SharedLibrary library, DateTime at) {
+  /// Named for the library and the time, plus the start of [backupId]:
+  /// two backups in one second keep their own files.
+  static String _fileName(SharedLibrary library, DateTime at, String backupId) {
     final folder = library.prefix.trim().isEmpty
         ? 'library'
         : library.prefix.trim().replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '-');
@@ -57,7 +62,7 @@ class LibraryBackupService {
     final stamp =
         '${u.year}-${two(u.month)}-${two(u.day)}-'
         '${two(u.hour)}${two(u.minute)}${two(u.second)}';
-    return 'submersion-sites-$folder-$stamp.zip';
+    return 'submersion-sites-$folder-$stamp-${backupId.substring(0, 8)}.zip';
   }
 
   /// Backs the library up to the device and to storage. Owners only.
@@ -89,7 +94,7 @@ class LibraryBackupService {
       header: header,
       key: key,
     );
-    final name = _fileName(library, at);
+    final name = _fileName(library, at, header.backupId);
     final local = p.join(await _dirOf(libraryId), name);
     await File(local).writeAsBytes(zip, flush: true);
     var record = LibraryBackupRecord(
@@ -343,21 +348,40 @@ class LibraryBackupService {
     SharedLibrary? library,
   }) async {
     final lib = library ?? await _store.getLibrary(me.libraryId);
-    final current = lib == null
-        ? <String, LibraryBackupRecord>{}
-        : await _readIndex(t, lib);
-    final next = change(current);
-    final unsigned = {
-      'entries': [for (final r in next.values) r.toIndexJson()],
-      'signedBy': me.memberId,
-    };
-    await t.writeBackupIndex({
-      ...unsigned,
-      'signature': await LibrarySigner.sign(
-        key,
-        utf8.encode(canonicalJson(unsigned)),
-      ),
-    });
+    if (lib == null) return;
+    // Storage has no compare-and-swap: another owner may write the index
+    // between this read and write. Read it back, and apply the change again
+    // on top of whatever won until it holds.
+    var current = await _readIndex(t, lib);
+    for (var attempt = 0; attempt < _indexAttempts; attempt++) {
+      final next = change(current);
+      final unsigned = {
+        'entries': [for (final r in next.values) r.toIndexJson()],
+        'signedBy': me.memberId,
+      };
+      await t.writeBackupIndex({
+        ...unsigned,
+        'signature': await LibrarySigner.sign(
+          key,
+          utf8.encode(canonicalJson(unsigned)),
+        ),
+      });
+      current = await _readIndex(t, lib);
+      if (_sameIndex(change(current), current)) return;
+    }
+    _log.warning('Backup index of ${lib.id} kept changing; left as it is');
+  }
+
+  static const _indexAttempts = 3;
+
+  static bool _sameIndex(
+    Map<String, LibraryBackupRecord> a,
+    Map<String, LibraryBackupRecord> b,
+  ) {
+    String of(Map<String, LibraryBackupRecord> m) => canonicalJson([
+      for (final id in m.keys.toList()..sort()) m[id]!.toIndexJson(),
+    ]);
+    return of(a) == of(b);
   }
 
   /// The storage index when an owner of the trusted roles signed it.

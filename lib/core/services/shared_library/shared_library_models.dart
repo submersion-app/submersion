@@ -538,6 +538,13 @@ abstract final class SharedLibraryLayout {
     'backups',
   };
   static const manifestFile = 'submersion-shared-library.json';
+
+  static final _libraryId = RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$');
+
+  /// Whether [id], read from a library's manifest, is safe to name a local
+  /// folder with (the library's backups): no path separators or dot
+  /// segments, nothing that could leave the folder it is joined into.
+  static bool isValidLibraryId(String id) => _libraryId.hasMatch(id);
   static const rolesFile = 'roles.json';
 
   /// The library's name, kept apart from the manifest so it can be sealed
