@@ -38802,6 +38802,30 @@ abstract class AppLocalizations {
   /// **'Filed under'**
   String get documents_detail_owner;
 
+  /// No description provided for @documents_owner_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'File under'**
+  String get documents_owner_pickerTitle;
+
+  /// No description provided for @documents_owner_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get documents_owner_search;
+
+  /// No description provided for @documents_owner_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to file under yet'**
+  String get documents_owner_none;
+
+  /// No description provided for @documents_owner_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'A card stays with its certification'**
+  String get documents_owner_locked;
+
   /// No description provided for @documents_profileHub_documents.
   ///
   /// In en, this message translates to:

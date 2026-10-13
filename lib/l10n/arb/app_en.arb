@@ -14110,6 +14110,10 @@
   },
   "documents_filter_all": "All",
   "documents_detail_owner": "Filed under",
+  "documents_owner_pickerTitle": "File under",
+  "documents_owner_search": "Search",
+  "documents_owner_none": "Nothing to file under yet",
+  "documents_owner_locked": "A card stays with its certification",
   "documents_profileHub_documents": "Documents",
   "documents_profileHub_documents_count": "{count, plural, =0{None yet} =1{{count} document} other{{count} documents}}",
   "@documents_profileHub_documents_count": {

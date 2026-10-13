@@ -24148,6 +24148,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documents_detail_owner => 'Archivado en';
 
   @override
+  String get documents_owner_pickerTitle => 'File under';
+
+  @override
+  String get documents_owner_search => 'Search';
+
+  @override
+  String get documents_owner_none => 'Nothing to file under yet';
+
+  @override
+  String get documents_owner_locked => 'A card stays with its certification';
+
+  @override
   String get documents_profileHub_documents => 'Documentos';
 
   @override
