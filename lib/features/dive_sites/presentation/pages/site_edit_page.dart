@@ -1935,7 +1935,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (widget.onSaved != null) {
       widget.onSaved!(site.id);
     } else {
-      await Navigator.of(context).maybePop();
+      // A plain pop, as a save leaves: maybePop would ask the unsaved
+      // changes guard, which still holds the frame before the send.
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) navigator.pop();
     }
   }
 
