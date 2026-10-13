@@ -384,8 +384,10 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 288) await reportProgress();
     // v289: shared dive-site library tables and dive_sites.shared_library_id
-    // (issue #2567). Idempotent; re-asserted in beforeOpen. Renumbered from
-    // 288 after #2515 shipped 288.
+    // (issue #2567), plus the key, trust and backup columns added before it
+    // shipped. Idempotent; re-asserted in beforeOpen, which is how a database
+    // already past 289 gains the later columns. Renumbered from 288 after
+    // #2515 shipped 288.
     if (from < 289) {
       await _assertSharedLibrarySchema();
     }
