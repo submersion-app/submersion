@@ -19928,6 +19928,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '存储桶或服务器顶层 submersion-sites 中的文件夹，例如 site-sync。';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      '资料库文件夹不能以 sites、members、suggestions 或 backups 开头。';
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

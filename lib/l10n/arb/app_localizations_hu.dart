@@ -20896,6 +20896,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egy mappa a submersion-sites mappában, a bucket vagy a szerver legfelső szintjén, például site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'A könyvtármappa nem kezdődhet így: sites, members, suggestions vagy backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

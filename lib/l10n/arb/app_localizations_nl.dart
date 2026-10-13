@@ -20831,6 +20831,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een map in submersion-sites, bovenaan de bucket of server, bijvoorbeeld site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'Een bibliotheekmap kan niet beginnen met sites, members, suggestions of backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override

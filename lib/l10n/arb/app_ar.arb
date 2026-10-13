@@ -5865,6 +5865,7 @@
   "sharedLibrary_connect_account_label": "حساب التخزين",
   "sharedLibrary_connect_prefix_label": "المجلد (البادئة)",
   "sharedLibrary_connect_prefix_help": "مجلد داخل submersion-sites في أعلى الحاوية أو الخادم، مثل site-sync.",
+  "sharedLibrary_connect_reservedFolder": "لا يمكن أن يبدأ مجلد المكتبة بـ sites أو members أو suggestions أو backups.",
   "sharedLibrary_connect_probe_action": "تحقق",
   "sharedLibrary_connect_join_action": "الانضمام إلى {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

@@ -59,10 +59,27 @@ class SharedLibraryTransport {
     ).hasMatch(text);
   }
 
-  /// Whether [prefix] stays inside `submersion-sites`: a `.` or `..`
-  /// segment would lead a WebDAV server out of it.
+  /// Whether [prefix] stays inside `submersion-sites` (a `.` or `..`
+  /// segment would lead a WebDAV server out of it) and clear of a library's
+  /// own subfolders.
   static bool isValidPrefix(String prefix) =>
-      !prefix.split('/').map((s) => s.trim()).any((s) => s == '.' || s == '..');
+      !leavesLibraries(prefix) && !startsReserved(prefix);
+
+  static List<String> _segments(String prefix) => [
+    for (final s in prefix.split('/'))
+      if (s.trim().isNotEmpty) s.trim(),
+  ];
+
+  /// A `.` or `..` segment.
+  static bool leavesLibraries(String prefix) =>
+      _segments(prefix).any((s) => s == '.' || s == '..');
+
+  /// A first segment named after a library's own subfolder.
+  static bool startsReserved(String prefix) {
+    final segments = _segments(prefix);
+    return segments.isNotEmpty &&
+        SharedLibraryLayout.reservedFolders.contains(segments.first);
+  }
 
   static String _trimSlashes(String s) => s.replaceAll(RegExp(r'^/+|/+$'), '');
 
@@ -93,7 +110,8 @@ class SharedLibraryTransport {
     if (_root != null) return _root!;
     if (!isValidPrefix(_prefix)) {
       throw CloudStorageException(
-        'A library folder cannot contain . or .. segments: $_prefix',
+        'Not a library folder (a . or .. segment, or a library subfolder '
+        'name first): $_prefix',
       );
     }
     final libraries = await _provider.createFolder(

@@ -84,7 +84,12 @@ class _ConnectSharedLibraryPageState
           if (list.isEmpty) {
             return ListView(
               padding: const EdgeInsets.all(16),
-              children: [_accountForm(), ..._errorLine(context)],
+              children: [
+                _folderField(),
+                const SizedBox(height: 12),
+                _accountForm(),
+                ..._errorLine(context),
+              ],
             );
           }
           // The list rebuilds with new instances whenever an account
@@ -97,6 +102,9 @@ class _ConnectSharedLibraryPageState
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // The folder first: an account added below is saved for it.
+              _folderField(),
+              const SizedBox(height: 12),
               DropdownButtonFormField<ConnectedAccount>(
                 initialValue: _account,
                 decoration: InputDecoration(
@@ -125,16 +133,6 @@ class _ConnectSharedLibraryPageState
                   ),
                 ),
               const SizedBox(height: 12),
-              TextField(
-                key: const Key('library-prefix'),
-                controller: _prefix,
-                decoration: InputDecoration(
-                  labelText: l10n.sharedLibrary_connect_prefix_label,
-                  helperText: l10n.sharedLibrary_connect_prefix_help,
-                ),
-                onChanged: (_) => setState(() => _probe = null),
-              ),
-              const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerRight,
                 child: FilledButton.tonal(
@@ -149,6 +147,32 @@ class _ConnectSharedLibraryPageState
         },
       ),
     );
+  }
+
+  Widget _folderField() {
+    final l10n = context.l10n;
+    return TextField(
+      key: const Key('library-prefix'),
+      controller: _prefix,
+      decoration: InputDecoration(
+        labelText: l10n.sharedLibrary_connect_prefix_label,
+        helperText: l10n.sharedLibrary_connect_prefix_help,
+        helperMaxLines: 3,
+      ),
+      onChanged: (_) => setState(() => _probe = null),
+    );
+  }
+
+  /// Why the typed folder cannot hold a library, or null when it can.
+  String? _folderProblem() {
+    final folder = _prefix.text.trim();
+    if (SharedLibraryTransport.leavesLibraries(folder)) {
+      return context.l10n.settings_webdavConfig_validation_folder;
+    }
+    if (SharedLibraryTransport.startsReserved(folder)) {
+      return context.l10n.sharedLibrary_connect_reservedFolder;
+    }
+    return null;
   }
 
   List<Widget> _errorLine(BuildContext context) => [
@@ -253,6 +277,12 @@ class _ConnectSharedLibraryPageState
 
   Future<void> _saveAccount() async {
     if (!(_accountFormKey.currentState?.validate() ?? false)) return;
+    final problem = _folderProblem();
+    if (problem != null) {
+      setState(() => _error = problem);
+      return;
+    }
+    final folder = _prefix.text.trim();
     setState(() {
       _busy = true;
       _error = null;
@@ -260,7 +290,7 @@ class _ConnectSharedLibraryPageState
     try {
       final setup = ref.read(libraryAccountSetupProvider);
       final account = _newKind == AccountKind.s3
-          ? await setup.saveS3(_s3.build())
+          ? await setup.saveS3(_s3.build(), folder: folder)
           // A self-signed server is offered for trust, as in the WebDAV
           // settings, before its pin is saved with the account.
           : await setup.saveWebDav(
@@ -269,6 +299,7 @@ class _ConnectSharedLibraryPageState
                 _webdav,
                 setup.reachWebDav,
               ),
+              folder: folder,
             );
       if (!mounted) return;
       ref.invalidate(eligibleLibraryAccountsProvider);
@@ -329,10 +360,9 @@ class _ConnectSharedLibraryPageState
   Future<void> _runProbe() async {
     final account = _account;
     if (account == null) return;
-    if (!SharedLibraryTransport.isValidPrefix(_prefix.text.trim())) {
-      setState(
-        () => _error = context.l10n.settings_webdavConfig_validation_folder,
-      );
+    final problem = _folderProblem();
+    if (problem != null) {
+      setState(() => _error = problem);
       return;
     }
     setState(() {

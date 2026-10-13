@@ -21235,6 +21235,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'مجلد داخل submersion-sites في أعلى الحاوية أو الخادم، مثل site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'لا يمكن أن يبدأ مجلد المكتبة بـ sites أو members أو suggestions أو backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

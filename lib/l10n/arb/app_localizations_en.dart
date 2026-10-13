@@ -20653,6 +20653,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'A folder inside submersion-sites, at the top of the bucket or server, such as site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'A library folder cannot start with sites, members, suggestions or backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Check';
 
   @override

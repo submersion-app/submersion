@@ -33575,6 +33575,12 @@ abstract class AppLocalizations {
   /// **'A folder inside submersion-sites, at the top of the bucket or server, such as site-sync.'**
   String get sharedLibrary_connect_prefix_help;
 
+  /// No description provided for @sharedLibrary_connect_reservedFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'A library folder cannot start with sites, members, suggestions or backups.'**
+  String get sharedLibrary_connect_reservedFolder;
+
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
   /// In en, this message translates to:

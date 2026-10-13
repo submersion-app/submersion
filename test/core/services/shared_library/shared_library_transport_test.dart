@@ -136,19 +136,26 @@ void main() {
     expect(await root.readRoles(), SharedLibraryRoles.empty);
   });
 
-  test(
-    'a library nested in a kind folder is not listed as that kind',
-    () async {
-      final bucket = _S3Bucket();
-      // Library 'sites' keeps its own sites in submersion-sites/sites/sites/.
-      await SharedLibraryTransport(
-        bucket,
-        prefix: 'sites',
-      ).writeSite(const SiteDocument(id: 's1', fields: {}));
-      final root = SharedLibraryTransport(bucket, prefix: '');
-      expect(await root.listSites(), isEmpty);
-    },
-  );
+  test('a file nested in a kind folder is not listed as that kind', () async {
+    final bucket = _S3Bucket();
+    // Not reachable through the app (a library folder may not start with
+    // 'sites'), but S3 lists the kind folder recursively all the same.
+    await bucket.uploadFile(
+      SiteDocument.encode(const SiteDocument(id: 's1')),
+      'site-s1.json',
+      folderId: 'submersion-sites/sites/sites/',
+    );
+    final root = SharedLibraryTransport(bucket, prefix: '');
+    expect(await root.listSites(), isEmpty);
+  });
+
+  test('a folder starting with a library subfolder is refused', () {
+    for (final bad in ['sites', 'members/x', 'suggestions', 'backups/old']) {
+      expect(SharedLibraryTransport.isValidPrefix(bad), isFalse, reason: bad);
+    }
+    expect(SharedLibraryTransport.isValidPrefix('reef/sites'), isTrue);
+    expect(SharedLibraryTransport.isValidPrefix(' /sites/ '), isFalse);
+  });
 
   test('a folder with . or .. segments is refused', () async {
     expect(SharedLibraryTransport.isValidPrefix('groups/site-sync'), isTrue);

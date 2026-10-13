@@ -20965,6 +20965,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una cartella dentro submersion-sites, alla radice del bucket o del server, ad esempio site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'Una cartella di libreria non può iniziare con sites, members, suggestions o backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
 
   @override

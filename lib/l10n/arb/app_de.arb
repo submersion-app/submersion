@@ -5996,6 +5996,7 @@
   "sharedLibrary_connect_account_label": "Speicherkonto",
   "sharedLibrary_connect_prefix_label": "Ordner (Präfix)",
   "sharedLibrary_connect_prefix_help": "Ein Ordner in submersion-sites auf der obersten Ebene des Buckets oder Servers, etwa site-sync.",
+  "sharedLibrary_connect_reservedFolder": "Ein Bibliotheksordner darf nicht mit sites, members, suggestions oder backups beginnen.",
   "sharedLibrary_connect_probe_action": "Prüfen",
   "sharedLibrary_connect_join_action": "{name} beitreten",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

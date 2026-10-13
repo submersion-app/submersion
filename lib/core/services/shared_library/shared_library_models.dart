@@ -245,6 +245,16 @@ abstract final class SharedLibraryLayout {
   /// The folder at the top of the storage that holds every library, beside
   /// `submersion-sync` and `submersion-media`.
   static const librariesDir = 'submersion-sites';
+
+  /// A library's own subfolders: no library folder may start with one, so
+  /// a library at the top of [librariesDir] never shares a folder with
+  /// another library.
+  static const reservedFolders = {
+    membersDir,
+    sitesDir,
+    suggestionsDir,
+    'backups',
+  };
   static const manifestFile = 'submersion-shared-library.json';
   static const rolesFile = 'roles.json';
   static const membersDir = 'members';

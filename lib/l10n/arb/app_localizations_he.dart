@@ -20498,6 +20498,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'תיקייה בתוך submersion-sites, בראש ה-bucket או השרת, למשל site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'תיקיית ספרייה אינה יכולה להתחיל ב-sites, ‏members, ‏suggestions או backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

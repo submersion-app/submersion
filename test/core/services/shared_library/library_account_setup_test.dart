@@ -45,7 +45,7 @@ void main() {
       );
       await credentials.write(syncId, jsonEncode(s3(key: 'AKIASYNC').toJson()));
 
-      final account = await setup.saveS3(s3());
+      final account = await setup.saveS3(s3(), folder: 'site-sync');
 
       expect(account.kind, AccountKind.s3);
       expect(account.id, isNot(syncId));
@@ -59,7 +59,7 @@ void main() {
       expect(label, isNot('submersion-sync @ s3.eu-west-1.amazonaws.com'));
       final stored = jsonDecode((await credentials.read(account.id))!) as Map;
       expect(stored['accessKeyId'], 'AKIALIBRARY');
-      expect(stored['prefix'], 'submersion-sites/');
+      expect(stored['prefix'], 'submersion-sites/site-sync/');
       final sync = jsonDecode((await credentials.read(syncId))!) as Map;
       expect(sync['accessKeyId'], 'AKIASYNC', reason: 'sync keys untouched');
     },
@@ -72,12 +72,34 @@ void main() {
         username: 'ann',
         password: 'pw',
       ),
+      folder: 'site-sync',
     );
     expect(account.kind, AccountKind.webdav);
     final stored = jsonDecode((await credentials.read(account.id))!) as Map;
-    expect(stored['folder'], 'submersion-sites');
+    expect(stored['folder'], 'submersion-sites/site-sync');
     expect(stored['username'], 'ann');
-    expect(account.label, 'ann @ dav.example.com (submersion-sites)');
+    expect(account.label, 'ann @ dav.example.com (submersion-sites/site-sync)');
+  });
+
+  test('two libraries on one bucket keep separate keys', () async {
+    final a = await setup.saveS3(s3(key: 'AKIAONE'), folder: 'reef');
+    final b = await setup.saveS3(s3(key: 'AKIATWO'), folder: 'wrecks');
+    expect(a.id, isNot(b.id));
+    final ka = jsonDecode((await credentials.read(a.id))!) as Map;
+    final kb = jsonDecode((await credentials.read(b.id))!) as Map;
+    expect(ka['accessKeyId'], 'AKIAONE');
+    expect(kb['accessKeyId'], 'AKIATWO');
+    expect(ka['prefix'], 'submersion-sites/reef/');
+    expect(
+      a.label,
+      'submersion-sync @ s3.eu-west-1.amazonaws.com (submersion-sites/reef)',
+    );
+  });
+
+  test('an empty folder is submersion-sites itself', () async {
+    final a = await setup.saveS3(s3(), folder: ' / ');
+    final stored = jsonDecode((await credentials.read(a.id))!) as Map;
+    expect(stored['prefix'], 'submersion-sites/');
   });
 
   group('reachWebDav', () {

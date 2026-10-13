@@ -21027,6 +21027,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un dossier dans submersion-sites, à la racine du bucket ou du serveur, par exemple site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'Un dossier de bibliothèque ne peut pas commencer par sites, members, suggestions ou backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
 
   @override

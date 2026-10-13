@@ -13104,6 +13104,7 @@
   "sharedLibrary_connect_account_label": "Storage account",
   "sharedLibrary_connect_prefix_label": "Folder (prefix)",
   "sharedLibrary_connect_prefix_help": "A folder inside submersion-sites, at the top of the bucket or server, such as site-sync.",
+  "sharedLibrary_connect_reservedFolder": "A library folder cannot start with sites, members, suggestions or backups.",
   "sharedLibrary_connect_probe_action": "Check",
   "sharedLibrary_connect_join_action": "Join {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

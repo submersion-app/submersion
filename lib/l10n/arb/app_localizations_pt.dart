@@ -20968,6 +20968,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Uma pasta dentro de submersion-sites, na raiz do bucket ou do servidor, por exemplo site-sync.';
 
   @override
+  String get sharedLibrary_connect_reservedFolder =>
+      'Uma pasta de biblioteca não pode começar por sites, members, suggestions ou backups.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override
