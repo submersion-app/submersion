@@ -715,18 +715,37 @@ class SharedLibraryService {
       libraryId,
       direction: SharedSiteSuggestion.incoming,
     );
-    final heldIds = {for (final s in held) s.fileId};
+    // Taken in already, unless held for an approval that may since have
+    // come.
+    final known = {
+      for (final s in held)
+        if (s.status != SharedSiteSuggestion.held) s.fileId,
+    };
     for (final s in held) {
       if (!remoteIds.contains(s.fileId)) await _store.deleteSuggestion(s.id);
     }
+    // The keys on members' own signed cards: a suggestion signed by one
+    // whose owner has not approved it yet is held, not dropped, so the
+    // owner learns it is waiting.
+    final cardKeys = {
+      for (final m in await _store.getMembers(libraryId))
+        if (m.cardVerified && m.publicKey != null) m.memberId: m.publicKey!,
+    };
     for (final f in files) {
       final id = SharedLibraryTransport.suggestionIdOf(f);
-      if (heldIds.contains(id)) continue;
+      if (known.contains(id)) continue;
       try {
         final json = await t.readSuggestion(f.id);
         final author = json['memberId'];
-        if (author is! String ||
-            !await verifySuggestion(json, roles.approvedKeys[author])) {
+        if (author is! String) continue;
+        final approved = roles.approvedKeys[author];
+        final String status;
+        if (approved != null) {
+          if (!await verifySuggestion(json, approved)) continue;
+          status = SharedSiteSuggestion.pending;
+        } else if (await verifySuggestion(json, cardKeys[author])) {
+          status = SharedSiteSuggestion.held;
+        } else {
           continue;
         }
         await _store.putSuggestion(
@@ -735,7 +754,7 @@ class SharedLibraryService {
             libraryId: libraryId,
             direction: SharedSiteSuggestion.incoming,
             remoteModifiedTime: f.modifiedTime.toUtc().toIso8601String(),
-          ),
+          ).copyWith(status: status),
         );
       } on FormatException catch (e) {
         _log.warning('Skipping unreadable suggestion ${f.name}: $e');

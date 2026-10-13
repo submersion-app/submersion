@@ -21273,6 +21273,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedLibrary_backups_done => 'Sauvegarde créée';
 
   @override
+  String sharedLibrary_library_myKey(String fingerprint) {
+    return 'Votre clé $fingerprint';
+  }
+
+  @override
+  String sharedLibrary_suggest_held(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggestions attendent que vous approuviez leurs auteurs',
+      one: '$count suggestion attend que vous approuviez son auteur',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Saisissez la phrase secrète de $library.';
   }

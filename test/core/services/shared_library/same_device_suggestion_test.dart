@@ -159,4 +159,44 @@ void main() {
     );
     expect((await SiteRepository().getSiteById('s1'))!.hazards, 'new');
   });
+
+  test(
+    'a suggestion by a member not yet approved is held, then counts',
+    () async {
+      await addDiver('late', 'Cy');
+      await memberships.join(
+        account: account,
+        prefix: 'site-sync',
+        diverId: 'late',
+        displayName: 'Cy',
+      );
+      final site = (await SiteRepository().getSiteById('s1'))!;
+      await SuggestionService(
+        transportFor: (l) => memberships.transportForLibrary(l),
+      ).propose(
+        proposed: site.copyWith(hazards: 'late'),
+        diverId: 'late',
+      );
+      await syncer().sync(lib.id, diverId: 'late');
+      await syncer().sync(lib.id, diverId: 'owner');
+
+      Future<List<SharedSiteSuggestion>> held() =>
+          SharedLibraryStore().suggestions(
+            lib.id,
+            direction: SharedSiteSuggestion.incoming,
+            status: SharedSiteSuggestion.held,
+          );
+      expect(await inbox(), isEmpty);
+      expect(await held(), hasLength(1));
+
+      await memberships.approveMember(
+        libraryId: lib.id,
+        memberId: await memberOf('late'),
+        actingMemberId: await memberOf('owner'),
+      );
+      await syncer().sync(lib.id, diverId: 'owner');
+      expect(await held(), isEmpty);
+      expect((await inbox()).single.fields, {'hazards': 'late'});
+    },
+  );
 }

@@ -20151,6 +20151,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_backups_done => '备份已创建';
 
   @override
+  String sharedLibrary_library_myKey(String fingerprint) {
+    return '你的密钥 $fingerprint';
+  }
+
+  @override
+  String sharedLibrary_suggest_held(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条建议将在其作者获批准后显示',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return '请输入 $library 的口令。';
   }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -51,6 +52,9 @@ class SharedLibraryPage extends ConsumerWidget {
         ref
             .watch(pendingIncomingSuggestionCountProvider(libraryId))
             .valueOrNull ??
+        0;
+    final held =
+        ref.watch(heldIncomingSuggestionCountProvider(libraryId)).valueOrNull ??
         0;
     final syncState = ref.watch(sharedLibrarySyncProvider);
     final syncing =
@@ -115,6 +119,13 @@ class SharedLibraryPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(membership?.displayName ?? ''),
+                // What an owner compares before approving this member.
+                if (membership?.signingKey case final key?)
+                  Text(
+                    l10n.sharedLibrary_library_myKey(
+                      LibrarySigner.fingerprint(key.publicKey),
+                    ),
+                  ),
                 LibraryRoleChip(role: role),
               ],
             ),
@@ -137,6 +148,9 @@ class SharedLibraryPage extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.rate_review_outlined),
               title: Text(l10n.sharedLibrary_library_suggestions),
+              subtitle: held > 0
+                  ? Text(l10n.sharedLibrary_suggest_held(held))
+                  : null,
               trailing: pending > 0
                   ? Badge.count(count: pending)
                   : const Icon(Icons.chevron_right),

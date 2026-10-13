@@ -81,6 +81,30 @@ void main() {
     expect(find.text('No suggestions waiting.'), findsOneWidget);
   });
 
+  testWidgets('suggestions held for approval are counted', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          incomingSuggestionsProvider(
+            'L',
+          ).overrideWith((ref) async => const []),
+          heldIncomingSuggestionCountProvider(
+            'L',
+          ).overrideWith((ref) async => 2),
+        ],
+        locale: const Locale('en'),
+        child: const SuggestionInboxPage(libraryId: 'L'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('2 suggestions wait until you approve their authors'),
+      findsOneWidget,
+    );
+    expect(find.text('No suggestions waiting.'), findsOneWidget);
+  });
+
   testWidgets('the review sheet names fields and shows the diver\'s units', (
     tester,
   ) async {

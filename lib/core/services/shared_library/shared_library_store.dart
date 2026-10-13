@@ -78,6 +78,10 @@ class SharedSiteSuggestion {
   static const uploaded = 'uploaded';
   static const withdrawn = 'withdrawn';
 
+  /// Incoming, signed by a member whose key no owner approved yet: kept
+  /// out of the inbox, counted for the owner, and taken in on approval.
+  static const held = 'held';
+
   /// An owner accepted or dismissed it while its file could not be
   /// deleted: kept so the next sync neither re-imports nor shows it, and
   /// retries the delete.

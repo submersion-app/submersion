@@ -78,11 +78,16 @@ pass off an edit as someone else's.
 ## Approving Members
 
 Owners see new members under **Waiting for approval** on the library's
-**Members** page, with the first characters of each member's key. Approve only
-members you expect: if a name you do not recognize is waiting, ask the group
-before tapping **Approve**. **Reject** removes their card, and nothing they
-write counts. Only new storage keys stop a rejected member from writing files
-at all.
+**Members** page, with the first characters of each member's key. Each member
+sees their own key as **Your key** on the library page. Before tapping
+**Approve**, compare the two, for example over a call or in person, so you
+know the request is from the person you expect. **Reject** removes their card,
+and nothing they write counts. Only new storage keys stop a rejected member
+from writing files at all.
+
+Suggestions from a member who is still waiting for approval are held. The
+library page and the Suggestions page say how many are waiting, and they reach
+the Suggestions page as soon as you approve their author.
 
 A member who leaves keeps their role in the library's records until an owner
 taps **Remove role**, so their earlier edits stay attributed.

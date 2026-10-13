@@ -21477,6 +21477,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_backups_done => 'تم إنشاء النسخة الاحتياطية';
 
   @override
+  String sharedLibrary_library_myKey(String fingerprint) {
+    return 'مفتاحك $fingerprint';
+  }
+
+  @override
+  String sharedLibrary_suggest_held(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count اقتراح ينتظر موافقتك على كتّابه',
+      many: '$count اقتراحًا ينتظر موافقتك على كتّابه',
+      few: '$count اقتراحات تنتظر موافقتك على كتّابها',
+      two: 'اقتراحان ينتظران موافقتك على كاتبيهما',
+      one: 'اقتراح واحد ينتظر موافقتك على كاتبه',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'أدخل عبارة المرور لـ $library.';
   }

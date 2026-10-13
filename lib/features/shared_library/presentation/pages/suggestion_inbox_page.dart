@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -18,6 +19,19 @@ class SuggestionInboxPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final suggestions = ref.watch(incomingSuggestionsProvider(libraryId));
+    final held =
+        ref.watch(heldIncomingSuggestionCountProvider(libraryId)).valueOrNull ??
+        0;
+    // Suggestions by members no owner approved yet: Members approves them.
+    final heldTile = held == 0
+        ? null
+        : ListTile(
+            leading: const Icon(Icons.hourglass_empty),
+            title: Text(l10n.sharedLibrary_suggest_held(held)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () =>
+                context.push('/settings/shared-libraries/$libraryId/members'),
+          );
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sharedLibrary_inbox_title)),
       body: suggestions.when(
@@ -25,7 +39,15 @@ class SuggestionInboxPage extends ConsumerWidget {
         error: (e, _) => Center(child: Text(e.toString())),
         data: (list) {
           if (list.isEmpty) {
-            return Center(child: Text(l10n.sharedLibrary_inbox_empty));
+            final empty = Center(child: Text(l10n.sharedLibrary_inbox_empty));
+            return heldTile == null
+                ? empty
+                : Column(
+                    children: [
+                      heldTile,
+                      Expanded(child: empty),
+                    ],
+                  );
           }
           final bySite = <String, List<SharedSiteSuggestion>>{};
           for (final s in list) {
@@ -33,6 +55,7 @@ class SuggestionInboxPage extends ConsumerWidget {
           }
           return ListView(
             children: [
+              ?heldTile,
               for (final entry in bySite.entries)
                 _SiteGroup(siteId: entry.key, suggestions: entry.value),
             ],

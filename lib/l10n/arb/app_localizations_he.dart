@@ -20734,6 +20734,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_backups_done => 'הגיבוי נוצר';
 
   @override
+  String sharedLibrary_library_myKey(String fingerprint) {
+    return 'המפתח שלכם $fingerprint';
+  }
+
+  @override
+  String sharedLibrary_suggest_held(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count הצעות ממתינות עד שתאשרו את הכותבים שלהן',
+      one: 'הצעה אחת ממתינה עד שתאשרו את הכותב שלה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'הזינו את משפט הסיסמה של $library.';
   }

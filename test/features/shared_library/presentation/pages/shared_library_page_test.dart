@@ -29,6 +29,8 @@ Future<Widget> _page(
   SharedLibraryMembershipService? service,
   SharedSitePublisher? publisher,
   LibraryEncryptionService? encryption,
+  LibrarySigningKey? signingKey,
+  int held = 0,
 }) async => testApp(
   overrides: [
     ...await getBaseOverrides(),
@@ -71,6 +73,7 @@ Future<Widget> _page(
           backendKind: 's3',
           libraryKeyId: memberKeyId,
           libraryKey: memberKeyId == null ? null : 'key',
+          signingKey: signingKey,
         ),
       ],
     ),
@@ -79,6 +82,7 @@ Future<Widget> _page(
     ),
     libraryMemberNamesProvider('L').overrideWith((ref) async => {'m': 'Ann'}),
     pendingIncomingSuggestionCountProvider('L').overrideWith((ref) async => 2),
+    heldIncomingSuggestionCountProvider('L').overrideWith((ref) async => held),
     sitesProvider.overrideWith(
       (ref) async => const [
         DiveSite(id: 'p1', name: 'Reef'),
@@ -130,6 +134,34 @@ void main() {
       }
     });
   }
+
+  testWidgets('an owner is told of suggestions held for approval', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await _page(SharedLibraryRole.owner, held: 1));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('1 suggestion waits until you approve its author'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a member sees their own key to compare with an owner', (
+    tester,
+  ) async {
+    final key = LibrarySigningKey(
+      publicKey: base64Encode(List.filled(32, 7)),
+      privateKey: base64Encode(List.filled(32, 8)),
+    );
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.reader, signingKey: key),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Your key ${LibrarySigner.fingerprint(key.publicKey)}'),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('a reader sees neither Add my sites nor Suggestions', (
     tester,

@@ -283,6 +283,22 @@ final pendingIncomingSuggestionCountProvider =
       return list.length;
     });
 
+/// Suggestions in [libraryId] held until an owner approves their authors.
+final heldIncomingSuggestionCountProvider = FutureProvider.family<int, String>((
+  ref,
+  libraryId,
+) async {
+  ref.watch(_suggestionTickProvider);
+  final held = await ref
+      .watch(sharedLibraryStoreProvider)
+      .suggestions(
+        libraryId,
+        direction: SharedSiteSuggestion.incoming,
+        status: SharedSiteSuggestion.held,
+      );
+  return held.length;
+});
+
 /// Field name to (stored value, proposed value) for the review sheet.
 // no-tick: a one-shot diff computed when the sheet opens; auto-disposed with
 // the sheet, so the next opening compares against the site as it is then.

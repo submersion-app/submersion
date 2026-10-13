@@ -21139,6 +21139,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_backups_done => 'Mentés elkészült';
 
   @override
+  String sharedLibrary_library_myKey(String fingerprint) {
+    return 'A kulcsod: $fingerprint';
+  }
+
+  @override
+  String sharedLibrary_suggest_held(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count javaslat arra vár, hogy jóváhagyd a szerzőiket',
+      one: '1 javaslat arra vár, hogy jóváhagyd a szerzőjét',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String sharedLibrary_encrypted_locked(String library) {
     return 'Add meg a(z) $library jelmondatát.';
   }

@@ -33981,6 +33981,18 @@ abstract class AppLocalizations {
   /// **'Backup made'**
   String get sharedLibrary_backups_done;
 
+  /// The member's own signing key fingerprint on a shared site library page, to compare with what an owner sees before approving
+  ///
+  /// In en, this message translates to:
+  /// **'Your key {fingerprint}'**
+  String sharedLibrary_library_myKey(String fingerprint);
+
+  /// Shown to a shared site library owner: suggestions by members not yet approved, held until approval
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 suggestion waits until you approve its author} other{{count} suggestions wait until you approve their authors}}'**
+  String sharedLibrary_suggest_held(int count);
+
   /// No description provided for @sharedLibrary_encrypted_locked.
   ///
   /// In en, this message translates to:
