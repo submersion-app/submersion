@@ -21072,7 +21072,7 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Hozzáadsz $count merülőhelyet ehhez: $library?',
-      one: 'Hozzáadsz 1 merülőhelyet ehhez: $library?',
+      one: 'Hozzáadsz $count merülőhelyet ehhez: $library?',
     );
     return '$_temp0';
   }

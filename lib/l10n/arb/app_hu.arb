@@ -5818,7 +5818,7 @@
   "sharedLibrary_site_addToLibrary": "Hozzáadás a megosztott merülőhely-könyvtárhoz",
   "sharedLibrary_add_confirm_title": "Hozzáadod: {name} → {library}?",
   "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
-  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Hozzáadsz 1 merülőhelyet ehhez: {library}?} other{Hozzáadsz {count} merülőhelyet ehhez: {library}?}}",
+  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Hozzáadsz {count} merülőhelyet ehhez: {library}?} other{Hozzáadsz {count} merülőhelyet ehhez: {library}?}}",
   "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
   "sharedLibrary_add_confirm_shared": "Minden tag látni fogja: név, hely, mélységek, leírás, veszélyek, megközelítés, be- és kiszállás, kikötés, parkolás, helytípusok, címkék, fajok és jellemzők.",
   "sharedLibrary_add_confirm_private": "A tiéd marad: a jegyzeteid és az értékelésed. A merülések és a fotók soha nem hagyják el a személyes könyvtáradat.",

@@ -5918,7 +5918,7 @@
   "sharedLibrary_site_addToLibrary": "إضافة إلى مكتبة المواقع المشتركة",
   "sharedLibrary_add_confirm_title": "إضافة {name} إلى {library}؟",
   "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
-  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{إضافة موقع واحد إلى {library}؟} other{إضافة {count} مواقع إلى {library}؟}}",
+  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{إضافة موقع واحد إلى {library}؟} two{إضافة موقعين إلى {library}؟} few{إضافة {count} مواقع إلى {library}؟} many{إضافة {count} موقعًا إلى {library}؟} other{إضافة {count} موقع إلى {library}؟}}",
   "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
   "sharedLibrary_add_confirm_shared": "سيرى كل الأعضاء: الاسم والموقع والأعماق والوصف والمخاطر والوصول والدخول والخروج والرسو ومواقف السيارات وأنواع المواقع والوسوم والأنواع البحرية والمعالم.",
   "sharedLibrary_add_confirm_private": "يبقى لك: ملاحظاتك وتقييمك. لا تغادر الغطسات والصور مكتبتك الشخصية أبدًا.",

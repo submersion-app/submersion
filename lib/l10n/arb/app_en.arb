@@ -13157,7 +13157,7 @@
   "sharedLibrary_site_addToLibrary": "Add to shared site library",
   "sharedLibrary_add_confirm_title": "Add {name} to {library}?",
   "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
-  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Add 1 site to {library}?} other{Add {count} sites to {library}?}}",
+  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Add {count} site to {library}?} other{Add {count} sites to {library}?}}",
   "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
   "sharedLibrary_add_confirm_shared": "Every member will see: name, location, depths, description, hazards, access, entry and exit, mooring, parking, site types, tags, species and features.",
   "sharedLibrary_add_confirm_private": "Stays yours: your notes and rating. Dives and photos never leave your personal library.",

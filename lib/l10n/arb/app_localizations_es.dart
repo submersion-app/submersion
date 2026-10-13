@@ -21148,7 +21148,7 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other: '¿Añadir $count sitios a $library?',
-      one: '¿Añadir 1 sitio a $library?',
+      one: '¿Añadir $count sitio a $library?',
     );
     return '$_temp0';
   }

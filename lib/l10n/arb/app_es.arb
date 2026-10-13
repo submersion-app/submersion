@@ -5918,7 +5918,7 @@
   "sharedLibrary_site_addToLibrary": "Añadir a la biblioteca de puntos compartida",
   "sharedLibrary_add_confirm_title": "¿Añadir {name} a {library}?",
   "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
-  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{¿Añadir 1 sitio a {library}?} other{¿Añadir {count} sitios a {library}?}}",
+  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{¿Añadir {count} sitio a {library}?} other{¿Añadir {count} sitios a {library}?}}",
   "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
   "sharedLibrary_add_confirm_shared": "Todos los miembros verán: nombre, ubicación, profundidades, descripción, peligros, acceso, entrada y salida, amarre, aparcamiento, tipos de sitio, etiquetas, especies y elementos.",
   "sharedLibrary_add_confirm_private": "Sigue siendo tuyo: tus notas y tu valoración. Las inmersiones y las fotos nunca salen de tu biblioteca personal.",

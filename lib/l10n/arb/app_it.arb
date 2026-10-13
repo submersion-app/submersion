@@ -5818,7 +5818,7 @@
   "sharedLibrary_site_addToLibrary": "Aggiungi alla libreria di siti condivisa",
   "sharedLibrary_add_confirm_title": "Aggiungere {name} a {library}?",
   "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
-  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Aggiungere 1 sito a {library}?} other{Aggiungere {count} siti a {library}?}}",
+  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Aggiungere {count} sito a {library}?} other{Aggiungere {count} siti a {library}?}}",
   "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
   "sharedLibrary_add_confirm_shared": "Tutti i membri vedranno: nome, posizione, profondità, descrizione, pericoli, accesso, entrata e uscita, ormeggio, parcheggio, tipi di sito, tag, specie e caratteristiche.",
   "sharedLibrary_add_confirm_private": "Resta tuo: le tue note e la tua valutazione. Immersioni e foto non lasciano mai la tua libreria personale.",

@@ -20670,7 +20670,7 @@ class AppLocalizationsHe extends AppLocalizations {
       count,
       locale: localeName,
       other: 'להוסיף $count אתרים אל $library?',
-      one: 'להוסיף אתר אחד אל $library?',
+      one: 'להוסיף $count אתר אל $library?',
     );
     return '$_temp0';
   }

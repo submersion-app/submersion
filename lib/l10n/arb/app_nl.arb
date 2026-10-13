@@ -5918,7 +5918,7 @@
   "sharedLibrary_site_addToLibrary": "Toevoegen aan gedeelde duikstekbibliotheek",
   "sharedLibrary_add_confirm_title": "{name} toevoegen aan {library}?",
   "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
-  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{1 duikstek toevoegen aan {library}?} other{{count} duikstekken toevoegen aan {library}?}}",
+  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{{count} duikstek toevoegen aan {library}?} other{{count} duikstekken toevoegen aan {library}?}}",
   "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
   "sharedLibrary_add_confirm_shared": "Elk lid ziet: naam, locatie, dieptes, beschrijving, gevaren, toegang, in- en uitstap, afmeren, parkeren, stektypes, tags, soorten en kenmerken.",
   "sharedLibrary_add_confirm_private": "Blijft van jou: je notities en beoordeling. Duiken en foto's verlaten je persoonlijke bibliotheek nooit.",

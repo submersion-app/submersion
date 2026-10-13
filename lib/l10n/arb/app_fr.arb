@@ -5818,7 +5818,7 @@
   "sharedLibrary_site_addToLibrary": "Ajouter à la bibliothèque de sites partagée",
   "sharedLibrary_add_confirm_title": "Ajouter {name} à {library} ?",
   "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
-  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Ajouter 1 site à {library} ?} other{Ajouter {count} sites à {library} ?}}",
+  "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Ajouter {count} site à {library} ?} other{Ajouter {count} sites à {library} ?}}",
   "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
   "sharedLibrary_add_confirm_shared": "Tous les membres verront : nom, emplacement, profondeurs, description, dangers, accès, mise à l'eau et sortie, mouillage, stationnement, types de site, étiquettes, espèces et points d'intérêt.",
   "sharedLibrary_add_confirm_private": "Reste à vous : vos notes et votre évaluation. Les plongées et les photos ne quittent jamais votre bibliothèque personnelle.",

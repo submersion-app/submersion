@@ -21118,7 +21118,7 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count Tauchplätze zu $library hinzufügen?',
-      one: '1 Tauchplatz zu $library hinzufügen?',
+      one: '$count Tauchplatz zu $library hinzufügen?',
     );
     return '$_temp0';
   }

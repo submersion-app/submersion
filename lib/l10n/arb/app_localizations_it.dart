@@ -21143,7 +21143,7 @@ class AppLocalizationsIt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Aggiungere $count siti a $library?',
-      one: 'Aggiungere 1 sito a $library?',
+      one: 'Aggiungere $count sito a $library?',
     );
     return '$_temp0';
   }

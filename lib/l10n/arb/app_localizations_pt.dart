@@ -20976,7 +20976,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String sharedLibrary_setup_where(String folder) {
-    return 'Esta biblioteca fica em $folder, no topo do bucket ou do servidor, ao lado de submersion-sync e submersion-media.';
+    return 'Esta biblioteca fica em $folder, no topo do bucket ou do servidor, ao lado das pastas de sincronização e de multimédia.';
   }
 
   @override
@@ -21144,7 +21144,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Adicionar $count locais a $library?',
-      one: 'Adicionar 1 local a $library?',
+      one: 'Adicionar $count local a $library?',
     );
     return '$_temp0';
   }
@@ -21155,7 +21155,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_add_confirm_private =>
-      'Continua a ser seu: as suas notas e a sua classificação. Os mergulhos e as fotos nunca saem da sua biblioteca pessoal.';
+      'Fica consigo: as suas notas e a sua classificação. Os mergulhos e as fotos nunca saem da sua biblioteca pessoal.';
 
   @override
   String get sharedLibrary_add_confirm_action => 'Adicionar';

@@ -21410,7 +21410,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'إضافة $count مواقع إلى $library؟',
+      other: 'إضافة $count موقع إلى $library؟',
+      many: 'إضافة $count موقعًا إلى $library؟',
+      few: 'إضافة $count مواقع إلى $library؟',
+      two: 'إضافة موقعين إلى $library؟',
       one: 'إضافة موقع واحد إلى $library؟',
     );
     return '$_temp0';

@@ -21009,7 +21009,7 @@ class AppLocalizationsNl extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count duikstekken toevoegen aan $library?',
-      one: '1 duikstek toevoegen aan $library?',
+      one: '$count duikstek toevoegen aan $library?',
     );
     return '$_temp0';
   }

@@ -33842,7 +33842,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_add_confirm_titleMany.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Add 1 site to {library}?} other{Add {count} sites to {library}?}}'**
+  /// **'{count, plural, =1{Add {count} site to {library}?} other{Add {count} sites to {library}?}}'**
   String sharedLibrary_add_confirm_titleMany(int count, String library);
 
   /// No description provided for @sharedLibrary_add_confirm_shared.
