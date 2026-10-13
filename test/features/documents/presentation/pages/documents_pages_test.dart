@@ -206,6 +206,9 @@ void main() {
       issuer: 'Marine Park',
     );
     await pump(t, '/documents/${doc.id}');
+    // On a phone the details start folded under the pages.
+    await t.tap(find.byKey(const ValueKey('document-details-toggle')));
+    await t.pumpAndSettle();
     expect(find.text('Park permit'), findsWidgets);
     expect(find.text('Marine Park'), findsOneWidget);
     expect(find.text('Bonaire'), findsOneWidget);
@@ -244,6 +247,8 @@ void main() {
       owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
     );
     await pump(t, '/documents/${doc.id}');
+    await t.tap(find.byKey(const ValueKey('document-details-toggle')));
+    await t.pumpAndSettle();
     await t.tap(find.text('Bonaire'));
     await t.pumpAndSettle();
     expect(find.text('TRIP t1'), findsOneWidget);
