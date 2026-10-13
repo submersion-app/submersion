@@ -21372,6 +21372,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدوار هذه المكتبة غير موقعة من أحد مالكيها. اطلب من مالك التحقق منها.';
 
   @override
+  String get sharedLibrary_retired =>
+      'أُنشئت هذه المكتبة بإصدار تجريبي من Submersion. أنشئها من جديد.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

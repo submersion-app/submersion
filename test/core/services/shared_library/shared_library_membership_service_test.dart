@@ -65,7 +65,7 @@ void main() {
       displayName: 'Ann',
     );
     final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
-    expect((await t.readManifest())!['name'], 'Reef Survey');
+    expect((await t.readInfo())!['name'], 'Reef Survey');
     final me = (await SharedLibraryStore().membership(
       diverId: 'd1',
       libraryId: lib.id,
@@ -433,12 +433,42 @@ void main() {
     expect(library.pendingRoles, isNull);
   });
 
+  test('create writes a version 2 manifest and the name apart', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final manifest = (await t.readManifest())!;
+    expect(manifest['formatVersion'], 2);
+    expect(manifest['encrypted'], isFalse);
+    expect(manifest.containsKey('name'), isFalse);
+    expect(manifest['id'], lib.id);
+    expect((await t.readInfo())!['name'], 'Reef Survey');
+    final probe = await service.probe(account: account, prefix: 'site-sync');
+    expect(probe.name, 'Reef Survey');
+    expect(probe.retired, isFalse);
+  });
+
+  test('a version 1 library is retired', () async {
+    await SharedLibraryTransport(
+      cloud,
+      prefix: 'old',
+    ).writeManifest({'id': 'O', 'name': 'Old', 'formatVersion': 1});
+    final probe = await service.probe(account: account, prefix: 'old');
+    expect(probe.exists, isTrue);
+    expect(probe.retired, isTrue);
+  });
+
   test('join reads the folder through one transport', () async {
     final folder = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await folder.writeManifest({
       'id': 'L',
       'name': 'Reef Survey',
-      'formatVersion': 1,
+      'formatVersion': 2,
     });
     await folder.writeRoles(await signedTestRoles(owners: {'o'}));
     var built = 0;

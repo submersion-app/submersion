@@ -21105,6 +21105,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'I ruoli di questa libreria non sono firmati da uno dei suoi proprietari. Chiedi a un proprietario di verificarlo.';
 
   @override
+  String get sharedLibrary_retired =>
+      'Questa libreria è stata creata da una versione di prova di Submersion. Creala di nuovo.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
 
   @override

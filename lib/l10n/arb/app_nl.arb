@@ -5906,6 +5906,7 @@
   "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
   "sharedLibrary_owner_resetAccept": "Accepteren",
   "sharedLibrary_connect_untrusted": "De rollen van deze bibliotheek zijn niet ondertekend door een van haar eigenaars. Vraag een eigenaar dit na te kijken.",
+  "sharedLibrary_retired": "Deze bibliotheek is gemaakt met een testversie van Submersion. Maak haar opnieuw.",
   "sharedLibrary_connect_probe_action": "Controleren",
   "sharedLibrary_connect_join_action": "Deelnemen aan {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

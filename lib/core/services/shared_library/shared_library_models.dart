@@ -529,10 +529,24 @@ abstract final class SharedLibraryLayout {
   };
   static const manifestFile = 'submersion-shared-library.json';
   static const rolesFile = 'roles.json';
+
+  /// The library's name, kept apart from the manifest so it can be sealed
+  /// with the rest when the library is encrypted.
+  static const infoFile = 'info.json';
+
+  /// The wrapped library key of an encrypted library; always plain.
+  static const keyslotsFile = 'keyslots.json';
+  static const backupsDir = 'backups';
   static const membersDir = 'members';
   static const sitesDir = 'sites';
   static const suggestionsDir = 'suggestions';
-  static const formatVersion = 1;
+
+  /// 2: signed roles, cards, edits and suggestions, `info.json`, optional
+  /// encryption (issue #2567).
+  static const formatVersion = 2;
+
+  /// Version 1 came only from test builds before signing: refused.
+  static const minFormatVersion = 2;
 
   static String memberFile(String memberId) => '$membersDir/$memberId.json';
   static String siteFile(String siteId) => '$sitesDir/$siteId.json';

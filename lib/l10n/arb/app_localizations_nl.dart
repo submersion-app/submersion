@@ -20969,6 +20969,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De rollen van deze bibliotheek zijn niet ondertekend door een van haar eigenaars. Vraag een eigenaar dit na te kijken.';
 
   @override
+  String get sharedLibrary_retired =>
+      'Deze bibliotheek is gemaakt met een testversie van Submersion. Maak haar opnieuw.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override

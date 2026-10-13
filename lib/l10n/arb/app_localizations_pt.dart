@@ -21107,6 +21107,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'As funções desta biblioteca não estão assinadas por um dos seus proprietários. Peça a um proprietário que verifique.';
 
   @override
+  String get sharedLibrary_retired =>
+      'Esta biblioteca foi criada por uma versão de teste do Submersion. Crie-a de novo.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override

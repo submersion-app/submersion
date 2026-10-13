@@ -21035,6 +21035,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A könyvtár szerepköreit nem írta alá egyik tulajdonosa sem. Kérj meg egy tulajdonost, hogy ellenőrizze.';
 
   @override
+  String get sharedLibrary_retired =>
+      'Ezt a könyvtárat a Submersion egy tesztverziója hozta létre. Hozd létre újra.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

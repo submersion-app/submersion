@@ -5806,6 +5806,7 @@
   "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
   "sharedLibrary_owner_resetAccept": "Accepter",
   "sharedLibrary_connect_untrusted": "Les rôles de cette bibliothèque ne sont pas signés par l'un de ses propriétaires. Demandez à un propriétaire de vérifier.",
+  "sharedLibrary_retired": "Cette bibliothèque a été créée par une version de test de Submersion. Créez-la à nouveau.",
   "sharedLibrary_connect_probe_action": "Vérifier",
   "sharedLibrary_connect_join_action": "Rejoindre {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

@@ -6037,6 +6037,7 @@
   "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
   "sharedLibrary_owner_resetAccept": "Zustimmen",
   "sharedLibrary_connect_untrusted": "Die Rollen dieser Bibliothek sind nicht von einem ihrer Eigentümer signiert. Bitten Sie einen Eigentümer, das zu prüfen.",
+  "sharedLibrary_retired": "Diese Bibliothek wurde mit einer Testversion von Submersion erstellt. Legen Sie sie neu an.",
   "sharedLibrary_connect_probe_action": "Prüfen",
   "sharedLibrary_connect_join_action": "{name} beitreten",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

@@ -33801,6 +33801,12 @@ abstract class AppLocalizations {
   /// **'This library\'s roles are not signed by one of its owners. Ask an owner to check it.'**
   String get sharedLibrary_connect_untrusted;
 
+  /// No description provided for @sharedLibrary_retired.
+  ///
+  /// In en, this message translates to:
+  /// **'This library was made by a test build of Submersion. Create it again.'**
+  String get sharedLibrary_retired;
+
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
   /// In en, this message translates to:

@@ -194,6 +194,12 @@ class SharedLibraryTransport {
   Future<void> writeManifest(Map<String, dynamic> manifest) async =>
       _writeJson(await _rootId(), SharedLibraryLayout.manifestFile, manifest);
 
+  Future<Map<String, dynamic>?> readInfo() async =>
+      _readJson(await _rootId(), SharedLibraryLayout.infoFile);
+
+  Future<void> writeInfo(Map<String, dynamic> info) async =>
+      _writeJson(await _rootId(), SharedLibraryLayout.infoFile, info);
+
   Future<SharedLibraryRoles> readRoles() async {
     final json = await _readJson(
       await _rootId(),

@@ -5910,6 +5910,7 @@
   "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
   "sharedLibrary_owner_resetAccept": "אישור",
   "sharedLibrary_connect_untrusted": "התפקידים של הספרייה הזו אינם חתומים על ידי אחד מבעליה. בקשו מבעלים לבדוק זאת.",
+  "sharedLibrary_retired": "הספרייה הזו נוצרה בגרסת ניסיון של Submersion. צרו אותה מחדש.",
   "sharedLibrary_connect_probe_action": "בדיקה",
   "sharedLibrary_connect_join_action": "הצטרפות אל {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

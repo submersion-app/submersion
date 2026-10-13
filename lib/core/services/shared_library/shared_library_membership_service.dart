@@ -24,15 +24,25 @@ class LibraryProbe {
     this.id,
     this.name,
     this.formatVersion = SharedLibraryLayout.formatVersion,
+    this.encrypted = false,
+    this.keyId,
   });
 
   final bool exists;
   final String? id;
+
+  /// Null for an encrypted library until it is unlocked.
   final String? name;
   final int formatVersion;
+  final bool encrypted;
+  final String? keyId;
 
   bool get needsNewerApp =>
       exists && formatVersion > SharedLibraryLayout.formatVersion;
+
+  /// Made by a test build before signing existed: it cannot be joined.
+  bool get retired =>
+      exists && formatVersion < SharedLibraryLayout.minFormatVersion;
 }
 
 typedef LibraryTransportFactory =
@@ -132,13 +142,20 @@ class SharedLibraryMembershipService {
   static Future<LibraryProbe> _probeWith(SharedLibraryTransport t) async {
     final manifest = await t.readManifest();
     if (manifest == null) return const LibraryProbe(exists: false);
+    final version = (manifest['formatVersion'] as num?)?.toInt() ?? 1;
+    final encrypted = manifest['encrypted'] == true;
+    final keyId = manifest['keyId'];
+    String? name = manifest['name'] as String?;
+    if (version >= SharedLibraryLayout.minFormatVersion && !encrypted) {
+      name = (await t.readInfo())?['name'] as String? ?? name;
+    }
     return LibraryProbe(
       exists: true,
       id: manifest['id'] as String?,
-      name: manifest['name'] as String?,
-      formatVersion:
-          (manifest['formatVersion'] as num?)?.toInt() ??
-          SharedLibraryLayout.formatVersion,
+      name: encrypted ? null : name,
+      formatVersion: version,
+      encrypted: encrypted,
+      keyId: keyId is String ? keyId : null,
     );
   }
 
@@ -176,11 +193,12 @@ class SharedLibraryMembershipService {
     final now = DateTime.now().toUtc();
     await t.writeManifest({
       'id': libraryId,
-      'name': name,
       'formatVersion': SharedLibraryLayout.formatVersion,
+      'encrypted': false,
       'createdBy': memberId,
       'createdAt': now.toIso8601String(),
     });
+    await t.writeInfo({'name': name});
     // The profile may have no membership yet to carry a key: the one made
     // here goes on the new membership below.
     final myKey =
@@ -240,6 +258,9 @@ class SharedLibraryMembershipService {
     final found = await _probeWith(t);
     if (!found.exists || found.id == null || found.id!.isEmpty) {
       throw StateError('No library at $prefix');
+    }
+    if (found.retired) {
+      throw StateError('Library format ${found.formatVersion} is retired');
     }
     if (found.needsNewerApp) {
       throw StateError(

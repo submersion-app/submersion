@@ -20790,6 +20790,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This library\'s roles are not signed by one of its owners. Ask an owner to check it.';
 
   @override
+  String get sharedLibrary_retired =>
+      'This library was made by a test build of Submersion. Create it again.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Check';
 
   @override

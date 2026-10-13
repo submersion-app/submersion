@@ -364,6 +364,44 @@ void main() {
     expect(find.text('keychain locked'), findsOneWidget);
   });
 
+  testWidgets('a library from a test build cannot be joined', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          eligibleLibraryAccountsProvider.overrideWith(
+            (ref) async => [_bucket()],
+          ),
+          sharedLibraryMembershipServiceProvider.overrideWithValue(
+            _FakeMembershipService({
+              'old': const LibraryProbe(
+                exists: true,
+                id: 'O',
+                name: 'Old',
+                formatVersion: 1,
+              ),
+            }),
+          ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
+          currentDiverProvider.overrideWith((ref) async => null),
+        ],
+        locale: const Locale('en'),
+        child: const ConnectSharedLibraryPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'old');
+    await tester.tap(find.text('Check'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'This library was made by a test build of Submersion. Create it again.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Join Old'), findsNothing);
+  });
+
   testWidgets('a new library shows its recovery code', (tester) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;

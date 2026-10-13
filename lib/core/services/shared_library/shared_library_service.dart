@@ -23,6 +23,9 @@ enum SharedLibrarySyncStatus {
   readOnly,
   notALibrary,
   needsNewerApp,
+
+  /// Made by a test build before format 2: it can only be created again.
+  retired,
   notConnected,
   failed,
 }
@@ -149,6 +152,14 @@ class SharedLibraryService {
         );
       }
       final version = (manifest['formatVersion'] as num?)?.toInt() ?? 1;
+      if (version < SharedLibraryLayout.minFormatVersion) {
+        return await _fail(
+          libraryId,
+          SharedLibrarySyncStatus.retired,
+          'This library was made by a test build of Submersion. '
+          'Create it again.',
+        );
+      }
       if (version > SharedLibraryLayout.formatVersion) {
         return await _fail(
           libraryId,
@@ -163,7 +174,7 @@ class SharedLibraryService {
       final members = await t.listMembers();
       await _store.setLibraryStatus(
         libraryId,
-        name: manifest['name'] as String?,
+        name: await _nameOf(t) ?? manifest['name'] as String?,
       );
       await _store.replaceMembers(libraryId, members);
       // Probed afresh every sync: a refused upload sets it, so upgraded
@@ -420,6 +431,15 @@ class SharedLibraryService {
         _log.warning('Ignoring roles of ${library.id} not signed by an owner');
         await _store.setLibraryStatus(library.id, rolesRejected: true);
         return trusted;
+    }
+  }
+
+  /// The library's name from `info.json`, or null when it cannot be read.
+  Future<String?> _nameOf(SharedLibraryTransport t) async {
+    try {
+      return (await t.readInfo())?['name'] as String?;
+    } on FormatException {
+      return null;
     }
   }
 

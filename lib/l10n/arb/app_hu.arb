@@ -5806,6 +5806,7 @@
   "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
   "sharedLibrary_owner_resetAccept": "Elfogadás",
   "sharedLibrary_connect_untrusted": "A könyvtár szerepköreit nem írta alá egyik tulajdonosa sem. Kérj meg egy tulajdonost, hogy ellenőrizze.",
+  "sharedLibrary_retired": "Ezt a könyvtárat a Submersion egy tesztverziója hozta létre. Hozd létre újra.",
   "sharedLibrary_connect_probe_action": "Ellenőrzés",
   "sharedLibrary_connect_join_action": "Csatlakozás: {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

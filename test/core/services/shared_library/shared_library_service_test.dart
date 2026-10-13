@@ -97,7 +97,7 @@ Future<void> seedLibrary(
   Set<String>? approved,
 }) async {
   final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
-  await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
+  await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 2});
   final roles = await signedTestRoles(
     owners: owners,
     editors: editors,
@@ -310,10 +310,11 @@ void main() {
 
   test('a newer format version stops the sync', () async {
     final cloud = FakeCloudStorageProvider();
-    await SharedLibraryTransport(
-      cloud,
-      prefix: 'site-sync',
-    ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 2});
+    await SharedLibraryTransport(cloud, prefix: 'site-sync').writeManifest({
+      'id': 'L',
+      'name': 'Reef Survey',
+      'formatVersion': SharedLibraryLayout.formatVersion + 1,
+    });
     final svc = await device(cloud, 'a');
     expect(
       (await svc.sync('L', diverId: 'd-a')).status,
@@ -819,6 +820,18 @@ void main() {
     expect(library.pendingRoles?.owners, {'c'});
     expect(library.roles, trusted);
     expect((await SharedLibraryStore().getSiteState('s1'))!.dirty, isTrue);
+  });
+
+  test('a library from a test build (format 1) is retired', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud);
+    await SharedLibraryTransport(
+      cloud,
+      prefix: 'site-sync',
+    ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
+    final svc = await device(cloud, 'a');
+    final r = await svc.sync('L', diverId: 'd-a');
+    expect(r.status, SharedLibrarySyncStatus.retired);
   });
 }
 

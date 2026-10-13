@@ -20634,6 +20634,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'התפקידים של הספרייה הזו אינם חתומים על ידי אחד מבעליה. בקשו מבעלים לבדוק זאת.';
 
   @override
+  String get sharedLibrary_retired =>
+      'הספרייה הזו נוצרה בגרסת ניסיון של Submersion. צרו אותה מחדש.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

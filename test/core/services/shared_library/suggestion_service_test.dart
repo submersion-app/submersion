@@ -192,7 +192,7 @@ void main() {
     await t.writeManifest({
       'id': 'L',
       'name': 'Reef Survey',
-      'formatVersion': 1,
+      'formatVersion': 2,
     });
     await t.writeRoles(const SharedLibraryRoles(owners: {'o'}));
     await t.writeSuggestion('g9', _incoming('g9', {'hazards': 'new'}).toJson());

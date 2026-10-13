@@ -13145,6 +13145,7 @@
   "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
   "sharedLibrary_owner_resetAccept": "Accept",
   "sharedLibrary_connect_untrusted": "This library's roles are not signed by one of its owners. Ask an owner to check it.",
+  "sharedLibrary_retired": "This library was made by a test build of Submersion. Create it again.",
   "sharedLibrary_connect_probe_action": "Check",
   "sharedLibrary_connect_join_action": "Join {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},

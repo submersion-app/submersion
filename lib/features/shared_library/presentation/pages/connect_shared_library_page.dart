@@ -353,6 +353,7 @@ class _ConnectSharedLibraryPageState
   Widget _result() {
     final l10n = context.l10n;
     final probe = _probe!;
+    if (probe.retired) return Text(l10n.sharedLibrary_retired);
     if (probe.needsNewerApp) {
       return Text(l10n.sharedLibrary_connect_needsNewerApp);
     }

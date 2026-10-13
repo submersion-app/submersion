@@ -21109,6 +21109,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los roles de esta biblioteca no están firmados por uno de sus propietarios. Pide a un propietario que lo revise.';
 
   @override
+  String get sharedLibrary_retired =>
+      'Esta biblioteca se creó con una versión de prueba de Submersion. Créala de nuevo.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Comprobar';
 
   @override

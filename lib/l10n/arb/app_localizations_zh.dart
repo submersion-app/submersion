@@ -20057,6 +20057,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_connect_untrusted => '此资料库的角色未由其所有者签名。请让所有者检查。';
 
   @override
+  String get sharedLibrary_retired => '此资料库由 Submersion 的测试版本创建。请重新创建。';
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

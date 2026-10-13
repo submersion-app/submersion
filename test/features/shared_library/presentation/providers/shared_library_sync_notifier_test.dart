@@ -68,7 +68,7 @@ void main() {
       await SharedLibraryTransport(
         cloud,
         prefix: 'site-sync',
-      ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
+      ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 2});
       final container = ProviderContainer(
         overrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),

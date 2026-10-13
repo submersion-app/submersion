@@ -6058,6 +6058,7 @@
   "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
   "sharedLibrary_owner_resetAccept": "接受",
   "sharedLibrary_connect_untrusted": "此资料库的角色未由其所有者签名。请让所有者检查。",
+  "sharedLibrary_retired": "此资料库由 Submersion 的测试版本创建。请重新创建。",
   "sharedLibrary_connect_probe_action": "检查",
   "sharedLibrary_connect_join_action": "加入{name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
