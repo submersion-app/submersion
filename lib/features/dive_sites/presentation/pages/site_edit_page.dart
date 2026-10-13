@@ -1863,6 +1863,26 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
+  /// Notes and rating on a library site are the member's own (issue #2567):
+  /// saved on the row, never proposed. True when either changed.
+  Future<bool> _savePrivateFields(DiveSite site, String diverId) async {
+    final stored = await SiteRepository().getSiteById(site.id);
+    if (stored == null ||
+        (stored.notes == site.notes && stored.rating == site.rating)) {
+      return false;
+    }
+    await SiteRepository().updateSite(
+      stored.copyWith(
+        notes: site.notes,
+        rating: site.rating,
+        clearRating: site.rating == null,
+      ),
+      actingDiverId: diverId,
+    );
+    ref.invalidate(siteProvider(site.id));
+    return true;
+  }
+
   /// A reader's save on a shared site library site (issue #2567): the changed
   /// fields and the note become a suggestion; the site is untouched.
   Future<void> _sendSuggestion(
@@ -1871,6 +1891,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   ) async {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
+    final savedPrivate = await _savePrivateFields(site, diverId);
+    if (!mounted) return;
     var childFields = const <String, Object?>{};
     if (classificationChanged) {
       final types = await SiteTypeRepository().getAllSiteTypes(
@@ -1901,13 +1923,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          suggestion == null
-              ? l10n.sharedLibrary_suggest_nothingChanged
-              : l10n.sharedLibrary_suggest_sent,
+          suggestion != null
+              ? l10n.sharedLibrary_suggest_sent
+              : savedPrivate
+              ? l10n.sharedLibrary_suggest_savedPrivate
+              : l10n.sharedLibrary_suggest_nothingChanged,
         ),
       ),
     );
-    if (suggestion == null) return;
+    if (suggestion == null && !savedPrivate) return;
     if (widget.onSaved != null) {
       widget.onSaved!(site.id);
     } else {

@@ -5920,6 +5920,7 @@
   "sharedLibrary_suggest_send": "إرسال",
   "sharedLibrary_suggest_sent": "تم إرسال الاقتراح",
   "sharedLibrary_suggest_nothingChanged": "لم يتغير شيء.",
+  "sharedLibrary_suggest_savedPrivate": "تم حفظ ملاحظاتك وتقييمك.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{اقتراح واحد معلق} two{اقتراحان معلقان} few{{count} اقتراحات معلقة} many{{count} اقتراحًا معلقًا} other{{count} اقتراح معلق}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "سحب",

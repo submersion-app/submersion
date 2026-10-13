@@ -5924,6 +5924,7 @@
   "sharedLibrary_suggest_send": "שליחה",
   "sharedLibrary_suggest_sent": "ההצעה נשלחה",
   "sharedLibrary_suggest_nothingChanged": "שום דבר לא השתנה.",
+  "sharedLibrary_suggest_savedPrivate": "ההערות והדירוג שלך נשמרו.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{הצעה אחת ממתינה} other{{count} הצעות ממתינות}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "משיכה",

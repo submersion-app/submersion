@@ -91,11 +91,15 @@ void main() {
     () async {
       final site = (await SiteRepository().getSiteById('s'))!;
       final s = await service.propose(
-        proposed: site.copyWith(hazards: 'new', notes: 'n'),
+        proposed: site.copyWith(
+          hazards: 'new',
+          parkingInfo: 'n',
+          notes: 'mine',
+        ),
         diverId: 'reader',
         note: 'please',
       );
-      expect(s!.fields, {'hazards': 'new', 'notes': 'n'});
+      expect(s!.fields, {'hazards': 'new', 'parkingInfo': 'n'});
       expect(s.direction, SharedSiteSuggestion.outgoing);
       expect(s.status, SharedSiteSuggestion.pending);
       expect(s.memberId, 'r');
@@ -125,7 +129,7 @@ void main() {
   test('withdraw removes a pending outgoing suggestion', () async {
     final site = (await SiteRepository().getSiteById('s'))!;
     final s = await service.propose(
-      proposed: site.copyWith(notes: 'x'),
+      proposed: site.copyWith(parkingInfo: 'x'),
       diverId: 'reader',
     );
     await service.withdraw(s!.id);
@@ -160,22 +164,28 @@ void main() {
   test(
     'dismiss drops the file and the row; a vanished file is tolerated',
     () async {
-      await SharedLibraryStore().putSuggestion(_incoming('g2', {'notes': 'x'}));
+      await SharedLibraryStore().putSuggestion(
+        _incoming('g2', {'parkingInfo': 'x'}),
+      );
       await service.dismiss('g2', diverId: 'owner');
       expect(await SharedLibraryStore().suggestions('L'), isEmpty);
-      expect((await SiteRepository().getSiteById('s'))!.notes, '');
+      expect((await SiteRepository().getSiteById('s'))!.parkingInfo, isNull);
     },
   );
 
   test('a reader may neither accept nor dismiss', () async {
-    await SharedLibraryStore().putSuggestion(_incoming('g4', {'notes': 'x'}));
+    await SharedLibraryStore().putSuggestion(
+      _incoming('g4', {'parkingInfo': 'x'}),
+    );
     expect(() => service.accept('g4', diverId: 'reader'), throwsStateError);
     expect(() => service.dismiss('g4', diverId: 'reader'), throwsStateError);
     expect(await SharedLibraryStore().suggestions('L'), hasLength(1));
   });
 
   test('accept of a suggestion whose site is gone only dismisses', () async {
-    await SharedLibraryStore().putSuggestion(_incoming('g3', {'notes': 'x'}));
+    await SharedLibraryStore().putSuggestion(
+      _incoming('g3', {'parkingInfo': 'x'}),
+    );
     await SiteRepository().deleteSite('s');
     await service.accept('g3', diverId: 'owner');
     expect(await SharedLibraryStore().suggestions('L'), isEmpty);

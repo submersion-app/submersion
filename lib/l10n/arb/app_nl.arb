@@ -5920,6 +5920,7 @@
   "sharedLibrary_suggest_send": "Verzenden",
   "sharedLibrary_suggest_sent": "Suggestie verzonden",
   "sharedLibrary_suggest_nothingChanged": "Niets gewijzigd.",
+  "sharedLibrary_suggest_savedPrivate": "Je notities en beoordeling zijn opgeslagen.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggestie in behandeling} other{{count} suggesties in behandeling}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "Intrekken",

@@ -13159,6 +13159,7 @@
   "sharedLibrary_suggest_send": "Send",
   "sharedLibrary_suggest_sent": "Suggestion sent",
   "sharedLibrary_suggest_nothingChanged": "Nothing changed.",
+  "sharedLibrary_suggest_savedPrivate": "Your notes and rating are saved.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggestion pending} other{{count} suggestions pending}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "Withdraw",

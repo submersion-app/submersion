@@ -44,8 +44,11 @@ void main() {
   test('changedFields names only the fields that differ', () {
     const a = DiveSite(id: 's', name: 'S', hazards: 'x');
     expect(
-      LibraryEditStamper.changedFields(a, a.copyWith(hazards: 'y', notes: 'n')),
-      {'hazards', 'notes'},
+      LibraryEditStamper.changedFields(
+        a,
+        a.copyWith(hazards: 'y', parkingInfo: 'n', notes: 'private'),
+      ),
+      {'hazards', 'parkingInfo'},
     );
     expect(LibraryEditStamper.changedFields(a, a), isEmpty);
   });

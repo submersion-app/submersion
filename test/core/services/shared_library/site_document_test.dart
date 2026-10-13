@@ -62,7 +62,19 @@ void main() {
   });
 
   test('fieldNames covers every site column the spec lists', () {
-    expect(SiteDocument.fieldNames, hasLength(26));
+    // 26 site columns less notes and rating, which stay private.
+    expect(SiteDocument.fieldNames, hasLength(24));
     expect(SiteDocument.fieldNames.last, 'features');
+  });
+
+  test('notes and rating are never part of a document', () {
+    expect(SiteDocument.fieldNames, isNot(contains('notes')));
+    expect(SiteDocument.fieldNames, isNot(contains('rating')));
+    final doc = SiteDocument.fromJson({
+      'id': 's1',
+      'fields': {'name': 'A', 'notes': 'mine', 'rating': 5},
+      'clocks': <String, dynamic>{},
+    });
+    expect(doc.fields.keys, ['name']);
   });
 }

@@ -6051,6 +6051,7 @@
   "sharedLibrary_suggest_send": "Senden",
   "sharedLibrary_suggest_sent": "Vorschlag gesendet",
   "sharedLibrary_suggest_nothingChanged": "Nichts geändert.",
+  "sharedLibrary_suggest_savedPrivate": "Ihre Notizen und Ihre Bewertung wurden gespeichert.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 Vorschlag ausstehend} other{{count} Vorschläge ausstehend}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "Zurückziehen",

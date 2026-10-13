@@ -21412,6 +21412,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_suggest_nothingChanged => 'لم يتغير شيء.';
 
   @override
+  String get sharedLibrary_suggest_savedPrivate => 'تم حفظ ملاحظاتك وتقييمك.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

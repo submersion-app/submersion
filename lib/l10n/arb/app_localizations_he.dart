@@ -20671,6 +20671,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_suggest_nothingChanged => 'שום דבר לא השתנה.';
 
   @override
+  String get sharedLibrary_suggest_savedPrivate => 'ההערות והדירוג שלך נשמרו.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

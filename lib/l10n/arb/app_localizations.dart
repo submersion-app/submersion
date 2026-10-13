@@ -33851,6 +33851,12 @@ abstract class AppLocalizations {
   /// **'Nothing changed.'**
   String get sharedLibrary_suggest_nothingChanged;
 
+  /// No description provided for @sharedLibrary_suggest_savedPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes and rating are saved.'**
+  String get sharedLibrary_suggest_savedPrivate;
+
   /// No description provided for @sharedLibrary_suggest_pending.
   ///
   /// In en, this message translates to:

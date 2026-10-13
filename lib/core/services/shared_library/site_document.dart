@@ -43,8 +43,6 @@ class SiteDocument {
     'island',
     'country',
     'region',
-    'rating',
-    'notes',
     'hazards',
     'accessNotes',
     'mooringNumber',
@@ -57,6 +55,10 @@ class SiteDocument {
     'species',
     'features',
   ];
+
+  /// The member's own: kept on the library site row, never uploaded, and
+  /// dropped from documents written by older builds (issue #2567).
+  static const Set<String> privateFields = {'notes', 'rating'};
 
   /// The fields that are lists of children rather than a site column.
   static const Set<String> listFields = {
@@ -101,7 +103,10 @@ class SiteDocument {
       id: id,
       deleted: json['deleted'] == true,
       fields: rawFields is Map
-          ? Map<String, Object?>.from(rawFields)
+          ? {
+              for (final e in rawFields.entries)
+                if (!privateFields.contains(e.key)) '${e.key}': e.value,
+            }
           : const {},
       clocks: clocks,
       extra: {

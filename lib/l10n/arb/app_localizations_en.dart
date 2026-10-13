@@ -20827,6 +20827,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLibrary_suggest_nothingChanged => 'Nothing changed.';
 
   @override
+  String get sharedLibrary_suggest_savedPrivate =>
+      'Your notes and rating are saved.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -20091,6 +20091,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_suggest_nothingChanged => '没有任何更改。';
 
   @override
+  String get sharedLibrary_suggest_savedPrivate => '你的笔记和评分已保存。';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

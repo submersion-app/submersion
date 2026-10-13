@@ -6072,6 +6072,7 @@
   "sharedLibrary_suggest_send": "发送",
   "sharedLibrary_suggest_sent": "建议已发送",
   "sharedLibrary_suggest_nothingChanged": "没有任何更改。",
+  "sharedLibrary_suggest_savedPrivate": "你的笔记和评分已保存。",
   "sharedLibrary_suggest_pending": "{count, plural, other{{count} 条待处理建议}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "撤回",

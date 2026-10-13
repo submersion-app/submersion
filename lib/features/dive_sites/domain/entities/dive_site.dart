@@ -168,6 +168,7 @@ class DiveSite extends Equatable {
     bool? isShared,
     String? sharedLibraryId,
     bool clearSharedLibraryId = false,
+    bool clearRating = false,
   }) {
     return DiveSite(
       id: id ?? this.id,
@@ -185,7 +186,7 @@ class DiveSite extends Equatable {
       island: island ?? this.island,
       bodyOfWater: bodyOfWater ?? this.bodyOfWater,
       photoIds: photoIds ?? this.photoIds,
-      rating: rating ?? this.rating,
+      rating: clearRating ? null : rating ?? this.rating,
       notes: notes ?? this.notes,
       hazards: hazards ?? this.hazards,
       accessNotes: accessNotes ?? this.accessNotes,

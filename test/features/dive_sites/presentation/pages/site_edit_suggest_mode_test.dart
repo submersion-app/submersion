@@ -178,6 +178,32 @@ void main() {
     });
   });
 
+  testWidgets('a reader keeps their own notes without suggesting them', (
+    tester,
+  ) async {
+    await pump(tester, suggest: true);
+    await tester.scrollUntilVisible(
+      find.text('Life & notes').first,
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Life & notes').first);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      _rowField('General Notes'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(_rowField('General Notes'), 'only mine');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+
+    expect((await SiteRepository().getSiteById('s'))!.notes, 'only mine');
+    expect(await SharedLibraryStore().suggestions('L'), isEmpty);
+    expect(find.text('Your notes and rating are saved.'), findsOneWidget);
+  });
+
   testWidgets('an editor reaching the edit route edits the site', (
     tester,
   ) async {

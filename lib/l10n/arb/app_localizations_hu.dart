@@ -21073,6 +21073,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_suggest_nothingChanged => 'Semmi sem változott.';
 
   @override
+  String get sharedLibrary_suggest_savedPrivate =>
+      'A jegyzeteid és az értékelésed mentve.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

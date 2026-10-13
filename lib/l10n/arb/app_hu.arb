@@ -5820,6 +5820,7 @@
   "sharedLibrary_suggest_send": "Küldés",
   "sharedLibrary_suggest_sent": "Javaslat elküldve",
   "sharedLibrary_suggest_nothingChanged": "Semmi sem változott.",
+  "sharedLibrary_suggest_savedPrivate": "A jegyzeteid és az értékelésed mentve.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 javaslat függőben} other{{count} javaslat függőben}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "Visszavonás",

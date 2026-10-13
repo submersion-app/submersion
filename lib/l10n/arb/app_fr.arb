@@ -5820,6 +5820,7 @@
   "sharedLibrary_suggest_send": "Envoyer",
   "sharedLibrary_suggest_sent": "Suggestion envoyée",
   "sharedLibrary_suggest_nothingChanged": "Rien n'a changé.",
+  "sharedLibrary_suggest_savedPrivate": "Vos notes et votre évaluation sont enregistrées.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{{count} suggestion en attente} other{{count} suggestions en attente}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "Retirer",

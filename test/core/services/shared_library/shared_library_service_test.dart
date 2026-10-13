@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -191,10 +192,10 @@ void main() {
       final remote = await t.readSite(fileId);
       await t.writeSite(
         remote.copyWith(
-          fields: {...remote.fields, 'notes': 'B says'},
+          fields: {...remote.fields, 'parkingInfo': 'B says'},
           clocks: {
             ...remote.clocks,
-            'notes': FieldClock(
+            'parkingInfo': FieldClock(
               hlc: Hlc(DateTime.now().millisecondsSinceEpoch + 1000, 0, 'b'),
               memberId: 'b',
             ),
@@ -206,10 +207,10 @@ void main() {
       expect(r.pushed, 1);
       site = (await SiteRepository().getSiteById('s1'))!;
       expect(site.hazards, 'A says');
-      expect(site.notes, 'B says');
+      expect(site.parkingInfo, 'B says');
       final doc = await t.readSite(fileId);
       expect(doc.fields['hazards'], 'A says');
-      expect(doc.fields['notes'], 'B says');
+      expect(doc.fields['parkingInfo'], 'B says');
     },
   );
 
@@ -418,6 +419,57 @@ void main() {
     final result = await svc.sync('L', diverId: 'other');
     expect(result.status, SharedLibrarySyncStatus.notConnected);
     expect(cloud.operationLog.where((op) => op.startsWith('upload')), isEmpty);
+  });
+
+  test('notes and rating stay with each member', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud, owners: {'a', 'b'});
+    var svc = await device(cloud, 'a');
+    await SiteRepository().createSite(
+      const DiveSite(
+        id: 's1',
+        name: 'Blue',
+        notes: 'mine',
+        rating: 2,
+        sharedLibraryId: 'L',
+      ),
+    );
+    await markDirty('s1');
+    await svc.sync('L', diverId: 'd-a');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final file = (await t.listSites()).single;
+    final uploaded = await t.readSite(file.id);
+    expect(uploaded.fields.containsKey('notes'), isFalse);
+    expect(uploaded.fields.containsKey('rating'), isFalse);
+    await tearDownTestDatabase();
+
+    svc = await device(cloud, 'b');
+    await svc.sync('L', diverId: 'd-b');
+    final theirs = (await SiteRepository().getSiteById('s1'))!;
+    expect(theirs.notes, isEmpty);
+    expect(theirs.rating, isNull);
+
+    // A document from an older build still carrying notes, under a newer
+    // clock, leaves the local notes alone.
+    final raw = Map<String, dynamic>.from(uploaded.toJson());
+    raw['fields'] = {...uploaded.fields, 'notes': 'leaked', 'rating': 5};
+    raw['clocks'] = {
+      ...uploaded.toJson()['clocks'] as Map,
+      'notes': {
+        'hlc': const Hlc(99999999999999, 0, 'a').toString(),
+        'memberId': 'a',
+      },
+    };
+    cloud.seedFile(file.id, Uint8List.fromList(utf8.encode(jsonEncode(raw))));
+    await SharedLibraryStore().putSiteState(
+      (await SharedLibraryStore().getSiteState(
+        's1',
+      ))!.copyWith(clearRemoteModifiedTime: true),
+    );
+    await svc.sync('L', diverId: 'd-b');
+    final after = (await SiteRepository().getSiteById('s1'))!;
+    expect(after.notes, isEmpty);
+    expect(after.rating, isNull);
   });
 }
 
