@@ -37,4 +37,12 @@ void main() {
     expect(documentInsuranceId('d1')[14], '5');
     expect(kDocumentNamespace, 'c3a5f0d2-8b14-4e6f-9a27-5d0e1b4c7f93');
   });
+
+  test('converted gear file ids are stable and distinct', () {
+    expect(documentEquipmentFileId('m1'), documentEquipmentFileId('m1'));
+    expect(documentEquipmentFileId('m1'), isNot(documentEquipmentFileId('m2')));
+    final doc = documentEquipmentFileId('m1');
+    expect(documentEquipmentFilePageId(doc), isNot(doc));
+    expect(doc[14], '5');
+  });
 }

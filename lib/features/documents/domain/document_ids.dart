@@ -25,3 +25,12 @@ String documentCertificationCardId(String certificationId) =>
 /// The front or back page of a card document.
 String documentCardPageId(String documentId, DocumentPageSide side) =>
     _v5('page:$documentId:${side.name}');
+
+/// A library document converted from a file linked to a piece of gear by
+/// the older attachment card (#1517). Derived from the media row, so two
+/// devices converting the same file produce the same document.
+String documentEquipmentFileId(String mediaId) => _v5('equipmentFile:$mediaId');
+
+/// The single page of a converted gear file.
+String documentEquipmentFilePageId(String documentId) =>
+    _v5('equipmentFilePage:$documentId');
