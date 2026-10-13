@@ -772,7 +772,7 @@ void main() {
       'L',
       direction: SharedSiteSuggestion.incoming,
     );
-    expect(incoming.map((s) => s.id), ['g1']);
+    expect(incoming.map((s) => s.fileId), ['g1']);
 
     // Once p is approved, p's suggestion comes in.
     final roles = await t.readRoles();
@@ -792,7 +792,7 @@ void main() {
       'L',
       direction: SharedSiteSuggestion.incoming,
     );
-    expect(after.map((s) => s.id).toSet(), {'g1', 'g3'});
+    expect(after.map((s) => s.fileId).toSet(), {'g1', 'g3'});
   });
 
   test('a pending ownership reset keeps the device from writing', () async {

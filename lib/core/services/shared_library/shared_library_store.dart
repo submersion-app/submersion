@@ -83,7 +83,17 @@ class SharedSiteSuggestion {
   /// retries the delete.
   static const resolved = 'resolved';
 
+  /// The local row id. An owner's incoming copy is kept under
+  /// [incomingPrefix] plus the folder's id, apart from the outgoing row of
+  /// the same suggestion that another profile on this device wrote.
   final String id;
+
+  static const incomingPrefix = 'in:';
+
+  /// The suggestion's id in the library folder.
+  String get fileId =>
+      id.startsWith(incomingPrefix) ? id.substring(incomingPrefix.length) : id;
+
   final String libraryId;
   final String siteId;
   final String memberId;
@@ -112,7 +122,7 @@ class SharedSiteSuggestion {
 
   /// The wire form written to `suggestions/<id>.json`.
   Map<String, dynamic> toJson() => {
-    'id': id,
+    'id': fileId,
     'siteId': siteId,
     'memberId': memberId,
     'memberName': memberName,
@@ -134,7 +144,7 @@ class SharedSiteSuggestion {
     }
     final rawFields = json['fields'];
     return SharedSiteSuggestion(
-      id: id,
+      id: direction == incoming ? '$incomingPrefix$id' : id,
       libraryId: libraryId,
       siteId: siteId,
       memberId: (json['memberId'] as String?) ?? '',

@@ -128,4 +128,35 @@ void main() {
     expect(got, hasLength(1));
     expect(got.single.memberId, await memberOf('reader'));
   });
+
+  test("the owner's copy leaves the reader's own entry in place", () async {
+    await suggestAsReader();
+    await syncer().sync(lib.id, diverId: 'reader');
+    await syncer().sync(lib.id, diverId: 'owner');
+    final mine = await SharedLibraryStore().suggestions(
+      lib.id,
+      direction: SharedSiteSuggestion.outgoing,
+    );
+    expect(mine, hasLength(1));
+    expect(mine.single.status, SharedSiteSuggestion.uploaded);
+    expect(await inbox(), hasLength(1));
+
+    // Another owner sync neither duplicates nor drops either copy.
+    await syncer().sync(lib.id, diverId: 'owner');
+    expect(await inbox(), hasLength(1));
+
+    // Accepting removes the folder's file and the owner's copy only.
+    await SuggestionService(
+      transportFor: (l) => memberships.transportForLibrary(l),
+    ).accept((await inbox()).single.id, diverId: 'owner');
+    expect(await inbox(), isEmpty);
+    expect(
+      await SharedLibraryTransport(
+        cloud,
+        prefix: 'site-sync',
+      ).listSuggestions(),
+      isEmpty,
+    );
+    expect((await SiteRepository().getSiteById('s1'))!.hazards, 'new');
+  });
 }

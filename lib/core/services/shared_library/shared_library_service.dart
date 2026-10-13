@@ -651,7 +651,7 @@ class SharedLibraryService {
     ]) {
       for (final s in await _store.suggestions(libraryId, status: status)) {
         try {
-          await t.deleteSuggestion(s.id);
+          await t.deleteSuggestion(s.fileId);
           await _store.deleteSuggestion(s.id);
         } catch (e) {
           if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
@@ -715,9 +715,9 @@ class SharedLibraryService {
       libraryId,
       direction: SharedSiteSuggestion.incoming,
     );
-    final heldIds = {for (final s in held) s.id};
+    final heldIds = {for (final s in held) s.fileId};
     for (final s in held) {
-      if (!remoteIds.contains(s.id)) await _store.deleteSuggestion(s.id);
+      if (!remoteIds.contains(s.fileId)) await _store.deleteSuggestion(s.id);
     }
     for (final f in files) {
       final id = SharedLibraryTransport.suggestionIdOf(f);

@@ -197,7 +197,7 @@ class SuggestionService {
     if (library == null) return true;
     try {
       final t = await _transportFor(library);
-      await t.deleteSuggestion(s.id);
+      await t.deleteSuggestion(s.fileId);
       return true;
     } on CloudStorageException catch (e) {
       _log.warning('Could not delete suggestion ${s.id} remotely: $e');
