@@ -163,6 +163,42 @@ void main() {
     await expectGone();
   });
 
+  test('a document refiled under a trip leaves with the trip', () async {
+    await db
+        .into(db.trips)
+        .insert(
+          TripsCompanion.insert(
+            id: 't1',
+            diverId: const Value('d1'),
+            name: 'Bonaire',
+            startDate: _now,
+            endDate: _now,
+            createdAt: _now,
+            updatedAt: _now,
+          ),
+        );
+    final repo = DocumentRepository();
+    final personal = await repo.save(
+      Document(
+        id: '',
+        diverId: 'd1',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.other,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      const [],
+    );
+    await repo.save(
+      personal.copyWith(
+        owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+      ),
+      const [],
+    );
+    expect(await TripRepository().deleteTrip('t1', actingDiverId: 'd1'), true);
+    expect(await _docCount(db), 0);
+  });
+
   test('deleting a site deletes its documents', () async {
     await db
         .into(db.diveSites)

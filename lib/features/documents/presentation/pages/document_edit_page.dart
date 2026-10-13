@@ -12,6 +12,8 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_form_fields.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_owner_field.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_owner_picker_sheet.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -24,7 +26,8 @@ class DocumentEditPage extends ConsumerStatefulWidget {
   /// Null creates a new document.
   final String? documentId;
 
-  /// Where a new document is filed. Ignored when editing.
+  /// Where a new document starts filed; the form can change it. Ignored
+  /// when editing, which starts at the document's own owner.
   final DocumentOwner owner;
   final DocumentType? initialType;
   final bool embedded;
@@ -36,6 +39,9 @@ class DocumentEditPage extends ConsumerStatefulWidget {
   /// Test seam for the platform pickers.
   final DocumentPageCapture? capture;
 
+  /// Test seam for the owner picker sheet.
+  final Future<DocumentOwner?> Function(BuildContext, DocumentOwner)? pickOwner;
+
   const DocumentEditPage({
     super.key,
     this.documentId,
@@ -45,6 +51,7 @@ class DocumentEditPage extends ConsumerStatefulWidget {
     this.onSaved,
     this.onCancel,
     @visibleForTesting this.capture,
+    @visibleForTesting this.pickOwner,
   });
 
   @override
@@ -57,6 +64,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
       widget.capture ?? DocumentPageCapture();
 
   Document? _original;
+  late DocumentOwner _owner = widget.owner;
   late DocumentType _type = widget.initialType ?? DocumentType.other;
   DateTime? _issueDate;
   DateTime? _expiryDate;
@@ -106,6 +114,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
       if (!mounted) return;
       if (doc != null) {
         _original = doc;
+        _owner = doc.owner;
         _type = doc.type;
         _controllers.title.text = doc.title;
         _controllers.issuer.text = doc.issuer ?? '';
@@ -132,6 +141,16 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
           for (final t in DocumentType.values)
             if (t != DocumentType.certificationCard) t,
         ];
+
+  Future<void> _pickOwner() async {
+    final pick =
+        widget.pickOwner ??
+        (context, current) =>
+            showDocumentOwnerPicker(context, current: current);
+    final chosen = await pick(context, _owner);
+    if (chosen == null || chosen == _owner || !mounted) return;
+    _change(() => _owner = chosen);
+  }
 
   void _change(VoidCallback update) => setState(() {
     update();
@@ -252,7 +271,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
       final doc = Document(
         id: _original?.id ?? '',
         diverId: diverId,
-        owner: _original?.owner ?? widget.owner,
+        owner: _owner,
         type: _type,
         title: _controllers.title.text.trim(),
         issuer: _text(_controllers.issuer),
@@ -328,6 +347,12 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                DocumentOwnerField(
+                  owner: _owner,
+                  locked: _type == DocumentType.certificationCard,
+                  onTap: _pickOwner,
+                ),
+                const SizedBox(height: 16),
                 DocumentFormFields(
                   type: _type,
                   typeChoices: _typeChoices,
