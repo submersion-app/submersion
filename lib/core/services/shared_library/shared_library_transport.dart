@@ -441,6 +441,51 @@ class SharedLibraryTransport {
     if (f != null) await _provider.deleteFile(f.id);
   }
 
+  /// Every stored file of the library by path, as stored (sealed files
+  /// stay sealed): what a backup keeps. Backups themselves are left out.
+  Future<Map<String, Uint8List>> snapshot() async {
+    final out = <String, Uint8List>{};
+    final root = await _rootId();
+    for (final name in [
+      SharedLibraryLayout.manifestFile,
+      SharedLibraryLayout.keyslotsFile,
+    ]) {
+      final f = await _find(root, name);
+      if (f != null) out[name] = await _provider.downloadFile(f.id);
+    }
+    for (final e in (await sealableFiles()).entries) {
+      out[e.key] = await _provider.downloadFile(e.value);
+    }
+    return out;
+  }
+
+  /// The folder a path inside the library lives in, and its file name.
+  Future<(String, String)> _place(String path) async {
+    final slash = path.lastIndexOf('/');
+    if (slash < 0) return (await _rootId(), path);
+    final name = path.substring(slash + 1);
+    final folder = switch (path.substring(0, slash)) {
+      SharedLibraryLayout.membersDir => await _membersId(),
+      SharedLibraryLayout.sitesDir => await _sitesId(),
+      SharedLibraryLayout.suggestionsDir => await _suggestionsId(),
+      _ => throw ArgumentError.value(path, 'path'),
+    };
+    return (folder, name);
+  }
+
+  /// Writes [bytes] at [path] exactly as given (a restore).
+  Future<void> writeRaw(String path, Uint8List bytes) async {
+    final (folder, name) = await _place(path);
+    await _provider.uploadFile(bytes, name, folderId: folder);
+  }
+
+  /// Removes the file at [path], when there is one.
+  Future<void> deleteRaw(String path) async {
+    final (folder, name) = await _place(path);
+    final f = await _find(folder, name);
+    if (f != null) await _provider.deleteFile(f.id);
+  }
+
   /// Reads the file at [path] ([fileId]) and writes it back in the
   /// library's current form: sealed under [cipher] when encrypting, plain
   /// otherwise. [previous] opens a file sealed under an older key.
@@ -462,16 +507,7 @@ class SharedLibraryTransport {
     } else {
       plain = raw;
     }
-    final slash = path.lastIndexOf('/');
-    final name = slash < 0 ? path : path.substring(slash + 1);
-    final folderId = slash < 0
-        ? await _rootId()
-        : switch (path.substring(0, slash)) {
-            SharedLibraryLayout.membersDir => await _membersId(),
-            SharedLibraryLayout.sitesDir => await _sitesId(),
-            SharedLibraryLayout.suggestionsDir => await _suggestionsId(),
-            _ => throw ArgumentError.value(path, 'path'),
-          };
+    final (folderId, name) = await _place(path);
     await _provider.uploadFile(
       await _seal(path, plain),
       name,

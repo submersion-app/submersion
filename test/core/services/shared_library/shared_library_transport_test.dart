@@ -297,6 +297,31 @@ void main() {
       );
     });
   });
+
+  test(
+    'a snapshot holds every stored file, which writes back as it was',
+    () async {
+      await t.writeManifest({'id': 'L', 'formatVersion': 2});
+      await t.writeRoles(const SharedLibraryRoles(owners: {'m1'}));
+      await t.writeInfo({'name': 'Reef Survey'});
+      await t.writeSite(const SiteDocument(id: 's1', fields: {'name': 'A'}));
+      final snap = await t.snapshot();
+      expect(snap.keys.toSet(), {
+        'submersion-shared-library.json',
+        'roles.json',
+        'info.json',
+        'sites/site-s1.json',
+      });
+      final other = SharedLibraryTransport(_S3Bucket(), prefix: 'moved');
+      for (final e in snap.entries) {
+        await other.writeRaw(e.key, e.value);
+      }
+      expect((await other.readInfo())!['name'], 'Reef Survey');
+      expect((await other.listSites()).single.name, 'site-s1.json');
+      await other.deleteRaw('sites/site-s1.json');
+      expect(await other.listSites(), isEmpty);
+    },
+  );
 }
 
 /// Another member's upload lands between this upload and its read-back.
@@ -367,6 +392,9 @@ class _S3Bucket extends FakeCloudStorageProvider {
   @override
   Future<Uint8List> downloadFile(String fileId) async =>
       _objects[fileId] ?? (throw CloudStorageException('missing $fileId'));
+
+  @override
+  Future<void> deleteFile(String fileId) async => _objects.remove(fileId);
 
   @override
   Future<CloudFileInfo?> getFileInfo(String fileId) async {
