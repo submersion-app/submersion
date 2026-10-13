@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -21,11 +23,62 @@ const _librarySite = DiveSite(
 );
 const _personalSite = DiveSite(id: 'site-1', name: 'My Reef', diverId: 'd');
 
+const _library = SharedLibrary(
+  id: 'L',
+  name: 'Reef Survey',
+  connectedAccountId: 'a',
+  prefix: 'p',
+  roles: SharedLibraryRoles(editors: {'m'}),
+);
+
+/// The one library the profile may push to, without a database.
+class _FakeStore extends SharedLibraryStore {
+  @override
+  Future<List<SharedLibrary>> getLibraries() async => const [_library];
+
+  @override
+  Future<SharedLibrary?> getLibrary(String id) async =>
+      id == _library.id ? _library : null;
+
+  @override
+  Future<SharedLibraryMembership?> membership({
+    required String diverId,
+    required String libraryId,
+  }) async => const SharedLibraryMembership(
+    id: 'ms',
+    diverId: 'd',
+    libraryId: 'L',
+    memberId: 'm',
+    displayName: 'Ann',
+    libraryName: 'Reef Survey',
+    backendKind: 's3',
+  );
+}
+
+/// Records each push, or refuses it.
+class _FakePublisher extends SharedSitePublisher {
+  _FakePublisher({this.refuse = false}) : super(store: _FakeStore());
+
+  final bool refuse;
+  final pushes = <String>[];
+
+  @override
+  Future<void> push({
+    required String siteId,
+    required String libraryId,
+    required String diverId,
+  }) async {
+    if (refuse) throw StateError('refused');
+    pushes.add('$siteId:$libraryId:$diverId');
+  }
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   required DiveSite site,
   required SharedLibraryRole role,
   bool connected = true,
+  SharedSitePublisher? publisher,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = const Size(1200, 800);
@@ -88,6 +141,9 @@ Future<void> _pump(
         ).overrideWith((ref) async => connected),
         siteLibraryStateProvider('site-1').overrideWith((ref) async => null),
         libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+        sharedLibraryStoreProvider.overrideWithValue(_FakeStore()),
+        if (publisher != null)
+          sharedSitePublisherProvider.overrideWithValue(publisher),
       ].cast(),
       child: MaterialApp.router(
         routerConfig: router,
@@ -148,4 +204,41 @@ void main() {
       expect(find.text('Add to shared site library'), findsOneWidget);
     },
   );
+
+  Future<void> addToLibrary(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add to shared site library'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add My Reef to Reef Survey?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('adding a personal site confirms, pushes and says where', (
+    tester,
+  ) async {
+    final publisher = _FakePublisher();
+    await _pump(
+      tester,
+      site: _personalSite,
+      role: SharedLibraryRole.editor,
+      publisher: publisher,
+    );
+    await addToLibrary(tester);
+    expect(publisher.pushes, ['site-1:L:d']);
+    expect(find.text('Added to Reef Survey'), findsOneWidget);
+  });
+
+  testWidgets('a refused push says so and claims nothing', (tester) async {
+    await _pump(
+      tester,
+      site: _personalSite,
+      role: SharedLibraryRole.editor,
+      publisher: _FakePublisher(refuse: true),
+    );
+    await addToLibrary(tester);
+    expect(find.text('Added to Reef Survey'), findsNothing);
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
 }
