@@ -21369,6 +21369,33 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة إلى مكتبة المواقع المشتركة';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return 'إضافة $name إلى $library؟';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count مواقع إلى $library؟',
+      one: 'إضافة موقع واحد إلى $library؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'سيرى كل الأعضاء: الاسم والموقع والأعماق والوصف والمخاطر والوصول والدخول والخروج والرسو ومواقف السيارات وأنواع المواقع والوسوم والأنواع البحرية والمعالم.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'يبقى لك: ملاحظاتك وتقييمك. لا تغادر الغطسات والصور مكتبتك الشخصية أبدًا.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'إضافة';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'اختر مكتبة';
 
   @override

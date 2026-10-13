@@ -20628,6 +20628,33 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_site_addToLibrary => 'הוספה לספריית האתרים המשותפת';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return 'להוסיף את $name אל $library?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'להוסיף $count אתרים אל $library?',
+      one: 'להוסיף אתר אחד אל $library?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'כל החברים יראו: שם, מיקום, עומקים, תיאור, סכנות, גישה, כניסה ויציאה, עגינה, חניה, סוגי אתר, תגיות, מינים ומאפיינים.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'נשאר שלך: ההערות והדירוג שלך. צלילות ותמונות אף פעם לא יוצאות מהספרייה האישית שלך.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'הוספה';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'בחירת ספרייה';
 
   @override

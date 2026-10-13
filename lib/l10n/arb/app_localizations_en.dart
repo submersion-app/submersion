@@ -20784,6 +20784,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLibrary_site_addToLibrary => 'Add to shared site library';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return 'Add $name to $library?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count sites to $library?',
+      one: 'Add 1 site to $library?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'Every member will see: name, location, depths, description, hazards, access, entry and exit, mooring, parking, site types, tags, species and features.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'Stays yours: your notes and rating. Dives and photos never leave your personal library.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'Add';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'Choose a library';
 
   @override

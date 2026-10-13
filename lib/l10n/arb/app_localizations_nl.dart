@@ -20966,6 +20966,33 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toevoegen aan gedeelde duikstekbibliotheek';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return '$name toevoegen aan $library?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikstekken toevoegen aan $library?',
+      one: '1 duikstek toevoegen aan $library?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'Elk lid ziet: naam, locatie, dieptes, beschrijving, gevaren, toegang, in- en uitstap, afmeren, parkeren, stektypes, tags, soorten en kenmerken.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'Blijft van jou: je notities en beoordeling. Duiken en foto\'s verlaten je persoonlijke bibliotheek nooit.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'Toevoegen';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'Kies een bibliotheek';
 
   @override

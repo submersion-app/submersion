@@ -21075,6 +21075,33 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zur geteilten Tauchplatzbibliothek hinzufügen';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return '$name zu $library hinzufügen?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze zu $library hinzufügen?',
+      one: '1 Tauchplatz zu $library hinzufügen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'Alle Mitglieder sehen: Name, Lage, Tiefen, Beschreibung, Gefahren, Zugang, Ein- und Ausstieg, Boje, Parken, Platztypen, Tags, Arten und Merkmale.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'Bleibt bei Ihnen: Ihre Notizen und Ihre Bewertung. Tauchgänge und Fotos verlassen Ihre persönliche Bibliothek nie.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'Hinzufügen';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'Bibliothek auswählen';
 
   @override

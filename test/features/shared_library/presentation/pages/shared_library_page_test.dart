@@ -188,6 +188,10 @@ void main() {
       find.widgetWithText(FilledButton, 'Add to shared site library'),
     );
     await tester.pumpAndSettle();
+    // What is shared is confirmed first.
+    expect(find.text('Add Reef to Reef Survey?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
     expect(
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,

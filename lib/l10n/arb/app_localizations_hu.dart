@@ -21029,6 +21029,33 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hozzáadás a megosztott merülőhely-könyvtárhoz';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return 'Hozzáadod: $name → $library?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hozzáadsz $count merülőhelyet ehhez: $library?',
+      one: 'Hozzáadsz 1 merülőhelyet ehhez: $library?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'Minden tag látni fogja: név, hely, mélységek, leírás, veszélyek, megközelítés, be- és kiszállás, kikötés, parkolás, helytípusok, címkék, fajok és jellemzők.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'A tiéd marad: a jegyzeteid és az értékelésed. A merülések és a fotók soha nem hagyják el a személyes könyvtáradat.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'Hozzáadás';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'Válassz könyvtárat';
 
   @override

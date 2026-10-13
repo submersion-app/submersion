@@ -21105,6 +21105,33 @@ class AppLocalizationsEs extends AppLocalizations {
       'Añadir a la biblioteca de puntos compartida';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return '¿Añadir $name a $library?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Añadir $count sitios a $library?',
+      one: '¿Añadir 1 sitio a $library?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'Todos los miembros verán: nombre, ubicación, profundidades, descripción, peligros, acceso, entrada y salida, amarre, aparcamiento, tipos de sitio, etiquetas, especies y elementos.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'Sigue siendo tuyo: tus notas y tu valoración. Las inmersiones y las fotos nunca salen de tu biblioteca personal.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'Añadir';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'Elige una biblioteca';
 
   @override

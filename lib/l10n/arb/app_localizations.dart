@@ -33779,6 +33779,36 @@ abstract class AppLocalizations {
   /// **'Add to shared site library'**
   String get sharedLibrary_site_addToLibrary;
 
+  /// No description provided for @sharedLibrary_add_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} to {library}?'**
+  String sharedLibrary_add_confirm_title(String name, String library);
+
+  /// No description provided for @sharedLibrary_add_confirm_titleMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add 1 site to {library}?} other{Add {count} sites to {library}?}}'**
+  String sharedLibrary_add_confirm_titleMany(int count, String library);
+
+  /// No description provided for @sharedLibrary_add_confirm_shared.
+  ///
+  /// In en, this message translates to:
+  /// **'Every member will see: name, location, depths, description, hazards, access, entry and exit, mooring, parking, site types, tags, species and features.'**
+  String get sharedLibrary_add_confirm_shared;
+
+  /// No description provided for @sharedLibrary_add_confirm_private.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays yours: your notes and rating. Dives and photos never leave your personal library.'**
+  String get sharedLibrary_add_confirm_private;
+
+  /// No description provided for @sharedLibrary_add_confirm_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get sharedLibrary_add_confirm_action;
+
   /// No description provided for @sharedLibrary_site_chooseLibrary.
   ///
   /// In en, this message translates to:

@@ -21162,6 +21162,33 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter à la bibliothèque de sites partagée';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return 'Ajouter $name à $library ?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajouter $count sites à $library ?',
+      one: 'Ajouter 1 site à $library ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'Tous les membres verront : nom, emplacement, profondeurs, description, dangers, accès, mise à l\'eau et sortie, mouillage, stationnement, types de site, étiquettes, espèces et points d\'intérêt.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'Reste à vous : vos notes et votre évaluation. Les plongées et les photos ne quittent jamais votre bibliothèque personnelle.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'Ajouter';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'Choisir une bibliothèque';
 
   @override

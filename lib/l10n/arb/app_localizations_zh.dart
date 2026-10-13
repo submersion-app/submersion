@@ -20051,6 +20051,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_site_addToLibrary => '添加到共享潜点库';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return '将 $name 添加到 $library？';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将 $count 个潜点添加到 $library？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      '所有成员都会看到：名称、位置、深度、描述、危险、通行、入水和出水、系泊、停车、潜点类型、标签、物种和地形特征。';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      '仍归你所有：你的笔记和评分。潜水记录和照片永远不会离开你的个人资料库。';
+
+  @override
+  String get sharedLibrary_add_confirm_action => '添加';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => '选择库';
 
   @override

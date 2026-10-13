@@ -21099,6 +21099,33 @@ class AppLocalizationsIt extends AppLocalizations {
       'Aggiungi alla libreria di siti condivisa';
 
   @override
+  String sharedLibrary_add_confirm_title(String name, String library) {
+    return 'Aggiungere $name a $library?';
+  }
+
+  @override
+  String sharedLibrary_add_confirm_titleMany(int count, String library) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiungere $count siti a $library?',
+      one: 'Aggiungere 1 sito a $library?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLibrary_add_confirm_shared =>
+      'Tutti i membri vedranno: nome, posizione, profondità, descrizione, pericoli, accesso, entrata e uscita, ormeggio, parcheggio, tipi di sito, tag, specie e caratteristiche.';
+
+  @override
+  String get sharedLibrary_add_confirm_private =>
+      'Resta tuo: le tue note e la tua valutazione. Immersioni e foto non lasciano mai la tua libreria personale.';
+
+  @override
+  String get sharedLibrary_add_confirm_action => 'Aggiungi';
+
+  @override
   String get sharedLibrary_site_chooseLibrary => 'Scegli una libreria';
 
   @override

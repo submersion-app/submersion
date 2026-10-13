@@ -104,4 +104,74 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('adding asks first, and a cancel adds nothing', (tester) async {
+    final store = SharedLibraryStore();
+    await tester.runAsync(() async {
+      await DiverRepository().createDiver(
+        Diver(
+          id: 'd',
+          name: 'Ann',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await store.upsertLibrary(
+        const SharedLibrary(
+          id: 'A',
+          name: 'Library A',
+          connectedAccountId: 'x',
+          prefix: 'A',
+          roles: SharedLibraryRoles(editors: {'m'}),
+        ),
+      );
+      await store.upsertMembership(
+        const SharedLibraryMembership(
+          id: 'ms-A',
+          diverId: 'd',
+          libraryId: 'A',
+          memberId: 'm',
+          displayName: 'Ann',
+          libraryName: 'Library A',
+          backendKind: 's3',
+        ),
+      );
+    });
+    SharedLibrary? picked;
+    var done = false;
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
+        ],
+        locale: const Locale('en'),
+        child: Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () async {
+              picked = await pickLibraryToAddTo(
+                context,
+                ref,
+                siteCount: 1,
+                siteName: 'Blue',
+              );
+              done = true;
+            },
+            child: const Text('pick'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('pick'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Add Blue to Library A?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(done, isTrue);
+    expect(picked, isNull);
+  });
 }

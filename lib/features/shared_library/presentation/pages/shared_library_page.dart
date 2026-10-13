@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/add_to_library_confirmation.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
@@ -254,7 +255,16 @@ class SharedLibraryPage extends ConsumerWidget {
         ),
       ),
     );
-    if (confirmed != true || chosen.isEmpty) return;
+    if (confirmed != true || chosen.isEmpty || !context.mounted) return;
+    final agreed = await confirmAddToLibrary(
+      context,
+      libraryName: library.name,
+      siteCount: chosen.length,
+      siteName: chosen.length == 1
+          ? personal.firstWhere((s) => s.id == chosen.single).name
+          : null,
+    );
+    if (!agreed) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
     final publisher = ref.read(sharedSitePublisherProvider);

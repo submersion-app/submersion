@@ -748,14 +748,19 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     WidgetRef ref,
     DiveSite site,
   ) async {
-    final libraryId = await showLibraryPickerDialog(context, ref);
-    if (libraryId == null) return;
+    final library = await pickLibraryToAddTo(
+      context,
+      ref,
+      siteCount: 1,
+      siteName: site.name,
+    );
+    if (library == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
     try {
       await ref
           .read(sharedSitePublisherProvider)
-          .push(siteId: site.id, libraryId: libraryId, diverId: diverId);
+          .push(siteId: site.id, libraryId: library.id, diverId: diverId);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -768,14 +773,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);
     if (!context.mounted) return;
-    final libraries = await ref.read(sharedLibrariesProvider.future);
-    var name = '';
-    for (final l in libraries) {
-      if (l.id == libraryId) name = l.name;
-    }
-    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.sharedLibrary_site_added(name))),
+      SnackBar(
+        content: Text(context.l10n.sharedLibrary_site_added(library.name)),
+      ),
     );
   }
 

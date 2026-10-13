@@ -4,6 +4,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/add_to_library_confirmation.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -68,4 +69,28 @@ Future<String?> showLibraryPickerDialog(
       ],
     ),
   );
+}
+
+/// Picks the library [siteCount] sites go to, then confirms what will be
+/// shared (issue #2567). Null when there is none, or either step is
+/// cancelled.
+Future<SharedLibrary?> pickLibraryToAddTo(
+  BuildContext context,
+  WidgetRef ref, {
+  required int siteCount,
+  String? siteName,
+}) async {
+  final libraryId = await showLibraryPickerDialog(context, ref);
+  if (libraryId == null || !context.mounted) return null;
+  final library = await ref
+      .read(sharedLibraryStoreProvider)
+      .getLibrary(libraryId);
+  if (library == null || !context.mounted) return null;
+  final ok = await confirmAddToLibrary(
+    context,
+    libraryName: library.name,
+    siteCount: siteCount,
+    siteName: siteName,
+  );
+  return ok ? library : null;
 }
