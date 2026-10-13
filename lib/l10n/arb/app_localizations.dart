@@ -75516,6 +75516,12 @@ abstract class AppLocalizations {
   /// **'Upgrading database... step {currentStep} of {totalSteps}'**
   String startup_migrating_progress(Object currentStep, Object totalSteps);
 
+  /// No description provided for @startup_compacting.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimizing storage...'**
+  String get startup_compacting;
+
   /// Terminal startup screen title when the failure could not be classified. Deliberately neutral: it must NOT claim the database upgrade failed, since most failures reach this screen without a migration having been attempted.
   ///
   /// In en, this message translates to:

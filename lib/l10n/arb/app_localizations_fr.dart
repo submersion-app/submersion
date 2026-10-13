@@ -47679,6 +47679,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get startup_compacting => 'Optimizing storage...';
+
+  @override
   String get startup_error_title => 'Submersion n’a pas pu démarrer';
 
   @override

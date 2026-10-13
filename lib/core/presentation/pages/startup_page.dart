@@ -21,6 +21,7 @@ import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
+import 'package:submersion/core/database/compaction/database_compaction_prefs.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
@@ -122,6 +123,10 @@ enum _StartupState {
   interruptedRestore,
   backingUp,
   migrating,
+
+  /// Rewriting the database without its free pages, as the app asked
+  /// while it last ran (issue #3333).
+  compacting,
   backupFailed,
   recoveryRequired,
   recovering,
@@ -959,11 +964,20 @@ class _StartupWrapperState extends State<StartupWrapper>
     // try/catch: the sweep logs and swallows every failure itself.
     unawaited(sweepLeftoverSyncTempFiles());
 
+    // The foreground launch is the one open allowed to compact: a rewrite
+    // takes a while, and only here is there a screen to say so.
+    final compaction = DatabaseCompactionPrefs(
+      await SharedPreferences.getInstance(),
+    );
     await timeStartupStep(
       'database',
       () => DatabaseService.instance.initialize(
         locationService: widget.locationService,
         onMigrationProgress: onProgress,
+        compaction: compaction,
+        onCompacting: () {
+          if (mounted) setState(() => _state = _StartupState.compacting);
+        },
       ),
     );
 
@@ -2097,6 +2111,28 @@ class _StartupWrapperState extends State<StartupWrapper>
                             _progress.currentStep,
                             _progress.totalSteps,
                           ),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    )
+                  : _state == _StartupState.compacting
+                  ? Column(
+                      key: const ValueKey('startup-compacting'),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        LinearProgressIndicator(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          context.l10n.startup_compacting,
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.8),

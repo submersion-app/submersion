@@ -27911,6 +27911,7 @@
   "lock_startFresh_confirm": "Set aside and start fresh",
   "lock_biometric_reason": "Unlock your dive log",
   "startup_migrating_progress": "Upgrading database... step {currentStep} of {totalSteps}",
+  "startup_compacting": "Optimizing storage...",
   "startup_error_title": "Submersion could not start",
   "startup_error_body": "Something went wrong before your dive log finished opening. Your data is still on disk and does not require a reinstall. Try restarting the app; if this persists, contact support.",
   "startup_engineUnavailable_title": "This build can't open a database",

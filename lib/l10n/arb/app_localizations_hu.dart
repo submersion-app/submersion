@@ -47309,6 +47309,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get startup_compacting => 'Optimizing storage...';
+
+  @override
   String get startup_error_title => 'A Submersion nem tudott elindulni';
 
   @override
