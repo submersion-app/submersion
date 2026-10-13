@@ -46,9 +46,11 @@ Raised during design:
 
 ### Form
 
-The new/edit form gains a **Filed under** field showing the owner: "Personal",
-or the kind and record name ("Trip: Red Sea 2026"). Tapping it opens the
-owner picker sheet. Opened from an owner page's Add document, the field starts
+The new/edit form gains a **Filed under** field showing the owner: the
+record's name ("Red Sea 2026") with its kind as the field's icon, or the
+kind's label when there is no name (Personal, an unnumbered dive). It is
+announced to screen readers as a button. Tapping it opens the owner picker
+sheet. Opened from an owner page's Add document, the field starts
 at that owner and can still be changed.
 
 A certification card document (`DocumentType.certificationCard`) shows the
@@ -196,13 +198,13 @@ this device's file).
 
 ### Acting, at launch
 
-`DatabaseService.initialize` gains `allowCompaction` (default false). Only the
-startup page's launch passes true, so the headless background service
-(`background_service.dart`) and the reopen after a database move never
-compact.
+`DatabaseService.initialize` gains two optional parameters: `compaction` (a
+`DatabaseCompactionPrefs`, default null) and `onCompacting` (a callback). Null
+`compaction` never compacts. Only the startup page's launch passes one, so the
+headless background service (`background_service.dart`) and the reopen after
+a database move never compact.
 
-When `allowCompaction` is true, no migration is pending and the preference is
-set:
+When `compaction` is passed and its request preference is set:
 
 1. Clear the preference first, so a crash during the rewrite cannot bring the
    next launch back into it.
@@ -210,7 +212,7 @@ set:
    in a separate isolate (`Isolate.run`), run `VACUUM`, then
    `PRAGMA wal_checkpoint(TRUNCATE)` so the file shrinks. A separate isolate
    keeps the startup screen responsive during the rewrite.
-3. Tell the startup page through a new `onCompacting` callback; it shows an
+3. Tell the startup page through `onCompacting`; it shows an
    indeterminate bar and "Optimizing storage...". (The existing migration
    progress bar only appears when a pre-check predicted a migration.)
 4. On failure (busy lock, no space for the temporary copy), log a warning and
@@ -219,7 +221,7 @@ set:
    larger. Then the normal open continues.
 
 When a pending migration runs its own VACUUM at the same launch, the
-preference is cleared as satisfied.
+preference is cleared as satisfied, and step 2 is skipped.
 
 ### Settings > Storage
 
@@ -231,7 +233,9 @@ The Database row of the Storage usage page gains:
   the size of the database.") and sets the preference, ignoring the threshold
   and the backoff;
 - while scheduled, "Scheduled for next launch" with Cancel, and on desktop
-  Quit now.
+  Quit now. Cancel withdraws the request and records the same seven-day
+  backoff a failure does, so the app's own check does not schedule it
+  straight back; Compact still works during it.
 
 ## Out of scope
 
@@ -266,8 +270,8 @@ TDD throughout.
   set and not set.
 - `DatabaseService` startup branch against a real temporary database file:
   compacts and shrinks the file, clears the preference first, skips without
-  `allowCompaction`, records backoff on failure.
-- Storage page: reclaimable line, Compact, Cancel.
+  `compaction` prefs, records backoff on failure.
+- Storage page: reclaimable line, Compact, Cancel (with its backoff).
 - Screenshots before and after for the PR: Documents list, document detail
   with a PDF (phone and desktop), document form with Filed under and the
   picker, gear page, trip overview, Storage page.

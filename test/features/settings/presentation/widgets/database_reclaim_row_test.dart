@@ -78,7 +78,8 @@ void main() {
     await t.tap(find.widgetWithText(TextButton, 'Cancel'));
     await t.pumpAndSettle();
     expect(prefs.isRequested, isFalse);
-    // A no the app's own check respects, not undoes at the next launch.
+    // Cancelling also holds automatic compaction off, so the app's own
+    // check does not schedule it again at the next launch.
     expect(prefs.inBackoff, isTrue);
     expect(find.widgetWithText(TextButton, 'Compact'), findsOneWidget);
   });
