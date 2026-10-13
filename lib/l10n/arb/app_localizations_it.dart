@@ -20999,6 +20999,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sharedLibrary_setup_copied => 'Policy copiata';
 
   @override
+  String get sharedLibrary_recovery_title =>
+      'Conserva questo codice di recupero';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      'Chi ha questo codice può rendersi proprietario della libreria e aprirla se è cifrata. Conservalo in un luogo sicuro, separato dalle chiavi dello spazio di archiviazione. Viene mostrato solo ora.';
+
+  @override
+  String get sharedLibrary_recovery_stored => 'L\'ho conservato';
+
+  @override
+  String get sharedLibrary_roles_rejected =>
+      'Il file dei ruoli è stato modificato da qualcuno che non è proprietario. Questo dispositivo mantiene gli ultimi ruoli firmati da un proprietario.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
 
   @override

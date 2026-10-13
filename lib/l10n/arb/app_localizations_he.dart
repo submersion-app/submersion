@@ -20530,6 +20530,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_setup_copied => 'המדיניות הועתקה';
 
   @override
+  String get sharedLibrary_recovery_title => 'שמרו את קוד השחזור הזה';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      'מי שיש לו את הקוד הזה יכול להפוך את עצמו לבעלים של הספרייה ולפתוח אותה אם היא מוצפנת. שמרו אותו במקום בטוח, בנפרד ממפתחות האחסון. הוא מוצג רק עכשיו.';
+
+  @override
+  String get sharedLibrary_recovery_stored => 'שמרתי אותו';
+
+  @override
+  String get sharedLibrary_roles_rejected =>
+      'קובץ התפקידים שונה על ידי מי שאינו בעלים. המכשיר הזה שומר את התפקידים האחרונים שבעלים חתם עליהם.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

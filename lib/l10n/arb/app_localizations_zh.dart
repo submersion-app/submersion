@@ -19960,6 +19960,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_setup_copied => '策略已复制';
 
   @override
+  String get sharedLibrary_recovery_title => '请保存此恢复码';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      '持有此代码的人可以让自己成为资料库的所有者，并在资料库加密时打开它。请将其保存在安全的地方，与存储密钥分开。它只会在此时显示。';
+
+  @override
+  String get sharedLibrary_recovery_stored => '我已保存';
+
+  @override
+  String get sharedLibrary_roles_rejected => '角色文件被非所有者修改。此设备保留由所有者最后签名的角色。';
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

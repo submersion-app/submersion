@@ -21267,6 +21267,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_setup_copied => 'تم نسخ السياسة';
 
   @override
+  String get sharedLibrary_recovery_title => 'احتفظ برمز الاسترداد هذا';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      'من يملك هذا الرمز يمكنه أن يجعل نفسه مالكًا للمكتبة، وأن يفتحها إن كانت مشفرة. احفظه في مكان آمن بعيدًا عن مفاتيح التخزين. لن يظهر إلا الآن.';
+
+  @override
+  String get sharedLibrary_recovery_stored => 'لقد حفظته';
+
+  @override
+  String get sharedLibrary_roles_rejected =>
+      'غيّر شخص ليس مالكًا ملف الأدوار. يحتفظ هذا الجهاز بآخر أدوار وقّعها مالك.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

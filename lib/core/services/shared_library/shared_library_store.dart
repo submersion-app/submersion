@@ -183,6 +183,17 @@ class SharedLibraryStore {
             rolesJson: Value(jsonEncode(lib.roles.toJson())),
             lastSyncAt: Value(lib.lastSyncAt?.millisecondsSinceEpoch),
             lastError: Value(lib.lastError),
+            rolesRejected: Value(lib.rolesRejected),
+            pendingRolesJson: Value(
+              lib.pendingRoles == null
+                  ? null
+                  : jsonEncode(lib.pendingRoles!.toJson()),
+            ),
+            encrypted: Value(lib.encrypted),
+            keyId: Value(lib.keyId),
+            lastAutoBackupAt: Value(
+              lib.lastAutoBackupAt?.millisecondsSinceEpoch,
+            ),
             createdAt:
                 existing?.createdAt ?? DateTime.now().millisecondsSinceEpoch,
           ),
@@ -231,6 +242,13 @@ class SharedLibraryStore {
     bool? readOnlyDetected,
     SharedLibraryRoles? roles,
     String? name,
+    bool? rolesRejected,
+    SharedLibraryRoles? pendingRoles,
+    bool clearPendingRoles = false,
+    bool? encrypted,
+    String? keyId,
+    bool clearKeyId = false,
+    DateTime? lastAutoBackupAt,
   }) async {
     await (_db.update(
       _db.sharedLibraries,
@@ -249,20 +267,41 @@ class SharedLibraryStore {
             ? const Value.absent()
             : Value(jsonEncode(roles.toJson())),
         name: name == null ? const Value.absent() : Value(name),
+        rolesRejected: rolesRejected == null
+            ? const Value.absent()
+            : Value(rolesRejected),
+        pendingRolesJson: clearPendingRoles
+            ? const Value(null)
+            : pendingRoles == null
+            ? const Value.absent()
+            : Value(jsonEncode(pendingRoles.toJson())),
+        encrypted: encrypted == null ? const Value.absent() : Value(encrypted),
+        keyId: clearKeyId
+            ? const Value(null)
+            : keyId == null
+            ? const Value.absent()
+            : Value(keyId),
+        lastAutoBackupAt: lastAutoBackupAt == null
+            ? const Value.absent()
+            : Value(lastAutoBackupAt.millisecondsSinceEpoch),
       ),
     );
   }
 
-  SharedLibrary _libraryFromRow(SharedLibraryRow row) {
-    SharedLibraryRoles roles;
+  static SharedLibraryRoles? _rolesFrom(String? json) {
+    if (json == null) return null;
     try {
-      final decoded = jsonDecode(row.rolesJson);
-      roles = decoded is Map<String, dynamic>
+      final decoded = jsonDecode(json);
+      return decoded is Map<String, dynamic>
           ? SharedLibraryRoles.fromJson(decoded)
-          : SharedLibraryRoles.empty;
+          : null;
     } on FormatException {
-      roles = SharedLibraryRoles.empty;
+      return null;
     }
+  }
+
+  SharedLibrary _libraryFromRow(SharedLibraryRow row) {
+    final roles = _rolesFrom(row.rolesJson) ?? SharedLibraryRoles.empty;
     return SharedLibrary(
       id: row.id,
       name: row.name,
@@ -275,6 +314,13 @@ class SharedLibraryStore {
           ? null
           : DateTime.fromMillisecondsSinceEpoch(row.lastSyncAt!),
       lastError: row.lastError,
+      rolesRejected: row.rolesRejected,
+      pendingRoles: _rolesFrom(row.pendingRolesJson),
+      encrypted: row.encrypted,
+      keyId: row.keyId,
+      lastAutoBackupAt: row.lastAutoBackupAt == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(row.lastAutoBackupAt!),
     );
   }
 

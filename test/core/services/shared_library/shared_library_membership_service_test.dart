@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_recovery.dart';
+import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
+import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -14,6 +17,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../helpers/shared_library_test_keys.dart';
 import '../../../helpers/test_database.dart';
 
 Future<void> _diver(String id) => DiverRepository().createDiver(
@@ -39,6 +43,7 @@ void main() {
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),
+      recoveryKdf: const KdfParams(m: 1024, t: 1),
     );
   });
 
@@ -141,11 +146,96 @@ void main() {
     expect(other!.publicKey, isNot(key!.publicKey));
   });
 
-  test('join reads the folder through one transport', () async {
-    await SharedLibraryTransport(
+  test('create signs the first roles and hands back a recovery code', () async {
+    final created = await service.createWithRecovery(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final me = (await SharedLibraryStore().membership(
+      diverId: 'd1',
+      libraryId: created.library.id,
+    ))!;
+    final roles = await SharedLibraryTransport(
       cloud,
       prefix: 'site-sync',
-    ).writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
+    ).readRoles();
+    expect(roles.version, 1);
+    expect(roles.owners, {me.memberId});
+    expect(roles.approvedKeys[me.memberId], me.signingKey!.publicKey);
+    expect(roles.signedBy, me.memberId);
+    expect(await isSelfConsistent(roles), isTrue);
+    final fromCode = await LibraryRecovery.derive(
+      code: created.recoveryCode,
+      salt: roles.recovery!.salt,
+      kdf: KdfParams.fromJson(roles.recovery!.kdf),
+    );
+    expect(fromCode.publicKey, roles.recovery!.publicKey);
+    expect(
+      (await SharedLibraryStore().getLibrary(created.library.id))!.roles,
+      roles,
+    );
+  });
+
+  test('a role change is signed by the acting owner', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final me = (await SharedLibraryStore().membership(
+      diverId: 'd1',
+      libraryId: lib.id,
+    ))!;
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final before = await t.readRoles();
+    await service.setRole(
+      libraryId: lib.id,
+      actingMemberId: me.memberId,
+      memberId: 'bo',
+      role: SharedLibraryRole.editor,
+    );
+    final after = await t.readRoles();
+    expect(after.version, before.version + 1);
+    expect(after.roleOf('bo'), SharedLibraryRole.editor);
+    expect(
+      await judgeRoles(trusted: before, incoming: after),
+      RolesVerdict.trusted,
+    );
+  });
+
+  test('join refuses roles nobody with the right could have written', () async {
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    await t.writeManifest({
+      'id': 'L',
+      'name': 'Reef Survey',
+      'formatVersion': SharedLibraryLayout.formatVersion,
+    });
+    await t.writeRoles(const SharedLibraryRoles(owners: {'x'}));
+    await expectLater(
+      service.join(
+        account: account,
+        prefix: 'site-sync',
+        diverId: 'd1',
+        displayName: 'Ann',
+      ),
+      throwsA(isA<UntrustedRolesError>()),
+    );
+    expect(await SharedLibraryStore().getLibrary('L'), isNull);
+  });
+
+  test('join reads the folder through one transport', () async {
+    final folder = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    await folder.writeManifest({
+      'id': 'L',
+      'name': 'Reef Survey',
+      'formatVersion': 1,
+    });
+    await folder.writeRoles(await signedTestRoles(owners: {'o'}));
     var built = 0;
     final counting = SharedLibraryMembershipService(
       store: SharedLibraryStore(),
@@ -366,8 +456,12 @@ void main() {
       ))!;
       final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
       // Another owner promoted Carol since this device last synced.
+      final before = await t.readRoles();
       await t.writeRoles(
-        (await t.readRoles()).withRole('carol', SharedLibraryRole.editor),
+        await before
+            .withRole('carol', SharedLibraryRole.editor)
+            .copyWith(version: before.version + 1)
+            .signed(signedBy: me.memberId, key: me.signingKey!),
       );
 
       await service.setRole(
@@ -432,45 +526,55 @@ void main() {
     expect(await SharedLibraryStore().getLibrary(lib.id), isNull);
   });
 
-  test('leaving gives up the member\'s role in the library', () async {
-    final lib = await service.create(
-      account: account,
-      prefix: 'site-sync',
-      name: 'Reef Survey',
-      diverId: 'd1',
-      displayName: 'Ann',
-    );
-    await _diver('d2');
-    await service.join(
-      account: account,
-      prefix: 'site-sync',
-      diverId: 'd2',
-      displayName: 'Bob',
-    );
-    final bob = (await SharedLibraryStore().membership(
-      diverId: 'd2',
-      libraryId: lib.id,
-    ))!;
-    final ann = (await SharedLibraryStore().membership(
-      diverId: 'd1',
-      libraryId: lib.id,
-    ))!;
-    await service.setRole(
-      libraryId: lib.id,
-      actingMemberId: ann.memberId,
-      memberId: bob.memberId,
-      role: SharedLibraryRole.editor,
-    );
+  test(
+    'an editor who leaves keeps the role until an owner removes it',
+    () async {
+      final lib = await service.create(
+        account: account,
+        prefix: 'site-sync',
+        name: 'Reef Survey',
+        diverId: 'd1',
+        displayName: 'Ann',
+      );
+      await _diver('d2');
+      await service.join(
+        account: account,
+        prefix: 'site-sync',
+        diverId: 'd2',
+        displayName: 'Bob',
+      );
+      final bob = (await SharedLibraryStore().membership(
+        diverId: 'd2',
+        libraryId: lib.id,
+      ))!;
+      final ann = (await SharedLibraryStore().membership(
+        diverId: 'd1',
+        libraryId: lib.id,
+      ))!;
+      await service.setRole(
+        libraryId: lib.id,
+        actingMemberId: ann.memberId,
+        memberId: bob.memberId,
+        role: SharedLibraryRole.editor,
+      );
 
-    await service.leave(libraryId: lib.id, diverId: 'd2');
+      await service.leave(libraryId: lib.id, diverId: 'd2');
 
-    final roles = await SharedLibraryTransport(
-      cloud,
-      prefix: 'site-sync',
-    ).readRoles();
-    expect(roles.roleOf(bob.memberId), SharedLibraryRole.reader);
-    expect(roles.roleOf(ann.memberId), SharedLibraryRole.owner);
-  });
+      final roles = await SharedLibraryTransport(
+        cloud,
+        prefix: 'site-sync',
+      ).readRoles();
+      // Only an owner may sign roles: Bob's card goes, his role waits for
+      // an owner (the Members page lists it under members who left).
+      expect(roles.roleOf(bob.memberId), SharedLibraryRole.editor);
+      expect(roles.roleOf(ann.memberId), SharedLibraryRole.owner);
+      final cards = await SharedLibraryTransport(
+        cloud,
+        prefix: 'site-sync',
+      ).listMembers();
+      expect(cards.map((m) => m.memberId), isNot(contains(bob.memberId)));
+    },
+  );
 
   test('the last-owner rule reads the roles in the folder', () async {
     final lib = await service.create(
@@ -498,7 +602,12 @@ void main() {
     );
     // Another device demoted Bob since; this device's cache still lists him.
     final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
-    await t.writeRoles(SharedLibraryRoles(owners: {ann.memberId}));
+    final before = await t.readRoles();
+    await t.writeRoles(
+      await before
+          .copyWith(owners: {ann.memberId}, version: before.version + 1)
+          .signed(signedBy: ann.memberId, key: ann.signingKey!),
+    );
 
     await expectLater(
       service.leave(libraryId: lib.id, diverId: 'd1'),

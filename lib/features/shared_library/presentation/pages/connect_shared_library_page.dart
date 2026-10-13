@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/widgets/webdav_server_
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/storage_setup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -419,6 +420,28 @@ class _ConnectSharedLibraryPageState
     }
   }
 
+  /// Creates the library, then shows its recovery code before anything
+  /// else happens. Null when the page went away meanwhile.
+  Future<SharedLibrary?> _createShowingRecovery(
+    SharedLibraryMembershipService service, {
+    required ConnectedAccount account,
+    required String prefix,
+    required String name,
+    required String diverId,
+    required String displayName,
+  }) async {
+    final created = await service.createWithRecovery(
+      account: account,
+      prefix: prefix,
+      name: name,
+      diverId: diverId,
+      displayName: displayName,
+    );
+    if (!mounted) return null;
+    await showRecoveryCodeDialog(context, created.recoveryCode);
+    return mounted ? created.library : null;
+  }
+
   Future<void> _connect() async {
     final account = _account;
     final probe = _probe;
@@ -441,7 +464,8 @@ class _ConnectSharedLibraryPageState
               diverId: diverId,
               displayName: displayName,
             )
-          : await service.create(
+          : await _createShowingRecovery(
+              service,
               account: account,
               prefix: prefix,
               name: _libraryName.text.trim().isEmpty
@@ -450,6 +474,7 @@ class _ConnectSharedLibraryPageState
               diverId: diverId,
               displayName: displayName,
             );
+      if (library == null) return;
       ref.invalidate(currentMembershipsProvider);
       ref.invalidate(sitesProvider);
       if (!mounted) return;

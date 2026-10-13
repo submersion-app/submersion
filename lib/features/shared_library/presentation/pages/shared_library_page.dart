@@ -63,6 +63,12 @@ class SharedLibraryPage extends ConsumerWidget {
               icon: Icons.lock_outline,
               text: l10n.sharedLibrary_library_readOnlyBanner,
             ),
+          if (library.rolesRejected)
+            _Banner(
+              icon: Icons.gpp_maybe_outlined,
+              text: l10n.sharedLibrary_roles_rejected,
+              isError: true,
+            ),
           if (library.lastError != null)
             _Banner(
               icon: Icons.error_outline,

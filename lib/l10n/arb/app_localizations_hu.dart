@@ -20929,6 +20929,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_setup_copied => 'Szabályzat másolva';
 
   @override
+  String get sharedLibrary_recovery_title =>
+      'Őrizd meg ezt a helyreállítási kódot';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      'Akinél ez a kód van, tulajdonossá teheti magát a könyvtárban, és megnyithatja, ha titkosított. Tárold biztonságos helyen, a tárhelykulcsoktól elkülönítve. Csak most jelenik meg.';
+
+  @override
+  String get sharedLibrary_recovery_stored => 'Elmentettem';
+
+  @override
+  String get sharedLibrary_roles_rejected =>
+      'A szerepköröket olyan valaki módosította, aki nem tulajdonos. Ez az eszköz megtartja az utolsó, tulajdonos által aláírt szerepköröket.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

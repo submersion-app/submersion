@@ -21060,6 +21060,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedLibrary_setup_copied => 'Stratégie copiée';
 
   @override
+  String get sharedLibrary_recovery_title =>
+      'Conservez ce code de récupération';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      'Quiconque détient ce code peut se rendre propriétaire de la bibliothèque et l\'ouvrir si elle est chiffrée. Conservez-le en lieu sûr, à part des clés du stockage. Il n\'est affiché que maintenant.';
+
+  @override
+  String get sharedLibrary_recovery_stored => 'Je l\'ai conservé';
+
+  @override
+  String get sharedLibrary_roles_rejected =>
+      'Le fichier des rôles a été modifié par quelqu\'un qui n\'est pas propriétaire. Cet appareil conserve les derniers rôles signés par un propriétaire.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
 
   @override

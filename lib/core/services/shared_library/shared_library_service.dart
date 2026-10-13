@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -152,12 +153,12 @@ class SharedLibraryService {
         );
       }
 
-      // 2. Roles and members.
-      final roles = await t.readRoles();
+      // 2. Roles and members. Only roles this device can trust count: a
+      // file rewritten by someone who is no owner changes nothing here.
+      final roles = await _trustRoles(library, await t.readRoles());
       final members = await t.listMembers();
       await _store.setLibraryStatus(
         libraryId,
-        roles: roles,
         name: manifest['name'] as String?,
       );
       await _store.replaceMembers(libraryId, members);
@@ -303,6 +304,53 @@ class SharedLibraryService {
         SharedLibrarySyncStatus.failed,
         e is CloudStorageException ? e.displayMessage : e.toString(),
       );
+    }
+  }
+
+  /// The roles this device goes by after reading [incoming] (issue
+  /// #2567): the newer file when an owner (or the recovery key) of the
+  /// trusted roles signed it, else the trusted roles, with a warning, or a
+  /// reset held for the member to answer. Before any roles are trusted
+  /// (just joined), a self-consistent file is taken as found.
+  Future<SharedLibraryRoles> _trustRoles(
+    SharedLibrary library,
+    SharedLibraryRoles incoming,
+  ) async {
+    final trusted = library.roles;
+    if (incoming == trusted) {
+      if (library.rolesRejected || library.pendingRoles != null) {
+        await _store.setLibraryStatus(
+          library.id,
+          rolesRejected: false,
+          clearPendingRoles: true,
+        );
+      }
+      return trusted;
+    }
+    final RolesVerdict verdict;
+    if (trusted.version == 0) {
+      verdict = await isSelfConsistent(incoming)
+          ? RolesVerdict.trusted
+          : RolesVerdict.rejected;
+    } else {
+      verdict = await judgeRoles(trusted: trusted, incoming: incoming);
+    }
+    switch (verdict) {
+      case RolesVerdict.trusted:
+        await _store.setLibraryStatus(
+          library.id,
+          roles: incoming,
+          rolesRejected: false,
+          clearPendingRoles: true,
+        );
+        return incoming;
+      case RolesVerdict.resetPending:
+        await _store.setLibraryStatus(library.id, pendingRoles: incoming);
+        return trusted;
+      case RolesVerdict.rejected:
+        _log.warning('Ignoring roles of ${library.id} not signed by an owner');
+        await _store.setLibraryStatus(library.id, rolesRejected: true);
+        return trusted;
     }
   }
 

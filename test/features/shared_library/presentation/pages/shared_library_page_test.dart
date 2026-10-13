@@ -17,6 +17,7 @@ import '../../../../helpers/test_app.dart';
 Future<Widget> _page(
   SharedLibraryRole role, {
   bool readOnly = false,
+  bool rolesRejected = false,
   String? error,
   SharedLibraryMembershipService? service,
   SharedSitePublisher? publisher,
@@ -36,6 +37,7 @@ Future<Widget> _page(
           connectedAccountId: 'a',
           prefix: 'site-sync',
           readOnlyDetected: readOnly,
+          rolesRejected: rolesRejected,
           lastError: error,
           roles: SharedLibraryRoles(
             owners: role == SharedLibraryRole.owner ? {'m'} : {},
@@ -106,6 +108,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('allow reading only'), findsOneWidget);
     expect(find.textContaining('boom'), findsOneWidget);
+  });
+
+  testWidgets('a refused roles file is flagged', (tester) async {
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.reader, rolesRejected: true),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('changed by someone who is not an owner'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('cancelling the rename dialog keeps the name', (tester) async {

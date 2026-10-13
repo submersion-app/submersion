@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../helpers/shared_library_test_keys.dart';
 import '../../../helpers/test_database.dart';
 
 const _lib = SharedLibrary(
@@ -50,6 +51,7 @@ Future<SharedLibraryService> device(
       displayName: member,
       libraryName: 'Reef Survey',
       backendKind: 's3',
+      signingKey: await testMemberKey(member),
     ),
   );
   return SharedLibraryService(
@@ -65,7 +67,9 @@ Future<void> seedLibrary(
 }) async {
   final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
   await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 1});
-  await t.writeRoles(SharedLibraryRoles(owners: owners));
+  await t.writeRoles(
+    await signedTestRoles(owners: owners, members: {'a', 'b', 'c'}),
+  );
 }
 
 Future<void> markDirty(String siteId) => SharedLibraryStore().putSiteState(
@@ -470,6 +474,47 @@ void main() {
     final after = (await SiteRepository().getSiteById('s1'))!;
     expect(after.notes, isEmpty);
     expect(after.rating, isNull);
+  });
+
+  test('a roles file signed by someone who is no owner is ignored', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud);
+    final svc = await device(cloud, 'b');
+    await svc.sync('L', diverId: 'd-b');
+    expect(
+      (await SharedLibraryStore().getLibrary('L'))!.roles.roleOf('b'),
+      SharedLibraryRole.reader,
+    );
+    // b makes itself an owner and signs the change itself.
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final trusted = await t.readRoles();
+    await t.writeRoles(
+      await trusted
+          .copyWith(version: 2, owners: {'a', 'b'})
+          .signed(signedBy: 'b', key: await testMemberKey('b')),
+    );
+    await svc.sync('L', diverId: 'd-b');
+    final library = (await SharedLibraryStore().getLibrary('L'))!;
+    expect(library.roles.roleOf('b'), SharedLibraryRole.reader);
+    expect(library.rolesRejected, isTrue);
+  });
+
+  test("an owner's change is trusted and clears the warning", () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud);
+    final svc = await device(cloud, 'b');
+    await svc.sync('L', diverId: 'd-b');
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final trusted = await t.readRoles();
+    await t.writeRoles(
+      await trusted
+          .copyWith(version: 2, editors: {'b'})
+          .signed(signedBy: 'a', key: await testMemberKey('a')),
+    );
+    await svc.sync('L', diverId: 'd-b');
+    final library = (await SharedLibraryStore().getLibrary('L'))!;
+    expect(library.roles.roleOf('b'), SharedLibraryRole.editor);
+    expect(library.rolesRejected, isFalse);
   });
 }
 

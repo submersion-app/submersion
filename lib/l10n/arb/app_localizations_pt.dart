@@ -21001,6 +21001,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedLibrary_setup_copied => 'Política copiada';
 
   @override
+  String get sharedLibrary_recovery_title =>
+      'Guarde este código de recuperação';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      'Quem tiver este código pode tornar-se proprietário da biblioteca e abri-la se estiver encriptada. Guarde-o num local seguro, separado das chaves do armazenamento. Só é mostrado agora.';
+
+  @override
+  String get sharedLibrary_recovery_stored => 'Já o guardei';
+
+  @override
+  String get sharedLibrary_roles_rejected =>
+      'O ficheiro de funções foi alterado por alguém que não é proprietário. Este dispositivo mantém as últimas funções assinadas por um proprietário.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override

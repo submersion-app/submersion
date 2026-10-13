@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 
@@ -27,29 +30,148 @@ class FieldClock extends Equatable {
   List<Object?> get props => [hlc, memberId];
 }
 
-/// `roles.json`: owners and editors by member id; everyone else reads.
-/// Unknown ids are kept verbatim so a later join resolves them.
+/// The `recovery` entry of `roles.json`: the public key the library
+/// recovery code stands for, and how to derive it again.
+class RolesRecovery extends Equatable {
+  const RolesRecovery({
+    required this.publicKey,
+    required this.salt,
+    required this.kdf,
+  });
+
+  final String publicKey;
+  final String salt;
+  final Map<String, dynamic> kdf;
+
+  static RolesRecovery? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final publicKey = raw['publicKey'];
+    final salt = raw['salt'];
+    final kdf = raw['kdf'];
+    if (publicKey is! String || salt is! String || kdf is! Map) return null;
+    return RolesRecovery(
+      publicKey: publicKey,
+      salt: salt,
+      kdf: Map<String, dynamic>.from(kdf),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'publicKey': publicKey,
+    'salt': salt,
+    'kdf': kdf,
+  };
+
+  @override
+  List<Object?> get props => [publicKey, salt, kdf];
+}
+
+/// `roles.json`: owners and editors by member id (everyone else reads),
+/// each approved member's public key, the recovery key, and the signature
+/// of whoever wrote it (issue #2567). Unknown ids are kept verbatim so a
+/// later join resolves them.
 class SharedLibraryRoles extends Equatable {
-  const SharedLibraryRoles({this.owners = const {}, this.editors = const {}});
+  const SharedLibraryRoles({
+    this.owners = const {},
+    this.editors = const {},
+    this.version = 0,
+    this.approvedKeys = const {},
+    this.recovery,
+    this.reset = false,
+    this.signedBy,
+    this.signature,
+  });
 
   final Set<String> owners;
   final Set<String> editors;
 
+  /// Grows with every change, so an older signed file cannot be put back.
+  final int version;
+
+  /// Member id to the public key an owner approved for it.
+  final Map<String, String> approvedKeys;
+  final RolesRecovery? recovery;
+
+  /// Written by "reset ownership": each member's device asks before
+  /// trusting it.
+  final bool reset;
+
+  /// The member id that signed, or [recoverySigner].
+  final String? signedBy;
+  final String? signature;
+
   static const empty = SharedLibraryRoles();
+
+  /// [signedBy] for a file signed with the recovery code's key.
+  static const recoverySigner = 'recovery';
 
   factory SharedLibraryRoles.fromJson(Map<String, dynamic> json) =>
       SharedLibraryRoles(
         owners: _ids(json['owners']),
         editors: _ids(json['editors']),
+        version: (json['version'] as num?)?.toInt() ?? 0,
+        approvedKeys: {
+          if (json['approvedKeys'] case final Map keys)
+            for (final e in keys.entries)
+              if (e.key is String && e.value is String)
+                e.key as String: e.value as String,
+        },
+        recovery: RolesRecovery.fromJson(json['recovery']),
+        reset: json['reset'] == true,
+        signedBy: json['signedBy'] as String?,
+        signature: json['signature'] as String?,
       );
 
   static Set<String> _ids(Object? raw) =>
       raw is List ? raw.whereType<String>().toSet() : const {};
 
-  Map<String, dynamic> toJson() => {
+  /// Everything the signature covers: all but the signature itself.
+  Map<String, dynamic> unsignedJson() => {
     'owners': owners.toList()..sort(),
     'editors': editors.toList()..sort(),
+    'version': version,
+    'approvedKeys': approvedKeys,
+    'recovery': ?recovery?.toJson(),
+    'reset': reset,
+    'signedBy': ?signedBy,
   };
+
+  Map<String, dynamic> toJson() => {...unsignedJson(), 'signature': ?signature};
+
+  /// This file signed by [signedBy] with [key].
+  Future<SharedLibraryRoles> signed({
+    required String signedBy,
+    required LibrarySigningKey key,
+  }) async {
+    final unsigned = copyWith(signedBy: signedBy, clearSignature: true);
+    final signature = await LibrarySigner.sign(
+      key,
+      utf8.encode(canonicalJson(unsigned.unsignedJson())),
+    );
+    return unsigned.copyWith(signature: signature);
+  }
+
+  SharedLibraryRoles copyWith({
+    Set<String>? owners,
+    Set<String>? editors,
+    int? version,
+    Map<String, String>? approvedKeys,
+    RolesRecovery? recovery,
+    bool clearRecovery = false,
+    bool? reset,
+    String? signedBy,
+    String? signature,
+    bool clearSignature = false,
+  }) => SharedLibraryRoles(
+    owners: owners ?? this.owners,
+    editors: editors ?? this.editors,
+    version: version ?? this.version,
+    approvedKeys: approvedKeys ?? this.approvedKeys,
+    recovery: clearRecovery ? null : recovery ?? this.recovery,
+    reset: reset ?? this.reset,
+    signedBy: signedBy ?? this.signedBy,
+    signature: clearSignature ? null : signature ?? this.signature,
+  );
 
   SharedLibraryRole roleOf(String memberId) {
     if (owners.contains(memberId)) return SharedLibraryRole.owner;
@@ -57,6 +179,8 @@ class SharedLibraryRoles extends Equatable {
     return SharedLibraryRole.reader;
   }
 
+  /// [memberId] moved to [role]; the version and signature are the
+  /// caller's to set.
   SharedLibraryRoles withRole(String memberId, SharedLibraryRole role) {
     final newOwners = {...owners}..remove(memberId);
     final newEditors = {...editors}..remove(memberId);
@@ -68,15 +192,22 @@ class SharedLibraryRoles extends Equatable {
       case SharedLibraryRole.reader:
         break;
     }
-    return SharedLibraryRoles(owners: newOwners, editors: newEditors);
+    return copyWith(owners: newOwners, editors: newEditors);
   }
 
   @override
-  List<Object?> get props => [owners, editors];
+  List<Object?> get props => [
+    owners,
+    editors,
+    version,
+    approvedKeys,
+    recovery,
+    reset,
+    signedBy,
+    signature,
+  ];
 }
 
-/// The role the UI honours: the listed role, capped at reader when the
-/// storage refused a write.
 /// The newest of [clocks], or null when there are none: the last edit of a
 /// site, which its attribution names.
 FieldClock? newestClockOf(Iterable<FieldClock> clocks) {
@@ -87,6 +218,8 @@ FieldClock? newestClockOf(Iterable<FieldClock> clocks) {
   return newest;
 }
 
+/// The role the UI honours: the listed role, capped at reader when the
+/// storage refused a write.
 SharedLibraryRole effectiveRole({
   required SharedLibraryRole listed,
   required bool readOnlyDetected,
@@ -137,6 +270,11 @@ class SharedLibrary extends Equatable {
     this.roles = SharedLibraryRoles.empty,
     this.lastSyncAt,
     this.lastError,
+    this.rolesRejected = false,
+    this.pendingRoles,
+    this.encrypted = false,
+    this.keyId,
+    this.lastAutoBackupAt,
   });
 
   final String id;
@@ -145,9 +283,24 @@ class SharedLibrary extends Equatable {
   final String prefix;
   final int formatVersion;
   final bool readOnlyDetected;
+
+  /// The last `roles.json` this device trusted.
   final SharedLibraryRoles roles;
   final DateTime? lastSyncAt;
   final String? lastError;
+
+  /// The folder holds a `roles.json` this device refused.
+  final bool rolesRejected;
+
+  /// An ownership reset waiting for this member's answer.
+  final SharedLibraryRoles? pendingRoles;
+
+  /// The manifest's encryption state as last read.
+  final bool encrypted;
+  final String? keyId;
+
+  /// When this device last made an automatic backup.
+  final DateTime? lastAutoBackupAt;
 
   SharedLibrary copyWith({
     String? name,
@@ -156,6 +309,7 @@ class SharedLibrary extends Equatable {
     DateTime? lastSyncAt,
     String? lastError,
     bool clearLastError = false,
+    bool? rolesRejected,
   }) => SharedLibrary(
     id: id,
     name: name ?? this.name,
@@ -166,6 +320,11 @@ class SharedLibrary extends Equatable {
     roles: roles ?? this.roles,
     lastSyncAt: lastSyncAt ?? this.lastSyncAt,
     lastError: clearLastError ? null : (lastError ?? this.lastError),
+    rolesRejected: rolesRejected ?? this.rolesRejected,
+    pendingRoles: pendingRoles,
+    encrypted: encrypted,
+    keyId: keyId,
+    lastAutoBackupAt: lastAutoBackupAt,
   );
 
   @override
@@ -179,6 +338,11 @@ class SharedLibrary extends Equatable {
     roles,
     lastSyncAt,
     lastError,
+    rolesRejected,
+    pendingRoles,
+    encrypted,
+    keyId,
+    lastAutoBackupAt,
   ];
 }
 

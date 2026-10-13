@@ -38,14 +38,17 @@ class _FakeMembershipService extends SharedLibraryMembershipService {
     required String prefix,
   }) async => probes[prefix] ?? const LibraryProbe(exists: false);
 
+  /// A library made by Create; null refuses it as already there.
+  CreatedLibrary? created;
+
   @override
-  Future<SharedLibrary> create({
+  Future<CreatedLibrary> createWithRecovery({
     required ConnectedAccount account,
     required String prefix,
     required String name,
     required String diverId,
     required String displayName,
-  }) async => throw LibraryExistsError(prefix);
+  }) async => created ?? (throw LibraryExistsError(prefix));
 }
 
 Widget _connectApp(
@@ -359,6 +362,51 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('keychain locked'), findsOneWidget);
+  });
+
+  testWidgets('a new library shows its recovery code', (tester) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final service = _FakeMembershipService(const {})
+      ..created = const CreatedLibrary(
+        library: SharedLibrary(
+          id: 'N',
+          name: 'Reef Survey',
+          connectedAccountId: 'a',
+          prefix: 'reef',
+        ),
+        recoveryCode: 'alpha-bravo-charlie',
+      );
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          eligibleLibraryAccountsProvider.overrideWith(
+            (ref) async => [_bucket()],
+          ),
+          sharedLibraryMembershipServiceProvider.overrideWithValue(service),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
+          currentDiverProvider.overrideWith(
+            (ref) async => Diver(
+              id: 'd',
+              name: 'Ann',
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          ),
+        ],
+        locale: const Locale('en'),
+        child: const ConnectSharedLibraryPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
+    await tester.tap(find.text('Check'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create library'));
+    await tester.pumpAndSettle();
+    expect(find.text('alpha-bravo-charlie'), findsOneWidget);
   });
 
   testWidgets('the storage guide opens for the typed folder', (tester) async {

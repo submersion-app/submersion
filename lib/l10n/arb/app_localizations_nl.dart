@@ -20864,6 +20864,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_setup_copied => 'Beleid gekopieerd';
 
   @override
+  String get sharedLibrary_recovery_title => 'Bewaar deze herstelcode';
+
+  @override
+  String get sharedLibrary_recovery_body =>
+      'Wie deze code heeft, kan zichzelf eigenaar van de bibliotheek maken en haar openen als ze versleuteld is. Bewaar hem op een veilige plek, los van de opslagsleutels. Hij wordt alleen nu getoond.';
+
+  @override
+  String get sharedLibrary_recovery_stored => 'Ik heb hem bewaard';
+
+  @override
+  String get sharedLibrary_roles_rejected =>
+      'Het rollenbestand is gewijzigd door iemand die geen eigenaar is. Dit apparaat houdt de laatste rollen aan die een eigenaar ondertekende.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override
