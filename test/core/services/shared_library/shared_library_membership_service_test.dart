@@ -304,6 +304,135 @@ void main() {
     expect((await t.readRoles()).approvedKeys, isNot(contains(bo.memberId)));
   });
 
+  test('the recovery code brings back an owner', () async {
+    final created = await service.createWithRecovery(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await _diver('d2');
+    await service.join(
+      account: account,
+      prefix: 'site-sync',
+      diverId: 'd2',
+      displayName: 'Bo',
+    );
+    final bo = (await SharedLibraryStore().membership(
+      diverId: 'd2',
+      libraryId: created.library.id,
+    ))!;
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final before = await t.readRoles();
+    await service.recoverOwnership(
+      libraryId: created.library.id,
+      diverId: 'd2',
+      code: created.recoveryCode,
+    );
+    final after = await t.readRoles();
+    expect(after.roleOf(bo.memberId), SharedLibraryRole.owner);
+    expect(after.approvedKeys[bo.memberId], bo.signingKey!.publicKey);
+    expect(after.signedBy, SharedLibraryRoles.recoverySigner);
+    // Every device trusting the old roles accepts the recovered ones.
+    expect(
+      await judgeRoles(trusted: before, incoming: after),
+      RolesVerdict.trusted,
+    );
+  });
+
+  test('a wrong recovery code changes nothing', () async {
+    final created = await service.createWithRecovery(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final before = await t.readRoles();
+    await expectLater(
+      service.recoverOwnership(
+        libraryId: created.library.id,
+        diverId: 'd1',
+        code: 'not-the-code',
+      ),
+      throwsA(isA<WrongRecoveryCodeError>()),
+    );
+    expect(await t.readRoles(), before);
+  });
+
+  test('a new recovery code replaces the old one', () async {
+    final created = await service.createWithRecovery(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final fresh = await service.reissueRecoveryCode(
+      libraryId: created.library.id,
+      diverId: 'd1',
+    );
+    expect(fresh, isNot(created.recoveryCode));
+    await expectLater(
+      service.recoverOwnership(
+        libraryId: created.library.id,
+        diverId: 'd1',
+        code: created.recoveryCode,
+      ),
+      throwsA(isA<WrongRecoveryCodeError>()),
+    );
+    await service.recoverOwnership(
+      libraryId: created.library.id,
+      diverId: 'd1',
+      code: fresh,
+    );
+  });
+
+  test('a reset waits for each member to accept it', () async {
+    final created = await service.createWithRecovery(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await _diver('d2');
+    await service.join(
+      account: account,
+      prefix: 'site-sync',
+      diverId: 'd2',
+      displayName: 'Bo',
+    );
+    final bo = (await SharedLibraryStore().membership(
+      diverId: 'd2',
+      libraryId: created.library.id,
+    ))!;
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final before = await t.readRoles();
+    await service.resetOwnership(libraryId: created.library.id, diverId: 'd2');
+    final reset = await t.readRoles();
+    expect(reset.reset, isTrue);
+    expect(reset.owners, {bo.memberId});
+    expect(
+      await judgeRoles(trusted: before, incoming: reset),
+      RolesVerdict.resetPending,
+    );
+    // Ann's device holds it pending, then accepts.
+    await SharedLibraryStore().setLibraryStatus(
+      created.library.id,
+      roles: before,
+      pendingRoles: reset,
+    );
+    await service.acceptReset(created.library.id);
+    final library = (await SharedLibraryStore().getLibrary(
+      created.library.id,
+    ))!;
+    expect(library.roles, reset);
+    expect(library.pendingRoles, isNull);
+  });
+
   test('join reads the folder through one transport', () async {
     final folder = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await folder.writeManifest({

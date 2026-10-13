@@ -20005,6 +20005,58 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_members_removeRole => '移除角色';
 
   @override
+  String get sharedLibrary_owner_onlyOne => '只有一位所有者。若其失去访问权限，只有恢复码能够恢复。';
+
+  @override
+  String get sharedLibrary_owner_addOwner => '选择另一位所有者';
+
+  @override
+  String get sharedLibrary_owner_newCode => '新的恢复码';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp => '替换旧代码，例如旧代码可能已泄露时。';
+
+  @override
+  String get sharedLibrary_owner_recover => '恢复所有权';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp => '使用资料库的恢复码成为所有者。';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => '恢复码';
+
+  @override
+  String get sharedLibrary_owner_wrongCode => '这不是此资料库的恢复码。';
+
+  @override
+  String get sharedLibrary_owner_recovered => '你现在是所有者。';
+
+  @override
+  String get sharedLibrary_owner_reset => '重置所有权';
+
+  @override
+  String get sharedLibrary_owner_resetHelp => '仅在既没有所有者也没有恢复码时使用。每位成员都必须接受。';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      '让自己成为唯一的所有者？其他每位成员的设备都会请其接受，在接受之前不会写入资料库。';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return '$name 重置了 $library 的所有权（密钥 $fingerprint）。在你接受之前，此设备只读取该资料库。';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => '接受';
+
+  @override
+  String get sharedLibrary_connect_untrusted => '此资料库的角色未由其所有者签名。请让所有者检查。';
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

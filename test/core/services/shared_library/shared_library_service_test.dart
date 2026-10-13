@@ -791,6 +791,35 @@ void main() {
     );
     expect(after.map((s) => s.id).toSet(), {'g1', 'g3'});
   });
+
+  test('a pending ownership reset keeps the device from writing', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud, owners: {'a'}, editors: {'b'});
+    final svc = await device(cloud, 'b');
+    await svc.sync('L', diverId: 'd-b');
+    // Someone with full storage keys resets ownership.
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final trusted = await t.readRoles();
+    await t.writeRoles(
+      await SharedLibraryRoles(
+        version: trusted.version + 1,
+        owners: const {'c'},
+        approvedKeys: {'c': (await testMemberKey('c')).publicKey},
+        reset: true,
+      ).signed(signedBy: 'c', key: await testMemberKey('c')),
+    );
+    await SiteRepository().createSite(
+      const DiveSite(id: 's1', name: 'Blue', sharedLibraryId: 'L'),
+    );
+    await markDirty('s1');
+    final r = await svc.sync('L', diverId: 'd-b');
+    expect(r.pushed, 0);
+    expect(r.status, SharedLibrarySyncStatus.readOnly);
+    final library = (await SharedLibraryStore().getLibrary('L'))!;
+    expect(library.pendingRoles?.owners, {'c'});
+    expect(library.roles, trusted);
+    expect((await SharedLibraryStore().getSiteState('s1'))!.dirty, isTrue);
+  });
 }
 
 /// Runs [beforeSiteUpload] once before the next site upload, and refuses

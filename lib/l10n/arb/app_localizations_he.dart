@@ -20576,6 +20576,64 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'הסרת תפקיד';
 
   @override
+  String get sharedLibrary_owner_onlyOne =>
+      'יש רק בעלים אחד. אם הגישה תאבד, רק קוד השחזור יוכל להחזיר אותה.';
+
+  @override
+  String get sharedLibrary_owner_addOwner => 'בחירת בעלים נוסף';
+
+  @override
+  String get sharedLibrary_owner_newCode => 'קוד שחזור חדש';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp =>
+      'מחליף את הקוד הישן, למשל אם ייתכן שדלף.';
+
+  @override
+  String get sharedLibrary_owner_recover => 'שחזור בעלות';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp =>
+      'הפכו לבעלים באמצעות קוד השחזור של הספרייה.';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => 'קוד שחזור';
+
+  @override
+  String get sharedLibrary_owner_wrongCode =>
+      'זה אינו קוד השחזור של הספרייה הזו.';
+
+  @override
+  String get sharedLibrary_owner_recovered => 'עכשיו אתם בעלים.';
+
+  @override
+  String get sharedLibrary_owner_reset => 'איפוס בעלות';
+
+  @override
+  String get sharedLibrary_owner_resetHelp =>
+      'רק אם לא נותרו בעלים וגם לא קוד שחזור. כל החברים חייבים לאשר זאת.';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      'להפוך לבעלים היחידים? המכשיר של כל חבר אחר יבקש ממנו לאשר זאת, ויפסיק לכתוב לספרייה עד שיאשר.';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return 'הבעלות על $library אופסה על ידי $name (מפתח $fingerprint). עד שתאשרו, המכשיר הזה רק קורא את הספרייה.';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => 'אישור';
+
+  @override
+  String get sharedLibrary_connect_untrusted =>
+      'התפקידים של הספרייה הזו אינם חתומים על ידי אחד מבעליה. בקשו מבעלים לבדוק זאת.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

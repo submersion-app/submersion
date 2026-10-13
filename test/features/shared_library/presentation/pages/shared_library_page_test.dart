@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
@@ -18,6 +21,7 @@ Future<Widget> _page(
   SharedLibraryRole role, {
   bool readOnly = false,
   bool rolesRejected = false,
+  SharedLibraryRoles? pendingRoles,
   String? error,
   SharedLibraryMembershipService? service,
   SharedSitePublisher? publisher,
@@ -38,6 +42,7 @@ Future<Widget> _page(
           prefix: 'site-sync',
           readOnlyDetected: readOnly,
           rolesRejected: rolesRejected,
+          pendingRoles: pendingRoles,
           lastError: error,
           roles: SharedLibraryRoles(
             owners: role == SharedLibraryRole.owner ? {'m'} : {},
@@ -86,6 +91,11 @@ void main() {
       expect(find.text('Suggestions'), findsOneWidget);
       expect(find.text('2'), findsOneWidget);
       expect(find.text('Add my sites'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Leave library'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Leave library'), findsOneWidget);
       expect(find.text('Sync now'), findsOneWidget);
     },
@@ -121,6 +131,64 @@ void main() {
     );
   });
 
+  testWidgets('a lone owner is warned', (tester) async {
+    await tester.pumpWidget(await _page(SharedLibraryRole.owner));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Only one owner'), findsOneWidget);
+  });
+
+  testWidgets('an editor gets no owner warning', (tester) async {
+    await tester.pumpWidget(await _page(SharedLibraryRole.editor));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Only one owner'), findsNothing);
+  });
+
+  testWidgets('a pending ownership reset asks to be accepted', (tester) async {
+    final service = _OwnerLoss();
+    final key = base64Encode(List.filled(32, 9));
+    await tester.pumpWidget(
+      await _page(
+        SharedLibraryRole.reader,
+        service: service,
+        pendingRoles: SharedLibraryRoles(
+          version: 3,
+          owners: const {'m'},
+          approvedKeys: {'m': key},
+          reset: true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('was reset by Ann'), findsOneWidget);
+    expect(find.textContaining(LibrarySigner.fingerprint(key)), findsOneWidget);
+    await tester.tap(find.text('Accept'));
+    await tester.pumpAndSettle();
+    expect(service.accepted, ['L']);
+  });
+
+  testWidgets('a wrong recovery code says so', (tester) async {
+    final service = _OwnerLoss();
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.reader, service: service),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Recover ownership'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Recover ownership'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'wrong-code');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(service.codes, ['wrong-code']);
+    expect(
+      find.text("That is not this library's recovery code."),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('cancelling the rename dialog keeps the name', (tester) async {
     await tester.pumpWidget(await _page(SharedLibraryRole.owner));
     await tester.pumpAndSettle();
@@ -136,12 +204,22 @@ void main() {
   testWidgets('cancelling the leave dialog stays on the page', (tester) async {
     await tester.pumpWidget(await _page(SharedLibraryRole.owner));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Leave library'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Leave library'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Reef Survey'), findsWidgets);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Leave library'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Leave library'), findsOneWidget);
   });
 
@@ -236,4 +314,30 @@ class _RefusingPublisher extends SharedSitePublisher {
     required String libraryId,
     required String diverId,
   }) async => throw StateError('a reader cannot add sites');
+}
+
+/// Records owner-loss actions; every recovery code is wrong.
+class _OwnerLoss extends SharedLibraryMembershipService {
+  _OwnerLoss()
+    : super(
+        store: SharedLibraryStore(),
+        transportFor: ({required account, required prefix}) =>
+            throw UnimplementedError(),
+      );
+
+  final accepted = <String>[];
+  final codes = <String>[];
+
+  @override
+  Future<void> acceptReset(String libraryId) async => accepted.add(libraryId);
+
+  @override
+  Future<void> recoverOwnership({
+    required String libraryId,
+    required String diverId,
+    required String code,
+  }) async {
+    codes.add(code);
+    throw WrongRecoveryCodeError();
+  }
 }

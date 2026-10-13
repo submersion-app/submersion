@@ -21314,6 +21314,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'إزالة الدور';
 
   @override
+  String get sharedLibrary_owner_onlyOne =>
+      'مالك واحد فقط. إن فقد الوصول، فلا يعيده إلا رمز الاسترداد.';
+
+  @override
+  String get sharedLibrary_owner_addOwner => 'اختر مالكًا آخر';
+
+  @override
+  String get sharedLibrary_owner_newCode => 'رمز استرداد جديد';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp =>
+      'يحل محل الرمز القديم، مثلًا إن كان قد تسرب.';
+
+  @override
+  String get sharedLibrary_owner_recover => 'استعادة الملكية';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp =>
+      'كن مالكًا باستخدام رمز استرداد المكتبة.';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => 'رمز الاسترداد';
+
+  @override
+  String get sharedLibrary_owner_wrongCode =>
+      'هذا ليس رمز استرداد هذه المكتبة.';
+
+  @override
+  String get sharedLibrary_owner_recovered => 'أصبحت مالكًا الآن.';
+
+  @override
+  String get sharedLibrary_owner_reset => 'إعادة تعيين الملكية';
+
+  @override
+  String get sharedLibrary_owner_resetHelp =>
+      'فقط إن لم يبقَ مالك ولا رمز استرداد. يجب أن يقبله كل الأعضاء.';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      'هل تجعل نفسك المالك الوحيد؟ سيطلب جهاز كل عضو آخر منه قبول ذلك، ويتوقف عن الكتابة في المكتبة حتى يقبل.';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return 'أعاد $name تعيين ملكية $library (المفتاح $fingerprint). حتى تقبل، يكتفي هذا الجهاز بقراءة المكتبة.';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => 'قبول';
+
+  @override
+  String get sharedLibrary_connect_untrusted =>
+      'أدوار هذه المكتبة غير موقعة من أحد مالكيها. اطلب من مالك التحقق منها.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

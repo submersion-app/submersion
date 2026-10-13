@@ -20911,6 +20911,64 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Rol verwijderen';
 
   @override
+  String get sharedLibrary_owner_onlyOne =>
+      'Er is maar één eigenaar. Verliest die de toegang, dan kan alleen de herstelcode die terugbrengen.';
+
+  @override
+  String get sharedLibrary_owner_addOwner => 'Nog een eigenaar kiezen';
+
+  @override
+  String get sharedLibrary_owner_newCode => 'Nieuwe herstelcode';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp =>
+      'Vervangt de oude code, bijvoorbeeld als die uitgelekt kan zijn.';
+
+  @override
+  String get sharedLibrary_owner_recover => 'Eigenaarschap herstellen';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp =>
+      'Word eigenaar met de herstelcode van de bibliotheek.';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => 'Herstelcode';
+
+  @override
+  String get sharedLibrary_owner_wrongCode =>
+      'Dat is niet de herstelcode van deze bibliotheek.';
+
+  @override
+  String get sharedLibrary_owner_recovered => 'Je bent nu eigenaar.';
+
+  @override
+  String get sharedLibrary_owner_reset => 'Eigenaarschap opnieuw instellen';
+
+  @override
+  String get sharedLibrary_owner_resetHelp =>
+      'Alleen als er geen eigenaar en geen herstelcode meer is. Elk lid moet het accepteren.';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      'Jezelf de enige eigenaar maken? Het apparaat van elk ander lid vraagt om dit te accepteren en schrijft tot dan niet naar de bibliotheek.';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return '$name heeft het eigenaarschap van $library opnieuw ingesteld (sleutel $fingerprint). Tot je accepteert, leest dit apparaat de bibliotheek alleen.';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => 'Accepteren';
+
+  @override
+  String get sharedLibrary_connect_untrusted =>
+      'De rollen van deze bibliotheek zijn niet ondertekend door een van haar eigenaars. Vraag een eigenaar dit na te kijken.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override

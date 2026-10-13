@@ -21108,6 +21108,65 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Retirer le rôle';
 
   @override
+  String get sharedLibrary_owner_onlyOne =>
+      'Un seul propriétaire. S\'il perd l\'accès, seul le code de récupération peut le rétablir.';
+
+  @override
+  String get sharedLibrary_owner_addOwner => 'Choisir un autre propriétaire';
+
+  @override
+  String get sharedLibrary_owner_newCode => 'Nouveau code de récupération';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp =>
+      'Remplace l\'ancien code, par exemple s\'il a pu fuiter.';
+
+  @override
+  String get sharedLibrary_owner_recover => 'Récupérer la propriété';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp =>
+      'Devenez propriétaire avec le code de récupération de la bibliothèque.';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => 'Code de récupération';
+
+  @override
+  String get sharedLibrary_owner_wrongCode =>
+      'Ce n\'est pas le code de récupération de cette bibliothèque.';
+
+  @override
+  String get sharedLibrary_owner_recovered =>
+      'Vous êtes maintenant propriétaire.';
+
+  @override
+  String get sharedLibrary_owner_reset => 'Réinitialiser la propriété';
+
+  @override
+  String get sharedLibrary_owner_resetHelp =>
+      'Seulement s\'il ne reste ni propriétaire ni code de récupération. Chaque membre doit l\'accepter.';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      'Devenir le seul propriétaire ? L\'appareil de chaque autre membre lui demandera d\'accepter et n\'écrira plus dans la bibliothèque tant qu\'il ne l\'aura pas fait.';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return '$name a réinitialisé la propriété de $library (clé $fingerprint). Tant que vous n\'acceptez pas, cet appareil ne fait que lire la bibliothèque.';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => 'Accepter';
+
+  @override
+  String get sharedLibrary_connect_untrusted =>
+      'Les rôles de cette bibliothèque ne sont pas signés par l\'un de ses propriétaires. Demandez à un propriétaire de vérifier.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
 
   @override

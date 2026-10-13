@@ -33707,6 +33707,100 @@ abstract class AppLocalizations {
   /// **'Remove role'**
   String get sharedLibrary_members_removeRole;
 
+  /// No description provided for @sharedLibrary_owner_onlyOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one owner. If they lose access, only the recovery code can restore it.'**
+  String get sharedLibrary_owner_onlyOne;
+
+  /// No description provided for @sharedLibrary_owner_addOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another owner'**
+  String get sharedLibrary_owner_addOwner;
+
+  /// No description provided for @sharedLibrary_owner_newCode.
+  ///
+  /// In en, this message translates to:
+  /// **'New recovery code'**
+  String get sharedLibrary_owner_newCode;
+
+  /// No description provided for @sharedLibrary_owner_newCodeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces the old code, for example if it may have leaked.'**
+  String get sharedLibrary_owner_newCodeHelp;
+
+  /// No description provided for @sharedLibrary_owner_recover.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover ownership'**
+  String get sharedLibrary_owner_recover;
+
+  /// No description provided for @sharedLibrary_owner_recoverHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'With the library\'s recovery code, become an owner.'**
+  String get sharedLibrary_owner_recoverHelp;
+
+  /// No description provided for @sharedLibrary_owner_recoverPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery code'**
+  String get sharedLibrary_owner_recoverPrompt;
+
+  /// No description provided for @sharedLibrary_owner_wrongCode.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not this library\'s recovery code.'**
+  String get sharedLibrary_owner_wrongCode;
+
+  /// No description provided for @sharedLibrary_owner_recovered.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now an owner.'**
+  String get sharedLibrary_owner_recovered;
+
+  /// No description provided for @sharedLibrary_owner_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset ownership'**
+  String get sharedLibrary_owner_reset;
+
+  /// No description provided for @sharedLibrary_owner_resetHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Only if no owner and no recovery code are left. Every member must accept it.'**
+  String get sharedLibrary_owner_resetHelp;
+
+  /// No description provided for @sharedLibrary_owner_resetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make yourself the only owner? Every other member\'s device asks them to accept this, and stops writing to the library until they do.'**
+  String get sharedLibrary_owner_resetConfirm;
+
+  /// No description provided for @sharedLibrary_owner_resetPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Ownership of {library} was reset by {name} (key {fingerprint}). Until you accept, this device only reads the library.'**
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  );
+
+  /// No description provided for @sharedLibrary_owner_resetAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get sharedLibrary_owner_resetAccept;
+
+  /// No description provided for @sharedLibrary_connect_untrusted.
+  ///
+  /// In en, this message translates to:
+  /// **'This library\'s roles are not signed by one of its owners. Ask an owner to check it.'**
+  String get sharedLibrary_connect_untrusted;
+
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
   /// In en, this message translates to:

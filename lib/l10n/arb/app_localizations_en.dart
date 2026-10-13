@@ -20732,6 +20732,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Remove role';
 
   @override
+  String get sharedLibrary_owner_onlyOne =>
+      'Only one owner. If they lose access, only the recovery code can restore it.';
+
+  @override
+  String get sharedLibrary_owner_addOwner => 'Choose another owner';
+
+  @override
+  String get sharedLibrary_owner_newCode => 'New recovery code';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp =>
+      'Replaces the old code, for example if it may have leaked.';
+
+  @override
+  String get sharedLibrary_owner_recover => 'Recover ownership';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp =>
+      'With the library\'s recovery code, become an owner.';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => 'Recovery code';
+
+  @override
+  String get sharedLibrary_owner_wrongCode =>
+      'That is not this library\'s recovery code.';
+
+  @override
+  String get sharedLibrary_owner_recovered => 'You are now an owner.';
+
+  @override
+  String get sharedLibrary_owner_reset => 'Reset ownership';
+
+  @override
+  String get sharedLibrary_owner_resetHelp =>
+      'Only if no owner and no recovery code are left. Every member must accept it.';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      'Make yourself the only owner? Every other member\'s device asks them to accept this, and stops writing to the library until they do.';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return 'Ownership of $library was reset by $name (key $fingerprint). Until you accept, this device only reads the library.';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => 'Accept';
+
+  @override
+  String get sharedLibrary_connect_untrusted =>
+      'This library\'s roles are not signed by one of its owners. Ask an owner to check it.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Check';
 
   @override

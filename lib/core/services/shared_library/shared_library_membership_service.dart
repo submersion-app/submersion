@@ -63,6 +63,12 @@ class UntrustedRolesError extends StateError {
     : super('The roles of the library at $prefix are not signed by an owner');
 }
 
+/// The recovery code typed in does not stand for the library's recovery
+/// key.
+class WrongRecoveryCodeError extends StateError {
+  WrongRecoveryCodeError() : super('That is not the recovery code');
+}
+
 /// A library just made, and the recovery code its creator must keep.
 class CreatedLibrary {
   const CreatedLibrary({required this.library, required this.recoveryCode});
@@ -529,6 +535,114 @@ class SharedLibraryMembershipService {
       }
     }
     throw StateError('$memberId is no member of $libraryId on this device');
+  }
+
+  /// Makes the profile [diverId] an owner with the library's recovery code
+  /// (issue #2567): roles signed with the key the code stands for, which
+  /// every member's device accepts like an owner's.
+  Future<void> recoverOwnership({
+    required String libraryId,
+    required String diverId,
+    required String code,
+  }) => SyncCoordinator.run(() async {
+    final (library, t, membership) = await _mine(libraryId, diverId);
+    final roles = await currentRoles(library, t);
+    final recovery = roles.recovery;
+    if (recovery == null) throw WrongRecoveryCodeError();
+    final key = await LibraryRecovery.derive(
+      code: code,
+      salt: recovery.salt,
+      kdf: KdfParams.fromJson(recovery.kdf),
+    );
+    if (key.publicKey != recovery.publicKey) throw WrongRecoveryCodeError();
+    final myKey = await _store.ensureSigningKey(diverId);
+    await writeSignedRoles(
+      library,
+      t,
+      roles
+          .withRole(membership.memberId, SharedLibraryRole.owner)
+          .copyWith(
+            approvedKeys: {
+              ...roles.approvedKeys,
+              membership.memberId: myKey.publicKey,
+            },
+          ),
+      signer: SharedLibraryRoles.recoverySigner,
+      key: key,
+    );
+  });
+
+  /// Owners only: a new recovery code, which replaces the old one in the
+  /// roles. Returned once, to be shown and stored.
+  Future<String> reissueRecoveryCode({
+    required String libraryId,
+    required String diverId,
+  }) => SyncCoordinator.run(() async {
+    final (library, t, membership) = await _mine(libraryId, diverId);
+    final (_, _, roles) = await _asOwner(libraryId, membership.memberId);
+    final recovery = await LibraryRecovery.create(kdf: _recoveryKdf);
+    await writeSignedRoles(
+      library,
+      t,
+      roles.copyWith(recovery: RolesRecovery.fromJson(recovery.toRolesJson())),
+      signer: membership.memberId,
+    );
+    return recovery.code;
+  });
+
+  /// For someone with full storage keys but neither an owner key nor the
+  /// recovery code: roles naming the profile [diverId] as the only owner,
+  /// marked as a reset, which every other member's device must accept.
+  Future<void> resetOwnership({
+    required String libraryId,
+    required String diverId,
+  }) => SyncCoordinator.run(() async {
+    final (library, t, membership) = await _mine(libraryId, diverId);
+    final roles = await currentRoles(library, t);
+    final myKey = await _store.ensureSigningKey(diverId);
+    final folder = await t.readRoles();
+    final version =
+        (folder.version > roles.version ? folder.version : roles.version) + 1;
+    final reset = await SharedLibraryRoles(
+      version: version,
+      owners: {membership.memberId},
+      approvedKeys: {membership.memberId: myKey.publicKey},
+      reset: true,
+    ).signed(signedBy: membership.memberId, key: myKey);
+    await t.writeRoles(reset);
+    await _store.setLibraryStatus(
+      libraryId,
+      roles: reset,
+      rolesRejected: false,
+      clearPendingRoles: true,
+    );
+  });
+
+  /// Trusts the ownership reset this device holds for [libraryId].
+  Future<void> acceptReset(String libraryId) async {
+    final library = await _store.getLibrary(libraryId);
+    final pending = library?.pendingRoles;
+    if (library == null || pending == null) return;
+    await _store.setLibraryStatus(
+      libraryId,
+      roles: pending,
+      rolesRejected: false,
+      clearPendingRoles: true,
+    );
+    await _store.clearRemoteStamps(libraryId);
+  }
+
+  Future<(SharedLibrary, SharedLibraryTransport, SharedLibraryMembership)>
+  _mine(String libraryId, String diverId) async {
+    final library = await _store.getLibrary(libraryId);
+    final membership = await _store.membership(
+      diverId: diverId,
+      libraryId: libraryId,
+    );
+    if (library == null || membership == null) {
+      throw StateError('not a member of $libraryId here');
+    }
+    return (library, await transportForLibrary(library), membership);
   }
 
   /// Owners only: approves the key on [memberId]'s card, so its edits and

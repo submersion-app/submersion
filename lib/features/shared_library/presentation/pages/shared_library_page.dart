@@ -10,6 +10,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/add_to_library_confirmation.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_ownership_section.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -58,6 +59,7 @@ class SharedLibraryPage extends ConsumerWidget {
       appBar: AppBar(title: Text(library.name)),
       body: ListView(
         children: [
+          PendingResetBanner(library: library, names: names ?? const {}),
           if (library.readOnlyDetected)
             _Banner(
               icon: Icons.lock_outline,
@@ -147,6 +149,12 @@ class SharedLibraryPage extends ConsumerWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _addMySites(context, ref, library!),
             ),
+          const Divider(height: 1),
+          LibraryOwnershipSection(
+            library: library,
+            role: role,
+            membership: membership,
+          ),
           const Divider(height: 1),
           ListTile(
             leading: Icon(

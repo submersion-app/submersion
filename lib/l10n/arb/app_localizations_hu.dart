@@ -20977,6 +20977,64 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Szerepkör eltávolítása';
 
   @override
+  String get sharedLibrary_owner_onlyOne =>
+      'Csak egy tulajdonos van. Ha elveszíti a hozzáférést, csak a helyreállítási kód állíthatja vissza.';
+
+  @override
+  String get sharedLibrary_owner_addOwner => 'Másik tulajdonos választása';
+
+  @override
+  String get sharedLibrary_owner_newCode => 'Új helyreállítási kód';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp =>
+      'Lecseréli a régi kódot, például ha kiszivároghatott.';
+
+  @override
+  String get sharedLibrary_owner_recover => 'Tulajdonjog visszaszerzése';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp =>
+      'Légy tulajdonos a könyvtár helyreállítási kódjával.';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => 'Helyreállítási kód';
+
+  @override
+  String get sharedLibrary_owner_wrongCode =>
+      'Ez nem ennek a könyvtárnak a helyreállítási kódja.';
+
+  @override
+  String get sharedLibrary_owner_recovered => 'Mostantól tulajdonos vagy.';
+
+  @override
+  String get sharedLibrary_owner_reset => 'Tulajdonjog visszaállítása';
+
+  @override
+  String get sharedLibrary_owner_resetHelp =>
+      'Csak ha nem maradt tulajdonos és helyreállítási kód sem. Minden tagnak el kell fogadnia.';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      'Egyedüli tulajdonossá teszed magad? Minden más tag eszköze elfogadást kér tőle, és addig nem ír a könyvtárba.';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return '$name visszaállította a(z) $library tulajdonjogát (kulcs: $fingerprint). Amíg el nem fogadod, ez az eszköz csak olvassa a könyvtárat.';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => 'Elfogadás';
+
+  @override
+  String get sharedLibrary_connect_untrusted =>
+      'A könyvtár szerepköreit nem írta alá egyik tulajdonosa sem. Kérj meg egy tulajdonost, hogy ellenőrizze.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

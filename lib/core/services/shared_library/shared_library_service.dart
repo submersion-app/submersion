@@ -167,8 +167,11 @@ class SharedLibraryService {
       );
       await _store.replaceMembers(libraryId, members);
       // Probed afresh every sync: a refused upload sets it, so upgraded
-      // credentials clear the banner on the next run.
-      var readOnly = false;
+      // credentials clear the banner on the next run. An ownership reset
+      // waiting for this member's answer holds every write back.
+      final holdWrites =
+          (await _store.getLibrary(libraryId))?.pendingRoles != null;
+      var readOnly = holdWrites;
       SharedLibraryMember? mine;
       for (final m in members) {
         if (m.memberId == membership.memberId) mine = m;
@@ -331,10 +334,12 @@ class SharedLibraryService {
 
       // 5. Suggestions. Read-only credentials refuse them as they refuse
       // sites: the suggestions wait, and the library reads as read-only.
-      await _retrySuggestionDeletes(t, libraryId);
-      if (await _uploadSuggestions(t, libraryId, key: myKey)) {
-        uploadAttempted = true;
-        readOnly = true;
+      if (!holdWrites) {
+        await _retrySuggestionDeletes(t, libraryId);
+        if (await _uploadSuggestions(t, libraryId, key: myKey)) {
+          uploadAttempted = true;
+          readOnly = true;
+        }
       }
       if (roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
         await _pullSuggestions(t, libraryId, roles: roles);
@@ -349,9 +354,8 @@ class SharedLibraryService {
         clearError: true,
         readOnlyDetected: uploadAttempted ? readOnly : null,
       );
-      final effectiveReadOnly = uploadAttempted
-          ? readOnly
-          : library.readOnlyDetected;
+      final effectiveReadOnly =
+          holdWrites || (uploadAttempted ? readOnly : library.readOnlyDetected);
       return SharedLibrarySyncResult(
         status: effectiveReadOnly
             ? SharedLibrarySyncStatus.readOnly

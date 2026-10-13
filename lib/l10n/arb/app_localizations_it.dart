@@ -21047,6 +21047,64 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Rimuovi ruolo';
 
   @override
+  String get sharedLibrary_owner_onlyOne =>
+      'C\'è un solo proprietario. Se perde l\'accesso, solo il codice di recupero può ripristinarlo.';
+
+  @override
+  String get sharedLibrary_owner_addOwner => 'Scegli un altro proprietario';
+
+  @override
+  String get sharedLibrary_owner_newCode => 'Nuovo codice di recupero';
+
+  @override
+  String get sharedLibrary_owner_newCodeHelp =>
+      'Sostituisce il vecchio codice, ad esempio se potrebbe essere trapelato.';
+
+  @override
+  String get sharedLibrary_owner_recover => 'Recupera la proprietà';
+
+  @override
+  String get sharedLibrary_owner_recoverHelp =>
+      'Diventa proprietario con il codice di recupero della libreria.';
+
+  @override
+  String get sharedLibrary_owner_recoverPrompt => 'Codice di recupero';
+
+  @override
+  String get sharedLibrary_owner_wrongCode =>
+      'Questo non è il codice di recupero di questa libreria.';
+
+  @override
+  String get sharedLibrary_owner_recovered => 'Ora sei proprietario.';
+
+  @override
+  String get sharedLibrary_owner_reset => 'Reimposta la proprietà';
+
+  @override
+  String get sharedLibrary_owner_resetHelp =>
+      'Solo se non restano né proprietari né codice di recupero. Ogni membro deve accettarlo.';
+
+  @override
+  String get sharedLibrary_owner_resetConfirm =>
+      'Diventare l\'unico proprietario? Il dispositivo di ogni altro membro chiederà di accettarlo e non scriverà nella libreria finché non lo farà.';
+
+  @override
+  String sharedLibrary_owner_resetPrompt(
+    String library,
+    String name,
+    String fingerprint,
+  ) {
+    return '$name ha reimpostato la proprietà di $library (chiave $fingerprint). Finché non accetti, questo dispositivo legge solo la libreria.';
+  }
+
+  @override
+  String get sharedLibrary_owner_resetAccept => 'Accetta';
+
+  @override
+  String get sharedLibrary_connect_untrusted =>
+      'I ruoli di questa libreria non sono firmati da uno dei suoi proprietari. Chiedi a un proprietario di verificarlo.';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
 
   @override
