@@ -57,6 +57,14 @@ List<DiveProfilePoint> reefProfile({int lead = 0}) {
   ];
 }
 
+/// [reefProfile] as seen by a computer switched on [late] seconds into the
+/// dive: it only has the rest of the trace, counted from its own start.
+List<DiveProfilePoint> lateStartProfile(int late) => [
+  for (final p in reefProfile())
+    if (p.timestamp >= late)
+      DiveProfilePoint(timestamp: p.timestamp - late, depth: p.depth),
+];
+
 void main() {
   const builder = DiveConsolidationBuilder();
   final t = DateTime.utc(2026, 7, 1, 9);
@@ -995,7 +1003,7 @@ void main() {
           entry: t.add(const Duration(minutes: 5)),
           runtimeMin: 48,
           serial: 'B',
-          profile: reefProfile(),
+          profile: lateStartProfile(300),
         ),
         makeDive(
           'c',
@@ -1016,6 +1024,114 @@ void main() {
         makeDive('b', entry: t.add(const Duration(minutes: 5)), serial: 'B'),
       ]);
       expect(plan.alignments, isEmpty);
+    });
+  });
+
+  group('clock correction for overlapping secondaries (#2894)', () {
+    // 'b' is the same dive as 'a' on a second computer. [clockSkew] is how
+    // far the two computers' clocks disagree; [late] is how long after 'a'
+    // the second computer started logging.
+    List<Dive> pair({
+      required int clockSkew,
+      int late = 0,
+      List<DiveProfilePoint>? secondaryProfile,
+    }) => [
+      makeDive(
+        'a',
+        entry: t,
+        runtimeMin: 48,
+        serial: 'A',
+        profile: reefProfile(),
+      ),
+      makeDive(
+        'b',
+        entry: t.add(Duration(seconds: late + clockSkew)),
+        runtimeMin: 48,
+        serial: 'B',
+        profile: secondaryProfile ?? lateStartProfile(late),
+      ),
+    ];
+
+    test('a drifted clock is corrected by the depth fit', () {
+      final plan = builder.build(pair(clockSkew: -100), primaryDiveId: 'a');
+      expect(plan.offsetsSeconds['b'], 0);
+      expect(plan.clockCorrections['b']!.offsetSeconds, 0);
+      expect(plan.clockCorrections['b']!.isStrongMatch, isTrue);
+      expect(plan.previewSeries['b']!.first.timestamp, 0);
+    });
+
+    test('a computer started late keeps its place when the clocks agree', () {
+      final plan = builder.build(
+        pair(clockSkew: 0, late: 60),
+        primaryDiveId: 'a',
+      );
+      expect(plan.offsetsSeconds['b'], 60);
+      expect(plan.clockCorrections, isEmpty);
+    });
+
+    test('a late start and a drifted clock are told apart', () {
+      final plan = builder.build(
+        pair(clockSkew: 95, late: 60),
+        primaryDiveId: 'a',
+      );
+      expect(plan.offsetsSeconds['b'], 60);
+      expect(plan.clockCorrections['b']!.offsetSeconds, 60);
+    });
+
+    test('a disagreement within the tolerance keeps the entry-time offset', () {
+      final plan = builder.build(
+        pair(clockSkew: DiveConsolidationBuilder.clockToleranceSeconds),
+        primaryDiveId: 'a',
+      );
+      expect(
+        plan.offsetsSeconds['b'],
+        DiveConsolidationBuilder.clockToleranceSeconds,
+      );
+      expect(plan.clockCorrections, isEmpty);
+    });
+
+    test('a weak match keeps the entry-time offset', () {
+      // A flat, shallow trace that looks nothing like the primary's.
+      final flat = [
+        for (var s = 0; s <= 2880; s += 10)
+          DiveProfilePoint(timestamp: s, depth: s == 0 || s == 2880 ? 0 : 3),
+      ];
+      final plan = builder.build(
+        pair(clockSkew: 100, secondaryProfile: flat),
+        primaryDiveId: 'a',
+      );
+      expect(plan.offsetsSeconds['b'], 100);
+      expect(plan.clockCorrections, isEmpty);
+    });
+
+    test('a secondary without a profile keeps the entry-time offset', () {
+      final plan = builder.build(
+        pair(clockSkew: 100, secondaryProfile: []),
+        primaryDiveId: 'a',
+      );
+      expect(plan.offsetsSeconds['b'], 100);
+      expect(plan.clockCorrections, isEmpty);
+    });
+
+    test('a realigned secondary is not also listed as a clock correction', () {
+      final plan = builder.build([
+        makeDive(
+          'a',
+          entry: t,
+          runtimeMin: 48,
+          serial: 'A',
+          profile: reefProfile(),
+        ),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(minutes: 66)),
+          runtimeMin: 48,
+          serial: 'B',
+          profile: reefProfile(lead: 40),
+        ),
+      ], alignment: ConsolidationAlignment.bestFit);
+      expect(plan.alignments.keys, ['b']);
+      expect(plan.clockCorrections, isEmpty);
     });
   });
 }

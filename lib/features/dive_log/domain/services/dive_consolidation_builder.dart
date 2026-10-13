@@ -50,6 +50,7 @@ class DiveConsolidationPlan {
     required this.tankMerges,
     required this.previewSeries,
     this.alignments = const {},
+    this.clockCorrections = const {},
   });
 
   final Dive primary;
@@ -70,6 +71,12 @@ class DiveConsolidationPlan {
   /// Realigned secondary id -> where the alignment placed it and how well
   /// its profile matches the primary's. Empty without an alignment mode.
   final Map<String, ProfileAlignmentResult> alignments;
+
+  /// Overlapping secondary id -> the depth fit that placed it, for each one
+  /// whose clock disagrees with the primary's by more than
+  /// [DiveConsolidationBuilder.clockToleranceSeconds] (#2894). Its offset in
+  /// [offsetsSeconds] is the fit's, not the entry-time difference.
+  final Map<String, ProfileAlignmentResult> clockCorrections;
 }
 
 class DiveConsolidationBuilder {
@@ -77,6 +84,12 @@ class DiveConsolidationBuilder {
 
   static const double _gasTolerancePct = 0.5;
   static const double _pressureToleranceBar = 5.0;
+
+  /// How far an overlapping secondary's entry-time offset may stray from
+  /// its depth fit before the fit replaces it. Computers worn on different
+  /// arms never agree exactly, and the fit is good to a couple of seconds,
+  /// so within this the clocks are taken at their word.
+  static const int clockToleranceSeconds = 5;
 
   /// The segment's occupied span: declared runtime or last profile sample,
   /// whichever is later (same rule as DiveMergeBuilder._segmentExtent).
@@ -255,15 +268,32 @@ class DiveConsolidationBuilder {
         if (classification.realignedIds.contains(s.id))
           s.id: _aligned(primary, s, alignment!),
     };
-    final offsets = <String, int>{
-      primary.id: 0,
-      for (final s in secondaries)
-        s.id:
-            alignments[s.id]?.offsetSeconds ??
-            s.effectiveEntryTime
-                .difference(primary.effectiveEntryTime)
-                .inSeconds,
-    };
+    // An overlapping secondary is placed by its entry time unless its depth
+    // trace clearly says otherwise: a computer clock drifts (about a second
+    // a day on some) and is only corrected when the diver syncs it, and an
+    // offset taken from a drifted clock puts the whole profile out of step
+    // (#2894). The fit compares the traces from each record's own start, so
+    // it also places a computer that was switched on late.
+    final clockCorrections = <String, ProfileAlignmentResult>{};
+    final offsets = <String, int>{primary.id: 0};
+    for (final s in secondaries) {
+      final realigned = alignments[s.id];
+      if (realigned != null) {
+        offsets[s.id] = realigned.offsetSeconds;
+        continue;
+      }
+      final byClock = s.effectiveEntryTime
+          .difference(primary.effectiveEntryTime)
+          .inSeconds;
+      final fit = const ProfileAligner().align(primary.profile, s.profile);
+      if (fit.isStrongMatch &&
+          (fit.offsetSeconds - byClock).abs() > clockToleranceSeconds) {
+        clockCorrections[s.id] = fit;
+        offsets[s.id] = fit.offsetSeconds;
+      } else {
+        offsets[s.id] = byClock;
+      }
+    }
 
     // Each secondary claims primary tanks independently: three computers on
     // one transmitter all merge into the same primary tank. Within a single
@@ -318,6 +348,7 @@ class DiveConsolidationBuilder {
       tankMerges: tankMerges,
       previewSeries: preview,
       alignments: alignments,
+      clockCorrections: clockCorrections,
     );
   }
 
