@@ -31,16 +31,24 @@ class DocumentOwnerField extends ConsumerWidget {
     final text = name == null || name.isEmpty
         ? documentOwnerKindLabel(l10n, owner.kind)
         : name;
-    return InkWell(
-      onTap: locked ? null : onTap,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: l10n.documents_detail_owner,
-          prefixIcon: Icon(documentOwnerKindIcon(owner.kind)),
-          helperText: locked ? l10n.documents_owner_locked : null,
-          suffixIcon: Icon(locked ? Icons.lock_outline : Icons.arrow_drop_down),
+    // Announced as a button: the field reads as text, but tapping it is
+    // how a document is refiled.
+    return Semantics(
+      button: true,
+      enabled: !locked,
+      child: InkWell(
+        onTap: locked ? null : onTap,
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: l10n.documents_detail_owner,
+            prefixIcon: Icon(documentOwnerKindIcon(owner.kind)),
+            helperText: locked ? l10n.documents_owner_locked : null,
+            suffixIcon: Icon(
+              locked ? Icons.lock_outline : Icons.arrow_drop_down,
+            ),
+          ),
+          child: Text(text),
         ),
-        child: Text(text),
       ),
     );
   }

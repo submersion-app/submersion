@@ -30,6 +30,14 @@ class DatabaseCompactionPrefs {
 
   Future<void> cancel() => _prefs.remove(requestedKey);
 
+  /// The diver withdrew a scheduled compaction. Held off like a failure,
+  /// so the app's own check does not schedule it straight back; a manual
+  /// Compact still works.
+  Future<void> decline() async {
+    await cancel();
+    await recordFailure();
+  }
+
   Future<void> recordFailure() =>
       _prefs.setInt(backoffKey, _now().add(backoff).millisecondsSinceEpoch);
 }

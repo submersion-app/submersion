@@ -56,6 +56,16 @@ void main() {
       expect(prefs.isRequested, isFalse);
     });
 
+    test(
+      'declining withdraws the request and holds automatic ones off',
+      () async {
+        await prefs.request();
+        await prefs.decline();
+        expect(prefs.isRequested, isFalse);
+        expect(prefs.inBackoff, isTrue);
+      },
+    );
+
     test('a failure holds further attempts off for a week', () async {
       expect(prefs.inBackoff, isFalse);
       await prefs.recordFailure();

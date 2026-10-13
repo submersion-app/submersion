@@ -312,6 +312,14 @@ void main() {
       expect(find.text('Personal'), findsOneWidget);
       await t.tap(find.byKey(const ValueKey('document-owner-field')));
       await t.pumpAndSettle();
+      expect(
+        t.getSemantics(find.byKey(const ValueKey('document-owner-field'))),
+        isSemantics(
+          isButton: true,
+          isEnabled: true,
+          label: 'Filed under\nBonaire',
+        ),
+      );
       // The record's name, with its kind as the icon.
       expect(find.text('Bonaire'), findsOneWidget);
       expect(find.textContaining('Trips'), findsNothing);
@@ -374,6 +382,10 @@ void main() {
         pickedOwner: const DocumentOwner.personal(),
       );
       expect(find.text('A card stays with its certification'), findsOneWidget);
+      expect(
+        t.getSemantics(find.byKey(const ValueKey('document-owner-field'))),
+        isSemantics(isButton: true, isEnabled: false),
+      );
       await t.tap(find.byKey(const ValueKey('document-owner-field')));
       await t.pumpAndSettle();
       await t.tap(find.text('Save'));

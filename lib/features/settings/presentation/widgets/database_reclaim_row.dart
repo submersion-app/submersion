@@ -65,7 +65,7 @@ class _DatabaseReclaimRowState extends ConsumerState<DatabaseReclaimRow> {
 
   Future<void> _cancel() async {
     final prefs = await ref.read(databaseCompactionPrefsProvider.future);
-    await prefs.cancel();
+    await prefs.decline();
     if (mounted) setState(() {});
   }
 
