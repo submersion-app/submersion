@@ -21134,7 +21134,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      'Leden voeren de wachtwoordzin één keer per profiel in. Alleen de wachtwoordzin of de herstelcode opent de bibliotheek.';
+      'Leden voeren de wachtwoordzin één keer per profiel in. Alleen de wachtwoordzin of de herstelcode opent de bibliotheek. Een nieuwe herstelcode vervangt de oude voor alle eigenaren.';
 
   @override
   String get sharedLibrary_encryption_off => 'Versleuteling uitschakelen';
@@ -21148,18 +21148,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_changeHelp =>
-      'Maakt een nieuwe sleutel en een nieuwe herstelcode. Deel de nieuwe wachtwoordzin alleen met de leden die blijven.';
+      'Maakt een nieuwe sleutel en een nieuwe herstelcode. Een nieuwe herstelcode vervangt de oude voor alle eigenaren. Deel de nieuwe wachtwoordzin alleen met de leden die blijven.';
 
   @override
   String get sharedLibrary_encryption_passphrase => 'Wachtwoordzin';
 
   @override
   String get sharedLibrary_encryption_confirm => 'Wachtwoordzin opnieuw';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return '$done van $total bestanden opnieuw geschreven';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
@@ -21262,6 +21257,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get sharedLibrary_members_lastOwner =>
       'De laatste eigenaar kan niet worden gedegradeerd.';
+
+  @override
+  String get sharedLibrary_members_keyChanged =>
+      'De sleutel van dit lid is gewijzigd. Vergelijk de nieuwe sleutel persoonlijk en keur hem daarna goed.';
 
   @override
   String get sharedLibrary_picker_none =>

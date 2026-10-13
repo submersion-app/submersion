@@ -167,7 +167,10 @@ void main() {
     expect(roles.owners, {me.memberId});
     expect(roles.approvedKeys[me.memberId], me.signingKey!.publicKey);
     expect(roles.signedBy, me.memberId);
-    expect(await isSelfConsistent(roles), isTrue);
+    expect(
+      await isSelfConsistent(roles, libraryId: created.library.id),
+      isTrue,
+    );
     final fromCode = await LibraryRecovery.derive(
       code: created.recoveryCode,
       salt: roles.recovery!.salt,
@@ -204,7 +207,7 @@ void main() {
     expect(after.version, before.version + 1);
     expect(after.roleOf('bo'), SharedLibraryRole.editor);
     expect(
-      await judgeRoles(trusted: before, incoming: after),
+      await judgeRoles(trusted: before, incoming: after, libraryId: lib.id),
       RolesVerdict.trusted,
     );
   });
@@ -267,6 +270,7 @@ void main() {
       libraryId: lib.id,
       memberId: bo.memberId,
       actingMemberId: ann.memberId,
+      publicKey: bo.signingKey!.publicKey,
     );
     final roles = await t.readRoles();
     expect(roles.approvedKeys[bo.memberId], bo.signingKey!.publicKey);
@@ -280,6 +284,7 @@ void main() {
         libraryId: lib.id,
         memberId: bo.memberId,
         actingMemberId: bo.memberId,
+        publicKey: bo.signingKey!.publicKey,
       ),
       throwsStateError,
     );
@@ -291,6 +296,7 @@ void main() {
       libraryId: lib.id,
       memberId: bo.memberId,
       actingMemberId: ann.memberId,
+      publicKey: bo.signingKey!.publicKey,
     );
     await service.rejectMember(
       libraryId: lib.id,
@@ -337,7 +343,11 @@ void main() {
     expect(after.signedBy, SharedLibraryRoles.recoverySigner);
     // Every device trusting the old roles accepts the recovered ones.
     expect(
-      await judgeRoles(trusted: before, incoming: after),
+      await judgeRoles(
+        trusted: before,
+        incoming: after,
+        libraryId: created.library.id,
+      ),
       RolesVerdict.trusted,
     );
   });
@@ -423,7 +433,11 @@ void main() {
       contains(before.approvedKeys[ann]),
     );
     expect(
-      await judgeRoles(trusted: before, incoming: reset),
+      await judgeRoles(
+        trusted: before,
+        incoming: reset,
+        libraryId: created.library.id,
+      ),
       RolesVerdict.resetPending,
     );
     // Ann's device holds it pending, then accepts.
@@ -525,11 +539,14 @@ void main() {
       ))!;
       expect(me.libraryKeyId, cipher.keyId);
       expect(me.libraryKey, await cipher.exportKey());
-      // The card went up sealed: unreadable without the key.
-      await expectLater(
-        SharedLibraryTransport(cloud, prefix: 'sealed').listMembers(),
-        throwsA(isA<LibraryLockedException>()),
-      );
+      // The card went up sealed: without the key it lists as a member
+      // with no name and no key.
+      final unread = await SharedLibraryTransport(
+        cloud,
+        prefix: 'sealed',
+      ).listMembers();
+      expect(unread.single.displayName, isEmpty);
+      expect(unread.single.publicKey, isNull);
     });
   });
 
@@ -766,7 +783,11 @@ void main() {
         await before
             .withRole('carol', SharedLibraryRole.editor)
             .copyWith(version: before.version + 1)
-            .signed(signedBy: me.memberId, key: me.signingKey!),
+            .signed(
+              libraryId: lib.id,
+              signedBy: me.memberId,
+              key: me.signingKey!,
+            ),
       );
 
       await service.setRole(
@@ -911,7 +932,11 @@ void main() {
     await t.writeRoles(
       await before
           .copyWith(owners: {ann.memberId}, version: before.version + 1)
-          .signed(signedBy: ann.memberId, key: ann.signingKey!),
+          .signed(
+            libraryId: lib.id,
+            signedBy: ann.memberId,
+            key: ann.signingKey!,
+          ),
     );
 
     await expectLater(

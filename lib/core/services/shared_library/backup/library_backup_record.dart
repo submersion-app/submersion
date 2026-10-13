@@ -85,24 +85,22 @@ class LibraryBackupRecord {
   }
 
   LibraryBackupRecord copyWith({
-    String? note,
     bool? pinned,
     String? localPath,
-    bool clearLocalPath = false,
     bool? inStorage,
   }) => LibraryBackupRecord(
     backupId: backupId,
     libraryId: libraryId,
     fileName: fileName,
     createdAt: createdAt,
-    note: note ?? this.note,
+    note: note,
     pinned: pinned ?? this.pinned,
     automatic: automatic,
     beforeRestore: beforeRestore,
     siteCount: siteCount,
     memberCount: memberCount,
     sizeBytes: sizeBytes,
-    localPath: clearLocalPath ? null : localPath ?? this.localPath,
+    localPath: localPath ?? this.localPath,
     inStorage: inStorage ?? this.inStorage,
   );
 }

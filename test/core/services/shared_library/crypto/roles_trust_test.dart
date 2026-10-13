@@ -23,13 +23,13 @@ void main() {
     owners: const {'o'},
     approvedKeys: {'o': owner.publicKey},
     recovery: RolesRecovery.fromJson(recovery.toRolesJson()),
-  ).signed(signedBy: 'o', key: owner);
+  ).signed(libraryId: 'L', signedBy: 'o', key: owner);
 
   test('signed roles round trip through JSON', () async {
     final roles = await v1();
     final again = SharedLibraryRoles.fromJson(roles.toJson());
     expect(again, roles);
-    expect(await isSelfConsistent(again), isTrue);
+    expect(await isSelfConsistent(again, libraryId: 'L'), isTrue);
   });
 
   test('an owner can move the roles forward', () async {
@@ -40,9 +40,9 @@ void main() {
           editors: {'e'},
           approvedKeys: {...trusted.approvedKeys, 'e': editor.publicKey},
         )
-        .signed(signedBy: 'o', key: owner);
+        .signed(libraryId: 'L', signedBy: 'o', key: owner);
     expect(
-      await judgeRoles(trusted: trusted, incoming: next),
+      await judgeRoles(trusted: trusted, incoming: next, libraryId: 'L'),
       RolesVerdict.trusted,
     );
   });
@@ -50,9 +50,9 @@ void main() {
   test('a rollback to an older signed version is refused', () async {
     final trusted = await (await v1())
         .copyWith(version: 5)
-        .signed(signedBy: 'o', key: owner);
+        .signed(libraryId: 'L', signedBy: 'o', key: owner);
     expect(
-      await judgeRoles(trusted: trusted, incoming: await v1()),
+      await judgeRoles(trusted: trusted, incoming: await v1(), libraryId: 'L'),
       RolesVerdict.rejected,
     );
   });
@@ -65,9 +65,9 @@ void main() {
           owners: {'o', 'x'},
           approvedKeys: {...trusted.approvedKeys, 'x': stranger.publicKey},
         )
-        .signed(signedBy: 'x', key: stranger);
+        .signed(libraryId: 'L', signedBy: 'x', key: stranger);
     expect(
-      await judgeRoles(trusted: trusted, incoming: forged),
+      await judgeRoles(trusted: trusted, incoming: forged, libraryId: 'L'),
       RolesVerdict.rejected,
     );
   });
@@ -76,10 +76,10 @@ void main() {
     final trusted = await v1();
     final next = await trusted
         .copyWith(version: 2)
-        .signed(signedBy: 'o', key: owner);
+        .signed(libraryId: 'L', signedBy: 'o', key: owner);
     final tampered = next.copyWith(editors: {'x'});
     expect(
-      await judgeRoles(trusted: trusted, incoming: tampered),
+      await judgeRoles(trusted: trusted, incoming: tampered, libraryId: 'L'),
       RolesVerdict.rejected,
     );
   });
@@ -88,10 +88,10 @@ void main() {
     final trusted = await v1();
     final next = await trusted
         .copyWith(version: 2)
-        .signed(signedBy: 'o', key: owner);
+        .signed(libraryId: 'L', signedBy: 'o', key: owner);
     final moved = next.copyWith(signedBy: SharedLibraryRoles.recoverySigner);
     expect(
-      await judgeRoles(trusted: trusted, incoming: moved),
+      await judgeRoles(trusted: trusted, incoming: moved, libraryId: 'L'),
       RolesVerdict.rejected,
     );
   });
@@ -104,9 +104,13 @@ void main() {
           owners: {'n'},
           approvedKeys: {'n': stranger.publicKey},
         )
-        .signed(signedBy: SharedLibraryRoles.recoverySigner, key: recovery.key);
+        .signed(
+          libraryId: 'L',
+          signedBy: SharedLibraryRoles.recoverySigner,
+          key: recovery.key,
+        );
     expect(
-      await judgeRoles(trusted: trusted, incoming: next),
+      await judgeRoles(trusted: trusted, incoming: next, libraryId: 'L'),
       RolesVerdict.trusted,
     );
   });
@@ -118,19 +122,66 @@ void main() {
       owners: const {'n'},
       approvedKeys: {'n': stranger.publicKey},
       reset: true,
-    ).signed(signedBy: 'n', key: stranger);
+    ).signed(libraryId: 'L', signedBy: 'n', key: stranger);
     expect(
-      await judgeRoles(trusted: trusted, incoming: reset),
+      await judgeRoles(trusted: trusted, incoming: reset, libraryId: 'L'),
       RolesVerdict.resetPending,
     );
   });
 
+  test('roles an owner signed for another library never count here', () async {
+    final trusted = await v1();
+    final elsewhere = await trusted
+        .copyWith(version: 9, owners: {'o', 'x'})
+        .signed(libraryId: 'A', signedBy: 'o', key: owner);
+    expect(
+      await judgeRoles(trusted: trusted, incoming: elsewhere, libraryId: 'L'),
+      RolesVerdict.rejected,
+    );
+    expect(await isSelfConsistent(elsewhere, libraryId: 'L'), isFalse);
+    expect(await isSelfConsistent(elsewhere, libraryId: 'A'), isTrue);
+  });
+
+  test('a reset is only one owner who signed it themselves', () async {
+    final trusted = await v1();
+    // Lists a real owner first, so a member would be shown their name and
+    // key, while someone else signed it.
+    final twoOwners = await SharedLibraryRoles(
+      version: 2,
+      owners: const {'a-real', 'n'},
+      approvedKeys: {'a-real': owner.publicKey, 'n': stranger.publicKey},
+      reset: true,
+    ).signed(libraryId: 'L', signedBy: 'n', key: stranger);
+    expect(
+      await judgeRoles(trusted: trusted, incoming: twoOwners, libraryId: 'L'),
+      RolesVerdict.rejected,
+    );
+    // Signed with a retired key rather than the one it approves.
+    final retired = await SharedLibraryRoles(
+      version: 2,
+      owners: const {'a-real'},
+      editors: const {'n'},
+      approvedKeys: {'a-real': owner.publicKey},
+      retired: {
+        'n': [(key: stranger.publicKey, untilMs: 0)],
+      },
+      reset: true,
+    ).signed(libraryId: 'L', signedBy: 'n', key: stranger);
+    expect(
+      await judgeRoles(trusted: trusted, incoming: retired, libraryId: 'L'),
+      RolesVerdict.rejected,
+    );
+  });
+
   test('a joining device trusts only self-consistent roles', () async {
-    expect(await isSelfConsistent(await v1()), isTrue);
+    expect(await isSelfConsistent(await v1(), libraryId: 'L'), isTrue);
     final bogus = await (await v1())
         .copyWith(owners: {'x'})
-        .signed(signedBy: 'o', key: owner);
-    expect(await isSelfConsistent(bogus), isFalse);
-    expect(await isSelfConsistent(const SharedLibraryRoles()), isFalse);
+        .signed(libraryId: 'L', signedBy: 'o', key: owner);
+    expect(await isSelfConsistent(bogus, libraryId: 'L'), isFalse);
+    expect(
+      await isSelfConsistent(const SharedLibraryRoles(), libraryId: 'L'),
+      isFalse,
+    );
   });
 }

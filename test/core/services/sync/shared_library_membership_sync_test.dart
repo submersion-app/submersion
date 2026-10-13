@@ -1,10 +1,12 @@
-import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/database/database.dart' show AppDatabase;
-import 'package:path/path.dart' as p;
-import 'package:drift/native.dart';
 import 'dart:io';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -306,4 +308,74 @@ void main() {
     expect(row.libraryKey, 'key-k2');
     await tearDownTestDatabase();
   });
+
+  test(
+    "a newer key from the profile's other device waits for the library",
+    () async {
+      final cloud = FakeCloudStorageProvider();
+      final first = await LibraryCipher.generate();
+      final second = await LibraryCipher.generate();
+      Future<void> profile() => DiverRepository().createDiver(
+        Diver(
+          id: 'd1',
+          name: 'Ann',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      Future<SharedLibraryMembership> membership(LibraryCipher key) async =>
+          SharedLibraryMembership(
+            id: 'ms1',
+            diverId: 'd1',
+            libraryId: 'L',
+            memberId: 'm1',
+            displayName: 'Ann',
+            libraryName: 'Reef Survey',
+            backendKind: 's3',
+            libraryKeyId: key.keyId,
+            libraryKey: await key.exportKey(),
+          );
+
+      // The tablet changed the passphrase: it holds the new key.
+      await setUpTestDatabase();
+      await profile();
+      await SharedLibraryStore().upsertMembership(await membership(second));
+      await _service(cloud).performSync();
+      await tearDownTestDatabase();
+
+      // The phone has not synced the library since: it still names the old
+      // key, and its personal sync runs first.
+      await setUpTestDatabase();
+      await profile();
+      await SharedLibraryStore().upsertLibrary(
+        SharedLibrary(
+          id: 'L',
+          name: 'Reef Survey',
+          connectedAccountId: 'acc',
+          prefix: 'site-sync',
+          encrypted: true,
+          keyId: first.keyId,
+        ),
+      );
+      await SharedLibraryStore().upsertMembership(await membership(first));
+      await _service(cloud).performSync();
+      final store = SharedLibraryStore();
+      expect(
+        (await store.membershipsForDiver('d1')).single.libraryKeyId,
+        first.keyId,
+      );
+      // The library sync, seeing the manifest name the new key, takes it.
+      final taken = await store.takeSpareKey(
+        'L',
+        keyId: second.keyId,
+        diverId: 'd1',
+      );
+      expect(taken?.keyId, second.keyId);
+      expect(
+        (await store.membershipsForDiver('d1')).single.libraryKeyId,
+        second.keyId,
+      );
+      await tearDownTestDatabase();
+    },
+  );
 }

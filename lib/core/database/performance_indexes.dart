@@ -526,6 +526,15 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_trip_cylinders_equipment '
         'ON trip_cylinders(equipment_id)',
   ),
+  // -- library_site_notes --------------------------------------------
+  // Each library sync that pulled anything copies every library site's
+  // newest private note onto its row: one lookup per site.
+  (
+    name: 'idx_library_site_notes_site',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_library_site_notes_site '
+        'ON library_site_notes(site_id, updated_at)',
+  ),
 ];
 
 /// Creates any canonical index missing from [db], returning the names of

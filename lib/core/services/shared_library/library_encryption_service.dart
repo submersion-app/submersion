@@ -49,7 +49,7 @@ class LibraryEncryptionService {
     RewriteProgress? progress,
   }) => SyncCoordinator.run(() async {
     final (library, t, me, roles) = await _asOwner(libraryId, diverId);
-    if (library.encrypted) throw StateError('$libraryId is already encrypted');
+    if (t.encrypting) throw StateError('$libraryId is already encrypted');
     return _rekey(
       library,
       t,
@@ -71,10 +71,11 @@ class LibraryEncryptionService {
     RewriteProgress? progress,
   }) => SyncCoordinator.run(() async {
     final (library, t, me, roles) = await _asOwner(libraryId, diverId);
+    if (!t.encrypting) throw StateError('$libraryId is not encrypted');
+    // The key the library is under now: a device holding only an earlier
+    // one would leave every file under the current key behind.
     final previous = t.cipher;
-    if (!library.encrypted || previous == null) {
-      throw StateError('$libraryId is not encrypted here');
-    }
+    if (previous == null) throw LibraryLockedException(library.keyId ?? '');
     return _rekey(
       library,
       t,
@@ -92,10 +93,17 @@ class LibraryEncryptionService {
     required String diverId,
     RewriteProgress? progress,
   }) => SyncCoordinator.run(() async {
-    final (library, t, _, _) = await _asOwner(libraryId, diverId);
-    if (!library.encrypted || t.cipher == null) {
-      throw StateError('$libraryId is not encrypted here');
-    }
+    final (library, t, me, roles) = await _asOwner(libraryId, diverId);
+    if (!t.encrypting) throw StateError('$libraryId is not encrypted');
+    if (t.cipher == null) throw LibraryLockedException(library.keyId ?? '');
+    // Recorded, signed, before the manifest says so: a manifest that says
+    // off is believed only where the roles agree.
+    await _memberships.writeSignedRoles(
+      library,
+      t,
+      roles.copyWith(encryption: const LibraryEncryption(on: false)),
+      signer: me.memberId,
+    );
     final manifest = await t.readManifest() ?? {};
     await t.writeManifest(
       {...manifest, 'encrypted': false, SharedLibraryLayout.rewritingFlag: true}
@@ -135,16 +143,18 @@ class LibraryEncryptionService {
     if (earlier.isNotEmpty) {
       await t.writePreviousKeys(earlier, under: cipher);
     }
-    await t.writeKeyslots(
-      await cipher.keyslots(
-        passphrase: passphrase,
-        recoveryCode: recovery.code,
-        kdf: _kdf,
-      ),
-    );
-    // From here the new key is in the keyslots: its recovery code is the
-    // way back in, so a step that fails still hands it over.
+    // Until the manifest names the new key nothing uses it: a failure in
+    // between puts the old keyslots back, so the old passphrase and code
+    // still open the library, and nothing is left half done.
+    final oldSlots = await t.readKeyslots();
     try {
+      await t.writeKeyslots(
+        await cipher.keyslots(
+          passphrase: passphrase,
+          recoveryCode: recovery.code,
+          kdf: _kdf,
+        ),
+      );
       final manifest = await t.readManifest() ?? {};
       await t.writeManifest({
         ...manifest,
@@ -152,6 +162,22 @@ class LibraryEncryptionService {
         'keyId': cipher.keyId,
         SharedLibraryLayout.rewritingFlag: true,
       });
+    } catch (e) {
+      try {
+        if (oldSlots != null) {
+          await t.writeKeyslots(oldSlots);
+        } else {
+          await t.deleteKeyslots();
+        }
+      } catch (_) {
+        // The manifest still names the old key either way.
+      }
+      rethrow;
+    }
+    // From here the manifest names the new key: its recovery code is the
+    // way back in, and an owner's next sync finishes what is left, so a
+    // step that fails still hands the code over.
+    try {
       t
         ..cipher = cipher
         ..encrypting = true;
@@ -172,6 +198,7 @@ class LibraryEncryptionService {
         t,
         roles.copyWith(
           recovery: RolesRecovery.fromJson(recovery.toRolesJson()),
+          encryption: LibraryEncryption(on: true, keyId: cipher.keyId),
         ),
         signer: me.memberId,
       );

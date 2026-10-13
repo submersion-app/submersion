@@ -2855,10 +2855,6 @@ class SyncService {
   static const _signingKeyFields = ['signingPublicKey', 'signingPrivateKey'];
   static const _libraryKeyFields = ['libraryKeyId', 'libraryKey'];
 
-  /// A profile's keys on its shared site library memberships (issue #2567)
-  /// are never lost to a row written before they reached that device: an
-  /// incoming row without them keeps the local ones, and a local row
-  /// without them adopts the incoming ones whichever row wins.
   /// The key id the library's manifest names on this device, lowercased,
   /// or null when this device has not connected the library.
   Future<String?> _currentLibraryKeyId(Object? libraryId) async {
@@ -2872,6 +2868,10 @@ class SyncService {
     return row?.read<String?>('key_id')?.toLowerCase();
   }
 
+  /// A profile's keys on its shared site library memberships (issue #2567)
+  /// are never lost to a row written before they reached that device: an
+  /// incoming row without them keeps the local ones, and a local row
+  /// without them adopts the incoming ones whichever row wins.
   Future<List<Map<String, dynamic>>> _keepLibraryMembershipKeys(
     String entityType,
     List<Map<String, dynamic>> records,
@@ -2907,6 +2907,19 @@ class SyncService {
             for (final f in fields) {
               merged[f] = mine[f];
             }
+            // The other device may hold the library's next key, from a
+            // change this device has not synced yet: kept aside for the
+            // library sync to take up once the manifest names it.
+            await db.customUpdate(
+              'UPDATE shared_libraries SET spare_key_id = ?, spare_key = ? '
+              'WHERE id = ?',
+              variables: [
+                Variable.withString(r['libraryKeyId'] as String),
+                Variable.withString(r['libraryKey'] as String),
+                Variable.withString(r['libraryId'] as String),
+              ],
+              updates: {db.sharedLibraries},
+            );
           } else if (current == (r['libraryKeyId'] as String).toLowerCase()) {
             await db.customUpdate(
               'UPDATE shared_library_memberships SET library_key_id = ?, '

@@ -43,13 +43,15 @@ abstract final class LibrarySigner {
   }) async {
     if (signature == null) return false;
     try {
-      final pub = SimplePublicKey(
-        base64Decode(publicKey),
-        type: KeyPairType.ed25519,
-      );
+      final keyBytes = base64Decode(publicKey);
+      final sigBytes = base64Decode(signature);
+      // Checked here, the same on every platform: CryptoKit (iOS, macOS)
+      // throws its own error for a key of the wrong length.
+      if (keyBytes.length != 32 || sigBytes.length != 64) return false;
+      final pub = SimplePublicKey(keyBytes, type: KeyPairType.ed25519);
       return await _ed.verify(
         message,
-        signature: Signature(base64Decode(signature), publicKey: pub),
+        signature: Signature(sigBytes, publicKey: pub),
       );
     } on FormatException {
       return false;
@@ -57,14 +59,24 @@ abstract final class LibrarySigner {
       return false;
     } on StateError {
       return false;
+    } on Exception {
+      // A platform implementation's own refusal of the key.
+      return false;
     }
   }
 
   /// The first 16 hex digits of the public key's SHA-256, upper case, in
-  /// groups of four: short enough to read out and compare in person.
+  /// groups of four: short enough to read out and compare in person. `?`
+  /// for a key that is not base64 (a file anyone could have written).
   static String fingerprint(String publicKey) {
+    final List<int> bytes;
+    try {
+      bytes = base64Decode(publicKey);
+    } on FormatException {
+      return '?';
+    }
     final hex = hash.sha256
-        .convert(base64Decode(publicKey))
+        .convert(bytes)
         .toString()
         .substring(0, 16)
         .toUpperCase();

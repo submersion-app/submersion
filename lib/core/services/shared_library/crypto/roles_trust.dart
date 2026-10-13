@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:collection/collection.dart';
 
-import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 
@@ -29,29 +26,56 @@ String? _signerKey(SharedLibraryRoles authority, String? signedBy) {
   return authority.approvedKeys[signedBy];
 }
 
-Future<bool> _signedWith(SharedLibraryRoles roles, String? key) async =>
+Future<bool> _signedWith(
+  SharedLibraryRoles roles,
+  String? key,
+  String libraryId,
+) async =>
     key != null &&
     await LibrarySigner.verify(
       publicKey: key,
-      message: utf8.encode(canonicalJson(roles.unsignedJson())),
+      message: roles.signedMessage(libraryId),
       signature: roles.signature,
     );
 
-/// Whether [incoming] may replace [trusted] on this device.
+/// Whether [incoming] may replace [trusted] on this device, for the
+/// library [libraryId]. Before any roles are trusted (just joined), a
+/// self-consistent file is taken as found.
 Future<RolesVerdict> judgeRoles({
   required SharedLibraryRoles trusted,
   required SharedLibraryRoles incoming,
+  required String libraryId,
 }) async {
+  if (trusted.version == 0) {
+    return await isSelfConsistent(incoming, libraryId: libraryId)
+        ? RolesVerdict.trusted
+        : RolesVerdict.rejected;
+  }
   if (incoming.version > trusted.version &&
-      await _signedWith(incoming, _signerKey(trusted, incoming.signedBy))) {
+      await _signedWith(
+        incoming,
+        _signerKey(trusted, incoming.signedBy),
+        libraryId,
+      )) {
     return RolesVerdict.trusted;
   }
-  if (incoming.reset &&
-      incoming.version > trusted.version &&
-      await isSelfConsistent(incoming)) {
+  if (incoming.version > trusted.version &&
+      await _isGenuineReset(incoming, libraryId)) {
     return RolesVerdict.resetPending;
   }
   return RolesVerdict.rejected;
+}
+
+/// An ownership reset as only "reset ownership" writes one: a single owner,
+/// who signed it with the one key it approves. The member is shown that
+/// owner's name and key to check, so nobody else may stand behind it.
+Future<bool> _isGenuineReset(SharedLibraryRoles roles, String libraryId) async {
+  final signer = roles.signedBy;
+  return roles.reset &&
+      signer != null &&
+      roles.owners.length == 1 &&
+      roles.owners.single == signer &&
+      await _signedWith(roles, roles.approvedKeys[signer], libraryId);
 }
 
 /// Signed by one of its own owners or its own recovery key: all a joining
@@ -60,6 +84,13 @@ Future<RolesVerdict> judgeRoles({
 /// without it nobody could join until another owner rewrote the roles.
 /// (A device that trusts roles already never takes one from a retired
 /// member: [judgeRoles] asks for an owner of the roles it trusts.)
-Future<bool> isSelfConsistent(SharedLibraryRoles roles) async =>
-    await _signedWith(roles, _signerKey(roles, roles.signedBy)) ||
-    await _signedWith(roles, roles.retired[roles.signedBy]?.lastOrNull?.key);
+Future<bool> isSelfConsistent(
+  SharedLibraryRoles roles, {
+  required String libraryId,
+}) async =>
+    await _signedWith(roles, _signerKey(roles, roles.signedBy), libraryId) ||
+    await _signedWith(
+      roles,
+      roles.retired[roles.signedBy]?.lastOrNull?.key,
+      libraryId,
+    );

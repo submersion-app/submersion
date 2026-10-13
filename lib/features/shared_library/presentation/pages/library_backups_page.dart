@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
@@ -200,13 +204,24 @@ class _LibraryBackupsPageState extends ConsumerState<LibraryBackupsPage> {
 
   Future<void> _export(BuildContext tileContext, LibraryBackupRecord r) async {
     final anchor = shareAnchorFrom(tileContext);
+    final title = context.l10n.sharedLibrary_backups_export;
     await _run((_) async {
       final path = await ref
           .read(libraryBackupServiceProvider)
           .localCopy(r.backupId, libraryId: _libraryId);
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(path)], sharePositionOrigin: anchor),
-      );
+      // The share sheet, or a save dialog where it takes no files (Linux).
+      if (canShareFiles) {
+        await SharePlus.instance.share(
+          ShareParams(files: [XFile(path)], sharePositionOrigin: anchor),
+        );
+      } else {
+        await saveBytesToFile(
+          await File(path).readAsBytes(),
+          p.basename(path),
+          dialogTitle: title,
+          mimeType: 'application/zip',
+        );
+      }
     });
   }
 
@@ -236,6 +251,9 @@ class _LibraryBackupsPageState extends ConsumerState<LibraryBackupsPage> {
   Future<bool> _restoreOnce(LibraryBackupRecord r, String? oldSecret) async {
     final done = context.l10n.sharedLibrary_backups_restoreDone;
     final messenger = ScaffoldMessenger.of(context);
+    // Read now: `ref` is unusable once the page closes, which a long
+    // restore leaves time for.
+    final sync = ref.read(sharedLibrarySyncProvider.notifier);
     var needsKey = false;
     await _run((diverId) async {
       try {
@@ -252,7 +270,7 @@ class _LibraryBackupsPageState extends ConsumerState<LibraryBackupsPage> {
         return;
       }
       // This device takes the restored library at once.
-      await ref.read(sharedLibrarySyncProvider.notifier).syncOne(_libraryId);
+      await sync.syncOne(_libraryId);
       messenger.showSnackBar(SnackBar(content: Text(done)));
     });
     return needsKey;

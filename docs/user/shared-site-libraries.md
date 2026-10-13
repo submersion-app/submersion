@@ -84,9 +84,10 @@ Owners see new members under **Waiting for approval** on the library's
 **Members** page, with the first characters of each member's key. Each member
 sees their own key as **Your key** on the library page. Before tapping
 **Approve**, compare the two, for example over a call or in person, so you
-know the request is from the person you expect. **Reject** removes their card,
-and nothing they write counts. Only new storage keys stop a rejected member
-from writing files at all.
+know the request is from the person you expect. If the card's key changed
+since the list was shown, **Approve** says so and shows the new key to compare
+instead. **Reject** removes their card, and nothing they write counts. Only new
+storage keys stop a rejected member from writing files at all.
 
 Suggestions from a member who is still waiting for approval are held. The
 library page and the Suggestions page say how many are waiting, and they reach
@@ -97,6 +98,12 @@ taps **Remove role**. When an editor or owner leaves, is made a reader, or has
 their role removed, the edits they made until then keep counting for every
 member, including members who join later; anything they write afterwards does
 not.
+
+If a device finds the library's roles changed by someone it does not know as an
+owner, the library page warns, and the device only reads the library until the
+roles are put right. This also happens to a device that was away while
+ownership passed to a new owner: leave the library and join it again, or use
+the recovery code, to bring it up to date.
 
 ## Encryption
 
@@ -112,6 +119,12 @@ Owners can turn on **encryption** from the library page:
   longer read anything written afterwards.
 - **Turn off encryption** rewrites every file readable by anyone with storage
   access.
+
+Turning encryption on and changing the passphrase each make a new recovery
+code, which replaces the library's old one for every owner: tell the other
+owners to keep the new code in place of the old. Only an owner can turn
+encryption off. Submersion records it in the owner-signed roles, so someone who
+can only change the library's files cannot switch it off.
 
 The passphrase or the recovery code opens an encrypted library. File names,
 sizes, and the number of sites and members are not hidden.
@@ -150,15 +163,18 @@ Owners can back a library up and restore it, much like the logbook's own
   successful sync, unless another owner made one in the last 20 hours. The
   last 7 unpinned backups are kept in each place; pin a backup to keep it.
 - **Back up now** makes a backup at once, with an optional note.
-- **Export** shares a backup file, and **Import a backup** adds one saved
-  elsewhere. Every backup is signed by the owner who made it, and a file that
-  is not a backup of this library, or was not made by an owner, is refused.
+- **Export** shares a backup file, or saves it where the system has no way to
+  share files. **Import a backup** adds one saved elsewhere, pinned so the
+  daily pruning keeps it. Every backup is signed by the owner who made it, and
+  a file that is not a backup of this library is refused.
 - **Restore** puts the library back exactly as it was in the backup. Sites
   added since are removed, roles return as they were (with you kept as an
   owner), and members who joined since wait for approval again. Every member
   gets the restored library on their next sync. Before restoring, Submersion
   makes a pinned backup of the library as it is now, so a restore can be
-  undone.
+  undone. Only a backup made by a current owner, with the key the library
+  approves for them, can be restored: a backup made by an owner who has since
+  left, or before an ownership reset, stays listed but is refused.
 
 A backup made before the passphrase was changed opens with the library's
 earlier key, which the library keeps. Only a backup older than that, such as

@@ -36,6 +36,16 @@ class ConnectSharedLibraryPage extends ConsumerStatefulWidget {
 
 class _ConnectSharedLibraryPageState
     extends ConsumerState<ConnectSharedLibraryPage> {
+  /// Kept for the work that goes on after a join should the page close
+  /// meanwhile: `ref` is unusable then.
+  late ProviderContainer _container;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _container = ProviderScope.containerOf(context, listen: false);
+  }
+
   late final TextEditingController _prefix = TextEditingController(
     text: widget.initialPrefix ?? '',
   );
@@ -570,13 +580,16 @@ class _ConnectSharedLibraryPageState
   }
 
   /// After a join, create or restore: syncs the library here, then opens
-  /// its page.
+  /// its page. Joined either way, so the library syncs even when the page
+  /// closed meanwhile.
   Future<void> _opened(SharedLibrary library) async {
-    ref.invalidate(currentMembershipsProvider);
-    ref.invalidate(sitesProvider);
-    if (!mounted) return;
-    await ref.read(sharedLibrarySyncProvider.notifier).syncOne(library.id);
-    ref.invalidate(sitesProvider);
+    final container = _container
+      ..invalidate(currentMembershipsProvider)
+      ..invalidate(sitesProvider);
+    await container
+        .read(sharedLibrarySyncProvider.notifier)
+        .syncOne(library.id);
+    container.invalidate(sitesProvider);
     if (!mounted) return;
     context.pushReplacement('/settings/shared-libraries/${library.id}');
   }

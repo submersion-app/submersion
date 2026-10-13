@@ -31,6 +31,16 @@ class FieldClock extends Equatable {
     'sig': ?sig,
   };
 
+  /// When the edit was made, as far as [hlc] tells: held within the dates
+  /// a [DateTime] can hold, since a clock in a shared file may name any
+  /// time at all.
+  DateTime get editedAt => DateTime.fromMillisecondsSinceEpoch(
+    hlc.physicalTime.clamp(0, _latestMs),
+    isUtc: true,
+  );
+
+  static const _latestMs = 8640000000000000;
+
   FieldClock copyWith({String? memberId, String? sig, bool clearSig = false}) =>
       FieldClock(
         hlc: hlc,
@@ -91,12 +101,17 @@ class SharedLibraryRoles extends Equatable {
     this.recovery,
     this.reset = false,
     this.retired = const {},
+    this.encryption,
     this.signedBy,
     this.signature,
   });
 
   final Set<String> owners;
   final Set<String> editors;
+
+  /// The library's encryption as an owner last set it: on under the key
+  /// [LibraryEncryption.keyId], or off. Null for a library never encrypted
+  /// since roles recorded it; the manifest then decides alone.
 
   /// Grows with every change, so an older signed file cannot be put back.
   final int version;
@@ -113,6 +128,8 @@ class SharedLibraryRoles extends Equatable {
   /// (left, demoted, role removed) or a key an owner replaced. Each holds
   /// when it stopped; the edits it signed before then still count.
   final Map<String, List<({String key, int untilMs})>> retired;
+
+  final LibraryEncryption? encryption;
 
   /// [retired] as `(key, until)` pairs, for checking signatures.
   Map<String, List<(String, int)>> get retiredKeys => {
@@ -171,6 +188,7 @@ class SharedLibraryRoles extends Equatable {
                       (key: key, untilMs: until.toInt()),
                 ],
         },
+        encryption: LibraryEncryption.fromJson(json['encryption']),
         signedBy: json['signedBy'] as String?,
         signature: json['signature'] as String?,
       );
@@ -195,20 +213,30 @@ class SharedLibraryRoles extends Equatable {
                 for (final r in e.value) {'key': r.key, 'until': r.untilMs},
               ],
           }),
+    // Absent when unset, as for [retired].
+    'encryption': ?encryption?.toJson(),
     'signedBy': ?signedBy,
   };
 
   Map<String, dynamic> toJson() => {...unsignedJson(), 'signature': ?signature};
 
-  /// This file signed by [signedBy] with [key].
+  /// What the signature covers: [unsignedJson] bound to [libraryId], so a
+  /// file signed for one library never counts in another, even where the
+  /// same person owns both with the same key.
+  List<int> signedMessage(String libraryId) =>
+      utf8.encode('ssl-roles:v1\n$libraryId\n${canonicalJson(unsignedJson())}');
+
+  /// This file, for the library [libraryId], signed by [signedBy] with
+  /// [key].
   Future<SharedLibraryRoles> signed({
+    required String libraryId,
     required String signedBy,
     required LibrarySigningKey key,
   }) async {
     final unsigned = copyWith(signedBy: signedBy, clearSignature: true);
     final signature = await LibrarySigner.sign(
       key,
-      utf8.encode(canonicalJson(unsigned.unsignedJson())),
+      unsigned.signedMessage(libraryId),
     );
     return unsigned.copyWith(signature: signature);
   }
@@ -222,6 +250,8 @@ class SharedLibraryRoles extends Equatable {
     bool clearRecovery = false,
     bool? reset,
     Map<String, List<({String key, int untilMs})>>? retired,
+    LibraryEncryption? encryption,
+    bool clearEncryption = false,
     String? signedBy,
     String? signature,
     bool clearSignature = false,
@@ -233,6 +263,7 @@ class SharedLibraryRoles extends Equatable {
     recovery: clearRecovery ? null : recovery ?? this.recovery,
     reset: reset ?? this.reset,
     retired: retired ?? this.retired,
+    encryption: clearEncryption ? null : encryption ?? this.encryption,
     signedBy: signedBy ?? this.signedBy,
     signature: clearSignature ? null : signature ?? this.signature,
   );
@@ -289,6 +320,7 @@ class SharedLibraryRoles extends Equatable {
       owners: {ownerId},
       approvedKeys: {ownerId: key},
       retired: retiring,
+      encryption: encryption,
       reset: true,
     );
   }
@@ -335,9 +367,74 @@ class SharedLibraryRoles extends Equatable {
     recovery,
     reset,
     retired,
+    encryption,
     signedBy,
     signature,
   ];
+}
+
+/// A library's encryption as an owner set it in `roles.json` (issue #2567):
+/// [on] under the key [keyId], or off. The manifest holds the same but is
+/// not signed, so it cannot turn encryption off on its own.
+class LibraryEncryption extends Equatable {
+  const LibraryEncryption({required this.on, this.keyId});
+
+  final bool on;
+  final String? keyId;
+
+  static LibraryEncryption? fromJson(Object? raw) => switch (raw) {
+    {'on': final bool on} => LibraryEncryption(
+      on: on,
+      keyId: switch (raw['keyId']) {
+        final String id => id,
+        _ => null,
+      },
+    ),
+    _ => null,
+  };
+
+  Map<String, dynamic> toJson() => {'on': on, 'keyId': ?keyId};
+
+  @override
+  List<Object?> get props => [on, keyId];
+}
+
+/// How a library's files are written, as [libraryEncryptionOf] settles it.
+typedef LibraryEncryptionState = ({
+  bool encrypted,
+  String? keyId,
+  bool rewriting,
+  bool overruled,
+});
+
+/// How a library's files are written, from its [manifest] and the roles a
+/// device trusts ([trusted]): what the manifest says, unless it says off
+/// while the trusted roles, which only an owner signs, say on. Then the
+/// roles stand ([overruled]): whoever wrote that manifest did not turn
+/// encryption off, and nothing is written plain or a key dropped for it.
+LibraryEncryptionState libraryEncryptionOf(
+  Map<String, dynamic>? manifest,
+  SharedLibraryRoles trusted,
+) {
+  final declared = manifest?['encrypted'] == true;
+  final recorded = trusted.encryption;
+  if (!declared && recorded != null && recorded.on) {
+    return (
+      encrypted: true,
+      keyId: recorded.keyId,
+      rewriting: false,
+      overruled: true,
+    );
+  }
+  return (
+    encrypted: declared,
+    keyId: switch (manifest?['keyId']) {
+      final String id => id,
+      _ => null,
+    },
+    rewriting: manifest?[SharedLibraryLayout.rewritingFlag] == true,
+    overruled: false,
+  );
 }
 
 /// The newest of [clocks], or null when there are none: the last edit of a

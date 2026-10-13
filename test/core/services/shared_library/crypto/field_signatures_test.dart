@@ -108,6 +108,34 @@ void main() {
     expect(kept.fields['name'], 'A');
   });
 
+  test(
+    'a value the local side lacks is checked even under its own clock',
+    () async {
+      final doc = await signedDoc({'name': 'A'}, 10);
+      // A tombstone here keeps the clocks, not the values; the folder's
+      // document was changed under the same clock.
+      final changed = SiteDocument(
+        id: 's1',
+        fields: const {'name': 'B'},
+        clocks: doc.clocks,
+      );
+      final kept = await dropUnverified(
+        changed,
+        local: SiteDocument(id: 's1', deleted: true, clocks: doc.clocks),
+        libraryId: 'L',
+        approvedKeys: {'m1': key.publicKey},
+      );
+      expect(kept.fields.containsKey('name'), isFalse);
+      final genuine = await dropUnverified(
+        doc,
+        local: SiteDocument(id: 's1', deleted: true, clocks: doc.clocks),
+        libraryId: 'L',
+        approvedKeys: {'m1': key.publicKey},
+      );
+      expect(genuine.fields['name'], 'A');
+    },
+  );
+
   test('a forged tombstone is dropped', () async {
     final forged = SiteDocument(
       id: 's1',

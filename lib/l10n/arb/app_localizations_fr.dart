@@ -21334,7 +21334,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      'Les membres saisissent la phrase secrète une fois par profil. Seuls la phrase secrète ou le code de récupération ouvrent la bibliothèque.';
+      'Les membres saisissent la phrase secrète une fois par profil. Seuls la phrase secrète ou le code de récupération ouvrent la bibliothèque. Un nouveau code de récupération remplace l\'ancien pour tous les propriétaires.';
 
   @override
   String get sharedLibrary_encryption_off => 'Désactiver le chiffrement';
@@ -21348,18 +21348,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_changeHelp =>
-      'Crée une nouvelle clé et un nouveau code de récupération. Ne partagez la nouvelle phrase secrète qu\'avec les membres qui restent.';
+      'Crée une nouvelle clé et un nouveau code de récupération. Un nouveau code de récupération remplace l\'ancien pour tous les propriétaires. Ne partagez la nouvelle phrase secrète qu\'avec les membres qui restent.';
 
   @override
   String get sharedLibrary_encryption_passphrase => 'Phrase secrète';
 
   @override
   String get sharedLibrary_encryption_confirm => 'Phrase secrète à nouveau';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return 'Réécriture de $done fichiers sur $total';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
@@ -21462,6 +21457,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get sharedLibrary_members_lastOwner =>
       'Le dernier propriétaire ne peut pas être rétrogradé.';
+
+  @override
+  String get sharedLibrary_members_keyChanged =>
+      'La clé de ce membre a changé. Comparez la nouvelle clé en personne, puis approuvez-la.';
 
   @override
   String get sharedLibrary_picker_none =>

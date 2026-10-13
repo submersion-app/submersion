@@ -96,6 +96,9 @@ void main() {
       libraryId: lib.id,
       memberId: await memberOf('reader'),
       actingMemberId: await memberOf('owner'),
+      publicKey: (await SharedLibraryStore().signingKeyForDiver(
+        'reader',
+      ))!.publicKey,
     );
   });
 
@@ -196,6 +199,9 @@ void main() {
         libraryId: lib.id,
         memberId: await memberOf('late'),
         actingMemberId: await memberOf('owner'),
+        publicKey: (await SharedLibraryStore().signingKeyForDiver(
+          'late',
+        ))!.publicKey,
       );
       await syncer().sync(lib.id, diverId: 'owner');
       expect(await held(), isEmpty);

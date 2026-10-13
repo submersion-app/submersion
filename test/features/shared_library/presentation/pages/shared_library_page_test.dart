@@ -34,7 +34,8 @@ Future<Widget> _page(
   LibrarySigningKey? signingKey,
   int held = 0,
   bool fakeSync = false,
-}) async => testApp(
+  bool inShell = false,
+}) async => (inShell ? testAppInShell : testApp)(
   overrides: [
     ...await getBaseOverrides(),
     if (service != null)
@@ -259,6 +260,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(encryption.calls, ['on:long enough phrase']);
     expect(find.text('new-recovery-code'), findsOneWidget);
+  });
+
+  testWidgets('in the app shell the progress closes and the page stays open', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      await _page(
+        SharedLibraryRole.owner,
+        encryption: _RecordingEncryption(),
+        inShell: true,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Turn on encryption'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Turn on encryption'));
+    await tester.pumpAndSettle();
+    for (final key in ['passphrase-field', 'passphrase-confirm']) {
+      await tester.enterText(find.byKey(Key(key)), 'long enough phrase');
+    }
+    await tester.tap(find.text('Turn on encryption').last);
+    await tester.pumpAndSettle();
+    expect(find.text('new-recovery-code'), findsOneWidget);
+    await tester.tap(find.byType(FilledButton).last);
+    await tester.pumpAndSettle();
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.text('Reef Survey'), findsWidgets);
+    expect(find.text('Members'), findsOneWidget);
   });
 
   testWidgets('a turn-on cut short still shows its recovery code', (

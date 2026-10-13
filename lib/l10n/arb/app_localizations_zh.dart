@@ -20205,7 +20205,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      '成员每个档案只需输入一次口令。只有口令或恢复码能打开资料库。';
+      '成员每个档案只需输入一次口令。只有口令或恢复码能打开资料库。新恢复码会替换所有所有者手中的旧恢复码。';
 
   @override
   String get sharedLibrary_encryption_off => '关闭加密';
@@ -20218,18 +20218,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_encryption_change => '更改口令';
 
   @override
-  String get sharedLibrary_encryption_changeHelp => '生成新密钥和新恢复码。仅将新口令告知留下的成员。';
+  String get sharedLibrary_encryption_changeHelp =>
+      '生成新密钥和新恢复码。新恢复码会替换所有所有者手中的旧恢复码。仅将新口令告知留下的成员。';
 
   @override
   String get sharedLibrary_encryption_passphrase => '口令';
 
   @override
   String get sharedLibrary_encryption_confirm => '再次输入口令';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return '正在重写第 $done 个文件，共 $total 个';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => '检查';
@@ -20325,6 +20321,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sharedLibrary_members_lastOwner => '无法降级最后一位所有者。';
+
+  @override
+  String get sharedLibrary_members_keyChanged => '该成员的密钥已更改。请当面核对新密钥，然后再批准。';
 
   @override
   String get sharedLibrary_picker_none => '这里没有允许你添加潜点的共享潜点库。';

@@ -184,6 +184,9 @@ void main() {
         libraryId: lib.id,
         memberId: heir,
         actingMemberId: founder,
+        publicKey: (await SharedLibraryStore().signingKeyForDiver(
+          'heir',
+        ))!.publicKey,
       );
       await memberships().setRole(
         libraryId: lib.id,

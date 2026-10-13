@@ -9,8 +9,9 @@ import 'package:submersion/core/services/shared_library/crypto/library_signer.da
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 
 /// A backup a device will not trust: [reason] is `notABackup`, `hash` (a
-/// file changed) or `signature` (the header changed or is not its
-/// creator's).
+/// file changed), `signature` (the header changed or is not its
+/// creator's), `otherLibrary` (a backup of another library) or `creator`
+/// (made by someone this device does not trust as an owner).
 class BackupRefusedError implements Exception {
   const BackupRefusedError(this.reason);
 
@@ -93,26 +94,23 @@ class LibraryBackupHeader {
         signature: json['signature'] as String?,
       );
 
-  LibraryBackupHeader copyWith({
-    String? contentSha256,
-    String? signature,
-    String? note,
-  }) => LibraryBackupHeader(
-    backupId: backupId,
-    libraryId: libraryId,
-    name: name,
-    createdAt: createdAt,
-    createdBy: createdBy,
-    createdByKey: createdByKey,
-    appVersion: appVersion,
-    formatVersion: formatVersion,
-    automatic: automatic,
-    note: note ?? this.note,
-    siteCount: siteCount,
-    memberCount: memberCount,
-    contentSha256: contentSha256 ?? this.contentSha256,
-    signature: signature ?? this.signature,
-  );
+  LibraryBackupHeader copyWith({String? contentSha256, String? signature}) =>
+      LibraryBackupHeader(
+        backupId: backupId,
+        libraryId: libraryId,
+        name: name,
+        createdAt: createdAt,
+        createdBy: createdBy,
+        createdByKey: createdByKey,
+        appVersion: appVersion,
+        formatVersion: formatVersion,
+        automatic: automatic,
+        note: note,
+        siteCount: siteCount,
+        memberCount: memberCount,
+        contentSha256: contentSha256 ?? this.contentSha256,
+        signature: signature ?? this.signature,
+      );
 }
 
 /// What a backup file holds once checked.
@@ -144,11 +142,17 @@ abstract final class LibraryBackupArchive {
     r'[^/\\\x00-\x1f]+\.json$',
   );
 
+  /// A list of earlier keys, named for the key that seals it (a UUID).
+  static final _previousKeys = RegExp(
+    '^${SharedLibraryLayout.previousKeysPrefix}[0-9a-f-]{36}\\.bin\$',
+  );
+
   /// Whether [path] is one of a library's own files: a root file it keeps,
   /// or a member card, site document or suggestion whose id stays in its
   /// folder.
   static bool isLibraryFile(String path) =>
       _rootFiles.contains(path) ||
+      _previousKeys.hasMatch(path) ||
       (_kindFile.hasMatch(path) && !path.contains('..'));
 
   /// SHA-256 over every path in sorted order, each followed by a zero byte

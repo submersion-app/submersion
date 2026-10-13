@@ -67,6 +67,7 @@ class _FakeMembershipService extends SharedLibraryMembershipService {
     required String diverId,
     required String displayName,
     String? secret,
+    bool adoptFolderRoles = false,
   }) async {
     joinSecrets.add(secret);
     throw StateError('stop here');

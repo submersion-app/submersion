@@ -53,11 +53,17 @@ class LibraryBackupService {
   }
 
   /// Named for the library and the time, plus the start of [backupId]:
-  /// two backups in one second keep their own files.
+  /// two backups in one second keep their own files. Only letters, digits,
+  /// `-` and `_` from the folder, and not too many of them, so the name
+  /// always passes the backup list's own check.
   static String _fileName(SharedLibrary library, DateTime at, String backupId) {
-    final folder = library.prefix.trim().isEmpty
+    final cleaned = library.prefix.trim().replaceAll(
+      RegExp(r'[^A-Za-z0-9_-]'),
+      '-',
+    );
+    final folder = cleaned.isEmpty
         ? 'library'
-        : library.prefix.trim().replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '-');
+        : cleaned.substring(0, cleaned.length.clamp(0, _folderChars));
     String two(int v) => v.toString().padLeft(2, '0');
     final u = at.toUtc();
     final stamp =
@@ -65,6 +71,8 @@ class LibraryBackupService {
         '${two(u.hour)}${two(u.minute)}${two(u.second)}';
     return 'submersion-sites-$folder-$stamp-${backupId.substring(0, 8)}.zip';
   }
+
+  static const _folderChars = 100;
 
   /// Backs the library up to the device and to storage. Owners only. Waits
   /// for any library sync or key change, so the backup never catches the
@@ -94,8 +102,19 @@ class LibraryBackupService {
     bool automatic = false,
     bool beforeRestore = false,
   }) async {
-    final (library, t, me, key) = await _asOwner(libraryId, diverId);
-    final files = await t.snapshot();
+    final (library, t, me, key, roles) = await _asOwner(libraryId, diverId);
+    final files = {
+      for (final e in (await t.snapshot()).entries)
+        // A file any member's storage key wrote under a name no library
+        // file has would make the backup one no restore accepts.
+        if (LibraryBackupArchive.isLibraryFile(e.key)) e.key: e.value,
+      // The roles this device trusts, not whatever the folder holds: a
+      // file the sync refused would come back trusted with a restore.
+      SharedLibraryLayout.rolesFile: await t.inLibraryForm(
+        SharedLibraryLayout.rolesFile,
+        Uint8List.fromList(utf8.encode(jsonEncode(roles.toJson()))),
+      ),
+    };
     final at = _now().toUtc();
     final header = LibraryBackupHeader(
       backupId: const Uuid().v4(),
@@ -106,7 +125,9 @@ class LibraryBackupService {
       createdByKey: key.publicKey,
       appVersion: _appVersion,
       automatic: automatic,
-      note: note.trim(),
+      // backup.json is plain: an encrypted library's note stays in the
+      // sealed index.
+      note: library.encrypted ? '' : note.trim(),
       siteCount: _count(files, SharedLibraryLayout.sitesDir),
       memberCount: _count(files, SharedLibraryLayout.membersDir),
     );
@@ -123,7 +144,7 @@ class LibraryBackupService {
       libraryId: libraryId,
       fileName: name,
       createdAt: at,
-      note: header.note,
+      note: note.trim(),
       automatic: automatic,
       beforeRestore: beforeRestore,
       siteCount: header.siteCount,
@@ -138,6 +159,7 @@ class LibraryBackupService {
         t,
         me,
         key,
+        roles,
         (index) => {...index, record.backupId: record},
       );
     } catch (e) {
@@ -157,6 +179,10 @@ class LibraryBackupService {
   /// Unpinned backups kept in each place.
   static const keep = 7;
 
+  /// How far ahead of this clock another owner's backup may be dated and
+  /// still count as made.
+  static const _clockSkew = Duration(minutes: 5);
+
   /// Makes the daily automatic backup when it is due, then prunes. True
   /// when a backup was made.
   Future<bool> backUpIfDue({
@@ -169,11 +195,20 @@ class LibraryBackupService {
     if (library == null) return false;
     final now = _now().toUtc();
     final last = library.lastAutoBackupAt;
-    if (last != null && now.difference(last) < autoInterval) return false;
+    // A time ahead of this clock (another device's fast clock, or this
+    // one's before it was set right) holds nothing back.
+    if (last != null &&
+        !last.isAfter(now) &&
+        now.difference(last) < autoInterval) {
+      return false;
+    }
     final existing = await list(libraryId: libraryId);
     final fresh = [
       for (final r in existing)
-        if (r.inStorage && now.difference(r.createdAt) < storageFresh) r,
+        if (r.inStorage &&
+            !r.createdAt.isAfter(now.add(_clockSkew)) &&
+            now.difference(r.createdAt) < storageFresh)
+          r,
     ];
     if (fresh.isNotEmpty) {
       // Next due when the newest of them turns [storageFresh] old: recorded
@@ -196,9 +231,6 @@ class LibraryBackupService {
 
   /// Keeps the newest [keep] unpinned backups on this device and in
   /// storage; pinned ones are never removed.
-  Future<void> prune({required String libraryId, required String diverId}) =>
-      SyncCoordinator.run(() => _prune(libraryId, diverId));
-
   Future<void> _prune(String libraryId, String diverId) async {
     final all = await list(libraryId: libraryId);
     final onDevice = [
@@ -236,12 +268,20 @@ class LibraryBackupService {
   Future<List<LibraryBackupRecord>> list({required String libraryId}) async {
     final byId = <String, LibraryBackupRecord>{};
     final library = await _store.getLibrary(libraryId);
+    // Whether storage answered: when it did not, each device copy keeps
+    // what was last known of its storage copy.
+    var indexRead = false;
     if (library != null) {
       try {
         final t = await _memberships.transportForLibrary(library);
-        for (final r in (await _readIndex(t, library)).values) {
+        for (final r in (await _readIndex(
+          t,
+          library,
+          library.roles,
+        )).trusted.values) {
           byId[r.backupId] = r;
         }
+        indexRead = true;
       } catch (e) {
         _log.warning('Backups in storage not listed: $e');
       }
@@ -249,9 +289,11 @@ class LibraryBackupService {
     for (final row in await _store.backupRows(libraryId)) {
       final local = _fromRow(row);
       final remote = byId[row.backupId];
-      byId[row.backupId] = remote == null
+      byId[row.backupId] = remote != null
+          ? remote.copyWith(localPath: local.localPath)
+          : indexRead
           ? local.copyWith(inStorage: false)
-          : remote.copyWith(localPath: local.localPath);
+          : local;
     }
     return byId.values.toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -377,6 +419,9 @@ class LibraryBackupService {
     if (p.canonicalize(local) != p.canonicalize(path)) {
       await File(local).writeAsBytes(bytes, flush: true);
     }
+    // Pinned, unless this device already had it unpinned: a backup brought
+    // back on purpose is never the oldest one pruning removes next.
+    final pinned = (await _store.backupRow(h.backupId))?.pinned ?? true;
     final record = LibraryBackupRecord(
       backupId: h.backupId,
       libraryId: libraryId,
@@ -388,6 +433,7 @@ class LibraryBackupService {
       memberCount: h.memberCount,
       sizeBytes: bytes.length,
       localPath: local,
+      pinned: pinned,
     );
     await _saveRow(record);
     return record;
@@ -404,15 +450,16 @@ class LibraryBackupService {
     change, {
     String? alsoDeleteFile,
   }) async {
-    final (library, t, me, key) = await _asOwner(libraryId, diverId);
+    final (library, t, me, key, roles) = await _asOwner(libraryId, diverId);
     if (alsoDeleteFile != null) await t.deleteBackup(alsoDeleteFile);
-    await _updateIndex(t, me, key, change, library: library);
+    await _updateIndex(t, me, key, roles, change, library: library);
   }
 
   Future<void> _updateIndex(
     SharedLibraryTransport t,
     SharedLibraryMembership me,
     LibrarySigningKey key,
+    SharedLibraryRoles roles,
     Map<String, LibraryBackupRecord> Function(
       Map<String, LibraryBackupRecord> index,
     )
@@ -423,8 +470,11 @@ class LibraryBackupService {
     if (lib == null) return;
     // Storage has no compare-and-swap: another owner may write the index
     // between this read and write. Read it back, and apply the change again
-    // on top of whatever won until it holds.
-    var current = await _readIndex(t, lib);
+    // on top of whatever won until it holds. An index no current owner
+    // signed (its signer left, stepped down or has a new key) keeps its
+    // entries: their zips are still there, and an owner's signature now
+    // vouches for the list again.
+    var current = (await _readIndex(t, lib, roles)).all;
     for (var attempt = 0; attempt < _indexAttempts; attempt++) {
       final next = change(current);
       final unsigned = {
@@ -438,7 +488,7 @@ class LibraryBackupService {
           utf8.encode(canonicalJson(unsigned)),
         ),
       });
-      current = await _readIndex(t, lib);
+      current = (await _readIndex(t, lib, roles)).all;
       if (_sameIndex(change(current), current)) return;
     }
     _log.warning('Backup index of ${lib.id} kept changing; left as it is');
@@ -456,28 +506,32 @@ class LibraryBackupService {
     return of(a) == of(b);
   }
 
-  /// The storage index when an owner of the trusted roles signed it.
-  Future<Map<String, LibraryBackupRecord>> _readIndex(
+  /// The storage index: its entries, and whether an owner of [roles] (with
+  /// the key [roles] approves) signed it. Only a signed index is listed or
+  /// trusted; an unsigned one's entries are kept when an owner writes the
+  /// index next.
+  Future<_IndexRead> _readIndex(
     SharedLibraryTransport t,
     SharedLibrary library,
+    SharedLibraryRoles roles,
   ) async {
     final json = await t.readBackupIndex();
-    if (json == null) return {};
+    if (json == null) return const _IndexRead({}, signed: true);
     final signer = json['signedBy'];
     final unsigned = {...json}..remove('signature');
-    final key = signer is String && library.roles.owners.contains(signer)
-        ? library.roles.approvedKeys[signer]
+    final key = signer is String && roles.owners.contains(signer)
+        ? roles.approvedKeys[signer]
         : null;
+    final signature = json['signature'];
     final ok =
         key != null &&
         await LibrarySigner.verify(
           publicKey: key,
           message: utf8.encode(canonicalJson(unsigned)),
-          signature: json['signature'] as String?,
+          signature: signature is String ? signature : null,
         );
     if (!ok) {
-      _log.warning('Ignoring a backup index no owner signed');
-      return {};
+      _log.warning('Backup index of ${library.id} not signed by an owner');
     }
     final entries = json['entries'];
     final records = <String, LibraryBackupRecord>{};
@@ -485,7 +539,7 @@ class LibraryBackupService {
       final r = LibraryBackupRecord.fromIndexJson(library.id, e);
       if (r != null) records[r.backupId] = r;
     }
-    return records;
+    return _IndexRead(records, signed: ok);
   }
 
   // Device rows
@@ -533,6 +587,7 @@ class LibraryBackupService {
       SharedLibraryTransport,
       SharedLibraryMembership,
       LibrarySigningKey,
+      SharedLibraryRoles,
     )
   >
   _asOwner(String libraryId, String diverId) async {
@@ -546,7 +601,18 @@ class LibraryBackupService {
     if (roles.roleOf(me.memberId) != SharedLibraryRole.owner) {
       throw StateError('only an owner backs up a library');
     }
-    final key = await _store.ensureSigningKey(diverId);
-    return (library, t, me, key);
+    final key = me.signingKey ?? await _store.ensureSigningKey(diverId);
+    return (library, t, me, key, roles);
   }
+}
+
+/// The storage index as read: every well-formed entry, and whether an owner
+/// signed the file.
+class _IndexRead {
+  const _IndexRead(this.all, {required this.signed});
+
+  final Map<String, LibraryBackupRecord> all;
+  final bool signed;
+
+  Map<String, LibraryBackupRecord> get trusted => signed ? all : const {};
 }

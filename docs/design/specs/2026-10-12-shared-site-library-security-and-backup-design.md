@@ -142,7 +142,9 @@ Pending again.
 }
 ```
 
-The signature covers the canonical JSON of every other key. A device keeps
+The signature covers the canonical JSON of every other key, prefixed with
+`ssl-roles:v1`, a newline, the library id and a newline, so roles signed for
+one library never count in another. A device keeps
 the last `roles.json` it trusted for each library (`trustedRolesJson` on the
 library row) and accepts a new one only when:
 
@@ -152,7 +154,12 @@ library row) and accepts a new one only when:
   verifies with the trusted recovery key.
 
 At join the device trusts the `roles.json` it finds when it is
-self-consistent (signed by one of its own owners or its recovery key). The
+self-consistent (signed by one of its own owners or its recovery key). A
+device that already trusts roles for the library (another profile's
+membership, a reconnect) keeps them, and the folder's roles go through the
+rules above. An ownership reset counts only with a single owner who signed it
+with the key it approves. While the folder holds roles the device refused, it
+only reads the library: its uploads would fight owners it does not know. The
 library page shows each owner's key fingerprint (first 16 hex digits of the
 SHA-256 of the public key, in groups of four) so members can compare it
 person to person.
@@ -264,13 +271,18 @@ hold stops uploading to that library and asks for the passphrase.
 ### Turning it on, off, and changing the passphrase (owners)
 
 - **On:** the owner picks a passphrase (encrypted-sync strength rules) and
-  gets a recovery code if the library has none. The device writes
+  gets a new recovery code, which replaces the library's old one for every
+  owner (the help text and guide say so). The device writes
   `keyslots.json`, then the manifest with `encrypted: true` and `keyId`
   (from here no device writes plain files), then rewrites every file
   encrypted.
-- **Off:** rewrites every file plain, writes the manifest with
-  `encrypted: false`, removes `keyslots.json`. Members' devices drop the
-  stored key.
+- **Off:** records `encryption: {on: false}` in a signed `roles.json`,
+  rewrites every file plain, writes the manifest with `encrypted: false`,
+  removes `keyslots.json`. Members' devices drop the stored key.
+- On and passphrase changes record `encryption: {on: true, keyId}` in the
+  signed roles. The manifest is not signed, so a device believes a manifest
+  that says off only when the roles it trusts agree; otherwise it keeps the
+  key and keeps writing sealed.
 - **Change passphrase:** a new library key and `keyId`, a new recovery code
   shown to the owner, a new `keyslots.json`, a new signed `roles.json`
   carrying the new recovery key, then every file rewritten with the new key.
@@ -314,7 +326,10 @@ A zip of the library folder as stored (encrypted files stay encrypted):
 
 `contentSha256` is over the sorted entry names and bytes; the signature is
 the creator's over the rest of `backup.json`. A backup whose hash or
-signature fails is refused on import and restore. File name:
+signature fails is refused on import and restore. A restore also needs the
+backup to be the one picked (its `backupId`) and its creator to be an owner in
+the roles the device trusts now, with the key they approve: the roles inside a
+zip are whatever its maker wrote. File name:
 `submersion-sites-<folder>-<yyyy-mm-dd-hhmm>.zip`.
 
 ### Where backups live

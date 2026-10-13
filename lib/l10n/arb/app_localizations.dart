@@ -34062,7 +34062,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_encryption_onHelp.
   ///
   /// In en, this message translates to:
-  /// **'Members enter the passphrase once per profile. Only the passphrase or the recovery code opens the library.'**
+  /// **'Members enter the passphrase once per profile. Only the passphrase or the recovery code opens the library. A new recovery code replaces the old one for every owner.'**
   String get sharedLibrary_encryption_onHelp;
 
   /// No description provided for @sharedLibrary_encryption_off.
@@ -34086,7 +34086,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharedLibrary_encryption_changeHelp.
   ///
   /// In en, this message translates to:
-  /// **'Makes a new key and a new recovery code. Share the new passphrase only with the members who stay.'**
+  /// **'Makes a new key and a new recovery code. A new recovery code replaces the old one for every owner. Share the new passphrase only with the members who stay.'**
   String get sharedLibrary_encryption_changeHelp;
 
   /// No description provided for @sharedLibrary_encryption_passphrase.
@@ -34100,12 +34100,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passphrase again'**
   String get sharedLibrary_encryption_confirm;
-
-  /// No description provided for @sharedLibrary_encryption_progress.
-  ///
-  /// In en, this message translates to:
-  /// **'Rewriting {done} of {total} files'**
-  String sharedLibrary_encryption_progress(int done, int total);
 
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
@@ -34262,6 +34256,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The last owner cannot be demoted.'**
   String get sharedLibrary_members_lastOwner;
+
+  /// No description provided for @sharedLibrary_members_keyChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'This member\'s key changed. Compare the new key in person, then approve it.'**
+  String get sharedLibrary_members_keyChanged;
 
   /// No description provided for @sharedLibrary_picker_none.
   ///

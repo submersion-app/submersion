@@ -21270,7 +21270,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      'I membri inseriscono la passphrase una volta per profilo. Solo la passphrase o il codice di recupero aprono la libreria.';
+      'I membri inseriscono la passphrase una volta per profilo. Solo la passphrase o il codice di recupero aprono la libreria. Un nuovo codice di recupero sostituisce il precedente per tutti i proprietari.';
 
   @override
   String get sharedLibrary_encryption_off => 'Disattiva la cifratura';
@@ -21284,18 +21284,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_changeHelp =>
-      'Crea una nuova chiave e un nuovo codice di recupero. Condividi la nuova passphrase solo con i membri che restano.';
+      'Crea una nuova chiave e un nuovo codice di recupero. Un nuovo codice di recupero sostituisce il precedente per tutti i proprietari. Condividi la nuova passphrase solo con i membri che restano.';
 
   @override
   String get sharedLibrary_encryption_passphrase => 'Passphrase';
 
   @override
   String get sharedLibrary_encryption_confirm => 'Ripeti la passphrase';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return 'Riscrittura di $done file su $total';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
@@ -21397,6 +21392,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get sharedLibrary_members_lastOwner =>
       'L\'ultimo proprietario non può essere retrocesso.';
+
+  @override
+  String get sharedLibrary_members_keyChanged =>
+      'La chiave di questo membro è cambiata. Confronta di persona la nuova chiave, poi approvala.';
 
   @override
   String get sharedLibrary_picker_none =>

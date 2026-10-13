@@ -32,7 +32,9 @@ class PendingResetBanner extends ConsumerWidget {
     if (pending == null || pending.owners.isEmpty) {
       return const SizedBox.shrink();
     }
-    final owner = (pending.owners.toList()..sort()).first;
+    // A reset counts only when its one owner signed it: they are who the
+    // member is asked to check.
+    final owner = pending.signedBy ?? (pending.owners.toList()..sort()).first;
     final key = pending.approvedKeys[owner];
     final scheme = Theme.of(context).colorScheme;
     return Card(
@@ -213,12 +215,18 @@ class LibraryOwnershipSection extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SharedLibraryMembership me,
-  ) => _run(context, () async {
-    final code = await ref
-        .read(sharedLibraryMembershipServiceProvider)
-        .reissueRecoveryCode(libraryId: library.id, diverId: me.diverId);
-    if (context.mounted) await showRecoveryCodeDialog(context, code);
-  });
+  ) {
+    // The page may rebuild this section away meanwhile (the roles warning
+    // goes once new roles are written): the code, already in force, is
+    // shown over the whole app, never skipped.
+    final shown = Navigator.of(context, rootNavigator: true).context;
+    return _run(context, () async {
+      final code = await ref
+          .read(sharedLibraryMembershipServiceProvider)
+          .reissueRecoveryCode(libraryId: library.id, diverId: me.diverId);
+      if (shown.mounted) await showRecoveryCodeDialog(shown, code);
+    });
+  }
 
   Future<void> _recover(
     BuildContext context,

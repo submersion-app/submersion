@@ -41,6 +41,10 @@ extension SharedLibraryMigrations on AppDatabase {
       'encrypted': 'INTEGER NOT NULL DEFAULT 0 CHECK ("encrypted" IN (0, 1))',
       'key_id': 'TEXT',
       'last_auto_backup_at': 'INTEGER',
+      'notes_backfilled':
+          'INTEGER NOT NULL DEFAULT 0 CHECK ("notes_backfilled" IN (0, 1))',
+      'spare_key_id': 'TEXT',
+      'spare_key': 'TEXT',
     });
   }
 

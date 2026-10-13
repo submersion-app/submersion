@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync_maintenance_progress_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
@@ -92,8 +93,13 @@ class LibraryEncryptionSection extends ConsumerWidget {
     );
     if (passphrase == null || !context.mounted) return;
     final service = ref.read(libraryEncryptionServiceProvider);
+    // The page may rebuild this section away while the files are
+    // rewritten: the new code is shown over the whole app, never skipped.
+    final shown = Navigator.of(context, rootNavigator: true).context;
+    final container = ProviderScope.containerOf(context, listen: false);
     final code = await _withProgress(
       context,
+      action,
       (progress) => turnOn
           ? service.turnOn(
               libraryId: library.id,
@@ -108,10 +114,9 @@ class LibraryEncryptionSection extends ConsumerWidget {
               progress: progress,
             ),
     );
-    if (code != null && context.mounted) {
-      ref.invalidate(currentMembershipsProvider);
-      await showRecoveryCodeDialog(context, code);
-    }
+    if (code == null) return;
+    container.invalidate(currentMembershipsProvider);
+    if (shown.mounted) await showRecoveryCodeDialog(shown, code);
   }
 
   Future<void> _turnOff(
@@ -138,7 +143,10 @@ class LibraryEncryptionSection extends ConsumerWidget {
       ),
     );
     if (ok != true || !context.mounted) return;
-    await _withProgress(context, (progress) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    await _withProgress(context, l10n.sharedLibrary_encryption_off, (
+      progress,
+    ) async {
       await ref
           .read(libraryEncryptionServiceProvider)
           .turnOff(
@@ -148,61 +156,36 @@ class LibraryEncryptionSection extends ConsumerWidget {
           );
       return '';
     });
-    if (context.mounted) ref.invalidate(currentMembershipsProvider);
+    container.invalidate(currentMembershipsProvider);
   }
 
-  /// Runs [work] behind a dialog counting the files rewritten. Null when it
-  /// failed, which a snack bar explains.
+  /// Runs [work] behind the app's progress dialog, counting the files
+  /// rewritten, with the screen held awake. Null when it failed, which a
+  /// snack bar explains.
   Future<String?> _withProgress(
     BuildContext context,
+    String title,
     Future<String> Function(void Function(int, int) progress) work,
   ) async {
     final l10n = context.l10n;
-    final done = ValueNotifier<(int, int)>((0, 0));
-    final navigator = Navigator.of(context);
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          content: ValueListenableBuilder<(int, int)>(
-            valueListenable: done,
-            builder: (context, value, _) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LinearProgressIndicator(
-                  value: value.$2 == 0 ? null : value.$1 / value.$2,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.sharedLibrary_encryption_progress(value.$1, value.$2),
-                ),
-              ],
-            ),
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      return await runWithSyncMaintenanceProgress(
+        context: context,
+        title: title,
+        task: (report) => work((done, total) => report(done, total)),
+      );
+    } catch (e) {
+      // Stopped after the manifest named the new key: its recovery code is
+      // the way back in, so it is shown all the same.
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            libraryErrorText(l10n, e is RekeyIncompleteError ? e.cause : e),
           ),
         ),
-      ),
-    );
-    try {
-      return await work((d, t) => done.value = (d, t));
-    } catch (e) {
-      // Stopped after the new key was written: its recovery code is still
-      // the way back in, so it is shown all the same.
-      final code = e is RekeyIncompleteError ? e.recoveryCode : null;
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              libraryErrorText(l10n, e is RekeyIncompleteError ? e.cause : e),
-            ),
-          ),
-        );
-      }
-      return code;
-    } finally {
-      navigator.pop();
-      done.dispose();
+      );
+      return e is RekeyIncompleteError ? e.recoveryCode : null;
     }
   }
 }

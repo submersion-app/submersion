@@ -416,6 +416,12 @@ class SiteRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       final before = await getSiteById(siteId);
+      // A library site this profile may not edit (a reader's) keeps the
+      // library's values: the change could never be uploaded.
+      if ((before?.isLibrarySite ?? false) &&
+          !await _libraryStamper.mayEdit(siteId)) {
+        return false;
+      }
       final changed = await _db.transaction(() async {
         final row = await (_db.select(
           _db.diveSites,
@@ -484,6 +490,13 @@ class SiteRepository {
       // (issue #2567): rewriting the same altitude must not beat a newer
       // edit by another member.
       final before = await getSiteById(siteId);
+      // As for location details: a library site this profile may not edit
+      // keeps the library's values.
+      if (before != null &&
+          before.isLibrarySite &&
+          !await _libraryStamper.mayEdit(siteId)) {
+        return;
+      }
       await (_db.update(_db.diveSites)..where((t) => t.id.equals(siteId)))
           .write(patch.copyWith(updatedAt: Value(now)));
       await _syncRepository.markRecordPending(

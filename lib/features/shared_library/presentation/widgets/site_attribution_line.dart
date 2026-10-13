@@ -38,10 +38,7 @@ class SiteAttributionLine extends ConsumerWidget {
     final names =
         ref.watch(libraryMemberNamesProvider(libraryId)).value ??
         const <String, String>{};
-    final when = DateTime.fromMillisecondsSinceEpoch(
-      newest.hlc.physicalTime,
-      isUtc: true,
-    );
+    final when = newest.editedAt;
     return Text(
       context.l10n.sharedLibrary_site_lastEdited(
         memberDisplayName(names, newest.memberId),

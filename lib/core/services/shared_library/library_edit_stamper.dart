@@ -1,3 +1,4 @@
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
@@ -85,6 +86,33 @@ class LibraryEditStamper {
       siteId: siteId,
       notes: notes,
       rating: rating,
+    );
+  }
+
+  /// Whether a write to [siteId] may go ahead here: always for a personal
+  /// site; for a library site, when a local profile that is a member (the
+  /// profile [actingDiverId], or else any) may edit it. A write nobody here
+  /// may make is never uploaded, and only sets this device apart.
+  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async {
+    final row = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+    final libraryId = row?.sharedLibraryId;
+    if (libraryId == null) return true;
+    final library = await _store.getLibrary(libraryId);
+    // Not connected here: no roles to go by, nothing to upload to.
+    if (library == null) return true;
+    final members = [
+      for (final m in await _store.membershipsForLibrary(libraryId))
+        if (actingDiverId == null || m.diverId == actingDiverId) m,
+    ];
+    return members.any(
+      (m) => canEditLibrarySite(
+        effectiveRole(
+          listed: library.roles.roleOf(m.memberId),
+          readOnlyDetected: library.readOnlyDetected,
+        ),
+      ),
     );
   }
 

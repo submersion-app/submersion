@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
+import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
@@ -17,7 +18,7 @@ import 'package:submersion/core/services/shared_library/site_document.dart';
 /// once; an empty prefix is `submersion-sites` itself.
 class SharedLibraryTransport {
   SharedLibraryTransport(this._provider, {required String prefix})
-    : _prefix = _trimSlashes(prefix.trim());
+    : _prefix = _trimSlashes(prefix.trim()).trim();
 
   final CloudStorageProvider _provider;
   final String _prefix;
@@ -74,10 +75,18 @@ class SharedLibraryTransport {
     final name = SharedLibraryLayout.previousKeysFileFor(c.keyId);
     final f = await _find(await _rootId(), name);
     if (f == null) return {};
+    return previousKeysIn(await _provider.downloadFile(f.id), under: c);
+  }
+
+  /// The earlier keys in a previous-keys file, [sealed] under [under]; none
+  /// when [under] does not open it.
+  static Future<Map<String, LibraryCipher>> previousKeysIn(
+    Uint8List sealed, {
+    required LibraryCipher under,
+  }) async {
+    final name = SharedLibraryLayout.previousKeysFileFor(under.keyId);
     try {
-      final decoded = jsonDecode(
-        utf8.decode(await c.open(name, await _provider.downloadFile(f.id))),
-      );
+      final decoded = jsonDecode(utf8.decode(await under.open(name, sealed)));
       if (decoded is! List) return {};
       final out = <String, LibraryCipher>{};
       for (final e in decoded) {
@@ -129,6 +138,10 @@ class SharedLibraryTransport {
     _previous = null;
   }
 
+  /// [plain] as the library stores it at [path]: sealed when encrypting.
+  Future<Uint8List> inLibraryForm(String path, Uint8List plain) =>
+      _seal(path, plain);
+
   /// [plain], sealed when the library is encrypted.
   Future<Uint8List> _seal(String path, Uint8List plain) async {
     final c = cipher;
@@ -153,6 +166,13 @@ class SharedLibraryTransport {
       '$_memberPrefix$memberId.json';
   static String suggestionFileName(String id) => '$_suggestionPrefix$id.json';
 
+  /// Whether [id] can name a file in its folder: not empty, no separator,
+  /// control character or `..`.
+  static bool isSafeFileId(String id) =>
+      id.isNotEmpty &&
+      !id.contains('..') &&
+      !id.contains(RegExp(r'[/\\\x00-\x1f]'));
+
   static String siteIdOf(CloudFileInfo f) => _idOf(f.name, _sitePrefix);
   static String memberIdOf(CloudFileInfo f) => _idOf(f.name, _memberPrefix);
   static String suggestionIdOf(CloudFileInfo f) =>
@@ -166,6 +186,18 @@ class SharedLibraryTransport {
         : base.length;
     return base.substring(start, end);
   }
+
+  /// Whether [e] means one file could not be read as what it claims to be:
+  /// not JSON, sealed under no key this device holds, a broken envelope,
+  /// or a field of the wrong type. Any member's storage key may write such
+  /// a file, so it is skipped like a missing one and never stops a sync.
+  static bool isUnreadable(Object e) =>
+      e is FormatException ||
+      e is EnvelopeCorruptException ||
+      e is LibraryLockedException ||
+      e is TypeError ||
+      e is UnsupportedError ||
+      e is JsonUnsupportedObjectError;
 
   /// Whether [e] is the storage refusing a write or read for lack of
   /// rights, as opposed to a transient failure.
@@ -367,14 +399,21 @@ class SharedLibraryTransport {
   Future<void> writeInfo(Map<String, dynamic> info) async =>
       _writeJson(await _rootId(), SharedLibraryLayout.infoFile, info);
 
+  /// The folder's roles; [SharedLibraryRoles.empty] when there are none or
+  /// they cannot be read, which no trust check accepts.
   Future<SharedLibraryRoles> readRoles() async {
-    final json = await _readJson(
-      await _rootId(),
-      SharedLibraryLayout.rolesFile,
-    );
-    return json == null
-        ? SharedLibraryRoles.empty
-        : SharedLibraryRoles.fromJson(json);
+    try {
+      final json = await _readJson(
+        await _rootId(),
+        SharedLibraryLayout.rolesFile,
+      );
+      return json == null
+          ? SharedLibraryRoles.empty
+          : SharedLibraryRoles.fromJson(json);
+    } catch (e) {
+      if (!isUnreadable(e)) rethrow;
+      return SharedLibraryRoles.empty;
+    }
   }
 
   Future<void> writeRoles(SharedLibraryRoles roles) async => _writeJson(
@@ -403,7 +442,8 @@ class SharedLibraryTransport {
           final card = SharedLibraryMember.fromJson(memberIdOf(f), decoded);
           members.add(card.copyWith(cardVerified: await card.verify()));
         }
-      } on FormatException {
+      } catch (e) {
+        if (!isUnreadable(e)) rethrow;
         // An unreadable card is a member without a name until rewritten.
         members.add(
           SharedLibraryMember(
@@ -452,6 +492,11 @@ class SharedLibraryTransport {
   /// their edit as its own. A write after the read changes the time again,
   /// which the next pull notices.
   Future<DateTime?> writeSite(SiteDocument doc) async {
+    // The id names the file: one that could leave the sites folder is
+    // refused whatever document carries it.
+    if (!isSafeFileId(doc.id)) {
+      throw ArgumentError.value(doc.id, 'doc.id', 'not a site id');
+    }
     final bytes = await _seal(
       '${SharedLibraryLayout.sitesDir}/${siteFileName(doc.id)}',
       SiteDocument.encode(doc),
@@ -578,18 +623,33 @@ class SharedLibraryTransport {
   Future<Map<String, Uint8List>> snapshot() async {
     final out = <String, Uint8List>{};
     final root = await _rootId();
+    final c = cipher;
     for (final name in [
       SharedLibraryLayout.manifestFile,
       SharedLibraryLayout.keyslotsFile,
+      // The current key's earlier keys: a file still under one of them
+      // opens after a restore into an empty folder too.
+      if (c != null) SharedLibraryLayout.previousKeysFileFor(c.keyId),
     ]) {
       final f = await _find(root, name);
       if (f != null) out[name] = await _provider.downloadFile(f.id);
     }
-    for (final e in (await sealableFiles()).entries) {
-      out[e.key] = await _provider.downloadFile(e.value);
+    // A few downloads at a time: a large library's backup holds up every
+    // sync while it runs.
+    final entries = (await sealableFiles()).entries.toList();
+    for (var i = 0; i < entries.length; i += _parallelReads) {
+      final batch = entries.skip(i).take(_parallelReads).toList();
+      final read = await Future.wait([
+        for (final e in batch) _provider.downloadFile(e.value),
+      ]);
+      for (var k = 0; k < batch.length; k++) {
+        out[batch[k].key] = read[k];
+      }
     }
     return out;
   }
+
+  static const _parallelReads = 8;
 
   /// The folder a path inside the library lives in, and its file name.
   Future<(String, String)> _place(String path) async {

@@ -120,7 +120,13 @@ Future<SiteDocument> dropUnverified(
   var deleted = remote.deleted;
   for (final e in remote.clocks.entries) {
     final mine = local.clocks[e.key];
-    final newer = mine == null || e.value.hlc.compareTo(mine.hlc) > 0;
+    // A value the local side lacks (a tombstone keeps clocks, not values)
+    // is taken whatever its clock, so it is checked too.
+    final newer =
+        mine == null ||
+        e.value.hlc.compareTo(mine.hlc) > 0 ||
+        (e.key != SiteDocument.deletedField &&
+            !local.fields.containsKey(e.key));
     if (!newer) continue;
     final member = e.value.memberId;
     if (await _signedBy(approvedKeys[member], remote, e.key, libraryId)) {

@@ -16,12 +16,13 @@ Future<LibrarySigningKey> testMemberKey(String memberId) =>
 
 /// `roles.json` as an owner of a shared site library writes it: [owners]
 /// and [editors], every listed member's key approved (plus [members]),
-/// signed by the first owner in sorted order.
+/// signed by the first owner in sorted order, for the library [libraryId].
 Future<SharedLibraryRoles> signedTestRoles({
   required Set<String> owners,
   Set<String> editors = const {},
   Set<String> members = const {},
   int version = 1,
+  String libraryId = 'L',
 }) async {
   final everyone = {...owners, ...editors, ...members};
   final signer = (owners.toList()..sort()).first;
@@ -32,7 +33,11 @@ Future<SharedLibraryRoles> signedTestRoles({
     approvedKeys: {
       for (final m in everyone) m: (await testMemberKey(m)).publicKey,
     },
-  ).signed(signedBy: signer, key: await testMemberKey(signer));
+  ).signed(
+    libraryId: libraryId,
+    signedBy: signer,
+    key: await testMemberKey(signer),
+  );
 }
 
 /// The passphrase of every encrypted test library.

@@ -20793,7 +20793,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      'החברים מזינים את משפט הסיסמה פעם אחת לכל פרופיל. רק משפט הסיסמה או קוד השחזור פותחים את הספרייה.';
+      'החברים מזינים את משפט הסיסמה פעם אחת לכל פרופיל. רק משפט הסיסמה או קוד השחזור פותחים את הספרייה. קוד שחזור חדש מחליף את הישן אצל כל הבעלים.';
 
   @override
   String get sharedLibrary_encryption_off => 'כיבוי הצפנה';
@@ -20807,18 +20807,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_changeHelp =>
-      'יוצר מפתח חדש וקוד שחזור חדש. שתפו את משפט הסיסמה החדש רק עם החברים שנשארים.';
+      'יוצר מפתח חדש וקוד שחזור חדש. קוד שחזור חדש מחליף את הישן אצל כל הבעלים. שתפו את משפט הסיסמה החדש רק עם החברים שנשארים.';
 
   @override
   String get sharedLibrary_encryption_passphrase => 'משפט סיסמה';
 
   @override
   String get sharedLibrary_encryption_confirm => 'משפט הסיסמה שוב';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return 'נכתבים מחדש $done מתוך $total קבצים';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
@@ -20918,6 +20913,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get sharedLibrary_members_lastOwner =>
       'אי אפשר להוריד בדרגה את הבעלים האחרון.';
+
+  @override
+  String get sharedLibrary_members_keyChanged =>
+      'המפתח של החבר הזה השתנה. יש להשוות את המפתח החדש פנים אל פנים ואז לאשר אותו.';
 
   @override
   String get sharedLibrary_picker_none =>

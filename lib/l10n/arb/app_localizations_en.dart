@@ -20952,7 +20952,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      'Members enter the passphrase once per profile. Only the passphrase or the recovery code opens the library.';
+      'Members enter the passphrase once per profile. Only the passphrase or the recovery code opens the library. A new recovery code replaces the old one for every owner.';
 
   @override
   String get sharedLibrary_encryption_off => 'Turn off encryption';
@@ -20966,18 +20966,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_changeHelp =>
-      'Makes a new key and a new recovery code. Share the new passphrase only with the members who stay.';
+      'Makes a new key and a new recovery code. A new recovery code replaces the old one for every owner. Share the new passphrase only with the members who stay.';
 
   @override
   String get sharedLibrary_encryption_passphrase => 'Passphrase';
 
   @override
   String get sharedLibrary_encryption_confirm => 'Passphrase again';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return 'Rewriting $done of $total files';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => 'Check';
@@ -21078,6 +21073,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sharedLibrary_members_lastOwner =>
       'The last owner cannot be demoted.';
+
+  @override
+  String get sharedLibrary_members_keyChanged =>
+      'This member\'s key changed. Compare the new key in person, then approve it.';
 
   @override
   String get sharedLibrary_picker_none =>

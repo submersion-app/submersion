@@ -133,6 +133,65 @@ void main() {
       },
     );
 
+    test("another profile's notes on a row are never taken up", () async {
+      await member('d1');
+      await diver('d2');
+      await SharedLibraryStore().upsertMembership(
+        const SharedLibraryMembership(
+          id: 'ms2',
+          diverId: 'd2',
+          libraryId: 'L',
+          memberId: 'm2',
+          displayName: 'd2',
+          libraryName: 'Reef Survey',
+          backendKind: 's3',
+        ),
+      );
+      await SiteRepository().createSite(
+        const DiveSite(id: 's', name: 'Blue', sharedLibraryId: 'L'),
+      );
+      await SharedLibraryStore().putSiteNotes(
+        diverId: 'd1',
+        siteId: 's',
+        notes: 'd1 only',
+        rating: null,
+      );
+      await applyLibrarySiteNotes(DatabaseService.instance.database);
+      await SharedLibraryStore().backfillSiteNotes(
+        libraryId: 'L',
+        diverId: 'd2',
+      );
+      expect(
+        await SharedLibraryStore().siteNotes(diverId: 'd2', siteId: 's'),
+        isNull,
+      );
+    });
+
+    test('notes are taken up once, never from a row adopted later', () async {
+      await member('d1');
+      await SharedLibraryStore().backfillSiteNotes(
+        libraryId: 'L',
+        diverId: 'd1',
+      );
+      // A pull adopts a stale personal copy that still holds old notes.
+      await SiteRepository().createSite(
+        const DiveSite(
+          id: 's',
+          name: 'Blue',
+          notes: 'stale',
+          sharedLibraryId: 'L',
+        ),
+      );
+      await SharedLibraryStore().backfillSiteNotes(
+        libraryId: 'L',
+        diverId: 'd1',
+      );
+      expect(
+        await SharedLibraryStore().siteNotes(diverId: 'd1', siteId: 's'),
+        isNull,
+      );
+    });
+
     test('a site added to a library keeps its notes for the profile', () async {
       await member('d1', editor: true);
       await SiteRepository().createSite(

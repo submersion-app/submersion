@@ -41,12 +41,13 @@ class SharedLibraryPage extends ConsumerWidget {
             : Center(child: Text(l10n.sharedLibrary_list_empty)),
       );
     }
+    // .value keeps the last role and membership through a reload (every
+    // write to the library row reloads them): blanking them would drop the
+    // owner tiles for a frame and rebuild the sections below away.
     final role =
-        ref.watch(libraryRoleProvider(libraryId)).valueOrNull ??
+        ref.watch(libraryRoleProvider(libraryId)).value ??
         SharedLibraryRole.reader;
-    final membership = ref
-        .watch(currentMembershipProvider(libraryId))
-        .valueOrNull;
+    final membership = ref.watch(currentMembershipProvider(libraryId)).value;
     final names = ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull;
     final pending =
         ref.watch(pendingIncomingSuggestionCountProvider(libraryId)).value ?? 0;
@@ -172,11 +173,13 @@ class SharedLibraryPage extends ConsumerWidget {
             ),
           const Divider(height: 1),
           LibraryOwnershipSection(
+            key: const ValueKey('ownership'),
             library: library,
             role: role,
             membership: membership,
           ),
           LibraryEncryptionSection(
+            key: const ValueKey('encryption'),
             library: library,
             role: role,
             membership: membership,

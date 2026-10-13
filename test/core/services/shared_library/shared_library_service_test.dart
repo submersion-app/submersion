@@ -1,12 +1,13 @@
-import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/database/database.dart' show AppDatabase;
-import 'package:path/path.dart' as p;
-import 'package:drift/native.dart';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
@@ -43,11 +44,15 @@ Future<SharedLibraryService> device(
   File? file,
 }) async {
   if (file != null && file.existsSync()) {
-    DatabaseService.instance.setTestDatabase(AppDatabase(NativeDatabase(file)));
+    DatabaseService.instance.setTestDatabase(
+      AppDatabase(NativeDatabase(file, setup: registerAppSqlFunctions)),
+    );
     return _service(cloud);
   }
   if (file != null) {
-    DatabaseService.instance.setTestDatabase(AppDatabase(NativeDatabase(file)));
+    DatabaseService.instance.setTestDatabase(
+      AppDatabase(NativeDatabase(file, setup: registerAppSqlFunctions)),
+    );
   } else {
     await setUpTestDatabase();
   }
@@ -118,6 +123,7 @@ Future<void> seedLibrary(
           },
         )
         .signed(
+          libraryId: 'L',
           signedBy: (owners.toList()..sort()).first,
           key: await testMemberKey((owners.toList()..sort()).first),
         ),
@@ -562,7 +568,7 @@ void main() {
     await t.writeRoles(
       await trusted
           .copyWith(version: 2, owners: {'a', 'b'})
-          .signed(signedBy: 'b', key: await testMemberKey('b')),
+          .signed(libraryId: 'L', signedBy: 'b', key: await testMemberKey('b')),
     );
     await svc.sync('L', diverId: 'd-b');
     final library = (await SharedLibraryStore().getLibrary('L'))!;
@@ -580,7 +586,7 @@ void main() {
     await t.writeRoles(
       await trusted
           .copyWith(version: 2, editors: {'b'})
-          .signed(signedBy: 'a', key: await testMemberKey('a')),
+          .signed(libraryId: 'L', signedBy: 'a', key: await testMemberKey('a')),
     );
     await svc.sync('L', diverId: 'd-b');
     final library = (await SharedLibraryStore().getLibrary('L'))!;
@@ -649,7 +655,13 @@ void main() {
   test('approval re-reads held edits', () async {
     final cloud = FakeCloudStorageProvider();
     final dir = Directory.systemTemp.createTempSync('held_edits_');
-    addTearDown(() => dir.deleteSync(recursive: true));
+    // Closed first: Windows cannot delete a database file still open.
+    addTearDown(() async {
+      try {
+        await tearDownTestDatabase();
+      } catch (_) {}
+      dir.deleteSync(recursive: true);
+    });
     final aFile = File(p.join(dir.path, 'a.sqlite'));
     // p edits, but no owner approved p's key yet.
     await seedLibrary(cloud, owners: {'a'}, editors: {'p'}, approved: {'a'});
@@ -686,7 +698,7 @@ void main() {
               'p': (await testMemberKey('p')).publicKey,
             },
           )
-          .signed(signedBy: 'a', key: await testMemberKey('a')),
+          .signed(libraryId: 'L', signedBy: 'a', key: await testMemberKey('a')),
     );
     await svc.sync('L', diverId: 'd-a');
     expect((await SiteRepository().getSiteById('s1'))!.name, 'Blue Hole');
@@ -801,7 +813,7 @@ void main() {
               'p': (await testMemberKey('p')).publicKey,
             },
           )
-          .signed(signedBy: 'a', key: await testMemberKey('a')),
+          .signed(libraryId: 'L', signedBy: 'a', key: await testMemberKey('a')),
     );
     await svc.sync('L', diverId: 'd-a');
     final after = await SharedLibraryStore().suggestions(
@@ -825,7 +837,7 @@ void main() {
         owners: const {'c'},
         approvedKeys: {'c': (await testMemberKey('c')).publicKey},
         reset: true,
-      ).signed(signedBy: 'c', key: await testMemberKey('c')),
+      ).signed(libraryId: 'L', signedBy: 'c', key: await testMemberKey('c')),
     );
     await SiteRepository().createSite(
       const DiveSite(id: 's1', name: 'Blue', sharedLibraryId: 'L'),

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
+import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -58,7 +60,7 @@ SharedLibraryMembershipService _noMemberships() =>
 
 /// Records each action instead of touching storage.
 class _FakeBackups extends LibraryBackupService {
-  _FakeBackups(this.records)
+  _FakeBackups(this.records, {this.copies})
     : super(
         store: SharedLibraryStore(),
         memberships: _noMemberships(),
@@ -66,6 +68,9 @@ class _FakeBackups extends LibraryBackupService {
       );
 
   List<LibraryBackupRecord> records;
+
+  /// Where [localCopy] says the zips are.
+  final String? copies;
   final calls = <String>[];
   bool refuseImport = false;
   List<int>? importedBytes;
@@ -113,7 +118,7 @@ class _FakeBackups extends LibraryBackupService {
   Future<String> localCopy(
     String backupId, {
     required String libraryId,
-  }) async => p.join(Directory.systemTemp.path, '$backupId.zip');
+  }) async => p.join(copies ?? Directory.systemTemp.path, '$backupId.zip');
 
   @override
   Future<LibraryBackupRecord> import({
@@ -408,6 +413,37 @@ void main() {
       share.calls.single.files!.single.path,
       p.join(Directory.systemTemp.path, 'b1.zip'),
     );
+  });
+
+  testWidgets('without a file share sheet export saves through a dialog', (
+    tester,
+  ) async {
+    debugCanShareFiles = false;
+    addTearDown(applyGlobalTestDefaults);
+    final originalPicker = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = originalPicker);
+    final picker = MockFilePickerPlatform();
+    FilePickerPlatform.instance = picker;
+    final dir = Directory.systemTemp.createTempSync('backup_export_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    File(p.join(dir.path, 'b1.zip')).writeAsBytesSync([1, 2, 3]);
+    await tester.pumpWidget(
+      await _page(backups: _FakeBackups([_manual], copies: dir.path)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export').last);
+    // The zip is read from disk: real time for it.
+    for (var i = 0; i < 50 && picker.lastSavedFileName == null; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(picker.lastSavedFileName, 'b1.zip');
+    expect(picker.lastSavedBytes, [1, 2, 3]);
   });
 
   testWidgets('a reader sees only that owners manage backups', (tester) async {

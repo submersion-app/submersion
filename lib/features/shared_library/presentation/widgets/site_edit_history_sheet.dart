@@ -59,13 +59,7 @@ class SiteEditHistorySheet extends ConsumerWidget {
                     subtitle: Text(
                       l10n.sharedLibrary_site_lastEdited(
                         memberDisplayName(names, e.value.memberId),
-                        libraryDateLabel(
-                          ref,
-                          DateTime.fromMillisecondsSinceEpoch(
-                            e.value.hlc.physicalTime,
-                            isUtc: true,
-                          ),
-                        ),
+                        libraryDateLabel(ref, e.value.editedAt),
                       ),
                     ),
                   ),

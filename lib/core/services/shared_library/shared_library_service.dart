@@ -19,7 +19,10 @@ import 'package:submersion/core/services/shared_library/shared_library_transport
 import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/shared_library/site_document_bridge.dart';
 import 'package:submersion/core/services/shared_library/site_document_merge.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+
+part 'shared_library_sync_parts.dart';
 
 enum SharedLibrarySyncStatus {
   success,
@@ -175,39 +178,35 @@ class SharedLibraryService {
         );
       }
 
-      // Encryption, as the manifest declares it.
-      final encrypted = manifest['encrypted'] == true;
-      final keyId = manifest['keyId'] as String?;
-      final rewriting = manifest[SharedLibraryLayout.rewritingFlag] == true;
-      await _store.setLibraryStatus(
-        libraryId,
-        encrypted: encrypted,
-        keyId: keyId,
-        clearKeyId: keyId == null,
-      );
-      t.cipher ??= await _store.libraryCipherFor(libraryId);
-      if (encrypted) {
-        final held = t.cipher;
-        if (held == null || held.keyId != keyId) {
-          return await _fail(
-            libraryId,
-            SharedLibrarySyncStatus.locked,
-            held == null
-                ? 'Enter the passphrase for this library'
-                : "This library's passphrase changed",
-          );
-        }
-        t.encrypting = true;
-      } else {
-        t.encrypting = false;
-        // Turned off by an owner: the key is no longer needed here, once
-        // every file has been rewritten plain.
-        if (!rewriting) await _dropLibraryKeys(libraryId);
-      }
+      // Encryption, as the manifest declares it, unless it says off where
+      // the trusted roles say on: only an owner turns it off, by recording
+      // so in the roles first. Settled with the roles trusted so far (which
+      // opening the folder's needs), then again with the roles this sync
+      // trusts.
+      var encryption = libraryEncryptionOf(manifest, library.roles);
+      final locked = await _useKey(t, libraryId, diverId, encryption);
+      if (locked != null) return locked;
 
       // 2. Roles and members. Only roles this device can trust count: a
       // file rewritten by someone who is no owner changes nothing here.
       final roles = await _trustRoles(library, await t.readRoles());
+      final settled = libraryEncryptionOf(manifest, roles);
+      if (settled != encryption) {
+        encryption = settled;
+        final stillLocked = await _useKey(t, libraryId, diverId, encryption);
+        if (stillLocked != null) return stillLocked;
+      }
+      if (encryption.overruled) {
+        _log.warning(
+          'The manifest of $libraryId says encryption is off; '
+          'its roles, which an owner signs, say on',
+        );
+      }
+      final encrypted = encryption.encrypted;
+      final rewriting = encryption.rewriting;
+      // Turned off by an owner: the key is no longer needed here, once
+      // every file has been rewritten plain.
+      if (!encrypted && !rewriting) await _dropLibraryKeys(libraryId);
       final members = await t.listMembers();
       await _store.setLibraryStatus(
         libraryId,
@@ -216,9 +215,15 @@ class SharedLibraryService {
       await _store.replaceMembers(libraryId, members);
       // Probed afresh every sync: a refused upload sets it, so upgraded
       // credentials clear the banner on the next run. An ownership reset
-      // waiting for this member's answer holds every write back.
+      // waiting for this member's answer holds every write back, and so do
+      // roles this device refused: whether forged, or newer than it can
+      // follow (it missed the change that made their signer an owner), its
+      // uploads would only fight the edits of owners it does not know. The
+      // banner says so; leaving and joining again, or the recovery code,
+      // brings the device back.
+      final now = await _store.getLibrary(libraryId);
       final holdWrites =
-          (await _store.getLibrary(libraryId))?.pendingRoles != null;
+          now?.pendingRoles != null || (now?.rolesRejected ?? false);
       var readOnly = holdWrites;
       SharedLibraryMember? mine;
       for (final m in members) {
@@ -226,7 +231,11 @@ class SharedLibraryService {
       }
       // The card is rewritten, signed, whenever it lacks this profile's
       // key, its name changed, or its signature does not hold.
-      final myKey = await _store.ensureSigningKey(diverId);
+      // This membership's own key: the one the owners approved here, even
+      // where two devices of the profile each made one before personal
+      // sync met.
+      final myKey =
+          membership.signingKey ?? await _store.ensureSigningKey(diverId);
       if (mine == null ||
           mine.displayName != membership.displayName ||
           mine.publicKey != myKey.publicKey ||
@@ -261,11 +270,20 @@ class SharedLibraryService {
             m.memberId: m.publicKey!,
       };
 
+      // Notes an earlier build left only on the site rows become the
+      // profile's own records, for personal sync to carry: once, before
+      // any pull here adopts rows of its own.
+      await _store.backfillSiteNotes(libraryId: libraryId, diverId: diverId);
+
       // 3. Pull, in batches: each batch's documents are read, their
       // signatures checked together (in parallel), then merged in order.
       final states = await _store.siteStates(libraryId);
       final clock = MemberClock(membership.memberId);
       var pulled = 0;
+      // Sites edited here after their batch read them: merged against what
+      // they are now by the next sync, and not uploaded by this one, which
+      // has not merged the folder's copy into them.
+      final deferred = <String>{};
       final siteFiles = await t.listSites();
       final changed = [
         for (final f in siteFiles)
@@ -280,12 +298,11 @@ class SharedLibraryService {
           final SiteDocument remote;
           try {
             remote = await t.readSite(f.id);
-          } on FormatException catch (e) {
+          } catch (e) {
+            // Unreadable, or sealed under another key mid passphrase
+            // change: next time.
+            if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
             _log.warning('Skipping unreadable site document ${f.name}: $e');
-            continue;
-          } on LibraryLockedException {
-            // Sealed under another key mid passphrase change: next time.
-            _log.warning('Skipping ${f.name}, sealed under another key');
             continue;
           }
           if (remote.id != siteId) {
@@ -313,6 +330,11 @@ class SharedLibraryService {
           pendingKeys: pendingKeys,
         );
         for (var k = 0; k < batch.length; k++) {
+          final siteId = batch[k].remote.id;
+          if (_editedSince(batch[k].state, await _store.getSiteState(siteId))) {
+            deferred.add(siteId);
+            continue;
+          }
           if (await _mergeRemote(
             library,
             batch[k],
@@ -324,10 +346,6 @@ class SharedLibraryService {
           }
         }
       }
-
-      // Notes an earlier build left only on the site rows become the
-      // profile's own records, for personal sync to carry.
-      await _store.backfillSiteNotes(libraryId: libraryId, diverId: diverId);
 
       // A site that arrived (or changed) here takes the private notes and
       // rating the profile wrote for it on another device.
@@ -345,7 +363,6 @@ class SharedLibraryService {
               for (final m in await _store.membershipsForLibrary(libraryId))
                 m.memberId:
                     m.signingKey ?? await _store.ensureSigningKey(m.diverId),
-              membership.memberId: myKey,
             };
       var pushed = 0;
       var uploadAttempted = false;
@@ -354,6 +371,7 @@ class SharedLibraryService {
       };
       for (final state in dirty) {
         if (readOnly) break;
+        if (deferred.contains(state.siteId)) continue;
         SiteDocument doc;
         try {
           doc = await _documentFor(state);
@@ -362,10 +380,18 @@ class SharedLibraryService {
           await _store.deleteSiteState(state.siteId);
           continue;
         }
+        // Fields carried up for a member awaiting approval, with the clock
+        // this device held for each: never recorded as what it holds.
+        var carried = const <String, FieldClock?>{};
         final remoteId = remoteFiles[state.siteId];
-        if (remoteId != null && (state.deleted || pendingKeys.isNotEmpty)) {
+        final othersSigned = doc.clocks.values.any(
+          (c) => !localKeys.containsKey(c.memberId),
+        );
+        if (remoteId != null &&
+            (state.deleted || pendingKeys.isNotEmpty || othersSigned)) {
           try {
             final remote = await t.readSite(remoteId);
+            doc = _authorsValues(doc, remote, localKeys.keys.toSet());
             if (state.deleted) {
               // A tombstone keeps the document's fields, so an undelete
               // wins the site back intact; only fields that prove
@@ -380,14 +406,20 @@ class SharedLibraryService {
               doc = mergeSiteDocuments(local: doc, remote: proven).merged;
             }
             // An edit waiting for an owner's approval is never erased.
+            final before = doc.clocks;
             doc = await carryHeld(
               doc,
               remote,
               libraryId: libraryId,
               pendingKeys: pendingKeys,
             );
-          } on FormatException {
+            carried = {
+              for (final e in doc.clocks.entries)
+                if (before[e.key]?.hlc != e.value.hlc) e.key: before[e.key],
+            };
+          } catch (e) {
             // Nothing readable to keep.
+            if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
           }
         }
         doc = _claimUnattributed(doc, membership.memberId, clock);
@@ -402,7 +434,7 @@ class SharedLibraryService {
         try {
           uploadAttempted = true;
           final modified = await t.writeSite(doc);
-          await _recordUpload(state, modified, uploaded: doc);
+          await _recordUpload(state, modified, uploaded: doc, carried: carried);
           pushed++;
         } catch (e) {
           if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
@@ -496,14 +528,11 @@ class SharedLibraryService {
       }
       return trusted;
     }
-    final RolesVerdict verdict;
-    if (trusted.version == 0) {
-      verdict = await isSelfConsistent(incoming)
-          ? RolesVerdict.trusted
-          : RolesVerdict.rejected;
-    } else {
-      verdict = await judgeRoles(trusted: trusted, incoming: incoming);
-    }
+    final verdict = await judgeRoles(
+      trusted: trusted,
+      incoming: incoming,
+      libraryId: library.id,
+    );
     switch (verdict) {
       case RolesVerdict.trusted:
         await _store.setLibraryStatus(
@@ -526,11 +555,66 @@ class SharedLibraryService {
     }
   }
 
+  /// Records [state] and keys [t] for it: the key it names, when a local
+  /// profile holds it or another device of the profile sent it. A failed
+  /// result when the library is encrypted and no such key is here.
+  Future<SharedLibrarySyncResult?> _useKey(
+    SharedLibraryTransport t,
+    String libraryId,
+    String diverId,
+    LibraryEncryptionState state,
+  ) async {
+    final keyId = state.keyId;
+    await _store.setLibraryStatus(
+      libraryId,
+      encrypted: state.encrypted,
+      keyId: keyId,
+      clearKeyId: keyId == null,
+    );
+    // The key the state names, when a local profile holds it: the
+    // transport may have been keyed before this sync saw the new key id.
+    final named = keyId == null
+        ? null
+        : await _store.libraryCipherFor(libraryId, keyId: keyId);
+    if (named != null) {
+      t.cipher = named;
+    } else {
+      t.cipher ??= await _store.libraryCipherFor(libraryId);
+    }
+    // A key another device of the profile sent before this one saw the
+    // change that made it: kept aside by personal sync, taken up now.
+    if (state.encrypted && keyId != null && named == null) {
+      final spare = await _store.takeSpareKey(
+        libraryId,
+        keyId: keyId,
+        diverId: diverId,
+      );
+      if (spare != null) t.cipher = spare;
+    }
+    if (!state.encrypted) {
+      t.encrypting = false;
+      return null;
+    }
+    final held = t.cipher;
+    if (held == null || held.keyId != keyId) {
+      return _fail(
+        libraryId,
+        SharedLibrarySyncStatus.locked,
+        held == null
+            ? 'Enter the passphrase for this library'
+            : "This library's passphrase changed",
+      );
+    }
+    t.encrypting = true;
+    return null;
+  }
+
   /// The library's name from `info.json`, or null when it cannot be read.
   Future<String?> _nameOf(SharedLibraryTransport t) async {
     try {
       return (await t.readInfo())?['name'] as String?;
-    } on FormatException {
+    } catch (e) {
+      if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
       return null;
     }
   }
@@ -597,27 +681,6 @@ class SharedLibraryService {
       ? await _bridge.build(siteId, state)
       : SiteDocument(id: siteId, deleted: state.deleted, clocks: state.clocks);
 
-  /// Fields going up with no clock, or stamped without a known member (a
-  /// device with two member profiles and no acting one), go up as this
-  /// profile's edits: a field nobody signed is dropped by every other
-  /// member.
-  static SiteDocument _claimUnattributed(
-    SiteDocument doc,
-    String memberId,
-    MemberClock clock,
-  ) {
-    final clocks = <String, FieldClock>{
-      for (final e in doc.clocks.entries)
-        e.key: e.value.memberId == LibraryEditStamper.unknownMember
-            ? e.value.copyWith(memberId: memberId, clearSig: true)
-            : e.value,
-    };
-    for (final field in [...doc.fields.keys, SiteDocument.deletedField]) {
-      clocks[field] ??= FieldClock(hlc: clock.next(), memberId: memberId);
-    }
-    return doc.copyWith(clocks: clocks);
-  }
-
   /// Folds [remote] (only the fields that proved themselves) into the
   /// local site. Returns true when the local row changed.
   Future<bool> _mergeRemote(
@@ -678,10 +741,15 @@ class SharedLibraryService {
   /// [uploaded]. An edit saved while the upload was on the wire changed
   /// the clocks: it keeps them and stays dirty for the next sync. A null
   /// [modified] clears the stamp so the next pull re-reads the document.
+  /// A field in [carried] went up for a member awaiting approval: its
+  /// value never reached the row, so the clock this device held for it is
+  /// kept (none when it held none), and the held edit still reads as newer
+  /// once it counts.
   Future<void> _recordUpload(
     SharedSiteState sent,
     DateTime? modified, {
     required SiteDocument uploaded,
+    Map<String, FieldClock?> carried = const {},
   }) async {
     final current = await _store.getSiteState(sent.siteId) ?? sent;
     final editedMeanwhile =
@@ -690,9 +758,16 @@ class SharedLibraryService {
           current.clocks,
           sent.clocks,
         );
+    final recorded = {
+      for (final e in uploaded.clocks.entries)
+        if (!carried.containsKey(e.key))
+          e.key: e.value
+        else
+          e.key: ?carried[e.key],
+    };
     await _store.putSiteState(
       current.copyWith(
-        clocks: editedMeanwhile ? null : uploaded.clocks,
+        clocks: editedMeanwhile ? null : recorded,
         dirty: editedMeanwhile,
         remoteModifiedTime: modified?.toUtc().toIso8601String(),
         clearRemoteModifiedTime: modified == null,
@@ -710,158 +785,4 @@ class SharedLibraryService {
     }
     return _bridge.build(state.siteId, state);
   }
-
-  /// Finishes the folder deletes that failed when a suggestion was handled
-  /// offline: an owner's accepted or dismissed one, a reader's withdrawn
-  /// one. Without rights to delete, the row waits for an owner to do it.
-  Future<void> _retrySuggestionDeletes(
-    SharedLibraryTransport t,
-    String libraryId,
-  ) async {
-    for (final status in const [
-      SharedSiteSuggestion.resolved,
-      SharedSiteSuggestion.withdrawn,
-    ]) {
-      for (final s in await _store.suggestions(libraryId, status: status)) {
-        try {
-          await t.deleteSuggestion(s.fileId);
-          await _store.deleteSuggestion(s.id);
-        } catch (e) {
-          if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
-          _log.warning('No rights to delete suggestion ${s.id}');
-        }
-      }
-    }
-  }
-
-  /// Uploads the device's pending suggestions, each signed by the local
-  /// profile that wrote it: another profile on this device may have
-  /// written one, and a signature by the syncing profile would never
-  /// verify as its author's. True when the storage refused one for lack of
-  /// rights: it and the rest stay pending.
-  Future<bool> _uploadSuggestions(
-    SharedLibraryTransport t,
-    String libraryId,
-  ) async {
-    final pending = await _store.suggestions(
-      libraryId,
-      direction: SharedSiteSuggestion.outgoing,
-      status: SharedSiteSuggestion.pending,
-    );
-    if (pending.isEmpty) return false;
-    final keys = <String, LibrarySigningKey>{
-      for (final m in await _store.membershipsForLibrary(libraryId))
-        m.memberId: m.signingKey ?? await _store.ensureSigningKey(m.diverId),
-    };
-    for (final s in pending) {
-      final key = keys[s.memberId];
-      // Its author no longer belongs here: nothing can sign it.
-      if (key == null) continue;
-      try {
-        await t.writeSuggestion(
-          s.id,
-          await signSuggestion(s.toJson(), key, libraryId: libraryId),
-        );
-      } catch (e) {
-        if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
-        _log.warning('Library $libraryId refused a suggestion: read-only');
-        return true;
-      }
-      await _store.putSuggestion(
-        s.copyWith(status: SharedSiteSuggestion.uploaded),
-      );
-    }
-    return false;
-  }
-
-  /// Takes in the suggestions their authors provably wrote, with a key an
-  /// owner approved. Others stay in the folder and are read again next
-  /// time (an approval may come).
-  Future<void> _pullSuggestions(
-    SharedLibraryTransport t,
-    String libraryId, {
-    required SharedLibraryRoles roles,
-  }) async {
-    final files = await t.listSuggestions();
-    final remoteIds = {
-      for (final f in files) SharedLibraryTransport.suggestionIdOf(f),
-    };
-    final held = await _store.suggestions(
-      libraryId,
-      direction: SharedSiteSuggestion.incoming,
-    );
-    // Taken in already, unless held for an approval that may since have
-    // come.
-    final known = {
-      for (final s in held)
-        if (s.status != SharedSiteSuggestion.held) s.fileId,
-    };
-    for (final s in held) {
-      if (!remoteIds.contains(s.fileId)) await _store.deleteSuggestion(s.id);
-    }
-    // The keys on members' own signed cards: a suggestion signed by one
-    // whose owner has not approved it yet is held, not dropped, so the
-    // owner learns it is waiting.
-    final cardKeys = {
-      for (final m in await _store.getMembers(libraryId))
-        if (m.cardVerified && m.publicKey != null) m.memberId: m.publicKey!,
-    };
-    for (final f in files) {
-      final id = SharedLibraryTransport.suggestionIdOf(f);
-      if (known.contains(id)) continue;
-      try {
-        final json = await t.readSuggestion(f.id);
-        final author = json['memberId'];
-        if (author is! String) continue;
-        final approved = roles.approvedKeys[author];
-        final String status;
-        if (approved != null) {
-          if (!await verifySuggestion(json, approved, libraryId: libraryId)) {
-            continue;
-          }
-          status = SharedSiteSuggestion.pending;
-        } else if (await verifySuggestion(
-          json,
-          cardKeys[author],
-          libraryId: libraryId,
-        )) {
-          status = SharedSiteSuggestion.held;
-        } else {
-          // Its author was rejected or left: nothing is waiting any more.
-          await _store.deleteSuggestion(
-            '${SharedSiteSuggestion.incomingPrefix}$id',
-          );
-          continue;
-        }
-        await _store.putSuggestion(
-          SharedSiteSuggestion.fromJson(
-            json,
-            libraryId: libraryId,
-            direction: SharedSiteSuggestion.incoming,
-            remoteModifiedTime: f.modifiedTime.toUtc().toIso8601String(),
-          ).copyWith(status: status),
-        );
-      } on FormatException catch (e) {
-        _log.warning('Skipping unreadable suggestion ${f.name}: $e');
-      }
-    }
-  }
-}
-
-/// A pulled document with what its merge needs, read before the batch's
-/// signatures are checked.
-class _Pulled {
-  const _Pulled({
-    required this.remote,
-    required this.stamp,
-    required this.state,
-    required this.hasRow,
-    required this.local,
-  });
-
-  final SiteDocument remote;
-  final String stamp;
-  final SharedSiteState? state;
-  final bool hasRow;
-  final SiteDocument local;
 }

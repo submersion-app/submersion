@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -9,162 +10,10 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_site_models.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
-/// Per library site: the field clocks and this device's dirty flag.
-class SharedSiteState {
-  const SharedSiteState({
-    required this.siteId,
-    required this.libraryId,
-    this.clocks = const {},
-    this.remoteModifiedTime,
-    this.dirty = false,
-    this.deleted = false,
-    this.lastEditorMemberId,
-    this.lastEditedAtMs,
-  });
-
-  final String siteId;
-  final String libraryId;
-  final Map<String, FieldClock> clocks;
-  final String? remoteModifiedTime;
-  final bool dirty;
-  final bool deleted;
-  final String? lastEditorMemberId;
-  final int? lastEditedAtMs;
-
-  SharedSiteState copyWith({
-    Map<String, FieldClock>? clocks,
-    String? remoteModifiedTime,
-    bool clearRemoteModifiedTime = false,
-    bool? dirty,
-    bool? deleted,
-    String? lastEditorMemberId,
-    int? lastEditedAtMs,
-  }) => SharedSiteState(
-    siteId: siteId,
-    libraryId: libraryId,
-    clocks: clocks ?? this.clocks,
-    remoteModifiedTime: clearRemoteModifiedTime
-        ? null
-        : (remoteModifiedTime ?? this.remoteModifiedTime),
-    dirty: dirty ?? this.dirty,
-    deleted: deleted ?? this.deleted,
-    lastEditorMemberId: lastEditorMemberId ?? this.lastEditorMemberId,
-    lastEditedAtMs: lastEditedAtMs ?? this.lastEditedAtMs,
-  );
-}
-
-/// A proposed edit from a reader: outgoing until uploaded, incoming on an
-/// owner's device until accepted or dismissed.
-class SharedSiteSuggestion {
-  const SharedSiteSuggestion({
-    required this.id,
-    required this.libraryId,
-    required this.siteId,
-    required this.memberId,
-    required this.memberName,
-    this.note = '',
-    this.fields = const {},
-    required this.createdAt,
-    required this.direction,
-    this.status = 'pending',
-    this.remoteModifiedTime,
-  });
-
-  static const outgoing = 'outgoing';
-  static const incoming = 'incoming';
-  static const pending = 'pending';
-  static const uploaded = 'uploaded';
-  static const withdrawn = 'withdrawn';
-
-  /// Incoming, signed by a member whose key no owner approved yet: kept
-  /// out of the inbox, counted for the owner, and taken in on approval.
-  static const held = 'held';
-
-  /// An owner accepted or dismissed it while its file could not be
-  /// deleted: kept so the next sync neither re-imports nor shows it, and
-  /// retries the delete.
-  static const resolved = 'resolved';
-
-  /// The local row id. An owner's incoming copy is kept under
-  /// [incomingPrefix] plus the folder's id, apart from the outgoing row of
-  /// the same suggestion that another profile on this device wrote.
-  final String id;
-
-  static const incomingPrefix = 'in:';
-
-  /// The suggestion's id in the library folder.
-  String get fileId =>
-      id.startsWith(incomingPrefix) ? id.substring(incomingPrefix.length) : id;
-
-  final String libraryId;
-  final String siteId;
-  final String memberId;
-  final String memberName;
-  final String note;
-  final Map<String, Object?> fields;
-  final DateTime createdAt;
-  final String direction;
-  final String status;
-  final String? remoteModifiedTime;
-
-  SharedSiteSuggestion copyWith({String? status, String? remoteModifiedTime}) =>
-      SharedSiteSuggestion(
-        id: id,
-        libraryId: libraryId,
-        siteId: siteId,
-        memberId: memberId,
-        memberName: memberName,
-        note: note,
-        fields: fields,
-        createdAt: createdAt,
-        direction: direction,
-        status: status ?? this.status,
-        remoteModifiedTime: remoteModifiedTime ?? this.remoteModifiedTime,
-      );
-
-  /// The wire form written to `suggestions/<id>.json`.
-  Map<String, dynamic> toJson() => {
-    'id': fileId,
-    'siteId': siteId,
-    'memberId': memberId,
-    'memberName': memberName,
-    'note': note,
-    'fields': fields,
-    'createdAt': createdAt.toUtc().toIso8601String(),
-  };
-
-  factory SharedSiteSuggestion.fromJson(
-    Map<String, dynamic> json, {
-    required String libraryId,
-    required String direction,
-    String? remoteModifiedTime,
-  }) {
-    final id = json['id'];
-    final siteId = json['siteId'];
-    if (id is! String || id.isEmpty || siteId is! String || siteId.isEmpty) {
-      throw const FormatException('suggestion without an id or siteId');
-    }
-    final rawFields = json['fields'];
-    return SharedSiteSuggestion(
-      id: direction == incoming ? '$incomingPrefix$id' : id,
-      libraryId: libraryId,
-      siteId: siteId,
-      memberId: (json['memberId'] as String?) ?? '',
-      memberName: (json['memberName'] as String?) ?? '',
-      note: (json['note'] as String?) ?? '',
-      fields: rawFields is Map
-          ? Map<String, Object?>.from(rawFields)
-          : const {},
-      createdAt:
-          DateTime.tryParse((json['createdAt'] as String?) ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      direction: direction,
-      remoteModifiedTime: remoteModifiedTime,
-    );
-  }
-}
+export 'package:submersion/core/services/shared_library/shared_site_models.dart';
 
 /// Device-local storage for shared site libraries, their member and role caches,
 /// per-site clocks and suggestions, plus the synced membership rows
@@ -493,23 +342,26 @@ class SharedLibraryStore {
 
   /// Takes up private notes and ratings that sit only on [libraryId]'s site
   /// rows (written by a build before they were kept apart) as [diverId]'s,
-  /// so personal sync carries them. A site the profile already has a
-  /// record for is left alone.
+  /// so personal sync carries them. Once per library on this device, before
+  /// its first pull here: a row a later pull adopts may hold stale notes of
+  /// its own, and a row with any profile's record holds that record's
+  /// notes, so neither is taken up.
   Future<void> backfillSiteNotes({
     required String libraryId,
     required String diverId,
   }) async {
+    final library = await (_db.select(
+      _db.sharedLibraries,
+    )..where((t) => t.id.equals(libraryId))).getSingleOrNull();
+    if (library == null || library.notesBackfilled) return;
     final rows = await _db
         .customSelect(
           'SELECT id, notes, rating FROM dive_sites '
           'WHERE shared_library_id = ? '
           "AND (notes <> '' OR rating IS NOT NULL) "
           'AND NOT EXISTS (SELECT 1 FROM library_site_notes n '
-          'WHERE n.id = ? || dive_sites.id)',
-          variables: [
-            Variable.withString(libraryId),
-            Variable.withString('$diverId:'),
-          ],
+          'WHERE n.site_id = dive_sites.id)',
+          variables: [Variable.withString(libraryId)],
           readsFrom: {_db.diveSites, _db.librarySiteNotes},
         )
         .get();
@@ -521,6 +373,9 @@ class SharedLibraryStore {
         rating: r.read<double?>('rating'),
       );
     }
+    await (_db.update(_db.sharedLibraries)
+          ..where((t) => t.id.equals(libraryId)))
+        .write(const SharedLibrariesCompanion(notesBackfilled: Value(true)));
   }
 
   /// Keeps [diverId]'s private notes and rating on the library site
@@ -559,7 +414,9 @@ class SharedLibraryStore {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// The profile's signing key, from any of its memberships.
+  /// The profile's signing key, from any of its memberships: the same one
+  /// on every device, should two have made keys before personal sync met.
+  /// A library itself signs with its own membership's key.
   Future<LibrarySigningKey?> signingKeyForDiver(String diverId) async {
     final row =
         await (_db.select(_db.sharedLibraryMemberships)
@@ -569,6 +426,7 @@ class SharedLibraryStore {
                     t.signingPrivateKey.isNotNull() &
                     t.signingPublicKey.isNotNull(),
               )
+              ..orderBy([(t) => OrderingTerm.asc(t.id)])
               ..limit(1))
             .getSingleOrNull();
     if (row == null) return null;
@@ -599,9 +457,14 @@ class SharedLibraryStore {
 
   /// The key of [libraryId] when any local profile holds it: the
   /// library's current key first, so another profile's key from before a
-  /// passphrase change never stands in for it.
-  Future<LibraryCipher?> libraryCipherFor(String libraryId) async {
-    final current = (await getLibrary(libraryId))?.keyId?.toLowerCase();
+  /// passphrase change never stands in for it. With [keyId], that key or
+  /// none.
+  Future<LibraryCipher?> libraryCipherFor(
+    String libraryId, {
+    String? keyId,
+  }) async {
+    final current = (keyId ?? (await getLibrary(libraryId))?.keyId)
+        ?.toLowerCase();
     final rows =
         await (_db.select(_db.sharedLibraryMemberships)..where(
               (t) =>
@@ -610,11 +473,12 @@ class SharedLibraryStore {
                   t.libraryKeyId.isNotNull(),
             ))
             .get();
-    if (rows.isEmpty) return null;
-    final row = rows.firstWhere(
-      (r) => r.libraryKeyId!.toLowerCase() == current,
-      orElse: () => rows.first,
-    );
+    final row =
+        rows.firstWhereOrNull(
+          (r) => r.libraryKeyId!.toLowerCase() == current,
+        ) ??
+        (keyId == null ? rows.firstOrNull : null);
+    if (row == null) return null;
     return LibraryCipher.fromExported(
       keyId: row.libraryKeyId!,
       key: row.libraryKey!,
@@ -623,6 +487,41 @@ class SharedLibraryStore {
 
   /// Stores (or, with no [key], clears) the unlocked key of [libraryId]
   /// on the profile's membership: the one write allowed to erase it.
+  /// Takes up the spare key of [libraryId] when it is [keyId]: stored as
+  /// [diverId]'s key (personal sync carries it on), and returned. Null when
+  /// no spare key is that one.
+  Future<LibraryCipher?> takeSpareKey(
+    String libraryId, {
+    required String keyId,
+    required String diverId,
+  }) async {
+    final row = await (_db.select(
+      _db.sharedLibraries,
+    )..where((t) => t.id.equals(libraryId))).getSingleOrNull();
+    final spareId = row?.spareKeyId;
+    final spare = row?.spareKey;
+    if (spareId == null ||
+        spare == null ||
+        spareId.toLowerCase() != keyId.toLowerCase()) {
+      return null;
+    }
+    await setLibraryKey(
+      diverId: diverId,
+      libraryId: libraryId,
+      keyId: spareId,
+      key: spare,
+    );
+    await (_db.update(
+      _db.sharedLibraries,
+    )..where((t) => t.id.equals(libraryId))).write(
+      const SharedLibrariesCompanion(
+        spareKeyId: Value(null),
+        spareKey: Value(null),
+      ),
+    );
+    return LibraryCipher.fromExported(keyId: spareId, key: spare);
+  }
+
   Future<void> setLibraryKey({
     required String diverId,
     required String libraryId,

@@ -21540,7 +21540,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      'يدخل الأعضاء عبارة المرور مرة واحدة لكل ملف شخصي. وحدها عبارة المرور أو رمز الاسترداد تفتح المكتبة.';
+      'يدخل الأعضاء عبارة المرور مرة واحدة لكل ملف شخصي. وحدها عبارة المرور أو رمز الاسترداد تفتح المكتبة. يحل رمز الاسترداد الجديد محل القديم لدى جميع المالكين.';
 
   @override
   String get sharedLibrary_encryption_off => 'إيقاف التشفير';
@@ -21554,18 +21554,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_changeHelp =>
-      'ينشئ مفتاحًا جديدًا ورمز استرداد جديدًا. شارك عبارة المرور الجديدة مع الأعضاء الباقين فقط.';
+      'ينشئ مفتاحًا جديدًا ورمز استرداد جديدًا. يحل رمز الاسترداد الجديد محل القديم لدى جميع المالكين. شارك عبارة المرور الجديدة مع الأعضاء الباقين فقط.';
 
   @override
   String get sharedLibrary_encryption_passphrase => 'عبارة المرور';
 
   @override
   String get sharedLibrary_encryption_confirm => 'عبارة المرور مرة أخرى';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return 'إعادة كتابة $done من $total ملفات';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
@@ -21668,6 +21663,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get sharedLibrary_members_lastOwner =>
       'لا يمكن تخفيض رتبة المالك الأخير.';
+
+  @override
+  String get sharedLibrary_members_keyChanged =>
+      'تغيّر مفتاح هذا العضو. قارن المفتاح الجديد شخصيًا ثم وافق عليه.';
 
   @override
   String get sharedLibrary_picker_none =>

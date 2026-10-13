@@ -36,6 +36,16 @@ class SharedLibraries extends Table {
   /// When this device last made an automatic backup (owners only).
   IntColumn get lastAutoBackupAt => integer().nullable()();
 
+  /// Whether this device has taken up the private notes an earlier build
+  /// left on its library site rows: done once, at the first sync.
+  BoolColumn get notesBackfilled =>
+      boolean().withDefault(const Constant(false))();
+
+  /// A library key another device of a profile sent while this device still
+  /// named an older one: taken up once the manifest names it.
+  TextColumn get spareKeyId => text().nullable()();
+  TextColumn get spareKey => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

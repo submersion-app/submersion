@@ -158,6 +158,7 @@ class SharedLibraryMembersPage extends ConsumerWidget {
                       libraryId: libraryId,
                       memberId: m.memberId,
                       actingMemberId: me,
+                      publicKey: key,
                     ),
                   ),
                   child: Text(l10n.sharedLibrary_members_approve),
@@ -223,6 +224,9 @@ class SharedLibraryMembersPage extends ConsumerWidget {
       );
       ref.invalidate(libraryMembersProvider(libraryId));
     } catch (e) {
+      // A refusal may have refreshed the list (a member's new key to
+      // compare): show it as it stands.
+      ref.invalidate(libraryMembersProvider(libraryId));
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,

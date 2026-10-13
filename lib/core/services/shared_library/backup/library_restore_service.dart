@@ -92,8 +92,15 @@ class LibraryRestoreService {
     if (contents.header.libraryId != libraryId) {
       throw const BackupRefusedError('otherLibrary');
     }
-    // Everything is opened before anything changes: a missing key stops
-    // the restore with the library untouched.
+    // The backup the owner picked, not another file put in its place.
+    if (contents.header.backupId != backupId) {
+      throw const BackupRefusedError('notABackup');
+    }
+    // Made by an owner this device trusts, with the key it approves: the
+    // roles inside a zip are whatever its maker wrote.
+    _checkCreator(contents.header, roles);
+    // Everything is opened and checked before anything changes: a missing
+    // key or a broken file stops the restore with the library untouched.
     // The library's earlier keys open a backup sealed before a passphrase
     // change; only a key it no longer keeps is asked for.
     final opened = await _openAll(
@@ -103,7 +110,8 @@ class LibraryRestoreService {
       earlier: await t.readPreviousKeys(),
     );
     final backupRoles = _rolesIn(opened);
-    _checkCreator(contents.header, backupRoles);
+    if (backupRoles == null) throw const BackupRefusedError('notABackup');
+    final sites = _sitesIn(opened);
 
     final before = await _backups.backUpHeld(
       libraryId: libraryId,
@@ -117,21 +125,32 @@ class LibraryRestoreService {
       pinned: true,
     );
 
-    final key = await _store.ensureSigningKey(diverId);
-    await _restoreSites(t, library.id, me.memberId, key, opened);
+    final key = me.signingKey ?? await _store.ensureSigningKey(diverId);
+    await _restoreSites(
+      t,
+      library.id,
+      me.memberId,
+      key,
+      sites,
+      // Fields count when signed by a member trusted then or now.
+      signers: [backupRoles, roles],
+    );
     await _memberships.writeSignedRoles(
       library,
       t,
-      // The backup's roles, checked above, with this owner kept as owner
-      // (an earlier key of theirs retired, its edits still counting) and
-      // the current recovery key.
-      backupRoles!
+      // The backup's roles with this owner kept as owner (an earlier key of
+      // theirs retired, its edits still counting) and the current recovery
+      // key.
+      backupRoles
           .withRole(me.memberId, SharedLibraryRole.owner)
           .approveKey(me.memberId, key.publicKey, at: DateTime.now())
           .copyWith(
             version: roles.version,
             recovery: roles.recovery,
             clearRecovery: roles.recovery == null,
+            // A restore changes the sites, not how the library is sealed.
+            encryption: roles.encryption,
+            clearEncryption: roles.encryption == null,
           ),
       signer: me.memberId,
       key: key,
@@ -156,24 +175,28 @@ class LibraryRestoreService {
       await File(path).readAsBytes(),
     );
     final h = contents.header;
-    if (!SharedLibraryLayout.isValidLibraryId(h.libraryId)) {
-      throw const BackupRefusedError('notABackup');
-    }
+    final manifest = contents.files[SharedLibraryLayout.manifestFile];
+    if (manifest == null) throw const BackupRefusedError('notABackup');
     final t = await _memberships.transportAt(account: account, prefix: prefix);
     if (await t.readManifest() != null) throw LibraryExistsError(prefix);
     final opened = await _openAll(contents.files, null, secret);
-    _checkCreator(h, _rolesIn(opened));
-
     final old = await _store.getLibrary(h.libraryId);
+    // Against the roles this device trusts, when it holds the library; a
+    // device new to it has only the backup's own to go by.
+    _checkCreator(
+      h,
+      old != null && old.roles.version > 0 ? old.roles : _rolesIn(opened),
+    );
+
     var oldStillThere = false;
     // The same folder name in another account is another place.
     if (old != null &&
         (old.prefix != prefix || old.connectedAccountId != account.id)) {
       try {
-        final manifest = await (await _memberships.transportForLibrary(
+        final found = await (await _memberships.transportForLibrary(
           old,
         )).readManifest();
-        oldStillThere = manifest?['id'] == h.libraryId;
+        oldStillThere = found?['id'] == h.libraryId;
       } catch (_) {
         // The old folder cannot be reached: nobody is using it either.
       }
@@ -184,8 +207,6 @@ class LibraryRestoreService {
         await t.writeRaw(e.key, e.value);
       }
     }
-    final manifest = contents.files[SharedLibraryLayout.manifestFile];
-    if (manifest == null) throw const BackupRefusedError('notABackup');
     await t.writeRaw(SharedLibraryLayout.manifestFile, manifest);
     final library = await _memberships.join(
       account: account,
@@ -193,43 +214,65 @@ class LibraryRestoreService {
       diverId: diverId,
       displayName: displayName,
       secret: secret,
+      // Checked above: the restored roles are the library's now.
+      adoptFolderRoles: true,
     );
     return RestoredLibrary(library: library, oldStillThere: oldStillThere);
   });
 
-  /// The backup's files opened, by path, without the manifest and keyslots.
+  /// The backup's files opened, by path, without the manifest, keyslots and
+  /// lists of earlier keys. A file under a key neither [current] nor
+  /// [earlier] holds opens with the backup's own key ([oldSecret] unlocks
+  /// its keyslots) or one of that key's earlier keys.
   Future<Map<String, Uint8List>> _openAll(
     Map<String, Uint8List> files,
     LibraryCipher? current,
     String? oldSecret, {
     Map<String, LibraryCipher> earlier = const {},
   }) async {
-    LibraryCipher? older;
+    final keys = {...earlier};
+    LibraryCipher? backupKey;
+    Future<LibraryCipher?> keyFor(String keyId) async {
+      if (current != null && current.keyId.toLowerCase() == keyId) {
+        return current;
+      }
+      final known = keys[keyId];
+      if (known != null) return known;
+      if (backupKey == null) {
+        final slots = files[SharedLibraryLayout.keyslotsFile];
+        if (slots == null || oldSecret == null) return null;
+        final unlocked = await LibraryCipher.unlock(
+          KeyslotFile.fromJsonBytes(slots),
+          oldSecret,
+        );
+        if (unlocked == null) return null;
+        backupKey = unlocked;
+        keys[unlocked.keyId.toLowerCase()] = unlocked;
+        final list =
+            files[SharedLibraryLayout.previousKeysFileFor(unlocked.keyId)];
+        if (list != null) {
+          keys.addAll(
+            await SharedLibraryTransport.previousKeysIn(list, under: unlocked),
+          );
+        }
+      }
+      return keys[keyId];
+    }
+
     final out = <String, Uint8List>{};
     for (final e in files.entries) {
-      if (_plain.contains(e.key)) continue;
+      if (_plain.contains(e.key) ||
+          e.key.startsWith(SharedLibraryLayout.previousKeysPrefix)) {
+        continue;
+      }
       final raw = e.value;
       if (!LibraryCipher.isSealed(raw)) {
         out[e.key] = raw;
         continue;
       }
       final keyId = LibraryCipher.keyIdOf(raw);
-      var opener = current != null && current.keyId.toLowerCase() == keyId
-          ? current
-          : earlier[keyId] ?? older;
-      if (opener == null || opener.keyId.toLowerCase() != keyId) {
-        final slots = files[SharedLibraryLayout.keyslotsFile];
-        older = slots == null || oldSecret == null
-            ? null
-            : await LibraryCipher.unlock(
-                KeyslotFile.fromJsonBytes(slots),
-                oldSecret,
-              );
-        if (older == null || older.keyId.toLowerCase() != keyId) {
-          throw BackupNeedsOldKeyError(keyId);
-        }
-        opener = older;
-      }
+      final opener = await keyFor(keyId);
+      if (opener == null) throw BackupNeedsOldKeyError(keyId);
       out[e.key] = await opener.open(e.key, raw);
     }
     return out;
@@ -238,14 +281,38 @@ class LibraryRestoreService {
   static SharedLibraryRoles? _rolesIn(Map<String, Uint8List> opened) {
     final bytes = opened[SharedLibraryLayout.rolesFile];
     if (bytes == null) return null;
-    final decoded = jsonDecode(utf8.decode(bytes));
-    return decoded is Map<String, dynamic>
-        ? SharedLibraryRoles.fromJson(decoded)
-        : null;
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      return decoded is Map<String, dynamic>
+          ? SharedLibraryRoles.fromJson(decoded)
+          : null;
+    } catch (e) {
+      if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
+      return null;
+    }
   }
 
-  /// A backup counts only when its maker was an owner, with that key, in
-  /// the roles it holds.
+  /// The backup's site documents by the id their file names: one that
+  /// cannot be read, or names another id inside, is left out, as a sync
+  /// skips it.
+  static Map<String, SiteDocument> _sitesIn(Map<String, Uint8List> opened) {
+    const dir = '${SharedLibraryLayout.sitesDir}/site-';
+    final out = <String, SiteDocument>{};
+    for (final e in opened.entries) {
+      if (!e.key.startsWith(dir) || !e.key.endsWith('.json')) continue;
+      final id = e.key.substring(dir.length, e.key.length - '.json'.length);
+      try {
+        final doc = SiteDocument.decode(e.value);
+        if (doc.id == id) out[id] = doc;
+      } catch (err) {
+        if (!SharedLibraryTransport.isUnreadable(err)) rethrow;
+      }
+    }
+    return out;
+  }
+
+  /// A backup counts only when its maker is an owner, with that key, in
+  /// [roles].
   static void _checkCreator(
     LibraryBackupHeader header,
     SharedLibraryRoles? roles,
@@ -257,34 +324,53 @@ class LibraryRestoreService {
     }
   }
 
+  /// [docs] with every field none of [signers] can prove dropped, as a sync
+  /// drops it: the restore signs what it writes, so it must never sign a
+  /// value nobody trusted.
+  Future<Map<String, SiteDocument>> _proven(
+    Map<String, SiteDocument> docs,
+    String libraryId,
+    List<SharedLibraryRoles> signers,
+  ) async {
+    final ids = docs.keys.toList();
+    final retired = <String, List<(String, int)>>{};
+    for (final r in signers) {
+      for (final e in r.retiredKeys.entries) {
+        retired[e.key] = [...?retired[e.key], ...e.value];
+      }
+    }
+    final checked = await dropUnverifiedAll(
+      [for (final id in ids) (docs[id]!, SiteDocument(id: id))],
+      libraryId: libraryId,
+      approvedKeys: {for (final r in signers) ...r.editingKeys},
+      retiredKeys: retired,
+    );
+    return {for (var k = 0; k < ids.length; k++) ids[k]: checked[k]};
+  }
+
   Future<void> _restoreSites(
     SharedLibraryTransport t,
     String libraryId,
     String memberId,
     LibrarySigningKey key,
-    Map<String, Uint8List> opened,
-  ) async {
-    final restored = <String, SiteDocument>{};
-    const dir = '${SharedLibraryLayout.sitesDir}/';
-    for (final e in opened.entries) {
-      if (e.key.startsWith(dir)) {
-        final doc = SiteDocument.decode(e.value);
-        restored[doc.id] = doc;
-      }
-    }
-    final current = <String, SiteDocument>{};
+    Map<String, SiteDocument> backedUp, {
+    required List<SharedLibraryRoles> signers,
+  }) async {
+    final restored = await _proven(backedUp, libraryId, signers);
+    final read = <String, SiteDocument>{};
     for (final f in await t.listSites()) {
+      final id = SharedLibraryTransport.siteIdOf(f);
       try {
-        current[SharedLibraryTransport.siteIdOf(f)] = await t.readSite(f.id);
-      } on FormatException {
+        final doc = await t.readSite(f.id);
+        // A document naming another id is no copy of this site.
+        read[id] = doc.id == id ? doc : SiteDocument(id: id);
+      } catch (e) {
+        if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
         // An unreadable document is replaced or tombstoned all the same.
-        current[SharedLibraryTransport.siteIdOf(f)] = SiteDocument(
-          id: SharedLibraryTransport.siteIdOf(f),
-          fields: const {},
-          clocks: const {},
-        );
+        read[id] = SiteDocument(id: id);
       }
     }
+    final current = await _proven(read, libraryId, signers);
 
     final clock = MemberClock(memberId, now: _nowMs);
     for (final doc in [...current.values, ...restored.values]) {
@@ -299,10 +385,13 @@ class LibraryRestoreService {
     }
 
     FieldClock stamp() => FieldClock(hlc: clock.next(), memberId: memberId);
+    Object? cleared(String field) =>
+        SiteDocument.listFields.contains(field) ? const <Object?>[] : null;
     for (final id in {...restored.keys, ...current.keys}) {
       final from = restored[id];
+      final raw = backedUp[id];
       final now = current[id];
-      final names = {...?from?.fields.keys, ...?now?.fields.keys};
+      final names = {...?raw?.fields.keys, ...?now?.fields.keys};
       final doc = SiteDocument(
         id: id,
         // A site made since the backup goes, keeping its fields for undo.
@@ -313,9 +402,11 @@ class LibraryRestoreService {
                 ? now!.fields[n]
                 : from.fields.containsKey(n)
                 ? from.fields[n]
-                : SiteDocument.listFields.contains(n)
-                ? const <Object?>[]
-                : null,
+                // Backed up but proven by nobody: the library's value now.
+                : raw!.fields.containsKey(n) &&
+                      (now?.fields.containsKey(n) ?? false)
+                ? now!.fields[n]
+                : cleared(n),
         },
         clocks: {
           if (from != null)

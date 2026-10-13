@@ -21198,7 +21198,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_onHelp =>
-      'A tagok profilonként egyszer adják meg a jelmondatot. Csak a jelmondat vagy a helyreállítási kód nyitja meg a könyvtárat.';
+      'A tagok profilonként egyszer adják meg a jelmondatot. Csak a jelmondat vagy a helyreállítási kód nyitja meg a könyvtárat. Az új helyreállítási kód minden tulajdonosnál felváltja a régit.';
 
   @override
   String get sharedLibrary_encryption_off => 'Titkosítás kikapcsolása';
@@ -21212,18 +21212,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_changeHelp =>
-      'Új kulcsot és új helyreállítási kódot készít. Az új jelmondatot csak a maradó tagokkal oszd meg.';
+      'Új kulcsot és új helyreállítási kódot készít. Az új helyreállítási kód minden tulajdonosnál felváltja a régit. Az új jelmondatot csak a maradó tagokkal oszd meg.';
 
   @override
   String get sharedLibrary_encryption_passphrase => 'Jelmondat';
 
   @override
   String get sharedLibrary_encryption_confirm => 'Jelmondat újra';
-
-  @override
-  String sharedLibrary_encryption_progress(int done, int total) {
-    return '$done / $total fájl újraírása';
-  }
 
   @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
@@ -21324,6 +21319,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get sharedLibrary_members_lastOwner =>
       'Az utolsó tulajdonos nem fokozható le.';
+
+  @override
+  String get sharedLibrary_members_keyChanged =>
+      'A tag kulcsa megváltozott. Személyesen hasonlítsd össze az új kulcsot, majd hagyd jóvá.';
 
   @override
   String get sharedLibrary_picker_none =>

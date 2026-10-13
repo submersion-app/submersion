@@ -69,6 +69,34 @@ void main() {
     },
   );
 
+  for (final (role, writes) in [
+    (SharedLibraryRole.reader, false),
+    (SharedLibraryRole.editor, true),
+  ]) {
+    test('an imported altitude reaches a library site only for an editor '
+        '(${role.name})', () async {
+      await SharedLibraryStore().upsertLibrary(
+        SharedLibrary(
+          id: 'L',
+          name: 'Reef Survey',
+          connectedAccountId: 'acc',
+          prefix: 'site-sync',
+          roles: SharedLibraryRoles(
+            owners: const {'o'},
+            editors: {if (role == SharedLibraryRole.editor) 'm1'},
+          ),
+        ),
+      );
+      await SiteRepository().updateSiteAltitude('s', 120);
+      final site = (await SiteRepository().getSiteById('s'))!;
+      expect(site.altitude, writes ? 120 : isNull);
+      expect(
+        (await SharedLibraryStore().getSiteState('s'))?.dirty ?? false,
+        writes,
+      );
+    });
+  }
+
   test('a personal site is never stamped', () async {
     await SiteRepository().createSite(const DiveSite(id: 'p', name: 'P'));
     final site = (await SiteRepository().getSiteById('p'))!;

@@ -26,7 +26,7 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
   final bool refuse;
   final bool offline;
   final calls = <(String, String, SharedLibraryRole)>[];
-  final approvals = <String>[];
+  final approvals = <(String, String)>[];
   final rejections = <String>[];
 
   @override
@@ -34,7 +34,8 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
     required String libraryId,
     required String memberId,
     required String actingMemberId,
-  }) async => approvals.add(memberId);
+    required String publicKey,
+  }) async => approvals.add((memberId, publicKey));
 
   @override
   Future<void> rejectMember({
@@ -219,7 +220,8 @@ void main() {
     );
     await tester.tap(find.text('Approve'));
     await tester.pumpAndSettle();
-    expect(service.approvals, ['pd']);
+    // The key the owner was shown, for the service to hold the card to.
+    expect(service.approvals, [('pd', _key(4))]);
   });
 
   testWidgets('rejecting asks first', (tester) async {
