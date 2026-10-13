@@ -185,6 +185,14 @@ class SharedLibraryRoles extends Equatable {
     signature: clearSignature ? null : signature ?? this.signature,
   );
 
+  /// The approved keys whose site edits count: owners' and editors'. A
+  /// reader's key signs suggestions only, whatever their storage key may
+  /// write.
+  Map<String, String> get editingKeys => {
+    for (final e in approvedKeys.entries)
+      if (roleOf(e.key) != SharedLibraryRole.reader) e.key: e.value,
+  };
+
   SharedLibraryRole roleOf(String memberId) {
     if (owners.contains(memberId)) return SharedLibraryRole.owner;
     if (editors.contains(memberId)) return SharedLibraryRole.editor;
@@ -538,6 +546,11 @@ abstract final class SharedLibraryLayout {
 
   /// The wrapped library key of an encrypted library; always plain.
   static const keyslotsFile = 'keyslots.json';
+
+  /// The library's earlier keys, sealed under the current one: a file left
+  /// under an old key (a passphrase change cut short, or a member's upload
+  /// during one) still opens, and an owner's sync re-seals it.
+  static const previousKeysFile = 'previous-keys.bin';
   static const backupsDir = 'backups';
   static const membersDir = 'members';
   static const sitesDir = 'sites';

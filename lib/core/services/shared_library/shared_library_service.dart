@@ -253,12 +253,13 @@ class SharedLibraryService {
           _log.warning('Could not write member card for $libraryId: $e');
         }
       }
-      // Members with a genuine card whose key no owner approved yet: their
-      // edits are held, neither applied nor overwritten.
+      // Editors and owners with a genuine card whose key no owner approved
+      // yet: their edits are held, neither applied nor overwritten.
       final pendingKeys = {
         for (final m in members)
           if (m.cardVerified &&
               m.publicKey != null &&
+              roles.roleOf(m.memberId) != SharedLibraryRole.reader &&
               roles.approvedKeys[m.memberId] != m.publicKey)
             m.memberId: m.publicKey!,
       };
@@ -310,7 +311,7 @@ class SharedLibraryService {
         final checked = await dropUnverifiedAll(
           [for (final p in batch) (p.remote, p.local)],
           libraryId: libraryId,
-          approvedKeys: roles.approvedKeys,
+          approvedKeys: roles.editingKeys,
           pendingKeys: pendingKeys,
         );
         for (var k = 0; k < batch.length; k++) {
@@ -354,7 +355,7 @@ class SharedLibraryService {
                 remote,
                 local: doc,
                 libraryId: libraryId,
-                approvedKeys: roles.approvedKeys,
+                approvedKeys: roles.editingKeys,
               );
               doc = mergeSiteDocuments(local: doc, remote: proven).merged;
             }

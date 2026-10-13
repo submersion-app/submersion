@@ -341,9 +341,7 @@ class LibraryRestoreService {
       }
     }
     for (final f in await t.listSuggestions()) {
-      final path =
-          '$suggestions'
-          '${SharedLibraryTransport.suggestionFileName(SharedLibraryTransport.suggestionIdOf(f))}';
+      final path = '$suggestions${f.name.split('/').last}';
       if (!opened.containsKey(path)) await t.deleteRaw(path);
     }
   }

@@ -46,9 +46,88 @@ class SharedLibraryTransport {
       return raw;
     }
     final c = cipher;
-    if (c == null) throw LibraryLockedException(LibraryCipher.keyIdOf(raw));
+    final keyId = LibraryCipher.keyIdOf(raw);
+    if (c == null) throw LibraryLockedException(keyId);
+    if (keyId != c.keyId.toLowerCase()) {
+      final old = await _previousCipher(keyId);
+      if (old == null) throw LibraryLockedException(keyId);
+      mismatched[path] = fileId;
+      return old.open(path, raw);
+    }
     if (!encrypting) mismatched[path] = fileId;
     return c.open(path, raw);
+  }
+
+  Map<String, LibraryCipher>? _previous;
+
+  /// The earlier library key [keyId], from [SharedLibraryLayout.previousKeysFile],
+  /// read once and only when a file under an old key turns up.
+  Future<LibraryCipher?> _previousCipher(String keyId) async =>
+      (_previous ??= await readPreviousKeys())[keyId];
+
+  /// The library's earlier keys by key id; none when there is no list or
+  /// the current key does not open it.
+  Future<Map<String, LibraryCipher>> readPreviousKeys() async {
+    final c = cipher;
+    if (c == null) return {};
+    final f = await _find(
+      await _rootId(),
+      SharedLibraryLayout.previousKeysFile,
+    );
+    if (f == null) return {};
+    try {
+      final decoded = jsonDecode(
+        utf8.decode(
+          await c.open(
+            SharedLibraryLayout.previousKeysFile,
+            await _provider.downloadFile(f.id),
+          ),
+        ),
+      );
+      if (decoded is! List) return {};
+      final out = <String, LibraryCipher>{};
+      for (final e in decoded) {
+        if (e case {'keyId': final String id, 'key': final String key}) {
+          out[id.toLowerCase()] = await LibraryCipher.fromExported(
+            keyId: id,
+            key: key,
+          );
+        }
+      }
+      return out;
+    } on Object {
+      return {};
+    }
+  }
+
+  /// Seals [keys] under [under] (the key the library is moving to) as the
+  /// library's earlier keys.
+  Future<void> writePreviousKeys(
+    Iterable<LibraryCipher> keys, {
+    required LibraryCipher under,
+  }) async {
+    final c = under;
+    final json = [
+      for (final k in keys) {'keyId': k.keyId, 'key': await k.exportKey()},
+    ];
+    await _provider.uploadFile(
+      await c.seal(
+        SharedLibraryLayout.previousKeysFile,
+        Uint8List.fromList(utf8.encode(jsonEncode(json))),
+      ),
+      SharedLibraryLayout.previousKeysFile,
+      folderId: await _rootId(),
+    );
+    _previous = null;
+  }
+
+  Future<void> deletePreviousKeys() async {
+    final f = await _find(
+      await _rootId(),
+      SharedLibraryLayout.previousKeysFile,
+    );
+    if (f != null) await _provider.deleteFile(f.id);
+    _previous = null;
   }
 
   /// [plain], sealed when the library is encrypted.
@@ -555,7 +634,9 @@ class SharedLibraryTransport {
       final opener =
           previous != null && previous.keyId.toLowerCase() == keyOfFile
           ? previous
-          : cipher;
+          : cipher != null && cipher!.keyId.toLowerCase() == keyOfFile
+          ? cipher
+          : await _previousCipher(keyOfFile) ?? cipher;
       if (opener == null) throw LibraryLockedException(keyOfFile);
       plain = await opener.open(path, raw);
     } else {

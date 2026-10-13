@@ -22,7 +22,7 @@ Every member has one role in each library:
 | --- | --- |
 | **Owner** | Everything an editor can, plus review suggestions, change roles, approve members, manage encryption, and make and restore backups. |
 | **Editor** | Add sites to the library, and edit or delete library sites directly. |
-| **Reader** | See every library site, and suggest changes for an owner or editor to review. |
+| **Reader** | See every library site, and suggest changes for an owner to review. Edits a reader's device writes directly do not count. |
 
 A reader who opens a library site and taps edit sees **Suggest changes**: the
 changed fields and an optional note are sent as a suggestion when they tap
@@ -113,8 +113,9 @@ The passphrase or the recovery code opens an encrypted library. File names,
 sizes, and the number of sites and members are not hidden.
 
 > [!NOTE]
-> If a member saves a site at the same moment an owner changes the passphrase,
-> that one site may stay sealed under the old key until someone saves it again.
+> A file left under the old key, for example by a passphrase change that was
+> cut short or a member's upload during one, still opens for everyone who has
+> the new passphrase, and an owner's next sync re-seals it under the new key.
 
 ## If an Owner Is Lost
 

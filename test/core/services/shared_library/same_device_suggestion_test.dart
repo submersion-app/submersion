@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/core/services/shared_library/shared_library_store.dar
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/shared_library/suggestion_service.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -235,4 +237,30 @@ void main() {
       expect(await heldCount(), 0);
     },
   );
+
+  test("an approved reader's signed site edit does not count", () async {
+    // A shared storage key lets the reader's device write sites/.
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final file = (await t.listSites()).single;
+    final doc = await t.readSite(file.id);
+    final reader = await memberOf('reader');
+    final forged = await signOwnFields(
+      doc.copyWith(
+        fields: {...doc.fields, 'hazards': 'reader wrote this'},
+        clocks: {
+          ...doc.clocks,
+          'hazards': FieldClock(
+            hlc: Hlc(DateTime.utc(2030).millisecondsSinceEpoch, 0, reader),
+            memberId: reader,
+          ),
+        },
+      ),
+      libraryId: lib.id,
+      memberId: reader,
+      key: (await SharedLibraryStore().signingKeyForDiver('reader'))!,
+    );
+    await t.writeSite(forged);
+    await syncer().sync(lib.id, diverId: 'owner');
+    expect((await SiteRepository().getSiteById('s1'))!.hazards, 'old');
+  });
 }

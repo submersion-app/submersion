@@ -178,6 +178,44 @@ void main() {
     );
   });
 
+  test('a file sealed under the old key is re-sealed, not lost', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'correct horse battery',
+    );
+    final oldKey = (await SharedLibraryStore().libraryCipherFor(lib.id))!;
+    // A member's device still on the old key reads a site document before
+    // the change, and uploads it after.
+    final stale = folder()
+      ..cipher = oldKey
+      ..encrypting = true;
+    final file = (await stale.listSites()).single;
+    final doc = await stale.readSite(file.id);
+    await encryption.changePassphrase(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'a brand new passphrase',
+    );
+    await stale.writeSite(doc);
+    final newKeyId = (await folder().readKeyslots())!.libraryKeyId;
+    expect(
+      LibraryCipher.keyIdOf(await cloud.downloadFile(file.id)),
+      oldKey.keyId.toLowerCase(),
+    );
+
+    await syncer().sync(lib.id, diverId: 'd1');
+
+    expect(
+      LibraryCipher.keyIdOf(await cloud.downloadFile(file.id)),
+      newKeyId.toLowerCase(),
+    );
+    final fresh = folder()
+      ..cipher = (await SharedLibraryStore().libraryCipherFor(lib.id))
+      ..encrypting = true;
+    expect((await fresh.readSite(file.id)).id, doc.id);
+  });
+
   test('a new recovery code also opens the encrypted library', () async {
     final first = await encryption.turnOn(
       libraryId: lib.id,

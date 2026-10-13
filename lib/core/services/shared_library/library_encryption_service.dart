@@ -88,6 +88,7 @@ class LibraryEncryptionService {
     t.encrypting = false;
     await _rewriteAll(t, progress: progress);
     await t.deleteKeyslots();
+    await t.deletePreviousKeys();
     for (final m in await _store.membershipsForLibrary(libraryId)) {
       await _store.setLibraryKey(diverId: m.diverId, libraryId: libraryId);
     }
@@ -109,6 +110,14 @@ class LibraryEncryptionService {
   }) async {
     final cipher = await LibraryCipher.generate();
     final recovery = await LibraryRecovery.create(kdf: _kdf);
+    // Every key the library has had, sealed under the new one first, so no
+    // file left under an old key is ever lost.
+    final earlier = previous == null
+        ? const <LibraryCipher>[]
+        : [...(await t.readPreviousKeys()).values, previous];
+    if (earlier.isNotEmpty) {
+      await t.writePreviousKeys(earlier, under: cipher);
+    }
     await t.writeKeyslots(
       await cipher.keyslots(
         passphrase: passphrase,
