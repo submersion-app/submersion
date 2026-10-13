@@ -136,30 +136,26 @@ void main() {
     expect(await SharedLibraryStore().suggestions('L'), isEmpty);
   });
 
-  test(
-    'accept applies with the suggester as editor and removes the file',
-    () async {
-      await t.writeSuggestion(
-        'g1',
-        _incoming('g1', {'hazards': 'new'}).toJson(),
-      );
-      await SharedLibraryStore().putSuggestion(
-        _incoming('g1', {'hazards': 'new'}),
-      );
-      final diff = await service.diff(
-        (await SharedLibraryStore().suggestions('L')).single,
-      );
-      expect(diff['hazards'], ('old', 'new'));
-      await service.accept('g1', diverId: 'owner');
-      expect((await SiteRepository().getSiteById('s'))!.hazards, 'new');
-      final state = (await SharedLibraryStore().getSiteState('s'))!;
-      expect(state.clocks['hazards']!.memberId, 'r');
-      expect(state.lastEditorMemberId, 'r');
-      expect(state.dirty, isTrue);
-      expect(await t.listSuggestions(), isEmpty);
-      expect(await SharedLibraryStore().suggestions('L'), isEmpty);
-    },
-  );
+  test('accept applies as the accepting owner and removes the file', () async {
+    await t.writeSuggestion('g1', _incoming('g1', {'hazards': 'new'}).toJson());
+    await SharedLibraryStore().putSuggestion(
+      _incoming('g1', {'hazards': 'new'}),
+    );
+    final diff = await service.diff(
+      (await SharedLibraryStore().suggestions('L')).single,
+    );
+    expect(diff['hazards'], ('old', 'new'));
+    await service.accept('g1', diverId: 'owner');
+    expect((await SiteRepository().getSiteById('s'))!.hazards, 'new');
+    final state = (await SharedLibraryStore().getSiteState('s'))!;
+    // Signed by the owner who accepted: only a key on this device can
+    // sign, and the suggester's is not.
+    expect(state.clocks['hazards']!.memberId, 'o');
+    expect(state.lastEditorMemberId, 'o');
+    expect(state.dirty, isTrue);
+    expect(await t.listSuggestions(), isEmpty);
+    expect(await SharedLibraryStore().suggestions('L'), isEmpty);
+  });
 
   test(
     'dismiss drops the file and the row; a vanished file is tolerated',

@@ -92,18 +92,6 @@ void main() {
     expect(second.hlc.compareTo(first.hlc), greaterThan(0));
   });
 
-  test('a stamp under another member keeps attribution', () async {
-    await LibraryEditStamper().stamp(
-      's',
-      {'notes'},
-      actingDiverId: 'd1',
-      asMemberId: 'reader-7',
-    );
-    final state = (await SharedLibraryStore().getSiteState('s'))!;
-    expect(state.clocks['notes']!.memberId, 'reader-7');
-    expect(state.lastEditorMemberId, 'reader-7');
-  });
-
   test('type, feature and coordinate writes stamp their fields', () async {
     final types = await SiteTypeRepository().getAllSiteTypes(diverId: 'd1');
     await SiteClassificationRepository().replaceTypes('s', [types.first.id]);

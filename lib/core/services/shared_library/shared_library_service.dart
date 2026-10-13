@@ -6,6 +6,8 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -330,12 +332,12 @@ class SharedLibraryService {
       // 5. Suggestions. Read-only credentials refuse them as they refuse
       // sites: the suggestions wait, and the library reads as read-only.
       await _retrySuggestionDeletes(t, libraryId);
-      if (await _uploadSuggestions(t, libraryId)) {
+      if (await _uploadSuggestions(t, libraryId, key: myKey)) {
         uploadAttempted = true;
         readOnly = true;
       }
       if (roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
-        await _pullSuggestions(t, libraryId);
+        await _pullSuggestions(t, libraryId, roles: roles);
       }
 
       // 6. Status.
@@ -582,8 +584,9 @@ class SharedLibraryService {
   /// refused one for lack of rights: it and the rest stay pending.
   Future<bool> _uploadSuggestions(
     SharedLibraryTransport t,
-    String libraryId,
-  ) async {
+    String libraryId, {
+    required LibrarySigningKey key,
+  }) async {
     final pending = await _store.suggestions(
       libraryId,
       direction: SharedSiteSuggestion.outgoing,
@@ -591,7 +594,7 @@ class SharedLibraryService {
     );
     for (final s in pending) {
       try {
-        await t.writeSuggestion(s.id, s.toJson());
+        await t.writeSuggestion(s.id, await signSuggestion(s.toJson(), key));
       } catch (e) {
         if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
         _log.warning('Library $libraryId refused a suggestion: read-only');
@@ -604,10 +607,14 @@ class SharedLibraryService {
     return false;
   }
 
+  /// Takes in the suggestions their authors provably wrote, with a key an
+  /// owner approved. Others stay in the folder and are read again next
+  /// time (an approval may come).
   Future<void> _pullSuggestions(
     SharedLibraryTransport t,
-    String libraryId,
-  ) async {
+    String libraryId, {
+    required SharedLibraryRoles roles,
+  }) async {
     final files = await t.listSuggestions();
     final remoteIds = {
       for (final f in files) SharedLibraryTransport.suggestionIdOf(f),
@@ -625,6 +632,11 @@ class SharedLibraryService {
       if (heldIds.contains(id)) continue;
       try {
         final json = await t.readSuggestion(f.id);
+        final author = json['memberId'];
+        if (author is! String ||
+            !await verifySuggestion(json, roles.approvedKeys[author])) {
+          continue;
+        }
         await _store.putSuggestion(
           SharedSiteSuggestion.fromJson(
             json,

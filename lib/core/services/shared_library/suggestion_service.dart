@@ -103,9 +103,10 @@ class SuggestionService {
     await _store.deleteSuggestion(suggestionId);
   }
 
-  /// Owner: applies the fields with clocks under the suggester, dirties
-  /// the site, then removes the suggestion here and in the folder. A
-  /// suggestion whose site is gone is dismissed instead.
+  /// Owner: applies the fields as the owner's own edit (signed by the
+  /// owner, the only key here), dirties the site, then removes the
+  /// suggestion here and in the folder. A suggestion whose site is gone is
+  /// dismissed instead.
   Future<void> accept(String suggestionId, {required String diverId}) async {
     final s = await _store.getSuggestion(suggestionId);
     if (s == null) return;
@@ -126,7 +127,6 @@ class SuggestionService {
       s.siteId,
       s.fields.keys.toSet(),
       actingDiverId: diverId,
-      asMemberId: s.memberId,
     );
     await _finish(s, SharedSiteSuggestion.resolved);
     SyncEventBus.notifyLocalChange();

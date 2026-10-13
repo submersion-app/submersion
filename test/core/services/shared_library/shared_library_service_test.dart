@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
+import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -718,6 +719,78 @@ void main() {
     expect(checked.every((d) => d.fields.length == 20), isTrue);
     expect(watch.elapsed, lessThan(const Duration(seconds: 10)));
   }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('suggestions are signed, and an owner takes only proven ones', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud, owners: {'a'});
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    var svc = await device(cloud, 'b');
+    SharedSiteSuggestion outgoing(String id, String member) =>
+        SharedSiteSuggestion(
+          id: id,
+          libraryId: 'L',
+          siteId: 's1',
+          memberId: member,
+          memberName: member,
+          note: 'please',
+          fields: const {'hazards': 'surge'},
+          createdAt: DateTime.utc(2026, 10, 1),
+          direction: SharedSiteSuggestion.outgoing,
+        );
+    await SharedLibraryStore().putSuggestion(outgoing('g1', 'b'));
+    await svc.sync('L', diverId: 'd-b');
+    await tearDownTestDatabase();
+    final uploaded = await t.readSuggestion(
+      (await t.listSuggestions()).single.id,
+    );
+    expect(
+      await verifySuggestion(uploaded, (await testMemberKey('b')).publicKey),
+      isTrue,
+    );
+
+    // c (approved) signs one that is then altered; p (not approved) signs
+    // another.
+    final tampered = await signSuggestion(
+      outgoing('g2', 'c').toJson(),
+      await testMemberKey('c'),
+    );
+    await t.writeSuggestion('g2', {...tampered, 'note': 'altered'});
+    await t.writeSuggestion(
+      'g3',
+      await signSuggestion(
+        outgoing('g3', 'p').toJson(),
+        await testMemberKey('p'),
+      ),
+    );
+
+    svc = await device(cloud, 'a');
+    await svc.sync('L', diverId: 'd-a');
+    final incoming = await SharedLibraryStore().suggestions(
+      'L',
+      direction: SharedSiteSuggestion.incoming,
+    );
+    expect(incoming.map((s) => s.id), ['g1']);
+
+    // Once p is approved, p's suggestion comes in.
+    final roles = await t.readRoles();
+    await t.writeRoles(
+      await roles
+          .copyWith(
+            version: roles.version + 1,
+            approvedKeys: {
+              ...roles.approvedKeys,
+              'p': (await testMemberKey('p')).publicKey,
+            },
+          )
+          .signed(signedBy: 'a', key: await testMemberKey('a')),
+    );
+    await svc.sync('L', diverId: 'd-a');
+    final after = await SharedLibraryStore().suggestions(
+      'L',
+      direction: SharedSiteSuggestion.incoming,
+    );
+    expect(after.map((s) => s.id).toSet(), {'g1', 'g3'});
+  });
 }
 
 /// Runs [beforeSiteUpload] once before the next site upload, and refuses

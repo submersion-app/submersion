@@ -25,13 +25,11 @@ class LibraryEditStamper {
 
   /// Stamps [fields] on [siteId]. [actingDiverId] picks the member through
   /// that profile's membership; without it, the library's sole membership
-  /// on this device is used. [asMemberId] overrides both (an accepted
-  /// suggestion is attributed to its suggester).
+  /// on this device is used.
   Future<void> stamp(
     String siteId,
     Set<String> fields, {
     String? actingDiverId,
-    String? asMemberId,
   }) async {
     if (fields.isEmpty) return;
     final row = await (_db.select(
@@ -40,8 +38,7 @@ class LibraryEditStamper {
     final libraryId = row?.sharedLibraryId;
     if (libraryId == null) return;
 
-    final memberId =
-        asMemberId ?? await _resolveMember(libraryId, actingDiverId);
+    final memberId = await _resolveMember(libraryId, actingDiverId);
     final existing =
         await _store.getSiteState(siteId) ??
         SharedSiteState(siteId: siteId, libraryId: libraryId);
