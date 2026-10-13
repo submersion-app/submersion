@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
@@ -130,7 +131,10 @@ class LockedLibraryBanner extends ConsumerWidget {
             diverId: me.diverId,
             secret: secret,
           );
+      if (!context.mounted) return;
       ref.invalidate(currentMembershipsProvider);
+      // The library's sites come in now, not at the next sync.
+      await ref.read(sharedLibrarySyncProvider.notifier).syncOne(library.id);
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(

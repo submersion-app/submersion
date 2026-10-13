@@ -8,6 +8,8 @@ import 'package:submersion/core/services/shared_library/crypto/library_signer.da
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
+import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -31,6 +33,7 @@ Future<Widget> _page(
   LibraryEncryptionService? encryption,
   LibrarySigningKey? signingKey,
   int held = 0,
+  bool fakeSync = false,
 }) async => testApp(
   overrides: [
     ...await getBaseOverrides(),
@@ -83,6 +86,7 @@ Future<Widget> _page(
     libraryMemberNamesProvider('L').overrideWith((ref) async => {'m': 'Ann'}),
     pendingIncomingSuggestionCountProvider('L').overrideWith((ref) async => 2),
     heldIncomingSuggestionCountProvider('L').overrideWith((ref) async => held),
+    if (fakeSync) sharedLibrarySyncProvider.overrideWith(_RecordingSync.new),
     sitesProvider.overrideWith(
       (ref) async => const [
         DiveSite(id: 'p1', name: 'Reef'),
@@ -198,7 +202,12 @@ void main() {
   ) async {
     final service = _OwnerLoss();
     await tester.pumpWidget(
-      await _page(SharedLibraryRole.reader, service: service, keyId: 'k2'),
+      await _page(
+        SharedLibraryRole.reader,
+        service: service,
+        keyId: 'k2',
+        fakeSync: true,
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('Enter the passphrase for Reef Survey.'), findsOneWidget);
@@ -208,6 +217,8 @@ void main() {
     await tester.tap(find.text('Unlock').last);
     await tester.pumpAndSettle();
     expect(service.secrets, ['pw']);
+    // Its sites come in at once, not at the next sync.
+    expect(_RecordingSync.synced, ['L']);
   });
 
   testWidgets('an owner turns encryption on and sees the new code', (
@@ -452,6 +463,23 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+}
+
+/// Records syncs instead of reaching storage.
+class _RecordingSync extends SharedLibrarySyncNotifier {
+  _RecordingSync(super.ref) {
+    synced.clear();
+  }
+
+  static final synced = <String>[];
+
+  @override
+  Future<SharedLibrarySyncResult> syncOne(String libraryId) async {
+    synced.add(libraryId);
+    return const SharedLibrarySyncResult(
+      status: SharedLibrarySyncStatus.success,
+    );
+  }
 }
 
 class _OfflineRename extends SharedLibraryMembershipService {

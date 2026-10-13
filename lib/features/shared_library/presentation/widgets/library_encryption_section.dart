@@ -147,7 +147,7 @@ class LibraryEncryptionSection extends ConsumerWidget {
           );
       return '';
     });
-    ref.invalidate(currentMembershipsProvider);
+    if (context.mounted) ref.invalidate(currentMembershipsProvider);
   }
 
   /// Runs [work] behind a dialog counting the files rewritten. Null when it
