@@ -44,4 +44,16 @@ void main() {
       'arn:aws:s3:::b/submersion-sites/*',
     ]);
   });
+
+  test('a bucket name a policy would read as a wildcard is not used', () {
+    for (final bucket in ['shared-*', 'a?b', r'my$bucket', 'two words']) {
+      for (final policy in [
+        s3FullAccessPolicy(bucket: bucket, folder: 'reef'),
+        s3ReaderPolicy(bucket: bucket, folder: 'reef'),
+      ]) {
+        expect(policy, isNot(contains(bucket)), reason: bucket);
+        expect(policy, contains('arn:aws:s3:::your-bucket'), reason: bucket);
+      }
+    }
+  });
 }

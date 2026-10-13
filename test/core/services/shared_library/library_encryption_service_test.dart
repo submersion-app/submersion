@@ -254,7 +254,7 @@ void main() {
           if (done == 1) throw StateError('connection lost');
         },
       ),
-      throwsStateError,
+      throwsA(isA<RekeyIncompleteError>()),
     );
     expect((await sealedByPath()).values, contains(false));
 
@@ -331,6 +331,31 @@ void main() {
       expect(await LibraryCipher.unlock(slots, first), isNotNull);
     },
   );
+
+  test('a key change cut short still hands over its recovery code', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'first passphrase',
+    );
+    Object? error;
+    try {
+      await encryption.changePassphrase(
+        libraryId: lib.id,
+        diverId: 'd1',
+        passphrase: 'second passphrase',
+        progress: (done, total) {
+          if (done == 1) throw StateError('connection lost');
+        },
+      );
+    } catch (e) {
+      error = e;
+    }
+    expect(error, isA<RekeyIncompleteError>());
+    final code = (error! as RekeyIncompleteError).recoveryCode;
+    final slots = (await folder().readKeyslots())!;
+    expect(await LibraryCipher.unlock(slots, code), isNotNull);
+  });
 
   test('a non-owner cannot change encryption', () async {
     await DiverRepository().createDiver(

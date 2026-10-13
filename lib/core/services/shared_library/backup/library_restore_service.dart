@@ -105,12 +105,12 @@ class LibraryRestoreService {
     final backupRoles = _rolesIn(opened);
     _checkCreator(contents.header, backupRoles);
 
-    final before = await _backups.backUp(
+    final before = await _backups.backUpHeld(
       libraryId: libraryId,
       diverId: diverId,
       beforeRestore: true,
     );
-    await _backups.setPinned(
+    await _backups.setPinnedHeld(
       before.backupId,
       libraryId: libraryId,
       diverId: diverId,

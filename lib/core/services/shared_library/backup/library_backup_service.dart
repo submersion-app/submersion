@@ -15,6 +15,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 /// An owner's backups of a shared site library (issue #2567): each one a
 /// signed zip of the library's stored files, kept on this device (beside
@@ -65,8 +66,28 @@ class LibraryBackupService {
     return 'submersion-sites-$folder-$stamp-${backupId.substring(0, 8)}.zip';
   }
 
-  /// Backs the library up to the device and to storage. Owners only.
+  /// Backs the library up to the device and to storage. Owners only. Waits
+  /// for any library sync or key change, so the backup never catches the
+  /// library half rewritten.
   Future<LibraryBackupRecord> backUp({
+    required String libraryId,
+    required String diverId,
+    String note = '',
+    bool automatic = false,
+    bool beforeRestore = false,
+  }) => SyncCoordinator.run(
+    () => backUpHeld(
+      libraryId: libraryId,
+      diverId: diverId,
+      note: note,
+      automatic: automatic,
+      beforeRestore: beforeRestore,
+    ),
+  );
+
+  /// [backUp] for a caller already holding the [SyncCoordinator] (a
+  /// restore).
+  Future<LibraryBackupRecord> backUpHeld({
     required String libraryId,
     required String diverId,
     String note = '',
@@ -141,7 +162,9 @@ class LibraryBackupService {
   Future<bool> backUpIfDue({
     required String libraryId,
     required String diverId,
-  }) async {
+  }) => SyncCoordinator.run(() => _backUpIfDue(libraryId, diverId));
+
+  Future<bool> _backUpIfDue(String libraryId, String diverId) async {
     final library = await _store.getLibrary(libraryId);
     if (library == null) return false;
     final now = _now().toUtc();
@@ -165,18 +188,18 @@ class LibraryBackupService {
       );
       return false;
     }
-    await backUp(libraryId: libraryId, diverId: diverId, automatic: true);
+    await backUpHeld(libraryId: libraryId, diverId: diverId, automatic: true);
     await _store.setLibraryStatus(libraryId, lastAutoBackupAt: now);
-    await prune(libraryId: libraryId, diverId: diverId);
+    await _prune(libraryId, diverId);
     return true;
   }
 
   /// Keeps the newest [keep] unpinned backups on this device and in
   /// storage; pinned ones are never removed.
-  Future<void> prune({
-    required String libraryId,
-    required String diverId,
-  }) async {
+  Future<void> prune({required String libraryId, required String diverId}) =>
+      SyncCoordinator.run(() => _prune(libraryId, diverId));
+
+  Future<void> _prune(String libraryId, String diverId) async {
     final all = await list(libraryId: libraryId);
     final onDevice = [
       for (final r in all)
@@ -187,7 +210,7 @@ class LibraryBackupService {
         if (!r.pinned && r.inStorage) r,
     ];
     for (final r in onDevice.skip(keep)) {
-      await delete(
+      await _delete(
         r.backupId,
         libraryId: libraryId,
         diverId: diverId,
@@ -196,7 +219,7 @@ class LibraryBackupService {
       );
     }
     for (final r in inStorage.skip(keep)) {
-      await delete(
+      await _delete(
         r.backupId,
         libraryId: libraryId,
         diverId: diverId,
@@ -239,6 +262,21 @@ class LibraryBackupService {
     required String libraryId,
     required String diverId,
     required bool pinned,
+  }) => SyncCoordinator.run(
+    () => setPinnedHeld(
+      backupId,
+      libraryId: libraryId,
+      diverId: diverId,
+      pinned: pinned,
+    ),
+  );
+
+  /// [setPinned] for a caller already holding the [SyncCoordinator].
+  Future<void> setPinnedHeld(
+    String backupId, {
+    required String libraryId,
+    required String diverId,
+    required bool pinned,
   }) async {
     final row = await _store.backupRow(backupId);
     if (row != null) {
@@ -256,6 +294,22 @@ class LibraryBackupService {
 
   /// Removes the backup from this device, from storage, or both.
   Future<void> delete(
+    String backupId, {
+    required String libraryId,
+    required String diverId,
+    required bool fromDevice,
+    required bool fromStorage,
+  }) => SyncCoordinator.run(
+    () => _delete(
+      backupId,
+      libraryId: libraryId,
+      diverId: diverId,
+      fromDevice: fromDevice,
+      fromStorage: fromStorage,
+    ),
+  );
+
+  Future<void> _delete(
     String backupId, {
     required String libraryId,
     required String diverId,

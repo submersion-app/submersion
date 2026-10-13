@@ -491,6 +491,38 @@ class SharedLibraryStore {
     return row == null ? null : (notes: row.notes, rating: row.rating);
   }
 
+  /// Takes up private notes and ratings that sit only on [libraryId]'s site
+  /// rows (written by a build before they were kept apart) as [diverId]'s,
+  /// so personal sync carries them. A site the profile already has a
+  /// record for is left alone.
+  Future<void> backfillSiteNotes({
+    required String libraryId,
+    required String diverId,
+  }) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id, notes, rating FROM dive_sites '
+          'WHERE shared_library_id = ? '
+          "AND (notes <> '' OR rating IS NOT NULL) "
+          'AND NOT EXISTS (SELECT 1 FROM library_site_notes n '
+          'WHERE n.id = ? || dive_sites.id)',
+          variables: [
+            Variable.withString(libraryId),
+            Variable.withString('$diverId:'),
+          ],
+          readsFrom: {_db.diveSites, _db.librarySiteNotes},
+        )
+        .get();
+    for (final r in rows) {
+      await putSiteNotes(
+        diverId: diverId,
+        siteId: r.read<String>('id'),
+        notes: r.read<String>('notes'),
+        rating: r.read<double?>('rating'),
+      );
+    }
+  }
+
   /// Keeps [diverId]'s private notes and rating on the library site
   /// [siteId] for personal sync to carry to the profile's other devices.
   Future<void> putSiteNotes({

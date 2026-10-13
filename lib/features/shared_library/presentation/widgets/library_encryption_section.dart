@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -186,12 +187,19 @@ class LibraryEncryptionSection extends ConsumerWidget {
     try {
       return await work((d, t) => done.value = (d, t));
     } catch (e) {
+      // Stopped after the new key was written: its recovery code is still
+      // the way back in, so it is shown all the same.
+      final code = e is RekeyIncompleteError ? e.recoveryCode : null;
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(libraryErrorText(l10n, e))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              libraryErrorText(l10n, e is RekeyIncompleteError ? e.cause : e),
+            ),
+          ),
+        );
       }
-      return null;
+      return code;
     } finally {
       navigator.pop();
       done.dispose();

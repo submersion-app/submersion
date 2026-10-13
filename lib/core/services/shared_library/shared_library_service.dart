@@ -325,6 +325,10 @@ class SharedLibraryService {
         }
       }
 
+      // Notes an earlier build left only on the site rows become the
+      // profile's own records, for personal sync to carry.
+      await _store.backfillSiteNotes(libraryId: libraryId, diverId: diverId);
+
       // A site that arrived (or changed) here takes the private notes and
       // rating the profile wrote for it on another device.
       if (pulled > 0) {

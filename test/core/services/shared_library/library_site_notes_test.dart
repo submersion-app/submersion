@@ -224,4 +224,69 @@ void main() {
       expect(site.rating, 4);
     },
   );
+
+  test('notes written before they were kept apart are taken up', () async {
+    final cloud = FakeCloudStorageProvider();
+    final memberships = SharedLibraryMembershipService(
+      store: SharedLibraryStore(),
+      transportFor: ({required account, required prefix}) async =>
+          SharedLibraryTransport(cloud, prefix: prefix),
+      recoveryKdf: const KdfParams(m: 1024, t: 1),
+    );
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    await diver('d1');
+    final lib = await memberships.create(
+      account: ConnectedAccount(
+        id: 'acc',
+        kind: AccountKind.s3,
+        label: 'Survey bucket',
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      ),
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    // A library site from an earlier build: its notes sit only on the row.
+    await SiteRepository().createSite(
+      DiveSite(
+        id: 's1',
+        name: 'Blue',
+        notes: 'from before',
+        rating: 2,
+        sharedLibraryId: lib.id,
+      ),
+    );
+    await SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (l) => memberships.transportForLibrary(l),
+    ).sync(lib.id, diverId: 'd1');
+    final kept = (await SharedLibraryStore().siteNotes(
+      diverId: 'd1',
+      siteId: 's1',
+    ))!;
+    expect(kept.notes, 'from before');
+    expect(kept.rating, 2);
+
+    // Never over a record the profile already has.
+    await SharedLibraryStore().putSiteNotes(
+      diverId: 'd1',
+      siteId: 's1',
+      notes: 'newer',
+      rating: 5,
+    );
+    await SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (l) => memberships.transportForLibrary(l),
+    ).sync(lib.id, diverId: 'd1');
+    expect(
+      (await SharedLibraryStore().siteNotes(
+        diverId: 'd1',
+        siteId: 's1',
+      ))!.notes,
+      'newer',
+    );
+  });
 }

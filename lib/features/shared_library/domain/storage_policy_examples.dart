@@ -11,6 +11,14 @@ String _prefixOf(String folder) {
 
 const _encoder = JsonEncoder.withIndent('  ');
 
+/// [bucket] when a policy can name it as it is; a name holding a wildcard
+/// (`*`, `?`), a policy variable (`$`) or a space is no bucket and would
+/// grant more than one, so the placeholder stands in.
+String _bucketOf(String bucket) {
+  final b = bucket.trim();
+  return b.isEmpty || b.contains(RegExp(r'[*?$\s]')) ? 'your-bucket' : b;
+}
+
 Map<String, dynamic> _list(String bucket, String prefix) => {
   'Effect': 'Allow',
   'Action': ['s3:ListBucket'],
@@ -25,6 +33,7 @@ Map<String, dynamic> _list(String bucket, String prefix) => {
 /// Owners and editors: read and write everything in the library folder.
 String s3FullAccessPolicy({required String bucket, required String folder}) {
   final prefix = _prefixOf(folder);
+  bucket = _bucketOf(bucket);
   return _encoder.convert({
     'Version': '2012-10-17',
     'Statement': [
@@ -42,6 +51,7 @@ String s3FullAccessPolicy({required String bucket, required String folder}) {
 /// suggestions.
 String s3ReaderPolicy({required String bucket, required String folder}) {
   final prefix = _prefixOf(folder);
+  bucket = _bucketOf(bucket);
   return _encoder.convert({
     'Version': '2012-10-17',
     'Statement': [

@@ -261,6 +261,32 @@ void main() {
     expect(find.text('new-recovery-code'), findsOneWidget);
   });
 
+  testWidgets('a turn-on cut short still shows its recovery code', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final encryption = _RecordingEncryption(cutShort: true);
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.owner, encryption: encryption),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Turn on encryption'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Turn on encryption'));
+    await tester.pumpAndSettle();
+    for (final key in ['passphrase-field', 'passphrase-confirm']) {
+      await tester.enterText(find.byKey(Key(key)), 'long enough phrase');
+    }
+    await tester.tap(find.text('Turn on encryption').last);
+    await tester.pumpAndSettle();
+    expect(find.text('new-recovery-code'), findsOneWidget);
+  });
+
   testWidgets('an encrypted library offers a new passphrase and turning off', (
     tester,
   ) async {
@@ -543,7 +569,7 @@ class _OwnerLoss extends SharedLibraryMembershipService {
 
 /// Records encryption actions instead of rewriting storage.
 class _RecordingEncryption extends LibraryEncryptionService {
-  _RecordingEncryption()
+  _RecordingEncryption({this.cutShort = false})
     : super(
         store: SharedLibraryStore(),
         memberships: SharedLibraryMembershipService(
@@ -555,6 +581,9 @@ class _RecordingEncryption extends LibraryEncryptionService {
 
   final calls = <String>[];
 
+  /// Stops after the new keys are written, as a lost connection would.
+  final bool cutShort;
+
   @override
   Future<String> turnOn({
     required String libraryId,
@@ -563,6 +592,9 @@ class _RecordingEncryption extends LibraryEncryptionService {
     RewriteProgress? progress,
   }) async {
     calls.add('on:$passphrase');
+    if (cutShort) {
+      throw RekeyIncompleteError('new-recovery-code', StateError('lost'));
+    }
     return 'new-recovery-code';
   }
 

@@ -7,6 +7,19 @@ import 'package:submersion/core/services/shared_library/shared_library_transport
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
+/// A change of key that stopped after the new keyslots were written: the
+/// library may already be under the new key, and [recoveryCode] opens it.
+/// An owner's next sync finishes the rewrite.
+class RekeyIncompleteError implements Exception {
+  const RekeyIncompleteError(this.recoveryCode, this.cause);
+
+  final String recoveryCode;
+  final Object cause;
+
+  @override
+  String toString() => 'RekeyIncompleteError($cause)';
+}
+
 /// Reports how far a rewrite of every library file has got.
 typedef RewriteProgress = void Function(int done, int total);
 
@@ -129,36 +142,44 @@ class LibraryEncryptionService {
         kdf: _kdf,
       ),
     );
-    final manifest = await t.readManifest() ?? {};
-    await t.writeManifest({
-      ...manifest,
-      'encrypted': true,
-      'keyId': cipher.keyId,
-      SharedLibraryLayout.rewritingFlag: true,
-    });
-    t
-      ..cipher = cipher
-      ..encrypting = true;
-    await _store.setLibraryKey(
-      diverId: me.diverId,
-      libraryId: library.id,
-      keyId: cipher.keyId,
-      key: await cipher.exportKey(),
-    );
-    await _store.setLibraryStatus(
-      library.id,
-      encrypted: true,
-      keyId: cipher.keyId,
-    );
-    // The new recovery code signs owners in, and opens the new key.
-    await _memberships.writeSignedRoles(
-      library,
-      t,
-      roles.copyWith(recovery: RolesRecovery.fromJson(recovery.toRolesJson())),
-      signer: me.memberId,
-    );
-    await _rewriteAll(t, previous: previous, progress: progress);
-    await t.clearRewritingFlag();
+    // From here the new key is in the keyslots: its recovery code is the
+    // way back in, so a step that fails still hands it over.
+    try {
+      final manifest = await t.readManifest() ?? {};
+      await t.writeManifest({
+        ...manifest,
+        'encrypted': true,
+        'keyId': cipher.keyId,
+        SharedLibraryLayout.rewritingFlag: true,
+      });
+      t
+        ..cipher = cipher
+        ..encrypting = true;
+      await _store.setLibraryKey(
+        diverId: me.diverId,
+        libraryId: library.id,
+        keyId: cipher.keyId,
+        key: await cipher.exportKey(),
+      );
+      await _store.setLibraryStatus(
+        library.id,
+        encrypted: true,
+        keyId: cipher.keyId,
+      );
+      // The new recovery code signs owners in, and opens the new key.
+      await _memberships.writeSignedRoles(
+        library,
+        t,
+        roles.copyWith(
+          recovery: RolesRecovery.fromJson(recovery.toRolesJson()),
+        ),
+        signer: me.memberId,
+      );
+      await _rewriteAll(t, previous: previous, progress: progress);
+      await t.clearRewritingFlag();
+    } catch (e) {
+      throw RekeyIncompleteError(recovery.code, e);
+    }
     return recovery.code;
   }
 

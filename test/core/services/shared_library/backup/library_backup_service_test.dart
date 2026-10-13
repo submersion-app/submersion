@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -197,6 +198,23 @@ void main() {
       );
     },
   );
+
+  test('a backup waits for a sync or key change in progress', () async {
+    final gate = Completer<void>();
+    final held = SyncCoordinator.run(() => gate.future);
+    var done = false;
+    final made = backups
+        .backUp(libraryId: lib.id, diverId: 'd1')
+        .then((r) => done = true);
+    // Long enough for a backup of this small library to finish if it did
+    // not wait.
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    expect(done, isFalse);
+    gate.complete();
+    await held;
+    await made;
+    expect(done, isTrue);
+  });
 
   test('an imported backup of this library is listed on the device', () async {
     final record = await backups.backUp(libraryId: lib.id, diverId: 'd1');
