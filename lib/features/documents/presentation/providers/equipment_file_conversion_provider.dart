@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/documents/data/services/equipment_file_converter.dart';
@@ -33,7 +34,13 @@ final equipmentFileConversionProvider =
           final converter = await ref.read(
             equipmentFileConverterFactoryProvider,
           )();
-          return await converter.run();
+          final result = await converter.run();
+          // Converting copies files into the database; the media rows it
+          // drops leave free pages behind.
+          if (result.converted > 0) {
+            await ref.read(databaseCompactionMonitorProvider)();
+          }
+          return result;
         } on Object catch (e, stackTrace) {
           LoggerService.forClass(EquipmentFileConverter).warning(
             'Gear file conversion failed',

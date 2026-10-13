@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
@@ -254,7 +255,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// and the provider contains its own failures, so it is safe to leave
   /// unawaited.
   void _convertGearFiles() {
-    unawaited(ref.read(equipmentFileConversionProvider)());
+    unawaited(
+      ref
+          .read(equipmentFileConversionProvider)()
+          // Then the session's one look at free space, after the launch's
+          // biggest write.
+          .then((_) => ref.read(databaseCompactionMonitorProvider)()),
+    );
   }
 
   Future<void> _maybeSyncOnLaunch() async {
