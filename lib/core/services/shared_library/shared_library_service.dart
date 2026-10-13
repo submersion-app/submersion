@@ -391,7 +391,7 @@ class SharedLibraryService {
       // sites: the suggestions wait, and the library reads as read-only.
       if (!holdWrites) {
         await _retrySuggestionDeletes(t, libraryId);
-        if (await _uploadSuggestions(t, libraryId, key: myKey)) {
+        if (await _uploadSuggestions(t, libraryId)) {
           uploadAttempted = true;
           readOnly = true;
         }
@@ -663,17 +663,28 @@ class SharedLibraryService {
 
   /// Uploads the pending outgoing suggestions. True when the storage
   /// refused one for lack of rights: it and the rest stay pending.
+  /// Uploads the device's pending suggestions, each signed by the local
+  /// profile that wrote it: another profile on this device may have
+  /// written one, and a signature by the syncing profile would never
+  /// verify as its author's.
   Future<bool> _uploadSuggestions(
     SharedLibraryTransport t,
-    String libraryId, {
-    required LibrarySigningKey key,
-  }) async {
+    String libraryId,
+  ) async {
     final pending = await _store.suggestions(
       libraryId,
       direction: SharedSiteSuggestion.outgoing,
       status: SharedSiteSuggestion.pending,
     );
+    if (pending.isEmpty) return false;
+    final keys = <String, LibrarySigningKey>{
+      for (final m in await _store.membershipsForLibrary(libraryId))
+        m.memberId: m.signingKey ?? await _store.ensureSigningKey(m.diverId),
+    };
     for (final s in pending) {
+      final key = keys[s.memberId];
+      // Its author no longer belongs here: nothing can sign it.
+      if (key == null) continue;
       try {
         await t.writeSuggestion(s.id, await signSuggestion(s.toJson(), key));
       } catch (e) {
