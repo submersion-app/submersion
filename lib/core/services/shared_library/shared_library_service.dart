@@ -746,6 +746,10 @@ class SharedLibraryService {
         } else if (await verifySuggestion(json, cardKeys[author])) {
           status = SharedSiteSuggestion.held;
         } else {
+          // Its author was rejected or left: nothing is waiting any more.
+          await _store.deleteSuggestion(
+            '${SharedSiteSuggestion.incomingPrefix}$id',
+          );
           continue;
         }
         await _store.putSuggestion(

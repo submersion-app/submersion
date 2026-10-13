@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +68,7 @@ class _FakeBackups extends LibraryBackupService {
   List<LibraryBackupRecord> records;
   final calls = <String>[];
   bool refuseImport = false;
+  List<int>? importedBytes;
 
   @override
   Future<List<LibraryBackupRecord>> list({required String libraryId}) async =>
@@ -120,6 +122,9 @@ class _FakeBackups extends LibraryBackupService {
   }) async {
     if (refuseImport) throw const BackupRefusedError('otherLibrary');
     calls.add('import:$path');
+    importedBytes = File(path).existsSync()
+        ? File(path).readAsBytesSync()
+        : null;
     return _manual;
   }
 }
@@ -336,6 +341,39 @@ void main() {
     expect(backups.calls, [
       'import:${p.join(Directory.systemTemp.path, 'backup.zip')}',
     ]);
+  });
+
+  testWidgets('a picked file with no path is imported from its bytes', (
+    tester,
+  ) async {
+    final original = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    FilePickerPlatform.instance = MockFilePickerPlatform()
+      ..pickFilesResult = [
+        FakePlatformFile.contentUri(
+          Uri.parse('content://downloads/backup.zip'),
+          name: 'backup.zip',
+          bytes: Uint8List.fromList([1, 2, 3]),
+        ),
+      ];
+    final backups = _FakeBackups([]);
+    await tester.pumpWidget(await _page(backups: backups));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Import a backup'));
+    // The temporary copy is written with real dart:io: give it the real
+    // event loop until the import lands.
+    for (var i = 0; i < 50 && backups.calls.isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    expect(backups.calls.single, endsWith('backup.zip'));
+    expect(backups.importedBytes, [1, 2, 3]);
   });
 
   testWidgets('an import that is no backup of the library says so', (

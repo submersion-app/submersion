@@ -199,4 +199,40 @@ void main() {
       expect((await inbox()).single.fields, {'hazards': 'late'});
     },
   );
+
+  test(
+    'a held suggestion stops counting once its author is rejected',
+    () async {
+      await addDiver('late', 'Cy');
+      await memberships.join(
+        account: account,
+        prefix: 'site-sync',
+        diverId: 'late',
+        displayName: 'Cy',
+      );
+      final site = (await SiteRepository().getSiteById('s1'))!;
+      await SuggestionService(
+        transportFor: (l) => memberships.transportForLibrary(l),
+      ).propose(
+        proposed: site.copyWith(hazards: 'late'),
+        diverId: 'late',
+      );
+      await syncer().sync(lib.id, diverId: 'late');
+      await syncer().sync(lib.id, diverId: 'owner');
+      Future<int> heldCount() async => (await SharedLibraryStore().suggestions(
+        lib.id,
+        direction: SharedSiteSuggestion.incoming,
+        status: SharedSiteSuggestion.held,
+      )).length;
+      expect(await heldCount(), 1);
+
+      await memberships.rejectMember(
+        libraryId: lib.id,
+        memberId: await memberOf('late'),
+        actingMemberId: await memberOf('owner'),
+      );
+      await syncer().sync(lib.id, diverId: 'owner');
+      expect(await heldCount(), 0);
+    },
+  );
 }

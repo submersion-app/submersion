@@ -156,7 +156,9 @@ class LibraryRestoreService {
 
     final old = await _store.getLibrary(h.libraryId);
     var oldStillThere = false;
-    if (old != null && old.prefix != prefix) {
+    // The same folder name in another account is another place.
+    if (old != null &&
+        (old.prefix != prefix || old.connectedAccountId != account.id)) {
       try {
         final manifest = await (await _memberships.transportForLibrary(
           old,
