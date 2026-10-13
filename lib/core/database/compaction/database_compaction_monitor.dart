@@ -23,6 +23,9 @@ class DatabaseCompactionMonitor {
   Future<bool> check() async {
     if (_prefs.isRequested || _prefs.inBackoff) return false;
     if (!(await _readSpace()).worthCompacting) return false;
+    // Asked again after the measurement's await: a Cancel the diver tapped
+    // meanwhile must win. Nothing awaits between this check and the write.
+    if (_prefs.isRequested || _prefs.inBackoff) return false;
     await _prefs.request();
     return true;
   }

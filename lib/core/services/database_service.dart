@@ -321,8 +321,9 @@ class DatabaseService {
       );
     }
 
-    // False once the ladder below has taken its one VACUUM of this open.
-    var vacuumTicket = true;
+    // True once the ladder below has actually rewritten the file. Not the
+    // ticket: a VACUUM that throws has taken the ticket without compacting.
+    var ladderVacuumed = false;
     if (migrationPending) {
       // Each retry re-runs the ladder from the top on a brand new connection.
       // That is safe -- every step is idempotent by contract -- but it does
@@ -332,6 +333,7 @@ class DatabaseService {
       // makes retryWhileDatabaseBusy call the whole thing again from the
       // top, and rewriting a 769 MB file a second time is exactly the cost
       // the one-shot design was avoiding. Taken at most once per open.
+      var vacuumTicket = true;
       await retryWhileDatabaseBusy(
         () => _runUpgradeLadder(
           file,
@@ -340,6 +342,7 @@ class DatabaseService {
           onMigrationProgress,
           vacuumPending: () => vacuumTicket,
           takeVacuumTicket: () => vacuumTicket = false,
+          onVacuumed: () => ladderVacuumed = true,
         ),
       );
       lastOpenMode = DatabaseOpenMode.migrationThenBackground;
@@ -349,7 +352,7 @@ class DatabaseService {
 
     if (compaction != null) {
       await _compactAsRequested(dbPath, keyHex, compaction, onCompacting, (
-        alreadyVacuumed: !vacuumTicket,
+        alreadyVacuumed: ladderVacuumed,
       ));
     }
 
@@ -427,6 +430,7 @@ class DatabaseService {
     void Function(int currentStep, int totalSteps)? onMigrationProgress, {
     bool Function() vacuumPending = _alwaysPending,
     void Function() takeVacuumTicket = _noop,
+    void Function() onVacuumed = _noop,
   }) async {
     // Whether this attempt will VACUUM, decided before the ladder starts so
     // every progress report of this open counts the same total.
@@ -500,6 +504,7 @@ class DatabaseService {
         if (!unplannedReclaim) report(ladderSteps, ladderSteps);
         try {
           await migrator.customStatement('VACUUM');
+          onVacuumed();
         } catch (e, stackTrace) {
           _log.warning(
             'Post-migration VACUUM skipped; the database is correct but has '

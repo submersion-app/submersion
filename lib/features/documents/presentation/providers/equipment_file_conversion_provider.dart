@@ -27,13 +27,16 @@ final equipmentFileConverterFactoryProvider =
     });
 
 /// Runs [EquipmentFileConverter] at launch and after each sync (issue
-/// #3333), one run at a time: a call while one runs shares it instead of
-/// reading the same files again. Contains its own failures, returning null:
-/// a conversion that could not run must not fail the launch or the sync.
+/// #3333), one run at a time. A call while one runs queues a single
+/// follow-up (however many calls arrive), so rows a sync pulled after the
+/// running pass read its list still get converted. Contains its own
+/// failures, returning null: a conversion that could not run must not fail
+/// the launch or the sync.
 // no-tick: the value is a CLOSURE, not a query result.
 final equipmentFileConversionProvider =
     Provider<Future<EquipmentFileConversionResult?> Function()>((ref) {
       Future<EquipmentFileConversionResult?>? inFlight;
+      Future<EquipmentFileConversionResult?>? followUp;
       Future<EquipmentFileConversionResult?> runOnce() async {
         try {
           final converter = await ref.read(
@@ -57,5 +60,14 @@ final equipmentFileConversionProvider =
         }
       }
 
-      return () => inFlight ??= runOnce();
+      Future<EquipmentFileConversionResult?> start() => inFlight = runOnce();
+      return () {
+        final running = inFlight;
+        if (running == null) return start();
+        // Already queued: every later caller shares it.
+        return followUp ??= running.then((_) {
+          followUp = null;
+          return start();
+        });
+      };
     });

@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/compaction/database_compaction_prefs.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -226,6 +228,42 @@ void main() {
       0,
       reason: 'the pages the backstop freed have to come back',
     );
+  });
+
+  test('a requested compaction is satisfied by the upgrade VACUUM', () async {
+    await seedFile((raw) {
+      raw.execute('DROP TABLE IF EXISTS dive_profiles');
+      raw.execute('''
+        CREATE TABLE dive_profiles (
+          id TEXT NOT NULL PRIMARY KEY,
+          dive_id TEXT NOT NULL,
+          computer_id TEXT,
+          source_id TEXT,
+          is_primary INTEGER NOT NULL DEFAULT 1,
+          timestamp INTEGER NOT NULL,
+          depth REAL NOT NULL,
+          temperature REAL
+        )
+      ''');
+      raw.execute('PRAGMA user_version = 182');
+    });
+    SharedPreferences.setMockInitialValues({});
+    final prefs = DatabaseCompactionPrefs(
+      await SharedPreferences.getInstance(),
+    );
+    await prefs.request();
+    var compacted = false;
+    DatabaseService.instance.compactFileOverride = (_, {keyHex}) async =>
+        compacted = true;
+    addTearDown(() => DatabaseService.instance.compactFileOverride = null);
+
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(dbPath),
+      compaction: prefs,
+    );
+
+    expect(compacted, isFalse, reason: 'the upgrade already rewrote the file');
+    expect(prefs.isRequested, isFalse);
   });
 
   test('a file already at the current version is not VACUUMed', () async {

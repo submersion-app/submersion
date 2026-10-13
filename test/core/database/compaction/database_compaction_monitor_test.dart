@@ -49,6 +49,19 @@ void main() {
     expect(reads, 0);
   });
 
+  test('a Cancel while measuring wins', () async {
+    final racing = DatabaseCompactionMonitor(
+      readSpace: () async {
+        // The diver taps Cancel on the Storage page mid-measurement.
+        await prefs.decline();
+        return _space(200, 60);
+      },
+      prefs: prefs,
+    );
+    expect(await racing.check(), isFalse);
+    expect(prefs.isRequested, isFalse);
+  });
+
   test('does not measure again once asked', () async {
     await prefs.request();
     expect(await monitor(_space(200, 60)).check(), isFalse);

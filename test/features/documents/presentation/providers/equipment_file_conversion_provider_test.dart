@@ -44,10 +44,12 @@ void main() {
     addTearDown(container.dispose);
   });
 
-  test('overlapping runs share one conversion', () async {
+  test('a call during a run queues exactly one more', () async {
     final run = container.read(equipmentFileConversionProvider);
-    await Future.wait([run(), run()]);
-    expect(fake.runs, 1);
+    // The launch pass is running when a sync (or two) finishes: the files
+    // that sync pulled need a pass of their own, but only one.
+    await Future.wait([run(), run(), run()]);
+    expect(fake.runs, 2);
   });
 
   test('a later run starts a new conversion', () async {
