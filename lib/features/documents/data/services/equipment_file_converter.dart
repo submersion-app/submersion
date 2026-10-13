@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
@@ -63,7 +64,7 @@ class EquipmentFileConverter {
   AppDatabase get _db => DatabaseService.instance.database;
 
   Future<EquipmentFileConversionResult> run() async {
-    final skipped = {...?_prefs.getStringList(skippedKey)};
+    final previouslyTooLarge = {...?_prefs.getStringList(skippedKey)};
     final rows = await _db
         .customSelect(
           'SELECT m.id, e.diver_id FROM media m '
@@ -73,20 +74,30 @@ class EquipmentFileConverter {
         .get();
     var converted = 0;
     var remaining = 0;
+    // Rebuilt from the rows still linked, so a deleted file's id drops out.
+    final tooLarge = <String>[];
     for (final r in rows) {
       final mediaId = r.read<String>('id');
       final diverId = r.readNullable<String>('diver_id');
+      if (previouslyTooLarge.contains(mediaId)) {
+        tooLarge.add(mediaId);
+        remaining++;
+        continue;
+      }
       try {
         final item = await _media.getMediaById(mediaId);
         if (item == null) continue;
-        final convertible =
-            diverId != null &&
-            !skipped.contains(mediaId) &&
-            _acceptedKind(_fileName(item));
-        if (convertible && await _convert(item, diverId, skipped)) {
-          converted++;
-        } else {
-          remaining++;
+        final outcome = diverId != null && _acceptedKind(_fileName(item))
+            ? await _convert(item, diverId)
+            : _Outcome.left;
+        switch (outcome) {
+          case _Outcome.converted:
+            converted++;
+          case _Outcome.tooLarge:
+            tooLarge.add(mediaId);
+            remaining++;
+          case _Outcome.left:
+            remaining++;
         }
       } catch (e, stackTrace) {
         remaining++;
@@ -97,7 +108,7 @@ class EquipmentFileConverter {
         );
       }
     }
-    await _prefs.setStringList(skippedKey, skipped.toList()..sort());
+    await _prefs.setStringList(skippedKey, tooLarge..sort());
     if (converted > 0) SyncEventBus.notifyLocalChange();
     return EquipmentFileConversionResult(converted, remaining);
   }
@@ -114,26 +125,38 @@ class EquipmentFileConverter {
         _ => false,
       };
 
-  /// True when [item] is now a library document (or already was one).
-  Future<bool> _convert(
-    MediaItem item,
-    String diverId,
-    Set<String> skipped,
-  ) async {
+  /// The size of [item] when it is known without reading it: the store's
+  /// record of an uploaded file, or a local file's length on disk. Null for
+  /// anything else (an Android content URI, a file not on this device).
+  static int? _knownSize(MediaItem item) {
+    if (item.contentSizeBytes case final size?) return size;
+    final path = item.filePath;
+    if (path == null || path.contains('://')) return null;
+    try {
+      final file = File(path);
+      return file.existsSync() ? file.lengthSync() : null;
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  Future<_Outcome> _convert(MediaItem item, String diverId) async {
     final docId = documentEquipmentFileId(item.id);
     if (await _documents.getById(docId) != null) {
       await _media.deleteMedia(item.id);
-      return true;
+      return _Outcome.converted;
+    }
+    // Checked before reading: an old link can be a PDF of hundreds of MB,
+    // and reading it whole only to refuse it could exhaust a phone's memory.
+    if ((_knownSize(item) ?? 0) > kMaxDocumentPageBytes) {
+      return _Outcome.tooLarge;
     }
     final bytes = await _readBytes(item);
-    if (bytes == null) return false;
+    if (bytes == null) return _Outcome.left;
     final name = _fileName(item);
     final verdict = checkDocumentFile(fileName: name, sizeBytes: bytes.length);
-    if (verdict is DocumentFileTooLarge) {
-      skipped.add(item.id);
-      return false;
-    }
-    if (verdict is! DocumentFileAccepted) return false;
+    if (verdict is DocumentFileTooLarge) return _Outcome.tooLarge;
+    if (verdict is! DocumentFileAccepted) return _Outcome.left;
     final now = DateTime.now();
     await _db.transaction(() async {
       await _documents.save(
@@ -164,6 +187,18 @@ class EquipmentFileConverter {
       );
       await _media.deleteMedia(item.id);
     });
-    return true;
+    return _Outcome.converted;
   }
+}
+
+/// What one gear file's conversion attempt came to.
+enum _Outcome {
+  /// Now a library document (or a peer's conversion already was).
+  converted,
+
+  /// Over the library's page cap: remembered, never read again.
+  tooLarge,
+
+  /// Not convertible here, or not yet: left linked, tried again next run.
+  left,
 }

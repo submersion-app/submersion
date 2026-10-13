@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -144,6 +146,50 @@ void main() {
     expect(doc!.title, 'Peer');
     expect(reads, isNot(contains('m1')));
     expect(await mediaIds(), isNot(contains('m1')));
+  });
+
+  test('a file known to be too large is skipped without reading it', () async {
+    await db.customStatement(
+      'INSERT INTO media (id, equipment_id, file_path, original_filename, '
+      'file_type, content_size_bytes, created_at, updated_at) VALUES '
+      "('m6', 'e1', '/x/Big.pdf', 'Big.pdf', 'document', ${50 * 1024 * 1024}, 0, 0)",
+    );
+    await converter().run();
+    expect(reads, isNot(contains('m6')));
+    expect(
+      prefs.getStringList(EquipmentFileConverter.skippedKey),
+      containsAll(['m4', 'm6']),
+    );
+  });
+
+  test('a large local file is skipped from its size on disk', () async {
+    final dir = await Directory.systemTemp.createTemp('gear_file_');
+    addTearDown(() => dir.delete(recursive: true));
+    final path = p.join(dir.path, 'Manual.pdf');
+    final raf = await File(path).open(mode: FileMode.write);
+    await raf.setPosition(11 * 1024 * 1024);
+    await raf.writeByte(0);
+    await raf.close();
+    await db.customStatement(
+      'INSERT INTO media (id, equipment_id, file_path, original_filename, '
+      'file_type, created_at, updated_at) VALUES '
+      "('m7', 'e1', ?, 'Manual.pdf', 'document', 0, 0)",
+      [path],
+    );
+    await converter().run();
+    expect(reads, isNot(contains('m7')));
+    expect(
+      prefs.getStringList(EquipmentFileConverter.skippedKey),
+      contains('m7'),
+    );
+  });
+
+  test('the skip list forgets files that are gone', () async {
+    await prefs.setStringList(EquipmentFileConverter.skippedKey, [
+      'deleted-long-ago',
+    ]);
+    await converter().run();
+    expect(prefs.getStringList(EquipmentFileConverter.skippedKey), ['m4']);
   });
 
   test('a second run is a no-op', () async {

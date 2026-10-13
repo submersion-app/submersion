@@ -35,11 +35,10 @@ final equipmentFileConversionProvider =
             equipmentFileConverterFactoryProvider,
           )();
           final result = await converter.run();
-          // Converting copies files into the database; the media rows it
-          // drops leave free pages behind.
-          if (result.converted > 0) {
-            await ref.read(databaseCompactionMonitorProvider)();
-          }
+          // Then the look at free space this run's callers (launch, sync)
+          // want; three pragmas, so every run rather than only converting
+          // ones, and the one place it is wired.
+          await ref.read(databaseCompactionMonitorProvider)();
           return result;
         } on Object catch (e, stackTrace) {
           LoggerService.forClass(EquipmentFileConverter).warning(

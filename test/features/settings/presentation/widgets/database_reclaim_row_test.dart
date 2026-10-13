@@ -100,6 +100,13 @@ void main() {
     expect(quits, 1);
   });
 
+  testWidgets('a scheduled compaction stays visible below 1 MB', (t) async {
+    await prefs.request();
+    await pumpRow(t, space: () async => _space(400, 0));
+    expect(find.text('Scheduled for next launch'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Cancel'), findsOneWidget);
+  });
+
   testWidgets('under 1 MB free shows nothing', (t) async {
     await pumpRow(t, space: () async => _space(400, 0));
     expect(find.textContaining('reclaimable'), findsNothing);

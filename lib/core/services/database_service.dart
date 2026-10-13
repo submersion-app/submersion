@@ -347,7 +347,7 @@ class DatabaseService {
       lastOpenMode = DatabaseOpenMode.background;
     }
 
-    if (compaction != null && compaction.isRequested) {
+    if (compaction != null) {
       await _compactAsRequested(dbPath, keyHex, compaction, onCompacting, (
         alreadyVacuumed: !vacuumTicket,
       ));
@@ -369,7 +369,9 @@ class DatabaseService {
   /// part way leaves a correct database, and the next launch must not walk
   /// straight back into it. A failure (a busy lock, too little room for the
   /// rewrite's copy) is logged and holds automatic requests off for a while;
-  /// the database is correct, only larger than it needs to be.
+  /// the database is correct, only larger than it needs to be. Nothing here
+  /// may stop the open: compaction is an optimization, so a preferences
+  /// failure skips it.
   Future<void> _compactAsRequested(
     String dbPath,
     String? keyHex,
@@ -377,7 +379,17 @@ class DatabaseService {
     void Function()? onCompacting,
     ({bool alreadyVacuumed}) ladder,
   ) async {
-    await compaction.cancel();
+    try {
+      if (!compaction.isRequested) return;
+      await compaction.cancel();
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not read the compaction request; not compacting',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
     // The upgrade ladder's own VACUUM at this open already did the work.
     if (ladder.alreadyVacuumed) return;
     onCompacting?.call();
@@ -387,7 +399,11 @@ class DatabaseService {
         keyHex: keyHex,
       );
     } catch (e, stackTrace) {
-      await compaction.recordFailure();
+      try {
+        await compaction.recordFailure();
+      } catch (_) {
+        // Logged below; a missed backoff only means another attempt.
+      }
       _log.warning(
         'Requested compaction skipped; the database is correct but keeps '
         'its free pages',

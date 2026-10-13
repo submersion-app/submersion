@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/data/services/equipment_file_converter.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
@@ -24,12 +25,17 @@ class _CountingConverter extends EquipmentFileConverter {
 void main() {
   late _CountingConverter fake;
   late ProviderContainer container;
+  var checks = 0;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     fake = _CountingConverter(await SharedPreferences.getInstance());
+    checks = 0;
     container = ProviderContainer(
       overrides: [
+        databaseCompactionMonitorProvider.overrideWithValue(
+          () async => checks++,
+        ),
         equipmentFileConverterFactoryProvider.overrideWithValue(
           () async => fake,
         ),
@@ -50,6 +56,14 @@ void main() {
     await run();
     expect(fake.runs, 2);
   });
+
+  test(
+    'each run then checks free space, even one that converted none',
+    () async {
+      await container.read(equipmentFileConversionProvider)();
+      expect(checks, 1);
+    },
+  );
 
   test('a failure is contained and reported as null', () async {
     fake.failWith = StateError('disk');

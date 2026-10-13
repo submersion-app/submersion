@@ -88,15 +88,15 @@ class _DatabaseReclaimRowState extends ConsumerState<DatabaseReclaimRow> {
     final theme = Theme.of(context);
     final space = ref.watch(databaseSpaceProvider).value;
     final prefs = ref.watch(databaseCompactionPrefsProvider).value;
-    if (space == null ||
-        prefs == null ||
-        space.reclaimableBytes < _minimumShownBytes) {
+    if (space == null || prefs == null) return const SizedBox.shrink();
+    final scheduled = prefs.isRequested;
+    // A scheduled compaction always shows, so it can still be cancelled.
+    if (!scheduled && space.reclaimableBytes < _minimumShownBytes) {
       return const SizedBox.shrink();
     }
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
-    final scheduled = prefs.isRequested;
     return Padding(
       key: const ValueKey('database-reclaim-row'),
       padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),

@@ -1632,9 +1632,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
         if (!mounted) return false;
         // Gear files a peer linked, or that only became readable here once
         // this sync fetched their store copy, move into Documents (#3333).
-        // Contains its own failures, like the backfills above.
-        await _ref.read(equipmentFileConversionProvider)();
-        if (!mounted) return false;
+        // Outside the flight: it may download and copy files, and nothing
+        // in this sync waits on it. Contains its own failures.
+        unawaited(_ref.read(equipmentFileConversionProvider)());
       } else {
         state = state.copyWith(
           status: SyncStatus.error,

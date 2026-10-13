@@ -11,7 +11,6 @@ import 'package:submersion/features/media/data/services/document_import_service.
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
-import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
@@ -88,13 +87,13 @@ class DocumentOpenHelper {
   }
 
   /// Opens the document picker and attaches the selection to exactly one
-  /// of [diveId] / [siteId] / [equipmentId] by reference.
+  /// of [diveId] / [siteId] by reference. Gear paperwork goes to the
+  /// Documents library instead (issue #3333).
   static Future<void> pickAndAttach({
     required BuildContext context,
     required WidgetRef ref,
     String? diveId,
     String? siteId,
-    String? equipmentId,
   }) async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -144,7 +143,6 @@ class DocumentOpenHelper {
         picked: picked,
         diveId: diveId,
         siteId: siteId,
-        equipmentId: equipmentId,
       );
       if (siteId != null) {
         ref.invalidate(mediaForSiteProvider(siteId));
@@ -153,10 +151,6 @@ class DocumentOpenHelper {
       if (diveId != null) {
         ref.invalidate(mediaForDiveProvider(diveId));
         ref.invalidate(mediaCountForDiveProvider(diveId));
-      }
-      if (equipmentId != null) {
-        ref.invalidate(mediaForEquipmentProvider(equipmentId));
-        ref.invalidate(mediaCountForEquipmentProvider(equipmentId));
       }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

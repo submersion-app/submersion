@@ -35,6 +35,16 @@ class _FakePathProvider extends PathProviderPlatform
   Future<String?> getApplicationDocumentsPath() async => docsPath;
 }
 
+class _BrokenPrefs extends DatabaseCompactionPrefs {
+  _BrokenPrefs(super.prefs);
+
+  @override
+  bool get isRequested => true;
+
+  @override
+  Future<void> cancel() => throw StateError('prefs unavailable');
+}
+
 /// A compaction requested while the app ran happens at the next launch,
 /// before the background connection opens the file (issue #3333).
 void main() {
@@ -116,6 +126,15 @@ void main() {
     await DatabaseService.instance.close(strict: true);
     expect(prefs.isRequested, isTrue);
     expect(fileBytes(), greaterThanOrEqualTo(before));
+  });
+
+  test('a preferences failure never stops the database opening', () async {
+    await prefs.request();
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(dbPath),
+      compaction: _BrokenPrefs(await SharedPreferences.getInstance()),
+    );
+    expect(() => DatabaseService.instance.database, returnsNormally);
   });
 
   test('a failure records the backoff and the database still opens', () async {
