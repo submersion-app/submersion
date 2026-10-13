@@ -20502,6 +20502,34 @@ class AppLocalizationsHe extends AppLocalizations {
       'תיקיית ספרייה אינה יכולה להתחיל ב-sites, ‏members, ‏suggestions או backups.';
 
   @override
+  String get sharedLibrary_setup_title => 'איך להגדיר את האחסון';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'הספרייה הזו נמצאת ב-$folder בראש ה-bucket או השרת, לצד submersion-sync ו-submersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'תנו לבעלים ולעורכים מפתחות שקוראים וכותבים בתיקיית הספרייה. תנו לכל השאר מפתחות שקוראים אותה וכותבים רק ב-members/ וב-suggestions/. האחסון, ולא האפליקציה, הוא שמונע ממפתח לכתוב.';
+
+  @override
+  String get sharedLibrary_setup_s3Full => 'מדיניות S3 לבעלים ולעורכים';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'מדיניות S3 לקוראים';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: שתפו את התיקייה לקריאה בלבד עם הקוראים, ואת members/ ו-suggestions/ לכתיבה היכן שהשרת מאפשר זאת (למשל הרשאות שיתוף ב-Nextcloud).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'העתקה';
+
+  @override
+  String get sharedLibrary_setup_copied => 'המדיניות הועתקה';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

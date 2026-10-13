@@ -20835,6 +20835,35 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een bibliotheekmap kan niet beginnen met sites, members, suggestions of backups.';
 
   @override
+  String get sharedLibrary_setup_title => 'Opslag instellen';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'Deze bibliotheek staat in $folder bovenaan de bucket of server, naast submersion-sync en submersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'Geef eigenaars en redacteuren sleutels die de bibliotheekmap lezen en schrijven. Geef alle anderen sleutels die haar lezen en alleen in members/ en suggestions/ schrijven. De opslag, niet de app, houdt een sleutel tegen bij het schrijven.';
+
+  @override
+  String get sharedLibrary_setup_s3Full =>
+      'S3-beleid voor eigenaars en redacteuren';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'S3-beleid voor lezers';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: deel de map alleen-lezen met lezers, en members/ en suggestions/ schrijfbaar waar je server dat toestaat (bijvoorbeeld deelrechten in Nextcloud).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'Kopiëren';
+
+  @override
+  String get sharedLibrary_setup_copied => 'Beleid gekopieerd';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override

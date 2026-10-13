@@ -361,6 +361,20 @@ void main() {
     expect(find.text('keychain locked'), findsOneWidget);
   });
 
+  testWidgets('the storage guide opens for the typed folder', (tester) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
+    await tester.tap(find.text('How to set up storage'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('submersion-sites/reef/'), findsWidgets);
+  });
+
   testWidgets('the folder field sits above the account picker', (tester) async {
     await tester.pumpWidget(
       _connectApp(await getBaseOverrides(), () => [_bucket()]),

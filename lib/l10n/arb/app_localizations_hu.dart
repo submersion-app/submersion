@@ -20900,6 +20900,35 @@ class AppLocalizationsHu extends AppLocalizations {
       'A könyvtármappa nem kezdődhet így: sites, members, suggestions vagy backups.';
 
   @override
+  String get sharedLibrary_setup_title => 'A tárhely beállítása';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'Ez a könyvtár itt található: $folder, a bucket vagy a szerver legfelső szintjén, a submersion-sync és a submersion-media mellett.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'A tulajdonosok és a szerkesztők olyan kulcsot kapjanak, amely olvassa és írja a könyvtár mappáját. Mindenki más olyat, amely olvassa, és csak a members/ és a suggestions/ mappába ír. Nem az alkalmazás, hanem a tárhely akadályozza meg, hogy egy kulcs írjon.';
+
+  @override
+  String get sharedLibrary_setup_s3Full =>
+      'S3-szabályzat tulajdonosoknak és szerkesztőknek';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'S3-szabályzat olvasóknak';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: az olvasókkal csak olvasásra oszd meg a mappát, a members/ és a suggestions/ mappát pedig írhatóként, ahol a szervered ezt engedi (például a Nextcloud megosztási jogosultságaival).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'Másolás';
+
+  @override
+  String get sharedLibrary_setup_copied => 'Szabályzat másolva';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

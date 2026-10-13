@@ -33581,6 +33581,54 @@ abstract class AppLocalizations {
   /// **'A library folder cannot start with sites, members, suggestions or backups.'**
   String get sharedLibrary_connect_reservedFolder;
 
+  /// No description provided for @sharedLibrary_setup_title.
+  ///
+  /// In en, this message translates to:
+  /// **'How to set up storage'**
+  String get sharedLibrary_setup_title;
+
+  /// No description provided for @sharedLibrary_setup_where.
+  ///
+  /// In en, this message translates to:
+  /// **'This library lives in {folder} at the top of the bucket or server, beside submersion-sync and submersion-media.'**
+  String sharedLibrary_setup_where(String folder);
+
+  /// No description provided for @sharedLibrary_setup_keys.
+  ///
+  /// In en, this message translates to:
+  /// **'Give owners and editors keys that read and write the library folder. Give everyone else keys that read it and write only members/ and suggestions/. The storage, not the app, is what stops a key from writing.'**
+  String get sharedLibrary_setup_keys;
+
+  /// No description provided for @sharedLibrary_setup_s3Full.
+  ///
+  /// In en, this message translates to:
+  /// **'S3 policy for owners and editors'**
+  String get sharedLibrary_setup_s3Full;
+
+  /// No description provided for @sharedLibrary_setup_s3Reader.
+  ///
+  /// In en, this message translates to:
+  /// **'S3 policy for readers'**
+  String get sharedLibrary_setup_s3Reader;
+
+  /// No description provided for @sharedLibrary_setup_webdav.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV: share the folder read-only with readers, and members/ and suggestions/ writable where your server allows it (for example Nextcloud share permissions).'**
+  String get sharedLibrary_setup_webdav;
+
+  /// No description provided for @sharedLibrary_setup_copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get sharedLibrary_setup_copy;
+
+  /// No description provided for @sharedLibrary_setup_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy copied'**
+  String get sharedLibrary_setup_copied;
+
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
   /// In en, this message translates to:

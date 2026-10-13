@@ -21031,6 +21031,35 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un dossier de bibliothèque ne peut pas commencer par sites, members, suggestions ou backups.';
 
   @override
+  String get sharedLibrary_setup_title => 'Comment configurer le stockage';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'Cette bibliothèque se trouve dans $folder, à la racine du bucket ou du serveur, à côté de submersion-sync et submersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'Donnez aux propriétaires et aux éditeurs des clés qui lisent et écrivent le dossier de la bibliothèque. Donnez aux autres des clés qui le lisent et n\'écrivent que dans members/ et suggestions/. C\'est le stockage, et non l\'application, qui empêche une clé d\'écrire.';
+
+  @override
+  String get sharedLibrary_setup_s3Full =>
+      'Stratégie S3 pour les propriétaires et les éditeurs';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'Stratégie S3 pour les lecteurs';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV : partagez le dossier en lecture seule avec les lecteurs, et members/ et suggestions/ en écriture là où votre serveur le permet (par exemple les autorisations de partage de Nextcloud).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'Copier';
+
+  @override
+  String get sharedLibrary_setup_copied => 'Stratégie copiée';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
 
   @override

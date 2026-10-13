@@ -19932,6 +19932,34 @@ class AppLocalizationsZh extends AppLocalizations {
       '资料库文件夹不能以 sites、members、suggestions 或 backups 开头。';
 
   @override
+  String get sharedLibrary_setup_title => '如何设置存储';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return '此资料库位于存储桶或服务器顶层的 $folder，与 submersion-sync 和 submersion-media 并列。';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      '给所有者和编辑者可读写资料库文件夹的密钥。给其他人只能读取该文件夹、且只能写入 members/ 和 suggestions/ 的密钥。阻止密钥写入的是存储，而不是应用。';
+
+  @override
+  String get sharedLibrary_setup_s3Full => '所有者和编辑者的 S3 策略';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => '读者的 S3 策略';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV：以只读方式向读者共享该文件夹，并在服务器允许的情况下让 members/ 和 suggestions/ 可写（例如 Nextcloud 的共享权限）。';
+
+  @override
+  String get sharedLibrary_setup_copy => '复制';
+
+  @override
+  String get sharedLibrary_setup_copied => '策略已复制';
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

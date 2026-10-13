@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/widgets/webdav_server_
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/storage_setup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Connect a shared site library (issue #2567): pick an S3 or WebDAV account,
@@ -151,16 +152,48 @@ class _ConnectSharedLibraryPageState
 
   Widget _folderField() {
     final l10n = context.l10n;
-    return TextField(
-      key: const Key('library-prefix'),
-      controller: _prefix,
-      decoration: InputDecoration(
-        labelText: l10n.sharedLibrary_connect_prefix_label,
-        helperText: l10n.sharedLibrary_connect_prefix_help,
-        helperMaxLines: 3,
-      ),
-      onChanged: (_) => setState(() => _probe = null),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          key: const Key('library-prefix'),
+          controller: _prefix,
+          decoration: InputDecoration(
+            labelText: l10n.sharedLibrary_connect_prefix_label,
+            helperText: l10n.sharedLibrary_connect_prefix_help,
+            helperMaxLines: 3,
+          ),
+          onChanged: (_) => setState(() => _probe = null),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            icon: const Icon(Icons.help_outline),
+            label: Text(l10n.sharedLibrary_setup_title),
+            onPressed: () => showStorageSetupSheet(
+              context,
+              bucket: _bucketForGuide(),
+              folder: _prefix.text,
+            ),
+          ),
+        ),
+      ],
     );
+  }
+
+  /// The bucket the example policies name: the one being typed in, or the
+  /// selected S3 account's (its label starts with it), else a placeholder.
+  String _bucketForGuide() {
+    if (_addingAccount && _newKind == AccountKind.s3) {
+      final typed = _s3.bucket.text.trim();
+      if (typed.isNotEmpty) return typed;
+    }
+    final account = _account;
+    if (account != null && account.kind == AccountKind.s3) {
+      final bucket = account.label.split(' @ ').first.trim();
+      if (bucket.isNotEmpty) return bucket;
+    }
+    return 'your-bucket';
   }
 
   /// Why the typed folder cannot hold a library, or null when it can.

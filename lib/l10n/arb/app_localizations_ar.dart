@@ -21239,6 +21239,34 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن أن يبدأ مجلد المكتبة بـ sites أو members أو suggestions أو backups.';
 
   @override
+  String get sharedLibrary_setup_title => 'كيفية إعداد التخزين';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'توجد هذه المكتبة في $folder في أعلى الحاوية أو الخادم، بجانب submersion-sync وsubmersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'امنح المالكين والمحررين مفاتيح تقرأ مجلد المكتبة وتكتب فيه. وامنح الآخرين مفاتيح تقرؤه ولا تكتب إلا في members/ وsuggestions/. التخزين، لا التطبيق، هو ما يمنع المفتاح من الكتابة.';
+
+  @override
+  String get sharedLibrary_setup_s3Full => 'سياسة S3 للمالكين والمحررين';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'سياسة S3 للقراء';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: شارك المجلد للقراءة فقط مع القراء، واجعل members/ وsuggestions/ قابلين للكتابة حيث يسمح خادمك بذلك (مثل أذونات المشاركة في Nextcloud).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'نسخ';
+
+  @override
+  String get sharedLibrary_setup_copied => 'تم نسخ السياسة';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

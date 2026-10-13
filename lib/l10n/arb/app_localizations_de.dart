@@ -20945,6 +20945,35 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein Bibliotheksordner darf nicht mit sites, members, suggestions oder backups beginnen.';
 
   @override
+  String get sharedLibrary_setup_title => 'So richten Sie den Speicher ein';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'Diese Bibliothek liegt in $folder auf der obersten Ebene des Buckets oder Servers, neben submersion-sync und submersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'Geben Sie Eigentümern und Bearbeitern Schlüssel, die den Bibliotheksordner lesen und schreiben. Geben Sie allen anderen Schlüssel, die ihn lesen und nur in members/ und suggestions/ schreiben. Der Speicher, nicht die App, verhindert, dass ein Schlüssel schreibt.';
+
+  @override
+  String get sharedLibrary_setup_s3Full =>
+      'S3-Richtlinie für Eigentümer und Bearbeiter';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'S3-Richtlinie für Leser';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: Geben Sie den Ordner für Leser schreibgeschützt frei und members/ und suggestions/ beschreibbar, wo Ihr Server das erlaubt (zum Beispiel Freigabeberechtigungen in Nextcloud).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'Kopieren';
+
+  @override
+  String get sharedLibrary_setup_copied => 'Richtlinie kopiert';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Prüfen';
 
   @override

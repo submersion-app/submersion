@@ -20657,6 +20657,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'A library folder cannot start with sites, members, suggestions or backups.';
 
   @override
+  String get sharedLibrary_setup_title => 'How to set up storage';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'This library lives in $folder at the top of the bucket or server, beside submersion-sync and submersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'Give owners and editors keys that read and write the library folder. Give everyone else keys that read it and write only members/ and suggestions/. The storage, not the app, is what stops a key from writing.';
+
+  @override
+  String get sharedLibrary_setup_s3Full => 'S3 policy for owners and editors';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'S3 policy for readers';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: share the folder read-only with readers, and members/ and suggestions/ writable where your server allows it (for example Nextcloud share permissions).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'Copy';
+
+  @override
+  String get sharedLibrary_setup_copied => 'Policy copied';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Check';
 
   @override

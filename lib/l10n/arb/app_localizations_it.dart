@@ -20969,6 +20969,36 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una cartella di libreria non può iniziare con sites, members, suggestions o backups.';
 
   @override
+  String get sharedLibrary_setup_title =>
+      'Come configurare lo spazio di archiviazione';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'Questa libreria si trova in $folder, alla radice del bucket o del server, accanto a submersion-sync e submersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'Dai a proprietari ed editor chiavi che leggono e scrivono la cartella della libreria. Dai a tutti gli altri chiavi che la leggono e scrivono solo in members/ e suggestions/. È lo spazio di archiviazione, non l\'app, a impedire a una chiave di scrivere.';
+
+  @override
+  String get sharedLibrary_setup_s3Full =>
+      'Policy S3 per proprietari ed editor';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'Policy S3 per i lettori';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: condividi la cartella in sola lettura con i lettori, e members/ e suggestions/ in scrittura dove il server lo consente (ad esempio i permessi di condivisione di Nextcloud).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'Copia';
+
+  @override
+  String get sharedLibrary_setup_copied => 'Policy copiata';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
 
   @override

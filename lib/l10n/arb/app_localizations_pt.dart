@@ -20972,6 +20972,35 @@ class AppLocalizationsPt extends AppLocalizations {
       'Uma pasta de biblioteca não pode começar por sites, members, suggestions ou backups.';
 
   @override
+  String get sharedLibrary_setup_title => 'Como configurar o armazenamento';
+
+  @override
+  String sharedLibrary_setup_where(String folder) {
+    return 'Esta biblioteca fica em $folder, no topo do bucket ou do servidor, ao lado de submersion-sync e submersion-media.';
+  }
+
+  @override
+  String get sharedLibrary_setup_keys =>
+      'Dê aos proprietários e editores chaves que leiam e escrevam na pasta da biblioteca. Dê a todos os outros chaves que a leiam e só escrevam em members/ e suggestions/. É o armazenamento, e não a app, que impede uma chave de escrever.';
+
+  @override
+  String get sharedLibrary_setup_s3Full =>
+      'Política S3 para proprietários e editores';
+
+  @override
+  String get sharedLibrary_setup_s3Reader => 'Política S3 para leitores';
+
+  @override
+  String get sharedLibrary_setup_webdav =>
+      'WebDAV: partilhe a pasta só de leitura com os leitores, e members/ e suggestions/ com escrita onde o seu servidor o permitir (por exemplo, as permissões de partilha do Nextcloud).';
+
+  @override
+  String get sharedLibrary_setup_copy => 'Copiar';
+
+  @override
+  String get sharedLibrary_setup_copied => 'Política copiada';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override
