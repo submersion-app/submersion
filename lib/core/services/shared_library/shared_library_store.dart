@@ -342,6 +342,8 @@ class SharedLibraryStore {
               memberId: m.memberId,
               displayName: m.displayName,
               joinedAt: m.joinedAt.millisecondsSinceEpoch,
+              publicKey: Value(m.publicKey),
+              cardVerified: Value(m.cardVerified),
             ),
         ]),
       );
@@ -363,6 +365,8 @@ class SharedLibraryStore {
             r.joinedAt,
             isUtc: true,
           ),
+          publicKey: r.publicKey,
+          cardVerified: r.cardVerified,
         ),
     ];
   }

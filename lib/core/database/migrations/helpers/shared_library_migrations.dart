@@ -28,6 +28,11 @@ extension SharedLibraryMigrations on AppDatabase {
       'library_key_id': 'TEXT',
       'library_key': 'TEXT',
     });
+    await _addMissingColumns('shared_library_members', {
+      'public_key': 'TEXT',
+      'card_verified':
+          'INTEGER NOT NULL DEFAULT 0 CHECK ("card_verified" IN (0, 1))',
+    });
     await _addMissingColumns('shared_libraries', {
       'roles_rejected':
           'INTEGER NOT NULL DEFAULT 0 CHECK ("roles_rejected" IN (0, 1))',

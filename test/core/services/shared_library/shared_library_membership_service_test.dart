@@ -228,6 +228,82 @@ void main() {
     expect(await SharedLibraryStore().getLibrary('L'), isNull);
   });
 
+  Future<(SharedLibrary, SharedLibraryMembership, SharedLibraryMembership)>
+  ownerAndJoiner() async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await _diver('d2');
+    await service.join(
+      account: account,
+      prefix: 'site-sync',
+      diverId: 'd2',
+      displayName: 'Bo',
+    );
+    final ann = (await SharedLibraryStore().membership(
+      diverId: 'd1',
+      libraryId: lib.id,
+    ))!;
+    final bo = (await SharedLibraryStore().membership(
+      diverId: 'd2',
+      libraryId: lib.id,
+    ))!;
+    return (lib, ann, bo);
+  }
+
+  test('an owner approves a member\'s key', () async {
+    final (lib, ann, bo) = await ownerAndJoiner();
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final card = (await t.listMembers()).singleWhere(
+      (m) => m.memberId == bo.memberId,
+    );
+    expect(isApprovedMember(card, await t.readRoles()), isFalse);
+    await service.approveMember(
+      libraryId: lib.id,
+      memberId: bo.memberId,
+      actingMemberId: ann.memberId,
+    );
+    final roles = await t.readRoles();
+    expect(roles.approvedKeys[bo.memberId], bo.signingKey!.publicKey);
+    expect(isApprovedMember(card, roles), isTrue);
+  });
+
+  test('only an owner approves', () async {
+    final (lib, _, bo) = await ownerAndJoiner();
+    await expectLater(
+      service.approveMember(
+        libraryId: lib.id,
+        memberId: bo.memberId,
+        actingMemberId: bo.memberId,
+      ),
+      throwsStateError,
+    );
+  });
+
+  test('rejecting removes the card and any approval', () async {
+    final (lib, ann, bo) = await ownerAndJoiner();
+    await service.approveMember(
+      libraryId: lib.id,
+      memberId: bo.memberId,
+      actingMemberId: ann.memberId,
+    );
+    await service.rejectMember(
+      libraryId: lib.id,
+      memberId: bo.memberId,
+      actingMemberId: ann.memberId,
+    );
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    expect(
+      (await t.listMembers()).map((m) => m.memberId),
+      isNot(contains(bo.memberId)),
+    );
+    expect((await t.readRoles()).approvedKeys, isNot(contains(bo.memberId)));
+  });
+
   test('join reads the folder through one transport', () async {
     final folder = SharedLibraryTransport(cloud, prefix: 'site-sync');
     await folder.writeManifest({

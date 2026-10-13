@@ -188,10 +188,11 @@ class SharedLibraryMembershipService {
       recovery: RolesRecovery.fromJson(recovery.toRolesJson()),
     ).signed(signedBy: memberId, key: myKey);
     await t.writeRoles(roles);
-    final me = SharedLibraryMember(
+    final me = await SharedLibraryMember.signed(
       memberId: memberId,
       displayName: displayName,
       joinedAt: now,
+      key: myKey,
     );
     await t.writeMember(me, appVersion: _appVersion);
     final library = SharedLibrary(
@@ -251,10 +252,15 @@ class SharedLibraryMembershipService {
     for (final m in members) {
       if (m.memberId == memberId) mine = m;
     }
-    final me = SharedLibraryMember(
+    // The profile's key, or a new one stored with the membership below.
+    final myKey =
+        await _store.signingKeyForDiver(diverId) ??
+        await LibrarySigner.generate();
+    final me = await SharedLibraryMember.signed(
       memberId: memberId,
       displayName: displayName,
       joinedAt: mine?.joinedAt ?? DateTime.now().toUtc(),
+      key: myKey,
     );
     try {
       await t.writeMember(me, appVersion: _appVersion);
@@ -288,6 +294,7 @@ class SharedLibraryMembershipService {
       displayName: displayName,
       account: account,
       prefix: prefix,
+      signingKey: myKey,
     );
     await _store.upsertMembership(
       existing == null
@@ -297,6 +304,7 @@ class SharedLibraryMembershipService {
               libraryName: name,
               backendKind: fresh.backendKind,
               locationHint: fresh.locationHint,
+              signingKey: myKey,
             ),
     );
     await _store.upsertLibrary(library);
@@ -305,7 +313,6 @@ class SharedLibraryMembershipService {
         if (m.memberId != memberId) m,
       me,
     ]);
-    await _store.ensureSigningKey(diverId);
     return library;
   }
 
@@ -453,10 +460,11 @@ class SharedLibraryMembershipService {
     for (final m in members) {
       if (m.memberId == membership.memberId) mine = m;
     }
-    final me = SharedLibraryMember(
+    final me = await SharedLibraryMember.signed(
       memberId: membership.memberId,
       displayName: displayName,
       joinedAt: mine?.joinedAt ?? DateTime.now().toUtc(),
+      key: await _store.ensureSigningKey(diverId),
     );
     final t = await transportForLibrary(library);
     await t.writeMember(me, appVersion: _appVersion);
@@ -521,6 +529,73 @@ class SharedLibraryMembershipService {
       }
     }
     throw StateError('$memberId is no member of $libraryId on this device');
+  }
+
+  /// Owners only: approves the key on [memberId]'s card, so its edits and
+  /// suggestions count from the next sync of every member (issue #2567).
+  Future<void> approveMember({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) async {
+    final (library, t, roles) = await _asOwner(libraryId, actingMemberId);
+    SharedLibraryMember? card;
+    for (final m in await t.listMembers()) {
+      if (m.memberId == memberId) card = m;
+    }
+    if (card == null || !card.cardVerified || card.publicKey == null) {
+      throw StateError('no genuine card for $memberId in $libraryId');
+    }
+    await writeSignedRoles(
+      library,
+      t,
+      roles.copyWith(
+        approvedKeys: {...roles.approvedKeys, memberId: card.publicKey!},
+      ),
+      signer: actingMemberId,
+    );
+    await _store.replaceMembers(libraryId, await t.listMembers());
+  }
+
+  /// Owners only: removes [memberId]'s card and any approval and role, so
+  /// nothing it wrote counts. Only new storage keys stop the member from
+  /// writing files at all.
+  Future<void> rejectMember({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) async {
+    final (library, t, roles) = await _asOwner(libraryId, actingMemberId);
+    if (roles.owners.contains(memberId) && roles.owners.length == 1) {
+      throw LastOwnerDemoteError(libraryId);
+    }
+    await t.deleteMember(memberId);
+    final keys = {...roles.approvedKeys}..remove(memberId);
+    await writeSignedRoles(
+      library,
+      t,
+      roles
+          .withRole(memberId, SharedLibraryRole.reader)
+          .copyWith(approvedKeys: keys),
+      signer: actingMemberId,
+    );
+    await _store.replaceMembers(libraryId, await t.listMembers());
+  }
+
+  /// The library, its transport and its current roles, when
+  /// [actingMemberId] is an owner in them.
+  Future<(SharedLibrary, SharedLibraryTransport, SharedLibraryRoles)> _asOwner(
+    String libraryId,
+    String actingMemberId,
+  ) async {
+    final library = await _store.getLibrary(libraryId);
+    if (library == null) throw StateError('library $libraryId not connected');
+    final t = await transportForLibrary(library);
+    final roles = await currentRoles(library, t);
+    if (roles.roleOf(actingMemberId) != SharedLibraryRole.owner) {
+      throw StateError('only an owner manages members');
+    }
+    return (library, t, roles);
   }
 
   /// Owners only: rewrites roles.json. [actingMemberId] must hold the owner

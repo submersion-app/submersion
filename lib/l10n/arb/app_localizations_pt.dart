@@ -21016,6 +21016,39 @@ class AppLocalizationsPt extends AppLocalizations {
       'O ficheiro de funções foi alterado por alguém que não é proprietário. Este dispositivo mantém as últimas funções assinadas por um proprietário.';
 
   @override
+  String get sharedLibrary_members_pending => 'A aguardar aprovação';
+
+  @override
+  String get sharedLibrary_members_approve => 'Aprovar';
+
+  @override
+  String get sharedLibrary_members_reject => 'Rejeitar';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Chave $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'Cartão não assinado pelo membro';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return 'Rejeitar $name?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'O cartão é removido e nada do que escrever conta. Só novas chaves de armazenamento impedem que escreva ficheiros.';
+
+  @override
+  String get sharedLibrary_members_left => 'Saíram da biblioteca';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Remover função';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override

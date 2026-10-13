@@ -516,6 +516,26 @@ void main() {
     expect(library.roles.roleOf('b'), SharedLibraryRole.editor);
     expect(library.rolesRejected, isFalse);
   });
+
+  test("a member's own card carries their key and verifies", () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud);
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    // An unsigned card from before, as an older build wrote it.
+    await t.writeMember(
+      SharedLibraryMember(
+        memberId: 'b',
+        displayName: 'b',
+        joinedAt: DateTime.utc(2026),
+      ),
+      appVersion: '0',
+    );
+    final svc = await device(cloud, 'b');
+    await svc.sync('L', diverId: 'd-b');
+    final card = (await t.listMembers()).singleWhere((m) => m.memberId == 'b');
+    expect(card.cardVerified, isTrue);
+    expect(card.publicKey, (await testMemberKey('b')).publicKey);
+  });
 }
 
 /// Runs [beforeSiteUpload] once before the next site upload, and refuses

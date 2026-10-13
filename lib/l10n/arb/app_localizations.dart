@@ -33653,6 +33653,60 @@ abstract class AppLocalizations {
   /// **'The roles file was changed by someone who is not an owner. This device keeps the last roles an owner signed.'**
   String get sharedLibrary_roles_rejected;
 
+  /// No description provided for @sharedLibrary_members_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for approval'**
+  String get sharedLibrary_members_pending;
+
+  /// No description provided for @sharedLibrary_members_approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get sharedLibrary_members_approve;
+
+  /// No description provided for @sharedLibrary_members_reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get sharedLibrary_members_reject;
+
+  /// No description provided for @sharedLibrary_members_fingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Key {fingerprint}'**
+  String sharedLibrary_members_fingerprint(String fingerprint);
+
+  /// No description provided for @sharedLibrary_members_unsignedCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card not signed by its member'**
+  String get sharedLibrary_members_unsignedCard;
+
+  /// No description provided for @sharedLibrary_members_rejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject {name}?'**
+  String sharedLibrary_members_rejectTitle(String name);
+
+  /// No description provided for @sharedLibrary_members_rejectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their card is removed and nothing they write counts. Only new storage keys stop them from writing files at all.'**
+  String get sharedLibrary_members_rejectBody;
+
+  /// No description provided for @sharedLibrary_members_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left the library'**
+  String get sharedLibrary_members_left;
+
+  /// No description provided for @sharedLibrary_members_removeRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove role'**
+  String get sharedLibrary_members_removeRole;
+
   /// No description provided for @sharedLibrary_connect_probe_action.
   ///
   /// In en, this message translates to:

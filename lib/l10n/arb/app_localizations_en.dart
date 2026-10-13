@@ -20699,6 +20699,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'The roles file was changed by someone who is not an owner. This device keeps the last roles an owner signed.';
 
   @override
+  String get sharedLibrary_members_pending => 'Waiting for approval';
+
+  @override
+  String get sharedLibrary_members_approve => 'Approve';
+
+  @override
+  String get sharedLibrary_members_reject => 'Reject';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Key $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'Card not signed by its member';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return 'Reject $name?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'Their card is removed and nothing they write counts. Only new storage keys stop them from writing files at all.';
+
+  @override
+  String get sharedLibrary_members_left => 'Left the library';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Remove role';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Check';
 
   @override

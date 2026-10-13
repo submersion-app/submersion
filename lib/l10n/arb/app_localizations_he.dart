@@ -20544,6 +20544,38 @@ class AppLocalizationsHe extends AppLocalizations {
       'קובץ התפקידים שונה על ידי מי שאינו בעלים. המכשיר הזה שומר את התפקידים האחרונים שבעלים חתם עליהם.';
 
   @override
+  String get sharedLibrary_members_pending => 'ממתינים לאישור';
+
+  @override
+  String get sharedLibrary_members_approve => 'אישור';
+
+  @override
+  String get sharedLibrary_members_reject => 'דחייה';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'מפתח $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard => 'הכרטיס לא נחתם על ידי החבר';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return 'לדחות את $name?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'הכרטיס מוסר ושום דבר שייכתב לא ייחשב. רק מפתחות אחסון חדשים ימנעו כתיבת קבצים לגמרי.';
+
+  @override
+  String get sharedLibrary_members_left => 'עזבו את הספרייה';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'הסרת תפקיד';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override

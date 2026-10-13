@@ -169,26 +169,26 @@ class SharedLibraryService {
       for (final m in members) {
         if (m.memberId == membership.memberId) mine = m;
       }
-      if (mine == null || mine.displayName != membership.displayName) {
+      // The card is rewritten, signed, whenever it lacks this profile's
+      // key, its name changed, or its signature does not hold.
+      final myKey = await _store.ensureSigningKey(diverId);
+      if (mine == null ||
+          mine.displayName != membership.displayName ||
+          mine.publicKey != myKey.publicKey ||
+          !mine.cardVerified) {
         try {
-          await t.writeMember(
-            SharedLibraryMember(
-              memberId: membership.memberId,
-              displayName: membership.displayName,
-              joinedAt: mine?.joinedAt ?? _now().toUtc(),
-            ),
-            appVersion: _appVersion,
+          final card = await SharedLibraryMember.signed(
+            memberId: membership.memberId,
+            displayName: membership.displayName,
+            joinedAt: mine?.joinedAt ?? _now().toUtc(),
+            key: myKey,
           );
-          if (mine == null) {
-            await _store.replaceMembers(libraryId, [
-              ...members,
-              SharedLibraryMember(
-                memberId: membership.memberId,
-                displayName: membership.displayName,
-                joinedAt: _now().toUtc(),
-              ),
-            ]);
-          }
+          await t.writeMember(card, appVersion: _appVersion);
+          await _store.replaceMembers(libraryId, [
+            for (final m in members)
+              if (m.memberId != membership.memberId) m,
+            card,
+          ]);
         } catch (e) {
           // A member card is a courtesy: a refused write is not a
           // read-only library (readers may write cards by policy).

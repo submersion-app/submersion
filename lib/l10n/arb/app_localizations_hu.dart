@@ -20944,6 +20944,39 @@ class AppLocalizationsHu extends AppLocalizations {
       'A szerepköröket olyan valaki módosította, aki nem tulajdonos. Ez az eszköz megtartja az utolsó, tulajdonos által aláírt szerepköröket.';
 
   @override
+  String get sharedLibrary_members_pending => 'Jóváhagyásra vár';
+
+  @override
+  String get sharedLibrary_members_approve => 'Jóváhagyás';
+
+  @override
+  String get sharedLibrary_members_reject => 'Elutasítás';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Kulcs: $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'A kártyát nem a tagja írta alá';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return 'Elutasítod: $name?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'A kártyája törlődik, és semmi, amit ír, nem számít. Csak új tárhelykulcsok akadályozzák meg teljesen a fájlok írásában.';
+
+  @override
+  String get sharedLibrary_members_left => 'Kiléptek a könyvtárból';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Szerepkör eltávolítása';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override

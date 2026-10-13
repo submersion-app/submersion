@@ -19973,6 +19973,38 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_roles_rejected => '角色文件被非所有者修改。此设备保留由所有者最后签名的角色。';
 
   @override
+  String get sharedLibrary_members_pending => '等待批准';
+
+  @override
+  String get sharedLibrary_members_approve => '批准';
+
+  @override
+  String get sharedLibrary_members_reject => '拒绝';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return '密钥 $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard => '名片未由成员本人签名';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return '拒绝 $name？';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      '其名片将被移除，其写入的内容都不会生效。只有更换存储密钥才能完全阻止其写入文件。';
+
+  @override
+  String get sharedLibrary_members_left => '已离开资料库';
+
+  @override
+  String get sharedLibrary_members_removeRole => '移除角色';
+
+  @override
   String get sharedLibrary_connect_probe_action => '检查';
 
   @override

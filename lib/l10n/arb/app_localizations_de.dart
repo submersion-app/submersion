@@ -20989,6 +20989,39 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Rollendatei wurde von jemandem geändert, der kein Eigentümer ist. Dieses Gerät behält die letzten von einem Eigentümer signierten Rollen.';
 
   @override
+  String get sharedLibrary_members_pending => 'Wartet auf Freigabe';
+
+  @override
+  String get sharedLibrary_members_approve => 'Freigeben';
+
+  @override
+  String get sharedLibrary_members_reject => 'Ablehnen';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Schlüssel $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'Karte nicht vom Mitglied signiert';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return '$name ablehnen?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'Die Karte wird entfernt, und nichts, was die Person schreibt, zählt. Nur neue Speicherschlüssel hindern sie ganz am Schreiben von Dateien.';
+
+  @override
+  String get sharedLibrary_members_left => 'Haben die Bibliothek verlassen';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Rolle entfernen';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Prüfen';
 
   @override

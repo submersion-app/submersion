@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
@@ -23,6 +26,22 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
   final bool refuse;
   final bool offline;
   final calls = <(String, String, SharedLibraryRole)>[];
+  final approvals = <String>[];
+  final rejections = <String>[];
+
+  @override
+  Future<void> approveMember({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) async => approvals.add(memberId);
+
+  @override
+  Future<void> rejectMember({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) async => rejections.add(memberId);
 
   @override
   Future<void> setRole({
@@ -37,20 +56,28 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
   }
 }
 
+String _key(int n) => base64Encode(List.filled(32, n));
+
 Future<Widget> _page(
   SharedLibraryRole myRole, {
   required _RecordingMembershipService service,
+  bool withPending = false,
+  bool withDeparted = false,
 }) async => testApp(
   overrides: [
     ...await getBaseOverrides(),
     sharedLibrariesProvider.overrideWith(
       (ref) => Stream.value([
-        const SharedLibrary(
+        SharedLibrary(
           id: 'L',
           name: 'Reef Survey',
           connectedAccountId: 'a',
           prefix: 'site-sync',
-          roles: SharedLibraryRoles(owners: {'me'}, editors: {'ed'}),
+          roles: SharedLibraryRoles(
+            owners: const {'me'},
+            editors: {'ed', if (withDeparted) 'gone'},
+            approvedKeys: {'me': _key(1), 'ed': _key(2), 'rd': _key(3)},
+          ),
         ),
       ]),
     ),
@@ -74,17 +101,31 @@ Future<Widget> _page(
           memberId: 'me',
           displayName: 'Ann',
           joinedAt: DateTime.utc(2026, 10, 1),
+          publicKey: _key(1),
+          cardVerified: true,
         ),
         SharedLibraryMember(
           memberId: 'ed',
           displayName: 'Bob',
           joinedAt: DateTime.utc(2026, 10, 2),
+          publicKey: _key(2),
+          cardVerified: true,
         ),
         SharedLibraryMember(
           memberId: 'rd',
           displayName: '',
           joinedAt: DateTime.utc(2026, 10, 3),
+          publicKey: _key(3),
+          cardVerified: true,
         ),
+        if (withPending)
+          SharedLibraryMember(
+            memberId: 'pd',
+            displayName: 'Pat',
+            joinedAt: DateTime.utc(2026, 10, 4),
+            publicKey: _key(4),
+            cardVerified: true,
+          ),
       ],
     ),
     sharedLibraryMembershipServiceProvider.overrideWithValue(service),
@@ -160,5 +201,66 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Network unreachable'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an owner sees and approves a member waiting for approval', (
+    tester,
+  ) async {
+    final service = _RecordingMembershipService();
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.owner, service: service, withPending: true),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Waiting for approval'), findsOneWidget);
+    expect(find.text('Pat'), findsOneWidget);
+    expect(
+      find.text('Key ${LibrarySigner.fingerprint(_key(4))}'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Approve'));
+    await tester.pumpAndSettle();
+    expect(service.approvals, ['pd']);
+  });
+
+  testWidgets('rejecting asks first', (tester) async {
+    final service = _RecordingMembershipService();
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.owner, service: service, withPending: true),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reject'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reject').last);
+    await tester.pumpAndSettle();
+    expect(service.rejections, ['pd']);
+  });
+
+  testWidgets('a reader sees approved members only', (tester) async {
+    await tester.pumpWidget(
+      await _page(
+        SharedLibraryRole.reader,
+        service: _RecordingMembershipService(),
+        withPending: true,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Pat'), findsNothing);
+    expect(find.text('Waiting for approval'), findsNothing);
+  });
+
+  testWidgets('an owner removes the role of a member who left', (tester) async {
+    final service = _RecordingMembershipService();
+    await tester.pumpWidget(
+      await _page(
+        SharedLibraryRole.owner,
+        service: service,
+        withDeparted: true,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Left the library'), findsOneWidget);
+    await tester.tap(find.text('Remove role'));
+    await tester.pumpAndSettle();
+    expect(service.calls, [('me', 'gone', SharedLibraryRole.reader)]);
   });
 }

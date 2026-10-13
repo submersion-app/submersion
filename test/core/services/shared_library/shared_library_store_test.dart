@@ -255,4 +255,27 @@ void main() {
     expect(cleared.libraryKey, isNull);
     expect(cleared.signingKey, isNotNull);
   });
+
+  test('member cards keep their key and verification', () async {
+    await store.upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'a',
+        prefix: 'p',
+      ),
+    );
+    await store.replaceMembers('L', [
+      SharedLibraryMember(
+        memberId: 'm1',
+        displayName: 'Ann',
+        joinedAt: DateTime.utc(2026),
+        publicKey: 'pk',
+        cardVerified: true,
+      ),
+    ]);
+    final m = (await store.getMembers('L')).single;
+    expect(m.publicKey, 'pk');
+    expect(m.cardVerified, isTrue);
+  });
 }

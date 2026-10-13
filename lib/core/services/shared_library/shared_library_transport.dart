@@ -221,7 +221,8 @@ class SharedLibraryTransport {
           utf8.decode(await _provider.downloadFile(f.id)),
         );
         if (decoded is Map<String, dynamic>) {
-          members.add(SharedLibraryMember.fromJson(memberIdOf(f), decoded));
+          final card = SharedLibraryMember.fromJson(memberIdOf(f), decoded);
+          members.add(card.copyWith(cardVerified: await card.verify()));
         }
       } on FormatException {
         // An unreadable card is a member without a name until rewritten.

@@ -21281,6 +21281,39 @@ class AppLocalizationsAr extends AppLocalizations {
       'غيّر شخص ليس مالكًا ملف الأدوار. يحتفظ هذا الجهاز بآخر أدوار وقّعها مالك.';
 
   @override
+  String get sharedLibrary_members_pending => 'بانتظار الموافقة';
+
+  @override
+  String get sharedLibrary_members_approve => 'موافقة';
+
+  @override
+  String get sharedLibrary_members_reject => 'رفض';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'المفتاح $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'البطاقة غير موقعة من صاحبها';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return 'رفض $name؟';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'تُزال بطاقته ولا يُعتدّ بأي شيء يكتبه. وحدها مفاتيح تخزين جديدة تمنعه من كتابة الملفات تمامًا.';
+
+  @override
+  String get sharedLibrary_members_left => 'غادروا المكتبة';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'إزالة الدور';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override

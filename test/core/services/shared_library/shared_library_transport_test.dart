@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
@@ -197,6 +198,31 @@ void main() {
       ),
       isFalse,
     );
+  });
+
+  test('a member card is verified against its own key', () async {
+    final key = await LibrarySigner.generate();
+    final card = await SharedLibraryMember.signed(
+      memberId: 'm1',
+      displayName: 'Ann',
+      joinedAt: DateTime.utc(2026),
+      key: key,
+    );
+    await t.writeMember(card, appVersion: '1');
+    final read = (await t.listMembers()).single;
+    expect(read.publicKey, key.publicKey);
+    expect(read.cardVerified, isTrue);
+
+    // Someone renames the card without the key.
+    final forged = SharedLibraryMember(
+      memberId: 'm1',
+      displayName: 'Mallory',
+      joinedAt: DateTime.utc(2026),
+      publicKey: key.publicKey,
+      signature: card.signature,
+    );
+    await t.writeMember(forged, appVersion: '1');
+    expect((await t.listMembers()).single.cardVerified, isFalse);
   });
 }
 

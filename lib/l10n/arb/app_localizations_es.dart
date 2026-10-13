@@ -21018,6 +21018,39 @@ class AppLocalizationsEs extends AppLocalizations {
       'Alguien que no es propietario cambió el archivo de roles. Este dispositivo conserva los últimos roles que firmó un propietario.';
 
   @override
+  String get sharedLibrary_members_pending => 'Pendientes de aprobación';
+
+  @override
+  String get sharedLibrary_members_approve => 'Aprobar';
+
+  @override
+  String get sharedLibrary_members_reject => 'Rechazar';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Clave $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'Tarjeta sin la firma de su miembro';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return '¿Rechazar a $name?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'Se elimina su tarjeta y nada de lo que escriba cuenta. Solo unas claves de almacenamiento nuevas le impiden escribir archivos.';
+
+  @override
+  String get sharedLibrary_members_left => 'Han dejado la biblioteca';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Quitar rol';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Comprobar';
 
   @override

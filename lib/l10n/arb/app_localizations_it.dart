@@ -21014,6 +21014,39 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il file dei ruoli è stato modificato da qualcuno che non è proprietario. Questo dispositivo mantiene gli ultimi ruoli firmati da un proprietario.';
 
   @override
+  String get sharedLibrary_members_pending => 'In attesa di approvazione';
+
+  @override
+  String get sharedLibrary_members_approve => 'Approva';
+
+  @override
+  String get sharedLibrary_members_reject => 'Rifiuta';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Chiave $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'Scheda non firmata dal suo membro';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return 'Rifiutare $name?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'La sua scheda viene rimossa e nulla di ciò che scrive conta. Solo nuove chiavi di archiviazione gli impediscono di scrivere file.';
+
+  @override
+  String get sharedLibrary_members_left => 'Hanno lasciato la libreria';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Rimuovi ruolo';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Verifica';
 
   @override

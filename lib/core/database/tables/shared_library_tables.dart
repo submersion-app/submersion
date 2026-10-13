@@ -49,6 +49,10 @@ class SharedLibraryMembers extends Table {
   TextColumn get displayName => text()();
   IntColumn get joinedAt => integer()();
 
+  /// The key on the card, and whether its signature matched it.
+  TextColumn get publicKey => text().nullable()();
+  BoolColumn get cardVerified => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {libraryId, memberId};
 }

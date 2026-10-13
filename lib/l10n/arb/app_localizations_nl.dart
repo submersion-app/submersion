@@ -20878,6 +20878,39 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het rollenbestand is gewijzigd door iemand die geen eigenaar is. Dit apparaat houdt de laatste rollen aan die een eigenaar ondertekende.';
 
   @override
+  String get sharedLibrary_members_pending => 'Wacht op goedkeuring';
+
+  @override
+  String get sharedLibrary_members_approve => 'Goedkeuren';
+
+  @override
+  String get sharedLibrary_members_reject => 'Weigeren';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Sleutel $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'Kaart niet ondertekend door het lid';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return '$name weigeren?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'De kaart wordt verwijderd en niets wat diegene schrijft telt mee. Alleen nieuwe opslagsleutels houden diegene helemaal tegen bij het schrijven van bestanden.';
+
+  @override
+  String get sharedLibrary_members_left => 'Hebben de bibliotheek verlaten';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Rol verwijderen';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Controleren';
 
   @override

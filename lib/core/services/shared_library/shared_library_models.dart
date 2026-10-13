@@ -225,17 +225,68 @@ SharedLibraryRole effectiveRole({
   required bool readOnlyDetected,
 }) => readOnlyDetected ? SharedLibraryRole.reader : listed;
 
-/// A member card from `members/<memberId>.json`.
+/// A member card from `members/<memberId>.json`, signed by the member's own
+/// key (issue #2567). [cardVerified] is set when the card was read: the
+/// signature matches its own [publicKey]. Whether that key is approved is
+/// the roles' business ([isApprovedMember]).
 class SharedLibraryMember extends Equatable {
   const SharedLibraryMember({
     required this.memberId,
     required this.displayName,
     required this.joinedAt,
+    this.publicKey,
+    this.signature,
+    this.cardVerified = false,
   });
 
   final String memberId;
   final String displayName;
   final DateTime joinedAt;
+  final String? publicKey;
+  final String? signature;
+  final bool cardVerified;
+
+  /// A card for [memberId], signed with [key].
+  static Future<SharedLibraryMember> signed({
+    required String memberId,
+    required String displayName,
+    required DateTime joinedAt,
+    required LibrarySigningKey key,
+  }) async {
+    final unsigned = SharedLibraryMember(
+      memberId: memberId,
+      displayName: displayName,
+      joinedAt: joinedAt,
+      publicKey: key.publicKey,
+    );
+    return SharedLibraryMember(
+      memberId: memberId,
+      displayName: displayName,
+      joinedAt: joinedAt,
+      publicKey: key.publicKey,
+      signature: await LibrarySigner.sign(key, unsigned.signedBytes()),
+      cardVerified: true,
+    );
+  }
+
+  /// What the card's signature covers.
+  List<int> signedBytes() => utf8.encode(
+    canonicalJson({
+      'memberId': memberId,
+      'displayName': displayName,
+      'joinedAt': joinedAt.toUtc().toIso8601String(),
+      'publicKey': publicKey,
+    }),
+  );
+
+  /// Whether the signature matches the card's own key.
+  Future<bool> verify() async =>
+      publicKey != null &&
+      await LibrarySigner.verify(
+        publicKey: publicKey!,
+        message: signedBytes(),
+        signature: signature,
+      );
 
   factory SharedLibraryMember.fromJson(
     String memberId,
@@ -246,17 +297,44 @@ class SharedLibraryMember extends Equatable {
     joinedAt:
         DateTime.tryParse((json['joinedAt'] as String?) ?? '') ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    publicKey: json['publicKey'] as String?,
+    signature: json['signature'] as String?,
   );
 
   Map<String, dynamic> toJson({required String appVersion}) => {
     'displayName': displayName,
     'joinedAt': joinedAt.toUtc().toIso8601String(),
     'appVersion': appVersion,
+    'publicKey': ?publicKey,
+    'signature': ?signature,
   };
 
+  SharedLibraryMember copyWith({bool? cardVerified}) => SharedLibraryMember(
+    memberId: memberId,
+    displayName: displayName,
+    joinedAt: joinedAt,
+    publicKey: publicKey,
+    signature: signature,
+    cardVerified: cardVerified ?? this.cardVerified,
+  );
+
   @override
-  List<Object?> get props => [memberId, displayName, joinedAt];
+  List<Object?> get props => [
+    memberId,
+    displayName,
+    joinedAt,
+    publicKey,
+    signature,
+    cardVerified,
+  ];
 }
+
+/// Whether [m]'s card is genuine and its key is the one [roles] approved
+/// for it: only then do its edits and suggestions count (issue #2567).
+bool isApprovedMember(SharedLibraryMember m, SharedLibraryRoles roles) =>
+    m.cardVerified &&
+    m.publicKey != null &&
+    roles.approvedKeys[m.memberId] == m.publicKey;
 
 /// A shared site library connected on this device.
 class SharedLibrary extends Equatable {
@@ -392,6 +470,7 @@ class SharedLibraryMembership extends Equatable {
     String? libraryName,
     String? backendKind,
     String? locationHint,
+    LibrarySigningKey? signingKey,
   }) => SharedLibraryMembership(
     id: id,
     diverId: diverId,
@@ -401,7 +480,7 @@ class SharedLibraryMembership extends Equatable {
     libraryName: libraryName ?? this.libraryName,
     backendKind: backendKind ?? this.backendKind,
     locationHint: locationHint ?? this.locationHint,
-    signingKey: signingKey,
+    signingKey: signingKey ?? this.signingKey,
     libraryKeyId: libraryKeyId,
     libraryKey: libraryKey,
   );

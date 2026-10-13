@@ -21075,6 +21075,39 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le fichier des rôles a été modifié par quelqu\'un qui n\'est pas propriétaire. Cet appareil conserve les derniers rôles signés par un propriétaire.';
 
   @override
+  String get sharedLibrary_members_pending => 'En attente d\'approbation';
+
+  @override
+  String get sharedLibrary_members_approve => 'Approuver';
+
+  @override
+  String get sharedLibrary_members_reject => 'Refuser';
+
+  @override
+  String sharedLibrary_members_fingerprint(String fingerprint) {
+    return 'Clé $fingerprint';
+  }
+
+  @override
+  String get sharedLibrary_members_unsignedCard =>
+      'Carte non signée par son membre';
+
+  @override
+  String sharedLibrary_members_rejectTitle(String name) {
+    return 'Refuser $name ?';
+  }
+
+  @override
+  String get sharedLibrary_members_rejectBody =>
+      'Sa carte est supprimée et rien de ce qu\'il écrit n\'est pris en compte. Seules de nouvelles clés de stockage l\'empêchent d\'écrire des fichiers.';
+
+  @override
+  String get sharedLibrary_members_left => 'Ont quitté la bibliothèque';
+
+  @override
+  String get sharedLibrary_members_removeRole => 'Retirer le rôle';
+
+  @override
   String get sharedLibrary_connect_probe_action => 'Vérifier';
 
   @override
