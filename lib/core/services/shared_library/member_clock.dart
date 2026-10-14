@@ -15,8 +15,8 @@ class MemberClock {
   final String memberId;
   final int Function() _now;
 
-  /// 9999-12-31T23:59:59.999Z.
-  static const _latestMs = 253402300799999;
+  /// 9999-12-31T23:59:59.999Z: no clock later than this is a real time.
+  static const latestMs = 253402300799999;
   Hlc _current;
 
   /// A fresh stamp for a local edit, strictly after every earlier stamp
@@ -31,7 +31,7 @@ class MemberClock {
   /// is no real time: written into a shared file, it would date every later
   /// stamp of this member beyond any date a device can show.
   void receive(Hlc remote) {
-    if (remote.physicalTime > _latestMs) return;
+    if (remote.physicalTime > latestMs) return;
     if (remote.compareTo(_current) > 0) {
       _current = Hlc(remote.physicalTime, remote.counter, memberId);
     }

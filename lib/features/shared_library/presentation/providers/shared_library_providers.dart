@@ -85,7 +85,9 @@ final libraryRoleProvider = FutureProvider.family<SharedLibraryRole, String>((
     if (l.id == libraryId) {
       return effectiveRole(
         listed: l.roles.roleOf(membership.memberId),
-        readOnlyDetected: l.readOnlyDetected,
+        // Writes held by roles this device refused count as read-only;
+        // a reset waiting for an answer is asked for on the library page.
+        readOnlyDetected: l.readOnlyDetected || l.rolesRejected,
       );
     }
   }

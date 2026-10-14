@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
@@ -40,6 +41,26 @@ class FieldClock extends Equatable {
   );
 
   static const _latestMs = 8640000000000000;
+
+  /// The oldest clock there is, which [memberId] gives a field nobody's
+  /// edit of is known: signed, it counts, yet any real edit wins over it.
+  /// Its counter comes from [value], so two devices of one member claiming
+  /// one field with different values never hold one clock for both: the
+  /// same claim wins on every device.
+  factory FieldClock.claim(String memberId, Object? value) {
+    var counter = 0;
+    try {
+      final hash = sha256Hex(utf8.encode(canonicalJson(value)));
+      counter = int.parse(hash.substring(0, 8), radix: 16) % 1000000;
+    } on JsonUnsupportedObjectError {
+      // No JSON holds the value; it never goes up, so any clock does.
+    }
+    return FieldClock(hlc: Hlc(0, counter, memberId), memberId: memberId);
+  }
+
+  /// Whether this clock marks an edit, not a [FieldClock.claim]: only those
+  /// are shown as a site's history.
+  bool get marksEdit => hlc.physicalTime > 0;
 
   FieldClock copyWith({String? memberId, String? sig, bool clearSig = false}) =>
       FieldClock(
@@ -109,10 +130,6 @@ class SharedLibraryRoles extends Equatable {
   final Set<String> owners;
   final Set<String> editors;
 
-  /// The library's encryption as an owner last set it: on under the key
-  /// [LibraryEncryption.keyId], or off. Null for a library never encrypted
-  /// since roles recorded it; the manifest then decides alone.
-
   /// Grows with every change, so an older signed file cannot be put back.
   final int version;
 
@@ -125,10 +142,14 @@ class SharedLibraryRoles extends Equatable {
   final bool reset;
 
   /// Keys that no longer edit, by member: an editing role that ended
-  /// (left, demoted, role removed) or a key an owner replaced. Each holds
-  /// when it stopped; the edits it signed before then still count.
+  /// (left, demoted, role removed) or a key an owner replaced, and an
+  /// owner's key when they stepped down. Each holds when it stopped; the
+  /// edits it signed before then still count.
   final Map<String, List<({String key, int untilMs})>> retired;
 
+  /// The library's encryption as an owner last set it: on under the key
+  /// [LibraryEncryption.keyId], or off. Null for a library never encrypted
+  /// since roles recorded it; the manifest then decides alone.
   final LibraryEncryption? encryption;
 
   /// [retired] as `(key, until)` pairs, for checking signatures.
@@ -276,6 +297,22 @@ class SharedLibraryRoles extends Equatable {
       if (roleOf(e.key) != SharedLibraryRole.reader) e.key: e.value,
   };
 
+  /// Whether [other] proves and holds back the same field edits as these
+  /// roles: the same editing keys, retired keys and editing members. Only
+  /// a change that moves a verdict makes members read every site again; a
+  /// reader's approval, a new recovery code or the encryption record do
+  /// not.
+  bool judgesFieldsAs(SharedLibraryRoles other) =>
+      const MapEquality<String, String>().equals(
+        editingKeys,
+        other.editingKeys,
+      ) &&
+      const DeepCollectionEquality().equals(retired, other.retired) &&
+      const SetEquality<String>().equals(
+        {...owners, ...editors},
+        {...other.owners, ...other.editors},
+      );
+
   SharedLibraryRole roleOf(String memberId) {
     if (owners.contains(memberId)) return SharedLibraryRole.owner;
     if (editors.contains(memberId)) return SharedLibraryRole.editor;
@@ -284,7 +321,9 @@ class SharedLibraryRoles extends Equatable {
 
   /// [memberId] moved to [role] at [at]. A member leaving an editing role
   /// for reader is recorded in [retired], so the edits they signed until
-  /// then keep counting. The version and signature are the caller's to set.
+  /// then keep counting; so is an owner stepping down, so roles they sign
+  /// doing it still prove themselves to a device new to the library. The
+  /// version and signature are the caller's to set.
   SharedLibraryRoles changeRole(
     String memberId,
     SharedLibraryRole role, {
@@ -292,9 +331,11 @@ class SharedLibraryRoles extends Equatable {
   }) {
     final moved = withRole(memberId, role);
     final key = approvedKeys[memberId];
-    if (role != SharedLibraryRole.reader ||
-        roleOf(memberId) == SharedLibraryRole.reader ||
-        key == null) {
+    final from = roleOf(memberId);
+    if (key == null ||
+        from == role ||
+        from == SharedLibraryRole.reader ||
+        role == SharedLibraryRole.owner) {
       return moved;
     }
     return moved.copyWith(retired: _retiring(memberId, key, at));
@@ -437,11 +478,12 @@ LibraryEncryptionState libraryEncryptionOf(
   );
 }
 
-/// The newest of [clocks], or null when there are none: the last edit of a
-/// site, which its attribution names.
+/// The newest of [clocks] that marks an edit, or null when none does: the
+/// last edit of a site, which its attribution names.
 FieldClock? newestClockOf(Iterable<FieldClock> clocks) {
   FieldClock? newest;
   for (final c in clocks) {
+    if (!c.marksEdit) continue;
     if (newest == null || c.hlc.compareTo(newest.hlc) > 0) newest = c;
   }
   return newest;
@@ -601,6 +643,12 @@ class SharedLibrary extends Equatable {
 
   /// An ownership reset waiting for this member's answer.
   final SharedLibraryRoles? pendingRoles;
+
+  /// Whether writes made here go nowhere: the storage refused one, the
+  /// folder holds roles this device refused, or an ownership reset waits
+  /// for this member's answer. Site edits then count as a reader's.
+  bool get writesHeld =>
+      readOnlyDetected || rolesRejected || pendingRoles != null;
 
   /// The manifest's encryption state as last read.
   final bool encrypted;

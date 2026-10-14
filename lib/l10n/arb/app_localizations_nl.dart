@@ -21263,6 +21263,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De sleutel van dit lid is gewijzigd. Vergelijk de nieuwe sleutel persoonlijk en keur hem daarna goed.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'De rollen zijn gewijzigd sinds dit apparaat ze voor het laatst vertrouwde. Verlaat de bibliotheek en word opnieuw lid om de wijziging over te nemen, en probeer het dan opnieuw.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'Geen gedeelde duikstekbibliotheek hier laat je duikplekken toevoegen.';
 

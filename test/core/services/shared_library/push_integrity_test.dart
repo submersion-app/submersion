@@ -104,6 +104,36 @@ void main() {
     },
   );
 
+  test('a value someone changed under its clock is not sent up', () async {
+    final cloud = FakeCloudStorageProvider();
+    final bFile = File(p.join(dir.path, 'b.sqlite'));
+    await seedLibrary(cloud, owners: {'a'}, editors: {'b'});
+    await ownerAdds(cloud, File(p.join(dir.path, 'a.sqlite')));
+    var svc = await device(cloud, 'b', file: bFile);
+    await svc.sync('L', diverId: 'd-b');
+    await tearDownTestDatabase();
+
+    // Someone with write access changes a's name in the folder, keeping
+    // a's clock and signature.
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final file = (await t.listSites()).single;
+    final doc = await t.readSite(file.id);
+    await t.writeSite(
+      doc.copyWith(fields: {...doc.fields, 'name': 'Taken over'}),
+    );
+
+    svc = await device(cloud, 'b', file: bFile);
+    final site = (await SiteRepository().getSiteById('s1'))!;
+    await SiteRepository().updateSite(
+      site.copyWith(description: 'Calm in the morning'),
+      actingDiverId: 'd-b',
+    );
+    await svc.sync('L', diverId: 'd-b');
+    final stored = await t.readSite(file.id);
+    expect(stored.fields['name'], 'Blue s1');
+    expect(stored.fields['description'], 'Calm in the morning');
+  });
+
   test('an edit saved while its site is being pulled is uploaded', () async {
     final cloud = _OnDownload();
     final aFile = File(p.join(dir.path, 'a.sqlite'));

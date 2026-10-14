@@ -13,6 +13,7 @@ String libraryErrorText(AppLocalizations l10n, Object error) => switch (error) {
   LibraryExistsError() => l10n.sharedLibrary_connect_exists,
   LastOwnerDemoteError() => l10n.sharedLibrary_members_lastOwner,
   MemberKeyChangedError() => l10n.sharedLibrary_members_keyChanged,
+  RolesOutOfDateError() => l10n.sharedLibrary_members_rolesOutOfDate,
   LastOwnerLeaveError() => l10n.sharedLibrary_library_lastOwnerLeave,
   WrongRecoveryCodeError() => l10n.sharedLibrary_owner_wrongCode,
   WrongPassphraseError() => l10n.sharedLibrary_encrypted_wrong,

@@ -21398,6 +21398,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'La chiave di questo membro è cambiata. Confronta di persona la nuova chiave, poi approvala.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'I ruoli sono cambiati dall\'ultima volta che questo dispositivo li ha considerati attendibili. Esci dalla libreria e unisciti di nuovo per recepire la modifica, poi riprova.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'Nessuna libreria di siti condivisa qui ti consente di aggiungere siti.';
 

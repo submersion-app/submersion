@@ -1,9 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -135,6 +139,48 @@ void main() {
 
   test('candidates skips full sites and sites without coordinates', () async {
     await seed();
+    final found = await service(_MapLocationService({})).candidates();
+    expect(found.map((s) => s.id), unorderedEquals(['empty', 'partial']));
+  });
+
+  test('a library site this profile only reads is not looked up', () async {
+    await seed();
+    await DiverRepository().createDiver(
+      Diver(
+        id: 'd1',
+        name: 'Ann',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await SharedLibraryStore().upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'acc',
+        prefix: 'site-sync',
+        roles: SharedLibraryRoles(owners: {'o'}),
+      ),
+    );
+    await SharedLibraryStore().upsertMembership(
+      const SharedLibraryMembership(
+        id: 'ms',
+        diverId: 'd1',
+        libraryId: 'L',
+        memberId: 'm1',
+        displayName: 'Ann',
+        libraryName: 'Reef Survey',
+        backendKind: 's3',
+      ),
+    );
+    await sites.createSite(
+      const DiveSite(
+        id: 'shared',
+        name: 'Shared',
+        sharedLibraryId: 'L',
+        location: GeoPoint(47.3, 8.7),
+      ),
+    );
     final found = await service(_MapLocationService({})).candidates();
     expect(found.map((s) => s.id), unorderedEquals(['empty', 'partial']));
   });

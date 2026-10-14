@@ -21669,6 +21669,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تغيّر مفتاح هذا العضو. قارن المفتاح الجديد شخصيًا ثم وافق عليه.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'تغيّرت الأدوار منذ آخر مرة وثق بها هذا الجهاز. غادر المكتبة وانضم إليها مرة أخرى لاعتماد التغيير، ثم حاول مجددًا.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'لا توجد مكتبة مواقع مشتركة هنا تتيح لك إضافة مواقع.';
 

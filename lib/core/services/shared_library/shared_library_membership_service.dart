@@ -74,11 +74,21 @@ class SharedLibraryMembershipService with _MembershipOwnership {
           updatedAt: DateTime.now(),
         );
     final t = await _transportFor(account: account, prefix: lib.prefix);
-    // The folder's own state, not this device's last view of it: a device
-    // that has not synced since an owner turned encryption off, or changed
-    // the key, must neither seal a file under a key every other device has
-    // dropped nor under an old one. With the key the manifest names held
-    // by no local profile, nothing sealed is written (or read) here.
+    await _keyFor(t, lib, lib.roles);
+    return t;
+  }
+
+  /// Keys [t] for [lib]'s folder as it stands, settled against [roles]:
+  /// not this device's last view of it, since a device that has not synced
+  /// since an owner turned encryption off, or changed the key, must neither
+  /// seal a file under a key every other device has dropped nor under an
+  /// old one. With the key the manifest names held by no local profile (nor
+  /// kept aside by personal sync), nothing sealed is written (or read).
+  Future<void> _keyFor(
+    SharedLibraryTransport t,
+    SharedLibrary lib,
+    SharedLibraryRoles roles,
+  ) async {
     Map<String, dynamic>? manifest;
     try {
       manifest = await t.readManifest();
@@ -89,15 +99,23 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     // trusted roles say on.
     final state = manifest == null
         ? null
-        : libraryEncryptionOf(manifest, lib.roles);
+        : libraryEncryptionOf(manifest, roles);
     final encrypted = state?.encrypted ?? lib.encrypted;
     final keyId = state == null ? lib.keyId : state.keyId;
+    final diverId = (await _store.membershipsForLibrary(
+      lib.id,
+    )).firstOrNull?.diverId;
     t
       ..cipher = encrypted && keyId != null
-          ? await _store.libraryCipherFor(lib.id, keyId: keyId)
+          ? diverId == null
+                ? await _store.libraryCipherFor(lib.id, keyId: keyId)
+                : await _store.cipherNamed(
+                    lib.id,
+                    keyId: keyId,
+                    diverId: diverId,
+                  )
           : await _store.libraryCipherFor(lib.id)
       ..encrypting = encrypted;
-    return t;
   }
 
   /// Unlocks the encrypted library [t] reaches with [secret] (the
@@ -131,7 +149,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     return LibraryProbe(
       exists: true,
       id: found.id,
-      name: (await t.readInfo())?['name'] as String?,
+      name: await t.readName(),
       formatVersion: found.formatVersion,
       encrypted: true,
       keyId: found.keyId,
@@ -174,9 +192,12 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     final version = (manifest['formatVersion'] as num?)?.toInt() ?? 1;
     final encrypted = manifest['encrypted'] == true;
     final keyId = manifest['keyId'];
-    String? name = manifest['name'] as String?;
+    String? name = switch (manifest['name']) {
+      final String n => n,
+      _ => null,
+    };
     if (version >= SharedLibraryLayout.minFormatVersion && !encrypted) {
-      name = (await t.readInfo())?['name'] as String? ?? name;
+      name = await t.readName() ?? name;
     }
     return LibraryProbe(
       exists: true,
@@ -282,7 +303,8 @@ class SharedLibraryMembershipService with _MembershipOwnership {
   /// roles then go through the sync's check like any change, so a file the
   /// sync refused never becomes trusted by joining. [adoptFolderRoles] takes
   /// the folder's roles all the same: a restore into an empty folder, whose
-  /// backup was checked against the trusted roles first.
+  /// backup was checked against the trusted roles first. [signingKey] is
+  /// the key to join with, when the caller already chose it.
   Future<SharedLibrary> join({
     required domain.ConnectedAccount account,
     required String prefix,
@@ -290,6 +312,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     required String displayName,
     String? secret,
     bool adoptFolderRoles = false,
+    LibrarySigningKey? signingKey,
   }) async {
     // One transport for the whole join: each resolves its folders afresh.
     final t = await _transportFor(account: account, prefix: prefix);
@@ -309,8 +332,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
       );
     }
     final libraryId = found.id!;
-    final name =
-        found.name ?? (await t.readInfo())?['name'] as String? ?? prefix;
+    final name = found.name ?? await t.readName() ?? prefix;
     final libraryKey = await cipher?.exportKey();
     final memberId = await _store.memberIdForDiver(diverId);
     final roles = await t.readRoles();
@@ -329,15 +351,14 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     }
     // The membership's own key on a reconnect, else the profile's, else a
     // new one stored with the membership below.
-    final myKey = held == null
-        ? await _store.signingKeyForDiver(diverId) ??
-              await LibrarySigner.generate()
-        : (await _store.membership(
-                diverId: diverId,
-                libraryId: libraryId,
-              ))?.signingKey ??
-              await _store.signingKeyForDiver(diverId) ??
-              await LibrarySigner.generate();
+    final myKey =
+        signingKey ??
+        (await _store.membership(
+          diverId: diverId,
+          libraryId: libraryId,
+        ))?.signingKey ??
+        await _store.signingKeyForDiver(diverId) ??
+        await LibrarySigner.generate();
     final me = await SharedLibraryMember.signed(
       memberId: memberId,
       displayName: displayName,
@@ -447,6 +468,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     // version, sealed under a key it lacks) are never replaced by its
     // older copy.
     var fresh = false;
+    var folderRead = false;
     if (membership != null && library != null) {
       // The folder's roles when it can be reached: the cache may predate
       // another owner's change, and the revocation below writes these.
@@ -454,16 +476,20 @@ class SharedLibraryMembershipService with _MembershipOwnership {
         t = await transportForLibrary(library);
         roles = await currentRoles(library, t);
         fresh = roles == await t.readRoles();
+        folderRead = true;
       } catch (e) {
         _log.warning('Using cached roles to leave $libraryId: $e');
       }
       // As setRole keeps an owner, so does leave: nobody else could manage
-      // roles or review suggestions afterwards.
+      // roles or review suggestions afterwards. Not where the folder holds
+      // roles this device refused: who owns the library it cannot tell,
+      // and leaving is the way back to roles it can follow.
       final others = [
         for (final m in await _store.getMembers(libraryId))
           if (m.memberId != membership.memberId) m,
       ];
       if (others.isNotEmpty &&
+          (fresh || !folderRead) &&
           roles.owners.length == 1 &&
           roles.owners.contains(membership.memberId)) {
         throw LastOwnerLeaveError(libraryId);
@@ -582,7 +608,17 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     SharedLibrary library,
     SharedLibraryTransport t,
   ) async {
-    final folder = await t.readRoles();
+    final roles = await _currentGiven(library, await t.readRoles());
+    // Newer roles may settle encryption otherwise (an owner turned it off
+    // since this device last synced): [t] writes as they say.
+    if (roles != library.roles) await _keyFor(t, library, roles);
+    return roles;
+  }
+
+  Future<SharedLibraryRoles> _currentGiven(
+    SharedLibrary library,
+    SharedLibraryRoles folder,
+  ) async {
     final trusted = library.roles;
     if (folder == trusted) return trusted;
     final verdict = await judgeRoles(
@@ -591,6 +627,37 @@ class SharedLibraryMembershipService with _MembershipOwnership {
       libraryId: library.id,
     );
     return verdict == RolesVerdict.trusted ? folder : trusted;
+  }
+
+  /// The roles an owner action by [memberId] builds on ([currentRoles]),
+  /// checked before the action changes any file: [memberId] is an owner
+  /// in them ([action] says what only an owner does otherwise), signing
+  /// with the key they approve, and the folder holds no newer roles this
+  /// device refused, which anything it writes would undo. A backup, which
+  /// keeps the roles this device trusts and changes nothing they cover,
+  /// passes [overRefusedRoles].
+  @override
+  Future<SharedLibraryRoles> ownerRoles(
+    SharedLibrary library,
+    SharedLibraryTransport t,
+    String memberId, {
+    required String action,
+    bool overRefusedRoles = false,
+  }) async {
+    final folder = await t.readRoles();
+    final roles = await _currentGiven(library, folder);
+    if (roles != library.roles) await _keyFor(t, library, roles);
+    if (roles.roleOf(memberId) != SharedLibraryRole.owner) {
+      throw StateError('only an owner $action');
+    }
+    if (!overRefusedRoles && folder.version > roles.version) {
+      throw RolesOutOfDateError(library.id);
+    }
+    final key = await _keyOfMember(library.id, memberId);
+    if (roles.approvedKeys[memberId] != key.publicKey) {
+      throw StateError('the key of $memberId here is not the approved one');
+    }
+    return roles;
   }
 
   /// Writes [roles] one version past [library]'s trusted ones, signed by
@@ -614,9 +681,19 @@ class SharedLibraryMembershipService with _MembershipOwnership {
         trusted.approvedKeys[signer] != signingKey.publicKey) {
       throw StateError('the key of $signer here is not the approved one');
     }
-    final base = roles.version > library.roles.version
+    // Past every version a member may trust. Only the recovery key writes
+    // over roles this device refused: an owner's write would undo another
+    // owner's change it never saw.
+    final folder = (await t.readRoles()).version;
+    var base = roles.version > trusted.version
         ? roles.version
-        : library.roles.version;
+        : trusted.version;
+    if (folder > base) {
+      if (signer != SharedLibraryRoles.recoverySigner) {
+        throw RolesOutOfDateError(library.id);
+      }
+      base = folder;
+    }
     final signed = await roles
         .copyWith(version: base + 1, reset: false)
         .signed(libraryId: library.id, signedBy: signer, key: signingKey);
@@ -629,7 +706,9 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     // As when a sync takes new roles: an approval makes held edits count,
     // a rejection makes them repair, so documents already read are read
     // again (the next sync finds these roles already trusted).
-    await _store.clearRemoteStamps(library.id);
+    if (!signed.judgesFieldsAs(trusted)) {
+      await _store.clearRemoteStamps(library.id);
+    }
     return signed;
   }
 

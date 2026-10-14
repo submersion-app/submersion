@@ -21079,6 +21079,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This member\'s key changed. Compare the new key in person, then approve it.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'The roles changed since this device last trusted them. Leave the library and join it again to take up the change, then try again.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'No shared site library here lets you add sites.';
 

@@ -102,8 +102,12 @@ not.
 If a device finds the library's roles changed by someone it does not know as an
 owner, the library page warns, and the device only reads the library until the
 roles are put right. This also happens to a device that was away while
-ownership passed to a new owner: leave the library and join it again, or use
-the recovery code, to bring it up to date.
+ownership passed to a new owner: leave the library and join it again to bring
+it up to date. If more than one profile on the device belongs to the library,
+leave it on each of them first, since the device keeps what it knows about a
+library until no profile there belongs to it. Until then, owner actions on that device, such as approving a
+member or changing a role, are refused, so they cannot undo changes the device
+has not seen.
 
 ## Encryption
 
@@ -183,7 +187,10 @@ passphrase or recovery code of its time.
 
 If the library's storage is lost, or you want to move it, connect to an empty
 folder and choose **Restore from a backup file**. The library keeps its
-identity, so members only need to connect to the new folder. If the old folder
+identity, so members only need to connect to the new folder. On a device that
+already holds the library, only an owner can do this. The restored roles keep
+you as an owner and are signed as the newest, so members whose devices know
+later roles still accept them. If the old folder
 still holds the library, Submersion says so: members who stay connected there
 keep using that copy until they move.
 

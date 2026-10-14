@@ -20919,6 +20919,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'המפתח של החבר הזה השתנה. יש להשוות את המפתח החדש פנים אל פנים ואז לאשר אותו.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'התפקידים השתנו מאז שהמכשיר הזה סמך עליהם לאחרונה. יש לעזוב את הספרייה ולהצטרף אליה שוב כדי לקבל את השינוי, ואז לנסות שוב.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'אין כאן ספריית אתרים משותפת שמאפשרת לך להוסיף אתרים.';
 

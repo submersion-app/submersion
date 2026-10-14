@@ -67,19 +67,33 @@ class LibraryBackupRecord {
         name.contains('..')) {
       return null;
     }
-    int n(String k) => (raw[k] as num?)?.toInt() ?? 0;
+    // Entries come from a file any member's storage key may write: one of
+    // the wrong type is dropped alone.
+    final note = raw['note'];
+    if (note != null && note is! String) return null;
+    int? n(String k) => switch (raw[k]) {
+      null => 0,
+      final num v when v.isFinite => v.toInt(),
+      _ => null,
+    };
+    final siteCount = n('siteCount');
+    final memberCount = n('memberCount');
+    final sizeBytes = n('sizeBytes');
+    if (siteCount == null || memberCount == null || sizeBytes == null) {
+      return null;
+    }
     return LibraryBackupRecord(
       backupId: id,
       libraryId: libraryId,
       fileName: name,
       createdAt: at,
-      note: (raw['note'] as String?) ?? '',
+      note: note ?? '',
       pinned: raw['pinned'] == true,
       automatic: raw['automatic'] == true,
       beforeRestore: raw['beforeRestore'] == true,
-      siteCount: n('siteCount'),
-      memberCount: n('memberCount'),
-      sizeBytes: n('sizeBytes'),
+      siteCount: siteCount,
+      memberCount: memberCount,
+      sizeBytes: sizeBytes,
       inStorage: true,
     );
   }

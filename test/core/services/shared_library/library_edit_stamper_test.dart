@@ -205,4 +205,47 @@ void main() {
     final state = (await SharedLibraryStore().getSiteState('s'))!;
     expect(state.clocks.keys, contains('name'));
   });
+
+  test("a reader changes none of a library site's lists", () async {
+    await SharedLibraryStore().upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'acc',
+        prefix: 'site-sync',
+        roles: SharedLibraryRoles(owners: {'o'}),
+      ),
+    );
+    final types = await SiteTypeRepository().getAllSiteTypes(diverId: 'd1');
+    await SiteClassificationRepository().replaceTypes('s', [types.first.id]);
+    await SiteClassificationRepository().addTypes('s', [types.first.id]);
+    await expectLater(
+      SiteFeatureRepository().addFeature(
+        siteId: 's',
+        typeName: 'mooring',
+        latitude: 1,
+        longitude: 2,
+      ),
+      throwsStateError,
+    );
+    expect(await SiteClassificationRepository().getTypesForSite('s'), isEmpty);
+    expect(await SiteFeatureRepository().getFeaturesForSite('s'), isEmpty);
+    expect(await SharedLibraryStore().getSiteState('s'), isNull);
+  });
+
+  test('an editor on a device holding writes edits as a reader', () async {
+    await SharedLibraryStore().upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'acc',
+        prefix: 'site-sync',
+        roles: SharedLibraryRoles(owners: {'o'}, editors: {'m1'}),
+        rolesRejected: true,
+      ),
+    );
+    await SiteRepository().updateSiteAltitude('s', 120);
+    expect((await SiteRepository().getSiteById('s'))!.altitude, isNull);
+    expect(await SharedLibraryStore().getSiteState('s'), isNull);
+  });
 }

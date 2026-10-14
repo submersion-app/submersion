@@ -810,6 +810,11 @@ class SpeciesRepository {
     String notes = '',
     bool stampLibrary = true,
   }) async {
+    // A library site this profile may not edit (issue #2567); the bridge
+    // applying a pulled list does not stamp.
+    if (stampLibrary && !await _libraryStamper.mayEdit(siteId)) {
+      throw StateError('site $siteId is not this profile to edit');
+    }
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -852,6 +857,7 @@ class SpeciesRepository {
     String speciesId, {
     bool stampLibrary = true,
   }) async {
+    if (stampLibrary && !await _libraryStamper.mayEdit(siteId)) return;
     final existing = await _db
         .customSelect(
           'SELECT id FROM site_species WHERE site_id = ? AND species_id = ?',

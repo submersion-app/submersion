@@ -71,12 +71,8 @@ class SharedLibraryMembersPage extends ConsumerWidget {
                     subtitle: Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: TextButton(
-                        onPressed: () => _setRole(
-                          context,
-                          ref,
-                          id,
-                          SharedLibraryRole.reader,
-                        ),
+                        onPressed: () =>
+                            _setRole(context, id, SharedLibraryRole.reader),
                         child: Text(l10n.sharedLibrary_members_removeRole),
                       ),
                     ),
@@ -105,7 +101,7 @@ class SharedLibraryMembersPage extends ConsumerWidget {
           ? PopupMenuButton<SharedLibraryRole>(
               tooltip: l10n.sharedLibrary_members_setRole,
               icon: LibraryRoleChip(role: role),
-              onSelected: (r) => _setRole(context, ref, m.memberId, r),
+              onSelected: (r) => _setRole(context, m.memberId, r),
               itemBuilder: (ctx) => [
                 for (final r in SharedLibraryRole.values)
                   PopupMenuItem(
@@ -153,7 +149,6 @@ class SharedLibraryMembersPage extends ConsumerWidget {
                 FilledButton.tonal(
                   onPressed: () => _act(
                     context,
-                    ref,
                     (service, me) => service.approveMember(
                       libraryId: libraryId,
                       memberId: m.memberId,
@@ -197,7 +192,6 @@ class SharedLibraryMembersPage extends ConsumerWidget {
     if (ok != true || !context.mounted) return;
     await _act(
       context,
-      ref,
       (service, me) => service.rejectMember(
         libraryId: libraryId,
         memberId: memberId,
@@ -210,23 +204,27 @@ class SharedLibraryMembersPage extends ConsumerWidget {
   /// storage is said in a snack bar.
   Future<void> _act(
     BuildContext context,
-    WidgetRef ref,
     Future<void> Function(SharedLibraryMembershipService service, String me)
     action,
   ) async {
     final l10n = context.l10n;
-    final me = await ref.read(currentMembershipProvider(libraryId).future);
+    // Kept from before the awaits: the page may close meanwhile, and its
+    // ref is no use after that.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final me = await container.read(
+      currentMembershipProvider(libraryId).future,
+    );
     if (me == null) return;
     try {
       await action(
-        ref.read(sharedLibraryMembershipServiceProvider),
+        container.read(sharedLibraryMembershipServiceProvider),
         me.memberId,
       );
-      ref.invalidate(libraryMembersProvider(libraryId));
+      container.invalidate(libraryMembersProvider(libraryId));
     } catch (e) {
       // A refusal may have refreshed the list (a member's new key to
       // compare): show it as it stands.
-      ref.invalidate(libraryMembersProvider(libraryId));
+      container.invalidate(libraryMembersProvider(libraryId));
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -236,15 +234,17 @@ class SharedLibraryMembersPage extends ConsumerWidget {
 
   Future<void> _setRole(
     BuildContext context,
-    WidgetRef ref,
     String memberId,
     SharedLibraryRole role,
   ) async {
     final l10n = context.l10n;
-    final me = await ref.read(currentMembershipProvider(libraryId).future);
+    final container = ProviderScope.containerOf(context, listen: false);
+    final me = await container.read(
+      currentMembershipProvider(libraryId).future,
+    );
     if (me == null) return;
     try {
-      await ref
+      await container
           .read(sharedLibraryMembershipServiceProvider)
           .setRole(
             libraryId: libraryId,

@@ -77,7 +77,6 @@ class CreatedLibrary {
   final String recoveryCode;
 }
 
-/// A role change would leave the library without an owner.
 /// The member's card holds another key than the one an owner was shown and
 /// compared: nothing is approved until they compare the new one.
 class MemberKeyChangedError extends StateError {
@@ -85,6 +84,16 @@ class MemberKeyChangedError extends StateError {
     : super('the key on the card of $memberId changed');
 }
 
+/// The folder holds roles newer than any this device trusts (changes it
+/// missed, or a file it refused): roles written from here would undo them.
+/// Leaving and joining again takes up the newer roles when an owner signed
+/// them.
+class RolesOutOfDateError extends StateError {
+  RolesOutOfDateError(String libraryId)
+    : super('the roles of $libraryId changed since this device trusted them');
+}
+
+/// A role change would leave the library without an owner.
 class LastOwnerDemoteError extends StateError {
   LastOwnerDemoteError(String libraryId)
     : super('the last owner of $libraryId cannot be demoted');

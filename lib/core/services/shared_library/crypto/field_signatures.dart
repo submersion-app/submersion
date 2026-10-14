@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 
 /// What a member signs for one field of a site document (issue #2567):
@@ -67,19 +68,31 @@ Future<bool> _signedBy(
   String libraryId,
 ) async {
   final clock = doc.clocks[field]!;
-  return key != null &&
-      await LibrarySigner.verify(
-        publicKey: key,
-        message: fieldSignatureMessage(
-          libraryId: libraryId,
-          siteId: doc.id,
-          field: field,
-          hlc: clock.hlc.toString(),
-          memberId: clock.memberId,
-          value: _valueOf(doc, field),
-        ),
-        signature: clock.sig,
-      );
+  // A clock past the year 9999 proves nothing, whoever signed it: taken, it
+  // would outlast every later edit, which devices stamp at about now.
+  if (key == null || clock.hlc.physicalTime > MemberClock.latestMs) {
+    return false;
+  }
+  final List<int> message;
+  try {
+    message = fieldSignatureMessage(
+      libraryId: libraryId,
+      siteId: doc.id,
+      field: field,
+      hlc: clock.hlc.toString(),
+      memberId: clock.memberId,
+      value: _valueOf(doc, field),
+    );
+  } on JsonUnsupportedObjectError {
+    // A value no JSON holds (1e999 read back as infinity): no member
+    // signed it, and it never reaches a site.
+    return false;
+  }
+  return LibrarySigner.verify(
+    publicKey: key,
+    message: message,
+    signature: clock.sig,
+  );
 }
 
 /// Whether one of a member's [retired] keys signed [field] before it

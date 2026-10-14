@@ -20326,6 +20326,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_members_keyChanged => '该成员的密钥已更改。请当面核对新密钥，然后再批准。';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      '自此设备上次信任这些角色以来，角色已发生更改。请退出资料库并重新加入以采用此更改，然后重试。';
+
+  @override
   String get sharedLibrary_picker_none => '这里没有允许你添加潜点的共享潜点库。';
 
   @override

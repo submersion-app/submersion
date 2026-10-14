@@ -110,7 +110,7 @@ class LibraryEditStamper {
       (m) => canEditLibrarySite(
         effectiveRole(
           listed: library.roles.roleOf(m.memberId),
-          readOnlyDetected: library.readOnlyDetected,
+          readOnlyDetected: library.writesHeld,
         ),
       ),
     );

@@ -5894,6 +5894,7 @@
   "sharedLibrary_members_setRole": "Szerep módosítása",
   "sharedLibrary_members_lastOwner": "Az utolsó tulajdonos nem fokozható le.",
   "sharedLibrary_members_keyChanged": "A tag kulcsa megváltozott. Személyesen hasonlítsd össze az új kulcsot, majd hagyd jóvá.",
+  "sharedLibrary_members_rolesOutOfDate": "A szerepkörök megváltoztak, mióta ez az eszköz utoljára megbízott bennük. Lépj ki a könyvtárból, majd csatlakozz újra a változás átvételéhez, és próbáld újra.",
   "sharedLibrary_picker_none": "Itt egyik megosztott merülőhely-könyvtárba sem adhatsz hozzá merülőhelyeket.",
   "sharedLibrary_list_notConnected": "Ezen az eszközön nincs csatlakoztatva",
   "sharedLibrary_connect_exists": "Közben valaki könyvtárat hozott létre itt. Ellenőrizd újra a csatlakozáshoz.",

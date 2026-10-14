@@ -1859,7 +1859,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (membership == null) return SharedLibraryRole.reader;
     return effectiveRole(
       listed: library.roles.roleOf(membership.memberId),
-      readOnlyDetected: library.readOnlyDetected,
+      readOnlyDetected: library.writesHeld,
     );
   }
 

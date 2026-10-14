@@ -117,6 +117,7 @@ class LibraryEncryptionService {
     for (final m in await _store.membershipsForLibrary(libraryId)) {
       await _store.setLibraryKey(diverId: m.diverId, libraryId: libraryId);
     }
+    await _store.clearSpareKey(libraryId);
     await _store.setLibraryStatus(
       libraryId,
       encrypted: false,
@@ -147,22 +148,7 @@ class LibraryEncryptionService {
     // between puts the old keyslots back, so the old passphrase and code
     // still open the library, and nothing is left half done.
     final oldSlots = await t.readKeyslots();
-    try {
-      await t.writeKeyslots(
-        await cipher.keyslots(
-          passphrase: passphrase,
-          recoveryCode: recovery.code,
-          kdf: _kdf,
-        ),
-      );
-      final manifest = await t.readManifest() ?? {};
-      await t.writeManifest({
-        ...manifest,
-        'encrypted': true,
-        'keyId': cipher.keyId,
-        SharedLibraryLayout.rewritingFlag: true,
-      });
-    } catch (e) {
+    Future<void> putBack() async {
       try {
         if (oldSlots != null) {
           await t.writeKeyslots(oldSlots);
@@ -172,7 +158,56 @@ class LibraryEncryptionService {
       } catch (_) {
         // The manifest still names the old key either way.
       }
+    }
+
+    try {
+      await t.writeKeyslots(
+        await cipher.keyslots(
+          passphrase: passphrase,
+          recoveryCode: recovery.code,
+          kdf: _kdf,
+        ),
+      );
+    } catch (e) {
+      await putBack();
       rethrow;
+    }
+    try {
+      final manifest = await t.readManifest() ?? {};
+      await t.writeManifest({
+        ...manifest,
+        'encrypted': true,
+        'keyId': cipher.keyId,
+        SharedLibraryLayout.rewritingFlag: true,
+      });
+    } catch (e) {
+      // A write reported failed may have landed (a timeout after the
+      // upload): putting the old keyslots back then would leave a manifest
+      // naming a key no keyslot opens and no device holds.
+      bool? landed;
+      try {
+        landed = (await t.readManifest())?['keyId'] == cipher.keyId;
+      } catch (_) {
+        // The folder cannot be read now: whether it landed is unknown.
+      }
+      if (landed == false) {
+        await putBack();
+        rethrow;
+      }
+      if (landed == null) {
+        // Kept aside, taken up by the next sync if the manifest names it;
+        // the recovery code opens it either way.
+        try {
+          await _store.keepSpareKey(
+            library.id,
+            keyId: cipher.keyId,
+            key: await cipher.exportKey(),
+          );
+        } catch (_) {
+          // The recovery code still opens the new key.
+        }
+        throw RekeyIncompleteError(recovery.code, e);
+      }
     }
     // From here the manifest names the new key: its recovery code is the
     // way back in, and an owner's next sync finishes what is left, so a
@@ -242,10 +277,12 @@ class LibraryEncryptionService {
       throw StateError('not a member of $libraryId here');
     }
     final t = await _memberships.transportForLibrary(library);
-    final roles = await _memberships.currentRoles(library, t);
-    if (roles.roleOf(me.memberId) != SharedLibraryRole.owner) {
-      throw StateError('only an owner changes encryption');
-    }
+    final roles = await _memberships.ownerRoles(
+      library,
+      t,
+      me.memberId,
+      action: 'changes encryption',
+    );
     return (library, t, me, roles);
   }
 }

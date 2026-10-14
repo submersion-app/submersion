@@ -165,7 +165,10 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
     SharedLibraryMembership m,
   ) async {
     final library = await store.getLibrary(m.libraryId);
+    // A device holding writes (a sync that only read) backs nothing up:
+    // it would sign the index and prune storage all the same.
     if (library == null ||
+        library.writesHeld ||
         library.roles.roleOf(m.memberId) != SharedLibraryRole.owner) {
       return;
     }

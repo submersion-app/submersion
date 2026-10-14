@@ -5994,6 +5994,7 @@
   "sharedLibrary_members_setRole": "Cambiar rol",
   "sharedLibrary_members_lastOwner": "No se puede degradar al último propietario.",
   "sharedLibrary_members_keyChanged": "La clave de este miembro ha cambiado. Compara la nueva clave en persona y luego apruébala.",
+  "sharedLibrary_members_rolesOutOfDate": "Los roles han cambiado desde la última vez que este dispositivo confió en ellos. Sal de la biblioteca y vuelve a unirte para adoptar el cambio, y luego inténtalo de nuevo.",
   "sharedLibrary_picker_none": "Ninguna biblioteca de puntos compartida aquí te permite añadir sitios.",
   "sharedLibrary_list_notConnected": "No conectada en este dispositivo",
   "sharedLibrary_connect_exists": "Alguien ha creado una biblioteca aquí mientras tanto. Vuelve a comprobarlo para unirte.",

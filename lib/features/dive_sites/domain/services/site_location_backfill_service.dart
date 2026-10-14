@@ -1,5 +1,6 @@
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -79,9 +80,19 @@ class SiteLocationBackfillService {
       ? site.location != null
       : needsLookup(site);
 
+  /// The sites a run looks up. A shared library site this profile may not
+  /// edit is left out: whatever the lookup found, nothing would be written
+  /// to it (issue #2567).
   Future<List<DiveSite>> candidates({String? diverId}) async {
     final all = await _sites.getAllSites(diverId: diverId);
-    return all.where((site) => wants(site, mode)).toList(growable: false);
+    final stamper = LibraryEditStamper();
+    return [
+      for (final site in all)
+        if (wants(site, mode) &&
+            (site.sharedLibraryId == null ||
+                await stamper.mayEdit(site.id, actingDiverId: diverId)))
+          site,
+    ];
   }
 
   /// Runs the lookup over [targets], or over [candidates] when the caller

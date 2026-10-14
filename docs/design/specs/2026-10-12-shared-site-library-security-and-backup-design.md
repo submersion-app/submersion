@@ -159,7 +159,12 @@ device that already trusts roles for the library (another profile's
 membership, a reconnect) keeps them, and the folder's roles go through the
 rules above. An ownership reset counts only with a single owner who signed it
 with the key it approves. While the folder holds roles the device refused, it
-only reads the library: its uploads would fight owners it does not know. The
+only reads the library: its uploads would fight owners it does not know.
+Owner actions there are refused before they change a file, since roles it
+wrote would undo changes it never saw; only the recovery key signs past the
+folder's version. An owner who steps down to editor is recorded like one who
+leaves (their key retired at that time), so the roles they sign doing it stay
+self-consistent for a device that joins later. The
 library page shows each owner's key fingerprint (first 16 hex digits of the
 SHA-256 of the public key, in groups of four) so members can compare it
 person to person.
@@ -277,8 +282,10 @@ hold stops uploading to that library and asks for the passphrase.
   (from here no device writes plain files), then rewrites every file
   encrypted.
 - **Off:** records `encryption: {on: false}` in a signed `roles.json`,
-  rewrites every file plain, writes the manifest with `encrypted: false`,
-  removes `keyslots.json`. Members' devices drop the stored key.
+  writes the manifest with `encrypted: false` and the rewriting flag,
+  rewrites every file plain, clears the flag, and removes `keyslots.json`
+  and the list of earlier keys. Members' devices drop the stored key, and
+  any key personal sync kept aside for it.
 - On and passphrase changes record `encryption: {on: true, keyId}` in the
   signed roles. The manifest is not signed, so a device believes a manifest
   that says off only when the roles it trusts agree; otherwise it keeps the
@@ -330,7 +337,8 @@ signature fails is refused on import and restore. A restore also needs the
 backup to be the one picked (its `backupId`) and its creator to be an owner in
 the roles the device trusts now, with the key they approve: the roles inside a
 zip are whatever its maker wrote. File name:
-`submersion-sites-<folder>-<yyyy-mm-dd-hhmm>.zip`.
+`submersion-sites-<folder>-<yyyy-mm-dd-hhmmss>-<first 8 of backupId>.zip`,
+the folder name cleaned to letters, digits, `_` and `-` and capped.
 
 ### Where backups live
 
@@ -360,7 +368,8 @@ backups; pinned backups are never pruned.
 
 Owner only, run under `SyncCoordinator` like a sync:
 
-1. Back up the current state, pinned, noted "Before restore".
+1. Back up the current state, pinned, marked as made before a restore (the
+   list shows it so; its note stays empty).
 2. Every site in the backup is written with every field re-stamped (fresh
    HLC) and signed by the restoring owner.
 3. Every site in the library but not in the backup gets a fresh signed
@@ -368,16 +377,22 @@ Owner only, run under `SyncCoordinator` like a sync:
 4. Roles come back from the backup with `version` above the trusted one,
    signed by the restoring owner, who always remains an owner. Members whose
    keys the backup did not approve return to Pending.
-5. Member cards and suggestions come back as they were; others are removed.
+5. Member cards and suggestions come back as they were. Cards of members
+   who joined since stay, pending until approved; other suggestions are
+   removed.
 
 The result is written under the library's current encryption setting and
 key. A backup sealed under an older key asks for that key's passphrase or
 recovery code to read it.
 
 Restore into an empty folder moves a library: it keeps the library id, so a
-member reconnecting through the new folder keeps their membership. If the
-old folder still holds the library, the app warns that the two will drift
-apart.
+member reconnecting through the new folder keeps their membership. The
+restoring profile, when an owner with the approved key, signs the restored
+roles one version past the backup's, this device's trusted roles and the old
+folder's, keeping itself an owner, so members who trust later roles accept
+them. On a device that holds the library only such an owner may restore it.
+If the old folder still holds the library, the app warns that the two will
+drift apart.
 
 A member who already holds a detached personal copy of a restored site sees
 both; they are not merged, so that member's own edits are never lost.
@@ -395,6 +410,9 @@ Added to the v289 schema helper, which has not shipped and runs again in
 | `shared_libraries.roles_rejected`, `pending_roles_json` | no | the warning, and a reset waiting for the member's answer |
 | `shared_libraries.encrypted`, `key_id` | no | manifest state |
 | `shared_libraries.last_auto_backup_at` | no | this device's last automatic backup |
+| `shared_libraries.notes_backfilled` | no | the profile notes of this library's sites were copied into `library_site_notes` once |
+| `shared_libraries.spare_key_id`, `spare_key` | no | a library key personal sync brought before this device saw the change that made it, taken up once the manifest names it |
+| `library_site_notes` | yes | each profile's private notes and rating for a library site |
 | `shared_library_backups` | no | backupId, libraryId, note, pinned, automatic, counts, size, localPath, inStorage |
 
 The member id already lives on the membership rows and is the same on all of

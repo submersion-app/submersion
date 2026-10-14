@@ -34263,6 +34263,12 @@ abstract class AppLocalizations {
   /// **'This member\'s key changed. Compare the new key in person, then approve it.'**
   String get sharedLibrary_members_keyChanged;
 
+  /// No description provided for @sharedLibrary_members_rolesOutOfDate.
+  ///
+  /// In en, this message translates to:
+  /// **'The roles changed since this device last trusted them. Leave the library and join it again to take up the change, then try again.'**
+  String get sharedLibrary_members_rolesOutOfDate;
+
   /// No description provided for @sharedLibrary_picker_none.
   ///
   /// In en, this message translates to:

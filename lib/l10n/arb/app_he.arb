@@ -5998,6 +5998,7 @@
   "sharedLibrary_members_setRole": "שינוי תפקיד",
   "sharedLibrary_members_lastOwner": "אי אפשר להוריד בדרגה את הבעלים האחרון.",
   "sharedLibrary_members_keyChanged": "המפתח של החבר הזה השתנה. יש להשוות את המפתח החדש פנים אל פנים ואז לאשר אותו.",
+  "sharedLibrary_members_rolesOutOfDate": "התפקידים השתנו מאז שהמכשיר הזה סמך עליהם לאחרונה. יש לעזוב את הספרייה ולהצטרף אליה שוב כדי לקבל את השינוי, ואז לנסות שוב.",
   "sharedLibrary_picker_none": "אין כאן ספריית אתרים משותפת שמאפשרת לך להוסיף אתרים.",
   "sharedLibrary_list_notConnected": "לא מחוברת במכשיר זה",
   "sharedLibrary_connect_exists": "מישהו יצר כאן ספרייה בינתיים. יש לבדוק שוב כדי להצטרף אליה.",

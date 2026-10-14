@@ -18,45 +18,63 @@ bool _editedSince(SharedSiteState? before, SharedSiteState? now) {
 /// folder's copy [remote] holds taking that copy's value: the value as
 /// its author signed it, where this device keeps its own spelling or
 /// order (its tag "wreck" for their "Wreck"). [local] are the members
-/// whose fields this device signs itself.
-SiteDocument _authorsValues(
+/// whose fields this device signs itself. Only a value its author's key
+/// in [keys] proves is taken: one changed in the folder under their clock
+/// would go up again from every device.
+Future<SiteDocument> _authorsValues(
   SiteDocument doc,
   SiteDocument remote,
-  Set<String> local,
-) {
-  final fields = {...doc.fields};
-  for (final e in doc.clocks.entries) {
-    if (e.key == SiteDocument.deletedField ||
-        local.contains(e.value.memberId) ||
-        remote.clocks[e.key] != e.value ||
-        !remote.fields.containsKey(e.key)) {
-      continue;
-    }
-    fields[e.key] = remote.fields[e.key];
-  }
-  return doc.copyWith(fields: fields);
+  Set<String> local, {
+  required String libraryId,
+  required Map<String, String> keys,
+  required Map<String, List<(String, int)>> retiredKeys,
+}) async {
+  final differing = <String>{
+    for (final e in doc.clocks.entries)
+      if (e.key != SiteDocument.deletedField &&
+          !local.contains(e.value.memberId) &&
+          remote.clocks[e.key] == e.value &&
+          remote.fields.containsKey(e.key) &&
+          !const DeepCollectionEquality().equals(
+            remote.fields[e.key],
+            doc.fields[e.key],
+          ))
+        e.key,
+  };
+  if (differing.isEmpty) return doc;
+  final proven = await dropUnverified(
+    SiteDocument(
+      id: remote.id,
+      fields: {for (final f in differing) f: remote.fields[f]},
+      clocks: {for (final f in differing) f: remote.clocks[f]!},
+    ),
+    local: SiteDocument(id: remote.id),
+    libraryId: libraryId,
+    approvedKeys: keys,
+    retiredKeys: retiredKeys,
+  );
+  return doc.copyWith(fields: {...doc.fields, ...proven.fields});
 }
 
 /// Fields going up with no clock, or stamped without a known member (a
 /// device with two member profiles and no acting one), go up as this
 /// profile's edits: a field nobody signed is dropped by every other
 /// member.
-SiteDocument _claimUnattributed(
-  SiteDocument doc,
-  String memberId,
-  MemberClock clock,
-) {
+SiteDocument _claimUnattributed(SiteDocument doc, String memberId) {
   final clocks = <String, FieldClock>{
     for (final e in doc.clocks.entries)
       e.key: e.value.memberId == LibraryEditStamper.unknownMember
           ? e.value.copyWith(memberId: memberId, clearSig: true)
           : e.value,
   };
-  // The oldest clock there is: signed, so it counts, yet any real edit
-  // of the field wins over it. A field this member could not verify
-  // (and so holds empty) never overwrites the value others hold.
+  // A claim: signed, so it counts, yet any real edit of the field wins
+  // over it. A field this member could not verify (and so holds empty)
+  // never overwrites the value others hold.
   for (final field in [...doc.fields.keys, SiteDocument.deletedField]) {
-    clocks[field] ??= FieldClock(hlc: Hlc(0, 0, memberId), memberId: memberId);
+    clocks[field] ??= FieldClock.claim(
+      memberId,
+      field == SiteDocument.deletedField ? doc.deleted : doc.fields[field],
+    );
   }
   return doc.copyWith(clocks: clocks);
 }

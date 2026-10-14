@@ -31,7 +31,7 @@ class SharedSitePublisher {
     if (library == null) throw StateError('$libraryId is not connected here');
     final role = effectiveRole(
       listed: library.roles.roleOf(memberId),
-      readOnlyDetected: library.readOnlyDetected,
+      readOnlyDetected: library.writesHeld,
     );
     if (!canDeleteLibrarySite(role)) {
       throw StateError('a reader cannot delete in $libraryId');

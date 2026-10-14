@@ -35,8 +35,11 @@ class SiteEditHistorySheet extends ConsumerWidget {
         ref.watch(libraryMemberNamesProvider(libraryId)).value ??
         const <String, String>{};
     // Growable: the first frame has no state yet and sort mutates in place.
-    final entries = <MapEntry<String, FieldClock>>[...?state?.clocks.entries]
-      ..sort((a, b) => b.value.hlc.compareTo(a.value.hlc));
+    // A field nobody is known to have edited has no history to show.
+    final entries = <MapEntry<String, FieldClock>>[
+      for (final e in state?.clocks.entries ?? <MapEntry<String, FieldClock>>[])
+        if (e.value.marksEdit) e,
+    ]..sort((a, b) => b.value.hlc.compareTo(a.value.hlc));
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,

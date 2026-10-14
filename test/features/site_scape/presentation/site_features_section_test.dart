@@ -36,6 +36,7 @@ Future<int Function()> _pumpSection(
   WidgetTester tester, {
   AppSettings settings = const AppSettings(),
   List<SiteFeature> features = _features,
+  bool editable = true,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -54,7 +55,7 @@ Future<int Function()> _pumpSection(
         home: Scaffold(
           body: SiteFeaturesSection(
             siteId: 'site-1',
-            onAddFeature: () => addTaps++,
+            onAddFeature: editable ? () => addTaps++ : null,
           ),
         ),
       ),
@@ -126,5 +127,16 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byKey(const ValueKey('siteFeatureSaveButton')), findsOneWidget);
     expect(find.text('Edit feature'), findsOneWidget);
+  });
+
+  testWidgets('a site this profile may not change offers no edits', (
+    tester,
+  ) async {
+    await _pumpSection(tester, editable: false);
+    expect(find.text('Hilma Hooker'), findsOneWidget);
+    expect(find.byKey(const ValueKey('siteFeatureAddButton')), findsNothing);
+    await tester.tap(find.text('Hilma Hooker'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing);
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 void main() {
@@ -54,5 +55,16 @@ void main() {
   test('SharedLibraryLayout names files under their folders', () {
     expect(SharedLibraryLayout.siteFile('x'), 'sites/x.json');
     expect(SharedLibraryLayout.memberFile('m'), 'members/m.json');
+  });
+
+  test('two claims of one field with other values are two clocks', () {
+    final a = FieldClock.claim('m', 'Blue');
+    final b = FieldClock.claim('m', 'Blue Hole');
+    expect(a.hlc, isNot(b.hlc));
+    expect(FieldClock.claim('m', 'Blue').hlc, a.hlc);
+    // Any real edit wins over a claim, and a claim marks no edit.
+    expect(a.hlc.compareTo(const Hlc(1, 0, 'm')), lessThan(0));
+    expect(a.marksEdit, isFalse);
+    expect(newestClockOf([a, b]), isNull);
   });
 }

@@ -35,6 +35,10 @@ class SiteFeatureRepository {
     String name = '',
     String notes = '',
   }) async {
+    // A library site this profile may not edit (issue #2567).
+    if (!await _libraryStamper.mayEdit(siteId)) {
+      throw StateError('site $siteId is not this profile to edit');
+    }
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db
@@ -115,6 +119,7 @@ class SiteFeatureRepository {
   }
 
   Future<void> updateFeature(domain.SiteFeature feature) async {
+    if (!await _libraryStamper.mayEdit(feature.siteId)) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.siteFeatures,
@@ -137,7 +142,7 @@ class SiteFeatureRepository {
     final row = await (_db.select(
       _db.siteFeatures,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
-    if (row == null) return;
+    if (row == null || !await _libraryStamper.mayEdit(row.siteId)) return;
     await (_db.delete(_db.siteFeatures)..where((t) => t.id.equals(id))).go();
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.logDeletion(entityType: 'siteFeatures', recordId: id);

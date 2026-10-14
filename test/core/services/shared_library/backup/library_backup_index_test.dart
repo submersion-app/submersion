@@ -206,6 +206,26 @@ void main() {
     expect(all.map((r) => r.backupId), contains(record.backupId));
   });
 
+  test(
+    'a backup imported pinned stays pinned while storage lists it',
+    () async {
+      final record = await backups().backUp(libraryId: lib.id, diverId: 'd1');
+      final copy = File(p.join(dir.path, 'kept.zip'))
+        ..writeAsBytesSync(File(record.localPath!).readAsBytesSync());
+      await backups().delete(
+        record.backupId,
+        libraryId: lib.id,
+        diverId: 'd1',
+        fromDevice: true,
+        fromStorage: false,
+      );
+      await backups().import(libraryId: lib.id, path: copy.path);
+      final listed = (await backups().list(libraryId: lib.id)).single;
+      expect(listed.inStorage, isTrue);
+      expect(listed.pinned, isTrue);
+    },
+  );
+
   test('a backup of a folder with dots in its name is listed', () async {
     await tearDownTestDatabase();
     await setUpTestDatabase();
@@ -255,6 +275,42 @@ void main() {
       (await backups().list(libraryId: lib.id)).single.note,
       'the private part',
     );
+  });
+
+  test(
+    'a device that has not seen encryption turned on writes no note plain',
+    () async {
+      await LibraryEncryptionService(
+        store: SharedLibraryStore(),
+        memberships: memberships,
+        kdf: _fast,
+      ).turnOn(libraryId: lib.id, diverId: 'd1', passphrase: 'a passphrase');
+      // This device's row from before, as on a device that missed the change.
+      await SharedLibraryStore().setLibraryStatus(
+        lib.id,
+        encrypted: false,
+        clearKeyId: true,
+      );
+      final record = await backups().backUp(
+        libraryId: lib.id,
+        diverId: 'd1',
+        note: 'the private part',
+      );
+      final read = await LibraryBackupArchive.read(
+        File(record.localPath!).readAsBytesSync(),
+      );
+      expect(read.header.note, isEmpty);
+      expect(read.header.name, isNull);
+    },
+  );
+
+  test('a backup the list in storage cannot name is not left there', () async {
+    cloud.failUploadsNamed = 'index.json';
+    final record = await backups().backUp(libraryId: lib.id, diverId: 'd1');
+    cloud.failUploadsNamed = null;
+    expect(record.inStorage, isFalse);
+    expect(await transport().readBackup(record.fileName), isNull);
+    expect((await backups().list(libraryId: lib.id)).single.inStorage, isFalse);
   });
 
   test('a backup keeps the roles this device trusts', () async {

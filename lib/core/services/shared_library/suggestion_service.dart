@@ -63,7 +63,7 @@ class SuggestionService {
         ? SharedLibraryRole.reader
         : effectiveRole(
             listed: library.roles.roleOf(membership.memberId),
-            readOnlyDetected: library.readOnlyDetected,
+            readOnlyDetected: library.writesHeld,
           );
     if (!canSuggestOnLibrarySite(role)) {
       throw StateError('only a reader suggests changes in $libraryId');

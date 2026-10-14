@@ -485,8 +485,42 @@ class SharedLibraryStore {
     );
   }
 
-  /// Stores (or, with no [key], clears) the unlocked key of [libraryId]
-  /// on the profile's membership: the one write allowed to erase it.
+  /// The key [keyId] of [libraryId]: a local profile's, else the spare key
+  /// personal sync kept aside, taken up for [diverId] ([takeSpareKey]).
+  /// Null when neither is that key.
+  Future<LibraryCipher?> cipherNamed(
+    String libraryId, {
+    required String keyId,
+    required String diverId,
+  }) async =>
+      await libraryCipherFor(libraryId, keyId: keyId) ??
+      await takeSpareKey(libraryId, keyId: keyId, diverId: diverId);
+
+  /// Keeps [key] aside as the spare key of [libraryId], taken up only once
+  /// the manifest names [keyId] ([takeSpareKey]).
+  Future<void> keepSpareKey(
+    String libraryId, {
+    required String keyId,
+    required String key,
+  }) => (_db.update(_db.sharedLibraries)..where((t) => t.id.equals(libraryId)))
+      .write(
+        SharedLibrariesCompanion(
+          spareKeyId: Value(keyId),
+          spareKey: Value(key),
+        ),
+      );
+
+  /// Forgets the spare key of [libraryId], as when its key is dropped.
+  Future<void> clearSpareKey(String libraryId) =>
+      (_db.update(
+        _db.sharedLibraries,
+      )..where((t) => t.id.equals(libraryId))).write(
+        const SharedLibrariesCompanion(
+          spareKeyId: Value(null),
+          spareKey: Value(null),
+        ),
+      );
+
   /// Takes up the spare key of [libraryId] when it is [keyId]: stored as
   /// [diverId]'s key (personal sync carries it on), and returned. Null when
   /// no spare key is that one.
@@ -511,17 +545,12 @@ class SharedLibraryStore {
       keyId: spareId,
       key: spare,
     );
-    await (_db.update(
-      _db.sharedLibraries,
-    )..where((t) => t.id.equals(libraryId))).write(
-      const SharedLibrariesCompanion(
-        spareKeyId: Value(null),
-        spareKey: Value(null),
-      ),
-    );
+    await clearSpareKey(libraryId);
     return LibraryCipher.fromExported(keyId: spareId, key: spare);
   }
 
+  /// Stores (or, with no [key], clears) the unlocked key of [libraryId]
+  /// on the profile's membership: the one write allowed to erase it.
   Future<void> setLibraryKey({
     required String diverId,
     required String libraryId,

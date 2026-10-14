@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -68,6 +69,7 @@ class _FakeMembershipService extends SharedLibraryMembershipService {
     required String displayName,
     String? secret,
     bool adoptFolderRoles = false,
+    LibrarySigningKey? signingKey,
   }) async {
     joinSecrets.add(secret);
     throw StateError('stop here');

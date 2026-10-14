@@ -43,6 +43,14 @@ Future<SharedLibraryService> device(
   String member, {
   File? file,
 }) async {
+  // One device at a time: a database still open (a test that re-opens a
+  // device's file without closing it first) is closed, never leaked. A
+  // leaked handle keeps the file locked on Windows, where deleting it fails.
+  final open = DatabaseService.instance.databaseOrNull;
+  if (open != null) {
+    await open.close();
+    DatabaseService.instance.resetForTesting();
+  }
   if (file != null && file.existsSync()) {
     DatabaseService.instance.setTestDatabase(
       AppDatabase(NativeDatabase(file, setup: registerAppSqlFunctions)),

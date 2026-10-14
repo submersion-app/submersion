@@ -6125,6 +6125,7 @@
   "sharedLibrary_members_setRole": "Rolle ändern",
   "sharedLibrary_members_lastOwner": "Der letzte Eigentümer kann nicht herabgestuft werden.",
   "sharedLibrary_members_keyChanged": "Der Schlüssel dieses Mitglieds hat sich geändert. Vergleiche den neuen Schlüssel persönlich und gib ihn dann frei.",
+  "sharedLibrary_members_rolesOutOfDate": "Die Rollen haben sich geändert, seit dieses Gerät ihnen zuletzt vertraut hat. Verlasse die Bibliothek und tritt ihr erneut bei, um die Änderung zu übernehmen, und versuche es dann noch einmal.",
   "sharedLibrary_picker_none": "Keine geteilte Tauchplatzbibliothek hier erlaubt dir, Tauchplätze hinzuzufügen.",
   "sharedLibrary_list_notConnected": "Auf diesem Gerät nicht verbunden",
   "sharedLibrary_connect_exists": "Hier wurde inzwischen eine Bibliothek angelegt. Prüfe erneut, um ihr beizutreten.",

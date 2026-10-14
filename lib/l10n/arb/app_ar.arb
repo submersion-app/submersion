@@ -5994,6 +5994,7 @@
   "sharedLibrary_members_setRole": "تغيير الدور",
   "sharedLibrary_members_lastOwner": "لا يمكن تخفيض رتبة المالك الأخير.",
   "sharedLibrary_members_keyChanged": "تغيّر مفتاح هذا العضو. قارن المفتاح الجديد شخصيًا ثم وافق عليه.",
+  "sharedLibrary_members_rolesOutOfDate": "تغيّرت الأدوار منذ آخر مرة وثق بها هذا الجهاز. غادر المكتبة وانضم إليها مرة أخرى لاعتماد التغيير، ثم حاول مجددًا.",
   "sharedLibrary_picker_none": "لا توجد مكتبة مواقع مشتركة هنا تتيح لك إضافة مواقع.",
   "sharedLibrary_list_notConnected": "غير متصل على هذا الجهاز",
   "sharedLibrary_connect_exists": "أنشأ أحدهم مكتبة هنا في الأثناء. تحقق مرة أخرى للانضمام إليها.",

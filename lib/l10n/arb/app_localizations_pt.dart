@@ -21401,6 +21401,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'A chave deste membro mudou. Compare a nova chave pessoalmente e depois aprove-a.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'As funções mudaram desde a última vez que este dispositivo confiou nelas. Saia da biblioteca e volte a aderir para adotar a alteração e, em seguida, tente novamente.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'Nenhuma biblioteca de locais partilhada aqui permite adicionar locais.';
 

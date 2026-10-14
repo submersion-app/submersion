@@ -5894,6 +5894,7 @@
   "sharedLibrary_members_setRole": "Changer le rôle",
   "sharedLibrary_members_lastOwner": "Le dernier propriétaire ne peut pas être rétrogradé.",
   "sharedLibrary_members_keyChanged": "La clé de ce membre a changé. Comparez la nouvelle clé en personne, puis approuvez-la.",
+  "sharedLibrary_members_rolesOutOfDate": "Les rôles ont changé depuis que cet appareil leur a fait confiance pour la dernière fois. Quittez la bibliothèque et rejoignez-la à nouveau pour prendre en compte le changement, puis réessayez.",
   "sharedLibrary_picker_none": "Aucune bibliothèque de sites partagée ici ne vous permet d'ajouter des sites.",
   "sharedLibrary_list_notConnected": "Non connectée sur cet appareil",
   "sharedLibrary_connect_exists": "Une bibliothèque a été créée ici entre-temps. Vérifiez à nouveau pour la rejoindre.",

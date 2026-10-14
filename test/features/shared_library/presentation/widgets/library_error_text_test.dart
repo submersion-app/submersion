@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
+import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -23,6 +24,13 @@ void main() {
     expect(
       libraryErrorText(de, const CloudStorageException('S3 is not configured')),
       'S3 is not configured',
+    );
+  });
+
+  test('roles changed since this device trusted them says what to do', () {
+    expect(
+      libraryErrorText(de, RolesOutOfDateError('L')),
+      de.sharedLibrary_members_rolesOutOfDate,
     );
   });
 }

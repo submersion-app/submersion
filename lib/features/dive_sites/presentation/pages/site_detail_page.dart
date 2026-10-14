@@ -337,8 +337,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       SiteDetailSectionId.features: () => site.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
-              onAddFeature: () =>
-                  _showFullscreenMap(context, ref, site, startPlacing: true),
+              // A library site this profile only reads offers no edits.
+              onAddFeature: _canEditSite(ref, site)
+                  ? () => _showFullscreenMap(
+                      context,
+                      ref,
+                      site,
+                      startPlacing: true,
+                    )
+                  : null,
             )
           : null,
       // A quarry or lake has no tides, and a nearby ocean station must not
@@ -354,6 +361,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       SiteDetailSectionId.marineLife: () =>
           (_) => SiteMarineLifeSection(
             siteId: site.id,
+            readOnly: !_canEditSite(ref, site),
             location: site.location,
             waterType: site.waterType,
           ),

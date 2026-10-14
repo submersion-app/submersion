@@ -21325,6 +21325,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A tag kulcsa megváltozott. Személyesen hasonlítsd össze az új kulcsot, majd hagyd jóvá.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'A szerepkörök megváltoztak, mióta ez az eszköz utoljára megbízott bennük. Lépj ki a könyvtárból, majd csatlakozz újra a változás átvételéhez, és próbáld újra.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'Itt egyik megosztott merülőhely-könyvtárba sem adhatsz hozzá merülőhelyeket.';
 

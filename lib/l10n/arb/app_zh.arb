@@ -6146,6 +6146,7 @@
   "sharedLibrary_members_setRole": "更改角色",
   "sharedLibrary_members_lastOwner": "无法降级最后一位所有者。",
   "sharedLibrary_members_keyChanged": "该成员的密钥已更改。请当面核对新密钥，然后再批准。",
+  "sharedLibrary_members_rolesOutOfDate": "自此设备上次信任这些角色以来，角色已发生更改。请退出资料库并重新加入以采用此更改，然后重试。",
   "sharedLibrary_picker_none": "这里没有允许你添加潜点的共享潜点库。",
   "sharedLibrary_list_notConnected": "未在此设备上连接",
   "sharedLibrary_connect_exists": "此期间已有人在这里创建了资料库。请重新检查以加入。",

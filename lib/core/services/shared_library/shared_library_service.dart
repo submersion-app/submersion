@@ -12,14 +12,12 @@ import 'package:submersion/core/services/shared_library/crypto/library_signer.da
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
-import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/shared_library/site_document_bridge.dart';
 import 'package:submersion/core/services/shared_library/site_document_merge.dart';
-import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 
 part 'shared_library_sync_parts.dart';
@@ -185,13 +183,20 @@ class SharedLibraryService {
       // trusts.
       var encryption = libraryEncryptionOf(manifest, library.roles);
       final locked = await _useKey(t, libraryId, diverId, encryption);
-      if (locked != null) return locked;
+      // Locked only by this device's older roles overruling a manifest that
+      // says off: the folder's roles, rewritten plain, may say an owner
+      // turned it off since.
+      if (locked != null && !encryption.overruled) return locked;
 
       // 2. Roles and members. Only roles this device can trust count: a
-      // file rewritten by someone who is no owner changes nothing here.
-      final roles = await _trustRoles(library, await t.readRoles());
+      // file rewritten by someone who is no owner changes nothing here,
+      // and one it cannot read (sealed under a key it lacks) neither.
+      final incoming = await t.readRolesOrNull();
+      final roles = incoming == null
+          ? library.roles
+          : await _trustRoles(library, incoming);
       final settled = libraryEncryptionOf(manifest, roles);
-      if (settled != encryption) {
+      if (locked != null || settled != encryption) {
         encryption = settled;
         final stillLocked = await _useKey(t, libraryId, diverId, encryption);
         if (stillLocked != null) return stillLocked;
@@ -210,7 +215,12 @@ class SharedLibraryService {
       final members = await t.listMembers();
       await _store.setLibraryStatus(
         libraryId,
-        name: await _nameOf(t) ?? manifest['name'] as String?,
+        name:
+            await t.readName() ??
+            switch (manifest['name']) {
+              final String n => n,
+              _ => null,
+            },
       );
       await _store.replaceMembers(libraryId, members);
       // Probed afresh every sync: a refused upload sets it, so upgraded
@@ -219,8 +229,8 @@ class SharedLibraryService {
       // roles this device refused: whether forged, or newer than it can
       // follow (it missed the change that made their signer an owner), its
       // uploads would only fight the edits of owners it does not know. The
-      // banner says so; leaving and joining again, or the recovery code,
-      // brings the device back.
+      // banner says so; leaving and joining again (with every local profile
+      // that belongs to the library) brings the device back.
       final now = await _store.getLibrary(libraryId);
       final holdWrites =
           now?.pendingRoles != null || (now?.rolesRejected ?? false);
@@ -278,7 +288,6 @@ class SharedLibraryService {
       // 3. Pull, in batches: each batch's documents are read, their
       // signatures checked together (in parallel), then merged in order.
       final states = await _store.siteStates(libraryId);
-      final clock = MemberClock(membership.memberId);
       var pulled = 0;
       // Sites edited here after their batch read them: merged against what
       // they are now by the next sync, and not uploaded by this one, which
@@ -340,7 +349,6 @@ class SharedLibraryService {
             batch[k],
             checked[k],
             diverId: diverId,
-            clock: clock,
           )) {
             pulled++;
           }
@@ -372,6 +380,9 @@ class SharedLibraryService {
       for (final state in dirty) {
         if (readOnly) break;
         if (deferred.contains(state.siteId)) continue;
+        // No file can be named after it: a site pulled before such names
+        // were refused stays on this device.
+        if (!SharedLibraryTransport.isSafeFileId(state.siteId)) continue;
         SiteDocument doc;
         try {
           doc = await _documentFor(state);
@@ -391,7 +402,15 @@ class SharedLibraryService {
             (state.deleted || pendingKeys.isNotEmpty || othersSigned)) {
           try {
             final remote = await t.readSite(remoteId);
-            doc = _authorsValues(doc, remote, localKeys.keys.toSet());
+            doc = await _authorsValues(
+              doc,
+              remote,
+              localKeys.keys.toSet(),
+              libraryId: libraryId,
+              // A held author's signature proves the value as well.
+              keys: {...pendingKeys, ...roles.editingKeys},
+              retiredKeys: roles.retiredKeys,
+            );
             if (state.deleted) {
               // A tombstone keeps the document's fields, so an undelete
               // wins the site back intact; only fields that prove
@@ -422,7 +441,7 @@ class SharedLibraryService {
             if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
           }
         }
-        doc = _claimUnattributed(doc, membership.memberId, clock);
+        doc = _claimUnattributed(doc, membership.memberId);
         for (final e in localKeys.entries) {
           doc = await signOwnFields(
             doc,
@@ -543,7 +562,9 @@ class SharedLibraryService {
         );
         // An approval (held edits now count) or a rejection (held edits
         // now repair): documents this device already read are read again.
-        await _store.clearRemoteStamps(library.id);
+        if (!incoming.judgesFieldsAs(trusted)) {
+          await _store.clearRemoteStamps(library.id);
+        }
         return incoming;
       case RolesVerdict.resetPending:
         await _store.setLibraryStatus(library.id, pendingRoles: incoming);
@@ -571,25 +592,19 @@ class SharedLibraryService {
       keyId: keyId,
       clearKeyId: keyId == null,
     );
-    // The key the state names, when a local profile holds it: the
-    // transport may have been keyed before this sync saw the new key id.
+    // The key the state names, when a local profile holds it or another
+    // device of the profile sent it before this one saw the change that
+    // made it: the transport may have been keyed before this sync saw the
+    // new key id.
     final named = keyId == null
         ? null
+        : state.encrypted
+        ? await _store.cipherNamed(libraryId, keyId: keyId, diverId: diverId)
         : await _store.libraryCipherFor(libraryId, keyId: keyId);
     if (named != null) {
       t.cipher = named;
     } else {
       t.cipher ??= await _store.libraryCipherFor(libraryId);
-    }
-    // A key another device of the profile sent before this one saw the
-    // change that made it: kept aside by personal sync, taken up now.
-    if (state.encrypted && keyId != null && named == null) {
-      final spare = await _store.takeSpareKey(
-        libraryId,
-        keyId: keyId,
-        diverId: diverId,
-      );
-      if (spare != null) t.cipher = spare;
     }
     if (!state.encrypted) {
       t.encrypting = false;
@@ -609,16 +624,6 @@ class SharedLibraryService {
     return null;
   }
 
-  /// The library's name from `info.json`, or null when it cannot be read.
-  Future<String?> _nameOf(SharedLibraryTransport t) async {
-    try {
-      return (await t.readInfo())?['name'] as String?;
-    } catch (e) {
-      if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
-      return null;
-    }
-  }
-
   Future<SharedLibrarySyncResult> _fail(
     String libraryId,
     SharedLibrarySyncStatus status,
@@ -628,13 +633,14 @@ class SharedLibraryService {
     return SharedLibrarySyncResult(status: status, error: error);
   }
 
-  /// Forgets [libraryId]'s key on every local profile.
+  /// Forgets [libraryId]'s key on every local profile, and any kept aside.
   Future<void> _dropLibraryKeys(String libraryId) async {
     for (final m in await _store.membershipsForLibrary(libraryId)) {
       if (m.libraryKey != null) {
         await _store.setLibraryKey(diverId: m.diverId, libraryId: libraryId);
       }
     }
+    await _store.clearSpareKey(libraryId);
   }
 
   /// Rewrites every file not yet in the library's current form, then
@@ -650,18 +656,24 @@ class SharedLibraryService {
       ...await t.sealableFiles(),
       if (index != null) index.key: index.value,
     };
+    // Every file this device can open is rewritten; one under a key it
+    // lacks leaves the flag for an owner who holds it.
+    var incomplete = false;
     try {
       for (final e in files.entries) {
-        await t.settle(e.key, e.value);
+        try {
+          await t.settle(e.key, e.value);
+        } on LibraryLockedException catch (err) {
+          _log.warning('Rewrite of $libraryId not finished here: $err');
+          incomplete = true;
+        }
       }
-    } on LibraryLockedException catch (e) {
-      _log.warning('Rewrite of $libraryId not finished here: $e');
-      return false;
     } catch (e) {
       if (!SharedLibraryTransport.isPermissionError(e)) rethrow;
       _log.warning('No rights to finish the rewrite of $libraryId');
       return false;
     }
+    if (incomplete) return false;
     await t.clearRewritingFlag();
     return true;
   }
@@ -688,7 +700,6 @@ class SharedLibraryService {
     _Pulled pulled,
     SiteDocument remote, {
     required String diverId,
-    required MemberClock clock,
   }) async {
     final siteId = remote.id;
     final hasRow = pulled.hasRow;
@@ -696,9 +707,6 @@ class SharedLibraryService {
     final stamp = pulled.stamp;
     final local = pulled.local;
     final outcome = mergeSiteDocuments(local: local, remote: remote);
-    for (final c in remote.clocks.values) {
-      clock.receive(c.hlc);
-    }
     final merged = outcome.merged;
     final newest = newestClockOf(merged.clocks.values);
     final base =

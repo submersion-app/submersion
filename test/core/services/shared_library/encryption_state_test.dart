@@ -1,10 +1,16 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:drift/drift.dart' show Variable;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
+import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -26,7 +32,7 @@ const _fast = KdfParams(m: 1024, t: 1);
 /// Owner actions and syncs go by the library's encryption as its folder
 /// declares it, never by a device's older view of it (issue #2567).
 void main() {
-  late FakeCloudStorageProvider cloud;
+  late _LandsThenFails cloud;
   late SharedLibraryMembershipService memberships;
   late LibraryEncryptionService encryption;
   late SharedLibrary lib;
@@ -58,7 +64,7 @@ void main() {
   setUp(() async {
     await setUpTestDatabase();
     await diver('d1');
-    cloud = FakeCloudStorageProvider();
+    cloud = _LandsThenFails();
     memberships = SharedLibraryMembershipService(
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
@@ -91,8 +97,8 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  /// This device as it was before [change]: holding the key and the
-  /// library state it had then.
+  /// This device as it was before [change]: holding the key, the library
+  /// state and the trusted roles it had then.
   Future<void> staleAfter(Future<void> Function() change) async {
     final store = SharedLibraryStore();
     final me = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
@@ -103,6 +109,7 @@ void main() {
       encrypted: before.encrypted,
       keyId: before.keyId,
       clearKeyId: before.keyId == null,
+      roles: before.roles,
     );
     await store.setLibraryKey(
       diverId: 'd1',
@@ -284,4 +291,203 @@ void main() {
       const LibraryEncryption(on: false),
     );
   });
+
+  /// The key of [lib] held only as the spare personal sync keeps aside.
+  Future<void> onlySpare() async {
+    final store = SharedLibraryStore();
+    final me = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
+    await store.setLibraryKey(diverId: 'd1', libraryId: lib.id);
+    await DatabaseService.instance.database.customStatement(
+      'UPDATE shared_libraries SET spare_key_id = ?, spare_key = ? '
+      'WHERE id = ?',
+      [me.libraryKeyId, me.libraryKey, lib.id],
+    );
+  }
+
+  Future<List<Object?>> spareOf() async =>
+      (await DatabaseService.instance.database
+              .customSelect(
+                'SELECT spare_key_id, spare_key FROM shared_libraries WHERE id = ?',
+                variables: [Variable.withString(lib.id)],
+              )
+              .getSingle())
+          .data
+          .values
+          .toList();
+
+  test('a key kept aside by personal sync serves an owner at once', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'a passphrase',
+    );
+    await onlySpare();
+    final dir = Directory.systemTemp.createTempSync('spare_backup_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    await LibraryBackupService(
+      store: SharedLibraryStore(),
+      memberships: memberships,
+      backupsDirectory: () async => dir.path,
+    ).backUp(libraryId: lib.id, diverId: 'd1');
+    expect(
+      LibraryCipher.isSealed(await cloud.downloadFile('index.json')),
+      isTrue,
+    );
+  });
+
+  test('turning encryption off leaves no key aside', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'a passphrase',
+    );
+    final store = SharedLibraryStore();
+    final me = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
+    await DatabaseService.instance.database.customStatement(
+      'UPDATE shared_libraries SET spare_key_id = ?, spare_key = ? '
+      'WHERE id = ?',
+      [me.libraryKeyId, me.libraryKey, lib.id],
+    );
+    await encryption.turnOff(libraryId: lib.id, diverId: 'd1');
+    expect(await spareOf(), [null, null]);
+  });
+
+  test('a change of key whose manifest landed unannounced goes on', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'first passphrase',
+    );
+    cloud.landThenFail = SharedLibraryLayout.manifestFile;
+    await encryption.changePassphrase(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'second passphrase',
+    );
+    expect(
+      (await syncer().sync(lib.id, diverId: 'd1')).status,
+      SharedLibrarySyncStatus.success,
+    );
+  });
+
+  test(
+    'a change of key that cannot tell whether its manifest landed keeps the key',
+    () async {
+      await encryption.turnOn(
+        libraryId: lib.id,
+        diverId: 'd1',
+        passphrase: 'first passphrase',
+      );
+      cloud
+        ..landThenFail = SharedLibraryLayout.manifestFile
+        ..blindAfter = true;
+      await expectLater(
+        encryption.changePassphrase(
+          libraryId: lib.id,
+          diverId: 'd1',
+          passphrase: 'second passphrase',
+        ),
+        throwsA(isA<RekeyIncompleteError>()),
+      );
+      cloud.blind = false;
+      expect(
+        (await syncer().sync(lib.id, diverId: 'd1')).status,
+        SharedLibrarySyncStatus.success,
+      );
+    },
+  );
+
+  test('roles sealed under a key this device lacks are no forgery', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'a passphrase',
+    );
+    final roles = await folder().readRoles();
+    final other = SharedLibraryTransport(cloud, prefix: 'site-sync')
+      ..cipher = await LibraryCipher.generate()
+      ..encrypting = true;
+    await other.writeRoles(roles);
+    final result = await syncer().sync(lib.id, diverId: 'd1');
+    expect(result.status, SharedLibrarySyncStatus.success);
+    expect(
+      (await SharedLibraryStore().getLibrary(lib.id))!.rolesRejected,
+      isFalse,
+    );
+  });
+
+  test(
+    'a profile without the key learns an owner turned encryption off',
+    () async {
+      await encryption.turnOn(
+        libraryId: lib.id,
+        diverId: 'd1',
+        passphrase: 'a passphrase',
+      );
+      final store = SharedLibraryStore();
+      final before = (await store.getLibrary(lib.id))!;
+      await encryption.turnOff(libraryId: lib.id, diverId: 'd1');
+      // This device's view from before, with no local profile holding the
+      // key (the one that did has left).
+      await store.setLibraryStatus(
+        lib.id,
+        encrypted: true,
+        keyId: before.keyId,
+        roles: before.roles,
+      );
+      final result = await syncer().sync(lib.id, diverId: 'd1');
+      expect(result.status, SharedLibrarySyncStatus.success);
+      expect((await store.getLibrary(lib.id))!.encrypted, isFalse);
+    },
+  );
+
+  test(
+    'an owner whose key here is not the approved one seals nothing',
+    () async {
+      final store = SharedLibraryStore();
+      final me = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
+      await store.upsertMembership(
+        me.copyWith(signingKey: await LibrarySigner.generate()),
+      );
+      await expectLater(
+        encryption.turnOn(
+          libraryId: lib.id,
+          diverId: 'd1',
+          passphrase: 'a passphrase',
+        ),
+        throwsStateError,
+      );
+      expect(await folder().readKeyslots(), isNull);
+    },
+  );
+}
+
+/// The fake storage, which can take an upload of [landThenFail] and then
+/// report it failed, and with [blindAfter] go on failing every download
+/// until [blind] is cleared, as a connection that drops does.
+class _LandsThenFails extends FakeCloudStorageProvider {
+  String? landThenFail;
+  bool blindAfter = false;
+  bool blind = false;
+
+  @override
+  Future<UploadResult> uploadFile(
+    Uint8List data,
+    String filename, {
+    String? folderId,
+  }) async {
+    final result = await super.uploadFile(data, filename, folderId: folderId);
+    if (filename == landThenFail) {
+      landThenFail = null;
+      blind = blindAfter;
+      throw const CloudStorageException('timed out (test)');
+    }
+    return result;
+  }
+
+  @override
+  Future<Uint8List> downloadFile(String fileId) {
+    if (blind) throw const CloudStorageException('offline (test)');
+    return super.downloadFile(fileId);
+  }
 }

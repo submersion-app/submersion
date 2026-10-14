@@ -13236,6 +13236,7 @@
   "sharedLibrary_members_setRole": "Change role",
   "sharedLibrary_members_lastOwner": "The last owner cannot be demoted.",
   "sharedLibrary_members_keyChanged": "This member's key changed. Compare the new key in person, then approve it.",
+  "sharedLibrary_members_rolesOutOfDate": "The roles changed since this device last trusted them. Leave the library and join it again to take up the change, then try again.",
   "sharedLibrary_picker_none": "No shared site library here lets you add sites.",
   "sharedLibrary_list_notConnected": "Not connected on this device",
   "sharedLibrary_connect_exists": "Someone created a library here meanwhile. Check again to join it.",

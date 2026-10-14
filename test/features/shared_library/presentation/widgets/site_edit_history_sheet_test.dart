@@ -91,4 +91,26 @@ void main() {
     expect(find.byType(SiteEditHistorySheet), findsOneWidget);
     expect(find.text('Blue Hole'), findsOneWidget);
   });
+
+  testWidgets('a field nobody is known to have edited is not listed', (
+    tester,
+  ) async {
+    final state = SharedSiteState(
+      siteId: 's',
+      libraryId: 'L',
+      clocks: {
+        'name': _clock(DateTime.utc(2026, 10, 1), 'a'),
+        'deleted': FieldClock.claim('a', false),
+      },
+    );
+    await tester.pumpWidget(
+      await _app(
+        child: const SiteEditHistorySheet(site: _site),
+        state: state,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('1970'), findsNothing);
+    expect(find.byType(ListTile), findsNWidgets(2));
+  });
 }

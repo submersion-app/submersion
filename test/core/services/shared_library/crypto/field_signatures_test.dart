@@ -211,4 +211,33 @@ void main() {
       expect(carried.clocks['name']!.memberId, 'p');
     },
   );
+
+  test('a clock past the year 9999 proves nothing, signed or not', () async {
+    // An approved member's own signature, on a time no device can reach:
+    // taken, it would outlast every later edit.
+    final doc = await signedDoc({'name': 'A'}, 300000000000000);
+    final kept = await dropUnverified(
+      doc,
+      local: SiteDocument(
+        id: 's1',
+        fields: const {'name': 'B'},
+        clocks: {'name': clock(10)},
+      ),
+      libraryId: 'L',
+      approvedKeys: {'m1': key.publicKey},
+    );
+    // Absent, as any unproven field: the local value wins the merge.
+    expect(kept.fields.containsKey('name'), isFalse);
+    final carried = await carryHeld(
+      SiteDocument(
+        id: 's1',
+        fields: const {'name': 'B'},
+        clocks: {'name': clock(10)},
+      ),
+      doc,
+      libraryId: 'L',
+      pendingKeys: {'m1': key.publicKey},
+    );
+    expect(carried.fields['name'], 'B');
+  });
 }

@@ -5894,6 +5894,7 @@
   "sharedLibrary_members_setRole": "Cambia ruolo",
   "sharedLibrary_members_lastOwner": "L'ultimo proprietario non può essere retrocesso.",
   "sharedLibrary_members_keyChanged": "La chiave di questo membro è cambiata. Confronta di persona la nuova chiave, poi approvala.",
+  "sharedLibrary_members_rolesOutOfDate": "I ruoli sono cambiati dall'ultima volta che questo dispositivo li ha considerati attendibili. Esci dalla libreria e unisciti di nuovo per recepire la modifica, poi riprova.",
   "sharedLibrary_picker_none": "Nessuna libreria di siti condivisa qui ti consente di aggiungere siti.",
   "sharedLibrary_list_notConnected": "Non collegata su questo dispositivo",
   "sharedLibrary_connect_exists": "Nel frattempo qualcuno ha creato qui una libreria. Controlla di nuovo per unirti.",

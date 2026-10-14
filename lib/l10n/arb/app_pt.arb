@@ -5994,6 +5994,7 @@
   "sharedLibrary_members_setRole": "Alterar função",
   "sharedLibrary_members_lastOwner": "O último proprietário não pode ser despromovido.",
   "sharedLibrary_members_keyChanged": "A chave deste membro mudou. Compare a nova chave pessoalmente e depois aprove-a.",
+  "sharedLibrary_members_rolesOutOfDate": "As funções mudaram desde a última vez que este dispositivo confiou nelas. Saia da biblioteca e volte a aderir para adotar a alteração e, em seguida, tente novamente.",
   "sharedLibrary_picker_none": "Nenhuma biblioteca de locais partilhada aqui permite adicionar locais.",
   "sharedLibrary_list_notConnected": "Não ligada neste dispositivo",
   "sharedLibrary_connect_exists": "Alguém criou uma biblioteca aqui entretanto. Verifique novamente para aderir.",

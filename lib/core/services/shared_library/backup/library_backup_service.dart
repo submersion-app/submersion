@@ -81,16 +81,8 @@ class LibraryBackupService {
     required String libraryId,
     required String diverId,
     String note = '',
-    bool automatic = false,
-    bool beforeRestore = false,
   }) => SyncCoordinator.run(
-    () => backUpHeld(
-      libraryId: libraryId,
-      diverId: diverId,
-      note: note,
-      automatic: automatic,
-      beforeRestore: beforeRestore,
-    ),
+    () => backUpHeld(libraryId: libraryId, diverId: diverId, note: note),
   );
 
   /// [backUp] for a caller already holding the [SyncCoordinator] (a
@@ -116,10 +108,12 @@ class LibraryBackupService {
       ),
     };
     final at = _now().toUtc();
+    // Sealed as the folder is, which this device's row may not show yet.
+    final sealed = t.encrypting || library.encrypted;
     final header = LibraryBackupHeader(
       backupId: const Uuid().v4(),
       libraryId: libraryId,
-      name: library.encrypted ? null : library.name,
+      name: sealed ? null : library.name,
       createdAt: at,
       createdBy: me.memberId,
       createdByKey: key.publicKey,
@@ -127,7 +121,7 @@ class LibraryBackupService {
       automatic: automatic,
       // backup.json is plain: an encrypted library's note stays in the
       // sealed index.
-      note: library.encrypted ? '' : note.trim(),
+      note: sealed ? '' : note.trim(),
       siteCount: _count(files, SharedLibraryLayout.sitesDir),
       memberCount: _count(files, SharedLibraryLayout.membersDir),
     );
@@ -152,18 +146,30 @@ class LibraryBackupService {
       sizeBytes: zip.length,
       localPath: local,
     );
+    var uploaded = false;
     try {
       await t.writeBackup(name, zip);
-      record = record.copyWith(inStorage: true);
+      uploaded = true;
+      final listed = record.copyWith(inStorage: true);
       await _updateIndex(
         t,
         me,
         key,
         roles,
-        (index) => {...index, record.backupId: record},
+        (index) => {...index, listed.backupId: listed},
       );
+      record = listed;
     } catch (e) {
       _log.warning('Library backup $name kept on this device only: $e');
+      // A zip the storage list does not name is never listed, pruned or
+      // deleted from the app: it would stay there for good.
+      if (uploaded) {
+        try {
+          await t.deleteBackup(name);
+        } catch (e) {
+          _log.warning('Unlisted library backup $name left in storage: $e');
+        }
+      }
     }
     await _saveRow(record);
     return record;
@@ -290,7 +296,12 @@ class LibraryBackupService {
       final local = _fromRow(row);
       final remote = byId[row.backupId];
       byId[row.backupId] = remote != null
-          ? remote.copyWith(localPath: local.localPath)
+          // Pinned in either place keeps it (an import is saved pinned
+          // here, whatever the list in storage says).
+          ? remote.copyWith(
+              localPath: local.localPath,
+              pinned: remote.pinned || local.pinned,
+            )
           : indexRead
           ? local.copyWith(inStorage: false)
           : local;
@@ -532,13 +543,19 @@ class LibraryBackupService {
         ? roles.approvedKeys[signer]
         : null;
     final signature = json['signature'];
-    final ok =
-        key != null &&
-        await LibrarySigner.verify(
-          publicKey: key,
-          message: utf8.encode(canonicalJson(unsigned)),
-          signature: signature is String ? signature : null,
-        );
+    bool ok;
+    try {
+      ok =
+          key != null &&
+          await LibrarySigner.verify(
+            publicKey: key,
+            message: utf8.encode(canonicalJson(unsigned)),
+            signature: signature is String ? signature : null,
+          );
+    } on JsonUnsupportedObjectError {
+      // A value no JSON holds: nobody signed that.
+      ok = false;
+    }
     if (!ok) {
       _log.warning('Backup index of ${library.id} not signed by an owner');
     }
@@ -606,10 +623,13 @@ class LibraryBackupService {
       throw StateError('not a member of $libraryId here');
     }
     final t = await _memberships.transportForLibrary(library);
-    final roles = await _memberships.currentRoles(library, t);
-    if (roles.roleOf(me.memberId) != SharedLibraryRole.owner) {
-      throw StateError('only an owner backs up a library');
-    }
+    final roles = await _memberships.ownerRoles(
+      library,
+      t,
+      me.memberId,
+      action: 'backs up a library',
+      overRefusedRoles: true,
+    );
     final key = me.signingKey ?? await _store.ensureSigningKey(diverId);
     return (library, t, me, key, roles);
   }

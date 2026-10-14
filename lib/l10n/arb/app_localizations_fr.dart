@@ -21463,6 +21463,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'La clé de ce membre a changé. Comparez la nouvelle clé en personne, puis approuvez-la.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'Les rôles ont changé depuis que cet appareil leur a fait confiance pour la dernière fois. Quittez la bibliothèque et rejoignez-la à nouveau pour prendre en compte le changement, puis réessayez.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'Aucune bibliothèque de sites partagée ici ne vous permet d\'ajouter des sites.';
 

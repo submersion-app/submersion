@@ -21375,6 +21375,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Schlüssel dieses Mitglieds hat sich geändert. Vergleiche den neuen Schlüssel persönlich und gib ihn dann frei.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'Die Rollen haben sich geändert, seit dieses Gerät ihnen zuletzt vertraut hat. Verlasse die Bibliothek und tritt ihr erneut bei, um die Änderung zu übernehmen, und versuche es dann noch einmal.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'Keine geteilte Tauchplatzbibliothek hier erlaubt dir, Tauchplätze hinzuzufügen.';
 

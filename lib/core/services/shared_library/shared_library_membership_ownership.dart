@@ -15,6 +15,14 @@ mixin _MembershipOwnership {
     SharedLibraryTransport t,
   );
 
+  Future<SharedLibraryRoles> ownerRoles(
+    SharedLibrary library,
+    SharedLibraryTransport t,
+    String memberId, {
+    required String action,
+    bool overRefusedRoles = false,
+  });
+
   Future<SharedLibraryRoles> writeSignedRoles(
     SharedLibrary library,
     SharedLibraryTransport t,
@@ -137,11 +145,13 @@ mixin _MembershipOwnership {
       rolesRejected: false,
       clearPendingRoles: true,
     );
-    await _store.clearRemoteStamps(libraryId);
+    if (!reset.judgesFieldsAs(library.roles)) {
+      await _store.clearRemoteStamps(libraryId);
+    }
   });
 
   /// Trusts the ownership reset this device holds for [libraryId].
-  Future<void> acceptReset(String libraryId) async {
+  Future<void> acceptReset(String libraryId) => SyncCoordinator.run(() async {
     final library = await _store.getLibrary(libraryId);
     final pending = library?.pendingRoles;
     if (library == null || pending == null) return;
@@ -151,8 +161,10 @@ mixin _MembershipOwnership {
       rolesRejected: false,
       clearPendingRoles: true,
     );
-    await _store.clearRemoteStamps(libraryId);
-  }
+    if (!pending.judgesFieldsAs(library.roles)) {
+      await _store.clearRemoteStamps(libraryId);
+    }
+  });
 
   Future<(SharedLibrary, SharedLibraryTransport, SharedLibraryMembership)>
   _mine(String libraryId, String diverId) async {
@@ -178,7 +190,7 @@ mixin _MembershipOwnership {
     required String memberId,
     required String actingMemberId,
     required String publicKey,
-  }) async {
+  }) => SyncCoordinator.run(() async {
     final (library, t, roles) = await _asOwner(libraryId, actingMemberId);
     SharedLibraryMember? card;
     final members = await t.listMembers();
@@ -199,7 +211,7 @@ mixin _MembershipOwnership {
       signer: actingMemberId,
     );
     await _store.replaceMembers(libraryId, await t.listMembers());
-  }
+  });
 
   /// Owners only: removes [memberId]'s card and any approval and role, so
   /// nothing it wrote counts. Only new storage keys stop the member from
@@ -208,7 +220,7 @@ mixin _MembershipOwnership {
     required String libraryId,
     required String memberId,
     required String actingMemberId,
-  }) async {
+  }) => SyncCoordinator.run(() async {
     final (library, t, roles) = await _asOwner(libraryId, actingMemberId);
     if (roles.owners.contains(memberId) && roles.owners.length == 1) {
       throw LastOwnerDemoteError(libraryId);
@@ -228,10 +240,10 @@ mixin _MembershipOwnership {
       signer: actingMemberId,
     );
     await _store.replaceMembers(libraryId, await t.listMembers());
-  }
+  });
 
   /// The library, its transport and its current roles, when
-  /// [actingMemberId] is an owner in them.
+  /// [actingMemberId] is an owner in them ([ownerRoles]).
   Future<(SharedLibrary, SharedLibraryTransport, SharedLibraryRoles)> _asOwner(
     String libraryId,
     String actingMemberId,
@@ -239,30 +251,34 @@ mixin _MembershipOwnership {
     final library = await _store.getLibrary(libraryId);
     if (library == null) throw StateError('library $libraryId not connected');
     final t = await transportForLibrary(library);
-    final roles = await currentRoles(library, t);
-    if (roles.roleOf(actingMemberId) != SharedLibraryRole.owner) {
-      throw StateError('only an owner manages members');
-    }
+    final roles = await ownerRoles(
+      library,
+      t,
+      actingMemberId,
+      action: 'manages members',
+    );
     return (library, t, roles);
   }
 
-  /// Owners only: rewrites roles.json. [actingMemberId] must hold the owner
-  /// role in the cached roles, and the last owner cannot be demoted.
+  /// Owners only: rewrites roles.json. [actingMemberId] must be an owner
+  /// in the current roles ([ownerRoles]: the folder's when an owner wrote
+  /// them, so another owner's change since the last sync survives), and the
+  /// last owner cannot be demoted.
   Future<void> setRole({
     required String libraryId,
     required String actingMemberId,
     required String memberId,
     required SharedLibraryRole role,
-  }) async {
+  }) => SyncCoordinator.run(() async {
     final library = await _store.getLibrary(libraryId);
     if (library == null) throw StateError('library $libraryId not connected');
     final t = await transportForLibrary(library);
-    // The folder's roles when an owner wrote them, not the cache of the
-    // last sync: another owner's change since then must survive this write.
-    final roles = await currentRoles(library, t);
-    if (roles.roleOf(actingMemberId) != SharedLibraryRole.owner) {
-      throw StateError('only an owner changes roles');
-    }
+    final roles = await ownerRoles(
+      library,
+      t,
+      actingMemberId,
+      action: 'changes roles',
+    );
     if (role != SharedLibraryRole.owner &&
         roles.owners.contains(memberId) &&
         roles.owners.length == 1) {
@@ -274,5 +290,5 @@ mixin _MembershipOwnership {
       roles.changeRole(memberId, role, at: DateTime.now()),
       signer: actingMemberId,
     );
-  }
+  });
 }

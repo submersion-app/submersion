@@ -49,14 +49,18 @@ class SharedLibraryTransport {
     final c = cipher;
     final keyId = LibraryCipher.keyIdOf(raw);
     if (c == null) throw LibraryLockedException(keyId);
+    // Recorded for an owner to rewrite only once it opens: a file that does
+    // not is skipped by every reader, and would stop the rewrite.
     if (keyId != c.keyId.toLowerCase()) {
       final old = await _previousCipher(keyId);
       if (old == null) throw LibraryLockedException(keyId);
+      final opened = await old.open(path, raw);
       mismatched[path] = fileId;
-      return old.open(path, raw);
+      return opened;
     }
+    final opened = await c.open(path, raw);
     if (!encrypting) mismatched[path] = fileId;
-    return c.open(path, raw);
+    return opened;
   }
 
   Map<String, LibraryCipher>? _previous;
@@ -167,10 +171,12 @@ class SharedLibraryTransport {
   static String suggestionFileName(String id) => '$_suggestionPrefix$id.json';
 
   /// Whether [id] can name a file in its folder: not empty, no separator,
-  /// control character or `..`.
+  /// control character or `..`, and no trailing `.` (the file name
+  /// `<kind>-<id>.json` would hold `..`, which no backup keeps).
   static bool isSafeFileId(String id) =>
       id.isNotEmpty &&
       !id.contains('..') &&
+      !id.endsWith('.') &&
       !id.contains(RegExp(r'[/\\\x00-\x1f]'));
 
   static String siteIdOf(CloudFileInfo f) => _idOf(f.name, _sitePrefix);
@@ -349,11 +355,15 @@ class SharedLibraryTransport {
       folderId: folderId,
       namePattern: prefix,
     );
+    // A name no id this app writes could give (any member's storage key
+    // may put one there) is no file of the library: no sync, backup or
+    // restore ever sees it.
     return [
       for (final f in files)
         if (f.name.split('/').last.startsWith(prefix) &&
             f.name.endsWith('.json') &&
-            _directlyIn(folderId, f))
+            _directlyIn(folderId, f) &&
+            isSafeFileId(_idOf(f.name, prefix)))
           f,
     ];
   }
@@ -368,6 +378,21 @@ class SharedLibraryTransport {
 
   Future<Map<String, dynamic>?> readInfo() async =>
       _readJson(await _rootId(), SharedLibraryLayout.infoFile);
+
+  /// The library's name from `info.json`, or null when it has none this
+  /// device can read: a file any member's storage key may write never
+  /// stops a probe, a join or a sync.
+  Future<String?> readName() async {
+    try {
+      return switch ((await readInfo())?['name']) {
+        final String name => name,
+        _ => null,
+      };
+    } catch (e) {
+      if (!isUnreadable(e)) rethrow;
+      return null;
+    }
+  }
 
   /// Every file of the library but the manifest and keyslots, by path:
   /// what turning encryption on or off rewrites.
@@ -401,7 +426,13 @@ class SharedLibraryTransport {
 
   /// The folder's roles; [SharedLibraryRoles.empty] when there are none or
   /// they cannot be read, which no trust check accepts.
-  Future<SharedLibraryRoles> readRoles() async {
+  Future<SharedLibraryRoles> readRoles() async =>
+      await readRolesOrNull() ?? SharedLibraryRoles.empty;
+
+  /// The roles file, empty when there is none or it is broken (no owner
+  /// signed that), null when it is sealed under a key this device lacks:
+  /// what it says is then unknown, as mid-way through a change of key.
+  Future<SharedLibraryRoles?> readRolesOrNull() async {
     try {
       final json = await _readJson(
         await _rootId(),
@@ -410,6 +441,8 @@ class SharedLibraryTransport {
       return json == null
           ? SharedLibraryRoles.empty
           : SharedLibraryRoles.fromJson(json);
+    } on LibraryLockedException {
+      return null;
     } catch (e) {
       if (!isUnreadable(e)) rethrow;
       return SharedLibraryRoles.empty;
@@ -687,27 +720,37 @@ class SharedLibraryTransport {
   /// Reads the file at [path] ([fileId]) and writes it back in the
   /// library's current form: sealed under [cipher] when encrypting, plain
   /// otherwise. [previous] opens a file sealed under an older key; [raw]
-  /// is the file when the caller has already read it.
-  Future<void> rewrite(
+  /// is the file when the caller has already read it. False, with nothing
+  /// written, for a file that opens under no key (a broken envelope, or
+  /// junk that only looks sealed): every reader skips it, so it is left
+  /// where it is. A file under a key this device lacks throws
+  /// [LibraryLockedException]: another owner may hold that key.
+  Future<bool> rewrite(
     String path,
     String fileId, {
     LibraryCipher? previous,
     Uint8List? raw,
   }) async {
-    raw ??= await _provider.downloadFile(fileId);
+    final stored = raw ?? await _provider.downloadFile(fileId);
     Uint8List plain;
-    if (LibraryCipher.isSealed(raw)) {
-      final keyOfFile = LibraryCipher.keyIdOf(raw);
-      final opener =
-          previous != null && previous.keyId.toLowerCase() == keyOfFile
-          ? previous
-          : cipher != null && cipher!.keyId.toLowerCase() == keyOfFile
-          ? cipher
-          : await _previousCipher(keyOfFile) ?? cipher;
-      if (opener == null) throw LibraryLockedException(keyOfFile);
-      plain = await opener.open(path, raw);
+    if (LibraryCipher.isSealed(stored)) {
+      try {
+        final keyOfFile = LibraryCipher.keyIdOf(stored);
+        final opener =
+            previous != null && previous.keyId.toLowerCase() == keyOfFile
+            ? previous
+            : cipher != null && cipher!.keyId.toLowerCase() == keyOfFile
+            ? cipher
+            : await _previousCipher(keyOfFile) ?? cipher;
+        if (opener == null) throw LibraryLockedException(keyOfFile);
+        plain = await opener.open(path, stored);
+      } catch (e) {
+        if (e is LibraryLockedException || !isUnreadable(e)) rethrow;
+        mismatched.remove(path);
+        return false;
+      }
     } else {
-      plain = raw;
+      plain = stored;
     }
     final (folderId, name) = await _place(path);
     await _provider.uploadFile(
@@ -716,6 +759,7 @@ class SharedLibraryTransport {
       folderId: folderId,
     );
     mismatched.remove(path);
+    return true;
   }
 
   /// Clears the manifest's [SharedLibraryLayout.rewritingFlag] once every
@@ -733,19 +777,26 @@ class SharedLibraryTransport {
 
   /// Rewrites the file at [path] ([fileId]) when it is not in the
   /// library's current form: plain when not encrypting, sealed under the
-  /// current key when encrypting. True when it was rewritten.
-  Future<bool> settle(String path, String fileId) async {
+  /// current key when encrypting. A file that opens under no key is left
+  /// as [rewrite] leaves it.
+  Future<void> settle(String path, String fileId) async {
     final raw = await _provider.downloadFile(fileId);
     final sealed = LibraryCipher.isSealed(raw);
     final c = cipher;
+    bool underCurrentKey() {
+      try {
+        return LibraryCipher.keyIdOf(raw) == c!.keyId.toLowerCase();
+      } catch (e) {
+        if (!isUnreadable(e)) rethrow;
+        return false;
+      }
+    }
+
     final inForm = encrypting
-        ? sealed &&
-              c != null &&
-              LibraryCipher.keyIdOf(raw) == c.keyId.toLowerCase()
+        ? sealed && c != null && underCurrentKey()
         : !sealed;
-    if (inForm) return false;
+    if (inForm) return;
     await rewrite(path, fileId, raw: raw);
-    return true;
   }
 
   Future<void> deleteSuggestion(String id) async {

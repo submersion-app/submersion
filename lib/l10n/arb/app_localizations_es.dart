@@ -21406,6 +21406,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'La clave de este miembro ha cambiado. Compara la nueva clave en persona y luego apruébala.';
 
   @override
+  String get sharedLibrary_members_rolesOutOfDate =>
+      'Los roles han cambiado desde la última vez que este dispositivo confió en ellos. Sal de la biblioteca y vuelve a unirte para adoptar el cambio, y luego inténtalo de nuevo.';
+
+  @override
   String get sharedLibrary_picker_none =>
       'Ninguna biblioteca de puntos compartida aquí te permite añadir sitios.';
 

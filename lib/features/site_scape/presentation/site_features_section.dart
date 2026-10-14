@@ -11,10 +11,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The site's diver-placed annotations, listed for review and editing.
 /// Placement itself happens on the map, so [onAddFeature] hands control
-/// back to the host (which opens the fullscreen map armed to place).
+/// back to the host (which opens the fullscreen map armed to place). Null
+/// for a site this profile may not change (a shared library site it only
+/// reads): the list is then shown without add or edit.
 class SiteFeaturesSection extends ConsumerWidget {
   final String siteId;
-  final VoidCallback onAddFeature;
+  final VoidCallback? onAddFeature;
 
   const SiteFeaturesSection({
     super.key,
@@ -73,17 +75,20 @@ class SiteFeaturesSection extends ConsumerWidget {
                     if (f.depthMeters != null) depthText(f.depthMeters!),
                   ].join(' • '),
                 ),
-                onTap: () => editSiteFeature(context, ref, f),
+                onTap: onAddFeature == null
+                    ? null
+                    : () => editSiteFeature(context, ref, f),
               ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                key: const ValueKey('siteFeatureAddButton'),
-                icon: const Icon(Icons.add_location_alt_outlined),
-                label: Text(l10n.siteFeature_addAction),
-                onPressed: onAddFeature,
+            if (onAddFeature != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  key: const ValueKey('siteFeatureAddButton'),
+                  icon: const Icon(Icons.add_location_alt_outlined),
+                  label: Text(l10n.siteFeature_addAction),
+                  onPressed: onAddFeature,
+                ),
               ),
-            ),
           ],
         ),
       ),

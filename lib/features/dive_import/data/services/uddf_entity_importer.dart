@@ -7,6 +7,7 @@ import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/csv_fill_importer.dart';
@@ -784,6 +785,9 @@ class UddfEntityImporter {
             siteIdMapping,
             onProgress,
             restoreSiteChildren: (siteData, siteId) async {
+              // A library site this profile may not edit keeps the
+              // library's lists (issue #2567).
+              if (!await LibraryEditStamper().mayEdit(siteId)) return;
               await _linkSiteClassification(
                 siteData,
                 siteId,

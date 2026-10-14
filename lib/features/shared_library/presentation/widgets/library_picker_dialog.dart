@@ -24,7 +24,7 @@ Future<List<SharedLibrary>> pushableLibraries(WidgetRef ref) async {
     if (membership == null) continue;
     final role = effectiveRole(
       listed: library.roles.roleOf(membership.memberId),
-      readOnlyDetected: library.readOnlyDetected,
+      readOnlyDetected: library.writesHeld,
     );
     if (canEditLibrarySite(role)) result.add(library);
   }
