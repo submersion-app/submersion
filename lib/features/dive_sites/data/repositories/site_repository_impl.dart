@@ -248,6 +248,22 @@ class SiteRepository {
       // #2567); the comparison needs the row as it was.
       final before = await getSiteById(site.id);
       final libraryEdit = before?.isLibrarySite ?? false;
+      // A library site this profile may not edit (a reader's, say through
+      // an import) keeps the library's values: only the profile's private
+      // notes and rating are saved, which never leave it.
+      if (libraryEdit &&
+          !await _libraryStamper.mayEdit(
+            site.id,
+            actingDiverId: actingDiverId,
+          )) {
+        site = before!.copyWith(
+          notes: site.notes,
+          rating: site.rating,
+          clearRating: site.rating == null,
+        );
+        metadataPatch = null;
+        classification = null;
+      }
       final typesBefore = libraryEdit && classification != null
           ? (await _classification.getTypesForSite(
               site.id,

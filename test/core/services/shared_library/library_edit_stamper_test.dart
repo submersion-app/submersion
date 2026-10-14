@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show DiveSitesCompanion;
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -96,6 +97,33 @@ void main() {
       );
     });
   }
+
+  test(
+    "a reader's import keeps the library's values, not their notes",
+    () async {
+      await SharedLibraryStore().upsertLibrary(
+        const SharedLibrary(
+          id: 'L',
+          name: 'Reef Survey',
+          connectedAccountId: 'acc',
+          prefix: 'site-sync',
+          roles: SharedLibraryRoles(owners: {'o'}),
+        ),
+      );
+      final site = (await SiteRepository().getSiteById('s'))!;
+      await SiteRepository().updateSiteWithImportedMetadata(
+        site.copyWith(name: 'Imported', notes: 'my own'),
+        const DiveSitesCompanion(),
+      );
+      final after = (await SiteRepository().getSiteById('s'))!;
+      expect(after.name, 'S');
+      expect(after.notes, 'my own');
+      expect(
+        (await SharedLibraryStore().getSiteState('s'))?.dirty ?? false,
+        isFalse,
+      );
+    },
+  );
 
   test('a personal site is never stamped', () async {
     await SiteRepository().createSite(const DiveSite(id: 'p', name: 'P'));

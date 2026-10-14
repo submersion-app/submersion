@@ -145,6 +145,27 @@ void main() {
     },
   );
 
+  test("another library's index lists nothing here", () async {
+    final mine = await backups().backUp(libraryId: lib.id, diverId: 'd1');
+    // An index this owner signed for another library, copied over this one.
+    final t = transport();
+    final index = (await t.readBackupIndex())!;
+    final key = (await SharedLibraryStore().signingKeyForDiver('d1'))!;
+    final unsigned = {...index}
+      ..remove('signature')
+      ..['libraryId'] = 'other-library';
+    await t.writeBackupIndex({
+      ...unsigned,
+      'signature': await LibrarySigner.sign(
+        key,
+        utf8.encode(canonicalJson(unsigned)),
+      ),
+    });
+    final listed = await backups().list(libraryId: lib.id);
+    expect(listed.single.backupId, mine.backupId);
+    expect(listed.single.inStorage, isFalse);
+  });
+
   test(
     'a backup dated ahead of this clock never stops the daily one',
     () async {

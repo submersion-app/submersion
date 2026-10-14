@@ -478,6 +478,9 @@ class LibraryBackupService {
     for (var attempt = 0; attempt < _indexAttempts; attempt++) {
       final next = change(current);
       final unsigned = {
+        // Signed with the rest: an owner's key signs every library they
+        // own, so an index copied from another never counts here.
+        'libraryId': lib.id,
         'entries': [for (final r in next.values) r.toIndexJson()],
         'signedBy': me.memberId,
       };
@@ -517,6 +520,12 @@ class LibraryBackupService {
   ) async {
     final json = await t.readBackupIndex();
     if (json == null) return const _IndexRead({}, signed: true);
+    // Another library's index lists none of this one's backups, signed or
+    // not: nothing of it is listed, kept, or deleted by its entries.
+    if (json['libraryId'] != library.id) {
+      _log.warning('Backup index of ${library.id} names another library');
+      return const _IndexRead({}, signed: false);
+    }
     final signer = json['signedBy'];
     final unsigned = {...json}..remove('signature');
     final key = signer is String && roles.owners.contains(signer)
