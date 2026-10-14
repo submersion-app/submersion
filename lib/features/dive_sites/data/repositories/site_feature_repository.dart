@@ -34,9 +34,10 @@ class SiteFeatureRepository {
     double? depthMeters,
     String name = '',
     String notes = '',
+    String? actingDiverId,
   }) async {
-    // A library site this profile may not edit (issue #2567).
-    if (!await _libraryStamper.mayEdit(siteId)) {
+    // A library site [actingDiverId] may not edit (issue #2567).
+    if (!await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
       throw StateError('site $siteId is not this profile to edit');
     }
     final id = _uuid.v4();
@@ -58,7 +59,7 @@ class SiteFeatureRepository {
             updatedAt: now,
           ),
         );
-    await _markPendingAndBumpSite(id, siteId, now);
+    await _markPendingAndBumpSite(id, siteId, now, actingDiverId);
     return domain.SiteFeature(
       id: id,
       siteId: siteId,
@@ -118,8 +119,18 @@ class SiteFeatureRepository {
     return bySite;
   }
 
-  Future<void> updateFeature(domain.SiteFeature feature) async {
-    if (!await _libraryStamper.mayEdit(feature.siteId)) return;
+  /// [actingDiverId] as for [addFeature]; a feature of a library site that
+  /// profile may not edit is left as it is.
+  Future<void> updateFeature(
+    domain.SiteFeature feature, {
+    String? actingDiverId,
+  }) async {
+    if (!await _libraryStamper.mayEdit(
+      feature.siteId,
+      actingDiverId: actingDiverId,
+    )) {
+      return;
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.siteFeatures,
@@ -135,19 +146,33 @@ class SiteFeatureRepository {
         updatedAt: Value(now),
       ),
     );
-    await _markPendingAndBumpSite(feature.id, feature.siteId, now);
+    await _markPendingAndBumpSite(
+      feature.id,
+      feature.siteId,
+      now,
+      actingDiverId,
+    );
   }
 
-  Future<void> deleteFeature(String id) async {
+  /// [actingDiverId] as for [updateFeature].
+  Future<void> deleteFeature(String id, {String? actingDiverId}) async {
     final row = await (_db.select(
       _db.siteFeatures,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
-    if (row == null || !await _libraryStamper.mayEdit(row.siteId)) return;
+    if (row == null ||
+        !await _libraryStamper.mayEdit(
+          row.siteId,
+          actingDiverId: actingDiverId,
+        )) {
+      return;
+    }
     await (_db.delete(_db.siteFeatures)..where((t) => t.id.equals(id))).go();
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.logDeletion(entityType: 'siteFeatures', recordId: id);
     await _bumpSite(row.siteId, now);
-    await _libraryStamper.stamp(row.siteId, {'features'});
+    await _libraryStamper.stamp(row.siteId, {
+      'features',
+    }, actingDiverId: actingDiverId);
     SyncEventBus.notifyLocalChange();
   }
 
@@ -155,6 +180,7 @@ class SiteFeatureRepository {
     String id,
     String siteId,
     int now,
+    String? actingDiverId,
   ) async {
     await _syncRepository.markRecordPending(
       entityType: 'siteFeatures',
@@ -162,7 +188,9 @@ class SiteFeatureRepository {
       localUpdatedAt: now,
     );
     await _bumpSite(siteId, now);
-    await _libraryStamper.stamp(siteId, {'features'});
+    await _libraryStamper.stamp(siteId, {
+      'features',
+    }, actingDiverId: actingDiverId);
     SyncEventBus.notifyLocalChange();
   }
 

@@ -8,6 +8,7 @@ import 'package:submersion/core/services/shared_library/backup/library_backup_re
 import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
@@ -92,6 +93,20 @@ final libraryRoleProvider = FutureProvider.family<SharedLibraryRole, String>((
     }
   }
   return SharedLibraryRole.reader;
+});
+
+/// Whether the active profile may change [siteId]: always a personal site;
+/// a shared library site as its role there allows. What a surface offers
+/// to edit follows it, so a reader is never shown an edit that does
+/// nothing.
+final siteEditableProvider = FutureProvider.family<bool, String>((
+  ref,
+  siteId,
+) async {
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  // Roles and read-only state change with each library sync.
+  await ref.watch(sharedLibrariesProvider.future);
+  return LibraryEditStamper().mayEdit(siteId, actingDiverId: diverId);
 });
 
 /// Member id to display name for [libraryId], from the member cache.

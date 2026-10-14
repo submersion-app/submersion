@@ -787,7 +787,12 @@ class UddfEntityImporter {
             restoreSiteChildren: (siteData, siteId) async {
               // A library site this profile may not edit keeps the
               // library's lists (issue #2567).
-              if (!await LibraryEditStamper().mayEdit(siteId)) return;
+              if (!await LibraryEditStamper().mayEdit(
+                siteId,
+                actingDiverId: diverId,
+              )) {
+                return;
+              }
               await _linkSiteClassification(
                 siteData,
                 siteId,
@@ -796,7 +801,12 @@ class UddfEntityImporter {
                 repositories,
                 diverId,
               );
-              await _restoreSiteFeatures(siteData, siteId, repositories);
+              await _restoreSiteFeatures(
+                siteData,
+                siteId,
+                repositories,
+                diverId,
+              );
             },
             cancelToken: cancelToken,
           );
@@ -1468,6 +1478,7 @@ class UddfEntityImporter {
     Map<String, dynamic> siteData,
     String siteId,
     ImportRepositories repos,
+    String? diverId,
   ) async {
     final repository = repos.siteFeatureRepository;
     if (repository == null) return;
@@ -1491,6 +1502,7 @@ class UddfEntityImporter {
       if (latitude == null || longitude == null) continue;
       if (!seen.add(keyOf(typeName, latitude, longitude))) continue;
       await repository.addFeature(
+        actingDiverId: diverId,
         siteId: siteId,
         typeName: typeName,
         name: entry['name'] as String? ?? '',
@@ -1629,12 +1641,12 @@ class UddfEntityImporter {
     await classification.addTypes(siteId, [
       ...await resolveTypes(siteData['siteTypeRefs']),
       ...await resolveTypeNames(siteData['siteTypeNames']),
-    ]);
+    ], actingDiverId: diverId);
 
     final suggested = await resolveTypes(siteData['suggestedSiteTypeRefs']);
     if (suggested.isNotEmpty &&
         (await classification.getTypesForSite(siteId)).isEmpty) {
-      await classification.addTypes(siteId, suggested);
+      await classification.addTypes(siteId, suggested, actingDiverId: diverId);
     }
 
     final tagRefs = siteData['tagRefs'];
@@ -1667,7 +1679,7 @@ class UddfEntityImporter {
         );
       }
     }
-    await classification.addTags(siteId, tagIds);
+    await classification.addTags(siteId, tagIds, actingDiverId: diverId);
   }
 
   // -- Dive Type import --

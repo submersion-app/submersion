@@ -38,11 +38,37 @@ void main() {
     ]);
   });
 
-  test('an empty folder is submersion-sites itself', () {
-    final policy = s3FullAccessPolicy(bucket: 'b', folder: ' / ');
-    expect(withAction(policy, 's3:GetObject')['Resource'], [
-      'arn:aws:s3:::b/submersion-sites/*',
+  test('a library at the top reaches only its own files', () {
+    // Other libraries live in folders beside its own subfolders: a key for
+    // this one must not reach into them.
+    const own = [
+      'arn:aws:s3:::b/submersion-sites/submersion-shared-library.json',
+      'arn:aws:s3:::b/submersion-sites/info.json',
+      'arn:aws:s3:::b/submersion-sites/roles.json',
+      'arn:aws:s3:::b/submersion-sites/keyslots.json',
+      'arn:aws:s3:::b/submersion-sites/previous-keys-*.bin',
+      'arn:aws:s3:::b/submersion-sites/members/*',
+      'arn:aws:s3:::b/submersion-sites/sites/*',
+      'arn:aws:s3:::b/submersion-sites/suggestions/*',
+      'arn:aws:s3:::b/submersion-sites/backups/*',
+    ];
+    final full = s3FullAccessPolicy(bucket: 'b', folder: ' / ');
+    expect(withAction(full, 's3:PutObject')['Resource'], own);
+    final reader = s3ReaderPolicy(bucket: 'b', folder: '');
+    expect(withAction(reader, 's3:GetObject')['Resource'], own);
+    expect(withAction(reader, 's3:PutObject')['Resource'], [
+      'arn:aws:s3:::b/submersion-sites/members/*',
+      'arn:aws:s3:::b/submersion-sites/suggestions/*',
     ]);
+    for (final policy in [full, reader]) {
+      for (final s in statements(policy)) {
+        if ((s['Action'] as List).contains('s3:ListBucket')) continue;
+        expect(
+          s['Resource'],
+          isNot(contains('arn:aws:s3:::b/submersion-sites/*')),
+        );
+      }
+    }
   });
 
   test('a bucket name a policy would read as a wildcard is not used', () {

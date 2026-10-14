@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show DiveSitesCompanion;
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -9,6 +10,8 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 
 import '../../../helpers/test_database.dart';
@@ -247,5 +250,111 @@ void main() {
     await SiteRepository().updateSiteAltitude('s', 120);
     expect((await SiteRepository().getSiteById('s'))!.altitude, isNull);
     expect(await SharedLibraryStore().getSiteState('s'), isNull);
+  });
+
+  group('a device with an editor and a reader profile', () {
+    setUp(() async {
+      await DiverRepository().createDiver(
+        Diver(
+          id: 'd2',
+          name: 'Bo',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await SharedLibraryStore().upsertMembership(
+        const SharedLibraryMembership(
+          id: 'ms2',
+          diverId: 'd2',
+          libraryId: 'L',
+          memberId: 'm2',
+          displayName: 'Bo',
+          libraryName: 'Reef Survey',
+          backendKind: 's3',
+        ),
+      );
+      // Ann (m1) edits; Bo (m2) only reads.
+      await SharedLibraryStore().upsertLibrary(
+        const SharedLibrary(
+          id: 'L',
+          name: 'Reef Survey',
+          connectedAccountId: 'acc',
+          prefix: 'site-sync',
+          roles: SharedLibraryRoles(owners: {'o'}, editors: {'m1'}),
+        ),
+      );
+    });
+
+    test('a list change naming no profile is refused', () async {
+      expect(await LibraryEditStamper().mayEdit('s'), isFalse);
+      await SiteFeatureRepository().addFeature(
+        siteId: 's',
+        typeName: 'mooring',
+        latitude: 1,
+        longitude: 2,
+        actingDiverId: 'd1',
+      );
+      final feature = (await SiteFeatureRepository().getFeaturesForSite(
+        's',
+      )).single;
+      await SiteFeatureRepository().deleteFeature(feature.id);
+      expect(
+        await SiteFeatureRepository().getFeaturesForSite('s'),
+        hasLength(1),
+      );
+    });
+
+    test(
+      "the reader's edits are refused, the editor's signed as theirs",
+      () async {
+        await expectLater(
+          SiteFeatureRepository().addFeature(
+            siteId: 's',
+            typeName: 'mooring',
+            latitude: 1,
+            longitude: 2,
+            actingDiverId: 'd2',
+          ),
+          throwsStateError,
+        );
+        final types = await SiteTypeRepository().getAllSiteTypes(diverId: 'd1');
+        await SiteClassificationRepository().addTypes('s', [
+          types.first.id,
+        ], actingDiverId: 'd2');
+        expect(
+          await SiteClassificationRepository().getTypesForSite('s'),
+          isEmpty,
+        );
+        await SiteClassificationRepository().addTypes('s', [
+          types.first.id,
+        ], actingDiverId: 'd1');
+        final state = (await SharedLibraryStore().getSiteState('s'))!;
+        expect(state.clocks['siteTypes']!.memberId, 'm1');
+      },
+    );
+
+    test("replacing the reader's species list leaves it as it was", () async {
+      final repository = SpeciesRepository();
+      final species = [
+        for (final name in ['Grouper', 'Turtle'])
+          await repository.createSpecies(
+            commonName: name,
+            category: SpeciesCategory.other,
+          ),
+      ];
+      await repository.addExpectedSpecies(
+        siteId: 's',
+        speciesId: species.first.id,
+        actingDiverId: 'd1',
+      );
+      final reader = SiteExpectedSpeciesNotifier(
+        repository,
+        's',
+        actingDiverId: () async => 'd2',
+      );
+      await reader.setSpecies([species.last.id]);
+      final kept = await repository.getExpectedSpeciesForSite('s');
+      expect(kept.map((e) => e.speciesId), [species.first.id]);
+    });
   });
 }

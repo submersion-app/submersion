@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/data/services/species_lookup_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -100,6 +101,7 @@ class _RecordingRepository extends Fake implements SpeciesRepository {
     required String speciesId,
     String notes = '',
     bool stampLibrary = true,
+    String? actingDiverId,
   }) async {
     added.add(speciesId);
     return SiteSpeciesEntry(
@@ -116,6 +118,7 @@ class _RecordingRepository extends Fake implements SpeciesRepository {
 Widget _harness(_FakeLookup lookup, _RecordingRepository repository) =>
     ProviderScope(
       overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         reefSnapshotProvider(
           const ReefSnapshotRequest(location: _location),
         ).overrideWith(

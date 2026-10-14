@@ -90,9 +90,11 @@ class LibraryEditStamper {
   }
 
   /// Whether a write to [siteId] may go ahead here: always for a personal
-  /// site; for a library site, when a local profile that is a member (the
-  /// profile [actingDiverId], or else any) may edit it. A write nobody here
-  /// may make is never uploaded, and only sets this device apart.
+  /// site; for a library site, when the profile [actingDiverId] is a member
+  /// that may edit it. Naming no profile, every local member must be able
+  /// to: where one only reads, a write nobody can attribute could be theirs.
+  /// A write nobody here may make is never uploaded, and only sets this
+  /// device apart.
   Future<bool> mayEdit(String siteId, {String? actingDiverId}) async {
     final row = await (_db.select(
       _db.diveSites,
@@ -106,14 +108,14 @@ class LibraryEditStamper {
       for (final m in await _store.membershipsForLibrary(libraryId))
         if (actingDiverId == null || m.diverId == actingDiverId) m,
     ];
-    return members.any(
-      (m) => canEditLibrarySite(
-        effectiveRole(
-          listed: library.roles.roleOf(m.memberId),
-          readOnlyDetected: library.writesHeld,
-        ),
+    bool edits(SharedLibraryMembership m) => canEditLibrarySite(
+      effectiveRole(
+        listed: library.roles.roleOf(m.memberId),
+        readOnlyDetected: library.writesHeld,
       ),
     );
+    return members.isNotEmpty &&
+        (actingDiverId == null ? members.every(edits) : members.any(edits));
   }
 
   Future<String> _resolveMember(String libraryId, String? diverId) async {

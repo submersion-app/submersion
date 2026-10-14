@@ -2279,9 +2279,11 @@ class _FullscreenSiteScapePageState
       initialDepthMeters: sampled,
     );
     if (result is! SiteFeatureSheetSave) return;
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     await ref
         .read(siteFeatureRepositoryProvider)
         .addFeature(
+          actingDiverId: diverId,
           siteId: site.id,
           typeName: result.typeName,
           latitude: latLng.latitude,

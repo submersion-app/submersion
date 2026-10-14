@@ -9,7 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -32,6 +34,7 @@ Future<void> _pumpMap(
   SiteFeatureRepository? repository,
   MapController? controller,
   double initialZoom = 14,
+  bool editable = true,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -43,6 +46,8 @@ Future<void> _pumpMap(
           (ref) => MockSettingsNotifier(const AppSettings()),
         ),
         siteFeaturesProvider('site-1').overrideWith((ref) async => features),
+        siteEditableProvider('site-1').overrideWith((ref) async => editable),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         if (repository != null)
           siteFeatureRepositoryProvider.overrideWithValue(repository),
       ],
@@ -74,10 +79,14 @@ class _RecordingFeatureRepository implements SiteFeatureRepository {
   final List<String> deleted = [];
 
   @override
-  Future<void> updateFeature(SiteFeature feature) async => updated.add(feature);
+  Future<void> updateFeature(
+    SiteFeature feature, {
+    String? actingDiverId,
+  }) async => updated.add(feature);
 
   @override
-  Future<void> deleteFeature(String id) async => deleted.add(id);
+  Future<void> deleteFeature(String id, {String? actingDiverId}) async =>
+      deleted.add(id);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -115,6 +124,17 @@ void main() {
     expect(find.text('Ebb runs north'), findsOneWidget);
     // The editor stays behind the sheet's edit button.
     expect(find.byKey(const ValueKey('siteFeatureSaveButton')), findsNothing);
+  });
+
+  testWidgets('a site this profile only reads offers no edit', (tester) async {
+    await _pumpMap(tester, siteId: 'site-1', editable: false);
+    await tester.tap(find.byKey(const ValueKey('siteFeatureMarker-f-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('siteFeatureInfoSheet')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('siteFeatureInfoEditButton')),
+      findsNothing,
+    );
   });
 
   testWidgets('a marker tap never zooms back OUT', (tester) async {

@@ -8,11 +8,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart'
     as domain;
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_glyph.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 
-/// Opens the edit sheet for [feature] and persists whatever comes back.
+/// Opens the edit sheet for [feature] and persists whatever comes back,
+/// as the active profile (whose role decides it on a shared library site).
 /// Shared by the map markers and the site detail Features section so both
 /// paths behave identically.
 Future<void> editSiteFeature(
@@ -20,8 +23,9 @@ Future<void> editSiteFeature(
   WidgetRef ref,
   domain.SiteFeature feature,
 ) async {
-  final result = await showSiteFeatureSheet(context, existing: feature);
+  final diverId = ref.read(validatedCurrentDiverIdProvider.future);
   final repository = ref.read(siteFeatureRepositoryProvider);
+  final result = await showSiteFeatureSheet(context, existing: feature);
   switch (result) {
     case SiteFeatureSheetSave(
       :final typeName,
@@ -40,9 +44,10 @@ Future<void> editSiteFeature(
           clearDepth: depthMeters == null,
           notes: notes,
         ),
+        actingDiverId: await diverId,
       );
     case SiteFeatureSheetDelete():
-      await repository.deleteFeature(feature.id);
+      await repository.deleteFeature(feature.id, actingDiverId: await diverId);
     case null:
       break;
   }
@@ -66,6 +71,8 @@ class SiteFeatureMarkerLayer extends ConsumerWidget {
     final id = siteId;
     if (id == null) return const SizedBox.shrink();
     final features = ref.watch(siteFeaturesProvider(id)).valueOrNull;
+    // Kept loaded for the marker sheet, which reads it on a tap.
+    ref.watch(siteEditableProvider(id));
     if (features == null || features.isEmpty) return const SizedBox.shrink();
     return MarkerLayer(
       markers: [
@@ -105,11 +112,15 @@ class SiteFeatureMarkerLayer extends ConsumerWidget {
       target,
       math.max(MapCamera.of(context).zoom, _featureTapZoom),
     );
+    // A shared library site the active profile only reads: the sheet
+    // shows the feature without an edit.
+    final editable =
+        ref.read(siteEditableProvider(feature.siteId)).valueOrNull ?? false;
     showSiteFeatureInfoSheet(
       context,
       ref,
       feature,
-      onEdit: () => editSiteFeature(context, ref, feature),
+      onEdit: editable ? () => editSiteFeature(context, ref, feature) : null,
     );
   }
 }

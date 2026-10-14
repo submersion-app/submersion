@@ -337,8 +337,11 @@ class _RecordingBackups extends LibraryBackupService {
   Future<bool> backUpIfDue({
     required String libraryId,
     required String diverId,
-  }) async {
-    due.add(libraryId);
-    return true;
-  }
+  }) =>
+      // A turn of its own, as the real one takes: the sync must have ended
+      // its turn by now, or this never runs.
+      SyncCoordinator.run(() async {
+        due.add(libraryId);
+        return true;
+      });
 }

@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/core/utils/log_failure.dart';
@@ -297,7 +298,16 @@ class SiteExpectedSpeciesNotifier
   final SpeciesRepository _repository;
   final String _siteId;
 
-  SiteExpectedSpeciesNotifier(this._repository, this._siteId) : super([]) {
+  /// The active profile, whose role on a shared library site decides what
+  /// it may change there (issue #2567).
+  final Future<String?> Function() _actingDiverId;
+
+  SiteExpectedSpeciesNotifier(
+    this._repository,
+    this._siteId, {
+    Future<String?> Function()? actingDiverId,
+  }) : _actingDiverId = actingDiverId ?? (() async => null),
+       super([]) {
     logFailure(
       _loadExpectedSpecies(),
       SiteExpectedSpeciesNotifier,
@@ -324,6 +334,7 @@ class SiteExpectedSpeciesNotifier
       final entry = await _repository.addExpectedSpecies(
         siteId: _siteId,
         speciesId: speciesId,
+        actingDiverId: await _actingDiverId(),
       );
       state = [...state, entry];
     } finally {
@@ -332,11 +343,21 @@ class SiteExpectedSpeciesNotifier
   }
 
   Future<void> removeSpecies(String speciesId) async {
-    await _repository.removeExpectedSpecies(_siteId, speciesId);
+    await _repository.removeExpectedSpecies(
+      _siteId,
+      speciesId,
+      actingDiverId: await _actingDiverId(),
+    );
     state = state.where((e) => e.speciesId != speciesId).toList();
   }
 
   Future<void> setSpecies(List<String> speciesIds) async {
+    final diverId = await _actingDiverId();
+    // A shared library site this profile only reads keeps its list: removed
+    // here, nothing could be added back.
+    if (!await _repository.mayEditSite(_siteId, actingDiverId: diverId)) {
+      return;
+    }
     // Remove all existing
     await _repository.removeAllExpectedSpeciesForSite(_siteId);
 
@@ -346,6 +367,7 @@ class SiteExpectedSpeciesNotifier
       final entry = await _repository.addExpectedSpecies(
         siteId: _siteId,
         speciesId: speciesId,
+        actingDiverId: diverId,
       );
       entries.add(entry);
     }
@@ -370,5 +392,9 @@ final siteExpectedSpeciesNotifierProvider =
       String
     >((ref, siteId) {
       final repository = ref.watch(speciesRepositoryProvider);
-      return SiteExpectedSpeciesNotifier(repository, siteId);
+      return SiteExpectedSpeciesNotifier(
+        repository,
+        siteId,
+        actingDiverId: () => ref.read(validatedCurrentDiverIdProvider.future),
+      );
     });

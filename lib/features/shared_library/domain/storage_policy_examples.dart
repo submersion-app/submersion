@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+
 /// Example S3 IAM policies for the two kinds of keys a shared site library
 /// hands out (issue #2567). The storage, not the app, is what stops a key
 /// from writing, so these are the permissions that make roles real.
@@ -7,6 +9,33 @@ import 'dart:convert';
 String _prefixOf(String folder) {
   final f = folder.trim().replaceAll(RegExp(r'^/+|/+$'), '').trim();
   return f.isEmpty ? 'submersion-sites/' : 'submersion-sites/$f/';
+}
+
+/// What a key may read or write in the library at [prefix]: everything
+/// under its own folder, or, for a library at the top of
+/// `submersion-sites`, its own files and subfolders by name. Other
+/// libraries live in folders beside those, and `submersion-sites/*` would
+/// hand this library's keys to every one of them.
+List<String> _objects(String bucket, String prefix) {
+  final base = 'arn:aws:s3:::$bucket/$prefix';
+  if (prefix != 'submersion-sites/') return ['$base*'];
+  return [
+    for (final file in const [
+      SharedLibraryLayout.manifestFile,
+      SharedLibraryLayout.infoFile,
+      SharedLibraryLayout.rolesFile,
+      SharedLibraryLayout.keyslotsFile,
+    ])
+      '$base$file',
+    '$base${SharedLibraryLayout.previousKeysPrefix}*.bin',
+    for (final dir in const [
+      SharedLibraryLayout.membersDir,
+      SharedLibraryLayout.sitesDir,
+      SharedLibraryLayout.suggestionsDir,
+      SharedLibraryLayout.backupsDir,
+    ])
+      '$base$dir/*',
+  ];
 }
 
 const _encoder = JsonEncoder.withIndent('  ');
@@ -41,7 +70,7 @@ String s3FullAccessPolicy({required String bucket, required String folder}) {
       {
         'Effect': 'Allow',
         'Action': ['s3:GetObject', 's3:PutObject', 's3:DeleteObject'],
-        'Resource': ['arn:aws:s3:::$bucket/$prefix*'],
+        'Resource': _objects(bucket, prefix),
       },
     ],
   });
@@ -59,7 +88,7 @@ String s3ReaderPolicy({required String bucket, required String folder}) {
       {
         'Effect': 'Allow',
         'Action': ['s3:GetObject'],
-        'Resource': ['arn:aws:s3:::$bucket/$prefix*'],
+        'Resource': _objects(bucket, prefix),
       },
       {
         'Effect': 'Allow',

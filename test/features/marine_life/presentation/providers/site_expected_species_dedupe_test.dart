@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -20,7 +21,11 @@ void main() {
 
   setUp(() async {
     await setUpTestDatabase();
-    container = ProviderContainer();
+    container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
   });
 
   tearDown(() async {
