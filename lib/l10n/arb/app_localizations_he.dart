@@ -16438,13 +16438,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_icd_suggestionsTitle => 'כך שהכלל יתקיים';
 
   @override
-  String gasCalculators_icd_suggestionKeepA(String he) {
-    return 'השאר את הגז הנוכחי, קבע את ההליום של הגז שהוחלף אליו ל-$he%';
+  String gasCalculators_icd_suggestionSetHe(String he) {
+    return 'Set He to $he%';
   }
 
   @override
-  String gasCalculators_icd_suggestionKeepB(String he) {
-    return 'השאר את הגז שהוחלף אליו, קבע את ההליום של הגז הנוכחי ל-$he%';
+  String gasCalculators_icd_suggestionSetO2(String o2) {
+    return 'Set O2 to $o2%';
   }
 
   @override

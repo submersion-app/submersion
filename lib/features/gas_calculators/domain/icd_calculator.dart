@@ -86,36 +86,85 @@ IcdResult computeIcd(IcdInputs inputs) {
   );
 }
 
-/// Two ways to fix a flagged switch, each keeping one gas's O2 and He
-/// exactly as entered and adjusting only the He of the other. The UI offers
-/// the pair so a diver can pick whichever gas they are not free to change
-/// (e.g. a fixed deco gas already blended).
-class IcdFixSuggestions {
-  /// He% for Gas B that keeps Gas A unchanged, clamped to 0..100-O2(B).
-  final double heBKeepingGasA;
+/// One way to fix a flagged switch: the percent value to set, and whether
+/// applying it -- keeping everything else as entered -- actually brings the
+/// switch back to [IcdSeverity.ok]. A suggestion can fail to resolve when its
+/// value gets clamped to the valid 0..100 range: clamping a He-based
+/// suggestion to 0 always disables the rule itself (no helium left to
+/// counterdiffuse against), so those always resolve; clamping an O2-based
+/// suggestion leaves He untouched, so the rule can still fire afterwards.
+class IcdFixSuggestion {
+  final double value;
+  final bool resolves;
 
-  /// He% for Gas A that keeps Gas B unchanged, clamped to 0..100-O2(A).
-  final double heAKeepingGasB;
+  const IcdFixSuggestion({required this.value, required this.resolves});
+}
+
+/// Four ways to fix a flagged switch: for each gas (A and B), the He% or the
+/// O2% the *other* gas would need so the nitrogen fraction does not rise at
+/// all across the switch (N2 before equals N2 after). That is stricter than
+/// the rule of fifths requires, but simpler to reason about than finding the
+/// exact 1/5 boundary. The UI groups them by gas, so a diver can pick
+/// whichever gas they are not free to change (e.g. a fixed deco gas already
+/// blended) and whichever property (He or O2) they would rather adjust.
+class IcdFixSuggestions {
+  /// He% for Gas B that keeps Gas A unchanged.
+  final IcdFixSuggestion heBKeepingGasA;
+
+  /// He% for Gas A that keeps Gas B unchanged.
+  final IcdFixSuggestion heAKeepingGasB;
+
+  /// O2% for Gas A that keeps Gas B unchanged.
+  final IcdFixSuggestion o2AKeepingGasB;
+
+  /// O2% for Gas B that keeps Gas A unchanged.
+  final IcdFixSuggestion o2BKeepingGasA;
 
   const IcdFixSuggestions({
     required this.heBKeepingGasA,
     required this.heAKeepingGasB,
+    required this.o2AKeepingGasB,
+    required this.o2BKeepingGasA,
   });
 }
 
-/// Suggests, for each gas in turn, the He% the other gas would need so the
-/// nitrogen fraction does not rise at all across the switch (N2 before
-/// equals N2 after). That is stricter than the rule of fifths requires, but
-/// simpler to reason about than finding the exact 1/5 boundary, and it always
-/// resolves to [IcdSeverity.ok] once applied, within the valid He% range.
 IcdFixSuggestions computeIcdFixSuggestions(IcdInputs inputs) {
   final a = inputs.gasA;
   final b = inputs.gasB;
 
-  double clampHe(double he, double o2) => he.clamp(0.0, 100.0 - o2).toDouble();
+  double clamp(double value, double other) =>
+      value.clamp(0.0, 100.0 - other).toDouble();
+
+  bool resolvesAsGasA(GasMix adjusted) =>
+      computeIcd(IcdInputs(gasA: adjusted, gasB: b)).severity == IcdSeverity.ok;
+  bool resolvesAsGasB(GasMix adjusted) =>
+      computeIcd(IcdInputs(gasA: a, gasB: adjusted)).severity == IcdSeverity.ok;
+
+  final heA = clamp(b.he + b.o2 - a.o2, a.o2);
+  final heAMix = GasMix(o2: a.o2, he: heA);
+  final heB = clamp(a.he + a.o2 - b.o2, b.o2);
+  final heBMix = GasMix(o2: b.o2, he: heB);
+  final o2A = clamp(b.o2 + b.he - a.he, a.he);
+  final o2AMix = GasMix(o2: o2A, he: a.he);
+  final o2B = clamp(a.o2 + a.he - b.he, b.he);
+  final o2BMix = GasMix(o2: o2B, he: b.he);
 
   return IcdFixSuggestions(
-    heBKeepingGasA: clampHe(a.he + a.o2 - b.o2, b.o2),
-    heAKeepingGasB: clampHe(b.he + b.o2 - a.o2, a.o2),
+    heBKeepingGasA: IcdFixSuggestion(
+      value: heB,
+      resolves: resolvesAsGasB(heBMix),
+    ),
+    heAKeepingGasB: IcdFixSuggestion(
+      value: heA,
+      resolves: resolvesAsGasA(heAMix),
+    ),
+    o2AKeepingGasB: IcdFixSuggestion(
+      value: o2A,
+      resolves: resolvesAsGasA(o2AMix),
+    ),
+    o2BKeepingGasA: IcdFixSuggestion(
+      value: o2B,
+      resolves: resolvesAsGasB(o2BMix),
+    ),
   );
 }

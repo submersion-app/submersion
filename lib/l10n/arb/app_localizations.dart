@@ -27129,17 +27129,17 @@ abstract class AppLocalizations {
   /// **'Make it comply'**
   String get gasCalculators_icd_suggestionsTitle;
 
-  /// No description provided for @gasCalculators_icd_suggestionKeepA.
+  /// No description provided for @gasCalculators_icd_suggestionSetHe.
   ///
   /// In en, this message translates to:
-  /// **'Keep the current gas, set the switched-to gas\'s He to {he}%'**
-  String gasCalculators_icd_suggestionKeepA(String he);
+  /// **'Set He to {he}%'**
+  String gasCalculators_icd_suggestionSetHe(String he);
 
-  /// No description provided for @gasCalculators_icd_suggestionKeepB.
+  /// No description provided for @gasCalculators_icd_suggestionSetO2.
   ///
   /// In en, this message translates to:
-  /// **'Keep the switched-to gas, set the current gas\'s He to {he}%'**
-  String gasCalculators_icd_suggestionKeepB(String he);
+  /// **'Set O2 to {o2}%'**
+  String gasCalculators_icd_suggestionSetO2(String o2);
 
   /// No description provided for @gasCalculators_icd_applyButton.
   ///

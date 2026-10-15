@@ -16746,13 +16746,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_icd_suggestionsTitle => 'Megfelelővé tétel';
 
   @override
-  String gasCalculators_icd_suggestionKeepA(String he) {
-    return 'Tartsa meg a jelenlegi gázt, állítsa a váltott gáz He-tartalmát $he%-ra';
+  String gasCalculators_icd_suggestionSetHe(String he) {
+    return 'Set He to $he%';
   }
 
   @override
-  String gasCalculators_icd_suggestionKeepB(String he) {
-    return 'Tartsa meg a váltott gázt, állítsa a jelenlegi gáz He-tartalmát $he%-ra';
+  String gasCalculators_icd_suggestionSetO2(String o2) {
+    return 'Set O2 to $o2%';
   }
 
   @override

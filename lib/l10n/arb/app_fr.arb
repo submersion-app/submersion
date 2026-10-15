@@ -4633,8 +4633,6 @@
   "gasCalculators_icd_violation": "Règle du cinquième non respectée : l'azote augmente de {increase}%, le maximum autorisé est de {max}%.",
   "gasCalculators_icd_disabledNotice": "L'évaluation ICD est désactivée dans Paramètres > Décompression.",
   "gasCalculators_icd_suggestionsTitle": "Rendre conforme",
-  "gasCalculators_icd_suggestionKeepA": "Garder le gaz actuel, régler l'hélium du gaz de bascule à {he}%",
-  "gasCalculators_icd_suggestionKeepB": "Garder le gaz de bascule, régler l'hélium du gaz actuel à {he}%",
   "gasCalculators_icd_applyButton": "Appliquer",
   "gasCalculators_icd_infoTitle": "À propos de la contre-diffusion isobare",
   "gasCalculators_icd_infoContent": "La contre-diffusion isobare (ICD) est le risque qu'un passage d'un gaz plus riche en hélium à un gaz plus riche en azote augmente la tension totale des gaz inertes dans les tissus, l'hélium diffusant plus vite que l'azote. La règle du cinquième est une règle empirique courante : la fraction d'azote ne devrait pas augmenter de plus d'un cinquième de la baisse de la fraction d'hélium.\n\nLes avis divergent sur l'importance réelle de ce phénomène pour une plongée bien planifiée avec des gaz standards. Ce calculateur applique la règle empirique aux deux gaz saisis ; il ne remplace ni une formation ni un avis professionnel.",

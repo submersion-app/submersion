@@ -4633,8 +4633,6 @@
   "gasCalculators_icd_violation": "Regola del quinto violata: l'azoto aumenta del {increase}%, il massimo consentito è {max}%.",
   "gasCalculators_icd_disabledNotice": "La valutazione ICD è disattivata in Impostazioni > Decompressione.",
   "gasCalculators_icd_suggestionsTitle": "Rendi conforme",
-  "gasCalculators_icd_suggestionKeepA": "Mantieni il gas attuale, imposta l'He del gas di cambio al {he}%",
-  "gasCalculators_icd_suggestionKeepB": "Mantieni il gas di cambio, imposta l'He del gas attuale al {he}%",
   "gasCalculators_icd_applyButton": "Applica",
   "gasCalculators_icd_infoTitle": "Informazioni sulla controdiffusione isobarica",
   "gasCalculators_icd_infoContent": "La controdiffusione isobarica (ICD) è il rischio che passando da un gas più ricco di elio a uno più ricco di azoto aumenti la tensione totale dei gas inerti nei tessuti, poiché l'elio diffonde più velocemente dell'azoto. La regola del quinto è una regola empirica comune: la frazione di azoto non dovrebbe aumentare più di un quinto della diminuzione della frazione di elio.\n\nLe agenzie non sono d'accordo su quanto ciò conti davvero in un'immersione ben pianificata con gas standard. Questo calcolatore applica la regola ai due gas inseriti; non sostituisce la formazione né una consulenza professionale.",

@@ -4733,8 +4733,6 @@
   "gasCalculators_icd_violation": "Regla del quinto incumplida: el nitrógeno aumenta {increase}%, el máximo permitido es {max}%.",
   "gasCalculators_icd_disabledNotice": "La evaluación ICD está desactivada en Configuración > Descompresión.",
   "gasCalculators_icd_suggestionsTitle": "Hacerlo cumplir",
-  "gasCalculators_icd_suggestionKeepA": "Mantener el gas actual, ajustar el He del gas de cambio a {he}%",
-  "gasCalculators_icd_suggestionKeepB": "Mantener el gas de cambio, ajustar el He del gas actual a {he}%",
   "gasCalculators_icd_applyButton": "Aplicar",
   "gasCalculators_icd_infoTitle": "Acerca de la contradifusión isobárica",
   "gasCalculators_icd_infoContent": "La contradifusión isobárica (ICD) es el riesgo de que cambiar de un gas más rico en helio a uno más rico en nitrógeno aumente la tensión total de gases inertes en el tejido, porque el helio difunde más rápido que el nitrógeno. La regla del quinto es una norma habitual: la fracción de nitrógeno no debería aumentar más de un quinto de lo que disminuye la fracción de helio.\n\nLas agencias no coinciden en la importancia real de esto en una inmersión bien planificada con gases estándar. Esta calculadora aplica la regla a los dos gases introducidos; no sustituye la formación ni el asesoramiento profesional.",

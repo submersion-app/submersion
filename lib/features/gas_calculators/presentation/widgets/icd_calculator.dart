@@ -249,31 +249,94 @@ class IcdCalculator extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              _buildSuggestionRow(
+              _buildSuggestionGroup(
                 context,
+                ref,
                 textTheme: textTheme,
                 colorScheme: colorScheme,
-                text: context.l10n.gasCalculators_icd_suggestionKeepA(
-                  suggestions.heBKeepingGasA.toStringAsFixed(0),
-                ),
-                onApply: () => ref.read(icdHeBProvider.notifier).state =
-                    suggestions.heBKeepingGasA,
+                title: context.l10n.gasCalculators_icd_gasATitle,
+                heSuggestion: suggestions.heAKeepingGasB,
+                o2Suggestion: suggestions.o2AKeepingGasB,
+                onApplyHe: (value) =>
+                    ref.read(icdHeAProvider.notifier).state = value,
+                onApplyO2: (value) =>
+                    ref.read(icdO2AProvider.notifier).state = value,
               ),
-              const SizedBox(height: 8),
-              _buildSuggestionRow(
+              const SizedBox(height: 12),
+              _buildSuggestionGroup(
                 context,
+                ref,
                 textTheme: textTheme,
                 colorScheme: colorScheme,
-                text: context.l10n.gasCalculators_icd_suggestionKeepB(
-                  suggestions.heAKeepingGasB.toStringAsFixed(0),
-                ),
-                onApply: () => ref.read(icdHeAProvider.notifier).state =
-                    suggestions.heAKeepingGasB,
+                title: context.l10n.gasCalculators_icd_gasBTitle,
+                heSuggestion: suggestions.heBKeepingGasA,
+                o2Suggestion: suggestions.o2BKeepingGasA,
+                onApplyHe: (value) =>
+                    ref.read(icdHeBProvider.notifier).state = value,
+                onApplyO2: (value) =>
+                    ref.read(icdO2BProvider.notifier).state = value,
               ),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  // A gas's two suggestion variants (He-based, O2-based), grouped under that
+  // gas's name so a diver can pick whichever gas they are free to change and
+  // whichever of its properties they would rather adjust. A variant whose
+  // suggested value does not actually resolve the violation once clamped
+  // (see [IcdFixSuggestion.resolves]) is left out rather than offering an
+  // Apply button that would not fix anything.
+  Widget _buildSuggestionGroup(
+    BuildContext context,
+    WidgetRef ref, {
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    required String title,
+    required IcdFixSuggestion heSuggestion,
+    required IcdFixSuggestion o2Suggestion,
+    required ValueChanged<double> onApplyHe,
+    required ValueChanged<double> onApplyO2,
+  }) {
+    final rows = [
+      if (heSuggestion.resolves)
+        _buildSuggestionRow(
+          context,
+          textTheme: textTheme,
+          colorScheme: colorScheme,
+          text: context.l10n.gasCalculators_icd_suggestionSetHe(
+            heSuggestion.value.toStringAsFixed(0),
+          ),
+          onApply: () => onApplyHe(heSuggestion.value),
+        ),
+      if (o2Suggestion.resolves)
+        _buildSuggestionRow(
+          context,
+          textTheme: textTheme,
+          colorScheme: colorScheme,
+          text: context.l10n.gasCalculators_icd_suggestionSetO2(
+            o2Suggestion.value.toStringAsFixed(0),
+          ),
+          onApply: () => onApplyO2(o2Suggestion.value),
+        ),
+    ];
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        for (final row in rows) ...[row, const SizedBox(height: 4)],
+      ],
     );
   }
 

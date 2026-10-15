@@ -67,34 +67,62 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(_apply, findsNWidgets(2));
+    // Current gas's O2 fix (He fixed at 45) would need to set its O2 to a
+    // negative value, clamped to 0 -- which does not resolve the violation,
+    // so only 3 of the 4 suggestions are offered: current gas's He fix,
+    // switched-to gas's He fix, and switched-to gas's O2 fix.
+    expect(_apply, findsNWidgets(3));
+    expect(find.text('Set He to 14%'), findsOneWidget);
+    expect(find.text('Set He to 31%'), findsOneWidget);
+    expect(find.text('Set O2 to 63%'), findsOneWidget);
   });
 
-  testWidgets('applying the keep-current-gas fix sets He on the new gas', (
-    tester,
-  ) async {
+  testWidgets("applying the current gas's He fix resolves without touching the "
+      'switched-to gas', (tester) async {
     final ref = await _pump(tester);
 
-    await tester.tap(_apply.first);
-    await tester.pumpAndSettle();
-
-    expect(ref.read(icdHeBProvider), closeTo(31, 0.001));
-    expect(ref.read(icdHeAProvider), 45);
-    expect(find.text('No ICD risk under the rule of fifths.'), findsOneWidget);
-  });
-
-  testWidgets('applying the keep-new-gas fix sets He on the current gas', (
-    tester,
-  ) async {
-    final ref = await _pump(tester);
-
-    await tester.tap(_apply.last);
+    await tester.tap(find.widgetWithText(TextButton, 'Apply').at(0));
     await tester.pumpAndSettle();
 
     expect(ref.read(icdHeAProvider), closeTo(14, 0.001));
     expect(ref.read(icdHeBProvider), 0);
     expect(find.text('No ICD risk under the rule of fifths.'), findsOneWidget);
   });
+
+  testWidgets(
+    "applying the switched-to gas's He fix resolves without touching the "
+    'current gas',
+    (tester) async {
+      final ref = await _pump(tester);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Apply').at(1));
+      await tester.pumpAndSettle();
+
+      expect(ref.read(icdHeBProvider), closeTo(31, 0.001));
+      expect(ref.read(icdHeAProvider), 45);
+      expect(
+        find.text('No ICD risk under the rule of fifths.'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    "applying the switched-to gas's O2 fix resolves without touching He",
+    (tester) async {
+      final ref = await _pump(tester);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Apply').at(2));
+      await tester.pumpAndSettle();
+
+      expect(ref.read(icdO2BProvider), closeTo(63, 0.001));
+      expect(ref.read(icdHeBProvider), 0);
+      expect(
+        find.text('No ICD risk under the rule of fifths.'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('a caution already complies, so it offers no fixes', (
     tester,

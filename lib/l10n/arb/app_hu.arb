@@ -4633,8 +4633,6 @@
   "gasCalculators_icd_violation": "Ötödszabály megsértve: a nitrogén {increase}%-kal nő, a megengedett maximum {max}%.",
   "gasCalculators_icd_disabledNotice": "Az ICD-értékelés ki van kapcsolva a Beállítások > Dekompresszió menüben.",
   "gasCalculators_icd_suggestionsTitle": "Megfelelővé tétel",
-  "gasCalculators_icd_suggestionKeepA": "Tartsa meg a jelenlegi gázt, állítsa a váltott gáz He-tartalmát {he}%-ra",
-  "gasCalculators_icd_suggestionKeepB": "Tartsa meg a váltott gázt, állítsa a jelenlegi gáz He-tartalmát {he}%-ra",
   "gasCalculators_icd_applyButton": "Alkalmaz",
   "gasCalculators_icd_infoTitle": "Az izobár ellendiffúzióról",
   "gasCalculators_icd_infoContent": "Az izobár ellendiffúzió (ICD) annak a kockázata, hogy egy héliumban gazdagabb gázról egy nitrogénben gazdagabb gázra váltás növeli a szövetekben az összes inert gáz feszültségét, mivel a hélium gyorsabban diffundál, mint a nitrogén. Az ötödszabály egy gyakori ökölszabály: a nitrogénhányad legfeljebb a héliumhányad csökkenésének ötödével nőhet.\n\nA szervezetek véleménye eltér arról, hogy ez mennyire számít a valóságban egy jól megtervezett, szabványos gázokkal végzett merülésnél. Ez a kalkulátor a két megadott gázra alkalmazza az ökölszabályt; nem helyettesíti a képzést vagy a szakmai tanácsot.",

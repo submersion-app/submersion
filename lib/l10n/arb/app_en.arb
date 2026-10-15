@@ -10079,18 +10079,18 @@
   },
   "gasCalculators_icd_disabledNotice": "The ICD assessment is turned off in Settings > Decompression.",
   "gasCalculators_icd_suggestionsTitle": "Make it comply",
-  "gasCalculators_icd_suggestionKeepA": "Keep the current gas, set the switched-to gas's He to {he}%",
-  "@gasCalculators_icd_suggestionKeepA": {
+  "gasCalculators_icd_suggestionSetHe": "Set He to {he}%",
+  "@gasCalculators_icd_suggestionSetHe": {
     "placeholders": {
       "he": {
         "type": "String"
       }
     }
   },
-  "gasCalculators_icd_suggestionKeepB": "Keep the switched-to gas, set the current gas's He to {he}%",
-  "@gasCalculators_icd_suggestionKeepB": {
+  "gasCalculators_icd_suggestionSetO2": "Set O2 to {o2}%",
+  "@gasCalculators_icd_suggestionSetO2": {
     "placeholders": {
-      "he": {
+      "o2": {
         "type": "String"
       }
     }
