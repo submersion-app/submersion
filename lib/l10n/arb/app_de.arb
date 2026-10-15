@@ -4857,6 +4857,8 @@
   "gasCalculators_icd_violation": "Fünftel-Regel verletzt: Stickstoff steigt um {increase}%, erlaubt ist maximal {max}%.",
   "gasCalculators_icd_disabledNotice": "Die ICD-Bewertung ist in Einstellungen > Dekompression ausgeschaltet.",
   "gasCalculators_icd_suggestionsTitle": "Lösungsvorschlag",
+  "gasCalculators_icd_suggestionSetHe": "He auf {he}% setzen",
+  "gasCalculators_icd_suggestionSetO2": "O2 auf {o2}% setzen",
   "gasCalculators_icd_applyButton": "Übernehmen",
   "gasCalculators_icd_infoTitle": "Über isobare Gegendiffusion",
   "gasCalculators_icd_infoContent": "Isobare Gegendiffusion (ICD) ist das Risiko, dass der Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas die Gesamt-Gasspannung im Gewebe erhöht, da Helium schneller diffundiert als Stickstoff. Die Fünftel-Regel ist eine gängige Faustregel: Der Stickstoffanteil sollte um höchstens ein Fünftel der Abnahme des Heliumanteils steigen.\n\nOb dies in der Praxis bei einem gut geplanten Tauchgang mit Standardgasen wirklich relevant ist, darüber sind sich die Verbände uneinig. Dieser Rechner wendet die Faustregel auf die beiden eingegebenen Gase an; er ersetzt keine Ausbildung oder fachkundige Beratung.",

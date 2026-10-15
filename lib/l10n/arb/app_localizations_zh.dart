@@ -16012,12 +16012,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String gasCalculators_icd_suggestionSetHe(String he) {
-    return 'Set He to $he%';
+    return '将He设为$he%';
   }
 
   @override
   String gasCalculators_icd_suggestionSetO2(String o2) {
-    return 'Set O2 to $o2%';
+    return '将O2设为$o2%';
   }
 
   @override

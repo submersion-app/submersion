@@ -4733,6 +4733,8 @@
   "gasCalculators_icd_violation": "Vijfde-regel overtreden: stikstof stijgt met {increase}%, het toegestane maximum is {max}%.",
   "gasCalculators_icd_disabledNotice": "De ICD-beoordeling is uitgeschakeld in Instellingen > Decompressie.",
   "gasCalculators_icd_suggestionsTitle": "Conform maken",
+  "gasCalculators_icd_suggestionSetHe": "He instellen op {he}%",
+  "gasCalculators_icd_suggestionSetO2": "O2 instellen op {o2}%",
   "gasCalculators_icd_applyButton": "Toepassen",
   "gasCalculators_icd_infoTitle": "Over isobare tegendiffusie",
   "gasCalculators_icd_infoContent": "Isobare tegendiffusie (ICD) is het risico dat het overschakelen van een heliumrijker naar een stikstofrijker gas de totale inerte gasspanning in weefsel verhoogt, omdat helium sneller diffundeert dan stikstof. De vijfde-regel is een veelgebruikte vuistregel: het stikstofaandeel mag met maximaal een vijfde van de afname van het heliumaandeel stijgen.\n\nOrganisaties zijn het er niet over eens hoe belangrijk dit in de praktijk is bij een goed geplande duik met standaardgassen. Deze rekenmachine past de vuistregel toe op de twee ingevoerde gassen; het vervangt geen training of professioneel advies.",

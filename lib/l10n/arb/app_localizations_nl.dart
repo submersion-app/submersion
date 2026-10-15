@@ -16692,12 +16692,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String gasCalculators_icd_suggestionSetHe(String he) {
-    return 'Set He to $he%';
+    return 'He instellen op $he%';
   }
 
   @override
   String gasCalculators_icd_suggestionSetO2(String o2) {
-    return 'Set O2 to $o2%';
+    return 'O2 instellen op $o2%';
   }
 
   @override

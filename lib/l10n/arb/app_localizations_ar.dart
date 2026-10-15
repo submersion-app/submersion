@@ -17008,12 +17008,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String gasCalculators_icd_suggestionSetHe(String he) {
-    return 'Set He to $he%';
+    return 'اضبط نسبة الهليوم على $he%';
   }
 
   @override
   String gasCalculators_icd_suggestionSetO2(String o2) {
-    return 'Set O2 to $o2%';
+    return 'اضبط نسبة الأكسجين على $o2%';
   }
 
   @override

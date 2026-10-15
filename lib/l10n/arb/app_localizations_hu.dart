@@ -16747,12 +16747,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String gasCalculators_icd_suggestionSetHe(String he) {
-    return 'Set He to $he%';
+    return 'Állítsa a He-tartalmat $he%-ra';
   }
 
   @override
   String gasCalculators_icd_suggestionSetO2(String o2) {
-    return 'Set O2 to $o2%';
+    return 'Állítsa az O2-tartalmat $o2%-ra';
   }
 
   @override

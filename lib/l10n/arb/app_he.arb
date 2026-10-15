@@ -4633,6 +4633,8 @@
   "gasCalculators_icd_violation": "כלל החמישית הופר: החנקן עולה ב-{increase}%, המקסימום המותר הוא {max}%.",
   "gasCalculators_icd_disabledNotice": "הערכת ה-ICD כבויה בהגדרות > דקומפרסיה.",
   "gasCalculators_icd_suggestionsTitle": "כך שהכלל יתקיים",
+  "gasCalculators_icd_suggestionSetHe": "קבע את ההליום ל-{he}%",
+  "gasCalculators_icd_suggestionSetO2": "קבע את החמצן ל-{o2}%",
   "gasCalculators_icd_applyButton": "החל",
   "gasCalculators_icd_infoTitle": "על דיפוזיה הפכית איזובארית",
   "gasCalculators_icd_infoContent": "דיפוזיה הפכית איזובארית (ICD) היא הסיכון שמעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן יגדיל את מתח הגזים האינרטיים הכולל ברקמה, מכיוון שהליום מתפזר מהר יותר מחנקן. כלל החמישית הוא כלל אצבע נפוץ: חלקיק החנקן לא אמור לעלות ביותר מחמישית מהירידה בחלקיק ההליום.\n\nארגונים חלוקים בדעתם עד כמה זה חשוב בפועל בצלילה מתוכננת היטב עם גזים סטנדרטיים. מחשבון זה מחיל את כלל האצבע על שני הגזים שהוזנו; הוא אינו מחליף הכשרה או ייעוץ מקצועי.",
