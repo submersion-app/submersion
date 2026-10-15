@@ -88,11 +88,14 @@ IcdResult computeIcd(IcdInputs inputs) {
 
 /// One way to fix a flagged switch: the percent value to set, and whether
 /// applying it -- keeping everything else as entered -- actually brings the
-/// switch back to [IcdSeverity.ok]. A suggestion can fail to resolve when its
-/// value gets clamped to the valid 0..100 range: clamping a He-based
-/// suggestion to 0 always disables the rule itself (no helium left to
-/// counterdiffuse against), so those always resolve; clamping an O2-based
-/// suggestion leaves He untouched, so the rule can still fire afterwards.
+/// switch out of [IcdSeverity.violation] (into [IcdSeverity.ok] or
+/// [IcdSeverity.caution] -- the widget itself treats a caution as already
+/// compliant, so a suggestion that only gets that far still counts as
+/// resolving). A suggestion can fail to resolve when its value gets clamped
+/// to the valid 0..100 range: clamping a He-based suggestion to 0 always
+/// disables the rule itself (no helium left to counterdiffuse against), so
+/// those always resolve; clamping an O2-based suggestion leaves He
+/// untouched, so the rule can still fire afterwards.
 class IcdFixSuggestion {
   final double value;
   final bool resolves;
@@ -136,9 +139,11 @@ IcdFixSuggestions computeIcdFixSuggestions(IcdInputs inputs) {
       value.clamp(0.0, 100.0 - other).toDouble();
 
   bool resolvesAsGasA(GasMix adjusted) =>
-      computeIcd(IcdInputs(gasA: adjusted, gasB: b)).severity == IcdSeverity.ok;
+      computeIcd(IcdInputs(gasA: adjusted, gasB: b)).severity !=
+      IcdSeverity.violation;
   bool resolvesAsGasB(GasMix adjusted) =>
-      computeIcd(IcdInputs(gasA: a, gasB: adjusted)).severity == IcdSeverity.ok;
+      computeIcd(IcdInputs(gasA: a, gasB: adjusted)).severity !=
+      IcdSeverity.violation;
 
   final heA = clamp(b.he + b.o2 - a.o2, a.o2);
   final heAMix = GasMix(o2: a.o2, he: heA);
