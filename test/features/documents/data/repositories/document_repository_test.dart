@@ -393,6 +393,19 @@ void main() {
     },
   );
 
+  test('a certification change notifies watchers', () async {
+    // The list derives a certification owner's title from its row, so an
+    // edit to the certification must refresh it (#3366).
+    await seedCert(db, 'c1');
+    final changed = repo.watchChanges().first;
+    await db.customUpdate(
+      "UPDATE certifications SET level = 'openWater' WHERE id = 'c1'",
+      updates: {db.certifications},
+      updateKind: UpdateKind.update,
+    );
+    await expectLater(changed.timeout(const Duration(seconds: 2)), completes);
+  });
+
   test('card images: save, read, clear one side, clear both', () async {
     await seedCert(db, 'c1');
     await repo.saveCardImages(

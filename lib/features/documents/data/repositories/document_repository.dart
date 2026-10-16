@@ -91,10 +91,13 @@ class DocumentRepository {
   static const _inListChunk = 500;
   static const _pageEntity = 'documentPages';
 
+  /// Fires on any write to documents or their pages, and on a certification
+  /// edit: a certification owner's title is derived from its row (#3366).
   Stream<void> watchChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.documents),
       TableUpdateQuery.onTable(_db.documentPages),
+      TableUpdateQuery.onTable(_db.certifications),
     ]),
   );
 
