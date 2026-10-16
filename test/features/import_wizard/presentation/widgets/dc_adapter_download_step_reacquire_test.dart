@@ -229,11 +229,8 @@ void main() {
         h.service.onDeviceDiscovered(_advert(_savedAddress));
         await _settle(tester);
 
-        expect(h.hostApi.calls, [
-          'startDiscovery',
-          'stopDiscovery',
-          'startDownload',
-        ]);
+        // The scan keeps running through the connect (issue #3369).
+        expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
         final sent = h.hostApi.downloads.single;
         expect(sent.address, _savedAddress);
         // The freshly advertised device carries the descriptor the driver
@@ -259,11 +256,7 @@ void main() {
         );
         await _settle(tester);
 
-        expect(h.hostApi.calls, [
-          'startDiscovery',
-          'stopDiscovery',
-          'startDownload',
-        ]);
+        expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
         expect(h.hostApi.downloads.single.address, _savedAddress);
       },
     );
@@ -379,11 +372,7 @@ void main() {
         );
         await _settle(tester);
 
-        expect(h.hostApi.calls, [
-          'startDiscovery',
-          'stopDiscovery',
-          'startDownload',
-        ]);
+        expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
         final sent = h.hostApi.downloads.single;
         expect(sent.address, freshAddress);
         expect(sent.vendor, 'Shearwater');
@@ -451,9 +440,70 @@ void main() {
       await tester.pump();
       await _settle(tester);
 
-      expect(h.hostApi.calls, ['stopDiscovery', 'startDownload']);
+      expect(h.hostApi.calls, ['startDownload']);
       expect(h.hostApi.downloads.single.address, _savedAddress);
       expect(_selectedDevice(tester), isNull);
+    });
+  });
+
+  // Issue #3369: a saved Petrel 3 or Perdix 2 still failed to download on
+  // Android while "Connect new computer" worked for the same unit. That flow
+  // never stops its scan before connecting; the saved-computer path stopped
+  // its scan the moment the address advertised and connected straight
+  // after. The saved-computer path now keeps its scan running through the
+  // connect too, and stops it once the download is over or the step closes.
+  group('DcAdapterDownloadStep keeps the re-acquire scan running', () {
+    testWidgets('until the step closes', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer()));
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(_savedAddress));
+      await _settle(tester);
+      expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
+
+      await tester.pumpWidget(const SizedBox());
+
+      expect(h.hostApi.calls, [
+        'startDiscovery',
+        'startDownload',
+        'stopDiscovery',
+      ]);
+    });
+
+    testWidgets('until the download completes', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer()));
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(_savedAddress));
+      await _settle(tester);
+      expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
+
+      h.service.onDownloadComplete(0, null, null, null, null, null);
+      await _settle(tester);
+
+      expect(h.hostApi.calls, [
+        'startDiscovery',
+        'startDownload',
+        'stopDiscovery',
+      ]);
+    });
+
+    testWidgets('and stops a scan the step closes before it finds the '
+        'device', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer()));
+      await tester.pump();
+      expect(h.hostApi.calls, ['startDiscovery']);
+
+      await tester.pumpWidget(const SizedBox());
+      // The pending re-acquisition must not outlive the step.
+      await tester.pump(
+        DcAdapterDownloadStep.knownDeviceScanTimeout +
+            const Duration(seconds: 1),
+      );
+
+      expect(h.hostApi.calls, ['startDiscovery', 'stopDiscovery']);
+      expect(h.hostApi.downloads, isEmpty);
     });
   });
 }
