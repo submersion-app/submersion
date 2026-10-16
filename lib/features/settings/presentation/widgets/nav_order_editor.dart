@@ -76,13 +76,22 @@ List<String> _moveItem(
 /// Reorderable list for one navigation surface, with the pinned rows that
 /// bracket it, an Add shortcut control (#2936) and a reset control.
 ///
+/// Everything, [header] included, sits on the list's own scroll axis. On a
+/// short screen the fixed blocks around a separately scrolling list left room
+/// for only a row or two, so a drag had nowhere to go (#3370); sharing one
+/// axis gives the rows, and the drag auto-scroll, the whole height below the
+/// app bar.
+///
 /// Give each instance a key tied to its [scope] so switching surfaces rebuilds
 /// the local mirror from the right provider instead of carrying the old order
 /// across.
 class NavOrderEditor extends ConsumerStatefulWidget {
-  const NavOrderEditor({super.key, required this.scope});
+  const NavOrderEditor({super.key, required this.scope, this.header});
 
   final NavOrderScope scope;
+
+  /// Content shown above the pinned Home row that scrolls with the list.
+  final Widget? header;
 
   @override
   ConsumerState<NavOrderEditor> createState() => _NavOrderEditorState();
@@ -140,61 +149,65 @@ class _NavOrderEditorState extends ConsumerState<NavOrderEditor> {
     // last value that finished persisting.
     final listIsDefault = listEquals(_local, kDefaultNavOrder);
 
-    return Column(
-      children: [
-        // Pinned Home row (outside the reorderable list).
-        _pinnedTile(context, destinationsById['dashboard']!),
-        const Divider(height: 1),
-        Expanded(
-          child: ReorderableListView.builder(
-            buildDefaultDragHandles: false,
-            itemCount: _flatCount,
-            itemBuilder: (context, flatIndex) {
-              if (flatIndex == dividerIndex) return _buildDivider(context);
-              final movableIndex =
-                  dividerIndex == null || flatIndex < dividerIndex
-                  ? flatIndex
-                  : flatIndex - 1;
-              final id = _local![movableIndex];
-              // A shortcut can be taken off the nav; a built-in cannot.
-              final isShortcut = navShortcutForOrderId(id) != null;
-              return _buildMovableTile(
-                context: context,
-                key: ValueKey('nav-item-$id'),
-                index: flatIndex,
-                destination: resolveNavDestination(id, destinationsById)!,
-                onRemove: isShortcut ? () => _removeShortcut(id) : null,
-              );
-            },
-            onReorderItem: _commitReorder,
-          ),
-        ),
-        const Divider(height: 1),
-        // Only phone has a More control to pin below the list.
-        if (_isPhone) _pinnedTile(context, destinationsById['more']!),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              children: [
-                TextButton.icon(
-                  icon: const Icon(Icons.add_link),
-                  label: Text(l10n.settings_navCustomization_addShortcut),
-                  onPressed: _addShortcut,
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.restore),
-                  label: Text(l10n.settings_navCustomization_resetButton),
-                  onPressed: listIsDefault ? null : _reset,
-                ),
-              ],
+    return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
+      header: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ?widget.header,
+          // Pinned Home row (outside the reorderable items).
+          _pinnedTile(context, destinationsById['dashboard']!),
+          const Divider(height: 1),
+        ],
+      ),
+      footer: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Divider(height: 1),
+          // Only phone has a More control to pin below the list.
+          if (_isPhone) _pinnedTile(context, destinationsById['more']!),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                children: [
+                  TextButton.icon(
+                    icon: const Icon(Icons.add_link),
+                    label: Text(l10n.settings_navCustomization_addShortcut),
+                    onPressed: _addShortcut,
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.restore),
+                    label: Text(l10n.settings_navCustomization_resetButton),
+                    onPressed: listIsDefault ? null : _reset,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+      itemCount: _flatCount,
+      itemBuilder: (context, flatIndex) {
+        if (flatIndex == dividerIndex) return _buildDivider(context);
+        final movableIndex = dividerIndex == null || flatIndex < dividerIndex
+            ? flatIndex
+            : flatIndex - 1;
+        final id = _local![movableIndex];
+        // A shortcut can be taken off the nav; a built-in cannot.
+        final isShortcut = navShortcutForOrderId(id) != null;
+        return _buildMovableTile(
+          context: context,
+          key: ValueKey('nav-item-$id'),
+          index: flatIndex,
+          destination: resolveNavDestination(id, destinationsById)!,
+          onRemove: isShortcut ? () => _removeShortcut(id) : null,
+        );
+      },
+      onReorderItem: _commitReorder,
     );
   }
 

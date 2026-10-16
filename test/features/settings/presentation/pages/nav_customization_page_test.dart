@@ -119,11 +119,15 @@ void main() {
   });
 
   group('NavCustomizationPage widget', () {
-    /// Sizes the surface so the page opens on the requested scope and the
-    /// whole list renders without scrolling; the page uses a
-    /// ReorderableListView.builder, which only builds visible rows.
-    void useSurface(WidgetTester tester, {required bool wide}) {
-      tester.view.physicalSize = Size(wide ? 1200 : 500, 3000);
+    /// Sizes the surface so the page opens on the requested scope and, at the
+    /// default [height], the whole list renders without scrolling; the page
+    /// uses a ReorderableListView.builder, which only builds visible rows.
+    void useSurface(
+      WidgetTester tester, {
+      required bool wide,
+      double height = 3000,
+    }) {
+      tester.view.physicalSize = Size(wide ? 1200 : 500, height);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -144,9 +148,10 @@ void main() {
     Future<FakeAppSettingsRepository> pumpPage(
       WidgetTester tester, {
       bool wide = false,
+      double height = 3000,
       FakeAppSettingsRepository? repo,
     }) async {
-      useSurface(tester, wide: wide);
+      useSurface(tester, wide: wide, height: height);
       final resolved = repo ?? FakeAppSettingsRepository();
       await tester.pumpWidget(buildHarness(resolved));
       await tester.pumpAndSettle();
@@ -575,6 +580,61 @@ void main() {
 
         expect(repo.navPrimaryIds, isNot(contains('shortcut:gas-blender')));
       });
+    });
+
+    group('short screens (#3370)', () {
+      // A phone-sized window: too short to show every row at once.
+      const shortHeight = 640.0;
+
+      testWidgets('dragging the list scrolls the settings above it too', (
+        tester,
+      ) async {
+        await pumpPage(tester, height: shortHeight);
+
+        final switchTile = find.byKey(
+          const ValueKey('navAlwaysHideLabelsSwitch'),
+        );
+        final switchTopBefore = tester.getTopLeft(switchTile).dy;
+
+        // Start on the row's leading icon, well clear of its drag handle, so
+        // this is a scroll and not a reorder.
+        final row = find.byKey(ValueKey('nav-item-${_firstRowId(tester)}'));
+        await tester.dragFrom(
+          tester.getTopLeft(row) + const Offset(24, 24),
+          const Offset(0, -200),
+        );
+        await tester.pumpAndSettle();
+
+        // Page and list share one scroll axis, so the rows can use the whole
+        // screen height instead of the gap between fixed blocks.
+        expect(
+          tester.getTopLeft(switchTile).dy,
+          lessThan(switchTopBefore - 150),
+        );
+      });
+
+      testWidgets(
+        'the actions scroll with the rows instead of staying pinned',
+        (tester) async {
+          await pumpPage(tester, height: shortHeight);
+
+          final reset = find.widgetWithText(TextButton, 'Reset to defaults');
+          // Not pinned to the bottom of the screen at the start ...
+          expect(reset.hitTestable(), findsNothing);
+
+          // ... but reached by scrolling past the last row and the More row.
+          await tester.scrollUntilVisible(
+            reset.hitTestable(),
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          expect(reset.hitTestable(), findsOneWidget);
+          expect(
+            tester.getTopLeft(reset).dy,
+            greaterThan(tester.getTopLeft(find.text('More')).dy),
+          );
+        },
+      );
     });
   });
 }
