@@ -350,7 +350,11 @@ class GasAnalysisService {
           gasMix: tank.gasMix,
           breathingSeconds: usageSeconds,
         );
-      } else if (tank.startPressure != null &&
+      }
+      // A series that shows no drop over the window (a flat or lost
+      // transmitter) falls back to the logged pressures (issue #3373).
+      if (sacRate == null &&
+          tank.startPressure != null &&
           tank.endPressure != null &&
           (avgDepthDuringUse ?? dive.avgDepth) != null) {
         // Basic calculation from start/end pressures with Z-factor correction.
@@ -596,32 +600,74 @@ class GasAnalysisService {
   }) {
     if (diveEnd <= diveStart) return null;
 
-    if (gasSwitches == null || gasSwitches.isEmpty) {
-      // No gas switches - assume single tank used entire dive
-      // For multi-tank without switches, use the back gas
-      if (tanks.length > 1 && tank.role != TankRole.backGas) {
-        return null; // Can't determine usage without gas switches
+    // A dive's only cylinder was breathed for all of it, whatever its
+    // switches say (issue #3373).
+    if (tanks.length == 1) return (start: diveStart, end: diveEnd);
+
+    // A switch naming no cylinder of this dive (a stale id a re-import left
+    // behind, #110) says nothing about when any of them was breathed.
+    final tanksById = {for (final t in tanks) t.id: t};
+    final knownSwitches = [
+      for (final sw in gasSwitches ?? const <GasSwitchWithTank>[])
+        if (tanksById.containsKey(sw.gasSwitch.tankId)) sw,
+    ];
+
+    if (knownSwitches.isEmpty) {
+      // Without switches only the primary gas is known to span the dive: the
+      // back gas, or either cylinder of a sidemount pair. A stage's window
+      // is unknown, and the whole dive would understate its rate.
+      if (tank.role != TankRole.backGas &&
+          !sidemountRoles.contains(tank.role)) {
+        return null;
       }
       return (start: diveStart, end: diveEnd);
     }
 
-    final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
+    // A matched pair (sidemount, doubles logged as independents) is breathed
+    // in turns on one gas, which a computer records as a single switch onto
+    // the first of them, if at all. While some cylinder of the pair has no
+    // switch of its own, the pair shares one window (#3373); once each has
+    // one, the switches tell them apart.
+    final switchedTankIds = {
+      for (final sw in knownSwitches) sw.gasSwitch.tankId,
+    };
+    final partnerIds = {
+      for (final t in tanks)
+        if (t.id != tank.id && isMatchedPair(tank, t)) t.id,
+    };
+    final sharesWindow =
+        partnerIds.isNotEmpty &&
+        !{tank.id, ...partnerIds}.every(switchedTankIds.contains);
+    bool breathedWith(String tankId) =>
+        tankId == tank.id || (sharesWindow && partnerIds.contains(tankId));
+
+    final sortedSwitches = [...knownSwitches]
       ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
 
     // Find all time ranges where this tank was active
     int? rangeStart;
     int totalEnd = diveEnd;
 
-    // Check if this tank is the initial tank (before first switch)
+    // Check if this tank is the initial tank (before first switch): the one
+    // switched to at the start, else the cylinder breathed until the first
+    // switch, as [_getActiveTankAtTimestamp] picks it.
     final firstSwitch = sortedSwitches.first;
-    if (firstSwitch.gasSwitch.tankId == tank.id) {
+    final initialTankId = firstSwitch.gasSwitch.timestamp <= diveStart
+        ? firstSwitch.gasSwitch.tankId
+        : tanks
+              .firstWhere(
+                (t) => t.role == TankRole.backGas,
+                orElse: () => tanks.first,
+              )
+              .id;
+    if (breathedWith(initialTankId)) {
       rangeStart = diveStart;
     }
 
     // Find switches to and from this tank
     for (int i = 0; i < sortedSwitches.length; i++) {
       final sw = sortedSwitches[i];
-      if (sw.gasSwitch.tankId == tank.id) {
+      if (breathedWith(sw.gasSwitch.tankId)) {
         // Switched TO this tank
         rangeStart ??= sw.gasSwitch.timestamp;
       } else if (rangeStart != null) {
