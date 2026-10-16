@@ -255,6 +255,26 @@ void main() {
         expect(result.airTemp, 13.0);
       });
 
+      test('keeps seconds when the target is past the half hour', () {
+        final hours = List.generate(24, (h) => h);
+        final hourlyData = {
+          'time': [
+            for (final h in hours)
+              '2022-01-26T${h.toString().padLeft(2, '0')}:00',
+          ],
+          'temperature_2m': [for (final h in hours) h.toDouble()],
+        };
+
+        // 09:30:30 is closer to 10:00 than to 09:00. Dropping the seconds
+        // would make it a tie, which resolves to the earlier hour.
+        final result = WeatherMapper.mapApiResponse(
+          hourlyData,
+          targetHour: DateTime.utc(2022, 1, 26, 9, 30, 30),
+        );
+
+        expect(result.airTemp, 10.0);
+      });
+
       test('matches a local wall clock on its wall-clock hour', () {
         final hours = List.generate(24, (h) => h);
         final hourlyData = {

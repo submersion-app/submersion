@@ -141,8 +141,16 @@ class WeatherMapper {
     return closestIndex;
   }
 
-  static DateTime _wallClock(DateTime t) =>
-      DateTime.utc(t.year, t.month, t.day, t.hour, t.minute);
+  static DateTime _wallClock(DateTime t) => DateTime.utc(
+    t.year,
+    t.month,
+    t.day,
+    t.hour,
+    t.minute,
+    t.second,
+    t.millisecond,
+    t.microsecond,
+  );
 
   static double? _getDouble(dynamic list, int index) {
     if (list is! List || index >= list.length) return null;
