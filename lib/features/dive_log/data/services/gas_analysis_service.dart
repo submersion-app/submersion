@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
@@ -558,10 +557,7 @@ class GasAnalysisService {
 
     if (gasSwitches == null || gasSwitches.isEmpty) {
       // No gas switches - use first tank (or back gas)
-      return tanks.firstWhere(
-        (t) => t.role == TankRole.backGas,
-        orElse: () => tanks.first,
-      );
+      return sacReferenceTankOf(tanks);
     }
 
     // Find the last switch before this timestamp
@@ -577,12 +573,15 @@ class GasAnalysisService {
       }
     }
 
+    // Before the first switch: the gas it names when it falls in the first
+    // moments (the starting gas, logged at the first sample, as
+    // [tankUsageRange] reads it), else the back gas or first tank.
     if (activeSwitch == null) {
-      // Before first switch - use first tank
-      return tanks.firstWhere(
-        (t) => t.role == TankRole.backGas,
-        orElse: () => tanks.first,
-      );
+      final first = sortedSwitches.first;
+      if (first.gasSwitch.timestamp > timestamp + startingSwitchGraceSeconds) {
+        return sacReferenceTankOf(tanks);
+      }
+      activeSwitch = first;
     }
 
     return tanks.firstWhere(

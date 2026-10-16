@@ -258,6 +258,44 @@ void main() {
     expect(results['travel']!.usageDuration?.inMinutes, 20);
   });
 
+  test('phase segments start on a starting gas logged at the first '
+      'sample', () {
+    const back = DiveTank(
+      id: 'back',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+    );
+    const travel = DiveTank(
+      id: 'travel',
+      volume: 7,
+      startPressure: 200,
+      endPressure: 150,
+      role: TankRole.stage,
+      gasMix: GasMix(o2: 32),
+    );
+    final profile = [
+      for (var t = 0; t <= 3600; t += 10)
+        DiveProfilePoint(
+          timestamp: t,
+          depth: t < 300
+              ? t / 10
+              : t > 3300
+              ? (3600 - t) / 10
+              : 30,
+        ),
+    ];
+    final segments = service.calculatePhaseSegments(
+      profile: profile,
+      tanks: const [back, travel],
+      gasSwitches: [switchTo('travel', 10), switchTo('back', 20 * 60)],
+    );
+
+    expect(segments, isNotNull);
+    expect(segments!.first.startTimestamp, 0);
+    expect(segments.first.tankId, 'travel');
+  });
+
   test('a stage with no recorded switch still has no SAC', () {
     // Without a switch nothing says how long the stage was breathed, and
     // spreading its drop over the whole dive would understate its rate.
