@@ -354,6 +354,52 @@ void main() {
     expect(results.containsKey('deco'), isFalse);
   });
 
+  test('phase segments start on the back gas before a later first '
+      'switch', () {
+    const back = DiveTank(
+      id: 'back',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+    );
+    const deco = DiveTank(
+      id: 'deco',
+      volume: 7,
+      startPressure: 200,
+      endPressure: 150,
+      role: TankRole.deco,
+      gasMix: GasMix(o2: 50),
+    );
+    final profile = [
+      for (var t = 0; t <= 3600; t += 10)
+        DiveProfilePoint(
+          timestamp: t,
+          depth: t < 300
+              ? t / 10
+              : t > 3300
+              ? (3600 - t) / 10
+              : 30,
+        ),
+    ];
+    final segments = service.calculatePhaseSegments(
+      profile: profile,
+      tanks: const [back, deco],
+      gasSwitches: [switchTo('deco', 40 * 60)],
+    );
+
+    expect(segments, isNotNull);
+    expect(segments!.first.startTimestamp, 0);
+    expect(segments.first.tankId, 'back');
+
+    // With no switches at all, every phase is charged to the back gas.
+    final unswitched = service.calculatePhaseSegments(
+      profile: profile,
+      tanks: const [deco, back],
+    );
+    expect(unswitched, isNotNull);
+    expect(unswitched!.map((s) => s.tankId).toSet(), {'back'});
+  });
+
   test('a stage with no recorded switch still has no SAC', () {
     // Without a switch nothing says how long the stage was breathed, and
     // spreading its drop over the whole dive would understate its rate.
