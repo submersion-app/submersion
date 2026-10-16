@@ -103,6 +103,40 @@ void main() {
     });
   });
 
+  testWidgets('a scrub tick repaints the cursor, not the scene', (
+    tester,
+  ) async {
+    final scrub = ValueNotifier(0.0);
+    addTearDown(scrub.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Dive3dInteractiveViewport(
+            scene: buildScene(),
+            scrubPosition: scrub,
+            visibleOverlays: SceneOverlay.values.toSet(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final scene = _sceneRenderObject(tester);
+    final before = _picturesAbove(scene);
+
+    for (var i = 1; i <= 5; i++) {
+      scrub.value = i / 10;
+      await tester.pump();
+    }
+
+    final after = _picturesAbove(scene);
+    expect(after, hasLength(before.length));
+    for (var i = 0; i < before.length; i++) {
+      expect(identical(after[i], before[i]), isTrue, reason: 'picture $i');
+    }
+  });
+
   group('Dive3dScenePainter.shouldRepaint', () {
     Dive3dScenePainter painter(Scene3d scene, Set<SceneOverlay> overlays) =>
         Dive3dScenePainter(

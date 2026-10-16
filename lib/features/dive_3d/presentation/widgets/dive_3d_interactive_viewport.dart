@@ -419,33 +419,37 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
         );
         // The scene painter projects and depth-sorts every triangle on the
         // CPU, so it gets a layer of its own: a scrolling host page (the Site
-        // Details card), the pan Transform and the chrome painters around it
-        // then reuse the recorded picture instead of re-running it (#3393).
-        final scenePaint = RepaintBoundary(
-          child: CustomPaint(
-            painter: Dive3dScenePainter(
-              scene: widget.scene,
-              yawDegrees: _yaw,
-              pitchDegrees: _pitch,
-              zoom: _zoom,
-              visibleOverlays: widget.visibleOverlays,
-              terrainImagery: widget.terrainImagery,
-              imageryWhiteTexel: widget.imageryWhiteTexel,
+        // Details card), the pan Transform and the painters around it then
+        // reuse the recorded picture instead of re-running it (#3393). The
+        // foreground sits outside that layer because it repaints on every
+        // scrub tick (and, in tissue mode, every hover).
+        final scenePaint = CustomPaint(
+          foregroundPainter: mode == SceneChromeMode.tissue
+              ? TissueChromePainter(
+                  scene: widget.scene,
+                  grid: widget.surfaceGrid!,
+                  frame: widget.axisFrame!,
+                  style: widget.chromeStyle!,
+                  yawDegrees: _yaw,
+                  pitchDegrees: _pitch,
+                  zoom: _zoom,
+                  labels: widget.axisLabels,
+                  textDirection: Directionality.of(context),
+                )
+              : cursorPainter,
+          child: RepaintBoundary(
+            child: CustomPaint(
+              painter: Dive3dScenePainter(
+                scene: widget.scene,
+                yawDegrees: _yaw,
+                pitchDegrees: _pitch,
+                zoom: _zoom,
+                visibleOverlays: widget.visibleOverlays,
+                terrainImagery: widget.terrainImagery,
+                imageryWhiteTexel: widget.imageryWhiteTexel,
+              ),
+              child: const SizedBox.expand(),
             ),
-            foregroundPainter: mode == SceneChromeMode.tissue
-                ? TissueChromePainter(
-                    scene: widget.scene,
-                    grid: widget.surfaceGrid!,
-                    frame: widget.axisFrame!,
-                    style: widget.chromeStyle!,
-                    yawDegrees: _yaw,
-                    pitchDegrees: _pitch,
-                    zoom: _zoom,
-                    labels: widget.axisLabels,
-                    textDirection: Directionality.of(context),
-                  )
-                : cursorPainter,
-            child: const SizedBox.expand(),
           ),
         );
 
@@ -534,7 +538,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                 ),
             // Trackpad pan-zoom is handled on the Listener below; this only
             // claims it in the arena, so a scrolling ancestor cannot take
-            // the same swipe.
+            // the same swipe. Inline, the page is meant to take it.
             if (!widget.insideScrollingPage)
               _TrackpadPanZoomClaim:
                   GestureRecognizerFactoryWithHandlers<_TrackpadPanZoomClaim>(
