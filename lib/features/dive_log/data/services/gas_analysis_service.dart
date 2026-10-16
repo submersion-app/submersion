@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
 /// Service for calculating SAC (Surface Air Consumption) metrics
 /// per segment and per cylinder.
@@ -88,7 +89,7 @@ class GasAnalysisService {
       // Calculate SAC for this segment
       // Window to prorate a pressure-series-less tank across: its own
       // usage range when the gas switches identify one, else the dive.
-      final usageRange = _getTankUsageRange(
+      final usageRange = tankUsageRange(
         tank: tank,
         gasSwitches: sortedSwitches,
         diveStart: profile.first.timestamp,
@@ -217,7 +218,7 @@ class GasAnalysisService {
       // Same proration window as the gas-switch path: a tank that was only
       // breathed for part of the dive must not have its drop spread across
       // the whole of it.
-      final usageRange = _getTankUsageRange(
+      final usageRange = tankUsageRange(
         tank: tank,
         gasSwitches: gasSwitches,
         diveStart: profile.first.timestamp,
@@ -301,7 +302,7 @@ class GasAnalysisService {
       // long but not when, so its depth window is the whole dive.
       final usageRange = hasRecordedUsage
           ? (start: 0, end: diveEnd > 0 ? diveEnd : recordedSeconds)
-          : _getTankUsageRange(
+          : tankUsageRange(
               tank: tank,
               gasSwitches: gasSwitches,
               diveStart: 0,
@@ -588,101 +589,6 @@ class GasAnalysisService {
       (t) => t.id == activeSwitch!.gasSwitch.tankId,
       orElse: () => tanks.first,
     );
-  }
-
-  /// Get the time range when a tank was in use
-  ({int start, int end})? _getTankUsageRange({
-    required DiveTank tank,
-    required List<GasSwitchWithTank>? gasSwitches,
-    required int diveStart,
-    required int diveEnd,
-    required List<DiveTank> tanks,
-  }) {
-    if (diveEnd <= diveStart) return null;
-
-    // A dive's only cylinder was breathed for all of it, whatever its
-    // switches say (issue #3373).
-    if (tanks.length == 1) return (start: diveStart, end: diveEnd);
-
-    // A switch naming no cylinder of this dive (a stale id a re-import left
-    // behind, #110) says nothing about when any of them was breathed.
-    final tanksById = {for (final t in tanks) t.id: t};
-    final knownSwitches = [
-      for (final sw in gasSwitches ?? const <GasSwitchWithTank>[])
-        if (tanksById.containsKey(sw.gasSwitch.tankId)) sw,
-    ];
-
-    if (knownSwitches.isEmpty) {
-      // Without switches only the primary gas is known to span the dive: the
-      // back gas, or either cylinder of a sidemount pair. A stage's window
-      // is unknown, and the whole dive would understate its rate.
-      if (tank.role != TankRole.backGas &&
-          !sidemountRoles.contains(tank.role)) {
-        return null;
-      }
-      return (start: diveStart, end: diveEnd);
-    }
-
-    // A matched pair (sidemount, doubles logged as independents) is breathed
-    // in turns on one gas, which a computer records as a single switch onto
-    // the first of them, if at all. While some cylinder of the pair has no
-    // switch of its own, the pair shares one window (#3373); once each has
-    // one, the switches tell them apart.
-    final switchedTankIds = {
-      for (final sw in knownSwitches) sw.gasSwitch.tankId,
-    };
-    final partnerIds = {
-      for (final t in tanks)
-        if (t.id != tank.id && isMatchedPair(tank, t)) t.id,
-    };
-    final sharesWindow =
-        partnerIds.isNotEmpty &&
-        !{tank.id, ...partnerIds}.every(switchedTankIds.contains);
-    bool breathedWith(String tankId) =>
-        tankId == tank.id || (sharesWindow && partnerIds.contains(tankId));
-
-    final sortedSwitches = [...knownSwitches]
-      ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
-
-    // Find all time ranges where this tank was active
-    int? rangeStart;
-    int totalEnd = diveEnd;
-
-    // Check if this tank is the initial tank (before first switch): the one
-    // switched to at the start, else the cylinder breathed until the first
-    // switch, as [_getActiveTankAtTimestamp] picks it.
-    final firstSwitch = sortedSwitches.first;
-    final initialTankId = firstSwitch.gasSwitch.timestamp <= diveStart
-        ? firstSwitch.gasSwitch.tankId
-        : tanks
-              .firstWhere(
-                (t) => t.role == TankRole.backGas,
-                orElse: () => tanks.first,
-              )
-              .id;
-    if (breathedWith(initialTankId)) {
-      rangeStart = diveStart;
-    }
-
-    // Find switches to and from this tank
-    for (int i = 0; i < sortedSwitches.length; i++) {
-      final sw = sortedSwitches[i];
-      if (breathedWith(sw.gasSwitch.tankId)) {
-        // Switched TO this tank
-        rangeStart ??= sw.gasSwitch.timestamp;
-      } else if (rangeStart != null) {
-        // Switched AWAY from this tank
-        totalEnd = sw.gasSwitch.timestamp;
-        break;
-      }
-    }
-
-    // If we found a start but no end, tank was used until dive end
-    if (rangeStart != null) {
-      return (start: rangeStart, end: totalEnd);
-    }
-
-    return null;
   }
 
   /// Calculate SAC for a segment from profile data

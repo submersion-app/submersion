@@ -227,6 +227,37 @@ void main() {
     expect(results['deco']!.usageDuration?.inMinutes, 20);
   });
 
+  test('a starting gas logged at the first sample is the starting gas', () {
+    // The computer logs the travel stage it starts on at the first sample,
+    // a few seconds in, and the switch to back gas later. The back gas was
+    // not breathed in those first seconds.
+    const back = DiveTank(
+      id: 'back',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+    );
+    const travel = DiveTank(
+      id: 'travel',
+      volume: 7,
+      startPressure: 200,
+      endPressure: 150,
+      role: TankRole.stage,
+      gasMix: GasMix(o2: 32),
+    );
+    final dive = makeDive([back, travel]);
+    final results = byId(
+      service.calculateCylinderSac(
+        dive: dive,
+        profile: dive.profile,
+        gasSwitches: [switchTo('travel', 10), switchTo('back', 20 * 60)],
+      ),
+    );
+
+    expect(results['back']!.usageDuration?.inMinutes, 40);
+    expect(results['travel']!.usageDuration?.inMinutes, 20);
+  });
+
   test('a stage with no recorded switch still has no SAC', () {
     // Without a switch nothing says how long the stage was breathed, and
     // spreading its drop over the whole dive would understate its rate.
