@@ -36,6 +36,13 @@ class CourseCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final formatter = UnitFormatter(ref.watch(settingsProvider));
     final startDateStr = formatter.formatDate(course.startDate);
+    final agencyName = context.certificationCatalog
+        .agency(course.agency)
+        .localizedName(context.l10n);
+    final accent = courseStatusAccent(
+      colorScheme,
+      completed: course.isCompleted,
+    );
 
     final statusStr = course.isCompleted
         ? context.l10n.courses_status_completed
@@ -46,7 +53,7 @@ class CourseCard extends ConsumerWidget {
 
     return Semantics(
       label:
-          '${course.name}, ${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)}, ${context.l10n.courses_card_started(startDateStr)}, $statusStr$instructorStr',
+          '${course.name}, $agencyName, ${context.l10n.courses_card_started(startDateStr)}, $statusStr$instructorStr',
       // Same shape as CertificationListTile and EquipmentListTile, so course
       // rows match every other section's size and spacing (issue #3382).
       child: Card(
@@ -65,20 +72,14 @@ class CourseCard extends ConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: courseStatusAccent(
-                  colorScheme,
-                  completed: course.isCompleted,
-                ).withValues(alpha: 0.15),
+                color: accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 course.isCompleted
                     ? Icons.check_circle_outline
                     : Icons.school_outlined,
-                color: courseStatusAccent(
-                  colorScheme,
-                  completed: course.isCompleted,
-                ),
+                color: accent,
               ),
             ),
           ),
@@ -89,50 +90,29 @@ class CourseCard extends ConsumerWidget {
           ),
           subtitle: Text(
             [
-              context.certificationCatalog
-                  .agency(course.agency)
-                  .localizedName(context.l10n),
+              agencyName,
               startDateStr,
-              ?course.instructorName,
+              if (course.instructorName != null)
+                context.l10n.courses_card_instructor(course.instructorName!),
             ].join(' - '),
           ),
-          trailing: _buildStatusBadge(context),
+          trailing: _buildStatusBadge(context, statusStr, accent),
         ),
       ),
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    if (course.isCompleted) {
-      final accent = courseStatusAccent(colorScheme, completed: true);
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          context.l10n.courses_status_completed,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: accent,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
-    }
-
+  Widget _buildStatusBadge(BuildContext context, String label, Color accent) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withValues(alpha: 0.15),
+        color: accent.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        context.l10n.courses_status_inProgress,
+        label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: colorScheme.primary,
+          color: accent,
           fontWeight: FontWeight.w600,
         ),
       ),
