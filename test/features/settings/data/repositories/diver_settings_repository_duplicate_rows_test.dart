@@ -125,6 +125,19 @@ void main() {
       expect((await rows()).map((r) => r.id), ['settings-iphone']);
     });
 
+    test('a failed collapse is logged, not thrown, and the newest row is '
+        'still read', () async {
+      await db.customStatement('''
+        CREATE TRIGGER block_settings_delete BEFORE DELETE ON diver_settings
+        BEGIN SELECT RAISE(ABORT, 'blocked'); END
+      ''');
+
+      final settings = await repository.getOrCreateSettingsForDiver('d1');
+
+      expect(settings.depthUnit, DepthUnit.feet);
+      expect(await rows(), hasLength(2));
+    });
+
     test('leaves a single row alone', () async {
       await (db.delete(
         db.diverSettings,
