@@ -1117,7 +1117,7 @@ class PlanEngine {
           type: PlanIssueType.ceilingViolated,
           severity: PlanIssueSeverity.critical,
           message:
-              'Ascent to ${breach.depthMeters.toStringAsFixed(0)} m passes '
+              'Diver at ${breach.depthMeters.toStringAsFixed(1)} m is above '
               'the ${breach.ceilingMeters.toStringAsFixed(1)} m deco ceiling',
           atRuntime: breach.runtimeSeconds,
           atDepth: breach.depthMeters,
