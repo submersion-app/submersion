@@ -1,0 +1,97 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+
+import '../../../helpers/test_database.dart';
+
+/// Issue #3343: view_configs is unique on (diver_id, view_mode), but its rows
+/// sync by id. A peer's row for a view this device already holds under
+/// another id used to violate that index and fail the sync. Both devices now
+/// keep the LOWER id, carrying whichever config was saved last, so the fleet
+/// converges without tombstones (the rule tags already follow).
+void main() {
+  late AppDatabase db;
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd1',
+            name: 'Diver',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+  });
+
+  tearDown(() async {
+    await tearDownTestDatabase();
+  });
+
+  ViewConfig row(String id, String marker, int updatedAt) => ViewConfig(
+    id: id,
+    diverId: 'd1',
+    viewMode: 'table',
+    configJson: '{"v":"$marker"}',
+    updatedAt: updatedAt,
+  );
+
+  Future<void> seedLocal(ViewConfig local) =>
+      db.into(db.viewConfigs).insert(local);
+
+  Future<List<String>> tableRows() async {
+    final rows = await (db.select(
+      db.viewConfigs,
+    )..where((t) => t.viewMode.equals('table'))).get();
+    return [for (final r in rows) '${r.id}|${r.configJson}'];
+  }
+
+  for (final batch in [false, true]) {
+    Future<void> apply(ViewConfig remote) => batch
+        ? SyncDataSerializer().upsertRecords('viewConfigs', [remote.toJson()])
+        : SyncDataSerializer().upsertRecord('viewConfigs', remote.toJson());
+
+    group(batch ? 'upsertRecords' : 'upsertRecord', () {
+      test(
+        'a newer peer row with the lower id replaces the local one',
+        () async {
+          await seedLocal(row('b-local', 'local', 1000));
+
+          await apply(row('a-remote', 'remote', 2000));
+
+          expect(await tableRows(), ['a-remote|{"v":"remote"}']);
+        },
+      );
+
+      test(
+        'a newer peer row with the higher id lands on the local id',
+        () async {
+          await seedLocal(row('a-local', 'local', 1000));
+
+          await apply(row('b-remote', 'remote', 2000));
+
+          expect(await tableRows(), ['a-local|{"v":"remote"}']);
+        },
+      );
+
+      test(
+        'an older peer row keeps the local config on the lower id',
+        () async {
+          await seedLocal(row('b-local', 'local', 3000));
+
+          await apply(row('a-remote', 'remote', 2000));
+
+          expect(await tableRows(), ['a-remote|{"v":"local"}']);
+        },
+      );
+
+      test('a peer row with no rival is stored as it is', () async {
+        await apply(row('a-remote', 'remote', 2000));
+
+        expect(await tableRows(), ['a-remote|{"v":"remote"}']);
+      });
+    });
+  }
+}

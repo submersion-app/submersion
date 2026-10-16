@@ -404,6 +404,9 @@ void main() {
         );
 
     setUp(() async {
+      // A database the beforeOpen backstop has not reached yet; once it
+      // runs, the unique index rules this state out.
+      await db.customStatement('DROP INDEX idx_view_configs_unique');
       await insertRow('row-old', 'old', 1000);
       await insertRow('row-new', 'new', 2000);
     });
