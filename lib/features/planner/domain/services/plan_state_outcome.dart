@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -13,7 +14,18 @@ PlanOutcome computeOutcomeForState(
   required PlanEngineConfig config,
 }) {
   final engine = PlanEngine(config: config);
-  final startState = seededTissueState(
+  return engine.compute(
+    divePlanFromState(state),
+    startState: startStateForPlan(state),
+  );
+}
+
+/// The tissues an editing [state] starts from: a followed dive's
+/// compartments off-gassed over the surface interval, or null for a fresh
+/// diver. Every engine run that stands in for this plan (the live outcome,
+/// contingencies, the range table, the bailout picture) starts here.
+TissueState? startStateForPlan(DivePlanState state) {
+  return seededTissueState(
     compartments: state.initialTissueState,
     surfaceInterval: state.surfaceInterval,
     gfLow: state.gfLow / 100.0,
@@ -26,5 +38,4 @@ PlanOutcome computeOutcomeForState(
       salinityPpt: state.salinityPpt,
     ),
   );
-  return engine.compute(divePlanFromState(state), startState: startState);
 }
