@@ -882,6 +882,12 @@ class _PhotoGallery extends ConsumerWidget {
     return PhotoViewGallery.builder(
       scrollPhysics: const BouncingScrollPhysics(),
       pageController: pageController,
+      // Build the page either side of the current one, so the next photo has
+      // resolved and decoded before a swipe or arrow press brings it in.
+      // Built on demand, it slid in empty and popped in afterwards (#3298).
+      // Each page's decode is bounded by MediaItemView, so the extra
+      // neighbour costs one viewport-sized bitmap, not an original.
+      allowImplicitScrolling: true,
       itemCount: mediaList.length,
       onPageChanged: onPageChanged,
       backgroundDecoration: const BoxDecoration(color: Colors.black),
@@ -911,6 +917,7 @@ class _PhotoGallery extends ConsumerWidget {
             maxScale: PhotoViewComputedScale.contained, // No zoom for videos
             child: _VideoItem(
               item: item,
+              isCurrent: index == currentIndex,
               showOverlay: showOverlay,
               fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
@@ -1033,6 +1040,11 @@ class _ConnectorVideoItem extends ConsumerWidget {
 /// Video player item that loads and plays video files.
 class _VideoItem extends ConsumerStatefulWidget {
   final MediaItem item;
+
+  /// Whether this is the page on screen. The pager keeps each neighbour
+  /// built so it loads ahead of a swipe (#3298), so a video can be mounted
+  /// while off screen: it must neither keep playing nor hold keyboard focus.
+  final bool isCurrent;
   final bool showOverlay;
 
   /// The viewer's fullscreen mode: the centre play indicator follows the
@@ -1048,6 +1060,7 @@ class _VideoItem extends ConsumerStatefulWidget {
 
   const _VideoItem({
     required this.item,
+    required this.isCurrent,
     required this.showOverlay,
     this.fullscreen = false,
     required this.onSetOverlay,
@@ -1069,6 +1082,20 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   void initState() {
     super.initState();
     _initializeVideo();
+  }
+
+  @override
+  void didUpdateWidget(covariant _VideoItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Swiped away: stop here rather than play on one page off screen, which
+    // is what disposal used to do before neighbours stayed built.
+    final controller = _controller;
+    if (oldWidget.isCurrent &&
+        !widget.isCurrent &&
+        controller != null &&
+        controller.value.isPlaying) {
+      unawaited(controller.pause());
+    }
   }
 
   /// Handle keyboard events for video playback
@@ -1201,8 +1228,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       );
     }
 
-    // Request focus when video is ready to enable keyboard controls
-    _focusNode.requestFocus();
+    // Request focus when video is ready to enable keyboard controls. Only on
+    // screen: a neighbour built ahead would otherwise take the space bar.
+    if (widget.isCurrent) _focusNode.requestFocus();
 
     return Focus(
       focusNode: _focusNode,

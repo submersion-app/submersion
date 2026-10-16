@@ -391,4 +391,75 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     expect(exitButton, findsNothing);
   });
+
+  // Issue #3298: the pager now keeps each neighbour built so it can load
+  // ahead of a swipe. A video swiped away therefore stays mounted one page
+  // off screen, and has to stop playing rather than carry on unseen.
+  testWidgets('a playing video pauses when swiped away', (tester) async {
+    final platform = _FakeVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = platform;
+    final photo = MediaItem(
+      id: 'p1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      takenAt: DateTime.utc(2026, 7, 1, 11),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.localFile: _UnavailableResolver(),
+              }),
+            ),
+            resolvedFilePathProvider.overrideWith(
+              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaViewerPage(
+              mediaList: [video('v1'), photo],
+              initialMediaId: 'v1',
+            ),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is Semantics && w.properties.label == 'Play or pause video',
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isTrue);
+
+    await tester.fling(
+      find.byType(MediaViewerPage),
+      const Offset(-700, 0),
+      2000,
+    );
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    // No page-indicator check: the chrome hides while a clip plays. A swipe
+    // that did not land would leave the clip playing and fail here anyway.
+    expect(platform.playing, isFalse);
+  });
 }
