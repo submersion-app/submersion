@@ -46,12 +46,10 @@ class BulkConditionsResult {
 /// components.
 ///
 /// Dive times are persisted as a wall clock flagged UTC (a dive logged at 09:00
-/// reads back as `09:00Z`), but the archive mapper picks its sample by absolute
-/// difference against timestamps it parses without a zone, which Dart returns
-/// as local. Handing it the stored value directly would shift the chosen hour
-/// by the machine's UTC offset, so the components are rebuilt locally first.
-/// This is what the single-dive fetch on the edit page does implicitly, by
-/// building its target from the date and time pickers.
+/// reads back as `09:00Z`). The archive mapper matches on wall-clock fields
+/// whatever the flag, so this is not needed for the hour pick; it keeps the
+/// value handed on a plain local wall clock, the same shape the single-dive
+/// fetch on the edit page builds from its date and time pickers.
 DateTime diveWallClockToLocal(DateTime stored) =>
     DateTime(stored.year, stored.month, stored.day, stored.hour, stored.minute);
 
