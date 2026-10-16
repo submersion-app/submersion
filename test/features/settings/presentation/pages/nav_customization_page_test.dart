@@ -613,6 +613,36 @@ void main() {
         );
       });
 
+      testWidgets('a drag on the handle still reorders below the header', (
+        tester,
+      ) async {
+        final repo = await pumpPage(tester, height: shortHeight);
+
+        // The header now sits in the same scroll view as the rows, so check
+        // the drag handle still maps to the right item.
+        final firstId = _firstRowId(tester);
+        final firstRow = find.byKey(ValueKey('nav-item-$firstId'));
+        final handle = find.descendant(
+          of: firstRow,
+          matching: find.byIcon(Icons.drag_handle),
+        );
+        final rowHeight = tester.getSize(firstRow).height;
+
+        final gesture = await tester.startGesture(tester.getCenter(handle));
+        await tester.pump();
+        // Small steps, so the drag passes touch slop before it travels.
+        for (var i = 0; i < 15; i++) {
+          await gesture.moveBy(Offset(0, rowHeight / 10));
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pumpAndSettle();
+
+        // The dragged row, not a neighbour, is the one that moved down.
+        expect(_firstRowId(tester), isNot(firstId));
+        expect(repo.navPrimaryIds!.indexOf(firstId), greaterThan(0));
+      });
+
       testWidgets(
         'the actions scroll with the rows instead of staying pinned',
         (tester) async {
