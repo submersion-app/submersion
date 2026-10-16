@@ -5412,6 +5412,7 @@ class SyncDataSerializer {
         await applyViewConfigRecord(
           _db,
           ViewConfig.fromJson(_withTimestampDefaults(data)),
+          syncRepository: _syncRepository,
         );
         return;
       case 'fieldPresets':
@@ -6971,6 +6972,7 @@ class SyncDataSerializer {
           await applyViewConfigRecord(
             _db,
             ViewConfig.fromJson(_withTimestampDefaults(r)),
+            syncRepository: _syncRepository,
           );
         }
         return;

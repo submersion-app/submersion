@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
@@ -86,6 +87,31 @@ void main() {
           expect(await tableRows(), ['a-remote|{"v":"local"}']);
         },
       );
+
+      test('a local config kept over the peer row is queued for sync, so the '
+          'peer learns it', () async {
+        await seedLocal(row('b-local', 'local', 3000));
+
+        await apply(row('a-remote', 'remote', 2000));
+
+        final pending = await SyncRepository().getPendingRecords();
+        expect(
+          [
+            for (final r in pending)
+              if (r.entityType == 'viewConfigs') r.recordId,
+          ],
+          ['a-remote'],
+        );
+      });
+
+      test('a peer config kept is not queued back to the peer', () async {
+        await seedLocal(row('a-local', 'local', 1000));
+
+        await apply(row('b-remote', 'remote', 2000));
+
+        final pending = await SyncRepository().getPendingRecords();
+        expect(pending.where((r) => r.entityType == 'viewConfigs'), isEmpty);
+      });
 
       test('a peer row with no rival is stored as it is', () async {
         await apply(row('a-remote', 'remote', 2000));

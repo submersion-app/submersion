@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Applies a peer's view_configs row without tripping the unique index on
@@ -14,7 +15,15 @@ import 'package:submersion/core/database/database.dart';
 /// without a tombstone: the losing id is a local identity reconciliation,
 /// not a deletion the diver made. The beforeOpen backstop collapses existing
 /// duplicates by the same rule.
-Future<void> applyViewConfigRecord(AppDatabase db, ViewConfig remote) async {
+///
+/// When the config kept is this device's rather than the peer's, the
+/// survivor is queued for sync: the peer still holds its older config, and
+/// a local edit that lived on the losing id would otherwise never reach it.
+Future<void> applyViewConfigRecord(
+  AppDatabase db,
+  ViewConfig remote, {
+  required SyncRepository syncRepository,
+}) async {
   final rivals =
       await (db.select(db.viewConfigs)..where(
             (t) =>
@@ -43,6 +52,13 @@ Future<void> applyViewConfigRecord(AppDatabase db, ViewConfig remote) async {
     await db
         .into(db.viewConfigs)
         .insertOnConflictUpdate(newest.copyWith(id: survivorId));
+    if (!identical(newest, remote)) {
+      await syncRepository.markRecordPending(
+        entityType: 'viewConfigs',
+        recordId: survivorId,
+        localUpdatedAt: newest.updatedAt,
+      );
+    }
   });
 }
 
