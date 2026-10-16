@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package:submersion/core/ui/trackpad_zoom.dart';
+
 /// Wraps a locked map (`InteractiveFlag.none`) so a trackpad two-finger
 /// scroll over it scrolls the enclosing page instead of going nowhere.
 ///
@@ -123,10 +125,15 @@ class _TrackpadScrollRecognizer extends OneSequenceGestureRecognizer {
 
   VelocityTracker? _tracker;
 
+  /// Whether this gesture has turned out to be a pinch, whose pan is a
+  /// by-product of the zoom (see [isTrackpadPinch]) and must not scroll.
+  bool _isPinch = false;
+
   @override
   void addAllowedPointerPanZoom(PointerPanZoomStartEvent event) {
     super.addAllowedPointerPanZoom(event);
     _tracker = VelocityTracker.withKind(PointerDeviceKind.trackpad);
+    _isPinch = false;
     startTrackingPointer(event.pointer, event.transform);
     resolve(GestureDisposition.accepted);
   }
@@ -134,12 +141,17 @@ class _TrackpadScrollRecognizer extends OneSequenceGestureRecognizer {
   @override
   void handleEvent(PointerEvent event) {
     if (event is PointerPanZoomUpdateEvent) {
+      _isPinch = _isPinch || isTrackpadPinch(event.scale);
+      if (_isPinch) return;
       _tracker?.addPosition(event.timeStamp, event.pan);
       if (event.panDelta != Offset.zero) {
         onUpdate?.call(event.panDelta, event.position);
       }
     } else if (event is PointerPanZoomEndEvent) {
-      onEnd?.call(_tracker?.getVelocity() ?? Velocity.zero);
+      // A pinch that began as a scroll ends its drag without a fling.
+      onEnd?.call(
+        _isPinch ? Velocity.zero : _tracker?.getVelocity() ?? Velocity.zero,
+      );
       _tracker = null;
       stopTrackingPointer(event.pointer);
     }

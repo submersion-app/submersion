@@ -36,6 +36,11 @@ class TrackpadZoomGestureRecognizer extends OneSequenceGestureRecognizer {
 
   double _lastScale = 1.0;
 
+  /// Whether this gesture has turned out to be a pinch. Once it has, its pan
+  /// is the pinch's own by-product (see [isTrackpadPinch]) and is ignored for
+  /// the rest of the gesture.
+  bool _isPinch = false;
+
   @override
   void addAllowedPointer(PointerDownEvent event) {
     // Do not claim ordinary pointers (e.g. trackpad click-drag) — those should
@@ -46,6 +51,7 @@ class TrackpadZoomGestureRecognizer extends OneSequenceGestureRecognizer {
   void addAllowedPointerPanZoom(PointerPanZoomStartEvent event) {
     super.addAllowedPointerPanZoom(event);
     _lastScale = 1.0;
+    _isPinch = false;
     startTrackingPointer(event.pointer, event.transform);
     resolve(GestureDisposition.accepted);
   }
@@ -55,13 +61,17 @@ class TrackpadZoomGestureRecognizer extends OneSequenceGestureRecognizer {
     if (event is PointerPanZoomUpdateEvent) {
       // Scroll contribution (vertical pan) plus pinch contribution (the change
       // in cumulative scale since the previous update, expressed in zoom levels).
-      final scrollDelta = trackpadScrollZoomDelta(event.panDelta.dy);
+      // A pinch contributes no scroll or pan of its own.
+      _isPinch = _isPinch || isTrackpadPinch(event.scale);
+      final scrollDelta = _isPinch
+          ? 0.0
+          : trackpadScrollZoomDelta(event.panDelta.dy);
       final scaleRatio = _lastScale == 0 ? 1.0 : event.scale / _lastScale;
       _lastScale = event.scale;
       final pinchDelta = math.log(scaleRatio) / math.ln2;
       onZoom?.call(event.localPosition, scrollDelta + pinchDelta);
       final dx = event.panDelta.dx;
-      if (dx != 0) onPan?.call(event.localPosition, dx);
+      if (dx != 0 && !_isPinch) onPan?.call(event.localPosition, dx);
     } else if (event is PointerPanZoomEndEvent) {
       stopTrackingPointer(event.pointer);
     }

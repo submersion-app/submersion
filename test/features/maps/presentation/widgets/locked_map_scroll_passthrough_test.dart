@@ -334,4 +334,34 @@ void main() {
 
     expect(taps, 1);
   });
+
+  testWidgets('a Windows pinch over a locked map leaves the page alone', (
+    tester,
+  ) async {
+    final (:scroll, map: _) = await pumpLockedMap(tester);
+    final at =
+        tester.getTopLeft(find.byType(FlutterMap)) + const Offset(20, 20);
+
+    // Windows reports a touchpad pinch with the pan its zoom-about-the-fingers
+    // transform implies (centroid * (1 - scale)), not as a pure scale.
+    const centroid = Offset(150, 500);
+    final gesture = await tester.createGesture(
+      kind: PointerDeviceKind.trackpad,
+    );
+    await gesture.panZoomStart(at);
+    var i = 0;
+    for (final scale in [1.1, 1.25, 1.5]) {
+      i++;
+      await gesture.panZoomUpdate(
+        at,
+        pan: centroid * (1 - scale),
+        scale: scale,
+        timeStamp: Duration(milliseconds: 16 * i),
+      );
+    }
+    await gesture.panZoomEnd();
+    await tester.pumpAndSettle();
+
+    expect(scroll.offset, 0);
+  });
 }

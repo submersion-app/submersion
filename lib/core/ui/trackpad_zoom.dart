@@ -10,3 +10,15 @@
 double trackpadScrollZoomDelta(double scrollDy, {double sensitivity = 0.01}) {
   return scrollDy * sensitivity;
 }
+
+/// Whether a trackpad pan-zoom gesture's cumulative [scale] marks it as a
+/// pinch rather than a two-finger scroll.
+///
+/// A pinch's pan must not be read as a scroll. Windows reports a touchpad
+/// pinch through DirectManipulation, whose transform zooms about the fingers,
+/// so the gesture also carries a pan of `centroid * (1 - scale)`. Scrolled at
+/// [trackpadScrollZoomDelta]'s rate, that pan outweighs the pinch and zooms the
+/// wrong way (issue #3300). [tolerance] absorbs scale jitter during a scroll.
+bool isTrackpadPinch(double scale, {double tolerance = 0.02}) {
+  return (scale - 1).abs() > tolerance;
+}
