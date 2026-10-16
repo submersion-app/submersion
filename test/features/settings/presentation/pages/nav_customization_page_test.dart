@@ -613,6 +613,36 @@ void main() {
         );
       });
 
+      testWidgets('a shortcut added from the bottom scrolls into view', (
+        tester,
+      ) async {
+        await pumpPage(tester, height: shortHeight);
+
+        // The button is past the last row, so reaching it scrolls Home and
+        // the top of the list off screen.
+        final add = find.widgetWithText(TextButton, 'Add shortcut');
+        await tester.scrollUntilVisible(
+          add.hitTestable(),
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(add);
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'blender');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Trimix blender'));
+        await tester.pumpAndSettle();
+
+        // The new row lands right after Home; without scrolling back up the
+        // diver would see nothing change.
+        expect(
+          find
+              .byKey(const ValueKey('nav-item-shortcut:gas-blender'))
+              .hitTestable(),
+          findsOneWidget,
+        );
+      });
+
       testWidgets('a drag on the handle still reorders below the header', (
         tester,
       ) async {

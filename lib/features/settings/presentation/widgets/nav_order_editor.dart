@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -103,6 +105,16 @@ class _NavOrderEditorState extends ConsumerState<NavOrderEditor> {
   // provider only when it diverges.
   List<String>? _local;
 
+  /// Drives the page's single scroll view, so an add made from the bottom of
+  /// a long page can bring its new row (inserted at the top) into view.
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   bool get _isPhone => widget.scope == NavOrderScope.phone;
 
   StateNotifierProvider<NavOrderNotifier, List<String>> get _orderProvider =>
@@ -150,6 +162,7 @@ class _NavOrderEditorState extends ConsumerState<NavOrderEditor> {
     final listIsDefault = listEquals(_local, kDefaultNavOrder);
 
     return ReorderableListView.builder(
+      scrollController: _scrollController,
       buildDefaultDragHandles: false,
       header: Column(
         mainAxisSize: MainAxisSize.min,
@@ -346,7 +359,19 @@ class _NavOrderEditorState extends ConsumerState<NavOrderEditor> {
       alreadyAdded: alreadyAdded,
     );
     if (picked == null || !mounted) return;
-    await _commitOrder([navShortcutOrderId(picked), ..._local!]);
+    final commit = _commitOrder([navShortcutOrderId(picked), ..._local!]);
+    // The Add button sits below the last row, so on a short screen the new
+    // row is off screen when it lands; scroll up to show it.
+    if (_scrollController.hasClients && _scrollController.offset > 0) {
+      unawaited(
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        ),
+      );
+    }
+    await commit;
   }
 
   Future<void> _removeShortcut(String orderId) {
