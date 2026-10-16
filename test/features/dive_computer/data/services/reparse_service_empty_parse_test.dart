@@ -143,6 +143,15 @@ void main() {
     expect(series.map((s) => s.id), ['prof-1']);
     expect(series.single.isPrimary, isTrue);
     expect(series.single.samples, hasLength(3));
+
+    // Nothing was staged for sync, so a peer is not handed a no-op rewrite.
+    final staged = await db.select(db.syncRecords).get();
+    expect(
+      staged.where(
+        (r) => r.entityType == 'dives' || r.entityType == 'diveDataSources',
+      ),
+      isEmpty,
+    );
   }
 
   Future<pigeon.ParsedDive> Function(String, String, int, Uint8List) returning(
