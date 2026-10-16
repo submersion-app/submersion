@@ -195,4 +195,18 @@ void main() {
       greaterThan(fresh.worstCase.ttsSeconds),
     );
   });
+
+  test('the bailout solver rejects a seed from another deco model', () {
+    expect(
+      () => const BailoutSolver().solve(
+        _ccrPlan(),
+        startState: const _ForeignState(),
+      ),
+      throwsArgumentError,
+    );
+  });
+}
+
+class _ForeignState implements TissueState {
+  const _ForeignState();
 }

@@ -154,6 +154,15 @@ class BailoutSolver {
     domain.DivePlan inputPlan,
     TissueState? startState,
   ) {
+    // Same contract as PlanEngine.compute: the walk below runs on BuhlmannGf,
+    // so a foreign seed fails here rather than on a cast mid-walk.
+    if (startState != null && startState is! BuhlmannState) {
+      throw ArgumentError.value(
+        startState,
+        'startState',
+        'BailoutSolver only accepts a BuhlmannState tissue seed',
+      );
+    }
     if (inputPlan.mode != domain.PlanMode.ccr) return null;
     // Diluent is the diver's one explicit per-tank choice on a loop plan
     // (TankRoleResolver); every other open-circuit cylinder carried

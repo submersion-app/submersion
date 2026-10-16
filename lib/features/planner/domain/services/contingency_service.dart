@@ -1,10 +1,10 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
-import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
