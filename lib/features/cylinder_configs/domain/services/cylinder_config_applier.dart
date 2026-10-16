@@ -12,9 +12,13 @@ class ExistingTank {
   final String? tankName;
   final int tankOrder;
 
+  /// Where [tankRole] came from when no person chose it (issue #2595).
+  final TankRoleSource? roleSource;
+
   const ExistingTank({
     required this.id,
     required this.tankRole,
+    this.roleSource,
     this.volumeL,
     this.workingPressureBar,
     this.tankMaterial,
@@ -22,6 +26,10 @@ class ExistingTank {
     this.tankName,
     this.tankOrder = 0,
   });
+
+  /// The dive computer read the role off the transmitter's name, so it is a
+  /// guess this applier may check against the configuration (issue #3307).
+  bool get roleNameDerived => roleSource == TankRoleSource.transmitterName;
 }
 
 sealed class CylinderConfigOp {
@@ -54,6 +62,11 @@ class FillTank extends CylinderConfigOp {
   final double? startPressureBar;
   final String? tankName;
 
+  /// The configuration confirms a role the dive computer read off the
+  /// transmitter's name, so it stops being a guess (issue #3307). Clears a
+  /// marker, never a role, so it needs no consent.
+  final bool clearRoleSource;
+
   const FillTank({
     required this.tankId,
     this.volumeL,
@@ -61,6 +74,7 @@ class FillTank extends CylinderConfigOp {
     this.tankMaterial,
     this.startPressureBar,
     this.tankName,
+    this.clearRoleSource = false,
   });
 
   bool get isEmpty =>
@@ -68,7 +82,8 @@ class FillTank extends CylinderConfigOp {
       workingPressureBar == null &&
       tankMaterial == null &&
       startPressureBar == null &&
-      tankName == null;
+      tankName == null &&
+      !clearRoleSource;
 }
 
 /// One spec column whose value on the dive differs from the configuration.
@@ -88,9 +103,18 @@ class SpecChange<T> {
 /// (issue #2563). Like [FillTank] it has no gas fields, and no start
 /// pressure either: that is a reading of this dive, not a property of the
 /// cylinder a configuration describes.
+///
+/// [role] is set only on a tank whose role the dive computer read off the
+/// transmitter's name, where the configuration says the cylinder is
+/// something else (issue #3307). The plan's ops already treat that tank as
+/// the configuration's cylinder (its fill, and no duplicate insert), so a
+/// caller applies the ops together with the overwrites or not at all.
 class OverwriteTank extends CylinderConfigOp {
   final String tankId;
+
+  /// The role the tank holds on the dive now.
   final TankRole tankRole;
+  final SpecChange<TankRole>? role;
   final SpecChange<double>? volumeL;
   final SpecChange<double>? workingPressureBar;
   final SpecChange<TankMaterial>? tankMaterial;
@@ -99,6 +123,7 @@ class OverwriteTank extends CylinderConfigOp {
   const OverwriteTank({
     required this.tankId,
     required this.tankRole,
+    this.role,
     this.volumeL,
     this.workingPressureBar,
     this.tankMaterial,
@@ -106,6 +131,7 @@ class OverwriteTank extends CylinderConfigOp {
   });
 
   bool get isEmpty =>
+      role == null &&
       volumeL == null &&
       workingPressureBar == null &&
       tankMaterial == null &&
@@ -163,14 +189,121 @@ class CylinderConfigApplier {
     return SpecChange(current, wanted);
   }
 
+  /// How a tank's known specs compare with a configuration item's: any
+  /// column known on both sides and different contradicts; otherwise one
+  /// known on both sides and equal agrees; otherwise nothing is known.
+  static _Fit _fit(ExistingTank tank, CylinderConfigItem item) {
+    final volume = _compare(tank.volumeL, item.volumeL, _volumeToleranceL);
+    final pressure = _compare(
+      tank.workingPressureBar,
+      item.workingPressureBar,
+      _pressureToleranceBar,
+    );
+    final material = tank.tankMaterial == null || item.tankMaterial == null
+        ? null
+        : tank.tankMaterial == item.tankMaterial;
+    final known = [volume, pressure, material].nonNulls;
+    if (known.contains(false)) return _Fit.contradicts;
+    return known.isEmpty ? _Fit.unknown : _Fit.agrees;
+  }
+
+  /// Whether two values agree within [tolerance], or null when either side
+  /// is unknown.
+  static bool? _compare(double? a, double? b, double tolerance) =>
+      a == null || b == null ? null : (a - b).abs() <= tolerance;
+
+  /// Matches every item to an existing tank, or to none (an insert).
+  ///
+  /// Roles are not unique (a CCR diver routinely carries two bailout
+  /// cylinders), so items claim tanks greedily in order: that is what makes
+  /// "config has 2 bailouts, dive already has 1" resolve to keep-one-add-one
+  /// rather than duplicating or clobbering.
+  ///
+  /// A role the dive computer read off a transmitter's name is a guess
+  /// (issue #3307): a bailout named "OC" arrives as the oxygen supply. Such
+  /// a tank is checked against the configuration in passes of falling
+  /// evidence, and may be claimed by an item of another role, which the
+  /// plan then offers the diver as a role change:
+  ///
+  /// 1. Same role, without contradicting specs (a fitting size first).
+  /// 2. A name-derived tank left over whose specs fit another item.
+  /// 3. Same role, specs contradicting (offered as an overwrite, as today).
+  /// 4. A name-derived tank left over while its role's items are all
+  ///    claimed: the configuration has one cylinder of that role fewer than
+  ///    the dive, and one of another role more. Earlier tanks were claimed
+  ///    first, so it is the later of two same-role tanks that is offered.
+  Map<CylinderConfigItem, ExistingTank> _match(
+    List<CylinderConfigItem> ordered,
+    List<ExistingTank> existing,
+  ) {
+    final matches = <CylinderConfigItem, ExistingTank>{};
+    final claimed = <String>{};
+
+    void claimEach(
+      ExistingTank? Function(CylinderConfigItem, List<ExistingTank>) pick,
+    ) {
+      for (final item in ordered) {
+        if (matches.containsKey(item)) continue;
+        final free = [
+          for (final tank in existing)
+            if (!claimed.contains(tank.id)) tank,
+        ];
+        final tank = pick(item, free);
+        if (tank == null) continue;
+        matches[item] = tank;
+        claimed.add(tank.id);
+      }
+    }
+
+    claimEach((item, free) {
+      final candidates = [
+        for (final tank in free)
+          if (tank.tankRole == item.tankRole &&
+              !(tank.roleNameDerived && _fit(tank, item) == _Fit.contradicts))
+            tank,
+      ];
+      return candidates
+              .where((t) => _fit(t, item) == _Fit.agrees)
+              .firstOrNull ??
+          candidates.firstOrNull;
+    });
+    claimEach(
+      (item, free) => free
+          .where(
+            (t) =>
+                t.roleNameDerived &&
+                t.tankRole != item.tankRole &&
+                _fit(t, item) == _Fit.agrees,
+          )
+          .firstOrNull,
+    );
+    claimEach(
+      (item, free) =>
+          free.where((t) => t.tankRole == item.tankRole).firstOrNull,
+    );
+    final configRoles = {for (final item in ordered) item.tankRole};
+    claimEach(
+      (item, free) => free
+          .where(
+            (t) =>
+                t.roleNameDerived &&
+                t.tankRole != item.tankRole &&
+                configRoles.contains(t.tankRole) &&
+                _fit(t, item) == _Fit.unknown,
+          )
+          .firstOrNull,
+    );
+    return matches;
+  }
+
   CylinderConfigPlan plan({
     required List<ExistingTank> existing,
     required List<CylinderConfigItem> items,
   }) {
     final ordered = [...items]
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final matches = _match(ordered, existing);
 
-    final claimed = <String>{};
     final ops = <CylinderConfigOp>[];
     final overwrites = <OverwriteTank>[];
     var inserted = 0;
@@ -181,19 +314,7 @@ class CylinderConfigApplier {
         : existing.map((t) => t.tankOrder).reduce((a, b) => a > b ? a : b) + 1;
 
     for (final item in ordered) {
-      // First unclaimed existing tank with the same role. Roles are not
-      // unique -- a CCR diver routinely carries two bailout cylinders -- so
-      // claiming greedily in order is what makes "config has 2 bailouts,
-      // dive already has 1" resolve to keep-one-add-one rather than
-      // duplicating or clobbering.
-      ExistingTank? match;
-      for (final tank in existing) {
-        if (tank.tankRole == item.tankRole && !claimed.contains(tank.id)) {
-          match = tank;
-          break;
-        }
-      }
-
+      final match = matches[item];
       if (match == null) {
         ops.add(InsertTank(item: item, tankOrder: nextOrder));
         nextOrder++;
@@ -201,8 +322,8 @@ class CylinderConfigApplier {
         continue;
       }
 
-      claimed.add(match.id);
       kept++;
+      final roleChanges = match.tankRole != item.tankRole;
 
       final fill = FillTank(
         tankId: match.id,
@@ -215,6 +336,12 @@ class CylinderConfigApplier {
             ? item.defaultStartPressureBar
             : null,
         tankName: match.tankName == null ? item.label : null,
+        // A size, pressure or material that fits confirms a name-derived
+        // role; a match on role alone is the same guess counted twice.
+        clearRoleSource:
+            !roleChanges &&
+            match.roleNameDerived &&
+            _fit(match, item) == _Fit.agrees,
       );
       if (!fill.isEmpty) ops.add(fill);
 
@@ -222,6 +349,7 @@ class CylinderConfigApplier {
       final overwrite = OverwriteTank(
         tankId: match.id,
         tankRole: match.tankRole,
+        role: roleChanges ? SpecChange(match.tankRole, item.tankRole) : null,
         volumeL: _differs(match.volumeL, item.volumeL, _volumeToleranceL),
         workingPressureBar: _differs(
           match.workingPressureBar,
@@ -253,3 +381,5 @@ class CylinderConfigApplier {
     );
   }
 }
+
+enum _Fit { agrees, unknown, contradicts }

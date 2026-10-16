@@ -55,6 +55,16 @@ class ApplyConfigurationConfirmDialog extends StatelessWidget {
         l10n.cylinderConfigs_overwriteChange(field, from, to);
 
     return [
+      // Only a role the dive computer read off the transmitter's name is
+      // ever offered a change (issue #3307); saying so is why it changes.
+      if (change.role case final role?)
+        line(
+          l10n.cylinderConfigs_role,
+          l10n.diveLog_tank_roleFromTransmitterName(
+            role.from.localizedName(l10n),
+          ),
+          role.to.localizedName(l10n),
+        ),
       if (change.volumeL case final volume?)
         line(
           l10n.cylinderConfigs_fieldVolume,

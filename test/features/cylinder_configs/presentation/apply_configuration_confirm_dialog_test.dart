@@ -98,6 +98,27 @@ void main() {
     expect(find.text('Working pressure: 2901 psi → 3365 psi'), findsOneWidget);
   });
 
+  testWidgets('a role read off the transmitter name shows as a role change', (
+    tester,
+  ) async {
+    await show(
+      tester,
+      overwrites: const [
+        OverwriteTank(
+          tankId: 't2',
+          tankRole: TankRole.oxygenSupply,
+          role: SpecChange(TankRole.oxygenSupply, TankRole.bailout),
+        ),
+      ],
+    );
+
+    expect(find.text('Tank 2 · O₂ Supply'), findsOneWidget);
+    expect(
+      find.text("Role: O₂ Supply, read from the transmitter's name → Bailout"),
+      findsOneWidget,
+    );
+  });
+
   for (final (button, expected) in const [
     ('Replace', true),
     ('Cancel', false),
