@@ -281,6 +281,23 @@ void main() {
       expect(requests, hasLength(1));
     });
 
+    test('maps each dive sharing a cached day at its own hour', () async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', siteId: 's1', at: DateTime.utc(2024, 6, 15, 9));
+      await insertDive('d2', siteId: 's1', at: DateTime.utc(2024, 6, 15, 14));
+
+      final (:service, :requests) = buildService(
+        respond: (_) => http.Response(_payloadTempPerHour(), 200),
+      );
+      await service.run();
+
+      // One request serves both dives, but each reads its own entry hour
+      // from it rather than the first dive's mapped result.
+      expect(requests, hasLength(1));
+      expect((await readRow('d1')).airTemp, 9.0);
+      expect((await readRow('d2')).airTemp, 14.0);
+    });
+
     test('fetches separately for the same site on a different day', () async {
       await insertSite('s1', 12.5, -68.25);
       await insertDive('d1', siteId: 's1', at: DateTime.utc(2024, 6, 15, 9));

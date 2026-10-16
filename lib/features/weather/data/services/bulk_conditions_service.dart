@@ -1,7 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/weather/data/services/weather_service.dart';
-import 'package:submersion/features/weather/domain/entities/weather_data.dart';
 
 /// How far along a bulk conditions run is.
 class BulkConditionsProgress {
@@ -93,7 +92,9 @@ class BulkConditionsService {
 
     // One archive response can serve every dive made at the same place on the
     // same day, which on a two-tank morning or a liveaboard is most of them.
-    final cache = <_FetchKey, WeatherData?>{};
+    // The raw hourly block is cached, not a mapped result, so each dive still
+    // reads the sample for its own entry hour.
+    final cache = <_FetchKey, Map<String, dynamic>?>{};
 
     var filled = 0;
     var unavailable = 0;
@@ -107,12 +108,12 @@ class BulkConditionsService {
       }
 
       final key = _keyFor(candidate);
-      final WeatherData? weather;
+      final Map<String, dynamic>? hourly;
       if (cache.containsKey(key)) {
-        weather = cache[key];
+        hourly = cache[key];
       } else {
-        weather = await _fetch(candidate);
-        cache[key] = weather;
+        hourly = await _fetch(candidate);
+        cache[key] = hourly;
         // The pacing exists to space out the NEXT request. A run cancelled
         // while this one was in flight has no next request, so waiting would
         // only make the button feel unresponsive.
@@ -121,6 +122,12 @@ class BulkConditionsService {
         }
       }
 
+      // Dive times are a wall clock flagged UTC. The request asked for the
+      // site's own timezone and the mapper matches on wall-clock fields, so
+      // the stored value is handed on as is.
+      final weather = hourly == null
+          ? null
+          : _weatherService.mapHourly(hourly, entryTime: candidate.dateTime);
       if (weather == null) {
         unavailable++;
       } else {
@@ -169,22 +176,18 @@ class BulkConditionsService {
     longitude: candidate.longitude.toStringAsFixed(5),
   );
 
-  /// One dive's fetch. A failure here is per-day, not per-run: [WeatherService]
-  /// already degrades every network and parse failure to null and logs it, so
-  /// the archive being unhelpful about one place and date is reported as
-  /// unavailable rather than stranding the rest of the logbook. No second
-  /// catch here: it would be unreachable, and swallowing a genuinely
+  /// One place-and-day fetch. A failure here is per-day, not per-run:
+  /// [WeatherService] already degrades every network and parse failure to
+  /// null and logs it, so the archive being unhelpful about one place and date
+  /// is reported as unavailable rather than stranding the rest of the logbook.
+  /// No second catch here: it would be unreachable, and swallowing a genuinely
   /// unexpected error would only hide it.
-  Future<WeatherData?> _fetch(ConditionsCandidate candidate) {
-    // Dive times are a wall clock flagged UTC. The request asks for the
-    // site's own timezone and the mapper matches on wall-clock fields, so the
-    // stored value is handed on as is.
+  Future<Map<String, dynamic>?> _fetch(ConditionsCandidate candidate) {
     final wallClock = candidate.dateTime;
-    return _weatherService.fetchWeather(
+    return _weatherService.fetchHourly(
       latitude: candidate.latitude,
       longitude: candidate.longitude,
       date: DateTime(wallClock.year, wallClock.month, wallClock.day),
-      entryTime: wallClock,
     );
   }
 }
