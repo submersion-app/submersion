@@ -183,6 +183,10 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
         keyboard.isMetaPressed;
   }
 
+  /// Focus arriving while Tab is down came by traversal into the list.
+  static bool _tabHeld() => HardwareKeyboard.instance.logicalKeysPressed
+      .contains(LogicalKeyboardKey.tab);
+
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
     // A shortcut (Cmd+F and the like) is not navigating the list.
@@ -318,7 +322,14 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   /// does whatever opening or selecting it does; this only moves the cursor,
   /// which matters for rows a tap does not make current, like group headers.
   void _pointerDownOn(String key) {
-    if (!_focusNode.hasFocus) _focusingFromPointer = true;
+    if (!_focusNode.hasFocus) {
+      _focusingFromPointer = true;
+      // Focus changes land in a microtask, before the next frame; a request
+      // that changed nothing must not mark a later Tab arrival as a click.
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _focusingFromPointer = false,
+      );
+    }
     _focusNode.requestFocus();
     _unconfirmedMoves.clear();
     if (_cursor != key || _keyboardDriven) {
@@ -348,7 +359,13 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
         if (!focused) _unconfirmedMoves.clear();
         setState(() {
           _hasFocus = focused;
-          if (focused) _keyboardDriven = !_focusingFromPointer;
+          // Focus handed back with no key held (the app resuming, a menu
+          // closing) leaves the ring as the list last had it.
+          if (focused && _focusingFromPointer) {
+            _keyboardDriven = false;
+          } else if (focused && _tabHeld()) {
+            _keyboardDriven = true;
+          }
           _focusingFromPointer = false;
         });
       },

@@ -488,6 +488,32 @@ void main() {
       expect(_ringedRows(tester), ['b']);
     });
 
+    testWidgets('focus restored without a key keeps the ring as it was', (
+      tester,
+    ) async {
+      // The app returning from the background, or a closed menu, hands focus
+      // back to the list with no key pressed: a click's row stays plain and a
+      // keyboard cursor keeps its ring.
+      useDesktopFocusHighlighting();
+      await tester.pumpWidget(const _Host(keys: ['a', 'b', 'c']));
+      await clickWithMouse(tester, find.byKey(const ValueKey('row-b')));
+      final list = _primary!;
+
+      list.unfocus();
+      await tester.pumpAndSettle();
+      list.requestFocus();
+      await tester.pumpAndSettle();
+      expect(_primary, same(list));
+      expect(_ringedRows(tester), isEmpty);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      list.unfocus();
+      await tester.pumpAndSettle();
+      list.requestFocus();
+      await tester.pumpAndSettle();
+      expect(_ringedRows(tester), ['c']);
+    });
+
     testWidgets('Tab back in after a click rings the current row', (
       tester,
     ) async {
