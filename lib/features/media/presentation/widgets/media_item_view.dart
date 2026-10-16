@@ -432,6 +432,10 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             imageUrl: u.toString(),
             httpHeaders: h,
             fit: widget.fit,
+            // The same decode bound as the file and bytes branches: without
+            // it a served original decodes at native size, and the viewers
+            // keep a neighbour built either side of the current page.
+            memCacheWidth: cacheWidth,
             placeholder: (_, _) => _loading(),
             errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
               data: UnavailableData(kind: UnavailableKind.networkError),
