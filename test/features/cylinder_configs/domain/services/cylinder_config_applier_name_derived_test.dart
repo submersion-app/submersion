@@ -222,6 +222,33 @@ void main() {
       );
     });
 
+    test('a matching material or pressure alone is not a confirmation', () {
+      // An O2 cylinder and a bailout are routinely both aluminium.
+      final plan = applier.plan(
+        existing: [
+          tank(
+            id: 't1',
+            role: TankRole.oxygenSupply,
+            pressure: 207,
+            material: TankMaterial.aluminum,
+          ),
+        ],
+        items: [
+          cfg(
+            id: 'o2',
+            role: TankRole.oxygenSupply,
+            pressure: 207,
+            material: TankMaterial.aluminum,
+          ),
+        ],
+      );
+
+      expect(
+        plan.ops.whereType<FillTank>().where((f) => f.clearRoleSource),
+        isEmpty,
+      );
+    });
+
     test('a contradicting size never confirms the role', () {
       // The only diluent-tagged tank is 11 L against a 3 L diluent: it is
       // still matched (the specs are offered as an overwrite) but stays

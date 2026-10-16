@@ -222,8 +222,11 @@ class CylinderConfigApplier {
   }
 
   /// How a tank's known specs compare with a configuration item's: any
-  /// column known on both sides and different contradicts; otherwise one
-  /// known on both sides and equal agrees; otherwise nothing is known.
+  /// column known on both sides and different contradicts; otherwise a
+  /// volume known on both sides and equal agrees; otherwise nothing is
+  /// known. Only the volume can agree: the oxygen cylinder and the bailout
+  /// of a CCR set are routinely both aluminium at the same pressure, so a
+  /// matching material or pressure tells them apart no better than a role.
   static _Fit _fit(ExistingTank tank, CylinderConfigItem item) {
     final volume = _compare(tank.volumeL, item.volumeL, _volumeToleranceL);
     final pressure = _compare(
@@ -234,9 +237,8 @@ class CylinderConfigApplier {
     final material = tank.tankMaterial == null || item.tankMaterial == null
         ? null
         : tank.tankMaterial == item.tankMaterial;
-    final known = [volume, pressure, material].nonNulls;
-    if (known.contains(false)) return _Fit.contradicts;
-    return known.isEmpty ? _Fit.unknown : _Fit.agrees;
+    if ([volume, pressure, material].contains(false)) return _Fit.contradicts;
+    return volume == true ? _Fit.agrees : _Fit.unknown;
   }
 
   /// Whether two values agree within [tolerance], or null when either side
@@ -368,8 +370,8 @@ class CylinderConfigApplier {
             ? item.defaultStartPressureBar
             : null,
         tankName: match.tankName == null ? item.label : null,
-        // A size, pressure or material that fits confirms a name-derived
-        // role; a match on role alone is the same guess counted twice.
+        // A size that fits confirms a name-derived role; a match on role
+        // alone is the same guess counted twice.
         clearRoleSource:
             !roleChanges &&
             match.roleNameDerived &&
