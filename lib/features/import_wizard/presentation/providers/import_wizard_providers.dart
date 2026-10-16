@@ -1014,7 +1014,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         currentStep: state.currentStep + 1,
         error: tagWarning,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // The summary shows only the message; the trace is what finds the
+      // failing lookup when a diver reports it (issue #3343).
+      _log.error('Import failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isImporting: false,
         error: 'Import failed: $e',
