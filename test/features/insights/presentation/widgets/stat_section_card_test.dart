@@ -77,4 +77,20 @@ void main() {
     expect(control.top, greaterThanOrEqualTo(title.bottom));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'a header with both a trailing control and a chevron keeps both',
+    (tester) async {
+      await pump(
+        tester,
+        const StatSectionHeader(
+          title: 'Depth',
+          trailing: Icon(Icons.info),
+          showChevron: true,
+        ),
+      );
+      expect(find.byIcon(Icons.info), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+    },
+  );
 }

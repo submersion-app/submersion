@@ -87,7 +87,12 @@ class StatSectionHeader extends StatelessWidget {
         children: [
           LabelWithControl(
             label: Text(title, style: theme.textTheme.titleMedium),
-            control: control,
+            control: showChevron
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [control, _chevron(theme)],
+                  )
+                : control,
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 2),
@@ -111,11 +116,13 @@ class StatSectionHeader extends StatelessWidget {
             ],
           ),
         ),
-        if (showChevron)
-          Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+        if (showChevron) _chevron(theme),
       ],
     );
   }
+
+  Widget _chevron(ThemeData theme) =>
+      Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant);
 
   Widget _subtitle(ThemeData theme) => Text(
     subtitle!,

@@ -17,8 +17,6 @@ class LabelWithControl extends StatelessWidget {
     super.key,
     required this.label,
     required this.control,
-    this.spacing = 16,
-    this.runSpacing = 4,
   });
 
   /// Usually a [Text]. It wraps between words once it has a line of its own.
@@ -27,12 +25,6 @@ class LabelWithControl extends StatelessWidget {
   /// Sits at the far end of the line when it fits beside [label], and at the
   /// start of the next line when it does not.
   final Widget control;
-
-  /// The least gap between [label] and [control] on a shared line.
-  final double spacing;
-
-  /// The gap between [label] and [control] once they are on two lines.
-  final double runSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +35,9 @@ class LabelWithControl extends StatelessWidget {
       child: Wrap(
         alignment: WrapAlignment.spaceBetween,
         crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: spacing,
-        runSpacing: runSpacing,
+        // The least gap on a shared line, and the gap between the two lines.
+        spacing: 16,
+        runSpacing: 4,
         children: [label, control],
       ),
     );
