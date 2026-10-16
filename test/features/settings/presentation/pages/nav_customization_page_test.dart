@@ -643,6 +643,39 @@ void main() {
         );
       });
 
+      testWidgets('holding a drag at the bottom edge auto-scrolls the page', (
+        tester,
+      ) async {
+        final repo = await pumpPage(tester, height: shortHeight);
+
+        final firstId = _firstRowId(tester);
+        final handle = find.descendant(
+          of: find.byKey(ValueKey('nav-item-$firstId')),
+          matching: find.byIcon(Icons.drag_handle),
+        );
+        final start = tester.getCenter(handle);
+
+        // Carry the row to the bottom edge of the screen in small steps, then
+        // hold it there so the edge auto-scroller runs.
+        final gesture = await tester.startGesture(start);
+        await tester.pump();
+        const steps = 30;
+        final stepY = (shortHeight - 8 - start.dy) / steps;
+        for (var i = 0; i < steps; i++) {
+          await gesture.moveBy(Offset(0, stepY));
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        for (var i = 0; i < 200; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pumpAndSettle();
+
+        // The row travels past everything that was on screen at the start:
+        // only an auto-scrolling drag can drop it at the end of the list.
+        expect(repo.navPrimaryIds!.last, firstId);
+      });
+
       testWidgets('a drag on the handle still reorders below the header', (
         tester,
       ) async {
