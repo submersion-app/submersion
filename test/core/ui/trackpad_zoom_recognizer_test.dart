@@ -103,6 +103,32 @@ void main() {
     expect(zooms, [closeTo(1.0, 1e-9)]);
   });
 
+  testWidgets('a scroll that turns into a pinch stops scrolling', (
+    tester,
+  ) async {
+    final (:zooms, pans: _) = await pumpRecognizer(tester);
+    final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+    const at = Offset(200, 150);
+    await tester.sendEventToBinding(pointer.panZoomStart(at));
+    await tester.sendEventToBinding(
+      pointer.panZoomUpdate(at, pan: const Offset(0, 50)),
+    );
+    await tester.sendEventToBinding(
+      pointer.panZoomUpdate(at, pan: const Offset(0, -150), scale: 2),
+    );
+    // Back to scale 1.0 with more pan: still the same pinch gesture.
+    await tester.sendEventToBinding(
+      pointer.panZoomUpdate(at, pan: const Offset(0, 250)),
+    );
+    await tester.sendEventToBinding(pointer.panZoomEnd());
+
+    expect(zooms, [
+      closeTo(0.5, 1e-9),
+      closeTo(1.0, 1e-9),
+      closeTo(-1.0, 1e-9),
+    ]);
+  });
+
   testWidgets('a pinch gesture does not carry into the next scroll', (
     tester,
   ) async {

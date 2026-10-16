@@ -364,4 +364,37 @@ void main() {
 
     expect(scroll.offset, 0);
   });
+
+  testWidgets('a scroll that turns into a pinch stops without a fling', (
+    tester,
+  ) async {
+    final (:scroll, map: _) = await pumpLockedMap(tester);
+    final at =
+        tester.getTopLeft(find.byType(FlutterMap)) + const Offset(20, 20);
+
+    final gesture = await tester.createGesture(
+      kind: PointerDeviceKind.trackpad,
+    );
+    await gesture.panZoomStart(at);
+    var pan = Offset.zero;
+    for (var i = 1; i <= 5; i++) {
+      pan += const Offset(0, -30);
+      await gesture.panZoomUpdate(
+        at,
+        pan: pan,
+        timeStamp: Duration(milliseconds: 16 * i),
+      );
+    }
+    await gesture.panZoomUpdate(
+      at,
+      pan: pan + const Offset(0, -300),
+      scale: 1.5,
+      timeStamp: const Duration(milliseconds: 96),
+    );
+    await gesture.panZoomEnd();
+    await tester.pumpAndSettle();
+
+    // The 150px of scrolling stands; the pinch adds no movement or fling.
+    expect(scroll.offset, 150);
+  });
 }
