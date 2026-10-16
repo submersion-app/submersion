@@ -85,6 +85,20 @@ void main() {
       expect(result?.airTemp, 28.6);
     });
 
+    test('mapHourly returns null for a malformed hourly block', () {
+      final service = WeatherService(
+        client: MockClient((_) async => http.Response('', 200)),
+      );
+
+      // No 'time' array: the mapper cannot pick an hour. The bulk backfill
+      // relies on this degrading to null rather than throwing out of its loop.
+      final result = service.mapHourly({
+        'temperature_2m': [20.0],
+      }, entryTime: DateTime.utc(2024, 6, 15, 9));
+
+      expect(result, isNull);
+    });
+
     test('fetchWeather returns null on HTTP error', () async {
       final mockClient = MockClient((_) async {
         return http.Response('Server error', 500);
