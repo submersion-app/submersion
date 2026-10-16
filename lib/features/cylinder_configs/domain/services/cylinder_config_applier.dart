@@ -214,12 +214,20 @@ class CylinderConfigApplier {
   ) {
     final from = (o2: tank.o2Percent, he: tank.hePercent);
     final to = (o2: item.o2Percent, he: item.hePercent);
-    if ((from.o2 - to.o2).abs() <= _gasTolerancePercent &&
-        (from.he - to.he).abs() <= _gasTolerancePercent) {
-      return null;
-    }
+    // The role source says how the role was found, not the mix: a diver who
+    // entered a mix on the tank keeps it. Only the importer's default for
+    // the guessed role (100% for an oxygen supply, air otherwise) goes.
+    final defaulted = (
+      o2: tank.tankRole == TankRole.oxygenSupply ? 100.0 : 21.0,
+      he: 0.0,
+    );
+    if (!_sameGas(from, defaulted) || _sameGas(from, to)) return null;
     return SpecChange(from, to);
   }
+
+  static bool _sameGas(GasPercentages a, GasPercentages b) =>
+      (a.o2 - b.o2).abs() <= _gasTolerancePercent &&
+      (a.he - b.he).abs() <= _gasTolerancePercent;
 
   /// How a tank's known specs compare with a configuration item's: any
   /// column known on both sides and different contradicts; otherwise a

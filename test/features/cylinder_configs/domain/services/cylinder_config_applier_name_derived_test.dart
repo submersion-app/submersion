@@ -90,6 +90,28 @@ void main() {
       expect(change.gas?.to, (o2: 21.0, he: 0.0));
     });
 
+    test('keeps a gas mix the diver entered', () {
+      final plan = applier.plan(
+        existing: [
+          tank(id: 't1', role: TankRole.oxygenSupply, order: 0),
+          tank(id: 't2', role: TankRole.diluent, order: 1),
+          const ExistingTank(
+            id: 't3',
+            tankRole: TankRole.oxygenSupply,
+            roleSource: TankRoleSource.transmitterName,
+            tankOrder: 2,
+            o2Percent: 50,
+          ),
+        ],
+        items: ccrConfig,
+      );
+
+      final change = roleChanges(plan).single;
+      expect(change.tankId, 't3');
+      expect(change.role?.to, TankRole.bailout);
+      expect(change.gas, isNull);
+    });
+
     test('fills the specs of the config cylinder it is offered', () {
       final plan = applier.plan(
         existing: [
