@@ -18,7 +18,8 @@ double trackpadScrollZoomDelta(double scrollDy, {double sensitivity = 0.01}) {
 /// pinch through DirectManipulation, whose transform zooms about the fingers,
 /// so the gesture also carries a pan of `centroid * (1 - scale)`. Scrolled at
 /// [trackpadScrollZoomDelta]'s rate, that pan outweighs the pinch and zooms the
-/// wrong way (issue #3300). [tolerance] absorbs scale jitter during a scroll.
-bool isTrackpadPinch(double scale, {double tolerance = 0.02}) {
+/// wrong way (issue #3300). [tolerance] absorbs scale jitter during a scroll;
+/// it is kept small because a pinch's pan still scrolls until it is crossed.
+bool isTrackpadPinch(double scale, {double tolerance = 0.01}) {
   return (scale - 1).abs() > tolerance;
 }

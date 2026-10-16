@@ -5,7 +5,8 @@ import 'package:flutter/gestures.dart';
 import 'package:submersion/core/ui/trackpad_zoom.dart';
 
 /// Recognizes a trackpad two-finger gesture (pan-zoom) and reports a zoom-level
-/// delta combining vertical scroll and pinch, anchored at the pointer.
+/// delta, anchored at the pointer: vertical scroll for a two-finger scroll,
+/// the scale change for a pinch (see [isTrackpadPinch]).
 ///
 /// Install it via a `RawGestureDetector` around any zoomable widget (a map, the
 /// dive profile chart). It accepts the gesture *eagerly*, so it wins the gesture
