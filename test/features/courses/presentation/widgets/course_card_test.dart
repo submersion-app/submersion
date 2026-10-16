@@ -84,6 +84,12 @@ void main() {
       expect(find.text('Advanced Open Water Diver'), findsOneWidget);
       expect(find.text('Completed'), findsNothing);
       expect(find.text('In Progress'), findsOneWidget);
+
+      final subtitle = tester.widget<Text>(
+        find.textContaining('Instructor: Maximiliane'),
+      );
+      expect(subtitle.maxLines, 1);
+      expect(subtitle.overflow, TextOverflow.ellipsis);
     });
 
     testWidgets('rounds the status icon like the other tiles', (tester) async {

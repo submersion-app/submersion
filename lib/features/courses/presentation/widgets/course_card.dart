@@ -95,6 +95,10 @@ class CourseCard extends ConsumerWidget {
               if (course.instructorName != null)
                 context.l10n.courses_card_instructor(course.instructorName!),
             ].join(' - '),
+            // One line, so a long instructor name cannot make this row taller
+            // than the other sections' tiles.
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           trailing: _buildStatusBadge(context, statusStr, accent),
         ),
