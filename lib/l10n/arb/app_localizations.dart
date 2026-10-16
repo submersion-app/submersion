@@ -31198,7 +31198,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_issue_ceilingViolated.
   ///
   /// In en, this message translates to:
-  /// **'Ascent goes above the {ceiling} decompression ceiling, skipping required stops'**
+  /// **'The profile goes above the {ceiling} decompression ceiling, skipping required stops'**
   String plannerCanvas_issue_ceilingViolated(String ceiling);
 
   /// No description provided for @plannerCanvas_issue_noBailout.

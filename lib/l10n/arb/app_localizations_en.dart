@@ -19218,7 +19218,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_ceilingViolated(String ceiling) {
-    return 'Ascent goes above the $ceiling decompression ceiling, skipping required stops';
+    return 'The profile goes above the $ceiling decompression ceiling, skipping required stops';
   }
 
   @override

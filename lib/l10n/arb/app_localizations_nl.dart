@@ -19382,7 +19382,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_ceilingViolated(String ceiling) {
-    return 'Opstijging gaat boven het decompressieplafond van $ceiling en slaat verplichte stops over';
+    return 'Het profiel gaat boven het decompressieplafond van $ceiling en slaat verplichte stops over';
   }
 
   @override

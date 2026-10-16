@@ -19768,7 +19768,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_ceilingViolated(String ceiling) {
-    return 'الصعود يتجاوز سقف تخفيف الضغط عند $ceiling ويتخطى توقفات إلزامية';
+    return 'المسار يتجاوز سقف تخفيف الضغط عند $ceiling ويتخطى توقفات إلزامية';
   }
 
   @override

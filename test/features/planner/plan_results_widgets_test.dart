@@ -572,7 +572,7 @@ void main() {
     testWidgets('names the ceiling the ascent went above', (tester) async {
       expect(
         await render(tester, const AppSettings()),
-        'Ascent goes above the 18.4m decompression ceiling, '
+        'The profile goes above the 18.4m decompression ceiling, '
         'skipping required stops',
       );
     });
@@ -580,7 +580,7 @@ void main() {
     testWidgets('shows the ceiling in the diver\'s units', (tester) async {
       expect(
         await render(tester, const AppSettings(depthUnit: DepthUnit.feet)),
-        'Ascent goes above the 60.4ft decompression ceiling, '
+        'The profile goes above the 60.4ft decompression ceiling, '
         'skipping required stops',
       );
     });

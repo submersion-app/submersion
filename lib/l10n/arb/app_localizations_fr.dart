@@ -19565,7 +19565,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_ceilingViolated(String ceiling) {
-    return 'La remontée dépasse le plafond de décompression de $ceiling et saute des paliers obligatoires';
+    return 'Le profil dépasse le plafond de décompression de $ceiling et saute des paliers obligatoires';
   }
 
   @override

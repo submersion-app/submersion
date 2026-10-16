@@ -19441,7 +19441,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_ceilingViolated(String ceiling) {
-    return 'A feljövetel a $ceiling dekompressziós plafon fölé megy, kötelező megállókat kihagyva';
+    return 'A profil a $ceiling dekompressziós plafon fölé megy, kötelező megállókat kihagyva';
   }
 
   @override

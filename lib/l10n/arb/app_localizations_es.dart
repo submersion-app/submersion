@@ -19502,7 +19502,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_ceilingViolated(String ceiling) {
-    return 'El ascenso sobrepasa el techo de descompresión de $ceiling y omite paradas obligatorias';
+    return 'El perfil sobrepasa el techo de descompresión de $ceiling y omite paradas obligatorias';
   }
 
   @override

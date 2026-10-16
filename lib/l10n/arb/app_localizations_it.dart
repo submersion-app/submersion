@@ -19508,7 +19508,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_ceilingViolated(String ceiling) {
-    return 'La risalita supera il ceiling di decompressione di $ceiling, saltando soste obbligatorie';
+    return 'Il profilo supera il ceiling di decompressione di $ceiling, saltando soste obbligatorie';
   }
 
   @override
