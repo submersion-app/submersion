@@ -1087,15 +1087,17 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void didUpdateWidget(covariant _VideoItem oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isCurrent || widget.isCurrent) return;
     // Swiped away: stop here rather than play on one page off screen, which
     // is what disposal used to do before neighbours stayed built.
     final controller = _controller;
-    if (oldWidget.isCurrent &&
-        !widget.isCurrent &&
-        controller != null &&
-        controller.value.isPlaying) {
+    if (controller != null && controller.value.isPlaying) {
       unawaited(controller.pause());
     }
+    // And hand keyboard focus back. Swiping on to a photo requests none, so
+    // the space bar would otherwise still reach this clip. The previously
+    // focused node is the viewer's own, which keeps the arrow keys working.
+    _focusNode.unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
   }
 
   /// Handle keyboard events for video playback
@@ -1116,6 +1118,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     try {
       final path = await ref.read(resolvedFilePathProvider(widget.item).future);
 
+      // The pager builds neighbours ahead, so a page can be gone by now.
+      if (!mounted) return;
       if (path == null) {
         setState(() {
           _error = 'videoFileNotFound';

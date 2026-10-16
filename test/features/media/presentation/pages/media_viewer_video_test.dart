@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -460,6 +461,12 @@ void main() {
     }
     // No page-indicator check: the chrome hides while a clip plays. A swipe
     // that did not land would leave the clip playing and fail here anyway.
+    expect(platform.playing, isFalse);
+
+    // Nor may it keep keyboard focus: the space bar would start it again
+    // off screen.
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump();
     expect(platform.playing, isFalse);
   });
 }
