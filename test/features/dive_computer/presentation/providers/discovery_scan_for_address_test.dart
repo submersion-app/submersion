@@ -104,16 +104,15 @@ void main() {
     test(
       'a scan stopped after the notifier is disposed does not throw',
       () async {
-        await notifier.startScan();
-        final stopping = notifier.stopScan();
-        notifier.dispose();
-        await stopping;
-        expect(hostApi.stopDiscoveryCalls, 1);
-        // tearDown disposes again; give it a fresh notifier.
-        notifier = DiscoveryNotifier(
+        final local = DiscoveryNotifier(
           service: service,
           requiresRuntimePermissions: false,
         );
+        await local.startScan();
+        final stopping = local.stopScan();
+        local.dispose();
+        await stopping;
+        expect(hostApi.stopDiscoveryCalls, 1);
       },
     );
 

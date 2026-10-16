@@ -7,6 +7,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -331,7 +332,11 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     final notifier = _ownedScan;
     if (notifier == null) return;
     _ownedScan = null;
-    unawaited(notifier.stopScan());
+    logFailure(
+      notifier.stopScan(),
+      DcAdapterDownloadStep,
+      'stop the re-acquire scan',
+    );
   }
 
   @override
@@ -408,15 +413,16 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // Closed while scanning: dispose has stopped the scan, and nothing here
     // should download.
     if (!mounted) return;
-    device ??= _sameModelFallback(computer, address);
     if (device != null) {
-      notifier.selectDevice(device);
       _log.info(
         'Re-acquired ${computer.displayName} at ${device.address}; keeping '
         'the scan running through the connect',
         category: LogCategory.bluetooth,
       );
+    } else {
+      device = _sameModelFallback(computer, address);
     }
+    if (device != null) notifier.selectDevice(device);
     setState(() {
       _searchingForKnownDevice = false;
       _computerResolved = true;
