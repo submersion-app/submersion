@@ -717,6 +717,30 @@ void main() {
         expect(bravo.isSelected, isTrue);
       },
     );
+
+    // The cards carry their own 16px side margin, as in every other section,
+    // so the list adds only room for the FAB and no per-item gap (#3382).
+    testWidgets('pads the list like the other sections', (tester) async {
+      final courses = [
+        _makeCourse(id: 'co1', name: 'Alpha Course'),
+        _makeCourse(id: 'co2', name: 'Bravo Course'),
+      ];
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _buildPhoneOverrides(courses: courses),
+          child: const CourseListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final list = tester.widget<ListView>(find.byType(ListView));
+      expect(list.padding, const EdgeInsets.only(bottom: 80));
+
+      final alpha = tester.getRect(find.byType(CourseCard).first);
+      final bravo = tester.getRect(find.byType(CourseCard).last);
+      expect(bravo.top - alpha.bottom, 0);
+    });
   });
 
   group('status chips and query (#2365)', () {
