@@ -10,7 +10,21 @@ import 'package:path/path.dart' as p;
 /// a few pixels and broke one character per line (#3358). Guard the whole
 /// tree, because the next settings tile will be somewhere new.
 void main() {
-  final trailingDropdown = RegExp(r'^(\s*)trailing:\s*DropdownButton\b');
+  final trailingArg = RegExp(r'^(\s*)trailing:\s*(.*)$');
+  final dropdown = RegExp(r'^DropdownButton\b');
+
+  // The trailing value, which `dart format` may put on the next code line
+  // (after a comment, say) rather than beside `trailing:`.
+  String trailingValue(List<String> lines, int index, String sameLine) {
+    if (sameLine.isNotEmpty) return sameLine;
+    for (var i = index + 1; i < lines.length; i++) {
+      final next = lines[i].trim();
+      if (next.isEmpty || next.startsWith('//')) continue;
+      return next;
+    }
+    return '';
+  }
+
   final listTileCall = RegExp(r'\bListTile\(');
 
   // The call a named argument belongs to is the nearest line above it that
@@ -33,8 +47,10 @@ void main() {
 
       final lines = entity.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
-        final match = trailingDropdown.firstMatch(lines[i]);
+        final match = trailingArg.firstMatch(lines[i]);
         if (match == null) continue;
+        final value = trailingValue(lines, i, match.group(2)!.trim());
+        if (!dropdown.hasMatch(value)) continue;
         final owner = enclosingLine(lines, i, match.group(1)!.length);
         if (owner != null && listTileCall.hasMatch(owner)) {
           offenders.add('${p.normalize(entity.path)}:${i + 1}');
