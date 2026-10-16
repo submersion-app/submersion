@@ -284,7 +284,12 @@ class GasAnalysisService {
 
     final diveEnd =
         dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
-    final hasGasSwitches = gasSwitches != null && gasSwitches.isNotEmpty;
+    // Only a switch naming a cylinder of this dive says when one was
+    // breathed; stale ids (#110) leave a recorded duration in force.
+    final tankIds = {for (final t in dive.tanks) t.id};
+    final hasGasSwitches =
+        gasSwitches?.any((sw) => tankIds.contains(sw.gasSwitch.tankId)) ??
+        false;
 
     for (final tank in dive.tanks) {
       // Its own size, else its matched partner's (issue #3109).

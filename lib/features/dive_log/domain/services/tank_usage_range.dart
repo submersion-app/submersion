@@ -24,11 +24,14 @@ const int startingSwitchGraceSeconds = 60;
   if (tanks.length == 1) return (start: diveStart, end: diveEnd);
 
   // A switch naming no cylinder of this dive (a stale id a re-import left
-  // behind, #110) says nothing about when any of them was breathed.
+  // behind, #110), or falling after it ends, says nothing about when any of
+  // them was breathed.
   final tanksById = {for (final t in tanks) t.id: t};
   final knownSwitches = [
     for (final sw in gasSwitches ?? const <GasSwitchWithTank>[])
-      if (tanksById.containsKey(sw.gasSwitch.tankId)) sw,
+      if (tanksById.containsKey(sw.gasSwitch.tankId) &&
+          sw.gasSwitch.timestamp < diveEnd)
+        sw,
   ];
 
   if (knownSwitches.isEmpty) {

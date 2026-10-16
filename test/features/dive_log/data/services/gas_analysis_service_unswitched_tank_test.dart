@@ -296,6 +296,64 @@ void main() {
     expect(segments.first.tankId, 'travel');
   });
 
+  test('switches naming only stale tanks leave a recorded duration in '
+      'force', () {
+    const a = DiveTank(
+      id: 'a',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+      usageDuration: Duration(minutes: 20),
+    );
+    const b = DiveTank(
+      id: 'b',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+      role: TankRole.stage,
+      usageDuration: Duration(minutes: 40),
+    );
+    final dive = makeDive([a, b]);
+    final results = byId(
+      service.calculateCylinderSac(
+        dive: dive,
+        profile: dive.profile,
+        gasSwitches: [switchTo('stale-id', 0)],
+      ),
+    );
+
+    expect(results['a']!.usageDuration?.inMinutes, 20);
+    expect(results['b']!.usageDuration?.inMinutes, 40);
+  });
+
+  test('a switch after the dive ends opens no window', () {
+    const back = DiveTank(
+      id: 'back',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+    );
+    const deco = DiveTank(
+      id: 'deco',
+      volume: 7,
+      startPressure: 200,
+      endPressure: 190,
+      role: TankRole.deco,
+      gasMix: GasMix(o2: 50),
+    );
+    final dive = makeDive([back, deco]);
+    final results = byId(
+      service.calculateCylinderSac(
+        dive: dive,
+        profile: dive.profile,
+        gasSwitches: [switchTo('back', 0), switchTo('deco', 61 * 60)],
+      ),
+    );
+
+    expect(results['back']!.usageDuration?.inMinutes, 60);
+    expect(results.containsKey('deco'), isFalse);
+  });
+
   test('a stage with no recorded switch still has no SAC', () {
     // Without a switch nothing says how long the stage was breathed, and
     // spreading its drop over the whole dive would understate its rate.
