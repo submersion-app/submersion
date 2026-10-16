@@ -741,6 +741,34 @@ void main() {
       final bravo = tester.getRect(find.byType(CourseCard).last);
       expect(bravo.top - alpha.bottom, 0);
     });
+
+    testWidgets('ticking a card checkbox selects that course', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _buildPhoneOverrides(
+            courses: [_makeCourse(id: 'co1', name: 'Alpha Course')],
+          ),
+          locale: const Locale('en'),
+          child: const CourseListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(overflowMenuButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(selectItemsMenuKey));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CourseCard),
+          matching: find.byType(Checkbox),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 selected'), findsOneWidget);
+    });
   });
 
   group('status chips and query (#2365)', () {
