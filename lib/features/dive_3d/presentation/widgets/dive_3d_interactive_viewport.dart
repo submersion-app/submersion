@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
@@ -20,6 +21,8 @@ import 'package:submersion/features/dive_3d/presentation/renderer/scrub_cursor.d
 import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_painters.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+part 'dive_3d_viewport_gestures.dart';
 
 /// How the scrub cursor is drawn: a dot riding the path (depth/tissue/career/
 /// spatial scenes), or a vertical time-plane sweeping every ribbon at once
@@ -89,6 +92,13 @@ class Dive3dInteractiveViewport extends StatefulWidget {
   /// intermediate `_zoom` change.
   final ValueChanged<double>? onZoomSettled;
 
+  /// The viewport sits inline in a scrolling page (the Site Details card), so
+  /// a plain wheel tick or two-finger trackpad swipe scrolls the page instead
+  /// of moving the camera. Ctrl/Cmd + wheel and a trackpad pinch still zoom,
+  /// and dragging still orbits (#3393). False keeps every gesture on the
+  /// camera, as a fullscreen view wants.
+  final bool insideScrollingPage;
+
   const Dive3dInteractiveViewport({
     super.key,
     required this.scene,
@@ -109,6 +119,7 @@ class Dive3dInteractiveViewport extends StatefulWidget {
     this.terrainImagery,
     this.imageryWhiteTexel,
     this.onZoomSettled,
+    this.insideScrollingPage = false,
   });
 
   @override
@@ -256,6 +267,13 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     _scheduleZoomSettled();
   }
 
+  /// Whether a wheel tick is the camera's: always in a fullscreen view, and
+  /// only with Ctrl or Cmd held inline, where a plain tick scrolls the page.
+  bool get _wheelZooms =>
+      !widget.insideScrollingPage ||
+      HardwareKeyboard.instance.isControlPressed ||
+      HardwareKeyboard.instance.isMetaPressed;
+
   void _zoomBy(double factor) {
     setState(() {
       _zoom = (_zoom * factor).clamp(_minZoom, _maxZoom);
@@ -272,7 +290,8 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
 
   void _onPanZoomUpdate(PointerPanZoomUpdateEvent event) {
     setState(() {
-      _pan += event.panDelta;
+      // Inline, the page takes the swipe; only the pinch is the camera's.
+      if (!widget.insideScrollingPage) _pan += event.panDelta;
       _zoom = (_panZoomBaseZoom * event.scale).clamp(_minZoom, _maxZoom);
     });
     _scheduleZoomSettled();
@@ -398,30 +417,36 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
           scrubPosition: widget.scrubPosition,
           style: widget.scrubCursor,
         );
-        final scenePaint = CustomPaint(
-          painter: Dive3dScenePainter(
-            scene: widget.scene,
-            yawDegrees: _yaw,
-            pitchDegrees: _pitch,
-            zoom: _zoom,
-            visibleOverlays: widget.visibleOverlays,
-            terrainImagery: widget.terrainImagery,
-            imageryWhiteTexel: widget.imageryWhiteTexel,
+        // The scene painter projects and depth-sorts every triangle on the
+        // CPU, so it gets a layer of its own: a scrolling host page (the Site
+        // Details card), the pan Transform and the chrome painters around it
+        // then reuse the recorded picture instead of re-running it (#3393).
+        final scenePaint = RepaintBoundary(
+          child: CustomPaint(
+            painter: Dive3dScenePainter(
+              scene: widget.scene,
+              yawDegrees: _yaw,
+              pitchDegrees: _pitch,
+              zoom: _zoom,
+              visibleOverlays: widget.visibleOverlays,
+              terrainImagery: widget.terrainImagery,
+              imageryWhiteTexel: widget.imageryWhiteTexel,
+            ),
+            foregroundPainter: mode == SceneChromeMode.tissue
+                ? TissueChromePainter(
+                    scene: widget.scene,
+                    grid: widget.surfaceGrid!,
+                    frame: widget.axisFrame!,
+                    style: widget.chromeStyle!,
+                    yawDegrees: _yaw,
+                    pitchDegrees: _pitch,
+                    zoom: _zoom,
+                    labels: widget.axisLabels,
+                    textDirection: Directionality.of(context),
+                  )
+                : cursorPainter,
+            child: const SizedBox.expand(),
           ),
-          foregroundPainter: mode == SceneChromeMode.tissue
-              ? TissueChromePainter(
-                  scene: widget.scene,
-                  grid: widget.surfaceGrid!,
-                  frame: widget.axisFrame!,
-                  style: widget.chromeStyle!,
-                  yawDegrees: _yaw,
-                  pitchDegrees: _pitch,
-                  zoom: _zoom,
-                  labels: widget.axisLabels,
-                  textDirection: Directionality.of(context),
-                )
-              : cursorPainter,
-          child: const SizedBox.expand(),
         );
 
         TissueFramePainter framePainter() => TissueFramePainter(
@@ -510,11 +535,12 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
             // Trackpad pan-zoom is handled on the Listener below; this only
             // claims it in the arena, so a scrolling ancestor cannot take
             // the same swipe.
-            _TrackpadPanZoomClaim:
-                GestureRecognizerFactoryWithHandlers<_TrackpadPanZoomClaim>(
-                  () => _TrackpadPanZoomClaim(),
-                  (_) {},
-                ),
+            if (!widget.insideScrollingPage)
+              _TrackpadPanZoomClaim:
+                  GestureRecognizerFactoryWithHandlers<_TrackpadPanZoomClaim>(
+                    () => _TrackpadPanZoomClaim(),
+                    (_) {},
+                  ),
             TapGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
                   () => TapGestureRecognizer(),
@@ -547,7 +573,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
           // scroll and the terrain zoom at once. The innermost claim wins,
           // as it does for the 2D map.
           onPointerSignal: (signal) {
-            if (signal is PointerScrollEvent) {
+            if (signal is PointerScrollEvent && _wheelZooms) {
               GestureBinding.instance.pointerSignalResolver.register(
                 signal,
                 (event) => _zoomBy(
@@ -665,48 +691,6 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       ),
     );
   }
-}
-
-/// A scale recognizer that ignores trackpad pan/zoom pointers.
-///
-/// `supportedDevices` filters pointer-DOWN events only:
-/// [GestureRecognizer.isPointerPanZoomAllowed] returns true unconditionally,
-/// so a trackpad gesture reaches every recognizer no matter what devices it
-/// declares. The viewport handles trackpads on a [Listener], and without this
-/// refusal both paths would fire and every trackpad pan would move the camera
-/// twice.
-class _TouchScaleGestureRecognizer extends ScaleGestureRecognizer {
-  _TouchScaleGestureRecognizer({super.supportedDevices});
-
-  @override
-  bool isPointerPanZoomAllowed(PointerPanZoomStartEvent event) => false;
-}
-
-/// Claims trackpad pan/zoom pointers for the viewport in the gesture arena,
-/// and does nothing else with them: the viewport's [Listener] moves the
-/// camera. Without a claim, a scrolling ancestor (the Site Details page)
-/// wins the arena uncontested, and one two-finger swipe over the viewport
-/// both scrolls the page and pans the camera.
-class _TrackpadPanZoomClaim extends OneSequenceGestureRecognizer {
-  @override
-  bool isPointerAllowed(PointerDownEvent event) => false;
-
-  @override
-  void addAllowedPointerPanZoom(PointerPanZoomStartEvent event) {
-    startTrackingPointer(event.pointer, event.transform);
-    resolve(GestureDisposition.accepted);
-  }
-
-  @override
-  void handleEvent(PointerEvent event) {
-    if (event is PointerPanZoomEndEvent) stopTrackingPointer(event.pointer);
-  }
-
-  @override
-  void didStopTrackingLastPointer(int pointer) {}
-
-  @override
-  String get debugDescription => 'trackpad pan-zoom claim';
 }
 
 /// Foreground layer: only the scrub cursor. Repaints on every scrub tick
