@@ -114,6 +114,8 @@ class MediaLibraryToolbar extends ConsumerWidget {
       builder: (context, constraints) {
         final compactModes =
             constraints.maxWidth < kMediaToolbarFourSegmentMinWidth;
+        // The map has no thumbnail grid to size.
+        final sizable = mode != MediaLibraryViewMode.map;
         final inlineSlider =
             constraints.maxWidth >= kMediaToolbarThumbnailSliderMinWidth;
         return Row(
@@ -161,11 +163,9 @@ class MediaLibraryToolbar extends ConsumerWidget {
                 onPressed: selection.enterExplicit,
               ),
             const Spacer(),
-            // The map has no thumbnail grid to size.
-            if (mode != MediaLibraryViewMode.map && inlineSlider)
+            if (sizable && inlineSlider)
               const _ThumbnailSizeSlider(width: _kThumbnailSliderWidth),
-            if (mode != MediaLibraryViewMode.map && !inlineSlider)
-              const _ThumbnailSizeButton(),
+            if (sizable && !inlineSlider) const _ThumbnailSizeButton(),
             if (compactModes)
               _ViewModeMenuButton(
                 current: mode,

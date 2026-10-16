@@ -235,6 +235,23 @@ void main() {
     expect(find.byKey(const ValueKey('thumbnail_size_button')), findsOneWidget);
   });
 
+  testWidgets('one dp short of the four-segment width collapses the view '
+      'modes', (tester) async {
+    tester.view.physicalSize = const Size(
+      kMediaToolbarFourSegmentMinWidth - 1,
+      640,
+    );
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsNothing);
+    expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsOneWidget);
+  });
+
   testWidgets('a 320dp phone collapses the view modes to a menu and does not '
       'overflow', (tester) async {
     // A 320dp phone hands the row 304dp after MediaLibraryView's padding.
