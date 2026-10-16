@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 /// A consistent card container for statistics sections
 class StatSectionCard extends StatelessWidget {
@@ -76,6 +77,25 @@ class StatSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final control = trailing;
+    if (control != null) {
+      // The trailing control is a dropdown or a text button, as wide as its
+      // text: beside an Expanded title it left the title a sliver in a
+      // longer translation (#3358), so it drops below the title instead.
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          LabelWithControl(
+            label: Text(title, style: theme.textTheme.titleMedium),
+            control: control,
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            _subtitle(theme),
+          ],
+        ],
+      );
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -86,22 +106,23 @@ class StatSectionHeader extends StatelessWidget {
               Text(title, style: theme.textTheme.titleMedium),
               if (subtitle != null) ...[
                 const SizedBox(height: 2),
-                Text(
-                  subtitle!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                _subtitle(theme),
               ],
             ],
           ),
         ),
-        ?trailing,
         if (showChevron)
           Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
       ],
     );
   }
+
+  Widget _subtitle(ThemeData theme) => Text(
+    subtitle!,
+    style: theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    ),
+  );
 }
 
 /// A [StatSectionCard] whose body is a sliver, for content that must be built
