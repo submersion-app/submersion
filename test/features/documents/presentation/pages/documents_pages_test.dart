@@ -240,6 +240,36 @@ void main() {
     expect(find.byType(DocumentEditPage), findsOneWidget);
   });
 
+  // Issue #3366: a certification with no custom title stores an empty name,
+  // so a document filed under it showed a blank owner.
+  testWidgets('a certification with no custom title names its owner', (
+    t,
+  ) async {
+    await DatabaseService.instance.database.customStatement(
+      'INSERT INTO certifications (id, diver_id, name, agency, level, '
+      "created_at, updated_at) VALUES ('c1', 'd1', '', 'padi', "
+      "'advancedNitrox', 0, 0)",
+    );
+    final doc = await _save(
+      'Nitrox log',
+      DocumentType.other,
+      owner: const DocumentOwner(DocumentOwnerKind.certification, 'c1'),
+    );
+    await pump(t, '/documents');
+    expect(find.textContaining('Advanced Nitrox'), findsWidgets);
+    await t.enterText(find.byType(TextField), 'nitrox diver');
+    await t.pumpAndSettle();
+    expect(find.text('Nitrox log'), findsNothing);
+    await t.enterText(find.byType(TextField), 'advanced');
+    await t.pumpAndSettle();
+    expect(find.text('Nitrox log'), findsOneWidget);
+
+    await pump(t, '/documents/${doc.id}');
+    await t.tap(find.byKey(const ValueKey('document-details-toggle')));
+    await t.pumpAndSettle();
+    expect(find.text('Advanced Nitrox'), findsOneWidget);
+  });
+
   testWidgets('the owner row opens the owner', (t) async {
     final doc = await _save(
       'Park permit',

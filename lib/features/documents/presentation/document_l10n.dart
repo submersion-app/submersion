@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -69,3 +72,17 @@ String documentDisplayTitle(
   final title = document.title.trim();
   return title.isEmpty ? documentTypeLabel(l10n, document.type) : title;
 }
+
+/// [entry] with a certification owner titled the way the Certifications
+/// screens title it: its custom name, else its certification. The stored
+/// name alone is empty for a certification with no custom title (#3366).
+DocumentListEntry withCertificationOwnerTitle(
+  DocumentListEntry entry,
+  AppLocalizations l10n, {
+  CertificationCatalog? catalog,
+}) => switch (entry.certification) {
+  final fields? => entry.withOwnerLabel(
+    certificationTitleFieldsL10n(fields, l10n, catalog: catalog),
+  ),
+  null => entry,
+};

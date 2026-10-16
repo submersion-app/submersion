@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
@@ -181,7 +182,12 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
     final body = all.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text(l10n.documents_error_load('$e'))),
-      data: (entries) {
+      data: (raw) {
+        final catalog = ref.watch(certificationCatalogSyncProvider);
+        final entries = [
+          for (final e in raw)
+            withCertificationOwnerTitle(e, l10n, catalog: catalog),
+        ];
         final presentTypes = {for (final e in entries) e.document.type};
         final shown = entries.where(_matches).toList();
         final listed = _expiringOnly

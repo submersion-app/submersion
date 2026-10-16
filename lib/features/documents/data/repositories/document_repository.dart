@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/documents/data/repositories/document_row_mapper.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -18,10 +19,30 @@ class DocumentListEntry {
   final Document document;
 
   /// Name of the record the document is filed under; null when personal.
+  /// For a certification this is the stored name, empty when it has no
+  /// custom title; [withOwnerLabel] puts the title derived from
+  /// [certification] in its place (issue #3366).
   final String? ownerLabel;
   final int pageCount;
 
-  const DocumentListEntry(this.document, this.ownerLabel, this.pageCount);
+  /// What the owning certification's title is made from; null unless the
+  /// document is filed under a certification that still exists.
+  final CertificationTitleFields? certification;
+
+  const DocumentListEntry(
+    this.document,
+    this.ownerLabel,
+    this.pageCount, {
+    this.certification,
+  });
+
+  /// This entry with its owner shown as [label].
+  DocumentListEntry withOwnerLabel(String label) => DocumentListEntry(
+    document,
+    label,
+    pageCount,
+    certification: certification,
+  );
 }
 
 typedef CardImages = ({Uint8List? front, Uint8List? back});
@@ -142,7 +163,9 @@ class DocumentRepository {
           '(SELECT COUNT(*) FROM document_pages p WHERE p.document_id = d.id) '
           'AS page_count, '
           'COALESCE(s.name, t.name, e.name, c.name, cert.name, b.name, '
-          "dc.name, dv.name, '#' || dv.dive_number) AS owner_label "
+          "dc.name, dv.name, '#' || dv.dive_number) AS owner_label, "
+          'cert.name AS cert_name, cert.agency AS cert_agency, '
+          'cert.level AS cert_level '
           'FROM documents d '
           'LEFT JOIN dive_sites s ON s.id = d.site_id '
           'LEFT JOIN trips t ON t.id = d.trip_id '
@@ -164,6 +187,14 @@ class DocumentRepository {
           documentFromRow(_db.documents.map(r.data)),
           r.readNullable<String>('owner_label'),
           r.read<int>('page_count'),
+          certification: switch (r.readNullable<String>('cert_agency')) {
+            final agency? => (
+              name: r.read<String>('cert_name'),
+              agency: agency,
+              level: r.readNullable<String>('cert_level'),
+            ),
+            null => null,
+          },
         ),
     ];
   }

@@ -39,6 +39,23 @@ void main() {
                   date: DateTime.utc(2026, 9, 1, 9),
                 ),
               ],
+              DocumentOwnerKind.certification => const [
+                // The query's order: the empty stored name first.
+                DocumentOwnerOption(
+                  'c1',
+                  '',
+                  certification: (name: '', agency: 'padi', level: 'openWater'),
+                ),
+                DocumentOwnerOption(
+                  'c2',
+                  'Adv. Nitrox',
+                  certification: (
+                    name: 'Adv. Nitrox',
+                    agency: 'padi',
+                    level: 'advancedNitrox',
+                  ),
+                ),
+              ],
               _ => const <DocumentOwnerOption>[],
             },
           ),
@@ -106,6 +123,29 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('#12'), findsOneWidget);
     expect(find.textContaining('Salt Pier'), findsOneWidget);
+  });
+
+  // Issue #3366: a certification with no custom title stores an empty name
+  // and was listed blank.
+  testWidgets('a certification with no custom title shows its certification', (
+    t,
+  ) async {
+    await openPicker(t);
+    await t.tap(find.byKey(const ValueKey('owner-kind-certification')));
+    await t.pumpAndSettle();
+    final titles = t
+        .widgetList<ListTile>(find.byType(ListTile))
+        .map((tile) => (tile.title! as Text).data)
+        .toList();
+    // Sorted by the title shown, not the empty stored name.
+    expect(titles, ['Adv. Nitrox', 'Open Water']);
+    await t.enterText(find.byKey(const ValueKey('owner-search')), 'open');
+    await t.pumpAndSettle();
+    expect(find.text('Open Water'), findsOneWidget);
+    expect(find.text('Adv. Nitrox'), findsNothing);
+    await t.tap(find.text('Open Water'));
+    await t.pumpAndSettle();
+    expect(result, const DocumentOwner(DocumentOwnerKind.certification, 'c1'));
   });
 
   testWidgets('switching kinds clears the search', (t) async {

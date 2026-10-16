@@ -28,6 +28,23 @@ String certificationTitleL10n(
       catalog: catalog,
     );
 
+/// [certificationTitleL10n] for a certification known only by its title
+/// columns: the custom stored name, else the level, else the agency. Never
+/// empty, so a certification with no custom title still has a name wherever
+/// it is listed by its row (issue #3366).
+String certificationTitleFieldsL10n(
+  CertificationTitleFields fields,
+  AppLocalizations l10n, {
+  CertificationCatalog? catalog,
+}) => hasDerivedNameFields(fields, catalog: catalog)
+    ? derivedCertificationTitleL10n(
+        fields.agency,
+        fields.level,
+        l10n,
+        catalog: catalog,
+      )
+    : fields.name.trim();
+
 /// Localized [derivedCertificationTitle].
 String derivedCertificationTitleL10n(
   String agency,

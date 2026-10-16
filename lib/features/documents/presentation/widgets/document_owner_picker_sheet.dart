@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
@@ -132,18 +134,37 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text(l10n.documents_error_load('$e'))),
           data: (options) {
+            final catalog = ref.watch(certificationCatalogSyncProvider);
             String? dateOf(DocumentOwnerOption o) =>
                 o.date == null ? null : units.formatDate(o.date);
+            // A certification goes by its title, derived from its
+            // certification when it has no custom one (#3366).
+            String nameOf(DocumentOwnerOption o) => switch (o.certification) {
+              final fields? => certificationTitleFieldsL10n(
+                fields,
+                l10n,
+                catalog: catalog,
+              ),
+              null => o.label,
+            };
+            final named = [for (final o in options) (o, nameOf(o))];
+            // The query sorts by stored name, which is empty for a derived
+            // certification title, so certifications sort by title here.
+            if (kind == DocumentOwnerKind.certification) {
+              named.sort(
+                (a, b) => a.$2.toLowerCase().compareTo(b.$2.toLowerCase()),
+              );
+            }
             final q = _query.trim().toLowerCase();
             final shown = [
-              for (final o in options)
+              for (final (o, name) in named)
                 if (q.isEmpty ||
                     [
-                      o.label,
+                      name,
                       o.subtitle,
                       dateOf(o),
                     ].any((v) => v != null && v.toLowerCase().contains(q)))
-                  o,
+                  (o, name),
             ];
             if (shown.isEmpty) {
               return Center(child: Text(l10n.documents_owner_none));
@@ -152,13 +173,13 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
               controller: widget.scrollController,
               itemCount: shown.length,
               itemBuilder: (context, i) {
-                final o = shown[i];
+                final (o, name) = shown[i];
                 final date = dateOf(o);
                 // An unnumbered dive goes by its date.
-                final title = o.label.isEmpty ? (date ?? '') : o.label;
+                final title = name.isEmpty ? (date ?? '') : name;
                 final subtitle = [
                   ?o.subtitle,
-                  if (o.label.isNotEmpty) ?date,
+                  if (name.isNotEmpty) ?date,
                 ].join(' · ');
                 final owner = DocumentOwner(kind, o.id);
                 return ListTile(
