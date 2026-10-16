@@ -289,10 +289,13 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   }
 
   void _onPanZoomUpdate(PointerPanZoomUpdateEvent event) {
+    final zoom = (_panZoomBaseZoom * event.scale).clamp(_minZoom, _maxZoom);
+    // Inline, the page takes the swipe and only the pinch is the camera's,
+    // so a plain swipe leaves the camera (and its settle timer) alone.
+    if (widget.insideScrollingPage && zoom == _zoom) return;
     setState(() {
-      // Inline, the page takes the swipe; only the pinch is the camera's.
       if (!widget.insideScrollingPage) _pan += event.panDelta;
-      _zoom = (_panZoomBaseZoom * event.scale).clamp(_minZoom, _maxZoom);
+      _zoom = zoom;
     });
     _scheduleZoomSettled();
     _refreshHoverAfterCameraChange();

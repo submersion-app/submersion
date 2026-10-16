@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -135,6 +136,40 @@ void main() {
     for (var i = 0; i < before.length; i++) {
       expect(identical(after[i], before[i]), isTrue, reason: 'picture $i');
     }
+  });
+
+  testWidgets('inline, a trackpad swipe that leaves the camera reports no '
+      'zoom change', (tester) async {
+    final settled = <double>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Dive3dInteractiveViewport(
+            scene: buildScene(),
+            scrubPosition: ValueNotifier(0.0),
+            visibleOverlays: SceneOverlay.values.toSet(),
+            insideScrollingPage: true,
+            onZoomSettled: settled.add,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final pad = TestPointer(2, PointerDeviceKind.trackpad);
+    final at = tester.getCenter(find.byType(Dive3dInteractiveViewport));
+    await tester.sendEventToBinding(pad.panZoomStart(at));
+    for (var i = 1; i <= 5; i++) {
+      await tester.sendEventToBinding(
+        pad.panZoomUpdate(at, pan: Offset(0, -12.0 * i)),
+      );
+    }
+    await tester.sendEventToBinding(pad.panZoomEnd());
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(settled, isEmpty);
   });
 
   group('Dive3dScenePainter.shouldRepaint', () {
