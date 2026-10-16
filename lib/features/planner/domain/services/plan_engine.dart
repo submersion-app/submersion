@@ -638,12 +638,16 @@ class PlanEngine {
       String? authoredSegmentId,
     }) {
       _CeilingBreach? worst;
+      // An authored leg is walked at the scheduler's finer slice so a
+      // breach inside one chart sample is still seen; the chart keeps its
+      // own interval, which is a whole number of these slices.
+      final stepSeconds = authoredSegmentId != null
+          ? _ceilingBreachSampleSeconds
+          : ceilingSampleSeconds;
       var elapsed = 0;
       while (elapsed < durationSeconds) {
         final remaining = durationSeconds - elapsed;
-        final step = remaining < ceilingSampleSeconds
-            ? remaining
-            : ceilingSampleSeconds;
+        final step = remaining < stepSeconds ? remaining : stepSeconds;
         final legStart =
             startDepth + (endDepth - startDepth) * (elapsed / durationSeconds);
         final legEnd =
@@ -671,7 +675,9 @@ class PlanEngine {
         // actually in deco").
         final owesDeco = model.surfaceCeilingMeters(traceState) > 0;
         final ceiling = owesDeco ? model.ceilingMeters(traceState) : 0.0;
-        trace.add((runtime, ceiling));
+        if (elapsed % ceilingSampleSeconds == 0 || elapsed == durationSeconds) {
+          trace.add((runtime, ceiling));
+        }
         // The scheduler's own test for leaving a stop: the ceiling may not be
         // above the diver at any point of the leg, arrival included
         // (BuhlmannAlgorithm._trialAscentClears). The tolerance only absorbs
@@ -741,6 +747,13 @@ class PlanEngine {
   /// counts as a breach, in meters. Small enough to never hide a skipped
   /// stop; large enough to ignore rounding in the interpolated depth.
   static const _ceilingBreachToleranceMeters = 0.01;
+
+  /// Slice an authored leg is checked at for a ceiling breach, in seconds:
+  /// the scheduler's own trial-ascent slice
+  /// (BuhlmannAlgorithm._trialAscentSliceSeconds), so the plan judges the
+  /// diver's legs exactly as finely as it judges its own. Must divide
+  /// [ceilingSampleSeconds] so the chart samples land where they always did.
+  static const _ceilingBreachSampleSeconds = 10;
 
   /// CCR consumption: metabolic O2 over the whole runtime charged to the
   /// oxygen-supply tank, descent loop-fill diluent charged leg by leg to

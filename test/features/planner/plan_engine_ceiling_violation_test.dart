@@ -150,6 +150,34 @@ void main() {
       expect(_ceilingIssues(repetitive), isNotEmpty);
     });
 
+    test('the breach check does not change the chart sampling', () {
+      // Authored legs are checked at a finer slice than the chart draws;
+      // the chart must still get one sample per 30 s of each leg plus the
+      // leg's end, exactly as before.
+      final outcome = engine.compute(
+        _plan([_descent(45), _bottom(45, 25), _ascentToSurface(45)]),
+      );
+      final legEnds = {for (final s in outcome.segmentOutcomes) s.endRuntime};
+      var legStart = 0;
+      final expected = <int>[];
+      for (final s in outcome.segmentOutcomes) {
+        for (
+          var t = legStart + PlanEngine.ceilingSampleSeconds;
+          t < s.endRuntime;
+          t += PlanEngine.ceilingSampleSeconds
+        ) {
+          expected.add(t);
+        }
+        expected.add(s.endRuntime);
+        legStart = s.endRuntime;
+      }
+      final authoredSamples = outcome.ceilingTrace
+          .map((p) => p.$1)
+          .where((t) => t <= legEnds.reduce((a, b) => a > b ? a : b))
+          .toList();
+      expect(authoredSamples, expected);
+    });
+
     test('the chart ceiling trace starts from the seeded tissues', () {
       final segments = [_descent(18), _bottom(18, 20)];
       final prior = BuhlmannAlgorithm(gfLow: 0.40, gfHigh: 0.80)
