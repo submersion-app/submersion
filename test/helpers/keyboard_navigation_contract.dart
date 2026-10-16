@@ -31,6 +31,16 @@ Future<void> clickWithMouse(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+/// Clicks [finder] to focus its list and put the cursor there, then presses
+/// an arrow, which on a one-row list leaves the cursor where it is. A click
+/// alone draws no focus ring; the ring shows once the list is used from the
+/// keyboard (#3385).
+Future<void> clickThenUseKeyboard(WidgetTester tester, Finder finder) async {
+  await clickWithMouse(tester, finder);
+  await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+  await tester.pumpAndSettle();
+}
+
 /// Asserts the master-list keyboard contract against one list (#3065).
 ///
 /// Every master-detail list calls this, so a list that loses its navigator,

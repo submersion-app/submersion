@@ -116,6 +116,16 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   bool _hasFocus = false;
   FocusHighlightMode _highlightMode = FocusManager.instance.highlightMode;
 
+  /// Whether the list was last driven from the keyboard: a key pressed in it,
+  /// or focus arriving by Tab. A click clears it, so the open row shows only
+  /// its own highlight, not the ring as well (#3385). The highlight mode alone
+  /// cannot tell: on desktop a mouse click leaves it traditional.
+  bool _keyboardDriven = false;
+
+  /// A pointer down asked for focus the list did not have yet, so the focus
+  /// change about to arrive came from the mouse, not from Tab.
+  bool _focusingFromPointer = false;
+
   @override
   void initState() {
     super.initState();
@@ -175,7 +185,9 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
 
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
+    // A shortcut (Cmd+F and the like) is not navigating the list.
     if (_anyModifierPressed()) return KeyEventResult.ignored;
+    if (!_keyboardDriven) setState(() => _keyboardDriven = true);
     final key = event.logicalKey;
 
     if (key == LogicalKeyboardKey.arrowDown) {
@@ -306,9 +318,15 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   /// does whatever opening or selecting it does; this only moves the cursor,
   /// which matters for rows a tap does not make current, like group headers.
   void _pointerDownOn(String key) {
+    if (!_focusNode.hasFocus) _focusingFromPointer = true;
     _focusNode.requestFocus();
     _unconfirmedMoves.clear();
-    if (_cursor != key) setState(() => _cursor = key);
+    if (_cursor != key || _keyboardDriven) {
+      setState(() {
+        _cursor = key;
+        _keyboardDriven = false;
+      });
+    }
   }
 
   void _register(String key, BuildContext row) => _rows[key] = row;
@@ -320,13 +338,19 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   @override
   Widget build(BuildContext context) {
     final showsRing =
-        _hasFocus && _highlightMode == FocusHighlightMode.traditional;
+        _hasFocus &&
+        _keyboardDriven &&
+        _highlightMode == FocusHighlightMode.traditional;
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: _onKeyEvent,
       onFocusChange: (focused) {
         if (!focused) _unconfirmedMoves.clear();
-        setState(() => _hasFocus = focused);
+        setState(() {
+          _hasFocus = focused;
+          if (focused) _keyboardDriven = !_focusingFromPointer;
+          _focusingFromPointer = false;
+        });
       },
       child: _KeyboardListScope(
         state: this,
