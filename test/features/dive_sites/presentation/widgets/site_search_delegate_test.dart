@@ -77,6 +77,7 @@ void main() {
         ),
       ],
     );
+    addTearDown(router.dispose);
     await tester.pumpWidget(
       testAppRouter(
         router: router,
