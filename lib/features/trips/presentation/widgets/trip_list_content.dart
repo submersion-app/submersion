@@ -1243,10 +1243,9 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                   subtitle: Text(
                     '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
                   ),
-                  onTap: () {
-                    close(context, trip);
-                    context.push('/trips/${trip.id}');
-                  },
+                  // Opened over the search rather than in place of it, so back
+                  // from the detail returns to these results (#3377).
+                  onTap: () => context.push('/trips/${trip.id}'),
                 );
               },
             );

@@ -94,5 +94,11 @@ void main() {
     await tester.tap(find.text('Palantic Drop-Bottom · S/N X1'));
     await tester.pumpAndSettle();
     expect(find.text('detail a'), findsOneWidget);
+
+    // Back from the item returns to the results, not the list (#3377).
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Palantic Drop-Bottom · S/N X1'), findsOneWidget);
+    expect(find.text('open'), findsNothing);
   });
 }

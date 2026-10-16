@@ -903,6 +903,39 @@ void main() {
         expect(results.length, equals(1));
         expect(results[0].name, equals('Blue Hole'));
       });
+
+      // Issue #3377: LIKE folds ASCII only, so "österreich" missed a site in
+      // "Österreich" and an umlaut could only be found in its typed case.
+      test('folds non-ASCII capitals in every searched column', () async {
+        await repository.createSite(
+          const DiveSite(
+            id: 'at-1',
+            name: 'Österreich - Fernsteinsee',
+            country: 'Österreich',
+            region: 'Tirol',
+          ),
+        );
+        await repository.createSite(
+          const DiveSite(
+            id: 'eg-1',
+            name: 'Abu Dabbab 3',
+            country: 'Ägypten',
+            city: 'Marsa Alam',
+            island: 'Übersee',
+            bodyOfWater: 'Rotes Meer',
+          ),
+        );
+
+        Future<List<String>> ids(String q) async =>
+            (await repository.searchSites(q)).map((s) => s.id).toList();
+
+        expect(await ids('österreich'), ['at-1']);
+        expect(await ids('ÖSTERREICH'), ['at-1']);
+        expect(await ids('ägypten'), ['eg-1']);
+        expect(await ids('übersee'), ['eg-1']);
+        expect(await ids('MARSA'), ['eg-1']);
+        expect(await ids('rotes MEER'), ['eg-1']);
+      });
     });
 
     group('getDiveCountsBySite', () {
