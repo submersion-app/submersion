@@ -287,11 +287,11 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   /// (issue #1232). macOS and iOS re-scan natively before connecting; this
   /// gives the other platforms the same behaviour.
   ///
-  /// Android connects reliably while its scan is still running, which is
-  /// how the scan-and-download flow has always connected; stopping the scan
-  /// first and connecting straight after is what still failed for a saved
-  /// Shearwater (issue #3369). The saved-computer download therefore keeps
-  /// the scan going through its connect.
+  /// The scan-and-download flow connects while its scan is still running,
+  /// and on Android that flow downloaded a saved Shearwater that this path,
+  /// stopping the scan first and connecting straight after, could not
+  /// (issue #3369). The saved-computer download therefore keeps the scan
+  /// going through its connect, as that flow does.
   Future<DiscoveredDevice?> scanForAddress(
     String address, {
     required Duration timeout,
