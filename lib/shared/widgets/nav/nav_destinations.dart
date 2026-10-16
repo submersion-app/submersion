@@ -116,13 +116,6 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_trips,
   ),
   NavDestination(
-    id: 'media',
-    route: '/media',
-    icon: Icons.photo_library_outlined,
-    selectedIcon: Icons.photo_library,
-    label: (l10n) => l10n.nav_media,
-  ),
-  NavDestination(
     id: 'equipment',
     route: '/equipment',
     icon: Icons.backpack_outlined,
@@ -149,6 +142,15 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     icon: Icons.card_membership_outlined,
     selectedIcon: Icons.card_membership,
     label: (l10n) => l10n.nav_certifications,
+  ),
+  // Media sits with Documents: both are reference collections a diver
+  // browses, rather than the logging sections at the top of the list.
+  NavDestination(
+    id: 'media',
+    route: '/media',
+    icon: Icons.photo_library_outlined,
+    selectedIcon: Icons.photo_library,
+    label: (l10n) => l10n.nav_media,
   ),
   NavDestination(
     id: 'documents',
