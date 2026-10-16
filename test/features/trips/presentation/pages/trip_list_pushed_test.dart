@@ -14,6 +14,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -59,6 +60,7 @@ void main() {
     required Size size,
     required String initial,
     ListViewMode viewMode = ListViewMode.detailed,
+    bool detailsPane = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -107,6 +109,7 @@ void main() {
             (ref) => const AsyncValue.data(<TripWithStats>[]),
           ),
           tripListViewModeProvider.overrideWith((ref) => viewMode),
+          tableDetailsPaneProvider('trips').overrideWith((ref) => detailsPane),
           tripTableConfigProvider.overrideWith(
             (ref) => _TestTripTableConfigNotifier(),
           ),
@@ -133,10 +136,13 @@ void main() {
     ),
   );
 
-  for (final (label, size, mode) in [
-    ('desktop list', desktop, ListViewMode.detailed),
-    ('desktop table', desktop, ListViewMode.table),
-    ('phone', phone, ListViewMode.detailed),
+  for (final (label, size, mode, pane) in [
+    ('desktop list', desktop, ListViewMode.detailed, false),
+    ('desktop table', desktop, ListViewMode.table, false),
+    // The table's header sits in a Column beside the pane, not as a
+    // Scaffold app bar; it still has to lead with the way back.
+    ('desktop table with details pane', desktop, ListViewMode.table, true),
+    ('phone', phone, ListViewMode.detailed, false),
   ]) {
     testWidgets('$label: a pushed list shows a back arrow that pops and '
         'restores the filter and highlight', (tester) async {
@@ -145,6 +151,7 @@ void main() {
         size: size,
         initial: '/root',
         viewMode: mode,
+        detailsPane: pane,
       );
       h.container.read(tripFilterProvider.notifier).state =
           const TripFilterState(equipmentId: 'gear');
