@@ -54,13 +54,17 @@ class DiverSettingsRepository {
   /// `diver_settings` has no unique index on `diver_id`, and sync merges its
   /// rows by id, so two devices that each created a row for the diver before
   /// syncing leave both behind (issue #3343). A read that expected one row
-  /// then threw "Too many elements". The most recently updated row wins, with
-  /// the id breaking a tie so that every device picks the same one.
+  /// then threw "Too many elements". The newest row wins: one with an HLC
+  /// over one without, then the later clock (its packed form sorts as it
+  /// compares), then updatedAt, with the id breaking a tie so that every
+  /// device picks the same one.
   SimpleSelectStatement<$DiverSettingsTable, DiverSetting> _rowsNewestFirst(
     String diverId,
   ) => _db.select(_db.diverSettings)
     ..where((t) => t.diverId.equals(diverId))
     ..orderBy([
+      (t) => OrderingTerm.asc(t.hlc.isNull()),
+      (t) => OrderingTerm.desc(t.hlc),
       (t) => OrderingTerm.desc(t.updatedAt),
       (t) => OrderingTerm.asc(t.id),
     ]);
@@ -155,6 +159,9 @@ class DiverSettingsRepository {
       return false;
     }
     try {
+      // Keyed on the diver like updateSettingsForDiver, so twins collapse
+      // first for the same reason (issue #3343).
+      await _dropDuplicateRows(diverId);
       // One transaction: both columns and the sync mark land together, and
       // the table-updates stream fires once.
       final adopted = await _db.transaction(() async {
@@ -453,6 +460,10 @@ class DiverSettingsRepository {
     AppSettings? previous,
   }) async {
     try {
+      // The writes below key on the diver, so a twin row a sync delivered
+      // since the load would take the write too and tie with the row the
+      // reads use (issue #3343).
+      await _dropDuplicateRows(diverId);
       final columns = _storedColumns(settings).toColumns(false);
       final changed = previous == null
           ? columns

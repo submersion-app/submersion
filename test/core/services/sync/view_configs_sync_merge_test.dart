@@ -31,13 +31,15 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  ViewConfig row(String id, String marker, int updatedAt) => ViewConfig(
-    id: id,
-    diverId: 'd1',
-    viewMode: 'table',
-    configJson: '{"v":"$marker"}',
-    updatedAt: updatedAt,
-  );
+  ViewConfig row(String id, String marker, int updatedAt, {String? hlc}) =>
+      ViewConfig(
+        id: id,
+        diverId: 'd1',
+        viewMode: 'table',
+        configJson: '{"v":"$marker"}',
+        updatedAt: updatedAt,
+        hlc: hlc,
+      );
 
   Future<void> seedLocal(ViewConfig local) =>
       db.into(db.viewConfigs).insert(local);
@@ -111,6 +113,28 @@ void main() {
 
         final pending = await SyncRepository().getPendingRecords();
         expect(pending.where((r) => r.entityType == 'viewConfigs'), isEmpty);
+      });
+
+      test('the newer clock wins over a later updatedAt', () async {
+        await seedLocal(
+          row('a-local', 'local', 3000, hlc: '000000000001000:000000:n1'),
+        );
+
+        await apply(
+          row('b-remote', 'remote', 1000, hlc: '000000000002000:000000:n2'),
+        );
+
+        expect(await tableRows(), ['a-local|{"v":"remote"}']);
+      });
+
+      test('a row with a clock wins over a legacy row without one', () async {
+        await seedLocal(row('a-local', 'local', 3000));
+
+        await apply(
+          row('b-remote', 'remote', 1000, hlc: '000000000001000:000000:n2'),
+        );
+
+        expect(await tableRows(), ['a-local|{"v":"remote"}']);
       });
 
       test('a peer row with no rival is stored as it is', () async {

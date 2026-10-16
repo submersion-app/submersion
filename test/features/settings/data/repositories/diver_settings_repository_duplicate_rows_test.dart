@@ -83,6 +83,25 @@ void main() {
       expect(unset.pscrRatio, isTrue);
     });
 
+    test('updateSettingsForDiver collapses the twins before it writes, so '
+        'the write lands on one row', () async {
+      await repository.updateSettingsForDiver(
+        'd1',
+        const AppSettings(depthUnit: DepthUnit.meters),
+      );
+
+      expect((await rows()).map((r) => r.id), ['settings-iphone']);
+    });
+
+    test(
+      'adoptDeviceLocalValues collapses the twins before it writes',
+      () async {
+        await repository.adoptDeviceLocalValues('d1', pscrRatio: 80.0);
+
+        expect((await rows()).map((r) => r.id), ['settings-iphone']);
+      },
+    );
+
     test('updateSettingsForDiver saves without throwing', () async {
       await repository.updateSettingsForDiver(
         'd1',

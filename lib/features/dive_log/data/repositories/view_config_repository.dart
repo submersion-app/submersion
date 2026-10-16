@@ -243,14 +243,17 @@ class ViewConfigRepository {
   /// Only a database that upgraded through v62 has the unique index on
   /// (diver_id, view_mode); a fresh install has none, and sync merges these
   /// rows by id, so two devices can each leave a row for the same view
-  /// (issue #3343). The most recently updated row wins, the id breaking a
-  /// tie, rather than a "Too many elements" throw.
+  /// (issue #3343). The newest row wins, in the order the sync merge uses
+  /// (HLC first, then updatedAt, then the lower id), rather than a "Too many
+  /// elements" throw.
   Future<ViewConfig?> _rowFor(String diverId, String viewMode) =>
       (_db.select(_db.viewConfigs)
             ..where(
               (r) => r.diverId.equals(diverId) & r.viewMode.equals(viewMode),
             )
             ..orderBy([
+              (r) => OrderingTerm.asc(r.hlc.isNull()),
+              (r) => OrderingTerm.desc(r.hlc),
               (r) => OrderingTerm.desc(r.updatedAt),
               (r) => OrderingTerm.asc(r.id),
             ])
