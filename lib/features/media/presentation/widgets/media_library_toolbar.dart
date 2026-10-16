@@ -59,11 +59,12 @@ const double kMediaToolbarThumbnailSliderMinWidth =
 /// replaced was an Expanded horizontal scroller that claimed all free width
 /// and squeezed the view-mode selector beside it.
 ///
-/// Fixed widths also mean the row has a hard budget. The fourth view mode
-/// (map) pushed the segmented button past what 320dp can hold next to the
-/// three compact icon buttons, so the row measures itself: with room, four
-/// segments; without, one menu button showing the current mode's icon, the
-/// way the dive list picks its view mode.
+/// Fixed widths also mean the row has a hard budget. Four segments beside
+/// four compact icon buttons need [kMediaToolbarFourSegmentMinWidth], so
+/// the row measures itself: with room, four segments; without, one menu
+/// button showing the current mode's icon, the way the dive list picks its
+/// view mode. The threshold ignores which buttons the current mode shows,
+/// so switching modes never reshapes the view-mode control.
 class MediaLibraryToolbar extends ConsumerWidget {
   const MediaLibraryToolbar({
     super.key,
@@ -113,6 +114,8 @@ class MediaLibraryToolbar extends ConsumerWidget {
       builder: (context, constraints) {
         final compactModes =
             constraints.maxWidth < kMediaToolbarFourSegmentMinWidth;
+        final inlineSlider =
+            constraints.maxWidth >= kMediaToolbarThumbnailSliderMinWidth;
         return Row(
           children: [
             IconButton(
@@ -159,11 +162,10 @@ class MediaLibraryToolbar extends ConsumerWidget {
               ),
             const Spacer(),
             // The map has no thumbnail grid to size.
-            if (mode != MediaLibraryViewMode.map)
-              if (constraints.maxWidth >= kMediaToolbarThumbnailSliderMinWidth)
-                const _ThumbnailSizeSlider(width: _kThumbnailSliderWidth)
-              else
-                const _ThumbnailSizeButton(),
+            if (mode != MediaLibraryViewMode.map && inlineSlider)
+              const _ThumbnailSizeSlider(width: _kThumbnailSliderWidth),
+            if (mode != MediaLibraryViewMode.map && !inlineSlider)
+              const _ThumbnailSizeButton(),
             if (compactModes)
               _ViewModeMenuButton(
                 current: mode,
