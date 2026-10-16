@@ -14098,6 +14098,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => '材质';
 
   @override
+  String get cylinderConfigs_fieldGasMix => '混合气';
+
+  @override
   String get cylinderConfigs_sectionTitle => '配置';
 
   @override

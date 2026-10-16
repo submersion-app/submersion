@@ -8712,6 +8712,7 @@
   "cylinderConfigs_fieldVolume": "Volume",
   "cylinderConfigs_fieldWorkingPressure": "Working pressure",
   "cylinderConfigs_fieldMaterial": "Material",
+  "cylinderConfigs_fieldGasMix": "Gas mix",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Counted from logged dive time",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} of {total} hours, {remaining} left",

@@ -3988,7 +3988,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// rules live in CylinderConfigApplier via DiveTankConfigAdapter, which
   /// never overwrites a gas mix already on the dive. A different size,
   /// pressure, material or label on a matched cylinder is replaced only once
-  /// the diver confirms it (issue #2563).
+  /// the diver confirms it (issue #2563), as is a role read off a
+  /// transmitter's name, with the mix defaulted from it (issue #3307).
   Future<void> _applyCylinderConfig(CylinderConfig config) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;

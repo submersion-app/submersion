@@ -65,6 +65,12 @@ class ApplyConfigurationConfirmDialog extends StatelessWidget {
           ),
           role.to.localizedName(l10n),
         ),
+      if (change.gas case final gas?)
+        line(
+          l10n.cylinderConfigs_fieldGasMix,
+          GasMix(o2: gas.from.o2, he: gas.from.he).name,
+          GasMix(o2: gas.to.o2, he: gas.to.he).name,
+        ),
       if (change.volumeL case final volume?)
         line(
           l10n.cylinderConfigs_fieldVolume,
@@ -118,13 +124,16 @@ class ApplyConfigurationConfirmDialog extends StatelessWidget {
                   child: Text(line),
                 ),
             ],
-            const SizedBox(height: 12),
-            Text(
-              l10n.cylinderConfigs_overwriteKeepsGas,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            // Only a re-roled tank's defaulted mix is ever replaced.
+            if (overwrites.every((c) => c.gas == null)) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.cylinderConfigs_overwriteKeepsGas,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

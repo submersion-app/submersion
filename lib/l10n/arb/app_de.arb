@@ -4344,6 +4344,7 @@
   "cylinderConfigs_fieldVolume": "Volumen",
   "cylinderConfigs_fieldWorkingPressure": "Betriebsdruck",
   "cylinderConfigs_fieldMaterial": "Material",
+  "cylinderConfigs_fieldGasMix": "Gasgemisch",
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} von {total} Stunden, {remaining} übrig",

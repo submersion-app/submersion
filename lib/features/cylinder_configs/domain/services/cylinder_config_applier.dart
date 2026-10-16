@@ -12,6 +12,11 @@ class ExistingTank {
   final String? tankName;
   final int tankOrder;
 
+  /// The tank's gas, read only to offer a re-roled tank its configuration
+  /// mix (see [OverwriteTank.gas]).
+  final double o2Percent;
+  final double hePercent;
+
   /// Where [tankRole] came from when no person chose it (issue #2595).
   final TankRoleSource? roleSource;
 
@@ -25,12 +30,17 @@ class ExistingTank {
     this.startPressureBar,
     this.tankName,
     this.tankOrder = 0,
+    this.o2Percent = 21,
+    this.hePercent = 0,
   });
 
   /// The dive computer read the role off the transmitter's name, so it is a
   /// guess this applier may check against the configuration (issue #3307).
   bool get roleNameDerived => roleSource == TankRoleSource.transmitterName;
 }
+
+/// A gas mix as oxygen and helium percentages.
+typedef GasPercentages = ({double o2, double he});
 
 sealed class CylinderConfigOp {
   const CylinderConfigOp();
@@ -100,13 +110,17 @@ class SpecChange<T> {
 /// Never part of [CylinderConfigPlan.ops]: a FillTank only writes into a
 /// gap, but this replaces something the diver or a dive computer put there,
 /// so callers show the diver these changes and apply them only on consent
-/// (issue #2563). Like [FillTank] it has no gas fields, and no start
-/// pressure either: that is a reading of this dive, not a property of the
+/// (issue #2563). Like [FillTank] it never replaces a gas mix the diver or
+/// a dive computer put there (see [gas] for the one defaulted case), and it
+/// has no start pressure either: that is a reading of this dive, not a property of the
 /// cylinder a configuration describes.
 ///
 /// [role] is set only on a tank whose role the dive computer read off the
 /// transmitter's name, where the configuration says the cylinder is
-/// something else (issue #3307). The plan's ops already treat that tank as
+/// something else (issue #3307). [gas] can only accompany it: such a tank's
+/// mix is not the computer's either (a Shearwater transmitter reports none),
+/// but the default the importer gave the guessed role, such as 100% for an
+/// oxygen supply, so a bailout re-roled from O2 must not keep it. The plan's ops already treat that tank as
 /// the configuration's cylinder (its fill, and no duplicate insert), so a
 /// caller applies the ops together with the overwrites or not at all.
 class OverwriteTank extends CylinderConfigOp {
@@ -115,6 +129,7 @@ class OverwriteTank extends CylinderConfigOp {
   /// The role the tank holds on the dive now.
   final TankRole tankRole;
   final SpecChange<TankRole>? role;
+  final SpecChange<GasPercentages>? gas;
   final SpecChange<double>? volumeL;
   final SpecChange<double>? workingPressureBar;
   final SpecChange<TankMaterial>? tankMaterial;
@@ -124,6 +139,7 @@ class OverwriteTank extends CylinderConfigOp {
     required this.tankId,
     required this.tankRole,
     this.role,
+    this.gas,
     this.volumeL,
     this.workingPressureBar,
     this.tankMaterial,
@@ -132,6 +148,7 @@ class OverwriteTank extends CylinderConfigOp {
 
   bool get isEmpty =>
       role == null &&
+      gas == null &&
       volumeL == null &&
       workingPressureBar == null &&
       tankMaterial == null &&
@@ -187,6 +204,21 @@ class CylinderConfigApplier {
     if (current == null || wanted == null) return null;
     if ((current - wanted).abs() <= tolerance) return null;
     return SpecChange(current, wanted);
+  }
+
+  static const _gasTolerancePercent = 0.5;
+
+  static SpecChange<GasPercentages>? _gasDiffers(
+    ExistingTank tank,
+    CylinderConfigItem item,
+  ) {
+    final from = (o2: tank.o2Percent, he: tank.hePercent);
+    final to = (o2: item.o2Percent, he: item.hePercent);
+    if ((from.o2 - to.o2).abs() <= _gasTolerancePercent &&
+        (from.he - to.he).abs() <= _gasTolerancePercent) {
+      return null;
+    }
+    return SpecChange(from, to);
   }
 
   /// How a tank's known specs compare with a configuration item's: any
@@ -350,6 +382,7 @@ class CylinderConfigApplier {
         tankId: match.id,
         tankRole: match.tankRole,
         role: roleChanges ? SpecChange(match.tankRole, item.tankRole) : null,
+        gas: roleChanges ? _gasDiffers(match, item) : null,
         volumeL: _differs(match.volumeL, item.volumeL, _volumeToleranceL),
         workingPressureBar: _differs(
           match.workingPressureBar,

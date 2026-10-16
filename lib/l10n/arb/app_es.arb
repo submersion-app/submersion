@@ -4298,6 +4298,7 @@
   "cylinderConfigs_fieldVolume": "Volumen",
   "cylinderConfigs_fieldWorkingPressure": "Presión de trabajo",
   "cylinderConfigs_fieldMaterial": "Material",
+  "cylinderConfigs_fieldGasMix": "Mezcla de gas",
   "cylinderConfigs_sectionTitle": "Configuraciones",
   "equipment_serviceClocks_hoursSource": "Calculado a partir del tiempo de buceo registrado",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} de {total} horas, quedan {remaining}",

@@ -4198,6 +4198,7 @@
   "cylinderConfigs_fieldVolume": "Térfogat",
   "cylinderConfigs_fieldWorkingPressure": "Üzemi nyomás",
   "cylinderConfigs_fieldMaterial": "Anyag",
+  "cylinderConfigs_fieldGasMix": "Gázkeverék",
   "cylinderConfigs_sectionTitle": "Konfigurációk",
   "equipment_serviceClocks_hoursSource": "A naplózott merülési idő alapján számolva",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used}/{total} órából {remaining} van hátra",

@@ -317,6 +317,7 @@ void main() {
       expect(t3.roleSource, TankRoleSource.transmitterName);
       // The bailout's size is not put on a tank still marked O2.
       expect(t3.volume, isNull);
+      expect(t3.gasMix.o2, 100);
     });
 
     test('accepted, takes the config role and drops the marker', () {
@@ -333,8 +334,10 @@ void main() {
       expect(t3.role, TankRole.bailout);
       expect(t3.roleSource, isNull);
       expect(t3.volume, 5.7);
-      // The gas mix is never touched, even on a re-roled cylinder.
-      expect(t3.gasMix.o2, 100);
+      // The 100% O2 was defaulted from the guessed role, so the config's
+      // bailout mix replaces it.
+      expect(t3.gasMix.o2, 21);
+      expect(t3.gasMix.he, 0);
     });
 
     test('a fitting size confirms the role without asking', () {

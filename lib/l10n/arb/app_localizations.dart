@@ -23921,6 +23921,12 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get cylinderConfigs_fieldMaterial;
 
+  /// No description provided for @cylinderConfigs_fieldGasMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas mix'**
+  String get cylinderConfigs_fieldGasMix;
+
   /// No description provided for @cylinderConfigs_sectionTitle.
   ///
   /// In en, this message translates to:

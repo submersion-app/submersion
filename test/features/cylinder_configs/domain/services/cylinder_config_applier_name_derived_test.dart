@@ -47,6 +47,9 @@ void main() {
     workingPressureBar: pressure,
     tankMaterial: material,
     tankOrder: order,
+    // As the importer leaves it: a transmitter reports no mix, so an
+    // oxygen supply gets 100% and everything else air.
+    o2Percent: role == TankRole.oxygenSupply ? 100 : 21,
   );
 
   // The usual CCR configuration: O2, diluent and one bailout.
@@ -82,6 +85,9 @@ void main() {
       expect(change.tankRole, TankRole.oxygenSupply);
       expect(change.role?.from, TankRole.oxygenSupply);
       expect(change.role?.to, TankRole.bailout);
+      // The 100% the importer gave the guessed O2 role goes with it.
+      expect(change.gas?.from, (o2: 100.0, he: 0.0));
+      expect(change.gas?.to, (o2: 21.0, he: 0.0));
     });
 
     test('fills the specs of the config cylinder it is offered', () {

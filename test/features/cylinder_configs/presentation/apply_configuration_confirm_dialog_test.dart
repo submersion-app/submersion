@@ -108,6 +108,7 @@ void main() {
           tankId: 't2',
           tankRole: TankRole.oxygenSupply,
           role: SpecChange(TankRole.oxygenSupply, TankRole.bailout),
+          gas: SpecChange((o2: 100, he: 0), (o2: 21, he: 0)),
         ),
       ],
     );
@@ -116,6 +117,12 @@ void main() {
     expect(
       find.text("Role: O₂ Supply, read from the transmitter's name → Bailout"),
       findsOneWidget,
+    );
+    expect(find.text('Gas mix: O2 → Air'), findsOneWidget);
+    // A gas mix does change here, so the dialog does not claim otherwise.
+    expect(
+      find.text('Gas mixes and start pressures already on the dive are kept.'),
+      findsNothing,
     );
   });
 

@@ -14708,6 +14708,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Anyag';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gázkeverék';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Konfigurációk';
 
   @override

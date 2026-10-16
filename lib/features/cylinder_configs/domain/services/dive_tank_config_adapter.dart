@@ -28,6 +28,8 @@ class DiveTankConfigAdapter {
     startPressureBar: tank.startPressure,
     tankName: tank.name,
     tankOrder: tank.order,
+    o2Percent: tank.gasMix.o2,
+    hePercent: tank.gasMix.he,
   );
 
   DiveTank _fromItem(CylinderConfigItem item, int order, String id) => DiveTank(
@@ -135,6 +137,10 @@ class DiveTankConfigAdapter {
             material: op.tankMaterial?.to,
             name: op.tankName?.to,
             role: op.role?.to,
+            gasMix: switch (op.gas?.to) {
+              final gas? => GasMix(o2: gas.o2, he: gas.he),
+              null => null,
+            },
             // The diver accepted the configuration's role in place of the
             // one read off the transmitter's name.
             clearRoleSource: op.role != null,

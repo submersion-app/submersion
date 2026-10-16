@@ -4425,6 +4425,7 @@
   "cylinderConfigs_fieldVolume": "容积",
   "cylinderConfigs_fieldWorkingPressure": "工作压力",
   "cylinderConfigs_fieldMaterial": "材质",
+  "cylinderConfigs_fieldGasMix": "混合气",
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursUsedAndLeft": "已用 {used}/{total} 小时，剩余 {remaining} 小时",
