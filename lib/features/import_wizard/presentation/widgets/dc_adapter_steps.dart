@@ -410,9 +410,17 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       timeout: DcAdapterDownloadStep.knownDeviceScanTimeout,
       stopScanWhenDone: false,
     );
-    // Closed while scanning: dispose has stopped the scan, and nothing here
-    // should download.
-    if (!mounted) return;
+    // Closed while scanning: nothing here should download. Dispose stopped
+    // the scan, but on Android the scan only starts once the permission
+    // prompt returns, which can be after the step closed, so stop it again.
+    if (!mounted) {
+      logFailure(
+        notifier.stopScan(),
+        DcAdapterDownloadStep,
+        'stop the re-acquire scan',
+      );
+      return;
+    }
     if (device != null) {
       _log.info(
         'Re-acquired ${computer.displayName} at ${device.address}; keeping '
