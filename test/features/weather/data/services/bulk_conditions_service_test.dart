@@ -155,23 +155,6 @@ void main() {
   Future<Dive> readRow(String id) async =>
       (db.select(db.dives)..where((t) => t.id.equals(id))).getSingle();
 
-  group('diveWallClockToLocal', () {
-    test('rebuilds the stored wall clock in the local zone', () {
-      // Dive times are stored as a wall clock flagged UTC. The archive mapper
-      // compares against locally parsed timestamps, so the same components
-      // have to be rebuilt locally or the sampled hour is off by the machine's
-      // UTC offset.
-      final local = diveWallClockToLocal(DateTime.utc(2024, 6, 15, 9, 30));
-
-      expect(local.isUtc, isFalse);
-      expect(local.year, 2024);
-      expect(local.month, 6);
-      expect(local.day, 15);
-      expect(local.hour, 9);
-      expect(local.minute, 30);
-    });
-  });
-
   group('BulkConditionsService.countCandidates', () {
     test('counts only dives that can be filled', () async {
       await insertSite('s1', 12.5, -68.25);

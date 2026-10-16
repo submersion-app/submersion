@@ -42,17 +42,6 @@ class BulkConditionsResult {
   int get processed => filled + unavailable + unchanged;
 }
 
-/// Rebuilds a stored dive time as a local [DateTime] with the same wall-clock
-/// components.
-///
-/// Dive times are persisted as a wall clock flagged UTC (a dive logged at 09:00
-/// reads back as `09:00Z`). The archive mapper matches on wall-clock fields
-/// whatever the flag, so this is not needed for the hour pick; it keeps the
-/// value handed on a plain local wall clock, the same shape the single-dive
-/// fetch on the edit page builds from its date and time pickers.
-DateTime diveWallClockToLocal(DateTime stored) =>
-    DateTime(stored.year, stored.month, stored.day, stored.hour, stored.minute);
-
 /// Key for the one-response-per-place-per-day cache.
 ///
 /// Coordinates are rounded to about a metre before keying: two dives at the
@@ -187,7 +176,10 @@ class BulkConditionsService {
   /// catch here: it would be unreachable, and swallowing a genuinely
   /// unexpected error would only hide it.
   Future<WeatherData?> _fetch(ConditionsCandidate candidate) {
-    final wallClock = diveWallClockToLocal(candidate.dateTime);
+    // Dive times are a wall clock flagged UTC. The request asks for the
+    // site's own timezone and the mapper matches on wall-clock fields, so the
+    // stored value is handed on as is.
+    final wallClock = candidate.dateTime;
     return _weatherService.fetchWeather(
       latitude: candidate.latitude,
       longitude: candidate.longitude,
