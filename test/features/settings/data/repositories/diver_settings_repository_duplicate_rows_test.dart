@@ -69,8 +69,12 @@ void main() {
       expect(settings?.depthUnit, DepthUnit.feet);
     });
 
-    test('hasSeascapeAppearance does not throw', () async {
-      expect(await repository.hasSeascapeAppearance('d1'), isA<bool>());
+    test('hasSeascapeAppearance reads the most recently updated row', () async {
+      await (db.update(db.diverSettings)
+            ..where((t) => t.id.equals('settings-iphone')))
+          .write(const DiverSettingsCompanion(seascapeAppearance: Value('{}')));
+
+      expect(await repository.hasSeascapeAppearance('d1'), isTrue);
     });
 
     test('unsetAdoptableColumns does not throw', () async {
