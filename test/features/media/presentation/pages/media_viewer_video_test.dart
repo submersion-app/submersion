@@ -46,17 +46,32 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   final _events = StreamController<VideoEvent>.broadcast();
   bool playing = false;
 
+  /// Native players created and released, so a test can tell how many
+  /// decoders the viewer holds.
+  int created = 0;
+  int disposed = 0;
+
   @override
   Future<void> init() async {}
 
   @override
-  Future<int?> create(DataSource dataSource) async => 1;
+  Future<int?> create(DataSource dataSource) async {
+    created++;
+    return 1;
+  }
 
   @override
-  Future<int?> createWithOptions(VideoCreationOptions options) async => 1;
+  Future<int?> createWithOptions(VideoCreationOptions options) async {
+    created++;
+    return 1;
+  }
 
+  /// A released player stops, as the real platforms' players do.
   @override
-  Future<void> dispose(int playerId) async {}
+  Future<void> dispose(int playerId) async {
+    disposed++;
+    playing = false;
+  }
 
   @override
   Stream<VideoEvent> videoEventsFor(int playerId) => _events.stream;
@@ -459,14 +474,82 @@ void main() {
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
+    // The release finishes on the real clock: VideoPlayerController.dispose
+    // awaits cancelling an event subscription made inside runAsync.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
     // No page-indicator check: the chrome hides while a clip plays. A swipe
     // that did not land would leave the clip playing and fail here anyway.
     expect(platform.playing, isFalse);
+    // Released, not merely paused: a kept neighbour must not hold a native
+    // decoder while off screen (#1175).
+    expect(platform.disposed, platform.created);
 
     // Nor may it keep keyboard focus: the space bar would start it again
     // off screen.
     await tester.sendKeyEvent(LogicalKeyboardKey.space);
     await tester.pump();
     expect(platform.playing, isFalse);
+  });
+
+  // A neighbour video is built ahead, but its native player is not: only the
+  // page on screen holds a decoder, as before neighbours stayed built.
+  testWidgets('a neighbouring video creates no player until shown', (
+    tester,
+  ) async {
+    final platform = _FakeVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = platform;
+    final photo = MediaItem(
+      id: 'p1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      takenAt: DateTime.utc(2026, 7, 1, 9),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.localFile: _UnavailableResolver(),
+              }),
+            ),
+            resolvedFilePathProvider.overrideWith(
+              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaViewerPage(
+              mediaList: [photo, video('v1')],
+              initialMediaId: 'p1',
+            ),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await tester.pump();
+    });
+
+    expect(platform.created, 0);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byTooltip('Next media'));
+      for (var i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    });
+    expect(platform.created, 1);
   });
 }

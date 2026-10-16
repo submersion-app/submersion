@@ -1078,26 +1078,46 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   String? _error;
   final FocusNode _focusNode = FocusNode();
 
+  /// Bumped whenever a load starts or the page leaves the screen, so a load
+  /// that finishes after its page moved on knows to release its player.
+  int _loadGeneration = 0;
+
   @override
   void initState() {
     super.initState();
-    _initializeVideo();
+    // A neighbour built ahead holds no native player: only the page on
+    // screen gets a decoder and texture, as before neighbours stayed built
+    // (#1175 is the memory budget this protects).
+    if (widget.isCurrent) _initializeVideo();
   }
 
   @override
   void didUpdateWidget(covariant _VideoItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!oldWidget.isCurrent || widget.isCurrent) return;
-    // Swiped away: stop here rather than play on one page off screen, which
-    // is what disposal used to do before neighbours stayed built.
-    final controller = _controller;
-    if (controller != null && controller.value.isPlaying) {
-      unawaited(controller.pause());
+    if (!oldWidget.isCurrent && widget.isCurrent) {
+      _initializeVideo();
+    } else if (oldWidget.isCurrent && !widget.isCurrent) {
+      _release();
     }
-    // And hand keyboard focus back. Swiping on to a photo requests none, so
-    // the space bar would otherwise still reach this clip. The previously
-    // focused node is the viewer's own, which keeps the arrow keys working.
+  }
+
+  /// Swiped away: release the player, which also stops playback, rather
+  /// than keep it one page off screen. Keyboard focus goes back too: a swipe
+  /// on to a photo requests none, so the space bar would otherwise still
+  /// reach this page. The previously focused node is the viewer's own, which
+  /// keeps the arrow keys working.
+  void _release() {
+    _loadGeneration++;
     _focusNode.unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
+    final controller = _controller;
+    // Plain assignments: didUpdateWidget is always followed by a build.
+    _controller = null;
+    _isInitialized = false;
+    _isLoading = true;
+    _error = null;
+    if (controller == null) return;
+    widget.onControllerChanged(widget.item.id, null);
+    unawaited(controller.dispose());
   }
 
   /// Handle keyboard events for video playback
@@ -1115,11 +1135,13 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     // cannot clean up a controller that never got that far, and each leak
     // orphans a native decoder/texture for the process lifetime.
     VideoPlayerController? pending;
+    final generation = ++_loadGeneration;
+    // Gone, or swiped away and released while this load was in flight.
+    bool stale() => !mounted || generation != _loadGeneration;
     try {
       final path = await ref.read(resolvedFilePathProvider(widget.item).future);
 
-      // The pager builds neighbours ahead, so a page can be gone by now.
-      if (!mounted) return;
+      if (stale()) return;
       if (path == null) {
         setState(() {
           _error = 'videoFileNotFound';
@@ -1132,7 +1154,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       pending = controller;
       await controller.initialize();
 
-      if (!mounted) {
+      if (stale()) {
         controller.dispose();
         return;
       }
@@ -1147,7 +1169,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       widget.onControllerChanged(widget.item.id, controller);
     } catch (e) {
       await pending?.dispose();
-      if (mounted) {
+      if (!stale()) {
         setState(() {
           _error = 'failedToLoadVideo';
           _isLoading = false;
