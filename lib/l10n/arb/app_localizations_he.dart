@@ -19077,6 +19077,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'העלייה חוצה את תקרת הדקומפרסיה של $ceiling ומדלגת על עצירות נדרשות';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout =>
       'תוכנית דקומפרסיה CCR ללא גז חילוץ (bailout)';
 

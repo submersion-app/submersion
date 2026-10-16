@@ -499,13 +499,16 @@ class PlanEngine {
     // A separate, finely-sampled replay purely for the chart's ceiling curve.
     // It never feeds back into `state`/cns/otu/stops, so it cannot perturb
     // the numbers the rest of this method already computed and returned.
-    final ceilingTrace = _ceilingTrace(
+    // The same replay walks the authored legs at that resolution, so it is
+    // also where a leg that takes the diver above the ceiling shows up.
+    final (:trace, :breaches) = _ceilingTrace(
       model,
       plan,
       legs,
       stops,
       lastDepth,
       ascentPlan,
+      startState ?? model.initial(),
     );
 
     // Decompression stops carry O2 exposure too — a long stop on a rich deco
@@ -555,6 +558,7 @@ class PlanEngine {
       cns,
       otu,
       environment,
+      breaches,
     );
 
     // The last table line's end, so the headline runtime can never
@@ -589,7 +593,7 @@ class PlanEngine {
       issues: issues,
       endTissue: state as BuhlmannState,
       tissueTimeline: timeline,
-      ceilingTrace: ceilingTrace,
+      ceilingTrace: trace,
     );
   }
 
@@ -603,24 +607,37 @@ class PlanEngine {
   /// [ceilingSampleSeconds] so the chart can draw the real shape of a deco
   /// obligation: it climbs from 0 as tissues load, then eases back to 0 as
   /// each stop clears — never a flat plateau pinned to a stop's own depth.
-  List<(int, double)> _ceilingTrace(
+  ///
+  /// The replay starts from [initialState], the tissues the plan itself
+  /// starts from, so a repetitive dive's residual loading shows on the chart
+  /// just as it does in the stops.
+  ///
+  /// [breaches] holds, per authored leg, the sample where the diver was
+  /// furthest above the ceiling: the deepest ceiling they were shallower than
+  /// (#3354). Only authored legs are checked; the computed stops respect the
+  /// ceiling by construction.
+  ({List<(int, double)> trace, List<_CeilingBreach> breaches}) _ceilingTrace(
     DecoModel model,
     domain.DivePlan plan,
     List<ResolvedLeg> legs,
     List<PlanStop> stops,
     double lastDepth,
     AscentGasPlan ascentPlan,
+    TissueState initialState,
   ) {
     final trace = <(int, double)>[];
-    var traceState = model.initial();
+    final breaches = <_CeilingBreach>[];
+    var traceState = initialState;
     var runtime = 0;
 
     void sampleLeg(
       double startDepth,
       double endDepth,
       int durationSeconds,
-      BreathingConfig Function(double depth) breathingAt,
-    ) {
+      BreathingConfig Function(double depth) breathingAt, {
+      String? authoredSegmentId,
+    }) {
+      _CeilingBreach? worst;
       var elapsed = 0;
       while (elapsed < durationSeconds) {
         final remaining = durationSeconds - elapsed;
@@ -653,8 +670,24 @@ class PlanEngine {
         // (buhlmann_algorithm.dart, "only calculate ceiling/stops when
         // actually in deco").
         final owesDeco = model.surfaceCeilingMeters(traceState) > 0;
-        trace.add((runtime, owesDeco ? model.ceilingMeters(traceState) : 0.0));
+        final ceiling = owesDeco ? model.ceilingMeters(traceState) : 0.0;
+        trace.add((runtime, ceiling));
+        // The scheduler's own test for leaving a stop: the ceiling may not be
+        // above the diver at any point of the leg, arrival included
+        // (BuhlmannAlgorithm._trialAscentClears). The tolerance only absorbs
+        // float noise in the interpolated depth.
+        if (authoredSegmentId != null &&
+            ceiling > legEnd + _ceilingBreachToleranceMeters &&
+            (worst == null || ceiling > worst.ceilingMeters)) {
+          worst = (
+            segmentId: authoredSegmentId,
+            runtimeSeconds: runtime,
+            depthMeters: legEnd,
+            ceilingMeters: ceiling,
+          );
+        }
       }
+      if (worst != null) breaches.add(worst);
     }
 
     BreathingConfig ascentBreathingAt(double depth) {
@@ -669,6 +702,7 @@ class PlanEngine {
         leg.endDepth,
         leg.durationSeconds,
         (depth) => _breathingFor(plan, segment.gasMix, depth, segment: segment),
+        authoredSegmentId: segment.id,
       );
     }
 
@@ -700,8 +734,13 @@ class PlanEngine {
       sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
     }
 
-    return trace;
+    return (trace: trace, breaches: breaches);
   }
+
+  /// Slack allowed between the ceiling and the diver before an authored leg
+  /// counts as a breach, in meters. Small enough to never hide a skipped
+  /// stop; large enough to ignore rounding in the interpolated depth.
+  static const _ceilingBreachToleranceMeters = 0.01;
 
   /// CCR consumption: metabolic O2 over the whole runtime charged to the
   /// oxygen-supply tank, descent loop-fill diluent charged leg by leg to
@@ -1068,8 +1107,26 @@ class PlanEngine {
     double cns,
     double otu,
     DiveEnvironment environment,
+    List<_CeilingBreach> ceilingBreaches,
   ) {
     final issues = <PlanIssue>[];
+
+    for (final breach in ceilingBreaches) {
+      issues.add(
+        PlanIssue(
+          type: PlanIssueType.ceilingViolated,
+          severity: PlanIssueSeverity.critical,
+          message:
+              'Ascent to ${breach.depthMeters.toStringAsFixed(0)} m passes '
+              'the ${breach.ceilingMeters.toStringAsFixed(1)} m deco ceiling',
+          atRuntime: breach.runtimeSeconds,
+          atDepth: breach.depthMeters,
+          segmentId: breach.segmentId,
+          value: breach.ceilingMeters,
+          threshold: breach.depthMeters,
+        ),
+      );
+    }
 
     for (var i = 0; i < legs.length; i++) {
       final leg = legs[i];
@@ -1730,3 +1787,12 @@ class PlanEngine {
     return match?.id;
   }
 }
+
+/// The point on an authored leg where the diver was furthest above the deco
+/// ceiling, found by the ceiling replay (#3354).
+typedef _CeilingBreach = ({
+  String segmentId,
+  int runtimeSeconds,
+  double depthMeters,
+  double ceilingMeters,
+});

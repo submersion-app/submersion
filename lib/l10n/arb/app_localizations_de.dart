@@ -19487,6 +19487,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Aufstieg über das Deko-Ceiling von $ceiling, erforderliche Stopps werden ausgelassen';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout =>
       'CCR-Dekompressionsplan führt kein Bailout-Gas mit';
 

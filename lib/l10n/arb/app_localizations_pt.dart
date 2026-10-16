@@ -19509,6 +19509,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'A subida ultrapassa o teto de descompressão de $ceiling, saltando paragens obrigatórias';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout =>
       'O plano de descompressão CCR não leva gás de bailout';
 

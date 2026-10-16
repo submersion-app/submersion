@@ -22,6 +22,10 @@ enum PlanIssueType {
   noBailoutCarried,
   minGasViolation,
   diluentModExceeded,
+
+  /// An authored segment takes the diver shallower than the deco ceiling,
+  /// skipping stops the plan still owes (#3354).
+  ceilingViolated,
 }
 
 /// One issue found while computing a plan.

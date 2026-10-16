@@ -5532,6 +5532,7 @@
   "plannerCanvas_issue_hypoxic": "Gás hipóxico a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "O cilindro termina abaixo do mínimo rock bottom de {pressure}",
   "plannerCanvas_issue_diluentModExceeded": "O diluente excede a MOD Dil a {depth} (ppO₂ {value} bar)",
+  "plannerCanvas_issue_ceilingViolated": "A subida ultrapassa o teto de descompressão de {ceiling}, saltando paragens obrigatórias",
   "plannerCanvas_issue_noBailout": "O plano de descompressão CCR não leva gás de bailout",
   "plannerCanvas_issue_noDecoGas": "Descompressão necessária mas sem gás de deco a bordo",
   "plannerCanvas_range_base": "Base",

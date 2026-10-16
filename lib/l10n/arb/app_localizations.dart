@@ -31195,6 +31195,12 @@ abstract class AppLocalizations {
   /// **'Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)'**
   String plannerCanvas_issue_diluentModExceeded(String depth, String value);
 
+  /// No description provided for @plannerCanvas_issue_ceilingViolated.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent goes above the {ceiling} decompression ceiling, skipping required stops'**
+  String plannerCanvas_issue_ceilingViolated(String ceiling);
+
   /// No description provided for @plannerCanvas_issue_noBailout.
   ///
   /// In en, this message translates to:

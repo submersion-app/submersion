@@ -19217,6 +19217,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Ascent goes above the $ceiling decompression ceiling, skipping required stops';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout =>
       'CCR decompression plan carries no bailout gas';
 

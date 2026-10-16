@@ -12258,6 +12258,14 @@
       }
     }
   },
+  "plannerCanvas_issue_ceilingViolated": "Ascent goes above the {ceiling} decompression ceiling, skipping required stops",
+  "@plannerCanvas_issue_ceilingViolated": {
+    "placeholders": {
+      "ceiling": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_noBailout": "CCR decompression plan carries no bailout gas",
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
   "plannerCanvas_range_base": "Base",

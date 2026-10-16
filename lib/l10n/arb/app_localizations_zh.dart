@@ -18578,6 +18578,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return '上升超过 $ceiling 的减压上升限制，跳过了必需的停留';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout => 'CCR 减压计划未携带逃生气体';
 
   @override
