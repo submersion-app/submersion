@@ -436,9 +436,7 @@ class BailoutSolver {
       // The loop's real inspired ppO2 is the setpoint, not ambient x the
       // diluent's own fraction -- same reasoning as PlanEngine's PO2 column
       // (plan_engine.dart, _buildSchedule's ppO2Override).
-      final setpoint = depth > plan.effectiveSetpointSwitchDepth
-          ? plan.effectiveSetpointHigh
-          : plan.effectiveSetpointLow;
+      final setpoint = setpointAt(plan, depth, config: config);
       final ppO2 = ClosedCircuit(
         setpoint: setpoint,
         diluentFO2: fO2,

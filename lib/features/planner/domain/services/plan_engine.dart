@@ -40,6 +40,14 @@ class PlanEngineConfig extends Equatable {
   /// actually being breathed), this only governs the diluent gas itself.
   final double ccrDiluentModPpO2;
 
+  /// The diver's CCR setpoints from the "ppO2 limits CCR" Settings: the loop
+  /// ppO2 a CCR plan, or a CCR segment of any plan, breathes wherever the
+  /// plan's own [domain.DivePlan.setpointLow] / [domain.DivePlan.setpointHigh]
+  /// is unset (issue #2801). The defaults are the spec values, the last
+  /// resort for a caller with no Settings to hand.
+  final double ccrSetpointLow;
+  final double ccrSetpointHigh;
+
   final int cnsWarningThreshold;
   final bool o2Narcotic;
 
@@ -92,6 +100,8 @@ class PlanEngineConfig extends Equatable {
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
     this.ccrDiluentModPpO2 = 1.6,
+    this.ccrSetpointLow = domain.DivePlan.specSetpointLow,
+    this.ccrSetpointHigh = domain.DivePlan.specSetpointHigh,
     this.cnsWarningThreshold = 80,
     this.o2Narcotic = true,
     this.endLimitMeters = 30.0,
@@ -113,6 +123,8 @@ class PlanEngineConfig extends Equatable {
     ppO2Working,
     ppO2Deco,
     ccrDiluentModPpO2,
+    ccrSetpointLow,
+    ccrSetpointHigh,
     cnsWarningThreshold,
     o2Narcotic,
     endLimitMeters,
@@ -133,6 +145,8 @@ class PlanEngineConfig extends Equatable {
     double? ppO2Working,
     double? ppO2Deco,
     double? ccrDiluentModPpO2,
+    double? ccrSetpointLow,
+    double? ccrSetpointHigh,
     int? cnsWarningThreshold,
     bool? o2Narcotic,
     double? endLimitMeters,
@@ -152,6 +166,8 @@ class PlanEngineConfig extends Equatable {
       ppO2Working: ppO2Working ?? this.ppO2Working,
       ppO2Deco: ppO2Deco ?? this.ppO2Deco,
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
+      ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
+      ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
       cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimitMeters: endLimitMeters ?? this.endLimitMeters,
@@ -189,16 +205,32 @@ class PlanEngineConfig extends Equatable {
       buddyFactor: plan.sacFactor,
     );
   }
+
+  /// [plan]'s low (shallow) setpoint: its own value when set, else the
+  /// diver's [ccrSetpointLow] (issue #2801).
+  double setpointLowFor(domain.DivePlan plan) =>
+      plan.setpointLow ?? ccrSetpointLow;
+
+  /// [plan]'s high (deep) setpoint: its own value when set, else the
+  /// diver's [ccrSetpointHigh] (issue #2801).
+  double setpointHighFor(domain.DivePlan plan) =>
+      plan.setpointHigh ?? ccrSetpointHigh;
 }
 
 /// Setpoint in force at [depth]: the segment's per-segment override if set,
-/// else the plan's depth-based (low/high) setpoint.
-double setpointAt(domain.DivePlan plan, double depth, {PlanSegment? segment}) {
+/// else the plan's depth-based (low/high) setpoint, with an unset plan
+/// setpoint falling back to the diver's Settings in [config].
+double setpointAt(
+  domain.DivePlan plan,
+  double depth, {
+  required PlanEngineConfig config,
+  PlanSegment? segment,
+}) {
   final override = segment?.setpointBar;
   if (override != null) return override;
   return depth > plan.effectiveSetpointSwitchDepth
-      ? plan.effectiveSetpointHigh
-      : plan.effectiveSetpointLow;
+      ? config.setpointHighFor(plan)
+      : config.setpointLowFor(plan);
 }
 
 /// Mode-aware breathing for [gas] at [depth]: the loop at the in-force
@@ -220,7 +252,7 @@ BreathingConfig breathingFor(
   final mode = modeFor(plan, segment);
   if (mode == domain.PlanMode.ccr) {
     return ClosedCircuit(
-      setpoint: setpointAt(plan, depth, segment: segment),
+      setpoint: setpointAt(plan, depth, config: config, segment: segment),
       diluentFO2: gas.o2 / 100.0,
       diluentFHe: gas.he / 100.0,
     );
@@ -362,8 +394,8 @@ class PlanEngine {
     final ascentPlan = isCcr
         ? CcrLoopAscentGas(
             environment: environment,
-            setpointLow: plan.effectiveSetpointLow,
-            setpointHigh: plan.effectiveSetpointHigh,
+            setpointLow: config.setpointLowFor(plan),
+            setpointHigh: config.setpointHighFor(plan),
             switchDepth: plan.effectiveSetpointSwitchDepth,
             diluentFO2: lastLoopSegment == null
                 ? 0.21

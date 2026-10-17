@@ -20,6 +20,16 @@ class CcrSettingsPanel extends StatefulWidget {
   /// High (working) setpoint for bottom phase (bar).
   final double? setpointHigh;
 
+  /// Suggested low setpoint, shown as hint text while [setpointLow] is null.
+  ///
+  /// A hint is never reported through [onChanged]: a dive with no recorded
+  /// setpoints keeps none unless the diver types one (#2802). It is read on
+  /// every build, so a new value shows as soon as the parent passes it.
+  final double? setpointLowHint;
+
+  /// Suggested high setpoint, shown as hint text while [setpointHigh] is null.
+  final double? setpointHighHint;
+
   /// Deco setpoint for decompression (bar).
   final double? setpointDeco;
 
@@ -55,6 +65,8 @@ class CcrSettingsPanel extends StatefulWidget {
     super.key,
     this.setpointLow,
     this.setpointHigh,
+    this.setpointLowHint,
+    this.setpointHighHint,
     this.setpointDeco,
     this.diluentGas,
     this.scrubberType,
@@ -81,8 +93,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
 
   // What each number field last held while readable, so a mistype reports
   // that value instead of null while the field shows its error (#1900).
-  late final _setpointLow = LiveNumber(widget.setpointLow ?? 0.70);
-  late final _setpointHigh = LiveNumber(widget.setpointHigh ?? 1.30);
+  late final _setpointLow = LiveNumber(widget.setpointLow);
+  late final _setpointHigh = LiveNumber(widget.setpointHigh);
   late final _setpointDeco = LiveNumber(widget.setpointDeco);
   late final _diluentO2 = LiveNumber(widget.diluentGas?.o2 ?? 21);
   late final _diluentHe = LiveNumber(widget.diluentGas?.he ?? 0);
@@ -101,13 +113,18 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
     super.initState();
     // Every seed goes through formatDecimalForInput so the diver's locale
     // decides the separator, matching what readNumber reads back in
-    // _notifyChange. The defaults are formatted too: a literal '0.70' would be
-    // unreadable in a comma-decimal locale and silently become null (#1091).
+    // _notifyChange (#1091). A setpoint the dive does not record starts
+    // empty: the suggestion is hint text, so the field never shows a value
+    // that saving would not write (#2802).
     _setpointLowController = TextEditingController(
-      text: formatDecimalForInput(widget.setpointLow ?? 0.70),
+      text: widget.setpointLow != null
+          ? formatDecimalForInput(widget.setpointLow!)
+          : '',
     );
     _setpointHighController = TextEditingController(
-      text: formatDecimalForInput(widget.setpointHigh ?? 1.30),
+      text: widget.setpointHigh != null
+          ? formatDecimalForInput(widget.setpointHigh!)
+          : '',
     );
     _setpointDecoController = TextEditingController(
       text: widget.setpointDeco != null
@@ -223,7 +240,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       labelText: context.l10n.diveLog_ccr_label_lowDescAsc,
                       suffixText: 'bar',
                       isDense: true,
-                      hintText: '0.70',
+                      hintText: formatDecimalForInput(
+                        widget.setpointLowHint ?? 0.70,
+                      ),
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
@@ -236,7 +255,9 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       labelText: context.l10n.diveLog_ccr_label_highBottom,
                       suffixText: 'bar',
                       isDense: true,
-                      hintText: '1.30',
+                      hintText: formatDecimalForInput(
+                        widget.setpointHighHint ?? 1.30,
+                      ),
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
@@ -249,7 +270,7 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       labelText: context.l10n.diveLog_ccr_label_deco,
                       suffixText: 'bar',
                       isDense: true,
-                      hintText: '1.60',
+                      hintText: formatDecimalForInput(1.60),
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),

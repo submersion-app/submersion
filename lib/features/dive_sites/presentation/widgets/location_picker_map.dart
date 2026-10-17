@@ -10,6 +10,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -220,11 +221,15 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
               ),
             ),
 
-            // Instructions overlay
+            // Map style switcher. No compass: this map does not rotate.
+            const Positioned(top: 16, right: 16, child: MapCornerControls()),
+
+            // Instructions overlay, short of the right edge so it leaves
+            // room for the style switcher.
             Positioned(
               top: 16,
               left: 16,
-              right: 16,
+              right: 72,
               child: Semantics(
                 liveRegion: true,
                 label: _selectedLocation == null

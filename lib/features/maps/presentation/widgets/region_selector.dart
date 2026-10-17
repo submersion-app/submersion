@@ -121,11 +121,12 @@ class _RegionSelectorState extends State<RegionSelector> {
             ),
           ),
 
-        // Instructions overlay
+        // Instructions overlay. Stops short of the right edge, where the
+        // picker page puts the map style switcher.
         Positioned(
           top: 16,
           left: 16,
-          right: 16,
+          right: 72,
           child: Card(
             child: Padding(
               padding: const EdgeInsets.all(12),

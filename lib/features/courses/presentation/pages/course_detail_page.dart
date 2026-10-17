@@ -13,6 +13,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -490,7 +491,15 @@ class CourseDetailPage extends ConsumerWidget {
         certification: cert,
         agencyName: agency,
       ),
-      title: Text(cert.name),
+      // Not cert.name: a certification with no custom title stores an empty
+      // name and is titled by its level (#3436).
+      title: Text(
+        certificationTitleL10n(
+          cert,
+          context.l10n,
+          catalog: context.certificationCatalog,
+        ),
+      ),
       subtitle: Text(
         card != null && card.isNotEmpty ? '$agency - $card' : agency,
       ),

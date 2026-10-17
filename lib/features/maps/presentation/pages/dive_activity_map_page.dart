@@ -22,7 +22,7 @@ import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dar
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_camera_animator.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
@@ -336,11 +336,12 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
           ),
         ),
 
-        // Reset-to-north compass (hidden until the map is rotated)
+        // Map style switcher, with the reset-to-north compass (hidden until the
+        // map is rotated) below it.
         Positioned(
           top: 16,
           right: 16,
-          child: MapCompassButton(controller: _mapController),
+          child: MapCornerControls(controller: _mapController),
         ),
 
         // Loading indicator

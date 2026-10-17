@@ -5,6 +5,8 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
@@ -16,14 +18,21 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   // Null means "leave at the AppSettings default", so these fixtures cannot
   // drift away from the real defaults.
-  _TestSettingsNotifier({int? gfLow, int? gfHigh, double? endLimit})
-    : super(
-        const AppSettings().copyWith(
-          gfLow: gfLow,
-          gfHigh: gfHigh,
-          endLimit: endLimit,
-        ),
-      );
+  _TestSettingsNotifier({
+    int? gfLow,
+    int? gfHigh,
+    double? endLimit,
+    double? ccrSetpointLow,
+    double? ccrSetpointHigh,
+  }) : super(
+         const AppSettings().copyWith(
+           gfLow: gfLow,
+           gfHigh: gfHigh,
+           endLimit: endLimit,
+           ccrSetpointLow: ccrSetpointLow,
+           ccrSetpointHigh: ccrSetpointHigh,
+         ),
+       );
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -45,7 +54,13 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
+ProviderContainer _container({
+  int? gfLow,
+  int? gfHigh,
+  double? endLimit,
+  double? ccrSetpointLow,
+  double? ccrSetpointHigh,
+}) {
   final container = ProviderContainer(
     overrides: [
       settingsProvider.overrideWith(
@@ -53,6 +68,8 @@ ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
           gfLow: gfLow,
           gfHigh: gfHigh,
           endLimit: endLimit,
+          ccrSetpointLow: ccrSetpointLow,
+          ccrSetpointHigh: ccrSetpointHigh,
         ),
       ),
     ],
@@ -297,6 +314,36 @@ void main() {
   test('planEngineConfig carries the Settings END limit (issue #1499)', () {
     final container = _container(endLimit: 40.0);
     expect(container.read(planEngineConfigProvider).endLimitMeters, 40.0);
+  });
+
+  test('planEngineConfig carries the Settings CCR setpoints (issue #2801)', () {
+    final container = _container(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2);
+    final config = container.read(planEngineConfigProvider);
+    expect(config.ccrSetpointLow, 0.6);
+    expect(config.ccrSetpointHigh, 1.2);
+  });
+
+  test('a CCR plan loaded without setpoints computes with the Settings '
+      'setpoints, not the spec 0.7 / 1.3 (issue #2801)', () {
+    final container = _container(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2);
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 60, bottomTimeMinutes: 25);
+    // The shape of a plan saved before the CCR seed existed, or imported
+    // from a file without setpoints: CCR, but no updateMode seed.
+    notifier.loadPlan(
+      container
+          .read(divePlanNotifierProvider)
+          .copyWith(mode: domain.PlanMode.ccr),
+    );
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.mode, domain.PlanMode.ccr);
+    expect(state.setpointHigh, isNull);
+
+    final bottom = container
+        .read(planOutcomeProvider)
+        .schedule
+        .firstWhere((r) => r.kind == PlanScheduleRowKind.level);
+    expect(bottom.ppO2, closeTo(1.2, 0.005));
   });
 
   test('an air leg at 32 m raises no END warning under a 40 m END limit '

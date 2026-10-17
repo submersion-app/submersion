@@ -18,11 +18,13 @@ import '../../helpers/test_database.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier([super.state = const AppSettings()]);
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);
+
+  void replace(AppSettings settings) => state = settings;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -214,6 +216,96 @@ void main() {
     await tester.enterText(fields.at(0), '0');
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
+  });
+
+  testWidgets('CCR settings pre-fill an unset setpoint from the diver\'s '
+      'Settings, not the spec 0.7 / 1.3 (issue #2801)', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+            ),
+          ),
+        ],
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+    // A plan that reached CCR without the mode switch's seed (an imported
+    // file, or one saved before the seed existed) carries no setpoints.
+    expect(container.read(divePlanNotifierProvider).setpointLow, isNull);
+    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+
+    final fields = find.byType(TextFormField);
+    expect(tester.widget<TextFormField>(fields.at(0)).controller!.text, '0.6');
+    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.2');
+  });
+
+  testWidgets('an unset setpoint field follows a Settings change; a set one '
+      'keeps its own value (issue #2801)', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+            ),
+          ),
+        ],
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+    container.read(divePlanNotifierProvider.notifier).updateSetpoints(low: 0.9);
+
+    (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
+        .replace(const AppSettings(ccrSetpointLow: 0.5, ccrSetpointHigh: 1.4));
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextFormField);
+    // The low field was seeded before the plan's own 0.9 was set, and a
+    // plan value is never overwritten by Settings.
+    expect(tester.widget<TextFormField>(fields.at(0)).controller!.text, '0.6');
+    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.4');
+  });
+
+  testWidgets('a Settings change leaves a field the diver blanked alone '
+      '(issue #2801)', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+            ),
+          ),
+        ],
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+    final fields = find.byType(TextFormField);
+    // Blank text leaves the plan's setpoint unset, so only the field's own
+    // text says the diver is editing it.
+    await tester.enterText(fields.at(1), '');
+    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+
+    (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
+        .replace(const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.4));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '');
   });
 
   testWidgets('CCR settings fields stay in a row when there is room, and stack '

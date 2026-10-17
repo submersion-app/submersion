@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
@@ -124,7 +125,13 @@ void main() {
               divesRemaining: 3,
               anniversaries: [
                 CertAnniversary(
-                  certName: 'Open Water',
+                  certification: Certification(
+                    id: 'ow',
+                    name: 'Open Water',
+                    agency: 'padi',
+                    createdAt: _t0,
+                    updatedAt: _t0,
+                  ),
                   years: 10,
                   date: DateTime(2026, 8, 10),
                 ),
@@ -136,6 +143,42 @@ void main() {
       expect(find.text('Milestones'), findsOneWidget);
       expect(find.text('3 dives to #250'), findsOneWidget);
       expect(find.text('Open Water: 10 years in August'), findsOneWidget);
+    });
+
+    testWidgets('names a certification with no custom title by its level', (
+      tester,
+    ) async {
+      // An empty stored name means "use the level" (#3436).
+      await pumpCard(
+        tester,
+        const MilestonesCard(),
+        overrides: [
+          milestonesProvider.overrideWith(
+            (ref) async => DashboardMilestones(
+              nextMilestone: null,
+              divesRemaining: null,
+              anniversaries: [
+                CertAnniversary(
+                  certification: Certification(
+                    id: 'an',
+                    name: '',
+                    agency: 'tdi',
+                    level: 'tdiAdvancedNitroxDiver',
+                    createdAt: _t0,
+                    updatedAt: _t0,
+                  ),
+                  years: 19,
+                  date: DateTime(2026, 8, 10),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+      expect(
+        find.text('Advanced Nitrox Diver: 19 years in August'),
+        findsOneWidget,
+      );
     });
   });
 
