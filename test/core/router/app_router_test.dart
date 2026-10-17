@@ -1513,6 +1513,43 @@ void main() {
       );
     });
 
+    testWidgets('on a desktop window the old Decompression section link opens '
+        'in the Safety pane', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final route = _findRouteByName(
+        router.configuration.routes,
+        'settingsSection',
+      );
+      final target = await route!.redirect!(
+        capturedContext,
+        GoRouterState(
+          router.configuration,
+          uri: Uri.parse('/settings/section/decompression'),
+          matchedLocation: '/settings/section/decompression',
+          fullPath: '/settings/section/:sectionId',
+          pathParameters: const {'sectionId': 'decompression'},
+          pageKey: const ValueKey('/settings/section/decompression'),
+        ),
+      );
+
+      expect(target, '/settings?selected=safety&safetyPage=decompression');
+    });
+
     test('a section child route exists under /settings', () {
       final route = _findRouteByName(
         router.configuration.routes,

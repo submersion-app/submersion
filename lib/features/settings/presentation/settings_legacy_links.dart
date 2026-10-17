@@ -1,4 +1,5 @@
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 
 /// Where a `/settings?selected=<id>` link should really go, or null when the
 /// settings page already renders it correctly.
@@ -29,4 +30,22 @@ String? resolveLegacySettingsLocation(Uri uri, {required bool masterDetail}) {
     'safety' => subPage?.phoneRoute ?? '/settings/safety',
     _ => null,
   };
+}
+
+/// Where a `/settings/section/<id>` link should go instead of the generic
+/// section wrapper, or null when the wrapper is right for it.
+///
+/// Sections with a page of their own go to that page. Decompression, which
+/// no longer has a root section, opens under Safety: in the detail pane on a
+/// master-detail window (as the `?selected=` link does), on its own page on a
+/// phone.
+String? resolveSettingsSectionRedirect(
+  String? sectionId, {
+  required bool masterDetail,
+}) {
+  if (sectionId == 'decompression' && masterDetail) {
+    return '/settings?selected=safety'
+        '&${SafetySettingsPane.queryParam}=${SafetySubPage.decompression.id}';
+  }
+  return settingsSectionDedicatedRoutes[sectionId];
 }

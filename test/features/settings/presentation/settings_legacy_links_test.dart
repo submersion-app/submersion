@@ -57,4 +57,37 @@ void main() {
       expect(phone('/settings'), isNull);
     });
   });
+
+  group('resolveSettingsSectionRedirect', () {
+    test('old Decompression section links open in the desktop pane', () {
+      expect(
+        resolveSettingsSectionRedirect('decompression', masterDetail: true),
+        '/settings?selected=safety&safetyPage=decompression',
+      );
+    });
+
+    test('on phone they go to the Decompression page', () {
+      expect(
+        resolveSettingsSectionRedirect('decompression', masterDetail: false),
+        '/settings/safety/decompression',
+      );
+    });
+
+    test('other sections keep their dedicated route or none', () {
+      for (final masterDetail in [true, false]) {
+        expect(
+          resolveSettingsSectionRedirect('safety', masterDetail: masterDetail),
+          '/settings/safety',
+        );
+        expect(
+          resolveSettingsSectionRedirect('units', masterDetail: masterDetail),
+          isNull,
+        );
+        expect(
+          resolveSettingsSectionRedirect(null, masterDetail: masterDetail),
+          isNull,
+        );
+      }
+    });
+  });
 }
