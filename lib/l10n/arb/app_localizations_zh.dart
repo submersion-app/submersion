@@ -23661,6 +23661,181 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dataHealth_feature_backup => 'Backup';
+
+  @override
+  String get dataHealth_feature_sync => 'Sync';
+
+  @override
+  String get dataHealth_feature_libraries => 'Libraries';
+
+  @override
+  String get dataHealth_feature_media => 'Media';
+
+  @override
+  String get dataHealth_level_healthy => 'Healthy';
+
+  @override
+  String get dataHealth_level_attention => 'Needs attention';
+
+  @override
+  String get dataHealth_level_failing => 'Failing';
+
+  @override
+  String get dataHealth_level_notSetUp => 'Not set up';
+
+  @override
+  String dataHealth_semantics(String feature, String status) {
+    return '$feature: $status';
+  }
+
+  @override
+  String get dataHealth_backup_autoOff =>
+      'Recommended: turn on automatic backups';
+
+  @override
+  String dataHealth_backup_failed(String when) {
+    return 'Last backup failed $when';
+  }
+
+  @override
+  String dataHealth_backup_overdue(String when) {
+    return 'Backup overdue: last one $when';
+  }
+
+  @override
+  String get dataHealth_backup_never => 'No backup yet';
+
+  @override
+  String get dataHealth_backup_cloudCopyMissing =>
+      'Last backup did not reach the cloud';
+
+  @override
+  String get dataHealth_backup_noOffDeviceCopy => 'No copy off this device';
+
+  @override
+  String get dataHealth_sync_off => 'Recommended: turn on cloud sync';
+
+  @override
+  String get dataHealth_sync_needsPassphrase =>
+      'Sync paused: enter your passphrase';
+
+  @override
+  String get dataHealth_sync_awaitingAdoption =>
+      'Sync paused: the cloud library was replaced';
+
+  @override
+  String get dataHealth_sync_signedOut => 'Sync paused: sign in again';
+
+  @override
+  String dataHealth_sync_failed(String when) {
+    return 'Last sync failed $when';
+  }
+
+  @override
+  String dataHealth_sync_offline(String when) {
+    return 'Offline: last synced $when';
+  }
+
+  @override
+  String dataHealth_sync_conflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sync conflicts to resolve',
+      one: '$count sync conflict to resolve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataHealth_sync_peersHeld =>
+      'Another device needs attention before it can sync';
+
+  @override
+  String get dataHealth_sync_autoOff => 'Recommended: turn on automatic sync';
+
+  @override
+  String get dataHealth_sync_neverSynced => 'Not synced yet';
+
+  @override
+  String dataHealth_sync_rowSubtitle(String when) {
+    return 'Synced $when';
+  }
+
+  @override
+  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Synced $when · $count devices',
+      one: 'Synced $when · $count device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataHealth_libraries_failed(String name) {
+    return '$name: sync failed';
+  }
+
+  @override
+  String dataHealth_libraries_failedMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count libraries failed to sync',
+      one: '$count library failed to sync',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataHealth_libraries_editsHeld(String name) {
+    return '$name: your edits are on hold';
+  }
+
+  @override
+  String get dataHealth_media_finishSetup =>
+      'Photos: finish setting up this device';
+
+  @override
+  String get dataHealth_media_transfersPaused => 'Photo transfers are paused';
+
+  @override
+  String dataHealth_facts_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataHealth_facts_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '$count site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataHealth_facts_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos and videos',
+      one: '$count photo or video',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_decompression_aboutContent =>
       '梯度因子（GF）控制减压计算的保守程度。GF Low 影响深停留，而 GF High 影响浅停留。数值越低 = 越保守 = 更长的减压停留；数值越高 = 越不保守 = 更短的减压停留';
 

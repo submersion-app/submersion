@@ -40300,6 +40300,216 @@ abstract class AppLocalizations {
   /// **'{count}m ago'**
   String settings_data_syncTime_minutesAgo(Object count);
 
+  /// No description provided for @dataHealth_feature_backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get dataHealth_feature_backup;
+
+  /// No description provided for @dataHealth_feature_sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get dataHealth_feature_sync;
+
+  /// No description provided for @dataHealth_feature_libraries.
+  ///
+  /// In en, this message translates to:
+  /// **'Libraries'**
+  String get dataHealth_feature_libraries;
+
+  /// No description provided for @dataHealth_feature_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get dataHealth_feature_media;
+
+  /// No description provided for @dataHealth_level_healthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy'**
+  String get dataHealth_level_healthy;
+
+  /// No description provided for @dataHealth_level_attention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get dataHealth_level_attention;
+
+  /// No description provided for @dataHealth_level_failing.
+  ///
+  /// In en, this message translates to:
+  /// **'Failing'**
+  String get dataHealth_level_failing;
+
+  /// No description provided for @dataHealth_level_notSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up'**
+  String get dataHealth_level_notSetUp;
+
+  /// No description provided for @dataHealth_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{feature}: {status}'**
+  String dataHealth_semantics(String feature, String status);
+
+  /// No description provided for @dataHealth_backup_autoOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended: turn on automatic backups'**
+  String get dataHealth_backup_autoOff;
+
+  /// No description provided for @dataHealth_backup_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup failed {when}'**
+  String dataHealth_backup_failed(String when);
+
+  /// No description provided for @dataHealth_backup_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup overdue: last one {when}'**
+  String dataHealth_backup_overdue(String when);
+
+  /// No description provided for @dataHealth_backup_never.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get dataHealth_backup_never;
+
+  /// No description provided for @dataHealth_backup_cloudCopyMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup did not reach the cloud'**
+  String get dataHealth_backup_cloudCopyMissing;
+
+  /// No description provided for @dataHealth_backup_noOffDeviceCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'No copy off this device'**
+  String get dataHealth_backup_noOffDeviceCopy;
+
+  /// No description provided for @dataHealth_sync_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended: turn on cloud sync'**
+  String get dataHealth_sync_off;
+
+  /// No description provided for @dataHealth_sync_needsPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync paused: enter your passphrase'**
+  String get dataHealth_sync_needsPassphrase;
+
+  /// No description provided for @dataHealth_sync_awaitingAdoption.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync paused: the cloud library was replaced'**
+  String get dataHealth_sync_awaitingAdoption;
+
+  /// No description provided for @dataHealth_sync_signedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync paused: sign in again'**
+  String get dataHealth_sync_signedOut;
+
+  /// No description provided for @dataHealth_sync_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync failed {when}'**
+  String dataHealth_sync_failed(String when);
+
+  /// No description provided for @dataHealth_sync_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline: last synced {when}'**
+  String dataHealth_sync_offline(String when);
+
+  /// No description provided for @dataHealth_sync_conflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} sync conflict to resolve} other{{count} sync conflicts to resolve}}'**
+  String dataHealth_sync_conflicts(int count);
+
+  /// No description provided for @dataHealth_sync_peersHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device needs attention before it can sync'**
+  String get dataHealth_sync_peersHeld;
+
+  /// No description provided for @dataHealth_sync_autoOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended: turn on automatic sync'**
+  String get dataHealth_sync_autoOff;
+
+  /// No description provided for @dataHealth_sync_neverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get dataHealth_sync_neverSynced;
+
+  /// No description provided for @dataHealth_sync_rowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced {when}'**
+  String dataHealth_sync_rowSubtitle(String when);
+
+  /// No description provided for @dataHealth_sync_rowSubtitleDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Synced {when} · {count} device} other{Synced {when} · {count} devices}}'**
+  String dataHealth_sync_rowSubtitleDevices(String when, int count);
+
+  /// No description provided for @dataHealth_libraries_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: sync failed'**
+  String dataHealth_libraries_failed(String name);
+
+  /// No description provided for @dataHealth_libraries_failedMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} library failed to sync} other{{count} libraries failed to sync}}'**
+  String dataHealth_libraries_failedMany(int count);
+
+  /// No description provided for @dataHealth_libraries_editsHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: your edits are on hold'**
+  String dataHealth_libraries_editsHeld(String name);
+
+  /// No description provided for @dataHealth_media_finishSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos: finish setting up this device'**
+  String get dataHealth_media_finishSetup;
+
+  /// No description provided for @dataHealth_media_transfersPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo transfers are paused'**
+  String get dataHealth_media_transfersPaused;
+
+  /// No description provided for @dataHealth_facts_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive} other{{count} dives}}'**
+  String dataHealth_facts_dives(int count);
+
+  /// No description provided for @dataHealth_facts_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} site} other{{count} sites}}'**
+  String dataHealth_facts_sites(int count);
+
+  /// No description provided for @dataHealth_facts_media.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo or video} other{{count} photos and videos}}'**
+  String dataHealth_facts_media(int count);
+
   /// No description provided for @settings_decompression_aboutContent.
   ///
   /// In en, this message translates to:
