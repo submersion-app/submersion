@@ -144,7 +144,9 @@ import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
@@ -1440,6 +1442,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'safetySettings',
                 builder: (context, state) => const SafetyHubPage(),
                 routes: [
+                  GoRoute(
+                    path: 'review',
+                    name: 'safetyReviewSettings',
+                    builder: (context, state) =>
+                        const SafetyReviewSettingsPage(),
+                  ),
+                  GoRoute(
+                    path: 'decompression',
+                    name: 'decompressionSettings',
+                    builder: (context, state) =>
+                        const DecompressionSettingsPage(),
+                  ),
                   GoRoute(
                     path: 'equipment-condition',
                     name: 'equipmentConditionSettings',

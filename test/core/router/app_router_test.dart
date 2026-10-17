@@ -1458,6 +1458,58 @@ void main() {
       expect(widget.runtimeType.toString(), 'EquipmentConditionSettingsPage');
     });
 
+    test('the Safety sub-pages live under the safety route', () {
+      expect(router.namedLocation('safetySettings'), '/settings/safety');
+      expect(
+        router.namedLocation('safetyReviewSettings'),
+        '/settings/safety/review',
+      );
+      expect(
+        router.namedLocation('decompressionSettings'),
+        '/settings/safety/decompression',
+      );
+    });
+
+    testWidgets('the Safety routes build the hub and its sub-pages', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      String built(String name, String location) {
+        final route = _findRouteByName(router.configuration.routes, name);
+        expect(route, isNotNull, reason: name);
+        final state = GoRouterState(
+          router.configuration,
+          uri: Uri.parse(location),
+          matchedLocation: location,
+          fullPath: location,
+          pathParameters: const {},
+          pageKey: ValueKey(location),
+        );
+        return route!.builder!(capturedContext, state).runtimeType.toString();
+      }
+
+      expect(built('safetySettings', '/settings/safety'), 'SafetyHubPage');
+      expect(
+        built('safetyReviewSettings', '/settings/safety/review'),
+        'SafetyReviewSettingsPage',
+      );
+      expect(
+        built('decompressionSettings', '/settings/safety/decompression'),
+        'DecompressionSettingsPage',
+      );
+    });
+
     test('a section child route exists under /settings', () {
       final route = _findRouteByName(
         router.configuration.routes,
@@ -1533,6 +1585,11 @@ void main() {
 
       // Sections whose content is its own Scaffold with its own AppBar.
       expect(await redirectFor('safety'), '/settings/safety');
+      // Decompression moved under Safety (#3395); old links follow it.
+      expect(
+        await redirectFor('decompression'),
+        '/settings/safety/decompression',
+      );
       expect(await redirectFor('debug'), '/settings/debug-logs');
       expect(await redirectFor('profile'), '/settings/diver-profile');
       // Has a dedicated page too, so the route stays canonical.

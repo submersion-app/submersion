@@ -67,7 +67,6 @@ import 'package:submersion/features/settings/presentation/pages/network_settings
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
-import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
@@ -154,13 +153,11 @@ class SettingsPage extends ConsumerWidget {
       case 'profile':
         return const DiverProfileHubPage();
       case 'safety':
-        return const SafetyHubPage();
+        return const SafetySettingsPane();
       case 'security':
         return const SecuritySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
-      case 'decompression':
-        return const DecompressionSettingsContent();
       case 'appearance':
         return const _AppearanceSectionContent();
       case 'network':
@@ -240,7 +237,9 @@ class SettingsMobileContent extends ConsumerWidget {
 /// [SettingsSectionDetailPage] supplies a Scaffold and an AppBar, so sections
 /// whose content is itself a Scaffold with an AppBar (Diver Profile, Safety,
 /// Debug) would show two stacked app bars inside it. Appearance is listed too
-/// because it has a dedicated page, keeping that route canonical.
+/// because it has a dedicated page, keeping that route canonical, and
+/// Decompression because it is no longer a root section: it lives under
+/// Safety, so a link to the old section lands on its new page.
 ///
 /// Used both by the settings list tile and by the '/settings/section/:id'
 /// route's redirect, so a deep link to that path cannot bypass it.
@@ -248,6 +247,8 @@ const settingsSectionDedicatedRoutes = <String, String>{
   'profile': '/settings/diver-profile',
   'appearance': '/settings/appearance',
   'safety': '/settings/safety',
+  // Moved under Safety (#3395); old links to the section follow it.
+  'decompression': '/settings/safety/decompression',
   'debug': '/settings/debug-logs',
 };
 
@@ -299,7 +300,6 @@ class SettingsSectionDetailPage extends ConsumerWidget {
     return switch (id) {
       'profile' => context.l10n.settings_section_diverProfile_title,
       'units' => context.l10n.settings_section_units_title,
-      'decompression' => context.l10n.settings_section_decompression_title,
       'appearance' => context.l10n.settings_section_appearance_title,
       'network' => context.l10n.settings_section_network_title,
       'notifications' => context.l10n.settings_section_notifications_title,
@@ -323,8 +323,6 @@ class SettingsSectionDetailPage extends ConsumerWidget {
         return const SecuritySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
-      case 'decompression':
-        return const DecompressionSettingsContent();
       case 'appearance':
         return const _AppearanceSectionContent();
       case 'network':
@@ -391,7 +389,6 @@ class _MobileSettingsTile extends StatelessWidget {
     return switch (section.id) {
       'profile' => context.l10n.settings_section_diverProfile_title,
       'units' => context.l10n.settings_section_units_title,
-      'decompression' => context.l10n.settings_section_decompression_title,
       'appearance' => context.l10n.settings_section_appearance_title,
       'network' => context.l10n.settings_section_network_title,
       'notifications' => context.l10n.settings_section_notifications_title,
@@ -411,7 +408,6 @@ class _MobileSettingsTile extends StatelessWidget {
     return switch (section.id) {
       'profile' => context.l10n.settings_section_diverProfile_subtitle,
       'units' => context.l10n.settings_section_units_subtitle,
-      'decompression' => context.l10n.settings_section_decompression_subtitle,
       'appearance' => context.l10n.settings_section_appearance_subtitle,
       'network' => context.l10n.settings_section_network_subtitle,
       'notifications' => context.l10n.settings_section_notifications_subtitle,

@@ -169,4 +169,68 @@ void main() {
       expect(find.byKey(const Key('safety-hub-decompression')), findsOneWidget);
     });
   });
+
+  group('SafetySettingsPane', () {
+    GoRouter paneRouter(String location) => GoRouter(
+      initialLocation: location,
+      routes: [
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SafetySettingsPane(),
+        ),
+      ],
+    );
+
+    String location(GoRouter router) =>
+        router.routerDelegate.currentConfiguration.uri.toString();
+
+    testWidgets('shows the hub, opens a sub-page, and comes back', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(900, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final router = paneRouter('/settings?selected=safety');
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(_routedApp(router));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('safety-hub-decompression')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('safety-hub-decompression')));
+      await tester.pumpAndSettle();
+      expect(
+        location(router),
+        '/settings?selected=safety&safetyPage=decompression',
+      );
+      expect(find.text('GF 30/70'), findsOneWidget);
+      expect(find.byKey(const Key('safety-hub-decompression')), findsNothing);
+
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(location(router), '/settings?selected=safety');
+      expect(find.byKey(const Key('safety-hub-decompression')), findsOneWidget);
+    });
+
+    testWidgets('opens Safety review from the URL', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final router = paneRouter('/settings?selected=safety&safetyPage=review');
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(_routedApp(router));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Post-dive safety review'), findsOneWidget);
+    });
+
+    testWidgets('an unknown safetyPage shows the hub', (tester) async {
+      final router = paneRouter('/settings?selected=safety&safetyPage=bogus');
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(_routedApp(router));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('safety-hub-review')), findsOneWidget);
+    });
+  });
 }

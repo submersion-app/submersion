@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/safety_hub_summaries.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
@@ -89,6 +93,48 @@ class SafetyHubPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+/// The Safety section inside the desktop settings detail pane.
+///
+/// Nothing is pushed in the pane, so the URL carries which page shows:
+/// `/settings?selected=safety` is the hub and adding
+/// `&safetyPage=<id>` shows that sub-page in its place, with a back arrow
+/// that drops the parameter again. Driving it from the URL keeps the left
+/// list on Safety, and lets deep links and window restore reopen the page.
+class SafetySettingsPane extends StatelessWidget {
+  const SafetySettingsPane({super.key});
+
+  /// The query parameter naming the open sub-page.
+  static const queryParam = 'safetyPage';
+
+  @override
+  Widget build(BuildContext context) {
+    final uri = GoRouterState.of(context).uri;
+    final hubLocation = '${uri.path}?selected=safety';
+    final page = SafetySubPage.fromId(uri.queryParameters[queryParam]);
+    void back() => context.goInPlace(hubLocation);
+
+    return switch (page) {
+      null => SafetyHubPage(
+        key: const ValueKey('safety-hub'),
+        onOpenPage: (page) =>
+            context.goInPlace('$hubLocation&$queryParam=${page.id}'),
+      ),
+      SafetySubPage.review => SafetyReviewSettingsPage(
+        key: const ValueKey('safety-review'),
+        onBack: back,
+      ),
+      SafetySubPage.decompression => DecompressionSettingsPage(
+        key: const ValueKey('safety-decompression'),
+        onBack: back,
+      ),
+      SafetySubPage.equipmentCondition => EquipmentConditionSettingsPage(
+        key: const ValueKey('safety-equipment-condition'),
+        onBack: back,
+      ),
+    };
   }
 }
 

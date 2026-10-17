@@ -35,6 +35,7 @@ import 'package:submersion/features/settings/presentation/pages/home_appearance_
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -1010,6 +1011,25 @@ void main() {
       );
       // Never the hardcoded English fallback.
       expect(find.text('Safety'), findsNothing);
+    });
+
+    testWidgets('Decompression is not a root row: it lives under Safety', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
+      await tester.pumpAndSettle();
+
+      expect(
+        settingsSections.map((s) => s.id),
+        isNot(contains('decompression')),
+      );
+      await tester.scrollUntilVisible(
+        find.text('Units'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Decompression'), findsNothing);
+      expect(find.text('GF, data sources & narcosis'), findsNothing);
     });
 
     testWidgets('should display About section', (tester) async {
