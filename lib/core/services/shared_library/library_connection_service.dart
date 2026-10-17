@@ -104,9 +104,9 @@ class LibraryConnectionService {
       prefix: prefix,
       secret: secret,
     );
-    final verdict = found.check.verdict;
-    if (verdict != LibraryLocationVerdict.same &&
-        !(acceptOlder && verdict == LibraryLocationVerdict.olderCopy)) {
+    if (!found.check.canSave ||
+        (found.check.verdict == LibraryLocationVerdict.olderCopy &&
+            !acceptOlder)) {
       throw LibraryLocationRejected(found.check);
     }
     final opened = found.opened;
@@ -159,24 +159,46 @@ class LibraryConnectionService {
 
   /// Every local profile's signed card at the new location, as joining
   /// writes one: a copy may lack them, and a sync rewrites only the card of
-  /// the profile it runs for. A card the storage refuses is no failed move
-  /// (readers may write cards by policy); the sync retries it.
+  /// the profile it runs for. A card already there as this device would
+  /// write it is left alone. A card the storage refuses is no failed move
+  /// (readers may write cards by policy): the others are still written, and
+  /// the sync retries it.
   Future<void> _writeCards(SharedLibraryTransport t, String libraryId) async {
+    final Map<String, SharedLibraryMember> there;
     try {
-      final there = {for (final m in await t.listMembers()) m.memberId: m};
-      for (final m in await _store.membershipsForLibrary(libraryId)) {
-        final key = m.signingKey;
-        if (key == null) continue;
+      there = {for (final m in await t.listMembers()) m.memberId: m};
+    } catch (e) {
+      _log.warning('Could not list member cards for $libraryId: $e');
+      return;
+    }
+    // The join date as this device last read it, for a card the copy lacks.
+    final known = {
+      for (final m in await _store.getMembers(libraryId)) m.memberId: m,
+    };
+    for (final m in await _store.membershipsForLibrary(libraryId)) {
+      final key = m.signingKey;
+      if (key == null) continue;
+      final current = there[m.memberId];
+      if (current != null &&
+          current.cardVerified &&
+          current.displayName == m.displayName &&
+          current.publicKey == key.publicKey) {
+        continue;
+      }
+      try {
         final card = await SharedLibraryMember.signed(
           memberId: m.memberId,
           displayName: m.displayName,
-          joinedAt: there[m.memberId]?.joinedAt ?? DateTime.now().toUtc(),
+          joinedAt:
+              current?.joinedAt ??
+              known[m.memberId]?.joinedAt ??
+              DateTime.now().toUtc(),
           key: key,
         );
         await t.writeMember(card, appVersion: _appVersion);
+      } catch (e) {
+        _log.warning('Could not write the card of ${m.memberId}: $e');
       }
-    } catch (e) {
-      _log.warning('Could not write member cards for $libraryId: $e');
     }
   }
 

@@ -215,6 +215,18 @@ void main() {
     expect(find.text('library page'), findsOneWidget);
   });
 
+  testWidgets('a double tap saves once', (tester) async {
+    final service = _FakeConnection();
+    await tester.pumpWidget(_app(service));
+    await tester.pumpAndSettle();
+    await _check(tester);
+    await tester.tap(find.text('Save connection'));
+    await tester.tap(find.text('Save connection'));
+    await tester.pumpAndSettle();
+    expect(service.repoints, hasLength(1));
+    expect(_RecordingSync.synced, ['L']);
+  });
+
   testWidgets('an older copy offers Save anyway', (tester) async {
     final service = _FakeConnection()
       ..next = const LibraryLocationCheck(

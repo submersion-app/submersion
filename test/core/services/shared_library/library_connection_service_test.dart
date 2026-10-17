@@ -206,6 +206,80 @@ void main() {
     },
   );
 
+  Future<void> secondProfile() async {
+    await DiverRepository().createDiver(
+      Diver(
+        id: 'd2',
+        name: 'Bob',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await store.upsertMembership(
+      SharedLibraryMembership(
+        id: 'ms2',
+        diverId: 'd2',
+        libraryId: 'L',
+        memberId: 'c',
+        displayName: 'Bob',
+        libraryName: 'Reef Survey',
+        backendKind: 's3',
+        signingKey: await testMemberKey('c'),
+      ),
+    );
+  }
+
+  test('a refused card does not stop the other profiles\' cards', () async {
+    await secondProfile();
+    await copyAt('b');
+    final order = [
+      for (final m in await store.membershipsForLibrary('L')) m.memberId,
+    ];
+    at('b');
+    clouds['b']!.failUploadsNamed = SharedLibraryTransport.memberFileName(
+      order.first,
+    );
+    await repoint('b');
+    final cards = await at('b').listMembers();
+    expect(cards.map((m) => m.memberId), contains(order.last));
+  });
+
+  test('a card written anew keeps the join date this device knows', () async {
+    await store.replaceMembers('L', [
+      await SharedLibraryMember.signed(
+        memberId: 'a',
+        displayName: 'Ann',
+        joinedAt: DateTime.utc(2025, 3, 1),
+        key: await testMemberKey('a'),
+      ),
+    ]);
+    await copyAt('b');
+    await repoint('b');
+    final card = (await at(
+      'b',
+    ).listMembers()).singleWhere((m) => m.memberId == 'a');
+    expect(card.joinedAt, DateTime.utc(2025, 3, 1));
+  });
+
+  test('an identical card already there is not uploaded again', () async {
+    await copyAt('b');
+    await at('b').writeMember(
+      await SharedLibraryMember.signed(
+        memberId: 'a',
+        displayName: 'Ann',
+        joinedAt: DateTime.utc(2025, 3, 1),
+        key: await testMemberKey('a'),
+      ),
+      appVersion: 'test',
+    );
+    clouds['b']!.operationLog.clear();
+    await repoint('b');
+    expect(
+      clouds['b']!.operationLog,
+      isNot(contains('upload:${SharedLibraryTransport.memberFileName('a')}')),
+    );
+  });
+
   test('roles no owner signed are not taken as current', () async {
     await copyAt('b');
     // Newer, but signed by someone the trusted roles make no owner.
