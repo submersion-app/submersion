@@ -34515,6 +34515,144 @@ abstract class AppLocalizations {
   /// **'Add to shared site library'**
   String get sharedLibrary_bulk_addToLibrary;
 
+  /// No description provided for @sharedLibrary_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get sharedLibrary_about_title;
+
+  /// No description provided for @sharedLibrary_about_edit_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit library details'**
+  String get sharedLibrary_about_edit_title;
+
+  /// No description provided for @sharedLibrary_about_name_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Library name'**
+  String get sharedLibrary_about_name_label;
+
+  /// No description provided for @sharedLibrary_about_description_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get sharedLibrary_about_description_label;
+
+  /// No description provided for @sharedLibrary_about_description_help.
+  ///
+  /// In en, this message translates to:
+  /// **'What this library holds and who it is for. Every member sees it.'**
+  String get sharedLibrary_about_description_help;
+
+  /// No description provided for @sharedLibrary_about_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get sharedLibrary_about_nameRequired;
+
+  /// No description provided for @sharedLibrary_connection_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection on this device'**
+  String get sharedLibrary_connection_title;
+
+  /// No description provided for @sharedLibrary_connection_s3.
+  ///
+  /// In en, this message translates to:
+  /// **'S3 account'**
+  String get sharedLibrary_connection_s3;
+
+  /// No description provided for @sharedLibrary_connection_s3Bucket.
+  ///
+  /// In en, this message translates to:
+  /// **'S3 account, bucket {bucket}'**
+  String sharedLibrary_connection_s3Bucket(String bucket);
+
+  /// No description provided for @sharedLibrary_connection_webdav.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV account'**
+  String get sharedLibrary_connection_webdav;
+
+  /// No description provided for @sharedLibrary_connection_webdavServer.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV account, {server}'**
+  String sharedLibrary_connection_webdavServer(String server);
+
+  /// No description provided for @sharedLibrary_connection_accountMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is no longer on this device'**
+  String get sharedLibrary_connection_accountMissing;
+
+  /// No description provided for @sharedLibrary_connection_folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get sharedLibrary_connection_folder;
+
+  /// No description provided for @sharedLibrary_connection_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change connection'**
+  String get sharedLibrary_connection_change;
+
+  /// No description provided for @sharedLibrary_connection_check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check location'**
+  String get sharedLibrary_connection_check;
+
+  /// No description provided for @sharedLibrary_connection_same.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {name} here. This is the same library.'**
+  String sharedLibrary_connection_same(String name);
+
+  /// No description provided for @sharedLibrary_connection_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save connection'**
+  String get sharedLibrary_connection_save;
+
+  /// No description provided for @sharedLibrary_connection_olderCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'This copy looks older than the one you have been syncing with.'**
+  String get sharedLibrary_connection_olderCopy;
+
+  /// No description provided for @sharedLibrary_connection_saveAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get sharedLibrary_connection_saveAnyway;
+
+  /// No description provided for @sharedLibrary_connection_different.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder holds a different library ({name}). Your connection is unchanged.'**
+  String sharedLibrary_connection_different(String name);
+
+  /// No description provided for @sharedLibrary_connection_differentUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder holds a different library. Your connection is unchanged.'**
+  String get sharedLibrary_connection_differentUnnamed;
+
+  /// No description provided for @sharedLibrary_connection_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No library found in this folder. Your connection is unchanged.'**
+  String get sharedLibrary_connection_none;
+
+  /// No description provided for @sharedLibrary_connection_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection updated'**
+  String get sharedLibrary_connection_saved;
+
   /// No description provided for @settings_cloudSync_adopt_confirm.
   ///
   /// In en, this message translates to:

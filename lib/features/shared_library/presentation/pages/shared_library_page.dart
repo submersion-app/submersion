@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/add_to_library_confirmation.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_about_section.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_encryption_section.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_ownership_section.dart';
@@ -18,8 +19,9 @@ import 'package:submersion/features/weight_presets/presentation/widgets/name_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
-/// One connected shared site library (issue #2567): status, display name, role,
-/// members, suggestions, adding personal sites, leaving.
+/// One connected shared site library (issue #2567): status, what it is for
+/// (issue #3389), display name, role, members, suggestions, adding personal
+/// sites, its connection on this device, leaving.
 class SharedLibraryPage extends ConsumerWidget {
   const SharedLibraryPage({super.key, required this.libraryId});
 
@@ -108,6 +110,12 @@ class SharedLibraryPage extends ConsumerWidget {
             ),
           ),
           const Divider(height: 1),
+          LibraryAboutSection(
+            key: const ValueKey('about'),
+            library: library,
+            role: role,
+            membership: membership,
+          ),
           ListTile(
             leading: const Icon(Icons.badge_outlined),
             title: Text(l10n.sharedLibrary_library_rename_label),
