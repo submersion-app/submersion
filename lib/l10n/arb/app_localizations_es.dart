@@ -26221,10 +26221,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_section_data_title => 'Datos';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, fuentes de datos y narcosis';
-
-  @override
   String get settings_section_decompression_title => 'Descompresión';
 
   @override
@@ -27434,6 +27430,62 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Tendencia del consumo de gas';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Configuración de botellas';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Inmersiones según cómo se llevaron las botellas';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Configuración';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Bibotella';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Monobotella';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Otra';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'Sin botellas registradas';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage(s)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Gas de deco';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Varios gases';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Los bibotellas registrados como una sola botella se cuentan cuando el nombre lo indica (twin, double, D12, 2x12) o la botella es mayor que cualquier monobotella habitual. Indica Sidemount izquierdo y Sidemount derecho en las botellas de una inmersión para que cuente como sidemount.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'No hay inmersiones que mostrar';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Error al cargar la configuración de botellas';
 
   @override
   String get insights_focus_title => 'Enfoque de inmersiones';
@@ -37208,6 +37260,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Estricto (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'Activado, $enabled de $total reglas, no volar: $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Desactivado, no volar: $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Estándar';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Estricto';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'Activado, $enabled de $total reglas';
+  }
+
+  @override
+  String get safetyHub_off => 'Desactivado';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Intervalos orientativos tras una única inmersión sin deco, inmersiones sucesivas e inmersiones con deco';
 
@@ -37764,7 +37840,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Reglas de revisión y volar tras bucear';
+      'Reglas de revisión, descompresión y equipo';
 
   @override
   String get settings_section_equipmentCondition_title => 'Estado del equipo';
@@ -50670,6 +50746,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transmitters_field_label => 'Etiqueta';
 
   @override
+  String get transmitters_field_label_helper =>
+      'Se convierte en el nombre de la botella en la inmersión una vez que este transmisor coincide';
+
+  @override
   String get transmitters_field_serial => 'Número de serie del transmisor';
 
   @override
@@ -50686,13 +50766,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transmitters_field_gear => 'Botella del equipo';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'La botella cuya presión reporta este transmisor';
+
+  @override
   String get transmitters_field_transmitterGear => 'Transmisor del equipo';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Seguimiento de batería/mantenimiento, no para la coincidencia';
 
   @override
   String get transmitters_field_material => 'Material';
 
   @override
   String get transmitters_gear_none => 'Ninguna';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'Esta botella no tiene tamaño ni presión registrados, así que el tamaño quedará vacío en la inmersión';
 
   @override
   String get transmitters_validation_key =>

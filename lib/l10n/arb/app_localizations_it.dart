@@ -26213,10 +26213,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_section_data_title => 'Dati';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, fonti dei dati e narcosi';
-
-  @override
   String get settings_section_decompression_title => 'Decompressione';
 
   @override
@@ -27420,6 +27416,62 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Tendenza del consumo di gas';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Configurazione bombole';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Immersioni secondo come erano portate le bombole';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Configurazione';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extra';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Bibombola';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Monobombola';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Altro';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'Nessuna bombola registrata';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Gas deco';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Più gas';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'I bibombola registrati come una sola bombola vengono contati quando il nome lo indica (twin, double, D12, 2x12) o la bombola è più grande di qualsiasi monobombola comune. Imposta Sidemount sinistra e Sidemount destra sulle bombole di un\'immersione perché conti come sidemount.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'Nessuna immersione da mostrare';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Impossibile caricare la configurazione delle bombole';
 
   @override
   String get insights_focus_title => 'Focus immersioni';
@@ -37178,6 +37230,30 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Rigoroso (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'Attivo, $enabled di $total regole, divieto di volo $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Disattivo, divieto di volo $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Standard';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Rigoroso';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'Attivo, $enabled di $total regole';
+  }
+
+  @override
+  String get safetyHub_off => 'Disattivo';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Intervalli indicativi dopo una singola immersione senza deco, immersioni ripetitive e immersioni con deco';
 
@@ -37737,7 +37813,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Regole di revisione e volo dopo l\'immersione';
+      'Regole di revisione, decompressione e attrezzatura';
 
   @override
   String get settings_section_equipmentCondition_title =>
@@ -50615,6 +50691,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transmitters_field_label => 'Etichetta';
 
   @override
+  String get transmitters_field_label_helper =>
+      'Diventa il nome della bombola nell\'immersione una volta che questo trasmettitore viene abbinato';
+
+  @override
   String get transmitters_field_serial => 'Numero di serie del trasmettitore';
 
   @override
@@ -50631,14 +50711,26 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transmitters_field_gear => 'Bombola dall\'attrezzatura';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'La bombola di cui questo trasmettitore segnala la pressione';
+
+  @override
   String get transmitters_field_transmitterGear =>
       'Trasmettitore dall’attrezzatura';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Monitoraggio di batteria/manutenzione, non usato per l\'abbinamento';
 
   @override
   String get transmitters_field_material => 'Materiale';
 
   @override
   String get transmitters_gear_none => 'Nessuna';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'Questa bombola non ha dimensione o pressione registrate, quindi la dimensione resterà vuota nell\'immersione';
 
   @override
   String get transmitters_validation_key =>

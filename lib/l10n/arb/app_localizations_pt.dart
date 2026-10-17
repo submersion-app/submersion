@@ -26197,10 +26197,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_section_data_title => 'Dados';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, fontes de dados e narcose';
-
-  @override
   String get settings_section_decompression_title => 'Descompressão';
 
   @override
@@ -27408,6 +27404,62 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Tendência do consumo de gás';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Configuração dos cilindros';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Mergulhos pela forma como os cilindros foram levados';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Configuração';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Bicilindro';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Monocilindro';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Outro';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'Nenhum cilindro registrado';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage(s)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Gás de deco';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Vários gases';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Bicilindros registrados como um único cilindro são contados quando o nome indica (twin, double, D12, 2x12) ou o cilindro é maior que qualquer monocilindro comum. Defina Sidemount Esquerdo e Sidemount Direito nos cilindros de um mergulho para que ele conte como sidemount.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'Nenhum mergulho para mostrar';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Falha ao carregar a configuração dos cilindros';
 
   @override
   String get insights_focus_title => 'Foco de mergulhos';
@@ -37165,6 +37217,30 @@ class AppLocalizationsPt extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Rigoroso (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'Ativado, $enabled de $total regras, sem voo: $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Desativado, sem voo: $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Padrão';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Rigoroso';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'Ativado, $enabled de $total regras';
+  }
+
+  @override
+  String get safetyHub_off => 'Desativado';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Intervalos orientativos após um único mergulho sem deco, mergulhos repetitivos e mergulhos com deco';
 
@@ -37720,7 +37796,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Regras de revisão e voar após mergulhar';
+      'Regras de revisão, descompressão e equipamento';
 
   @override
   String get settings_section_equipmentCondition_title =>
@@ -50618,6 +50694,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transmitters_field_label => 'Rótulo';
 
   @override
+  String get transmitters_field_label_helper =>
+      'Torna-se o nome do cilindro no mergulho assim que este transmissor for associado';
+
+  @override
   String get transmitters_field_serial => 'Número de série do transmissor';
 
   @override
@@ -50634,13 +50714,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transmitters_field_gear => 'Cilindro do equipamento';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'O cilindro cuja pressão este transmissor reporta';
+
+  @override
   String get transmitters_field_transmitterGear => 'Transmissor do equipamento';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Monitorização de bateria/manutenção, não usado na correspondência';
 
   @override
   String get transmitters_field_material => 'Material';
 
   @override
   String get transmitters_gear_none => 'Nenhum';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'Este cilindro não tem tamanho nem pressão registados, por isso o tamanho ficará vazio no mergulho';
 
   @override
   String get transmitters_validation_key =>

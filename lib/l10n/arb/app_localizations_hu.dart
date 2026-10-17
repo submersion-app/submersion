@@ -26084,10 +26084,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_section_data_title => 'Adatok';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, adatforrások és narkózis';
-
-  @override
   String get settings_section_decompression_title => 'Dekompresszió';
 
   @override
@@ -27286,6 +27282,62 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Gázfogyasztási trend';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Palackkonfiguráció';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Merülések a palackok elrendezése szerint';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Konfiguráció';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extrák';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Visszalélegeztető';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Ikerpalack';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Egy palack';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Egyéb';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'Nincs rögzített palack';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage palack(ok)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Dekó gáz';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Több gáz';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Az egy palackként rögzített ikerpalackok akkor számítanak, ha a név ezt jelzi (twin, double, D12, 2x12), vagy a palack nagyobb bármely szokásos egyes palacknál. Állítsa be a Sidemount bal és Sidemount jobb szerepet egy merülés palackjain, hogy sidemountként számítson.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'Nincs megjeleníthető merülés';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Nem sikerült a palackkonfiguráció betöltése';
 
   @override
   String get insights_focus_title => 'Merülésfókusz';
@@ -36962,6 +37014,30 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Szigorú (18/24/48 ó)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'Be, $enabled/$total szabály, repülési tilalom: $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Ki, repülési tilalom: $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Normál';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Szigorú';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'Be, $enabled/$total szabály';
+  }
+
+  @override
+  String get safetyHub_off => 'Ki';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Irányadó időközök egyetlen nullidős merülés, ismétlő merülések és dekós merülések után';
 
@@ -37517,7 +37593,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Áttekintési szabályok és repülés merülés után';
+      'Áttekintési szabályok, dekompresszió és felszerelés';
 
   @override
   String get settings_section_equipmentCondition_title =>
@@ -50345,6 +50421,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transmitters_field_label => 'Címke';
 
   @override
+  String get transmitters_field_label_helper =>
+      'A jeladó párosítása után ez lesz a palack neve a merülésben';
+
+  @override
   String get transmitters_field_serial => 'Jeladó sorozatszáma';
 
   @override
@@ -50361,13 +50441,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transmitters_field_gear => 'Palack a felszerelésből';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'A palack, amelynek nyomását ez a jeladó jelenti';
+
+  @override
   String get transmitters_field_transmitterGear => 'Jeladó a felszerelésből';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Akkumulátor-/szervizkövetés, nem használt a párosításhoz';
 
   @override
   String get transmitters_field_material => 'Anyag';
 
   @override
   String get transmitters_gear_none => 'Nincs';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'Ehhez a palackhoz nincs rögzítve méret vagy nyomás, ezért a méret üres marad a merülésben';
 
   @override
   String get transmitters_validation_key =>

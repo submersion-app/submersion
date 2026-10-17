@@ -17,6 +17,8 @@ import 'package:submersion/features/bathymetry/presentation/depth_overlay_toggle
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
@@ -412,6 +414,7 @@ class _AlignPageBody extends ConsumerWidget {
                           keyValue: 'nav-track-align-end-marker',
                           onDrag: (d) => state._dragPoint(route, false, d),
                         ),
+                      const MapAttribution(),
                     ],
                   ),
                 ),
@@ -421,12 +424,21 @@ class _AlignPageBody extends ConsumerWidget {
                       child: Icon(Icons.add, size: 32, color: Colors.black87),
                     ),
                   ),
+                // Map style switcher and reset-to-north compass, with the
+                // depth overlay toggle below them once the track is anchored.
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: anchor == null
-                      ? const SizedBox.shrink()
-                      : DepthOverlayToggleButton(siteLocation: anchor),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      MapCornerControls(controller: state._mapController),
+                      if (anchor != null) ...[
+                        const SizedBox(height: 8),
+                        DepthOverlayToggleButton(siteLocation: anchor),
+                      ],
+                    ],
+                  ),
                 ),
                 if (state._placing != _Placing.none)
                   Positioned(

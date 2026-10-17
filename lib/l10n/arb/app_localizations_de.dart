@@ -26157,10 +26157,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_section_data_title => 'Daten';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, Datenquellen & Narkose';
-
-  @override
   String get settings_section_decompression_title => 'Dekompression';
 
   @override
@@ -27357,6 +27353,62 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Gasverbrauchstrend';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Flaschenkonfiguration';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Tauchgänge nach Anordnung der Flaschen';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Konfiguration';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Doppelgerät';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Einzelflasche';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Sonstige';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'Keine Flaschen erfasst';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage(s)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Dekogas';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Mehrere Gase';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Als eine Flasche erfasste Doppelgeräte werden erkannt, wenn der Name es sagt (Doppel, twin, D12, 2x12) oder die Flasche größer als jede übliche Einzelflasche ist. Setzen Sie Sidemount Links und Sidemount Rechts bei den Flaschen eines Tauchgangs, damit er als Sidemount zählt.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'Keine Tauchgänge vorhanden';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Flaschenkonfiguration konnte nicht geladen werden';
 
   @override
   String get insights_focus_title => 'Tauchgangsfokus';
@@ -37101,6 +37153,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Streng (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'An, $enabled von $total Regeln, Flugverbot $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Aus, Flugverbot $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Standard';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Streng';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'An, $enabled von $total Regeln';
+  }
+
+  @override
+  String get safetyHub_off => 'Aus';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Richtwerte nach einem einzelnen Nullzeit-Tauchgang, Wiederholungstauchgängen und Deko-Tauchgängen';
 
@@ -37659,7 +37735,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Überprüfungsregeln & Fliegen nach dem Tauchen';
+      'Überprüfungsregeln, Dekompression & Ausrüstung';
 
   @override
   String get settings_section_equipmentCondition_title => 'Ausrüstungszustand';
@@ -50511,6 +50587,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transmitters_field_label => 'Bezeichnung';
 
   @override
+  String get transmitters_field_label_helper =>
+      'Sobald dieser Sender zugeordnet ist, wird dies der Name der Flasche im Tauchgang';
+
+  @override
   String get transmitters_field_serial => 'Seriennummer des Senders';
 
   @override
@@ -50527,13 +50607,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transmitters_field_gear => 'Flasche aus der Ausrüstung';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'Die Flasche, deren Druck dieser Sender meldet';
+
+  @override
   String get transmitters_field_transmitterGear => 'Sender aus der Ausrüstung';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Batterie-/Wartungs-Tracking, nicht für die Zuordnung';
 
   @override
   String get transmitters_field_material => 'Material';
 
   @override
   String get transmitters_gear_none => 'Keine';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'Für diese Flasche sind keine Größe oder kein Druck hinterlegt, daher bleibt die Größe beim Tauchgang leer';
 
   @override
   String get transmitters_validation_key =>

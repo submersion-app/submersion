@@ -106,6 +106,18 @@ void main() {
     expect(find.text('CERT k-dp'), findsOneWidget);
   });
 
+  testWidgets('a certification with no custom title is named by its level', (
+    tester,
+  ) async {
+    // Added from the course edit screen, the title is left empty so the
+    // catalog level names it; the row showed a blank title (#3436).
+    await pump(tester, [
+      cert('k-an', '', 'TDI-48211').copyWith(level: 'tdiAdvancedNitroxDiver'),
+    ]);
+
+    expect(find.text('Advanced Nitrox Diver'), findsOneWidget);
+  });
+
   testWidgets('each row leads with a thumbnail of its card (#3383)', (
     tester,
   ) async {

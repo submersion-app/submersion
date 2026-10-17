@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_camera_fit.dart';
@@ -209,21 +210,33 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
               ],
             ),
           ),
-          if (widget.onExpand != null)
-            PositionedDirectional(
-              top: 4,
-              end: 4,
-              child: Material(
-                color: colorScheme.surface.withValues(alpha: 0.85),
-                shape: const CircleBorder(),
-                child: IconButton(
-                  key: const Key('day-map-expand'),
-                  tooltip: l10n.trips_story_dayMap_expand,
-                  icon: const Icon(Icons.fullscreen),
-                  onPressed: widget.onExpand,
-                ),
-              ),
+          // The map style switcher, beside the expand button when there is
+          // one. Side by side rather than stacked: the story card's map is
+          // only 180px tall and its pins stay tappable.
+          PositionedDirectional(
+            top: 4,
+            end: 4,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const MapCornerControls(),
+                if (widget.onExpand != null) ...[
+                  const SizedBox(width: 8),
+                  Material(
+                    color: colorScheme.surface.withValues(alpha: 0.85),
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      key: const Key('day-map-expand'),
+                      tooltip: l10n.trips_story_dayMap_expand,
+                      icon: const Icon(Icons.fullscreen),
+                      onPressed: widget.onExpand,
+                    ),
+                  ),
+                ],
+              ],
             ),
+          ),
         ],
       ),
     );

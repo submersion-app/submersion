@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
@@ -127,6 +128,21 @@ Future<_RecordingNavTrackRepository> _pump(
 }
 
 void main() {
+  testWidgets(
+    'the map can rotate, so it carries a compass steering it (#3386)',
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      expect(
+        tester
+            .widget<MapCompassButton>(find.byType(MapCompassButton))
+            .controller,
+        same(map.mapController),
+      );
+    },
+  );
+
   testWidgets(
     'setting a start point on the map and saving persists the anchor',
     (tester) async {

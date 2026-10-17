@@ -26397,10 +26397,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_data_title => 'البيانات';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF، مصادر البيانات والتخدير';
-
-  @override
   String get settings_section_decompression_title => 'تخفيف الضغط';
 
   @override
@@ -27580,6 +27576,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'اتجاه استهلاك الغاز';
+
+  @override
+  String get insights_gas_tankConfig_title => 'تكوين الأسطوانات';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'الغوصات حسب طريقة حمل الأسطوانات';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'التكوين';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'إضافات';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'جهاز إعادة تنفس';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'تعليق جانبي';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'أسطوانتان على الظهر';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount =>
+      'أسطوانة واحدة على الظهر';
+
+  @override
+  String get insights_gas_tankConfig_other => 'أخرى';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'لا توجد أسطوانات مسجلة';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'أسطوانات مرحلية';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'غاز تخفيف الضغط';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'غازات متعددة';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'تُحتسب الأسطوانات المزدوجة المسجلة كأسطوانة واحدة عندما يدل الاسم على ذلك (twin، double، D12، 2x12) أو عندما تكون الأسطوانة أكبر من أي أسطوانة مفردة شائعة. عيّن تعليق جانبي أيسر وتعليق جانبي أيمن لأسطوانات الغوصة لتُحتسب كتعليق جانبي.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'لا توجد غوصات لعرضها';
+
+  @override
+  String get insights_gas_tankConfig_error => 'فشل تحميل تكوين الأسطوانات';
 
   @override
   String get insights_focus_title => 'تركيز الغطسات';
@@ -37642,6 +37694,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'صارم (18/24/48 س)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'مفعّل، $enabled من $total قاعدة، حظر الطيران $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'متوقف، حظر الطيران $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'قياسي';
+
+  @override
+  String get safetyHub_noFlyStrict => 'صارم';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'مفعّل، $enabled من $total قاعدة';
+  }
+
+  @override
+  String get safetyHub_off => 'متوقف';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط';
 
@@ -38195,7 +38271,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'قواعد المراجعة والطيران بعد الغوص';
+      'قواعد المراجعة وتخفيف الضغط والمعدات';
 
   @override
   String get settings_section_equipmentCondition_title => 'حالة المعدات';
@@ -51266,6 +51342,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_field_label => 'التسمية';
 
   @override
+  String get transmitters_field_label_helper =>
+      'يصبح اسم الأسطوانة في الغطسة بمجرد مطابقة جهاز الإرسال هذا';
+
+  @override
   String get transmitters_field_serial => 'الرقم التسلسلي لجهاز الإرسال';
 
   @override
@@ -51282,13 +51362,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_field_gear => 'أسطوانة من المعدات';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'الأسطوانة التي يبلغ جهاز الإرسال هذا عن ضغطها';
+
+  @override
   String get transmitters_field_transmitterGear => 'جهاز إرسال من المعدات';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'تتبع البطارية/الصيانة، لا يُستخدم للمطابقة';
 
   @override
   String get transmitters_field_material => 'المادة';
 
   @override
   String get transmitters_gear_none => 'لا شيء';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'لا يوجد حجم أو ضغط مسجل لهذه الأسطوانة، لذا سيبقى الحجم فارغًا في الغطسة';
 
   @override
   String get transmitters_validation_key =>

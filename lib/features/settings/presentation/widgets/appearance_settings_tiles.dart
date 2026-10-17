@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_style_labels.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/display_zoom_settings_tile.dart';
@@ -143,12 +144,12 @@ class AppearanceGeneralTiles extends ConsumerWidget {
                 for (final style in MapStyle.values)
                   DropdownMenuItem(
                     value: style,
-                    child: Text(_mapStyleName(context, style)),
+                    child: Text(style.label(l10n)),
                   ),
               ],
             ),
           ),
-          subtitle: Text(_mapStyleName(context, settings.mapStyle)),
+          subtitle: Text(settings.mapStyle.label(l10n)),
         ),
         ListTile(
           key: const ValueKey('settings-trend-gaps'),
@@ -330,14 +331,5 @@ String _currentThemeName(BuildContext context, String presetId) {
     'theme_minimalist' => l10n.theme_minimalist,
     'theme_deep' => l10n.theme_deep,
     _ => nameKey,
-  };
-}
-
-String _mapStyleName(BuildContext context, MapStyle style) {
-  final l10n = context.l10n;
-  return switch (style) {
-    MapStyle.openStreetMap => l10n.settings_appearance_mapStyle_openStreetMap,
-    MapStyle.openTopoMap => l10n.settings_appearance_mapStyle_openTopoMap,
-    MapStyle.esriSatellite => l10n.settings_appearance_mapStyle_esriSatellite,
   };
 }

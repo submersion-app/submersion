@@ -25754,10 +25754,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_section_data_title => 'Data';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, data sources & narcosis';
-
-  @override
   String get settings_section_decompression_title => 'Decompression';
 
   @override
@@ -26938,6 +26934,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Gas consumption trend';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Tank configuration';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Dives by how the tanks were set up';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Other';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage(s)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'No dives to show';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Unable to load tank configuration';
 
   @override
   String get insights_focus_title => 'Dive focus';
@@ -36550,6 +36602,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Strict (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'On, $enabled of $total rules, no-fly $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Off, no-fly $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Standard';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Strict';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'On, $enabled of $total rules';
+  }
+
+  @override
+  String get safetyHub_off => 'Off';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Guideline intervals after a single no-deco dive, repetitive dives, and deco dives';
 
@@ -37099,7 +37175,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Review rules & flying after diving';
+      'Review rules, decompression & equipment';
 
   @override
   String get settings_section_equipmentCondition_title => 'Equipment condition';
@@ -49818,6 +49894,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transmitters_field_label => 'Label';
 
   @override
+  String get transmitters_field_label_helper =>
+      'Becomes the cylinder\'s name on the dive once this transmitter is matched';
+
+  @override
   String get transmitters_field_serial => 'Transmitter serial';
 
   @override
@@ -49834,13 +49914,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transmitters_field_gear => 'Cylinder from gear';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'The cylinder this transmitter reports pressure for';
+
+  @override
   String get transmitters_field_transmitterGear => 'Transmitter from gear';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Battery/service tracking, not matching';
 
   @override
   String get transmitters_field_material => 'Material';
 
   @override
   String get transmitters_gear_none => 'None';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'This cylinder has no size or pressure on file, so size will stay empty on the dive';
 
   @override
   String get transmitters_validation_key =>
