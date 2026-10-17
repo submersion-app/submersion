@@ -14657,6 +14657,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Materiaal';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gasmengsel';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configuraties';
 
   @override
@@ -19378,6 +19381,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Het profiel gaat boven het decompressieplafond van $ceiling en slaat verplichte stops over';
   }
 
   @override
@@ -36109,7 +36117,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Cloud- en service-aanmeldingen';
+      'Aanmeldingen voor synchronisatie, mediaopslag en gedeelde bibliotheken';
 
   @override
   String get settings_connectedAccounts_empty => 'Nog geen accounts gekoppeld';
@@ -36181,6 +36189,51 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Accounts konden niet worden geladen';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Gebruikt voor: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Niet gebruikt op dit apparaat';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Databasesynchronisatie';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'Mediaopslag';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Gedeelde duikstekbibliotheek: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Afmelden op dit apparaat?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Op dit apparaat wordt $account gebruikt voor de onderstaande functies. Ze werken hier pas weer als je opnieuw aanmeldt.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Op dit apparaat wordt het gebruikt voor de onderstaande functies, die hier dan niet meer werken:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Andere apparaten gebruiken dit account mogelijk ook.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Kon niet nagaan waarvoor dit account op dit apparaat wordt gebruikt. Wat het hier gebruikt, werkt mogelijk niet meer.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
@@ -49235,6 +49288,34 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title =>
+      'Afbeeldingscache in het geheugen';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Gedecodeerde afbeeldingen die in het geheugen blijven voor de galerijen en de weergave op volledig scherm. Geldt direct, alleen op dit apparaat.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Schijfcache voor miniaturen';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Miniaturen die op dit apparaat worden bewaard. Originelen en gecomprimeerde kopieën tellen niet mee.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Cache legen';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Miniaturencache geleegd';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'De miniaturencache kon niet worden geleegd';
 
   @override
   String get media_status_transferFailed => 'Uploaden mislukt';

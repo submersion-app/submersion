@@ -14542,6 +14542,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Material';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gas mix';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurations';
 
   @override
@@ -19214,6 +19217,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent exceeds its Dil MOD at $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'The profile goes above the $ceiling decompression ceiling, skipping required stops';
   }
 
   @override
@@ -35743,7 +35751,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Cloud and service sign-ins';
+      'Sign-ins used by sync, media storage and shared libraries';
 
   @override
   String get settings_connectedAccounts_empty => 'No accounts connected yet';
@@ -35812,6 +35820,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'Could not load accounts';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Used for: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none => 'Not used on this device';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync => 'Database sync';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'Media storage';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Shared site library: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Sign out on this device?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'On this device, $account is used for the features below. They stop working here until you sign in again.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'On this device it is used for the features below, which stop working here:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Other devices may also use this account.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Could not check what this account is used for on this device. Anything that uses it here may stop working.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
@@ -48775,6 +48826,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'A small glyph showing where each item is served from. Problem badges always show.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title => 'In-memory image cache';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Decoded images kept in memory for the galleries and the full-screen viewer. Applies immediately, on this device only.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Thumbnail disk cache';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Thumbnails kept on this device. Originals and compressed copies are not counted.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Empty cache';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Thumbnail cache emptied';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Could not empty the thumbnail cache';
 
   @override
   String get media_status_transferFailed => 'Upload failed';

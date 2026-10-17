@@ -35,9 +35,9 @@ Future<void> _pumpRingedRow(
       ),
     ),
   );
-  // A click focuses the list and puts the cursor, and so the ring, on it.
-  await clickWithMouse(tester, find.byKey(const ValueKey('row-a')));
-  await tester.pumpAndSettle();
+  // A click focuses the list and puts the cursor on it; an arrow press then
+  // draws the ring there.
+  await clickThenUseKeyboard(tester, find.byKey(const ValueKey('row-a')));
 }
 
 RenderObject _ringedRow(WidgetTester tester) =>
@@ -242,8 +242,7 @@ void main() {
       ),
     );
 
-    await clickWithMouse(tester, find.text('banner'));
-    await tester.pumpAndSettle();
+    await clickThenUseKeyboard(tester, find.text('banner'));
 
     expect(
       _ringedRow(tester),

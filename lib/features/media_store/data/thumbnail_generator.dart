@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/image_resize_job.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/native_image_resize.dart';
 
 /// Best-effort thumbnail production for the upload pipeline (design spec
 /// section 9 step 4). Only the gallery source hands back genuinely
@@ -99,15 +100,16 @@ class ThumbnailGenerator {
 
   /// Decode, resize and re-encode [bytes] as a thumbnail JPEG.
   ///
-  /// Hands the whole codec pass to a background isolate. It is pure-Dart
-  /// package:image work, so inline it ran on the caller's isolate -- and the
-  /// caller is the upload worker on the UI isolate, where one 24 MP frame is
-  /// seconds of frozen app (#1175). Decoding by declared extension is
-  /// preserved inside the job: the generic decoder probes every format and
+  /// Decoded by the engine's own codecs and encoded on a background isolate
+  /// (issue #3337), so nothing heavy runs on the caller's isolate -- and the
+  /// caller is the upload worker on the UI isolate, where one 24 MP frame
+  /// decoded in Dart was seconds of frozen app (#1175). A source the engine
+  /// rejects goes to the package:image job, where decoding by declared
+  /// extension is preserved: the generic decoder probes every format and
   /// permissive ones (TGA) accept arbitrary bytes.
   Future<File?> _resizeToJpeg(Uint8List bytes, String? name) async {
     final staged = await _cache.stagingFile();
-    final result = await resizeToJpegFile(
+    final result = await resizeToJpegFileNative(
       ImageResizeRequest.fromBytes(
         bytes: bytes,
         destinationPath: staged.path,
@@ -122,7 +124,7 @@ class ThumbnailGenerator {
   /// [_resizeToJpeg] for a source that is already a file on disk.
   Future<File?> _resizeFileToJpeg(File source, String? name) async {
     final staged = await _cache.stagingFile();
-    final result = await resizeToJpegFile(
+    final result = await resizeToJpegFileNative(
       ImageResizeRequest.fromFile(
         sourcePath: source.path,
         destinationPath: staged.path,

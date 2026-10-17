@@ -38,6 +38,7 @@ import 'package:submersion/features/equipment/data/services/equipment_clone_serv
 import 'package:submersion/features/equipment/domain/services/equipment_clone_seed.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -771,65 +772,75 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: colorScheme.primaryContainer,
-            child: Icon(
-              widget.isEditing ? Icons.edit : Icons.add,
-              size: 20,
-              color: colorScheme.onPrimaryContainer,
+      child: LabelWithControl(
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: colorScheme.primaryContainer,
+              child: Icon(
+                widget.isEditing ? Icons.edit : Icons.add,
+                size: 20,
+                color: colorScheme.onPrimaryContainer,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              widget.isEditing
-                  ? context.l10n.equipment_edit_embeddedHeader_editTitle
-                  : context.l10n.equipment_edit_embeddedHeader_newTitle,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                widget.isEditing
+                    ? context.l10n.equipment_edit_embeddedHeader_editTitle
+                    : context.l10n.equipment_edit_embeddedHeader_newTitle,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (_hasChanges) {
-                final discard = await _showDiscardDialog();
-                if (discard == true && mounted) {
+          ],
+        ),
+        control: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () async {
+                if (_hasChanges) {
+                  final discard = await _showDiscardDialog();
+                  if (discard == true && mounted) {
+                    _handleCancel();
+                  }
+                } else {
                   _handleCancel();
                 }
-              } else {
-                _handleCancel();
-              }
-            },
-            child: Text(
-              context.l10n.equipment_edit_embeddedHeader_cancelButton,
+              },
+              child: Text(
+                context.l10n.equipment_edit_embeddedHeader_cancelButton,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: widget.isEditing
-                ? context.l10n.equipment_edit_embeddedHeader_saveTooltip_edit
-                : context.l10n.equipment_edit_embeddedHeader_saveTooltip_new,
-            child: FilledButton(
-              onPressed: _isLoading
-                  ? null
-                  : () => _saveEquipment(existingEquipment),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+            const SizedBox(width: 8),
+            Tooltip(
+              message: widget.isEditing
+                  ? context.l10n.equipment_edit_embeddedHeader_saveTooltip_edit
+                  : context.l10n.equipment_edit_embeddedHeader_saveTooltip_new,
+              child: FilledButton(
+                onPressed: _isLoading
+                    ? null
+                    : () => _saveEquipment(existingEquipment),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        context.l10n.equipment_edit_embeddedHeader_saveButton,
                       ),
-                    )
-                  : Text(context.l10n.equipment_edit_embeddedHeader_saveButton),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

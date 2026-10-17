@@ -78,7 +78,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final sections = notifier.state.siteDetailSections;
-    expect(sections.first.id, SiteDetailSectionId.diveStatistics);
+    expect(sections.first.id, SiteDetailSectionId.description);
     expect(sections.first.visible, isFalse);
     expect(sections.skip(1).every((s) => s.visible), isTrue);
   });
@@ -93,9 +93,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(_order(notifier.state).take(3), [
+      SiteDetailSectionId.depth,
+      SiteDetailSectionId.difficulty,
       SiteDetailSectionId.description,
-      SiteDetailSectionId.location,
-      SiteDetailSectionId.diveStatistics,
     ]);
   });
 

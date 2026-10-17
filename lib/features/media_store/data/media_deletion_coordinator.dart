@@ -21,13 +21,26 @@ class MediaDeletionCoordinator {
     required MediaRepository mediaRepository,
     required MediaTransferQueueRepository Function() queue,
     Future<void> Function()? kickWorker,
+    Future<void> Function(List<MediaItem> items, {required bool undoable})?
+    onDeleted,
   }) : _mediaRepository = mediaRepository,
        _queue = queue,
-       _kickWorker = kickWorker;
+       _kickWorker = kickWorker,
+       _onDeleted = onDeleted;
 
   final MediaRepository _mediaRepository;
   final MediaTransferQueueRepository Function() _queue;
   final Future<void> Function()? _kickWorker;
+
+  /// Given the rows once they are gone, to clear them out of this device's
+  /// caches: thumbnails on disk, decoded images in memory (issue #3337).
+  /// Unlinking goes through here, as does every other user deletion.
+  ///
+  /// `undoable` is true for a delete held for undo: an undo puts the rows
+  /// back, so copies that would have to be fetched again (the media store's)
+  /// should stay, while anything this device remakes itself can go.
+  final Future<void> Function(List<MediaItem> items, {required bool undoable})?
+  _onDeleted;
   final _log = LoggerService.forClass(MediaDeletionCoordinator);
 
   Future<void> deleteMedia(String id) => deleteMultipleMedia([id]);
@@ -111,13 +124,19 @@ class MediaDeletionCoordinator {
     bool kick = true,
   }) async {
     var enqueued = false;
+    // The rows as they were, for the cache purge: nothing can be read back
+    // once they are deleted.
+    final doomed = <MediaItem>[];
     for (final id in ids) {
       // Untyped catch on purpose: an uninitialized
       // LocalCacheDatabaseService throws StateError (an Error, not an
       // Exception), and no media-store problem may ever block the user's
       // deletion.
       try {
-        if (await _enqueueIntent(id, known[id])) enqueued = true;
+        final item = known[id] ?? await _mediaRepository.getMediaById(id);
+        if (item == null) continue;
+        doomed.add(item);
+        if (await _enqueueIntent(id, item)) enqueued = true;
       } catch (e, stackTrace) {
         _log.warning(
           'Could not enqueue remote delete for media $id '
@@ -127,14 +146,42 @@ class MediaDeletionCoordinator {
         );
       }
     }
+    var purged = doomed;
     if (keepIf != null) {
-      await _mediaRepository.deleteMultipleMedia(ids, keepIf: keepIf);
+      // Only what the transaction removed: a row [keepIf] kept is still in
+      // the library, and keeps its cached copies.
+      final deleted = (await _mediaRepository.deleteMultipleMedia(
+        ids,
+        keepIf: keepIf,
+      )).toSet();
+      purged = [
+        for (final item in doomed)
+          if (deleted.contains(item.id)) item,
+      ];
     } else if (ids.length == 1) {
       await _mediaRepository.deleteMedia(ids.single);
     } else {
       await _mediaRepository.deleteMultipleMedia(ids);
     }
+    await _purge(purged, undoable: !kick);
     if (enqueued && kick) await _kick('media delete');
+  }
+
+  Future<void> _purge(List<MediaItem> items, {required bool undoable}) async {
+    final onDeleted = _onDeleted;
+    if (onDeleted == null || items.isEmpty) return;
+    // Untyped catch for the same reason as above: the rows are already
+    // gone, and a cache that cannot be cleared must not turn that into an
+    // error.
+    try {
+      await onDeleted(items, undoable: undoable);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not clear deleted media from the caches',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<void> _kick(String after) async {
@@ -147,10 +194,9 @@ class MediaDeletionCoordinator {
     }
   }
 
-  Future<bool> _enqueueIntent(String id, MediaItem? known) async {
-    final item = known ?? await _mediaRepository.getMediaById(id);
-    final hash = item?.contentHash;
-    if (item == null || hash == null || hash.isEmpty) return false;
+  Future<bool> _enqueueIntent(String id, MediaItem item) async {
+    final hash = item.contentHash;
+    if (hash == null || hash.isEmpty) return false;
     final everUploaded =
         item.remoteUploadedAt != null ||
         item.remoteThumbUploadedAt != null ||

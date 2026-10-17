@@ -1,48 +1,45 @@
-// Constants for the network media cache caps, surfaced as
-// `cached_network_image` (memory) limits and applied at app boot via
-// [applyMediaCacheCaps].
+// The caps on Flutter's in-memory decoded-image cache, applied at app boot
+// and again whenever the diver changes the size, via [applyMediaCacheCaps].
 //
 // Only the memory caps live here. There is deliberately no byte cap for the
-// disk cache: `flutter_cache_manager` exposes `maxNrOfCacheObjects` and
-// `stalePeriod` but no byte budget, so honouring one would mean a custom
-// `BaseCacheManager` with hand-rolled eviction, and a named cache manager
-// would relocate the cache directory and orphan the existing one. A
-// `kDiskCacheCapBytes` constant used to be declared here and wired to
-// nothing, which claimed a guarantee the app did not provide. What actually
-// governs the disk cache is `DefaultCacheManager`'s own defaults, and its
-// real size is now reported on the Storage usage page next to the clear
-// button that already worked. See issue #1375.
+// `cached_network_image` disk cache: `flutter_cache_manager` exposes
+// `maxNrOfCacheObjects` and `stalePeriod` but no byte budget, so honouring
+// one would mean a custom `BaseCacheManager` with hand-rolled eviction, and a
+// named cache manager would relocate the cache directory and orphan the
+// existing one. A `kDiskCacheCapBytes` constant used to be declared here and
+// wired to nothing, which claimed a guarantee the app did not provide. What
+// actually governs that cache is `DefaultCacheManager`'s own defaults, and
+// its real size is reported on the Storage usage page next to the clear
+// button that already worked. See issue #1375. (The thumbnail disk cache is a
+// different cache with a real cap: see `MediaCacheStore`.)
 //
 // Memory caps are wired via [PaintingBinding.instance.imageCache] because
-// `cached_network_image` resolves through the global Flutter image cache, so
-// the byte cap is honoured immediately for in-RAM decoded images.
+// every image the app shows, local or network, resolves through the global
+// Flutter image cache, so the byte cap is honoured immediately for in-RAM
+// decoded images.
 
 import 'package:flutter/painting.dart';
 
-/// Live in-memory decoded-image budget (75 MB), applied to
-/// [PaintingBinding.imageCache] at app boot via [applyMediaCacheCaps].
-const int kMemoryCacheCapBytes = 75 * 1024 * 1024;
+import 'package:submersion/features/media/data/media_cache_settings.dart';
 
-/// Heuristic upper bound on the number of decoded images held in memory
-/// at once. The Flutter image cache enforces both this object count
-/// *and* [kMemoryCacheCapBytes]; the count guard exists so a stream of
-/// tiny thumbnails cannot blow past expectations even though each frame
-/// is well under the byte cap.
-const int kMemoryCacheCapObjects = 200;
-
-/// Applies [kMemoryCacheCapBytes] / [kMemoryCacheCapObjects] to the
-/// global Flutter [PaintingBinding.imageCache] at app boot.
+/// Upper bound on the number of decoded images held in memory at once.
 ///
-/// Memory only. The disk cache is governed by `flutter_cache_manager`'s own
-/// defaults; see the file header. Idempotent; safe to call multiple times.
-//
-// Configures the global Flutter image cache. Called once at app boot from
-// `_bootstrap()` in `lib/main.dart`.
-// coverage:ignore-start
-void applyMediaCacheCaps() {
+/// The Flutter image cache enforces both this object count and the byte cap.
+/// It was 200, which for small thumbnails was reached long before the bytes
+/// were, and at the smallest thumbnail size a large window shows more than
+/// 200 tiles at once. 2000 leaves the byte cap, which the diver sets, as the
+/// limit that matters (issue #3337).
+const int kMemoryCacheCapObjects = 2000;
+
+/// Applies [memoryBytes] and [kMemoryCacheCapObjects] to the global Flutter
+/// [PaintingBinding.imageCache]. With no [memoryBytes] the default size
+/// applies.
+///
+/// Memory only. Idempotent; safe to call multiple times. Lowering the byte
+/// cap evicts down to it at once.
+void applyMediaCacheCaps({int? memoryBytes}) {
   final cache = PaintingBinding.instance.imageCache;
-  cache.maximumSizeBytes = kMemoryCacheCapBytes;
+  cache.maximumSizeBytes =
+      memoryBytes ?? const MediaCacheSettings().memoryCacheBytes;
   cache.maximumSize = kMemoryCacheCapObjects;
 }
-
-// coverage:ignore-end

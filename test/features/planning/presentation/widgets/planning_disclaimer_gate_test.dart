@@ -41,6 +41,26 @@ void main() {
     expect(find.text('planning tools'), findsOneWidget);
   });
 
+  // A stock AlertDialog sizes to its text within the default inset, so on a
+  // wide window the body stretched into very long lines (issue #3392).
+  testWidgets('caps the dialog at a reading width on a wide window', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1600, 900);
+    addTearDown(tester.view.reset);
+
+    await pump(tester, hasAcceptedPlanningDisclaimer: false);
+
+    final card = find
+        .descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(Material),
+        )
+        .first;
+    expect(tester.getSize(card).width, lessThanOrEqualTo(480));
+  });
+
   testWidgets('stays non-dismissible: tapping outside it does nothing', (
     tester,
   ) async {

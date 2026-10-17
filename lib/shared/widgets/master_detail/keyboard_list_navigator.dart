@@ -116,6 +116,12 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   bool _hasFocus = false;
   FocusHighlightMode _highlightMode = FocusManager.instance.highlightMode;
 
+  /// Whether the list was last driven from the keyboard: a key pressed in it,
+  /// or focus arriving by Tab. A click clears it, so the open row shows only
+  /// its own highlight, not the ring as well (#3385). The highlight mode alone
+  /// cannot tell: on desktop a mouse click leaves it traditional.
+  bool _keyboardDriven = false;
+
   @override
   void initState() {
     super.initState();
@@ -173,9 +179,15 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
         keyboard.isMetaPressed;
   }
 
+  /// Focus arriving while Tab is down came by traversal into the list.
+  static bool _tabHeld() => HardwareKeyboard.instance.logicalKeysPressed
+      .contains(LogicalKeyboardKey.tab);
+
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
+    // A shortcut (Cmd+F and the like) is not navigating the list.
     if (_anyModifierPressed()) return KeyEventResult.ignored;
+    if (!_keyboardDriven) setState(() => _keyboardDriven = true);
     final key = event.logicalKey;
 
     if (key == LogicalKeyboardKey.arrowDown) {
@@ -308,7 +320,12 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   void _pointerDownOn(String key) {
     _focusNode.requestFocus();
     _unconfirmedMoves.clear();
-    if (_cursor != key) setState(() => _cursor = key);
+    if (_cursor != key || _keyboardDriven) {
+      setState(() {
+        _cursor = key;
+        _keyboardDriven = false;
+      });
+    }
   }
 
   void _register(String key, BuildContext row) => _rows[key] = row;
@@ -320,13 +337,21 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   @override
   Widget build(BuildContext context) {
     final showsRing =
-        _hasFocus && _highlightMode == FocusHighlightMode.traditional;
+        _hasFocus &&
+        _keyboardDriven &&
+        _highlightMode == FocusHighlightMode.traditional;
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: _onKeyEvent,
       onFocusChange: (focused) {
         if (!focused) _unconfirmedMoves.clear();
-        setState(() => _hasFocus = focused);
+        setState(() {
+          _hasFocus = focused;
+          // Focus handed back with no key held (the app resuming, a menu
+          // closing) or taken by a click leaves the ring as the list last had
+          // it; a click has already cleared it.
+          if (focused && _tabHeld()) _keyboardDriven = true;
+        });
       },
       child: _KeyboardListScope(
         state: this,

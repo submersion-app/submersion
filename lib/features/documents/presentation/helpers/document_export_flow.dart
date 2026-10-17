@@ -187,10 +187,7 @@ ArchiveDocumentInput _input(
   if (doc.owner.isPersonal) {
     record = null;
   } else {
-    record =
-        entry.dive?.folderName() ??
-        entry.ownerLabel ??
-        l10n.documents_export_unknownRecord;
+    record = _recordFolder(entry) ?? l10n.documents_export_unknownRecord;
   }
   return ArchiveDocumentInput(
     document: doc,
@@ -199,6 +196,19 @@ ArchiveDocumentInput _input(
     recordFolder: record,
     pages: pages,
   );
+}
+
+/// The folder a document's record gets: its owner label, and for a dive
+/// (#3391's `#142 · Blue Hole`) the date too, as `#142 Blue Hole
+/// 2026-10-12` so dive folders sort by date. Null when the record is gone.
+String? _recordFolder(DocumentListEntry entry) {
+  final label = entry.ownerLabel?.trim();
+  final date = entry.ownerDate;
+  if (date == null) return label == null || label.isEmpty ? null : label;
+  return [
+    if (label != null && label.isNotEmpty) label.replaceAll(' · ', ' '),
+    DateFormat('yyyy-MM-dd').format(date),
+  ].join(' ');
 }
 
 ManifestLabels _manifest(AppLocalizations l10n) => ManifestLabels(

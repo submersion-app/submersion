@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -125,5 +126,47 @@ void main() {
     // kDefaultThumbnailTarget is 200x200; 200 x 3.0 dpr = 600. The viewport
     // fallback would be 2400.
     expect((image.image as ResizeImage).width, 600);
+  });
+
+  // The pager keeps both neighbours built (#3298), so a network-served item
+  // decoded at its native size would hold three originals at once.
+  testWidgets('a full-screen network image decodes bounded by the viewport', (
+    tester,
+  ) async {
+    useViewport(tester);
+    final base = await getBaseOverrides();
+    final resolver = FakeLocalFileResolver(
+      NetworkData(url: Uri.parse('https://example.invalid/photo.jpg')),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.localFile: resolver,
+              MediaSourceType.platformGallery: resolver,
+            }),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: MediaItemView(item: testMediaItem(), fit: BoxFit.contain),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    // Same bound as the file case above: 400 x 3.0 dpr x 2 = 2400.
+    expect(image.memCacheWidth, 2400);
+    expect(image.memCacheHeight, isNull);
   });
 }

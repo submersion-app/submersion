@@ -14708,6 +14708,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Anyag';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gázkeverék';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Konfigurációk';
 
   @override
@@ -19437,6 +19440,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'A hígítógáz meghaladja a Dil-MOD-ot $depth mélységben (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'A profil a $ceiling dekompressziós plafon fölé megy, kötelező megállókat kihagyva';
   }
 
   @override
@@ -36146,7 +36154,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Felhő- és szolgáltatásfiókok';
+      'A szinkronizálás, a médiatárhely és a megosztott könyvtárak által használt fiókok';
 
   @override
   String get settings_connectedAccounts_empty =>
@@ -36219,6 +36227,51 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'A fiókok nem tölthetők be';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Felhasználás: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Ezen az eszközön nincs használatban';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Adatbázis-szinkronizálás';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'Médiatárhely';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Megosztott merülőhely-könyvtár: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Kijelentkezik ezen az eszközön?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Ezen az eszközön a(z) $account fiókot az alábbi funkciók használják. Ezek itt az újbóli bejelentkezésig nem működnek.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Ezen az eszközön az alábbi funkciók használják, amelyek itt ezután nem működnek:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Más eszközök is használhatják ezt a fiókot.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Nem sikerült ellenőrizni, mire szolgál ez a fiók ezen az eszközön. Ami itt használja, leállhat.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
@@ -49280,6 +49333,35 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Gyorsítótár';
+
+  @override
+  String get settings_mediaCache_memory_title => 'Memóriában tartott képek';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'A galériákhoz és a teljes képernyős megjelenítőhöz memóriában tartott, dekódolt képek. Azonnal érvénybe lép, csak ezen az eszközön.';
+
+  @override
+  String get settings_mediaCache_disk_title =>
+      'Bélyegképek lemezes gyorsítótára';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Az ezen az eszközön tárolt bélyegképek. Az eredeti fájlok és a tömörített másolatok nem számítanak bele.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Gyorsítótár ürítése';
+
+  @override
+  String get settings_mediaCache_disk_emptied =>
+      'A bélyegképek gyorsítótára kiürítve';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Nem sikerült kiüríteni a bélyegképek gyorsítótárát';
 
   @override
   String get media_status_transferFailed => 'A feltöltés sikertelen';

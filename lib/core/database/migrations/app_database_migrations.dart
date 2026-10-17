@@ -41,6 +41,7 @@ part 'before_open_backup_note.dart';
 part 'before_open_child_columns.dart';
 part 'before_open_course_links.dart';
 part 'before_open_table_backstops.dart';
+part 'before_open_view_configs.dart';
 part 'helpers/buddy_migrations.dart';
 part 'helpers/certification_currency_migrations.dart';
 part 'helpers/connection_migrations.dart';

@@ -21,6 +21,7 @@ import 'package:submersion/features/media/data/services/gallery_thumbnail_cache.
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
+import 'package:submersion/features/media/data/services/local_thumbnail_cache.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
@@ -29,7 +30,9 @@ import 'package:submersion/features/media/data/services/subscription_poller.dart
 import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/providers/media_tile_image_memo.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_source_resolver.dart';
 import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -113,12 +116,47 @@ final pdfThumbnailServiceProvider = Provider<PdfThumbnailService>(
   ),
 );
 
+/// On-disk thumbnails of photos linked from local files, kept in the media
+/// cache's thumbnail pool so the diver's disk cache size governs them
+/// (issue #3337).
+// no-tick: a service rather than a cached query result.
+final Provider<LocalThumbnailCache> localThumbnailCacheProvider =
+    Provider<LocalThumbnailCache>((ref) {
+      final prefs = mediaCachePrefsOrNull(ref);
+      return LocalThumbnailCache(store: () => openMediaCacheStore(prefs));
+    });
+
 /// Singleton [LocalFileResolver] (Phase 2 — multi-platform).
+// no-tick: builds a resolver SERVICE, not a cached query result. Its one
+// repository call is a write, made inside a callback when a check completes.
 final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
   final resolver = LocalFileResolver(
     bookmarkStorage: ref.watch(localBookmarkStorageProvider),
     platform: ref.watch(localMediaPlatformProvider),
     videoThumbnails: ref.watch(videoThumbnailServiceProvider),
+    thumbnails: ref.watch(localThumbnailCacheProvider),
+    // A thumbnail served from the cache skips the original, so the tile no
+    // longer learns whether the file is still there. The resolver looks,
+    // once per row and off the tile's path, and this writes down what it
+    // found, by the same rule a tile resolution is held to.
+    onOriginChecked: (item, verdict) async {
+      final desired = orphanFlagForVerdict(
+        currentlyOrphaned: item.isOrphaned,
+        verdict: verdict,
+      );
+      if (desired == null) return;
+      await ref
+          .read(mediaRepositoryProvider)
+          .markVerified(
+            item.id,
+            isOrphaned: desired,
+            verifiedAt: DateTime.now(),
+          );
+    },
+    // The replacement thumbnail lands at the same path, which is the image
+    // cache's key, so the stale decode has to go with the file.
+    onThumbnailDropped: (item) =>
+        ref.read(mediaTileImageMemoProvider).evictItems([item.id]),
     // Fetched lazily, only when a read fails on a row that names an origin,
     // and memoized by the resolver; the provider itself never touches the
     // database.

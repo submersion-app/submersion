@@ -165,6 +165,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('detail b1'), findsOneWidget);
+
+      // Back from the buddy returns to the results, not the list (#3377).
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('PELIZZARI Umberto'), findsOneWidget);
+      expect(find.text('open search'), findsNothing);
     });
 
     testWidgets('a query with no matches says so', (tester) async {

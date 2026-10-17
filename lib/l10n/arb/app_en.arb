@@ -8712,6 +8712,7 @@
   "cylinderConfigs_fieldVolume": "Volume",
   "cylinderConfigs_fieldWorkingPressure": "Working pressure",
   "cylinderConfigs_fieldMaterial": "Material",
+  "cylinderConfigs_fieldGasMix": "Gas mix",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Counted from logged dive time",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} of {total} hours, {remaining} left",
@@ -12254,6 +12255,14 @@
         "type": "String"
       },
       "value": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_issue_ceilingViolated": "The profile goes above the {ceiling} decompression ceiling, skipping required stops",
+  "@plannerCanvas_issue_ceilingViolated": {
+    "placeholders": {
+      "ceiling": {
         "type": "String"
       }
     }
@@ -22318,7 +22327,7 @@
   "settings_photosMedia_networkSources_title": "Network sources",
   "settings_photosMedia_networkSources_subtitle": "URLs and manifest feeds (advanced)",
   "settings_connectedAccounts_title": "Connected Accounts",
-  "settings_connectedAccounts_subtitle": "Cloud and service sign-ins",
+  "settings_connectedAccounts_subtitle": "Sign-ins used by sync, media storage and shared libraries",
   "settings_connectedAccounts_empty": "No accounts connected yet",
   "settings_connectedAccounts_status_signedIn": "Signed in",
   "settings_connectedAccounts_status_needsSignIn": "Needs sign-in",
@@ -22339,6 +22348,41 @@
   "settings_setupGuide_statusTodo": "Not set up",
   "settings_setupGuide_open": "Open",
   "settings_connectedAccounts_loadError": "Could not load accounts",
+  "settings_connectedAccounts_usage_label": "Used for: {uses}",
+  "@settings_connectedAccounts_usage_label": {
+    "description": "Connected account row: what the account is used for on this device. uses is a comma-separated list of usage names.",
+    "placeholders": {
+      "uses": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_usage_none": "Not used on this device",
+  "settings_connectedAccounts_usage_databaseSync": "Database sync",
+  "settings_connectedAccounts_usage_mediaStorage": "Media storage",
+  "settings_connectedAccounts_usage_sharedLibrary": "Shared site library: {name}",
+  "@settings_connectedAccounts_usage_sharedLibrary": {
+    "description": "Connected account usage: a shared site library by name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_usage_lightroom": "Lightroom",
+  "settings_connectedAccounts_signOutConfirmTitle": "Sign out on this device?",
+  "settings_connectedAccounts_signOutConfirmBody": "On this device, {account} is used for the features below. They stop working here until you sign in again.",
+  "@settings_connectedAccounts_signOutConfirmBody": {
+    "description": "Sign-out confirmation body; account is the account's label.",
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_removeConfirmUsedHere": "On this device it is used for the features below, which stop working here:",
+  "settings_connectedAccounts_removeConfirmOtherDevices": "Other devices may also use this account.",
+  "settings_connectedAccounts_usage_unknown": "Could not check what this account is used for on this device. Anything that uses it here may stop working.",
   "media_unavailablePlaceholder_volumeOffline": "Volume not mounted",
   "media_unavailablePlaceholder_stillFetching": "Still loading. Tap to retry.",
   "media_unavailablePlaceholder_accessDenied": "No photo library access",
@@ -29317,6 +29361,14 @@
   "media_servedFrom_embedded": "Stored in this logbook",
   "settings_media_provenanceBadges": "Show source badges on thumbnails",
   "settings_media_provenanceBadgesSubtitle": "A small glyph showing where each item is served from. Problem badges always show.",
+  "settings_photosMedia_cacheHeader": "Cache",
+  "settings_mediaCache_memory_title": "In-memory image cache",
+  "settings_mediaCache_memory_subtitle": "Decoded images kept in memory for the galleries and the full-screen viewer. Applies immediately, on this device only.",
+  "settings_mediaCache_disk_title": "Thumbnail disk cache",
+  "settings_mediaCache_disk_subtitle": "Thumbnails kept on this device. Originals and compressed copies are not counted.",
+  "settings_mediaCache_disk_empty": "Empty cache",
+  "settings_mediaCache_disk_emptied": "Thumbnail cache emptied",
+  "settings_mediaCache_disk_emptyFailed": "Could not empty the thumbnail cache",
   "media_status_transferFailed": "Upload failed",
   "media_status_transferring": "Uploading",
   "media_status_queued": "Waiting to upload",

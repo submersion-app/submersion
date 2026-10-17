@@ -1,12 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_card_photo.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/courses/presentation/widgets/course_certification_thumbnail.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
@@ -100,6 +104,54 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.text('CERT k-dp'), findsOneWidget);
+  });
+
+  testWidgets('each row leads with a thumbnail of its card (#3383)', (
+    tester,
+  ) async {
+    final png = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGA'
+      'hKmMIQAAAABJRU5ErkJggg==',
+    );
+    await pump(tester, [
+      cert('k-an', 'Advanced Nitrox', 'TDI-48211').copyWith(photoFront: png),
+      cert('k-dp', 'Decompression Procedures', 'TDI-48212'),
+    ]);
+
+    expect(find.byType(CourseCertificationThumbnail), findsNWidgets(2));
+    expect(find.byType(CertificationCardPhoto), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CourseCertificationThumbnail),
+        matching: find.text('TDI'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byType(CertificationCardPhoto));
+    for (var i = 0; i < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('CERT k-an'), findsOneWidget);
+  });
+
+  testWidgets('each row is keyed by its certification', (tester) async {
+    // A row reused for another certification would keep the previous card's
+    // photo on screen while the new one decodes (#3383).
+    await pump(tester, [
+      cert('k-an', 'Advanced Nitrox', 'TDI-48211'),
+      cert('k-dp', 'Decompression Procedures', 'TDI-48212'),
+    ]);
+
+    final keys = tester
+        .widgetList<ListTile>(
+          find.ancestor(
+            of: find.byType(CourseCertificationThumbnail),
+            matching: find.byType(ListTile),
+          ),
+        )
+        .map((tile) => tile.key);
+    expect(keys, [const ValueKey('k-an'), const ValueKey('k-dp')]);
   });
 
   testWidgets('a course with no certifications shows no section', (

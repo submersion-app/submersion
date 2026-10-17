@@ -14751,6 +14751,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Material';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Mistura de gás';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurações';
 
   @override
@@ -19506,6 +19509,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'O diluente excede a MOD Dil a $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'O perfil ultrapassa o teto de descompressão de $ceiling, saltando paragens obrigatórias';
   }
 
   @override
@@ -36350,7 +36358,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Logins de nuvem e serviços';
+      'Logins usados pela sincronização, armazenamento de mídia e bibliotecas partilhadas';
 
   @override
   String get settings_connectedAccounts_empty =>
@@ -36421,6 +36429,52 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Não foi possível carregar as contas';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Usado para: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Não usado neste dispositivo';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Sincronização do banco de dados';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage =>
+      'Armazenamento de mídia';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Biblioteca de locais partilhada: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Sair neste dispositivo?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Neste dispositivo, $account é usado para os recursos abaixo. Eles deixam de funcionar aqui até você entrar novamente.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Neste dispositivo, é usado para os recursos abaixo, que deixam de funcionar aqui:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Outros dispositivos também podem usar esta conta.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Não foi possível verificar para que esta conta é usada neste dispositivo. O que a usa aqui pode deixar de funcionar.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume não montado';
@@ -49554,6 +49608,34 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Um pequeno ícone que mostra de onde cada item vem. Os selos de problema sempre aparecem.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title => 'Cache de imagens na memória';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Imagens decodificadas mantidas na memória para as galerias e o visualizador em tela cheia. Aplica-se imediatamente, apenas neste dispositivo.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Cache de miniaturas em disco';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Miniaturas mantidas neste dispositivo. Os originais e as cópias comprimidas não são contados.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Esvaziar cache';
+
+  @override
+  String get settings_mediaCache_disk_emptied =>
+      'Cache de miniaturas esvaziado';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Não foi possível esvaziar o cache de miniaturas';
 
   @override
   String get media_status_transferFailed => 'Falha no envio';

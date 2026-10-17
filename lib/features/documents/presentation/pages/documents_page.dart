@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
@@ -11,6 +13,7 @@ import 'package:submersion/features/documents/presentation/pages/document_edit_p
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_expiring_strip.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -161,7 +164,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
 
   String _query = '';
 
-  bool _matches(DocumentListEntry e) {
+  bool _matches(DocumentListEntry e, UnitFormatter units) {
     final d = e.document;
     if (_type != null && d.type != _type) return false;
     if (_personalOnly && !d.owner.isPersonal) return false;
@@ -171,7 +174,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
       d.title,
       d.issuer,
       d.referenceNumber,
-      e.ownerLabel,
+      e.ownerText(units),
     ].any((v) => v != null && v.toLowerCase().contains(q));
   }
 
@@ -179,12 +182,18 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final all = ref.watch(allDocumentsProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final body = all.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text(l10n.documents_error_load('$e'))),
-      data: (entries) {
+      data: (raw) {
+        final catalog = ref.watch(certificationCatalogSyncProvider);
+        final entries = [
+          for (final e in raw)
+            withCertificationOwnerTitle(e, l10n, catalog: catalog),
+        ];
         final presentTypes = {for (final e in entries) e.document.type};
-        final shown = entries.where(_matches).toList();
+        final shown = entries.where((e) => _matches(e, units)).toList();
         final listed = _expiringOnly
             ? [
                 for (final (e, _) in DocumentsExpiringStrip.due(
@@ -280,7 +289,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
               )
             else
               for (final kind in DocumentOwnerKind.values)
-                ..._group(context, kind, [
+                ..._group(context, kind, units, [
                   for (final e in listed)
                     if (e.document.owner.kind == kind) e,
                 ]),
@@ -355,6 +364,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   List<Widget> _group(
     BuildContext context,
     DocumentOwnerKind kind,
+    UnitFormatter units,
     List<DocumentListEntry> entries,
   ) {
     if (entries.isEmpty) return const [];
@@ -374,7 +384,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
           final e = entries[i];
           return DocumentTile(
             document: e.document,
-            ownerLabel: e.ownerLabel,
+            ownerLabel: e.ownerText(units),
             selected: e.document.id == widget.selectedId,
             onTap: () => widget.onOpen(e.document.id),
           );

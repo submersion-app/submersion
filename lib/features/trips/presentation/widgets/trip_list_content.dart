@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -52,6 +53,11 @@ class TripListContent extends ConsumerStatefulWidget {
   final bool showAppBar;
   final Widget? floatingActionButton;
 
+  /// Leads the compact (master-detail) header with a back arrow. Set when
+  /// the list was pushed over the page that opened it (#3350); the phone
+  /// app bar adds its own.
+  final bool showBackButton;
+
   /// Drives bulk selection from outside the list when set.
   ///
   /// In table mode the page's header carries the overflow menu, "Select
@@ -65,6 +71,7 @@ class TripListContent extends ConsumerStatefulWidget {
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
+    this.showBackButton = false,
     this.selectionController,
   });
 
@@ -598,7 +605,12 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 8),
+          // A list pushed over the page that opened it (a gear item's
+          // trips, say) leads with the way back to that page (#3350).
+          if (widget.showBackButton)
+            const BackButton()
+          else
+            const SizedBox(width: 8),
           // Expanded, and no Spacer: the title must be the row's only flexible
           // child. Pairing Flexible with Spacer gave each flex: 1, so the
           // Spacer took exactly half the free space instead of the remainder
@@ -915,7 +927,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
               onPressed: () {
                 if (ResponsiveBreakpoints.isMasterDetail(context)) {
                   final routerState = GoRouterState.of(context);
-                  context.go('${routerState.uri.path}?mode=new');
+                  context.goInPlace('${routerState.uri.path}?mode=new');
                 } else {
                   context.push('/trips/new');
                 }
@@ -1243,10 +1255,9 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                   subtitle: Text(
                     '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
                   ),
-                  onTap: () {
-                    close(context, trip);
-                    context.push('/trips/${trip.id}');
-                  },
+                  // Opened over the search rather than in place of it, so back
+                  // from the detail returns to these results (#3377).
+                  onTap: () => context.push('/trips/${trip.id}'),
                 );
               },
             );

@@ -184,11 +184,11 @@ void main() {
     );
   });
 
-  testWidgets('a 360dp phone keeps the four segments and does not overflow', (
-    tester,
-  ) async {
+  testWidgets('a 360dp phone collapses the view modes to make room for the '
+      'thumbnail size button', (tester) async {
     // MediaLibraryView pads the toolbar by 8dp each side, so a 360dp phone
-    // hands the row 344dp.
+    // hands the row 344dp: too narrow for four segments beside four compact
+    // icon buttons (issue #3398).
     tester.view.physicalSize = const Size(344, 640);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -197,9 +197,59 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsNothing);
+    expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsOneWidget);
+    expect(find.byKey(const ValueKey('thumbnail_size_button')), findsOneWidget);
+  });
+
+  testWidgets('a 375dp phone keeps the four segments beside the thumbnail '
+      'size button', (tester) async {
+    // 375 less MediaLibraryView's 8dp each side.
+    tester.view.physicalSize = const Size(359, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
     expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsOneWidget);
-    expect(find.byIcon(Icons.map), findsOneWidget);
     expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsNothing);
+    expect(find.byKey(const ValueKey('thumbnail_size_button')), findsOneWidget);
+  });
+
+  testWidgets('the narrowest row with four segments also holds the size '
+      'button', (tester) async {
+    tester.view.physicalSize = const Size(
+      kMediaToolbarFourSegmentMinWidth,
+      640,
+    );
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsOneWidget);
+    expect(find.byKey(const ValueKey('thumbnail_size_button')), findsOneWidget);
+  });
+
+  testWidgets('one dp short of the four-segment width collapses the view '
+      'modes', (tester) async {
+    tester.view.physicalSize = const Size(
+      kMediaToolbarFourSegmentMinWidth - 1,
+      640,
+    );
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsNothing);
+    expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsOneWidget);
   });
 
   testWidgets('a 320dp phone collapses the view modes to a menu and does not '
@@ -215,6 +265,7 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsNothing);
     expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsOneWidget);
+    expect(find.byKey(const ValueKey('thumbnail_size_button')), findsOneWidget);
 
     // Review Focus 5: the narrow row, a selection in flight, then map.
     selection.enterExplicit();
@@ -357,6 +408,76 @@ void main() {
         find.byType(SegmentedButton<MediaLibraryViewMode>),
         findsOneWidget,
       );
+    });
+  });
+
+  group('thumbnail size button on narrow rows (issue #3398)', () {
+    final button = find.byKey(const ValueKey('thumbnail_size_button'));
+    final slider = find.byKey(const ValueKey('thumbnail_size_slider'));
+
+    Future<void> pumpPhone(WidgetTester tester, double width) async {
+      tester.view.physicalSize = Size(width, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('stands in for the slider below the slider width', (
+      tester,
+    ) async {
+      await pumpPhone(tester, kMediaToolbarThumbnailSliderMinWidth - 1);
+
+      expect(button, findsOneWidget);
+      expect(slider, findsNothing);
+    });
+
+    testWidgets('is not shown where the slider fits', (tester) async {
+      await pumpPhone(tester, kMediaToolbarThumbnailSliderMinWidth);
+
+      expect(slider, findsOneWidget);
+      expect(button, findsNothing);
+    });
+
+    testWidgets('opens the slider, which sets the size', (tester) async {
+      await pumpPhone(tester, 344);
+
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      expect(slider, findsOneWidget);
+      expect(tester.widget<Slider>(slider).value, 3);
+
+      await tester.tapAt(
+        tester.getRect(slider).centerRight - const Offset(2, 0),
+      );
+      await tester.pumpAndSettle();
+
+      expect(container.read(mediaThumbnailScaleProvider).step, 6);
+      expect(tester.widget<Slider>(slider).value, 6);
+    });
+
+    testWidgets('opens on the narrowest phone without overflowing', (
+      tester,
+    ) async {
+      await pumpPhone(tester, 304);
+
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(slider, findsOneWidget);
+    });
+
+    testWidgets('is absent on the map', (tester) async {
+      await pumpPhone(tester, 344);
+      expect(button, findsOneWidget);
+
+      await container
+          .read(mediaLibraryViewModeProvider.notifier)
+          .setMode(MediaLibraryViewMode.map);
+      await tester.pumpAndSettle();
+
+      expect(button, findsNothing);
     });
   });
 

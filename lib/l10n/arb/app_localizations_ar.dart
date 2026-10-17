@@ -14943,6 +14943,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'المادة';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'خليط الغاز';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'الإعدادات';
 
   @override
@@ -19764,6 +19767,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'يتجاوز غاز التخفيف حد MOD الخاص به عند $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'المسار يتجاوز سقف تخفيف الضغط عند $ceiling ويتخطى توقفات إلزامية';
   }
 
   @override
@@ -36832,7 +36840,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'تسجيلات الدخول للسحابة والخدمات';
+      'تسجيلات الدخول المستخدمة للمزامنة وتخزين الوسائط والمكتبات المشتركة';
 
   @override
   String get settings_connectedAccounts_empty => 'لا توجد حسابات متصلة بعد';
@@ -36901,6 +36909,51 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'يُستخدم لـ: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'غير مستخدم على هذا الجهاز';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'مزامنة قاعدة البيانات';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'تخزين الوسائط';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'مكتبة مواقع مشتركة: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'تسجيل الخروج على هذا الجهاز؟';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'على هذا الجهاز، يُستخدم $account للميزات أدناه. ستتوقف عن العمل هنا حتى تسجّل الدخول مرة أخرى.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'على هذا الجهاز يُستخدم للميزات أدناه، والتي ستتوقف عن العمل هنا:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'قد تستخدم أجهزة أخرى هذا الحساب أيضًا.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'تعذر التحقق مما يُستخدم له هذا الحساب على هذا الجهاز. قد يتوقف ما يستخدمه هنا عن العمل.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
@@ -50181,6 +50234,35 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'التخزين المؤقت';
+
+  @override
+  String get settings_mediaCache_memory_title => 'ذاكرة الصور المؤقتة';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'الصور المفكوكة المحفوظة في الذاكرة للمعارض والعارض بملء الشاشة. يسري فورا وعلى هذا الجهاز فقط.';
+
+  @override
+  String get settings_mediaCache_disk_title =>
+      'التخزين المؤقت للصور المصغرة على القرص';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'الصور المصغرة المحفوظة على هذا الجهاز. لا تحتسب الملفات الأصلية والنسخ المضغوطة.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'إفراغ التخزين المؤقت';
+
+  @override
+  String get settings_mediaCache_disk_emptied =>
+      'تم إفراغ التخزين المؤقت للصور المصغرة';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'تعذر إفراغ التخزين المؤقت للصور المصغرة';
 
   @override
   String get media_status_transferFailed => 'فشل الرفع';

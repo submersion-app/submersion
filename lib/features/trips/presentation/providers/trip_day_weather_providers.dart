@@ -69,7 +69,6 @@ final tripDayWeatherBackfillProvider = FutureProvider.autoDispose
           longitude: target.longitude,
           date: target.date,
           entryTime: target.localNoon,
-          useLocationTimezone: true,
         );
         // A miss writes nothing and is retried on the next view, which is what
         // makes this correct against the archive's few-day publication lag.

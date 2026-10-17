@@ -27,6 +27,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:path/path.dart' as p;
 
 class BackupSettingsPage extends ConsumerWidget {
@@ -584,42 +585,48 @@ class BackupSettingsPage extends ConsumerWidget {
         // Frequency
         if (settings.enabled)
           ListTile(
-            title: Text(context.l10n.backup_schedule_frequency),
-            trailing: DropdownButton<BackupFrequency>(
-              value: settings.frequency,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(backupSettingsProvider.notifier).setFrequency(value);
-                }
-              },
-              items: BackupFrequency.values.map((f) {
-                return DropdownMenuItem(
-                  value: f,
-                  child: Text(_frequencyLabel(context, f)),
-                );
-              }).toList(),
+            title: LabelWithControl(
+              label: Text(context.l10n.backup_schedule_frequency),
+              control: DropdownButton<BackupFrequency>(
+                value: settings.frequency,
+                underline: const SizedBox(),
+                onChanged: (value) {
+                  if (value != null) {
+                    ref
+                        .read(backupSettingsProvider.notifier)
+                        .setFrequency(value);
+                  }
+                },
+                items: BackupFrequency.values.map((f) {
+                  return DropdownMenuItem(
+                    value: f,
+                    child: Text(_frequencyLabel(context, f)),
+                  );
+                }).toList(),
+              ),
             ),
           ),
         // Retention
         if (settings.enabled)
           ListTile(
-            title: Text(context.l10n.backup_schedule_retention),
-            subtitle: _buildRetentionSubtitle(context, ref),
-            trailing: DropdownButton<int>(
-              value: settings.retentionCount,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(backupSettingsProvider.notifier)
-                      .setRetentionCount(value);
-                }
-              },
-              items: [5, 10, 15, 20, 30].map((count) {
-                return DropdownMenuItem(value: count, child: Text('$count'));
-              }).toList(),
+            title: LabelWithControl(
+              label: Text(context.l10n.backup_schedule_retention),
+              control: DropdownButton<int>(
+                value: settings.retentionCount,
+                underline: const SizedBox(),
+                onChanged: (value) {
+                  if (value != null) {
+                    ref
+                        .read(backupSettingsProvider.notifier)
+                        .setRetentionCount(value);
+                  }
+                },
+                items: [5, 10, 15, 20, 30].map((count) {
+                  return DropdownMenuItem(value: count, child: Text('$count'));
+                }).toList(),
+              ),
             ),
+            subtitle: _buildRetentionSubtitle(context, ref),
           ),
         // Backup location: the destination row sits directly above the
         // Cloud backup switch it is mutually exclusive with.

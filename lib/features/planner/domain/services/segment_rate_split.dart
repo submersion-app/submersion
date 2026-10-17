@@ -2,6 +2,10 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 
+/// Suffix on the id of the hold half [expandRateSplitSegments] splits off
+/// an authored segment; the travel half keeps the authored id itself.
+const rateSplitHoldIdSuffix = '__hold';
+
 /// [segments] (already sorted) with every segment flagged
 /// [PlanSegment.splitAtConfiguredRate] -- and carrying an actual depth
 /// change -- expanded into two: travel at the plan's configured
@@ -48,7 +52,7 @@ List<PlanSegment> expandRateSplitSegments(
     result.add(segment.copyWith(durationSeconds: travelSeconds));
     result.add(
       PlanSegment(
-        id: '${segment.id}__hold',
+        id: '${segment.id}$rateSplitHoldIdSuffix',
         targetDepth: toDepth,
         durationSeconds: segment.durationSeconds - travelSeconds,
         tankId: segment.tankId,

@@ -23921,6 +23921,12 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get cylinderConfigs_fieldMaterial;
 
+  /// No description provided for @cylinderConfigs_fieldGasMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas mix'**
+  String get cylinderConfigs_fieldGasMix;
+
   /// No description provided for @cylinderConfigs_sectionTitle.
   ///
   /// In en, this message translates to:
@@ -31194,6 +31200,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)'**
   String plannerCanvas_issue_diluentModExceeded(String depth, String value);
+
+  /// No description provided for @plannerCanvas_issue_ceilingViolated.
+  ///
+  /// In en, this message translates to:
+  /// **'The profile goes above the {ceiling} decompression ceiling, skipping required stops'**
+  String plannerCanvas_issue_ceilingViolated(String ceiling);
 
   /// No description provided for @plannerCanvas_issue_noBailout.
   ///
@@ -57335,7 +57347,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_connectedAccounts_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Cloud and service sign-ins'**
+  /// **'Sign-ins used by sync, media storage and shared libraries'**
   String get settings_connectedAccounts_subtitle;
 
   /// No description provided for @settings_connectedAccounts_empty.
@@ -57457,6 +57469,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load accounts'**
   String get settings_connectedAccounts_loadError;
+
+  /// Connected account row: what the account is used for on this device. uses is a comma-separated list of usage names.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for: {uses}'**
+  String settings_connectedAccounts_usage_label(String uses);
+
+  /// No description provided for @settings_connectedAccounts_usage_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used on this device'**
+  String get settings_connectedAccounts_usage_none;
+
+  /// No description provided for @settings_connectedAccounts_usage_databaseSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Database sync'**
+  String get settings_connectedAccounts_usage_databaseSync;
+
+  /// No description provided for @settings_connectedAccounts_usage_mediaStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Media storage'**
+  String get settings_connectedAccounts_usage_mediaStorage;
+
+  /// Connected account usage: a shared site library by name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared site library: {name}'**
+  String settings_connectedAccounts_usage_sharedLibrary(String name);
+
+  /// No description provided for @settings_connectedAccounts_usage_lightroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightroom'**
+  String get settings_connectedAccounts_usage_lightroom;
+
+  /// No description provided for @settings_connectedAccounts_signOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out on this device?'**
+  String get settings_connectedAccounts_signOutConfirmTitle;
+
+  /// Sign-out confirmation body; account is the account's label.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device, {account} is used for the features below. They stop working here until you sign in again.'**
+  String settings_connectedAccounts_signOutConfirmBody(String account);
+
+  /// No description provided for @settings_connectedAccounts_removeConfirmUsedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device it is used for the features below, which stop working here:'**
+  String get settings_connectedAccounts_removeConfirmUsedHere;
+
+  /// No description provided for @settings_connectedAccounts_removeConfirmOtherDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices may also use this account.'**
+  String get settings_connectedAccounts_removeConfirmOtherDevices;
+
+  /// No description provided for @settings_connectedAccounts_usage_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check what this account is used for on this device. Anything that uses it here may stop working.'**
+  String get settings_connectedAccounts_usage_unknown;
 
   /// No description provided for @media_unavailablePlaceholder_volumeOffline.
   ///
@@ -78612,6 +78690,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A small glyph showing where each item is served from. Problem badges always show.'**
   String get settings_media_provenanceBadgesSubtitle;
+
+  /// No description provided for @settings_photosMedia_cacheHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache'**
+  String get settings_photosMedia_cacheHeader;
+
+  /// No description provided for @settings_mediaCache_memory_title.
+  ///
+  /// In en, this message translates to:
+  /// **'In-memory image cache'**
+  String get settings_mediaCache_memory_title;
+
+  /// No description provided for @settings_mediaCache_memory_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decoded images kept in memory for the galleries and the full-screen viewer. Applies immediately, on this device only.'**
+  String get settings_mediaCache_memory_subtitle;
+
+  /// No description provided for @settings_mediaCache_disk_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail disk cache'**
+  String get settings_mediaCache_disk_title;
+
+  /// No description provided for @settings_mediaCache_disk_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnails kept on this device. Originals and compressed copies are not counted.'**
+  String get settings_mediaCache_disk_subtitle;
+
+  /// No description provided for @settings_mediaCache_disk_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty cache'**
+  String get settings_mediaCache_disk_empty;
+
+  /// No description provided for @settings_mediaCache_disk_emptied.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail cache emptied'**
+  String get settings_mediaCache_disk_emptied;
+
+  /// No description provided for @settings_mediaCache_disk_emptyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not empty the thumbnail cache'**
+  String get settings_mediaCache_disk_emptyFailed;
 
   /// No description provided for @media_status_transferFailed.
   ///

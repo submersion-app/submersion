@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/list_return_scope.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
@@ -21,7 +22,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/safety_finding
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
-import 'package:submersion/features/dive_log/presentation/navigation/dive_list_return_scope.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -154,10 +154,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   }
 
   @override
-  Widget build(BuildContext context) => DiveListReturnScope(
-    returnTo: widget.returnTo,
-    child: _buildPage(context),
-  );
+  Widget build(BuildContext context) =>
+      ListReturnScope(returnTo: widget.returnTo, child: _buildPage(context));
 
   Widget _buildPage(BuildContext context) {
     // Clear mobile map selection when filters change to avoid stale state

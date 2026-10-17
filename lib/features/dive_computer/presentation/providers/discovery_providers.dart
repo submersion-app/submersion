@@ -261,6 +261,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     _discoverySubscription?.cancel();
     _discoverySubscription = null;
     await _service.stopDiscovery();
+    // A caller stopping a scan it owns as its widget closes can outlive the
+    // provider (issue #3369); the native scan is stopped either way.
+    if (!mounted) return;
     _discoveryLog.info(
       'Stopped BLE scan; '
       '${state.discoveredDevices.length} supported device(s) found',
@@ -273,7 +276,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   ///
   /// Resolves with the freshly discovered device, or with null when the scan
   /// could not start, native discovery ended, or [timeout] elapsed without
-  /// seeing the address. The scan is stopped on every path.
+  /// seeing the address. The scan is stopped on every path, unless
+  /// [stopScanWhenDone] is false: the caller then owns the running scan and
+  /// stops it with [stopScan].
   ///
   /// The saved-computer download path uses this to re-acquire the device
   /// before connecting. A direct connect to a stored address that the
@@ -281,9 +286,16 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   /// Windows, while the very same address connects fine right after a scan
   /// (issue #1232). macOS and iOS re-scan natively before connecting; this
   /// gives the other platforms the same behaviour.
+  ///
+  /// The scan-and-download flow connects while its scan is still running,
+  /// and on Android that flow downloaded a saved Shearwater that this path,
+  /// stopping the scan first and connecting straight after, could not
+  /// (issue #3369). The saved-computer download therefore keeps the scan
+  /// going through its connect, as that flow does.
   Future<DiscoveredDevice?> scanForAddress(
     String address, {
     required Duration timeout,
+    bool stopScanWhenDone = true,
   }) async {
     final completer = Completer<DiscoveredDevice?>();
 
@@ -316,7 +328,7 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
       // root-zone null future, which a fake-async widget test can never
       // flush. Cancellation itself is synchronous.
       unawaited(subscription.cancel());
-      await stopScan();
+      if (stopScanWhenDone) await stopScan();
     }
   }
 

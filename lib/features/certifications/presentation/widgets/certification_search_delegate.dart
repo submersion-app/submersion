@@ -113,10 +113,9 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
             final cert = certifications[index];
             return CertificationListTile(
               certification: cert,
-              onTap: () {
-                close(context, cert);
-                context.push('/certifications/${cert.id}');
-              },
+              // Opened over the search rather than in place of it, so back
+              // from the detail returns to these results (#3377).
+              onTap: () => context.push('/certifications/${cert.id}'),
             );
           },
         );
