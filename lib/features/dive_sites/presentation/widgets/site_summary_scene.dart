@@ -152,8 +152,12 @@ class _Headline extends StatelessWidget {
         eyebrow,
         const SizedBox(height: 6),
         SceneHeadline(headline, compact: compact),
-        const SizedBox(height: 6),
-        SceneSentence(_sentence(context, facts), maxWidth: sentenceWidth),
+        // An empty library has nothing to say past its count; the pane only
+        // shows a scene for one when the diver flips the toggle.
+        if (facts.siteCount > 0) ...[
+          const SizedBox(height: 6),
+          SceneSentence(_sentence(context, facts), maxWidth: sentenceWidth),
+        ],
       ],
     );
   }

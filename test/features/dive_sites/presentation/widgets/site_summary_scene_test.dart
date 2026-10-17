@@ -204,6 +204,16 @@ void main() {
     expect(find.byKey(const ValueKey('chart-mark-0')), findsNothing);
   });
 
+  testWidgets('an empty library flipped to the scene shows the count alone', (
+    tester,
+  ) async {
+    await pumpScene(tester, sites: () => []);
+
+    expect(find.text('0 sites'), findsOneWidget);
+    expect(find.byType(SceneSentence), findsNothing);
+    expect(find.byKey(const ValueKey('chart-mark-0')), findsNothing);
+  });
+
   testWidgets('while loading only the eyebrow shows', (tester) async {
     final never = Completer<List<SiteWithDiveCount>>();
     await pumpScene(tester, sites: () => never.future);
