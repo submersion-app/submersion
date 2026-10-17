@@ -270,7 +270,7 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
                       labelText: context.l10n.diveLog_ccr_label_deco,
                       suffixText: 'bar',
                       isDense: true,
-                      hintText: '1.60',
+                      hintText: formatDecimalForInput(1.60),
                     ),
                     onChanged: (_) => _notifyChange(),
                   ),
