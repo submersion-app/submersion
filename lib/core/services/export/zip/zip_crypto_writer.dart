@@ -78,7 +78,18 @@ class ZipCryptoWriter {
     final nameBytes = Uint8List.fromList(utf8.encode(name));
     final (time, date) = _dosDateTime(modified);
     final header = _localHeader(nameBytes, entry, time, date);
-    final central = _CentralEntry(nameBytes, entry, time, date, _offset);
+    // Only the sizes are kept for the central directory, so each payload
+    // can be released as soon as it is written.
+    final central = _CentralEntry(
+      name: nameBytes,
+      crc: entry.crc,
+      method: entry.method,
+      compressedSize: entry.payload.length,
+      size: entry.size,
+      time: time,
+      date: date,
+      offset: _offset,
+    );
     await _out.writeFrom(header);
     await _out.writeFrom(entry.payload);
     _offset += header.length + entry.payload.length;
@@ -242,12 +253,24 @@ class _ZipCryptoKeys {
 
 class _CentralEntry {
   final Uint8List name;
-  final EncodedZipEntry entry;
+  final int crc;
+  final int method;
+  final int compressedSize;
+  final int size;
   final int time;
   final int date;
   final int offset;
 
-  _CentralEntry(this.name, this.entry, this.time, this.date, this.offset);
+  _CentralEntry({
+    required this.name,
+    required this.crc,
+    required this.method,
+    required this.compressedSize,
+    required this.size,
+    required this.time,
+    required this.date,
+    required this.offset,
+  });
 
   Uint8List toBytes() {
     final b = _Bytes(46 + name.length)
@@ -255,12 +278,12 @@ class _CentralEntry {
       ..u16(_versionNeeded)
       ..u16(_versionNeeded)
       ..u16(_flags)
-      ..u16(entry.method)
+      ..u16(method)
       ..u16(time)
       ..u16(date)
-      ..u32(entry.crc)
-      ..u32(entry.payload.length)
-      ..u32(entry.size)
+      ..u32(crc)
+      ..u32(compressedSize)
+      ..u32(size)
       ..u16(name.length)
       ..u16(0)
       ..u16(0)
