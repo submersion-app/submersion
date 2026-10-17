@@ -81,7 +81,7 @@ class _RecordingSync extends SharedLibrarySyncNotifier {
   }
 }
 
-Widget _app(_FakeConnection service) => testAppRouter(
+Widget _app(_FakeConnection service, {String accountId = 'a'}) => testAppRouter(
   router: GoRouter(
     initialLocation: '/change',
     routes: [
@@ -101,11 +101,11 @@ Widget _app(_FakeConnection service) => testAppRouter(
   overrides: [
     validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
     sharedLibrariesProvider.overrideWith(
-      (ref) => Stream.value(const [
+      (ref) => Stream.value([
         SharedLibrary(
           id: 'L',
           name: 'Reef Survey',
-          connectedAccountId: 'a',
+          connectedAccountId: accountId,
           prefix: 'site-sync',
         ),
       ]),
@@ -140,6 +140,17 @@ void main() {
     await _check(tester);
     expect(service.checks.single.account, 'a');
     expect(service.checks.single.prefix, 'site-sync');
+  });
+
+  testWidgets('a stored account no longer on the device is named', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(_FakeConnection(), accountId: 'gone'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('This account is no longer on this device'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the same library saves, syncs and returns', (tester) async {

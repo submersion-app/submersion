@@ -1,6 +1,7 @@
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 /// Only an owner changes a library's name and description.
 class NotLibraryOwnerError extends StateError {
@@ -28,13 +29,14 @@ class LibraryDetailsService {
 
   /// Saves [name] and [description] (blank clears it) for [libraryId] as
   /// the profile [diverId], which must own it. The folder is written first:
-  /// when the storage refuses, nothing changes here.
+  /// when the storage refuses, nothing changes here. Behind any sync in
+  /// flight, whose read of the old details would otherwise land after.
   Future<void> save({
     required String libraryId,
     required String diverId,
     required String name,
     String? description,
-  }) async {
+  }) => SyncCoordinator.run(() async {
     final trimmedName = name.trim();
     final trimmedDescription = description?.trim() ?? '';
     if (trimmedName.isEmpty || trimmedName.length > maxNameLength) {
@@ -54,9 +56,16 @@ class LibraryDetailsService {
       throw NotLibraryOwnerError(libraryId);
     }
     final t = await _transportFor(library);
-    // Keys this version does not know are kept for the versions that do.
-    final info = {...?await t.readInfo(), 'name': trimmedName}
-      ..remove('description');
+    // Keys this version does not know are kept for the versions that do;
+    // a file no one can read (any member's storage keys may write it) is
+    // replaced, which is how an owner repairs it.
+    Map<String, dynamic>? existing;
+    try {
+      existing = await t.readInfo();
+    } catch (e) {
+      if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
+    }
+    final info = {...?existing, 'name': trimmedName}..remove('description');
     if (trimmedDescription.isNotEmpty) info['description'] = trimmedDescription;
     await t.writeInfo(info);
     await applyLibraryDetails(
@@ -66,13 +75,9 @@ class LibraryDetailsService {
       description: trimmedDescription.isEmpty ? null : trimmedDescription,
       clearDescription: trimmedDescription.isEmpty,
     );
-  }
+  });
 }
 
-/// Records a library's [name] and [description] on this device: on its row
-/// and, for a changed name, on every local profile's membership, which
-/// personal sync carries to the profile's other devices (issue #3389).
-/// A null [name] leaves the name as it is.
 /// What a sync read: [details] from `info.json` (null when it names no
 /// library this device can read, which leaves the description alone), else
 /// the [manifest]'s name. An owner may have renamed or described the
@@ -95,6 +100,10 @@ Future<void> applyReadDetails(
   clearDescription: details != null && details.description == null,
 );
 
+/// Records a library's [name] and [description] on this device: on its row
+/// and, for a changed name, on every local profile's membership, which
+/// personal sync carries to the profile's other devices (issue #3389).
+/// A null [name] leaves the name as it is.
 Future<void> applyLibraryDetails(
   SharedLibraryStore store,
   String libraryId, {

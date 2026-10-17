@@ -150,6 +150,31 @@ void main() {
     },
   );
 
+  test('saving the same location again changes nothing else', () async {
+    final sameAccount = ConnectedAccount(
+      id: 'acc',
+      kind: AccountKind.s3,
+      label: 'Survey bucket',
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+    final before = (await store.membership(diverId: 'd1', libraryId: 'L'))!;
+    final again = await service.repoint(
+      libraryId: 'L',
+      diverId: 'd1',
+      account: sameAccount,
+      prefix: 'a',
+    );
+    expect(again.prefix, 'a');
+    expect(again.lastError, isNull);
+    // No content compare forced, no membership change sent to other devices.
+    expect(
+      (await store.getSiteState('s1'))!.remoteModifiedTime,
+      '2026-05-01T00:00:00Z',
+    );
+    expect(await store.membership(diverId: 'd1', libraryId: 'L'), before);
+  });
+
   test('different library is refused and nothing moves', () async {
     await copyAt('b', id: 'M');
     final c = await check('b');

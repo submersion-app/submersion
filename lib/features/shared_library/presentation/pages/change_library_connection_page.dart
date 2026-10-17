@@ -80,9 +80,23 @@ class _ChangeLibraryConnectionPageState
               data: (list) => ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  // Repointing is how a library whose account was removed
+                  // here is reached again: say so, rather than quietly
+                  // starting from another account.
+                  if (!list.any((a) => a.id == library!.connectedAccountId))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        l10n.sharedLibrary_connection_accountMissing,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
                   LibraryLocationFields(
                     controller: _location,
                     accounts: list,
+                    enabled: !_busy,
                     onEdited: _edited,
                   ),
                   if (list.isEmpty && !_location.addingAccount)

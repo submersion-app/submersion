@@ -97,7 +97,11 @@ class _ConnectSharedLibraryPageState
               LibraryLocationFields(
                 controller: _location,
                 accounts: list,
-                onEdited: () => setState(() => _probe = null),
+                enabled: !_busy,
+                onEdited: () => setState(() {
+                  _probe = null;
+                  _error = null;
+                }),
               ),
               if (list.isNotEmpty) ...[
                 const SizedBox(height: 12),

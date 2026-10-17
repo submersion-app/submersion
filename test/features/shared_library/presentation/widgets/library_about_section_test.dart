@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/library_details_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/shared_library/presentation/providers/library_connection_providers.dart';
@@ -124,14 +125,32 @@ void main() {
     expect(details.calls, isEmpty);
   });
 
-  testWidgets('a refused save is reported', (tester) async {
-    final details = _FakeDetails()..failWith = StateError('offline');
+  testWidgets('a refused save keeps the dialog and what was typed', (
+    tester,
+  ) async {
+    final details = _FakeDetails()
+      ..failWith = const CloudStorageException('offline');
     await tester.pumpWidget(_app(details, SharedLibraryRole.owner));
     await tester.pumpAndSettle();
     await tester.tap(find.text('About'));
     await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Description'),
+      'A long description typed offline',
+    );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('Edit library details'), findsOneWidget);
+    expect(find.text('A long description typed offline'), findsOneWidget);
+    expect(find.textContaining('offline'), findsWidgets);
+    // Fixed, the same dialog saves.
+    details.failWith = null;
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      details.calls.single.description,
+      'A long description typed offline',
+    );
+    expect(find.text('Edit library details'), findsNothing);
   });
 }

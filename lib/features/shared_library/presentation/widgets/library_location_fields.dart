@@ -76,9 +76,14 @@ class LibraryLocationFields extends ConsumerStatefulWidget {
     required this.controller,
     required this.accounts,
     required this.onEdited,
+    this.enabled = true,
   });
 
   final LibraryLocationController controller;
+
+  /// False while the caller is busy (checking, joining): the account form
+  /// waits.
+  final bool enabled;
   final List<ConnectedAccount> accounts;
   final VoidCallback onEdited;
 
@@ -265,7 +270,7 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _saving
+                    onPressed: _saving || !widget.enabled
                         ? null
                         : () => _c.setAddingAccount(false),
                     child: Text(
@@ -274,7 +279,7 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
-                    onPressed: _saving ? null : _saveAccount,
+                    onPressed: _saving || !widget.enabled ? null : _saveAccount,
                     child: Text(l10n.sharedLibrary_connect_saveAccount),
                   ),
                 ],

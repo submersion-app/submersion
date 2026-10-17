@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -141,6 +145,33 @@ void main() {
       throwsArgumentError,
     );
     expect((await t.readInfo())!['name'], 'Reef Survey');
+  });
+
+  test('an owner repairs an unreadable info.json', () async {
+    // Any member whose keys can write the folder can break it.
+    cloud.seedFile(
+      SharedLibraryLayout.infoFile,
+      Uint8List.fromList(utf8.encode('not json')),
+    );
+    await details.save(libraryId: lib.id, diverId: 'd1', name: 'Fixed');
+    expect((await t.readInfo())!['name'], 'Fixed');
+    expect((await store.getLibrary(lib.id))!.name, 'Fixed');
+  });
+
+  test('a save waits for a running sync', () async {
+    final release = Completer<void>();
+    final running = SyncCoordinator.run(() => release.future);
+    final saving = details.save(
+      libraryId: lib.id,
+      diverId: 'd1',
+      name: 'Later',
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect((await store.getLibrary(lib.id))!.name, 'Reef Survey');
+    release.complete();
+    await running;
+    await saving;
+    expect((await store.getLibrary(lib.id))!.name, 'Later');
   });
 
   test('a refused write changes nothing locally', () async {

@@ -37,7 +37,9 @@ class _FakeMembershipService extends SharedLibraryMembershipService {
   Future<LibraryProbe> probe({
     required ConnectedAccount account,
     required String prefix,
-  }) async => probes[prefix] ?? const LibraryProbe(exists: false);
+  }) async => prefix == 'boom'
+      ? throw const CloudStorageException('probe failed')
+      : probes[prefix] ?? const LibraryProbe(exists: false);
 
   /// A library made by Create; null refuses it as already there.
   CreatedLibrary? created;
@@ -262,6 +264,20 @@ void main() {
     await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
     expect(find.text('Sites our group dives'), findsOneWidget);
+  });
+
+  testWidgets('editing the location clears an earlier error', (tester) async {
+    await tester.pumpWidget(
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'boom');
+    await tester.tap(find.text('Check'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('probe failed'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('probe failed'), findsNothing);
   });
 
   testWidgets('without an eligible account the hint shows', (tester) async {

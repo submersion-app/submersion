@@ -41,36 +41,29 @@ class LibraryAboutSection extends ConsumerWidget {
     WidgetRef ref,
     SharedLibraryMembership me,
   ) async {
-    final edited = await showDialog<({String name, String description})>(
+    final details = ref.read(libraryDetailsServiceProvider);
+    await showDialog<void>(
       context: context,
-      builder: (_) => _DetailsDialog(library: library),
+      builder: (_) => _DetailsDialog(
+        library: library,
+        // Written to the library folder: offline, or with keys that only
+        // read, it fails, and the dialog stays open with what was typed.
+        onSave: (name, description) => details.save(
+          libraryId: library.id,
+          diverId: me.diverId,
+          name: name,
+          description: description,
+        ),
+      ),
     );
-    if (edited == null || !context.mounted) return;
-    try {
-      await ref
-          .read(libraryDetailsServiceProvider)
-          .save(
-            libraryId: library.id,
-            diverId: me.diverId,
-            name: edited.name,
-            description: edited.description,
-          );
-    } catch (e) {
-      // Written to the library folder: offline, or with keys that only
-      // read, it fails and nothing changes here.
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(libraryErrorText(context.l10n, e))),
-        );
-      }
-    }
   }
 }
 
 class _DetailsDialog extends StatefulWidget {
-  const _DetailsDialog({required this.library});
+  const _DetailsDialog({required this.library, required this.onSave});
 
   final SharedLibrary library;
+  final Future<void> Function(String name, String description) onSave;
 
   @override
   State<_DetailsDialog> createState() => _DetailsDialogState();
@@ -90,11 +83,23 @@ class _DetailsDialogState extends State<_DetailsDialog> {
     super.dispose();
   }
 
-  void _save() {
+  bool _saving = false;
+  String? _error;
+
+  Future<void> _save() async {
     if (!(_form.currentState?.validate() ?? false)) return;
-    Navigator.of(
-      context,
-    ).pop((name: _name.text.trim(), description: _description.text.trim()));
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.onSave(_name.text.trim(), _description.text.trim());
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) setState(() => _error = libraryErrorText(context.l10n, e));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -130,16 +135,26 @@ class _DetailsDialogState extends State<_DetailsDialog> {
                   helperMaxLines: 3,
                 ),
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
             ],
           ),
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
           child: Text(l10n.common_action_cancel),
         ),
-        FilledButton(onPressed: _save, child: Text(l10n.common_action_save)),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: Text(l10n.common_action_save),
+        ),
       ],
     );
   }

@@ -104,6 +104,11 @@ class LibraryConnectionService {
     }
     final opened = found.opened;
     final openedKey = await opened?.exportKey();
+    final before = (await _store.getLibrary(libraryId))!;
+    // Saved where it already was: nothing moves, so neither the stamps nor
+    // the location hints the profile's other devices see.
+    final moved =
+        before.connectedAccountId != account.id || before.prefix != prefix;
     await _db.transaction(() async {
       await (_db.update(
         _db.sharedLibraries,
@@ -114,7 +119,10 @@ class LibraryConnectionService {
           lastError: const Value(null),
         ),
       );
-      for (final m in await _store.membershipsForLibrary(libraryId)) {
+      for (final m
+          in moved
+              ? await _store.membershipsForLibrary(libraryId)
+              : const <SharedLibraryMembership>[]) {
         await _store.upsertMembership(
           m.copyWith(
             backendKind: account.kind.name,
@@ -136,7 +144,7 @@ class LibraryConnectionService {
         );
       }
       // The old location's modified times say nothing about this one's.
-      await _store.clearRemoteStamps(libraryId);
+      if (moved) await _store.clearRemoteStamps(libraryId);
     });
     return (await _store.getLibrary(libraryId))!;
   });
