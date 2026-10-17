@@ -32,7 +32,7 @@ const _notSetUp = <DataFeature, FeatureHealth>{
   ),
 };
 
-final backupHealthProvider = Provider<FeatureHealth>((ref) {
+final backupHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
   final settings = ref.watch(backupSettingsProvider);
   return evaluateBackupHealth(
     BackupHealthInputs(
@@ -49,24 +49,37 @@ final backupHealthProvider = Provider<FeatureHealth>((ref) {
   );
 });
 
-final syncHealthProvider = Provider<FeatureHealth>((ref) {
-  final state = ref.watch(syncStateProvider);
+// autoDispose so each visit re-reads the clock (the 7-day offline grace),
+// and a select so sync progress ticks do not recompute it.
+final syncHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
+  final s = ref.watch(
+    syncStateProvider.select(
+      (s) => (
+        needsPassphrase: s.needsPassphrase,
+        awaitingAdoption: s.replaceAwaitingAdoption,
+        authenticated: s.isAuthenticated,
+        lastSync: s.lastSync,
+        conflicts: s.conflicts,
+        peersHeld:
+            s.newerSchemaPeerLabels.isNotEmpty ||
+            s.olderSchemaPeerLabels.isNotEmpty ||
+            s.skippedPeerLabels.isNotEmpty ||
+            s.readFailedPeerLabels.isNotEmpty,
+      ),
+    ),
+  );
   return evaluateSyncHealth(
     SyncHealthInputs(
       customFolder: ref.watch(isCloudSyncDisabledByCustomFolderProvider),
       providerSelected: ref.watch(selectedCloudProviderTypeProvider) != null,
       providerId: ref.watch(cloudStorageProviderProvider)?.providerId,
-      needsPassphrase: state.needsPassphrase,
-      awaitingAdoption: state.replaceAwaitingAdoption,
-      authenticated: state.isAuthenticated,
+      needsPassphrase: s.needsPassphrase,
+      awaitingAdoption: s.awaitingAdoption,
+      authenticated: s.authenticated,
       lastFailure: ref.watch(syncFailureProvider),
-      lastSyncAt: state.lastSync,
-      conflicts: state.conflicts,
-      peersHeld:
-          state.newerSchemaPeerLabels.isNotEmpty ||
-          state.olderSchemaPeerLabels.isNotEmpty ||
-          state.skippedPeerLabels.isNotEmpty ||
-          state.readFailedPeerLabels.isNotEmpty,
+      lastSyncAt: s.lastSync,
+      conflicts: s.conflicts,
+      peersHeld: s.peersHeld,
       autoSyncEnabled: ref.watch(syncBehaviorProvider).autoSyncEnabled,
     ),
     DateTime.now(),
@@ -128,10 +141,9 @@ final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
     final stores = ref.watch(mediaStoresRepositoryProvider);
     ref.invalidateSelfWhen(stores.watchStoresChanges());
     final store = await stores.getActive();
-    final attachedId = await ref
-        .watch(mediaStoreAttachStateProvider)
-        .attachedStoreId();
-    final attached = attachedId != null;
+    // The provider attach and detach flows invalidate, so a fresh attach
+    // shows here on return.
+    final attached = await ref.watch(mediaStoreAttachedProvider.future);
     // The DB-backed summary only. The suspended flag lives on the media
     // runtime, and watching it would build that runtime (keychain read,
     // store build, queue drain) just because Settings > Data opened; the

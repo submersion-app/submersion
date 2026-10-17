@@ -35,13 +35,19 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
     // The WorkManager backup job writes from another isolate, and the facts
     // are a snapshot: refresh both when the page opens and each time the app
     // comes back while it is showing.
-    _lifecycle = AppLifecycleListener(onResume: _refresh);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+    _lifecycle = AppLifecycleListener(onResume: _onResume);
+    // The facts provider is autoDispose, so opening the page loads it fresh.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reloadBackup());
   }
 
-  void _refresh() {
+  void _reloadBackup() {
     if (!mounted) return;
     ref.read(backupSettingsProvider.notifier).reloadFromDisk();
+  }
+
+  void _onResume() {
+    if (!mounted) return;
+    _reloadBackup();
     ref.invalidate(dataFactsProvider);
   }
 

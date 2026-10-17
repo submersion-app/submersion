@@ -1460,8 +1460,6 @@ class SyncNotifier extends StateNotifier<SyncState> {
     _queuedSyncAuto = (_queuedSyncAuto ?? true) && auto;
   }
 
-  /// One sync, run inside [performSync]'s single flight. True when it
-  /// completed successfully (with or without conflicts).
   /// Remembers a failed attempt against the active backend for Settings >
   /// Data health, which must still show it after a restart.
   Future<void> _recordSyncFailure(SyncFailureKind kind, String message) async {
@@ -1479,6 +1477,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
         );
   }
 
+  /// One sync, run inside [performSync]'s single flight. True when it
+  /// completed successfully (with or without conflicts).
   Future<bool> _runSyncOnce({required bool auto}) async {
     // Entered from the coordinator's queue, so the notifier may have been
     // disposed while another merge held the gate.

@@ -326,9 +326,18 @@ Future<void> runScheduledBackup({
     log.error('Automatic backup failed', error: e, stackTrace: stack);
     // Persisted for Settings > Data health, which runs in the foreground
     // isolate long after this one is gone.
-    await BackupPreferences(
-      prefs,
-    ).setLastScheduledFailure(DateTime.now(), e.toString());
+    // A failed write here must not cost the diver the notification.
+    try {
+      await BackupPreferences(
+        prefs,
+      ).setLastScheduledFailure(DateTime.now(), e.toString());
+    } catch (writeError, writeStack) {
+      log.error(
+        'Could not record the failed backup',
+        error: writeError,
+        stackTrace: writeStack,
+      );
+    }
     await notifier(success: false, error: e.toString());
   }
 }
