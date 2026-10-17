@@ -128,8 +128,11 @@ class _CertificationEcardGridState extends State<CertificationEcardGrid> {
     // Expanded (not a computed height) absorbs any mismatch between the
     // action row's actual rendered height and the aspect ratio computed
     // above, so a text-scale/font-metrics difference clips nothing instead
-    // of overflowing the fixed-extent grid tile.
+    // of overflowing the fixed-extent grid tile. Keyed so a tile is never
+    // reused for another certification: the card photo keeps its last frame
+    // while new bytes decode.
     return Column(
+      key: ValueKey(certification.id),
       children: [
         Expanded(
           child: CertificationEcard(

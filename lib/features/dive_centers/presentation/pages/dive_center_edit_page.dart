@@ -19,6 +19,7 @@ import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
@@ -681,50 +682,58 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
+      child: LabelWithControl(
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                isEditing ? Icons.edit : Icons.add,
+                color: colorScheme.onPrimaryContainer,
+              ),
             ),
-            child: Icon(
-              isEditing ? Icons.edit : Icons.add,
-              color: colorScheme.onPrimaryContainer,
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                isEditing
+                    ? context.l10n.diveCenters_title_edit
+                    : context.l10n.diveCenters_title_add,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              isEditing
-                  ? context.l10n.diveCenters_title_edit
-                  : context.l10n.diveCenters_title_add,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ],
+        ),
+        control: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: _handleCancel,
+              child: Text(context.l10n.common_action_cancel),
             ),
-          ),
-          TextButton(
-            onPressed: _handleCancel,
-            child: Text(context.l10n.common_action_cancel),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: _isLoading ? null : _save,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Text(context.l10n.common_action_save),
-          ),
-        ],
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _isLoading ? null : _save,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(context.l10n.common_action_save),
+            ),
+          ],
+        ),
       ),
     );
   }

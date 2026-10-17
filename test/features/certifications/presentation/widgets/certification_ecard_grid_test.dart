@@ -226,6 +226,26 @@ void main() {
       );
     });
 
+    testWidgets('a tile is never reused for a different certification', (
+      tester,
+    ) async {
+      // The card photo keeps its last frame while new bytes decode (#3383), so
+      // a tile handed to another certification would briefly show the wrong
+      // card under the new name.
+      final a = _makeCert(id: 'a', photoFront: _onePixelPng);
+      final b = _makeCert(
+        id: 'b',
+        photoFront: Uint8List.fromList(_onePixelPng),
+      );
+      await _pumpGrid(tester, certifications: [a, b]);
+      final firstBefore = tester.element(find.byType(CertificationEcard).first);
+
+      await _pumpGrid(tester, certifications: [b]);
+      final firstAfter = tester.element(find.byType(CertificationEcard).first);
+
+      expect(identical(firstBefore, firstAfter), isFalse);
+    });
+
     testWidgets('flipping one card does not flip the others', (tester) async {
       await _pumpGrid(
         tester,

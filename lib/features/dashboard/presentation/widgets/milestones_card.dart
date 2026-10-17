@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -13,6 +15,7 @@ class MilestonesCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final milestonesAsync = ref.watch(milestonesProvider);
+    final catalog = ref.watch(certificationCatalogSyncProvider);
     final milestones = milestonesAsync.valueOrNull;
     if (milestones == null || milestones.isEmpty) {
       return const SizedBox.shrink();
@@ -49,7 +52,11 @@ class MilestonesCard extends ConsumerWidget {
                 context,
                 Icons.workspace_premium_outlined,
                 context.l10n.dashboard_milestones_certYears(
-                  anniversary.certName,
+                  certificationTitleL10n(
+                    anniversary.certification,
+                    context.l10n,
+                    catalog: catalog,
+                  ),
                   anniversary.years,
                   DateFormat.MMMM(locale).format(anniversary.date),
                 ),

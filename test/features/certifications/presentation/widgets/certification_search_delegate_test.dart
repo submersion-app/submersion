@@ -91,6 +91,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('detail c1'), findsOneWidget);
+
+    // Back from the detail returns to the results, not the list (#3377).
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Advanced Open Water'), findsOneWidget);
+    expect(find.text('open search'), findsNothing);
   });
 
   testWidgets('a query with no matches says so', (tester) async {

@@ -362,6 +362,58 @@ void main() {
       expect((profile[1]['allTankPressures'] as List).single['tankIndex'], 1);
     });
 
+    test('keeps sensor pressures on the transmitter tank after a gas '
+        'switch (#3339)', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(
+            tanks: const [
+              DivingLogRawTank(
+                tankId: 1,
+                o2Percent: 21.0,
+                hePercent: 35.0,
+                startPressureBar: 203.67,
+                endPressureBar: 106.87,
+              ),
+              DivingLogRawTank(
+                tankId: 2,
+                o2Percent: 50.0,
+                startPressureBar: 180.0,
+                endPressureBar: 90.0,
+              ),
+            ],
+            samples: const [
+              DivingLogRawSample(
+                timeSeconds: 1655,
+                depthMeters: 21.0,
+                tankId: 0,
+                pressureBar: 106.5,
+              ),
+              DivingLogRawSample(
+                timeSeconds: 1665,
+                depthMeters: 21.0,
+                tankId: 1,
+                pressureBar: 106.7,
+              ),
+              DivingLogRawSample(
+                timeSeconds: 1670,
+                depthMeters: 20.0,
+                tankId: 1,
+                pressureBar: 106.7,
+              ),
+            ],
+          ),
+        ]),
+      );
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      // The gas still switches to the second cylinder.
+      expect((d['gasSwitches'] as List).single['tankRef'], 'divinglog:2');
+      final profile = d['profile'] as List;
+      for (final point in profile) {
+        expect((point['allTankPressures'] as List).single['tankIndex'], 0);
+      }
+    });
+
     test('raises no OTU warning when the OTU field is all zeros', () {
       final payload = DivingLogDiveMapper.toPayload(
         book([

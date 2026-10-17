@@ -14,10 +14,26 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     super.key,
     required this.data,
     this.barColor,
+    this.formatCount,
+    this.countWidth = 40,
+    this.scaleTo,
   });
 
   final List<({String label, int count})> data;
   final Color? barColor;
+
+  /// The text beside each bar; the bare count when null. A longer text,
+  /// such as a count with its share, needs a wider [countWidth].
+  final String Function(int count)? formatCount;
+
+  /// The width of the column the count text is drawn in, kept equal on
+  /// every row so the bars share one right edge.
+  final double countWidth;
+
+  /// The count a full-width bar stands for; the largest count when null.
+  /// Shares of a whole pass the whole, so each bar's length matches its
+  /// share.
+  final int? scaleTo;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +64,8 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     }
 
     final color = barColor ?? theme.colorScheme.primary;
-    final maxCount = data.map((e) => e.count).reduce((a, b) => a > b ? a : b);
+    final maxCount =
+        scaleTo ?? data.map((e) => e.count).reduce((a, b) => a > b ? a : b);
 
     return Semantics(
       label: context.l10n.insights_chart_barSemanticLabel(data.length),
@@ -70,7 +87,9 @@ class HorizontalCategoryBarChart extends StatelessWidget {
                   Expanded(
                     child: FractionallySizedBox(
                       alignment: AlignmentDirectional.centerStart,
-                      widthFactor: maxCount == 0 ? 0 : item.count / maxCount,
+                      widthFactor: maxCount == 0
+                          ? 0
+                          : (item.count / maxCount).clamp(0.0, 1.0),
                       child: Container(
                         height: 16,
                         decoration: BoxDecoration(
@@ -82,11 +101,19 @@ class HorizontalCategoryBarChart extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   SizedBox(
-                    width: 40,
-                    child: Text(
-                      '${item.count}',
-                      style: theme.textTheme.bodySmall,
-                      textAlign: TextAlign.end,
+                    width: countWidth,
+                    // Shrinks a count too long for the column (a large text
+                    // scale, a 4-digit count with its share) instead of
+                    // wrapping it onto a second line.
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Text(
+                        formatCount?.call(item.count) ?? '${item.count}',
+                        style: theme.textTheme.bodySmall,
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                      ),
                     ),
                   ),
                 ],

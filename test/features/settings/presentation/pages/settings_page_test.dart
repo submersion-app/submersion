@@ -35,6 +35,8 @@ import 'package:submersion/features/settings/presentation/pages/home_appearance_
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
+import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -1004,11 +1006,30 @@ void main() {
       );
       expect(find.text('Seguridad'), findsOneWidget);
       expect(
-        find.text('Reglas de revisión y volar tras bucear'),
+        find.text('Reglas de revisión, descompresión y equipo'),
         findsOneWidget,
       );
       // Never the hardcoded English fallback.
       expect(find.text('Safety'), findsNothing);
+    });
+
+    testWidgets('Decompression is not a root row: it lives under Safety', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget(const SettingsPage()));
+      await tester.pumpAndSettle();
+
+      expect(
+        settingsSections.map((s) => s.id),
+        isNot(contains('decompression')),
+      );
+      await tester.scrollUntilVisible(
+        find.text('Units'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Decompression'), findsNothing);
+      expect(find.text('GF, data sources & narcosis'), findsNothing);
     });
 
     testWidgets('should display About section', (tester) async {
@@ -2189,7 +2210,7 @@ void main() {
         '/settings/safety',
         reason:
             'routing Safety through /settings/section/safety nests '
-            'SafetySettingsPage inside the wrapper Scaffold',
+            'SafetyHubPage inside the wrapper Scaffold',
       );
     });
 
@@ -2419,11 +2440,11 @@ void main() {
   group('Decompression GTR settings', () {
     Widget buildDecompressionWidget(List<Override> overrides) {
       final router = GoRouter(
-        initialLocation: '/settings?selected=decompression',
+        initialLocation: '/settings',
         routes: [
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsPage(),
+            builder: (context, state) => const DecompressionSettingsPage(),
           ),
         ],
       );
@@ -2473,11 +2494,11 @@ void main() {
   group('Decompression ppO2 limits', () {
     Widget buildDecompressionWidget(List<Override> overrides) {
       final router = GoRouter(
-        initialLocation: '/settings?selected=decompression',
+        initialLocation: '/settings',
         routes: [
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsPage(),
+            builder: (context, state) => const DecompressionSettingsPage(),
           ),
         ],
       );
@@ -2688,6 +2709,99 @@ void main() {
       await pick(tester, 'Deutsch');
 
       expect(backfill.counted, isEmpty);
+    });
+  });
+
+  group('old settings links (#3395)', () {
+    Future<GoRouter> pumpAt(WidgetTester tester, String location) async {
+      final router = GoRouter(
+        initialLocation: location,
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+            routes: [
+              GoRoute(
+                path: 'safety',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('safety hub')),
+                routes: [
+                  GoRoute(
+                    path: 'decompression',
+                    builder: (context, state) =>
+                        const DecompressionSettingsPage(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...getOverrides(),
+            allDiversProvider.overrideWith((ref) async => <Diver>[]),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return router;
+    }
+
+    testWidgets('on phone the old Decompression link lands on its page with '
+        'one app bar', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = await pumpAt(tester, '/settings?selected=decompression');
+
+      expect(router.state.uri.toString(), '/settings/safety/decompression');
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Decompression'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('on phone a Safety selection goes to its own route', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = await pumpAt(tester, '/settings?selected=safety');
+
+      expect(router.state.uri.toString(), '/settings/safety');
+      expect(find.text('safety hub'), findsOneWidget);
+    });
+
+    testWidgets('on desktop the old Decompression link selects Safety', (
+      tester,
+    ) async {
+      // MediaQuery follows the view, not the surface, and the master-detail
+      // breakpoint reads MediaQuery.
+      tester.view.physicalSize = const Size(1800, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final router = await pumpAt(tester, '/settings?selected=decompression');
+
+      expect(
+        router.state.uri.toString(),
+        '/settings?selected=safety&safetyPage=decompression',
+      );
+      expect(find.text('GF 50/85'), findsOneWidget);
     });
   });
 }

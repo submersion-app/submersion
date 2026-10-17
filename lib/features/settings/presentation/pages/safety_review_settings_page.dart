@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -13,18 +12,25 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings for the post-dive safety review: master toggle, per-rule
-/// visibility toggles, and a manual backfill over the whole logbook. Also the
-/// entry point to the equipment condition settings, which live beneath it.
-class SafetySettingsPage extends ConsumerStatefulWidget {
-  const SafetySettingsPage({super.key});
+/// Settings > Safety > Safety review: master toggle, per-rule visibility
+/// toggles, the no-fly preset, and the two sweeps over the whole logbook
+/// (analyze all dives, dismiss all observations).
+///
+/// [onBack] is set when the page is shown inside the desktop settings pane,
+/// where nothing was pushed, so its back arrow returns to the Safety hub.
+class SafetyReviewSettingsPage extends ConsumerStatefulWidget {
+  final VoidCallback? onBack;
+
+  const SafetyReviewSettingsPage({super.key, this.onBack});
 
   @override
-  ConsumerState<SafetySettingsPage> createState() => _SafetySettingsPageState();
+  ConsumerState<SafetyReviewSettingsPage> createState() =>
+      _SafetyReviewSettingsPageState();
 }
 
-class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
-  static final _log = LoggerService.forClass(_SafetySettingsPageState);
+class _SafetyReviewSettingsPageState
+    extends ConsumerState<SafetyReviewSettingsPage> {
+  static final _log = LoggerService.forClass(_SafetyReviewSettingsPageState);
 
   /// Dives per bulk-dismiss write. The repository chunks its own SQL; this is
   /// purely how often the progress bar advances on a large logbook.
@@ -49,7 +55,12 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
     final enabled = settings.safetyReviewEnabled;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.safetySettings_title)),
+      appBar: AppBar(
+        title: Text(l10n.safetySettings_title),
+        leading: widget.onBack == null
+            ? null
+            : BackButton(onPressed: widget.onBack),
+      ),
       body: ListView(
         children: [
           SwitchListTile(
@@ -170,20 +181,6 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
                 : Text(l10n.safetySettings_dismissAll_subtitle),
             enabled: enabled && !_busy,
             onTap: enabled && !_busy ? _dismissAllFindings : null,
-          ),
-          const Divider(height: 1),
-          // Independent of the safety review toggle, but locked during a sweep
-          // like every other control: pushing keeps this page mounted, so the
-          // sweep would carry on underneath the equipment condition page.
-          ListTile(
-            leading: const Icon(Icons.build_circle_outlined),
-            title: Text(l10n.settings_section_equipmentCondition_title),
-            subtitle: Text(l10n.settings_section_equipmentCondition_subtitle),
-            trailing: const Icon(Icons.chevron_right),
-            enabled: !_busy,
-            onTap: _busy
-                ? null
-                : () => context.push('/settings/safety/equipment-condition'),
           ),
         ],
       ),

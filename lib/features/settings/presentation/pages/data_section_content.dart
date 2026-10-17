@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/widgets/data_health/da
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/import_preferences_group.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Data: the health strip and facts line (#3390) above the
@@ -139,6 +140,15 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             subtitle: Text(l10n.settings_photosMedia_subtitle),
             route: '/settings/photos-media',
           ),
+          // The accounts behind sync, media storage and shared libraries;
+          // its own entry so it is not filed under one of them (issue
+          // #3388). Photos & Media keeps a link too.
+          tile(
+            icon: Icons.account_circle_outlined,
+            title: Text(l10n.settings_connectedAccounts_title),
+            subtitle: Text(l10n.settings_connectedAccounts_subtitle),
+            route: '/settings/connected-accounts',
+          ),
           const SizedBox(height: 16),
           _header(context, l10n.settings_data_header_storage),
           tile(
@@ -191,19 +201,10 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
     );
   }
 
-  Widget _header(BuildContext context, String title) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text(
-        title,
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+  Widget _header(BuildContext context, String title) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: buildSettingsSectionHeader(context, title),
+  );
 
   Widget _backupSubtitle(BuildContext context) {
     final l10n = context.l10n;

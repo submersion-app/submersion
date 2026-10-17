@@ -355,6 +355,12 @@ class _MediaGalleryPager extends StatelessWidget {
     return PhotoViewGallery.builder(
       scrollPhysics: const BouncingScrollPhysics(),
       pageController: pageController,
+      // Build the page either side of the current one, so the next photo has
+      // resolved and decoded before a swipe or arrow press brings it in.
+      // Built on demand, it slid in empty and popped in afterwards (#3298).
+      // Each page's decode is bounded by MediaItemView, so the extra
+      // neighbour costs one viewport-sized bitmap, not an original.
+      allowImplicitScrolling: true,
       itemCount: mediaList.length,
       onPageChanged: onPageChanged,
       backgroundDecoration: const BoxDecoration(color: Colors.black),

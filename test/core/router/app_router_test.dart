@@ -41,6 +41,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
+import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
@@ -1458,6 +1461,95 @@ void main() {
       expect(widget.runtimeType.toString(), 'EquipmentConditionSettingsPage');
     });
 
+    test('the Safety sub-pages live under the safety route', () {
+      expect(router.namedLocation('safetySettings'), '/settings/safety');
+      expect(
+        router.namedLocation('safetyReviewSettings'),
+        '/settings/safety/review',
+      );
+      expect(
+        router.namedLocation('decompressionSettings'),
+        '/settings/safety/decompression',
+      );
+    });
+
+    testWidgets('the Safety routes build the hub and its sub-pages', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      String built(String name, String location) {
+        final route = _findRouteByName(router.configuration.routes, name);
+        expect(route, isNotNull, reason: name);
+        final state = GoRouterState(
+          router.configuration,
+          uri: Uri.parse(location),
+          matchedLocation: location,
+          fullPath: location,
+          pathParameters: const {},
+          pageKey: ValueKey(location),
+        );
+        return route!.builder!(capturedContext, state).runtimeType.toString();
+      }
+
+      expect(built('safetySettings', '/settings/safety'), 'SafetyHubPage');
+      expect(
+        built('safetyReviewSettings', '/settings/safety/review'),
+        'SafetyReviewSettingsPage',
+      );
+      expect(
+        built('decompressionSettings', '/settings/safety/decompression'),
+        'DecompressionSettingsPage',
+      );
+    });
+
+    testWidgets('on a desktop window the old Decompression section link opens '
+        'in the Safety pane', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final route = _findRouteByName(
+        router.configuration.routes,
+        'settingsSection',
+      );
+      final target = await route!.redirect!(
+        capturedContext,
+        GoRouterState(
+          router.configuration,
+          uri: Uri.parse('/settings/section/decompression'),
+          matchedLocation: '/settings/section/decompression',
+          fullPath: '/settings/section/:sectionId',
+          pathParameters: const {'sectionId': 'decompression'},
+          pageKey: const ValueKey('/settings/section/decompression'),
+        ),
+      );
+
+      expect(target, '/settings?selected=safety&safetyPage=decompression');
+    });
+
     test('a section child route exists under /settings', () {
       final route = _findRouteByName(
         router.configuration.routes,
@@ -1493,7 +1585,7 @@ void main() {
         'own', (tester) async {
       // SettingsSectionDetailPage supplies a Scaffold and an AppBar, so a
       // deep link to /settings/section/safety would stack a second app bar
-      // on top of SafetySettingsPage's. Fixing only the list tile leaves the
+      // on top of SafetyHubPage's. Fixing only the list tile leaves the
       // URL reachable; the route itself has to normalize it.
       late BuildContext capturedContext;
       await tester.pumpWidget(
@@ -1533,6 +1625,11 @@ void main() {
 
       // Sections whose content is its own Scaffold with its own AppBar.
       expect(await redirectFor('safety'), '/settings/safety');
+      // Decompression moved under Safety (#3395); old links follow it.
+      expect(
+        await redirectFor('decompression'),
+        '/settings/safety/decompression',
+      );
       expect(await redirectFor('debug'), '/settings/debug-logs');
       expect(await redirectFor('profile'), '/settings/diver-profile');
       // Has a dedicated page too, so the route stays canonical.
@@ -1857,6 +1954,46 @@ void main() {
       const ret = DiveListReturn(
         filter: DiveFilterState(siteId: 's1'),
         highlightedDiveId: 'd1',
+      );
+      expect(pageFor(ret).returnTo, same(ret));
+      expect(pageFor(null).returnTo, isNull);
+      expect(pageFor('unrelated').returnTo, isNull);
+    });
+  });
+
+  group('trips route (#3350)', () {
+    testWidgets('hands a pushed list its return snapshot', (tester) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      GoRouterState stateFor(Object? extra) => GoRouterState(
+        router.configuration,
+        uri: Uri.parse('/trips'),
+        matchedLocation: '/trips',
+        fullPath: '/trips',
+        pathParameters: const {},
+        extra: extra,
+        pageKey: const ValueKey('/trips'),
+      );
+      TripListPage pageFor(Object? extra) {
+        final page = _findRouteByName(
+          router.configuration.routes,
+          'trips',
+        )!.pageBuilder!(capturedContext, stateFor(extra));
+        return (page as NoTransitionPage<void>).child as TripListPage;
+      }
+
+      const ret = TripListReturn(
+        filter: TripFilterState(equipmentId: 'e1'),
+        highlightedTripId: 't1',
       );
       expect(pageFor(ret).returnTo, same(ret));
       expect(pageFor(null).returnTo, isNull);

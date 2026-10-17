@@ -1,9 +1,12 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/database/database.dart' show DiveTanksCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -57,6 +60,18 @@ Widget _buildPage(
   );
 }
 
+// The page now carries field helper text and per-field explanations
+// (issue #3367), tall enough that the default test surface needs a
+// scroll, so pick a surface generous enough that every field stays
+// onstage, matching the pattern in edit_form_scaffold_test.dart.
+Future<void> _pumpPage(WidgetTester tester, Widget page) async {
+  tester.view.physicalSize = const Size(900, 1600);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(page);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   late MockCurrentDiverIdNotifier diverIdNotifier;
   late SharedPreferences prefs;
@@ -77,10 +92,10 @@ void main() {
   testWidgets('prefills the serial and saves a new entry for the diver', (
     tester,
   ) async {
-    await tester.pumpWidget(
+    await _pumpPage(
+      tester,
       _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
     );
-    await tester.pumpAndSettle();
 
     expect(find.widgetWithText(TextFormField, '555'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('transmitter_label')), 'Stage');
@@ -110,10 +125,10 @@ void main() {
       "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, 1), "
       "('tank', 'diver-1', 'Blue AL80', 'tank', 1, 1)",
     );
-    await tester.pumpWidget(
+    await _pumpPage(
+      tester,
       _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
     );
-    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Transmitter from gear'));
     await tester.pumpAndSettle();
@@ -160,10 +175,10 @@ void main() {
           updatedAt: now,
         ),
       );
-      await tester.pumpWidget(
+      await _pumpPage(
+        tester,
         _buildPage(diverIdNotifier, prefs, transmitterId: 'r1'),
       );
-      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Transmitter from gear'));
       await tester.pumpAndSettle();
@@ -195,10 +210,10 @@ void main() {
         updatedAt: now,
       ),
     );
-    await tester.pumpWidget(
+    await _pumpPage(
+      tester,
       _buildPage(diverIdNotifier, prefs, transmitterId: 'r1'),
     );
-    await tester.pumpAndSettle();
     expect(find.text('Perdix Tx'), findsOneWidget);
 
     await tester.tap(
@@ -219,8 +234,7 @@ void main() {
   testWidgets('refuses an entry with neither serial nor channel', (
     tester,
   ) async {
-    await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
-    await tester.pumpAndSettle();
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
     await tester.enterText(find.byKey(const Key('transmitter_label')), 'T1');
     await tester.tap(find.text('Save'));
@@ -238,8 +252,7 @@ void main() {
   testWidgets('refuses a channel that is not a whole number (#1900)', (
     tester,
   ) async {
-    await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
-    await tester.pumpAndSettle();
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
     await tester.enterText(find.byKey(const Key('transmitter_label')), 'T1');
     await tester.enterText(find.byKey(const Key('transmitter_serial')), '777');
@@ -268,10 +281,10 @@ void main() {
         updatedAt: DateTime.utc(2026, 9, 1),
       ),
     );
-    await tester.pumpWidget(
+    await _pumpPage(
+      tester,
       _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
     );
-    await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('transmitter_label')), 'Other');
     await tester.tap(find.text('Save'));
@@ -279,6 +292,176 @@ void main() {
 
     expect(find.text('Already assigned to Stage'), findsOneWidget);
   });
+
+  testWidgets(
+    'picking a cylinder pre-fills Role from its most recent dive (#3367)',
+    (tester) async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('tank1', 'diver-1', 'Sidemount AL80', 'tank', "
+        "1, 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at) VALUES ('d1', 'diver-1', 1, 1, 1)",
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'k1',
+              diveId: 'd1',
+              equipmentId: const Value('tank1'),
+              tankRole: const Value('sidemountLeft'),
+            ),
+          );
+      await _pumpPage(
+        tester,
+        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
+      );
+
+      await tester.tap(find.text('Cylinder from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sidemount AL80'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sidemount Left'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'picking a cylinder with no dive history leaves Role at Back Gas (#3367)',
+    (tester) async {
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('tank1', 'diver-1', 'Fresh AL80', 'tank', 1, 1)",
+      );
+      await _pumpPage(
+        tester,
+        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
+      );
+
+      await tester.tap(find.text('Cylinder from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fresh AL80'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Back Gas'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a manually picked Role is never overridden by a later gear pick (#3367)',
+    (tester) async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('tank1', 'diver-1', 'Sidemount AL80', 'tank', "
+        "1, 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at) VALUES ('d1', 'diver-1', 1, 1, 1)",
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'k1',
+              diveId: 'd1',
+              equipmentId: const Value('tank1'),
+              tankRole: const Value('sidemountLeft'),
+            ),
+          );
+      await _pumpPage(
+        tester,
+        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
+      );
+
+      await tester.tap(find.byType(DropdownButtonFormField<TankRole>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stage').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Stage'), findsWidgets);
+
+      await tester.tap(find.text('Cylinder from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sidemount AL80'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Stage'), findsWidgets);
+      expect(find.text('Sidemount Left'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'picking a cylinder with no size on file shows a non-blocking hint '
+    '(#3367)',
+    (tester) async {
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('tank1', 'diver-1', 'Fresh AL80', 'tank', 1, 1)",
+      );
+      await _pumpPage(
+        tester,
+        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
+      );
+      expect(
+        find.byKey(const Key('transmitter_missing_size_hint')),
+        findsNothing,
+      );
+
+      await tester.tap(find.text('Cylinder from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fresh AL80'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('transmitter_missing_size_hint')),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'picking a cylinder with no size on file keeps an already-filled size '
+    'and skips the hint (#3378)',
+    (tester) async {
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('tank1', 'diver-1', 'Fresh AL80', 'tank', 1, 1)",
+      );
+      await TransmitterRepository().create(
+        Transmitter(
+          id: 'e1',
+          diverId: 'diver-1',
+          transmitterSerial: '555',
+          label: 'AL80',
+          volumeL: 11.1,
+          workingPressureBar: 207,
+          createdAt: DateTime.utc(2026, 9, 1),
+          updatedAt: DateTime.utc(2026, 9, 1),
+        ),
+      );
+      await _pumpPage(
+        tester,
+        _buildPage(diverIdNotifier, prefs, transmitterId: 'e1'),
+      );
+
+      await tester.tap(find.text('Cylinder from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fresh AL80'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('transmitter_missing_size_hint')),
+        findsNothing,
+        reason: 'the saved size from before the pick is still on screen',
+      );
+      expect(find.widgetWithText(TextFormField, '11.1'), findsOneWidget);
+    },
+  );
 
   testWidgets('shows volume in cubic feet and stores liters', (tester) async {
     final settings = MockSettingsNotifier();
@@ -297,7 +480,8 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(
+    await _pumpPage(
+      tester,
       _buildPage(
         diverIdNotifier,
         prefs,
@@ -305,7 +489,6 @@ void main() {
         settings: settings,
       ),
     );
-    await tester.pumpAndSettle();
 
     // 11.1 L at 207 bar is 81.1 cuft; 207 bar is 3002 psi.
     expect(find.widgetWithText(TextFormField, '81.1'), findsOneWidget);

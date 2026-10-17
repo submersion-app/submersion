@@ -155,23 +155,6 @@ void main() {
   Future<Dive> readRow(String id) async =>
       (db.select(db.dives)..where((t) => t.id.equals(id))).getSingle();
 
-  group('diveWallClockToLocal', () {
-    test('rebuilds the stored wall clock in the local zone', () {
-      // Dive times are stored as a wall clock flagged UTC. The archive mapper
-      // compares against locally parsed timestamps, so the same components
-      // have to be rebuilt locally or the sampled hour is off by the machine's
-      // UTC offset.
-      final local = diveWallClockToLocal(DateTime.utc(2024, 6, 15, 9, 30));
-
-      expect(local.isUtc, isFalse);
-      expect(local.year, 2024);
-      expect(local.month, 6);
-      expect(local.day, 15);
-      expect(local.hour, 9);
-      expect(local.minute, 30);
-    });
-  });
-
   group('BulkConditionsService.countCandidates', () {
     test('counts only dives that can be filled', () async {
       await insertSite('s1', 12.5, -68.25);
@@ -296,6 +279,23 @@ void main() {
 
       expect(result.filled, 3);
       expect(requests, hasLength(1));
+    });
+
+    test('maps each dive sharing a cached day at its own hour', () async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', siteId: 's1', at: DateTime.utc(2024, 6, 15, 9));
+      await insertDive('d2', siteId: 's1', at: DateTime.utc(2024, 6, 15, 14));
+
+      final (:service, :requests) = buildService(
+        respond: (_) => http.Response(_payloadTempPerHour(), 200),
+      );
+      await service.run();
+
+      // One request serves both dives, but each reads its own entry hour
+      // from it rather than the first dive's mapped result.
+      expect(requests, hasLength(1));
+      expect((await readRow('d1')).airTemp, 9.0);
+      expect((await readRow('d2')).airTemp, 14.0);
     });
 
     test('fetches separately for the same site on a different day', () async {

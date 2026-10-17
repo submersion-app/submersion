@@ -11,7 +11,9 @@ import 'package:submersion/core/network/proxy/system_proxy_result.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
+import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/media_cache_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
@@ -149,5 +151,29 @@ void main() {
       containerWith().read(incomingShareGateProvider),
       isNot(same(shares)),
     );
+  });
+
+  test('backs the media cache sizes with SharedPreferences', () async {
+    SharedPreferences.setMockInitialValues({kMediaDiskCacheMbKey: 2048});
+    final prefs = await SharedPreferences.getInstance();
+    final logFileService = LogFileService(
+      logDirectory: p.join(Directory.systemTemp.path, 'submersion-test'),
+    );
+
+    final container = ProviderContainer(
+      overrides: rootProviderOverrides(
+        prefs: prefs,
+        logFileService: logFileService,
+      ).cast(),
+    );
+    addTearDown(container.dispose);
+
+    expect(container.read(mediaCacheSettingsProvider).diskCacheMb, 2048);
+    // The disk size, not the memory one: changing that would resize the
+    // process-wide image cache under every other test in this isolate.
+    await container
+        .read(mediaCacheSettingsProvider.notifier)
+        .setDiskCacheMb(4096);
+    expect(prefs.getInt(kMediaDiskCacheMbKey), 4096);
   });
 }

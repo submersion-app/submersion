@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -14,7 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
-import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -29,7 +28,7 @@ Widget _buildTestWidget(MockSettingsNotifier notifier) {
       locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: SafetySettingsPage(),
+      home: SafetyReviewSettingsPage(),
     ),
   );
 }
@@ -85,67 +84,38 @@ void main() {
     }
   });
 
-  group('equipment condition entry', () {
-    // Equipment condition settings moved from the settings root to a tile at
-    // the bottom of the Safety page, which pushes the nested route.
-    Widget routedApp({Locale locale = const Locale('en')}) => ProviderScope(
-      overrides: [
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-      ],
-      child: MaterialApp.router(
-        locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: GoRouter(
-          initialLocation: '/settings/safety',
-          routes: [
-            GoRoute(
-              path: '/settings/safety',
-              builder: (context, state) => const SafetySettingsPage(),
-              routes: [
-                GoRoute(
-                  path: 'equipment-condition',
-                  builder: (context, state) =>
-                      const Scaffold(body: Text('equipment condition page')),
-                ),
-              ],
-            ),
-          ],
+  testWidgets('equipment condition is no longer a row on this page', (
+    tester,
+  ) async {
+    // It moved up to the Safety hub, a sibling of this page.
+    await tester.binding.setSurfaceSize(const Size(400, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_buildTestWidget(MockSettingsNotifier()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Equipment condition'), findsNothing);
+  });
+
+  testWidgets('with onBack the app bar back arrow calls it', (tester) async {
+    var backs = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SafetyReviewSettingsPage(onBack: () => backs++),
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
-    testWidgets('tapping the tile opens equipment condition settings', (
-      tester,
-    ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 1600));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await tester.pumpWidget(routedApp());
-      await tester.pumpAndSettle();
-
-      expect(find.text('Equipment condition'), findsOneWidget);
-      expect(
-        find.text('Exposure thresholds for service clocks'),
-        findsOneWidget,
-      );
-
-      await tester.tap(find.text('Equipment condition'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('equipment condition page'), findsOneWidget);
-    });
-
-    testWidgets('the tile reads in the active locale', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 1600));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await tester.pumpWidget(routedApp(locale: const Locale('de')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Ausrüstungszustand'), findsOneWidget);
-      expect(find.text('Equipment condition'), findsNothing);
-    });
+    await tester.tap(find.byTooltip('Back'));
+    expect(backs, 1);
   });
 
   Widget backfillApp(List<Override> extra) => ProviderScope(
@@ -162,7 +132,7 @@ void main() {
       locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: SafetySettingsPage(),
+      home: SafetyReviewSettingsPage(),
     ),
   );
 
@@ -212,45 +182,6 @@ void main() {
     gate.complete();
     await tester.pumpAndSettle();
     expect(find.text('Analysis complete'), findsOneWidget);
-  });
-
-  testWidgets('the equipment condition tile is locked while a sweep runs', (
-    tester,
-  ) async {
-    // Pushing a route keeps this page mounted, so a sweep would carry on
-    // underneath; the tile follows the page's lock like every other control.
-    await tester.binding.setSurfaceSize(const Size(400, 1600));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    ListTile equipmentTile() => tester.widget<ListTile>(
-      find.ancestor(
-        of: find.text('Equipment condition'),
-        matching: find.byType(ListTile),
-      ),
-    );
-
-    final gate = Completer<void>();
-    await tester.pumpWidget(
-      backfillApp([
-        diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(['d1'])),
-        safetyReviewProvider('d1').overrideWith((ref) async {
-          await gate.future;
-          return null;
-        }),
-      ]),
-    );
-    await tester.pumpAndSettle();
-    expect(equipmentTile().enabled, isTrue);
-
-    await tester.tap(find.text('Analyze all dives'));
-    await tester.pump(); // enter the analyzing state
-    await tester.pump();
-    expect(equipmentTile().enabled, isFalse);
-    expect(equipmentTile().onTap, isNull);
-
-    gate.complete();
-    await tester.pumpAndSettle();
-    expect(equipmentTile().enabled, isTrue);
   });
 
   testWidgets('dismiss all does nothing when the confirmation is cancelled', (
@@ -330,7 +261,7 @@ void main() {
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: SafetySettingsPage(),
+          home: SafetyReviewSettingsPage(),
         ),
       ),
     );

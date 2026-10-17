@@ -96,7 +96,12 @@ class ConnectorMediaResolver implements MediaSourceResolver {
       final contentHash = item.contentHash;
 
       if (cache != null && contentHash != null) {
-        final cached = await cache.get(contentHash, kind);
+        // A thumbnail takes the cheap hit first, as on the store path.
+        final cached =
+            (kind == MediaCacheKind.thumb
+                ? await cache.peekThumb(contentHash)
+                : null) ??
+            await cache.get(contentHash, kind);
         if (cached != null) {
           return FileData(
             file: cached,

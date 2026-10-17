@@ -278,6 +278,33 @@ void main() {
     expect(after.owner, const DocumentOwner(DocumentOwnerKind.trip, 't1'));
   });
 
+  testWidgets('a dive owner shows its number, site and date (#3391)', (
+    t,
+  ) async {
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('s1', 'd1', 'Blue Hole', 0, 0)",
+    );
+    final when = DateTime.utc(2026, 10, 12, 9).millisecondsSinceEpoch;
+    await db.customStatement(
+      'INSERT INTO dives (id, diver_id, dive_number, dive_date_time, site_id, '
+      "created_at, updated_at) VALUES ('v1', 'd1', 142, $when, 's1', 0, 0)",
+    );
+    await pumpEditor(
+      t,
+      owner: const DocumentOwner(DocumentOwnerKind.dive, 'v1'),
+    );
+    final field = find.byKey(const ValueKey('document-owner-field'));
+    expect(
+      find.descendant(
+        of: field,
+        matching: find.textContaining(RegExp(r'^#142 · Blue Hole · .*2026')),
+      ),
+      findsOneWidget,
+    );
+  });
+
   group('Filed under', () {
     Future<void> addTrip() => DatabaseService.instance.database.customStatement(
       'INSERT INTO trips (id, diver_id, name, start_date, end_date, '

@@ -14795,6 +14795,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Matériau';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Mélange gazeux';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurations';
 
   @override
@@ -19561,6 +19564,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Le diluant dépasse sa MOD Dil à $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Le profil dépasse le plafond de décompression de $ceiling et saute des paliers obligatoires';
   }
 
   @override
@@ -26453,10 +26461,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_section_data_title => 'Données';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, sources de données et narcose';
-
-  @override
   String get settings_section_decompression_title => 'Décompression';
 
   @override
@@ -27672,6 +27676,62 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get insights_gas_sacTrend_title =>
       'Tendance de la consommation de gaz';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Configuration des blocs';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Plongées selon la façon dont les blocs étaient portés';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Recycleur';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Bi-bouteille';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Mono-bouteille';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Autre';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'Aucun bloc enregistré';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage(s)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Gaz de déco';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Multigaz';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Les bi-bouteilles enregistrés comme un seul bloc sont comptés quand le nom l\'indique (twin, double, D12, 2x12) ou que le bloc dépasse tout mono-bouteille courant. Indiquez Sidemount gauche et Sidemount droit sur les blocs d\'une plongée pour qu\'elle compte comme sidemount.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'Aucune plongée à afficher';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Échec du chargement de la configuration des blocs';
 
   @override
   String get insights_focus_title => 'Focus plongées';
@@ -36517,7 +36577,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Connexions cloud et services';
+      'Connexions utilisées par la synchronisation, le stockage des médias et les bibliothèques partagées';
 
   @override
   String get settings_connectedAccounts_empty =>
@@ -36590,6 +36650,52 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Impossible de charger les comptes';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Utilisé pour : $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Non utilisé sur cet appareil';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Synchronisation de la base de données';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage =>
+      'Stockage des médias';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Bibliothèque de sites partagée : $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Se déconnecter sur cet appareil ?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Sur cet appareil, $account est utilisé pour les fonctions ci-dessous. Elles ne fonctionneront plus ici tant que vous ne vous serez pas reconnecté.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Sur cet appareil, il est utilisé pour les fonctions ci-dessous, qui ne fonctionneront plus ici :';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'D\'autres appareils peuvent aussi utiliser ce compte.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Impossible de vérifier à quoi sert ce compte sur cet appareil. Ce qui l\'utilise ici pourrait cesser de fonctionner.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume non monté';
@@ -37409,6 +37515,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Strict (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'Activé, $enabled sur $total règles, interdiction de vol $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Désactivé, interdiction de vol $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Standard';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Strict';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'Activé, $enabled sur $total règles';
+  }
+
+  @override
+  String get safetyHub_off => 'Désactivé';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Intervalles indicatifs après une plongée unique sans déco, des plongées successives et des plongées avec déco';
 
@@ -37966,7 +38096,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Règles du bilan et vol après la plongée';
+      'Règles du bilan, décompression et matériel';
 
   @override
   String get settings_section_equipmentCondition_title => 'État du matériel';
@@ -49719,6 +49849,33 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une petite icône indiquant d\'où provient chaque élément. Les badges de problème restent toujours visibles.';
 
   @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title => 'Cache d’images en mémoire';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Images décodées conservées en mémoire pour les galeries et la visionneuse plein écran. S’applique immédiatement, sur cet appareil uniquement.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Cache disque des vignettes';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Vignettes conservées sur cet appareil. Les originaux et les copies compressées ne sont pas comptés.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Vider le cache';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Cache des vignettes vidé';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Impossible de vider le cache des vignettes';
+
+  @override
   String get media_status_transferFailed => 'Échec du téléversement';
 
   @override
@@ -50829,6 +50986,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transmitters_field_label => 'Libellé';
 
   @override
+  String get transmitters_field_label_helper =>
+      'Devient le nom de la bouteille dans la plongée une fois cet émetteur associé';
+
+  @override
   String get transmitters_field_serial => 'Numéro de série de l\'émetteur';
 
   @override
@@ -50845,13 +51006,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transmitters_field_gear => 'Bouteille de l\'équipement';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'La bouteille dont cet émetteur signale la pression';
+
+  @override
   String get transmitters_field_transmitterGear => 'Émetteur de l’équipement';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Suivi de la batterie/de l\'entretien, sans lien avec la correspondance';
 
   @override
   String get transmitters_field_material => 'Matériau';
 
   @override
   String get transmitters_gear_none => 'Aucune';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'Cette bouteille n\'a ni taille ni pression enregistrées, la taille restera donc vide dans la plongée';
 
   @override
   String get transmitters_validation_key =>

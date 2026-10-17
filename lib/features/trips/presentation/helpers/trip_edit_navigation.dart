@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/section_navigation.dart';
+
 /// A section of the trip edit form that it can open at (#2880), named in
 /// the URL's `section` query parameter.
 enum TripEditSection {
@@ -25,7 +27,7 @@ void openTripEdit(
   final sectionQuery = {if (section != null) 'section': section.name};
   if (embedded) {
     final path = GoRouterState.of(context).uri.path;
-    context.go(
+    context.goInPlace(
       Uri(
         path: path,
         queryParameters: {'selected': tripId, 'mode': 'edit', ...sectionQuery},

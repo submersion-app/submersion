@@ -23,6 +23,7 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_attribution.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
+import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
@@ -74,12 +75,6 @@ Future<void> _bootstrap() async {
   );
   // coverage:ignore-end
 
-  // Apply the global Flutter image-cache byte / object caps for cached
-  // network media. Must run after `ensureInitialized()` (which constructs
-  // `PaintingBinding.instance`) and before `runApp`, so the very first
-  // image decode honours the 75 MB ceiling.
-  applyMediaCacheCaps();
-
   // Relocate the Windows app-data trees off the legacy "Eric Griffin" company
   // directory. MUST precede SharedPreferences.getInstance(): on Windows
   // shared_preferences resolves its file through
@@ -93,6 +88,16 @@ Future<void> _bootstrap() async {
 
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
+
+  // Apply the global Flutter image-cache byte / object caps. The byte cap is
+  // the diver's setting (issue #3337), hence after prefs. Must run after
+  // `ensureInitialized()` (which constructs `PaintingBinding.instance`) and
+  // before `runApp`, so the very first image decode honours it.
+  // coverage:ignore-start
+  applyMediaCacheCaps(
+    memoryBytes: MediaCacheSettings.fromPrefs(prefs).memoryCacheBytes,
+  );
+  // coverage:ignore-end
 
   // Load the proxy choice and, in system mode, ask the OS (at most 3 s, so
   // a slow PAC server cannot hold up launch), then keep it current as the

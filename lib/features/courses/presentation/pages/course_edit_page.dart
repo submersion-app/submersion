@@ -15,6 +15,7 @@ import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
   final String? courseId;
@@ -369,26 +370,27 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              _isEditing
-                  ? context.l10n.courses_title_edit
-                  : context.l10n.courses_title_new,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ),
-          if (widget.onCancel != null)
+      child: LabelWithControl(
+        label: Text(
+          _isEditing
+              ? context.l10n.courses_title_edit
+              : context.l10n.courses_title_new,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        control: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.onCancel != null)
+              TextButton(
+                onPressed: widget.onCancel,
+                child: Text(context.l10n.common_action_cancel),
+              ),
             TextButton(
-              onPressed: widget.onCancel,
-              child: Text(context.l10n.common_action_cancel),
+              onPressed: _isLoading ? null : () => _save(existingCourse),
+              child: Text(context.l10n.common_action_save),
             ),
-          TextButton(
-            onPressed: _isLoading ? null : () => _save(existingCourse),
-            child: Text(context.l10n.common_action_save),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

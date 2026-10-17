@@ -421,6 +421,24 @@ final siteSearchProvider = FutureProvider.family<List<domain.DiveSite>, String>(
   },
 );
 
+/// Site search results carrying the same dive figures as the site list.
+///
+/// [siteSearchProvider] returns bare sites, and the search page used to wrap
+/// each one with a dive count of 0, so every hit claimed the site had never
+/// been dived (#3377). The hits keep the search's order; their figures come
+/// from [sitesWithCountsProvider], which already refreshes on dive changes.
+final siteSearchWithDiveCountProvider =
+    FutureProvider.family<List<SiteWithDiveCount>, String>((ref, query) async {
+      final withCounts = await ref.watch(sitesWithCountsProvider.future);
+      if (query.isEmpty) return withCounts;
+      final sites = await ref.watch(siteSearchProvider(query).future);
+      final byId = {for (final entry in withCounts) entry.site.id: entry};
+      return [
+        for (final site in sites)
+          byId[site.id] ?? SiteWithDiveCount(site: site, diveCount: 0),
+      ];
+    });
+
 /// Dive count for a specific site
 final siteDiveCountProvider = FutureProvider.family<int, String>((
   ref,

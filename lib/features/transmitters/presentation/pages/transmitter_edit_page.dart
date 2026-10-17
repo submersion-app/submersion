@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -48,6 +51,8 @@ class TransmitterEditPage extends ConsumerStatefulWidget {
 }
 
 class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
+  static final _log = LoggerService.forClass(TransmitterEditPage);
+
   final _formKey = GlobalKey<FormState>();
   final _uuid = const Uuid();
 
@@ -58,6 +63,13 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   final _workingPressureController = TextEditingController();
 
   TankRole _role = TankRole.backGas;
+  bool _roleTouched = false;
+
+  /// Bumped only when the page sets [_role] itself (a suggestion from the
+  /// picked cylinder's history), so the Role dropdown, which reads its
+  /// value once, remounts then and not on the diver's own picks.
+  int _roleFieldGeneration = 0;
+  bool _missingSizeHint = false;
   TankMaterial? _material;
   String? _computerId;
   String? _presetName;
@@ -109,6 +121,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
           ? ''
           : '${entry.channelIndex! + 1}';
       _role = entry.role;
+      _roleTouched = true;
       _material = entry.material;
       _presetName = entry.presetName;
       _equipmentId = entry.equipmentId;
@@ -158,6 +171,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     setState(() {
       _presetName = preset.name;
       _material = preset.material;
+      _missingSizeHint = false;
       _fillSpecFields(
         UnitFormatter(settings),
         settings,
@@ -167,7 +181,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     });
   }
 
-  void _applyGear(EquipmentItem item) {
+  Future<void> _applyGear(EquipmentItem item) async {
     final settings = ref.read(settingsProvider);
     setState(() {
       _equipmentId = item.id;
@@ -181,6 +195,37 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
           item.workingPressureBar,
         );
       }
+      // A cylinder with no size of its own leaves an already-filled field
+      // (an existing entry's saved spec, or one set from a preset) alone,
+      // so the hint reflects what the fields will actually show, not just
+      // whether this particular pick carried a size.
+      _missingSizeHint =
+          _volumeController.text.isEmpty &&
+          _workingPressureController.text.isEmpty;
+    });
+    if (_roleTouched) return;
+    final TankRole role;
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      role = await ref
+          .read(transmitterRepositoryProvider)
+          .lastRoleForEquipment(item.id, diverId: diverId);
+    } catch (e, stackTrace) {
+      // The suggestion is a convenience: a failed lookup leaves Role as it
+      // is rather than blocking the pick.
+      _log.warning(
+        'Could not suggest a role from the cylinder history',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
+    // The diver may have chosen a Role, or picked another cylinder, while
+    // the lookup ran; a late answer must not overwrite either.
+    if (!mounted || _roleTouched || _equipmentId != item.id) return;
+    setState(() {
+      _role = role;
+      _roleFieldGeneration++;
     });
   }
 
@@ -198,8 +243,10 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
           selectedEquipmentIds: {?_equipmentId},
           typeFilter: EquipmentType.tank,
           onEquipmentSelected: (item) {
-            _applyGear(item);
+            // Close first: the role suggestion runs a query, and the sheet
+            // should not wait on it.
             Navigator.of(context).pop();
+            unawaited(_applyGear(item));
           },
         ),
       ),
@@ -404,6 +451,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                     controller: _labelController,
                     decoration: InputDecoration(
                       labelText: l10n.transmitters_field_label,
+                      helperText: l10n.transmitters_field_label_helper,
                     ),
                     textCapitalization: TextCapitalization.words,
                   ),
@@ -468,7 +516,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<TankRole>(
-                    key: const Key('transmitter_role'),
+                    key: ValueKey('transmitter_role-$_roleFieldGeneration'),
                     initialValue: _role,
                     decoration: InputDecoration(
                       labelText: l10n.transmitters_field_role,
@@ -480,9 +528,13 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                           child: Text(role.localizedName(l10n)),
                         ),
                     ],
-                    onChanged: (role) => setState(() => _role = role ?? _role),
+                    onChanged: (role) => setState(() {
+                      _role = role ?? _role;
+                      _roleTouched = true;
+                    }),
                   ),
                   const SizedBox(height: 16),
+                  _FieldNote(l10n.transmitters_field_gear_subtitle),
                   ListTile(
                     key: const Key('transmitter_gear'),
                     contentPadding: EdgeInsets.zero,
@@ -497,10 +549,12 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                             onPressed: () => setState(() {
                               _equipmentId = null;
                               _equipmentName = null;
+                              _missingSizeHint = false;
                             }),
                           ),
                     onTap: _pickGear,
                   ),
+                  _FieldNote(l10n.transmitters_field_transmitterGear_subtitle),
                   ListTile(
                     key: const Key('transmitter_transmitter_gear'),
                     contentPadding: EdgeInsets.zero,
@@ -588,7 +642,10 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                             decimal: true,
                           ),
                           validator: _positive,
-                          onChanged: (_) => setState(() => _presetName = null),
+                          onChanged: (_) => setState(() {
+                            _presetName = null;
+                            _missingSizeHint = false;
+                          }),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -602,12 +659,22 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                           ),
                           keyboardType: TextInputType.number,
                           validator: _positive,
-                          onChanged: (_) => setState(() => _presetName = null),
+                          onChanged: (_) => setState(() {
+                            _presetName = null;
+                            _missingSizeHint = false;
+                          }),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  if (_missingSizeHint)
+                    _FieldNote(
+                      l10n.transmitters_hint_missingSize,
+                      key: const Key('transmitter_missing_size_hint'),
+                      padding: const EdgeInsets.only(top: 4, bottom: 16),
+                    )
+                  else
+                    const SizedBox(height: 16),
                   DropdownButtonFormField<TankMaterial?>(
                     key: const Key('transmitter_material'),
                     initialValue: _material,
@@ -630,6 +697,33 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+/// Muted explanatory line beside a field: the shared FormCaption style,
+/// without its overline indent, since these sit flush with the fields.
+class _FieldNote extends StatelessWidget {
+  const _FieldNote(
+    this.text, {
+    super.key,
+    this.padding = const EdgeInsets.only(bottom: 2),
+  });
+
+  final String text;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: padding,
+      child: Text(
+        text,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 }

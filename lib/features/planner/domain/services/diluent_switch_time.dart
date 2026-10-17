@@ -9,6 +9,10 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 domain.PlanMode modeFor(domain.DivePlan plan, PlanSegment? segment) =>
     segment?.diveModeOverride ?? plan.mode;
 
+/// Suffix on the id of a flat leg [withDiluentSwitchTime] inserts before a
+/// switching segment; no diver authored that leg.
+const diluentSwitchStopIdSuffix = '__gasSwitchStop';
+
 /// [segments] (already sorted, already rate-split if #3264 applies) with a
 /// new flat leg inserted wherever the dive starts breathing a different
 /// diluent than the one before it -- the authored-segment counterpart of
@@ -72,7 +76,7 @@ List<PlanSegment> withDiluentSwitchTime(
           : previousDiluent;
       result.add(
         PlanSegment(
-          id: '${segment.id}__gasSwitchStop',
+          id: '${segment.id}$diluentSwitchStopIdSuffix',
           targetDepth: depth,
           durationSeconds: plan.gasSwitchStopSeconds,
           tankId: conservative.id,

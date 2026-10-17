@@ -11,7 +11,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_camera_animator.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
@@ -240,12 +240,13 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
           ),
         ),
 
-        // Reset-to-north compass (hidden until the map is rotated), tucked
-        // below the fit-all control so the two controls stack rather than overlap.
+        // Map style switcher and reset-to-north compass (hidden until the map
+        // is rotated), tucked below the fit-all control so the controls stack
+        // rather than overlap.
         Positioned(
           top: 64,
           right: 8,
-          child: MapCompassButton(controller: _mapController),
+          child: MapCornerControls(controller: _mapController),
         ),
 
         // Empty state overlay

@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
@@ -17,10 +19,13 @@ import 'package:submersion/core/services/media_store/media_store_credentials_sto
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
+import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/media_cache_purge.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_tile_image_memo.dart';
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_delete_processor.dart';
@@ -35,6 +40,7 @@ import 'package:submersion/features/media_store/data/media_upload_pipeline.dart'
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Everything a configured media store needs at runtime. Built once per
 /// attach; disposed and rebuilt on connect/disconnect via provider
@@ -125,6 +131,54 @@ Future<Directory> _resolveMediaCacheRoot() async {
 @visibleForTesting
 void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
 
+/// The media cache over the live cache database.
+///
+/// Built per use rather than shared: it captures the cache database at
+/// construction, and one held across a database location change would be
+/// holding a stale handle.
+///
+/// With [prefs] the thumbnail pool's cap is the diver's disk cache size
+/// (issue #3337), read each time eviction runs so that a change reaches
+/// stores already built. Without, the default size applies.
+Future<MediaCacheStore> openMediaCacheStore(SharedPreferences? prefs) async =>
+    MediaCacheStore(
+      database: LocalCacheDatabaseService.instance.database,
+      root: await mediaCacheRoot(),
+      thumbsCapSource: prefs == null
+          ? null
+          : () => MediaCacheSettings.fromPrefs(prefs).diskCacheBytes,
+    );
+
+/// Empties the thumbnail disk cache, and the decoded images in memory with
+/// it: the "Empty cache" button in Photos & Media settings.
+///
+/// Memory too because a diver who empties the cache to be rid of a wrong
+/// thumbnail would otherwise go on seeing it until it happened to leave
+/// memory. Originals and compressed copies fetched from the media store are
+/// separate pools and are not touched.
+// coverage:ignore-start
+// Reaches the process-wide cache database and image cache; each half is
+// tested where it lives (MediaCacheStore.clear, the settings notifier).
+Future<void> emptyThumbnailCache(SharedPreferences? prefs) async {
+  await (await openMediaCacheStore(prefs)).clear(MediaCacheKind.thumb);
+  PaintingBinding.instance.imageCache
+    ..clear()
+    ..clearLiveImages();
+}
+// coverage:ignore-end
+
+/// SharedPreferences where the container has them, null where it does not.
+///
+/// [sharedPreferencesProvider] throws unless the root scope overrode it, and
+/// the media cache is reached from grid tiles in containers that did not.
+SharedPreferences? mediaCachePrefsOrNull(Ref ref) {
+  try {
+    return ref.read(sharedPreferencesProvider);
+  } on Object {
+    return null;
+  }
+}
+
 /// Brings the media cache back inside its LRU caps once per process.
 ///
 /// [MediaCacheStore.evictIfNeeded] is public but was only ever called from
@@ -141,10 +195,7 @@ void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
 final FutureProvider<void> mediaCacheEvictionProvider = FutureProvider<void>((
   ref,
 ) async {
-  final cache = MediaCacheStore(
-    database: LocalCacheDatabaseService.instance.database,
-    root: await mediaCacheRoot(),
-  );
+  final cache = await openMediaCacheStore(mediaCachePrefsOrNull(ref));
   await cache.evictIfNeeded();
 });
 
@@ -152,6 +203,8 @@ final FutureProvider<void> mediaCacheEvictionProvider = FutureProvider<void>((
 /// orphan-prevention spec (5.2). The queue and runtime are read lazily
 /// (never watched) so consumer widget tests without a media store runtime
 /// are unaffected, and the coordinator itself swallows enqueue failures.
+// no-tick: builds a coordinator SERVICE, not a cached query result. Its
+// repository read sits inside the purge callback and runs per deletion.
 final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
   ref,
 ) {
@@ -162,6 +215,21 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
       final runtime = await ref.read(mediaStoreRuntimeProvider.future);
       await runtime?.worker?.drain();
     },
+    // A row leaving the library takes its cached copies with it: unlinking
+    // a photo clears its thumbnail off disk and its decoded images out of
+    // memory (issue #3337). Read lazily, like the queue above.
+    // A delete the user can still undo keeps the media store copies, which
+    // would otherwise have to be downloaded again after the undo.
+    onDeleted: (items, {required undoable}) => purgeMediaCaches(
+      items,
+      thumbnails: ref.read(localThumbnailCacheProvider),
+      memo: ref.read(mediaTileImageMemoProvider),
+      store: undoable
+          ? null
+          : () => openMediaCacheStore(mediaCachePrefsOrNull(ref)),
+      hashStillReferenced: (hash) async =>
+          await ref.read(mediaRepositoryProvider).countRowsWithHash(hash) > 0,
+    ),
   );
 });
 
@@ -425,10 +493,7 @@ final FutureProvider<MediaStoreResolver?> mediaStoreProbeResolverProvider =
       if (store == null) return null;
       final resolver = MediaStoreResolver(
         store: store,
-        cache: MediaCacheStore(
-          database: LocalCacheDatabaseService.instance.database,
-          root: await mediaCacheRoot(),
-        ),
+        cache: await openMediaCacheStore(mediaCachePrefsOrNull(ref)),
       );
       ref.onDispose(resolver.dispose);
       return resolver;
@@ -454,10 +519,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
 
-      final cache = MediaCacheStore(
-        database: LocalCacheDatabaseService.instance.database,
-        root: await mediaCacheRoot(),
-      );
+      final cache = await openMediaCacheStore(mediaCachePrefsOrNull(ref));
       final resolver = MediaStoreResolver(store: store, cache: cache);
       // Same reason as worker.dispose below: a superseded runtime must not
       // leave its resolver's budget timers armed behind the one that

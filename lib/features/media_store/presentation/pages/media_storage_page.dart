@@ -24,6 +24,7 @@ import 'package:submersion/features/settings/presentation/widgets/cloud_provider
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 /// Configuration page for the media store's S3 backend (design spec
 /// section 14). Sibling of the sync backend's S3ConfigPage: same field
@@ -786,37 +787,41 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                   ),
                 ),
                 ListTile(
-                  title: Text(l10n.settings_mediaStorage_quality_photos),
-                  trailing: DropdownButton<MediaUploadQuality>(
-                    key: const Key('media-quality-photos'),
-                    value: photoQuality,
-                    underline: const SizedBox(),
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await _saveQuality(
-                        l10n,
-                        (policy) => policy.setPhotoUploadQuality(value),
-                        photoUploadQualityProvider,
-                      );
-                    },
-                    items: _qualityItems(l10n),
+                  title: LabelWithControl(
+                    label: Text(l10n.settings_mediaStorage_quality_photos),
+                    control: DropdownButton<MediaUploadQuality>(
+                      key: const Key('media-quality-photos'),
+                      value: photoQuality,
+                      underline: const SizedBox(),
+                      onChanged: (value) async {
+                        if (value == null) return;
+                        await _saveQuality(
+                          l10n,
+                          (policy) => policy.setPhotoUploadQuality(value),
+                          photoUploadQualityProvider,
+                        );
+                      },
+                      items: _qualityItems(l10n),
+                    ),
                   ),
                 ),
                 ListTile(
-                  title: Text(l10n.settings_mediaStorage_quality_video),
-                  trailing: DropdownButton<MediaUploadQuality>(
-                    key: const Key('media-quality-video'),
-                    value: videoQuality,
-                    underline: const SizedBox(),
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await _saveQuality(
-                        l10n,
-                        (policy) => policy.setVideoUploadQuality(value),
-                        videoUploadQualityProvider,
-                      );
-                    },
-                    items: _qualityItems(l10n),
+                  title: LabelWithControl(
+                    label: Text(l10n.settings_mediaStorage_quality_video),
+                    control: DropdownButton<MediaUploadQuality>(
+                      key: const Key('media-quality-video'),
+                      value: videoQuality,
+                      underline: const SizedBox(),
+                      onChanged: (value) async {
+                        if (value == null) return;
+                        await _saveQuality(
+                          l10n,
+                          (policy) => policy.setVideoUploadQuality(value),
+                          videoUploadQualityProvider,
+                        );
+                      },
+                      items: _qualityItems(l10n),
+                    ),
                   ),
                 ),
                 // A library-wide level can be set from a device that cannot

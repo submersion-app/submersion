@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
@@ -353,6 +354,34 @@ void main() {
         tester.element(find.byType(NavTrackDetailPage)),
       );
       expect(tileLayer.urlTemplate, container.read(mapTileUrlProvider));
+    },
+  );
+
+  testWidgets(
+    'the inline map can rotate, so it carries a compass that resets it to '
+    'north (#3386)',
+    (tester) async {
+      await _pump(
+        tester,
+        route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
+      );
+
+      final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      final controller = map.mapController;
+      expect(controller, isNotNull, reason: 'the compass steers the map');
+      expect(
+        tester
+            .widget<MapCompassButton>(find.byType(MapCompassButton))
+            .controller,
+        same(controller),
+      );
+
+      controller!.rotate(45);
+      await tester.pump();
+      await tester.tap(find.byType(MapCompassButton));
+      await tester.pumpAndSettle();
+
+      expect(controller.camera.rotation % 360, closeTo(0, 0.01));
     },
   );
 

@@ -59,28 +59,6 @@ void main() {
       });
     }
 
-    test('the decompression subtitle lists GF, data sources and narcosis', () {
-      final expected = {
-        'ar': 'GF، مصادر البيانات والتخدير',
-        'de': 'GF, Datenquellen & Narkose',
-        'es': 'GF, fuentes de datos y narcosis',
-        'fr': 'GF, sources de données et narcose',
-        'he': 'GF, מקורות נתונים ונרקוזה',
-        'hu': 'GF, adatforrások és narkózis',
-        'it': 'GF, fonti dei dati e narcosi',
-        'nl': 'GF, gegevensbronnen & narcose',
-        'pt': 'GF, fontes de dados e narcose',
-        'zh': '梯度因子、数据来源与麻醉',
-      };
-      for (final entry in expected.entries) {
-        expect(
-          l10nFor(entry.key).settings_section_decompression_subtitle,
-          entry.value,
-          reason: entry.key,
-        );
-      }
-    });
-
     test('the file import label says "from file", not auto-detection', () {
       final expected = {
         'ar': 'استيراد بيانات الغوص من ملف',

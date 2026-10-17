@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 void main() {
   group('positive findings write', () {
@@ -84,6 +85,65 @@ void main() {
           reconciledOrphanFlag(currentlyOrphaned: true, failure: kind),
           isNull,
         );
+      });
+    }
+  });
+
+  // Issue #3337: a gallery thumbnail served from the cache never looks at
+  // the original, so a deferred check does, and its verdict is held to the
+  // same rule as a resolution.
+  group('a deferred check of the original', () {
+    test('a file that has gone orphans the row', () {
+      expect(
+        orphanFlagForVerdict(
+          currentlyOrphaned: false,
+          verdict: VerifyResult.notFound,
+        ),
+        isTrue,
+      );
+    });
+
+    test('a file that is back un-orphans the row', () {
+      expect(
+        orphanFlagForVerdict(
+          currentlyOrphaned: true,
+          verdict: VerifyResult.available,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a verdict that agrees with the flag writes nothing', () {
+      expect(
+        orphanFlagForVerdict(
+          currentlyOrphaned: false,
+          verdict: VerifyResult.available,
+        ),
+        isNull,
+      );
+      expect(
+        orphanFlagForVerdict(
+          currentlyOrphaned: true,
+          verdict: VerifyResult.notFound,
+        ),
+        isNull,
+      );
+    });
+
+    for (final verdict in [
+      VerifyResult.unauthenticated,
+      VerifyResult.transientError,
+      VerifyResult.fromOtherDevice,
+      VerifyResult.volumeOffline,
+      VerifyResult.accessDenied,
+    ]) {
+      test('${verdict.name} is not a finding and writes nothing', () {
+        for (final orphaned in [true, false]) {
+          expect(
+            orphanFlagForVerdict(currentlyOrphaned: orphaned, verdict: verdict),
+            isNull,
+          );
+        }
       });
     }
   });

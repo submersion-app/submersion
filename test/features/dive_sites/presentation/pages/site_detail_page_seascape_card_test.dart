@@ -84,14 +84,16 @@ void main() {
     expect(pane.siteId, gpsSite.id);
   });
 
-  testWidgets('the card sits right after Location by default', (tester) async {
+  testWidgets('the card sits after Location by default', (tester) async {
     await pumpPage(tester, gpsSite);
 
+    // Tides sits between them by default, but a site with no tide data
+    // skips that card, so Seascape follows Location directly here.
     final location = tester.getTopLeft(find.text('Location')).dy;
     final seascape = tester.getTopLeft(find.byType(SiteSeascapeSection)).dy;
-    final depth = tester.getTopLeft(find.text('Depth Range')).dy;
+    final documents = tester.getTopLeft(find.text('Documents')).dy;
     expect(location, lessThan(seascape));
-    expect(seascape, lessThan(depth));
+    expect(seascape, lessThan(documents));
   });
 
   testWidgets('a site without coordinates has no seascape card', (

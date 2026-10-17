@@ -614,24 +614,23 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
             _handleRowTap(courses.firstWhere((c) => c.id == id)),
         child: ListView.builder(
           controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          // CourseCard carries its own side margin, as the other sections'
+          // tiles do; the bottom padding keeps the last card clear of the FAB.
+          padding: const EdgeInsets.only(bottom: 80),
           itemCount: courses.length,
           itemBuilder: (context, index) {
             final course = courses[index];
             return KeyboardListItem(
               navigationKey: course.id,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: CourseCard(
-                  course: course,
-                  isSelected:
-                      widget.selectedId == course.id ||
-                      ref.watch(highlightedCourseIdProvider) == course.id,
-                  onTap: () => _handleRowTap(course),
-                  isSelectionMode: _isSelectionMode,
-                  isChecked: _selectedIds.contains(course.id),
-                  onCheckChanged: (_) => _selection.toggle(course.id),
-                ),
+              child: CourseCard(
+                course: course,
+                isSelected:
+                    widget.selectedId == course.id ||
+                    ref.watch(highlightedCourseIdProvider) == course.id,
+                onTap: () => _handleRowTap(course),
+                isSelectionMode: _isSelectionMode,
+                isChecked: _selectedIds.contains(course.id),
+                onCheckChanged: (_) => _selection.toggle(course.id),
               ),
             );
           },

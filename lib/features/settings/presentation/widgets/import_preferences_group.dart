@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 /// The group under the Import header on Settings > Data (issue #2779). Flat,
 /// like the rest of that page (issue #3390).
@@ -42,33 +43,35 @@ class ImportPreferencesGroup extends ConsumerWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.add_location_alt_outlined),
-            title: Text(context.l10n.settings_siteMatch_title),
-            subtitle: Text(context.l10n.settings_siteMatch_subtitle),
-            trailing: DropdownButton<SiteMatchSensitivity>(
-              value: sensitivity,
-              underline: const SizedBox.shrink(),
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setSiteMatchSensitivity(value);
-                }
-              },
-              items: [
-                DropdownMenuItem(
-                  value: SiteMatchSensitivity.strict,
-                  child: Text(context.l10n.settings_siteMatch_strict),
-                ),
-                DropdownMenuItem(
-                  value: SiteMatchSensitivity.balanced,
-                  child: Text(context.l10n.settings_siteMatch_balanced),
-                ),
-                DropdownMenuItem(
-                  value: SiteMatchSensitivity.relaxed,
-                  child: Text(context.l10n.settings_siteMatch_relaxed),
-                ),
-              ],
+            title: LabelWithControl(
+              label: Text(context.l10n.settings_siteMatch_title),
+              control: DropdownButton<SiteMatchSensitivity>(
+                value: sensitivity,
+                underline: const SizedBox.shrink(),
+                onChanged: (value) {
+                  if (value != null) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setSiteMatchSensitivity(value);
+                  }
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: SiteMatchSensitivity.strict,
+                    child: Text(context.l10n.settings_siteMatch_strict),
+                  ),
+                  DropdownMenuItem(
+                    value: SiteMatchSensitivity.balanced,
+                    child: Text(context.l10n.settings_siteMatch_balanced),
+                  ),
+                  DropdownMenuItem(
+                    value: SiteMatchSensitivity.relaxed,
+                    child: Text(context.l10n.settings_siteMatch_relaxed),
+                  ),
+                ],
+              ),
             ),
+            subtitle: Text(context.l10n.settings_siteMatch_subtitle),
           ),
           SwitchListTile(
             secondary: const Icon(Icons.compress),

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
@@ -584,7 +585,8 @@ class Dive3dScenePainter extends CustomPainter {
       oldDelegate.yawDegrees != yawDegrees ||
       oldDelegate.pitchDegrees != pitchDegrees ||
       oldDelegate.zoom != zoom ||
-      oldDelegate.visibleOverlays != visibleOverlays ||
+      // By content: hosts build a fresh set literal on every rebuild.
+      !setEquals(oldDelegate.visibleOverlays, visibleOverlays) ||
       !identical(oldDelegate.terrainImagery, terrainImagery) ||
       oldDelegate.imageryWhiteTexel != imageryWhiteTexel;
 }

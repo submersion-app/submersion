@@ -14455,6 +14455,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'חומר';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'תערובת גז';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'תצורות';
 
   @override
@@ -19074,6 +19077,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'המדלל חורג מ-MOD מדלל ב-$depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'הפרופיל חוצה את תקרת הדקומפרסיה של $ceiling ומדלג על עצירות נדרשות';
   }
 
   @override
@@ -25698,10 +25706,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_data_title => 'נתונים';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, מקורות נתונים ונרקוזה';
-
-  @override
   String get settings_section_decompression_title => 'דקומפרסיה';
 
   @override
@@ -26862,6 +26866,61 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'מגמת צריכת גז';
+
+  @override
+  String get insights_gas_tankConfig_title => 'תצורת בלונים';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'צלילות לפי אופן נשיאת הבלונים';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'תצורה';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'תוספות';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'ריברידר';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'סיידמאונט';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'בלונים תאומים על הגב';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'בלון יחיד על הגב';
+
+  @override
+  String get insights_gas_tankConfig_other => 'אחר';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'לא נרשמו בלונים';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'סטייג\'ים';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'גז דקו';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'ריבוי גזים';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'בלונים תאומים שנרשמו כבלון אחד נספרים כשהשם מציין זאת (twin, double, D12, 2x12) או כשהבלון גדול מכל בלון יחיד נפוץ. הגדר סיידמאונט שמאל וסיידמאונט ימין לבלוני הצלילה כדי שתיספר כסיידמאונט.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'אין צלילות להצגה';
+
+  @override
+  String get insights_gas_tankConfig_error => 'שגיאה בטעינת תצורת הבלונים';
 
   @override
   String get insights_focus_title => 'מיקוד צלילות';
@@ -35497,7 +35556,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_connectedAccounts_title => 'חשבונות מחוברים';
 
   @override
-  String get settings_connectedAccounts_subtitle => 'כניסות לענן ולשירותים';
+  String get settings_connectedAccounts_subtitle =>
+      'כניסות המשמשות לסנכרון, לאחסון מדיה ולספריות משותפות';
 
   @override
   String get settings_connectedAccounts_empty => 'אין עדיין חשבונות מחוברים';
@@ -35565,6 +35625,50 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'לא ניתן לטעון חשבונות';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'משמש עבור: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none => 'לא בשימוש במכשיר זה';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'סנכרון מסד נתונים';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'אחסון מדיה';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'ספריית אתרים משותפת: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'להתנתק במכשיר זה?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'במכשיר זה, $account משמש עבור התכונות שלהלן. הן יפסיקו לפעול כאן עד שתתחבר שוב.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'במכשיר זה הוא משמש עבור התכונות שלהלן, שיפסיקו לפעול כאן:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'ייתכן שגם מכשירים אחרים משתמשים בחשבון זה.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'לא ניתן לבדוק למה משמש חשבון זה במכשיר זה. מה שמשתמש בו כאן עלול להפסיק לפעול.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
@@ -36376,6 +36480,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'מחמיר (18/24/48 ש\')';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'פעיל, $enabled מתוך $total כללים, איסור טיסה $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'כבוי, איסור טיסה $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'רגיל';
+
+  @override
+  String get safetyHub_noFlyStrict => 'מחמיר';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'פעיל, $enabled מתוך $total כללים';
+  }
+
+  @override
+  String get safetyHub_off => 'כבוי';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה';
 
@@ -36918,7 +37046,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_safety_title => 'בטיחות';
 
   @override
-  String get settings_section_safety_subtitle => 'כללי סקירה וטיסה אחרי צלילה';
+  String get settings_section_safety_subtitle => 'כללי סקירה, דקומפרסיה וציוד';
 
   @override
   String get settings_section_equipmentCondition_title => 'מצב הציוד';
@@ -48554,6 +48682,33 @@ class AppLocalizationsHe extends AppLocalizations {
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
 
   @override
+  String get settings_photosMedia_cacheHeader => 'מטמון';
+
+  @override
+  String get settings_mediaCache_memory_title => 'מטמון תמונות בזיכרון';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'תמונות מפוענחות שנשמרות בזיכרון עבור הגלריות והצגת מסך מלא. חל מיד, במכשיר זה בלבד.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'מטמון תמונות ממוזערות בדיסק';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'תמונות ממוזערות שנשמרות במכשיר זה. קובצי מקור ועותקים דחוסים אינם נספרים.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'ריקון המטמון';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'מטמון התמונות הממוזערות רוקן';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'לא ניתן היה לרוקן את מטמון התמונות הממוזערות';
+
+  @override
   String get media_status_transferFailed => 'ההעלאה נכשלה';
 
   @override
@@ -49634,6 +49789,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_field_label => 'תווית';
 
   @override
+  String get transmitters_field_label_helper =>
+      'הופך לשם המיכל בצלילה ברגע שהמשדר הזה משויך';
+
+  @override
   String get transmitters_field_serial => 'מספר סידורי של המשדר';
 
   @override
@@ -49650,13 +49809,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_field_gear => 'מיכל מהציוד';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'המיכל שעבורו משדר זה מדווח על הלחץ';
+
+  @override
   String get transmitters_field_transmitterGear => 'משדר מהציוד';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'מעקב סוללה/תחזוקה, לא משמש להתאמה';
 
   @override
   String get transmitters_field_material => 'חומר';
 
   @override
   String get transmitters_gear_none => 'ללא';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'למיכל זה אין גודל או לחץ רשומים, לכן הגודל יישאר ריק בצלילה';
 
   @override
   String get transmitters_validation_key =>

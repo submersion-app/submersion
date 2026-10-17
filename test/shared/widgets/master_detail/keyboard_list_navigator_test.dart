@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_focus_ring.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 import '../../../helpers/keyboard_navigation_contract.dart';
@@ -126,6 +127,22 @@ Finder _focusedHolds(String text) {
   );
 }
 
+/// The rows whose focus ring is drawn.
+List<String> _ringedRows(WidgetTester tester) => [
+  for (final item in tester.widgetList<KeyboardListItem>(
+    find.byType(KeyboardListItem),
+  ))
+    if (tester
+        .widget<KeyboardListFocusRing>(
+          find.descendant(
+            of: find.byWidget(item),
+            matching: find.byType(KeyboardListFocusRing),
+          ),
+        )
+        .visible)
+      item.navigationKey,
+];
+
 void main() {
   testWidgets('Down and Up move from the current key and report it', (
     tester,
@@ -143,10 +160,10 @@ void main() {
   });
 
   testWidgets('a single mouse click runs the row\'s tap', (tester) async {
-    // On desktop focus highlighting starts in the traditional mode, so the
-    // click that focuses the list also draws the focus ring on the clicked
-    // row. Drawing it must not rebuild the row's contents, or the tap still
-    // in progress is lost and every row needs a second click to open (#3208).
+    // After keyboard use the cursor's row shows the focus ring, and a click
+    // takes it away again (#3385). Changing the ring must not rebuild the
+    // row's contents, or the tap still in progress is lost and every row
+    // needs a second click to open (#3208).
     useDesktopFocusHighlighting();
     final taps = <String>[];
     await tester.pumpWidget(
@@ -174,7 +191,15 @@ void main() {
       ),
     );
 
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(_ringedRows(tester), ['a']);
+
     await clickWithMouse(tester, find.byKey(const ValueKey('row-a')));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(_ringedRows(tester), ['b']);
     await clickWithMouse(tester, find.byKey(const ValueKey('row-b')));
 
     expect(taps, ['a', 'b']);
@@ -409,6 +434,104 @@ void main() {
       findsOneWidget,
       reason: 'the third Tab leaves the list rather than walking its rows',
     );
+  });
+
+  group('focus ring follows the keyboard, not the mouse (#3385)', () {
+    testWidgets('a mouse click leaves no ring on the clicked row', (
+      tester,
+    ) async {
+      useDesktopFocusHighlighting();
+      await tester.pumpWidget(const _Host(keys: ['a', 'b', 'c']));
+
+      await clickWithMouse(tester, find.byKey(const ValueKey('row-b')));
+
+      expect(_primary?.debugLabel, KeyboardListNavigator.focusDebugLabel);
+      expect(_ringedRows(tester), isEmpty);
+    });
+
+    testWidgets('an arrow after a click draws the ring on the cursor', (
+      tester,
+    ) async {
+      useDesktopFocusHighlighting();
+      await tester.pumpWidget(const _Host(keys: ['a', 'b', 'c']));
+      await clickWithMouse(tester, find.byKey(const ValueKey('row-a')));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+
+      expect(_ringedRows(tester), ['b']);
+    });
+
+    testWidgets('a click after keyboard navigation takes the ring away', (
+      tester,
+    ) async {
+      useDesktopFocusHighlighting();
+      await tester.pumpWidget(const _Host(keys: ['a', 'b', 'c']));
+      await clickWithMouse(tester, find.byKey(const ValueKey('row-a')));
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+
+      await clickWithMouse(tester, find.byKey(const ValueKey('row-c')));
+
+      expect(_ringedRows(tester), isEmpty);
+    });
+
+    testWidgets('Tab into the list rings the current row', (tester) async {
+      useDesktopFocusHighlighting();
+      await tester.pumpWidget(const _Host(keys: ['a', 'b', 'c'], initial: 'b'));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pumpAndSettle();
+
+      expect(_primary?.debugLabel, KeyboardListNavigator.focusDebugLabel);
+      expect(_ringedRows(tester), ['b']);
+    });
+
+    testWidgets('focus restored without a key keeps the ring as it was', (
+      tester,
+    ) async {
+      // The app returning from the background, or a closed menu, hands focus
+      // back to the list with no key pressed: a click's row stays plain and a
+      // keyboard cursor keeps its ring.
+      useDesktopFocusHighlighting();
+      await tester.pumpWidget(const _Host(keys: ['a', 'b', 'c']));
+      await clickWithMouse(tester, find.byKey(const ValueKey('row-b')));
+      final list = _primary!;
+
+      list.unfocus();
+      await tester.pumpAndSettle();
+      list.requestFocus();
+      await tester.pumpAndSettle();
+      expect(_primary, same(list));
+      expect(_ringedRows(tester), isEmpty);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      list.unfocus();
+      await tester.pumpAndSettle();
+      list.requestFocus();
+      await tester.pumpAndSettle();
+      expect(_ringedRows(tester), ['c']);
+    });
+
+    testWidgets('Tab back in after a click rings the current row', (
+      tester,
+    ) async {
+      useDesktopFocusHighlighting();
+      await tester.pumpWidget(const _Host(keys: ['a', 'b', 'c']));
+      await clickWithMouse(tester, find.byKey(const ValueKey('row-b')));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pumpAndSettle();
+      expect(_focusedHolds('after'), findsOneWidget);
+      await simulateKeyDownEvent(LogicalKeyboardKey.shift);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await simulateKeyUpEvent(LogicalKeyboardKey.shift);
+      await tester.pumpAndSettle();
+
+      expect(_primary?.debugLabel, KeyboardListNavigator.focusDebugLabel);
+      expect(_ringedRows(tester), ['b']);
+    });
   });
 
   testWidgets('modified arrows are left to other handlers', (tester) async {
