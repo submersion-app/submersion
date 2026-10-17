@@ -13,6 +13,7 @@ class SummaryScenePane extends StatelessWidget {
     super.key,
     required this.painterBuilder,
     required this.ink,
+    this.shadows,
     required this.child,
   });
 
@@ -22,6 +23,9 @@ class SummaryScenePane extends StatelessWidget {
 
   /// The colour the facts are set in.
   final Color ink;
+
+  /// Optional text shadows for the facts, for a scene with bright areas.
+  final List<Shadow>? shadows;
 
   /// The facts, usually a Stack of positioned text.
   final Widget child;
@@ -43,7 +47,7 @@ class SummaryScenePane extends StatelessWidget {
             ),
           ),
           Positioned.fill(
-            child: SceneInk(color: ink, child: child),
+            child: SceneInk(color: ink, shadows: shadows, child: child),
           ),
         ],
       ),

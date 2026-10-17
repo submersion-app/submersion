@@ -7,17 +7,30 @@ import 'package:flutter/material.dart';
 /// the primary one in most presets, which is what made the old summary
 /// widgets look flat.
 class SceneInk extends InheritedWidget {
-  const SceneInk({super.key, required this.color, required super.child});
+  const SceneInk({
+    super.key,
+    required this.color,
+    this.shadows,
+    required super.child,
+  });
 
   final Color color;
+
+  /// Lifts the type off a bright part of the picture; null for none.
+  final List<Shadow>? shadows;
 
   /// The nearest scene's ink, or the theme's onSurface outside a scene.
   static Color of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<SceneInk>()?.color ??
       Theme.of(context).colorScheme.onSurface;
 
+  /// The nearest scene's text shadows, if it has any.
+  static List<Shadow>? shadowsOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SceneInk>()?.shadows;
+
   @override
-  bool updateShouldNotify(SceneInk oldWidget) => oldWidget.color != color;
+  bool updateShouldNotify(SceneInk oldWidget) =>
+      oldWidget.color != color || oldWidget.shadows != shadows;
 }
 
 /// Light-weight type in the preset's family, tinted with the scene's ink.
@@ -30,6 +43,7 @@ TextStyle _sceneStyle(
   return (base ?? const TextStyle()).copyWith(
     fontWeight: weight,
     color: SceneInk.of(context).withValues(alpha: opacity),
+    shadows: SceneInk.shadowsOf(context),
   );
 }
 
