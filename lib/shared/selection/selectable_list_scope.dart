@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/shared/widgets/tab_visibility.dart';
 
 import 'package:submersion/shared/selection/selection_controller.dart';
 
@@ -50,7 +51,9 @@ class SelectableListScope extends StatelessWidget {
       valueListenable: controller,
       builder: (context, state, _) {
         return PopScope(
-          canPop: !state.isActive,
+          // A hidden tab's selection lets Back through: ending a selection
+          // nobody can see would be all Back did (#3437).
+          canPop: !state.isActive || !TabVisibility.isVisible(context),
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) controller.exit();
           },

@@ -14,6 +14,10 @@ import '../../../../helpers/mock_providers.dart';
 
 const _count = SubtitleText('3 entries');
 
+/// A plain focusable spot in each stub tab. A text field would not do: on
+/// phones a tap outside one, such as on the switch, unfocuses it first.
+final Map<TrainingTab, FocusNode> _stubFocus = {};
+
 /// A tab body with a long list, a text field and the header the host hands
 /// it, standing in for the real list pages.
 Widget _stubBody(
@@ -23,6 +27,11 @@ Widget _stubBody(
 ) {
   final desktop = ResponsiveBreakpoints.isMasterDetail(context);
   return Scaffold(
+    // The default hero tag, as both real list pages' add buttons have.
+    floatingActionButton: FloatingActionButton(
+      onPressed: () {},
+      child: const Icon(Icons.add),
+    ),
     appBar: desktop
         ? null
         : AppBar(
@@ -33,6 +42,10 @@ Widget _stubBody(
       children: [
         if (desktop) header.build(context, SectionHeaderSlot.pane, _count),
         Text('built-${tab.name}'),
+        Focus(
+          focusNode: _stubFocus.putIfAbsent(tab, FocusNode.new),
+          child: const SizedBox(height: 1),
+        ),
         TextField(key: ValueKey('field-${tab.name}')),
         Expanded(
           child: ListView.builder(
@@ -65,6 +78,12 @@ GoRouter _router(String initialLocation) => GoRouter(
               tabBodyBuilder: _stubBody,
             ),
           ),
+          routes: [
+            GoRoute(
+              path: 'detail',
+              builder: (_, _) => const Scaffold(body: Text('detail')),
+            ),
+          ],
         ),
         GoRoute(
           path: '/courses',
@@ -260,12 +279,61 @@ void main() {
     expect(_location(router), '/home');
   });
 
-  testWidgets('phone at large text: the switch and count do not overflow', (
+  testWidgets('phone at large text: the toolbar grows to keep the count', (
     tester,
   ) async {
     await _pump(tester, size: const Size(360, 800), textScale: 1.5);
 
     expect(tester.takeException(), isNull);
-    expect(find.text('3 entries'), findsOneWidget);
+    final count = tester.getRect(find.text('3 entries'));
+    final bar = tester.getRect(find.byType(AppBar));
+    expect(count.bottom, lessThanOrEqualTo(bar.bottom));
+    // A name too long for the bar scrolls into reach rather than clipping.
+    final tabBar = tester.widget<TabBar>(
+      find.byKey(const ValueKey('training_section_toggle')),
+    );
+    expect(tabBar.isScrollable, isTrue);
+  });
+
+  testWidgets('focus leaves a tab when it is hidden and comes back with it', (
+    tester,
+  ) async {
+    addTearDown(() {
+      for (final node in _stubFocus.values) {
+        node.dispose();
+      }
+      _stubFocus.clear();
+    });
+    await _pump(tester);
+    final certFocus = _stubFocus[TrainingTab.certifications]!;
+    certFocus.requestFocus();
+    await tester.pump();
+    expect(certFocus.hasFocus, isTrue);
+
+    await tester.tap(find.text('Courses').first);
+    await tester.pumpAndSettle();
+    expect(certFocus.hasFocus, isFalse);
+
+    await tester.tap(find.text('Certifications').last);
+    await tester.pumpAndSettle();
+    expect(certFocus.hasFocus, isTrue);
+  });
+
+  testWidgets('both tabs visited, a push and pop raises no hero clash', (
+    tester,
+  ) async {
+    final router = await _pump(tester);
+    await tester.tap(find.text('Courses').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Certifications').last);
+    await tester.pumpAndSettle();
+
+    router.push('/certifications/detail');
+    await tester.pumpAndSettle();
+    expect(find.text('detail'), findsOneWidget);
+    router.pop();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
   });
 }

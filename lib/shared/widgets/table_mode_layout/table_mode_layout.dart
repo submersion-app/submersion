@@ -44,6 +44,10 @@ class TableModeLayout extends ConsumerWidget {
   /// names the page.
   final Widget? appBarTitleWidget;
 
+  /// The header's toolbar height, for an [appBarTitleWidget] taller than a
+  /// standard toolbar at large text; the standard height when null.
+  final double? appBarToolbarHeight;
+
   /// The table content widget (EntityTableView or similar).
   final Widget tableContent;
 
@@ -129,6 +133,7 @@ class TableModeLayout extends ConsumerWidget {
     required this.appBarTitle,
     this.appBarSubtitle,
     this.appBarTitleWidget,
+    this.appBarToolbarHeight,
     required this.tableContent,
     required this.detailBuilder,
     required this.summaryBuilder,
@@ -199,6 +204,7 @@ class TableModeLayout extends ConsumerWidget {
           appBarTitle: appBarTitle,
           appBarSubtitle: appBarSubtitle,
           appBarTitleWidget: appBarTitleWidget,
+          appBarToolbarHeight: appBarToolbarHeight,
           tableContent: tableContent,
           mapContent: showMap ? mapContent : null,
           profilePanelContent: showProfile ? profilePanelContent : null,
@@ -231,6 +237,7 @@ class TableModeLayout extends ConsumerWidget {
       appBar: isSelectionMode && selectionAppBar != null
           ? selectionAppBar
           : AppBar(
+              toolbarHeight: appBarToolbarHeight,
               title:
                   appBarTitleWidget ??
                   TitleWithSubtitle(
@@ -433,6 +440,7 @@ class _TableModeMaster extends StatefulWidget {
   final String appBarTitle;
   final SubtitleText? appBarSubtitle;
   final Widget? appBarTitleWidget;
+  final double? appBarToolbarHeight;
   final Widget tableContent;
   final Widget? mapContent;
   final Widget? profilePanelContent;
@@ -449,6 +457,7 @@ class _TableModeMaster extends StatefulWidget {
     required this.appBarTitle,
     this.appBarSubtitle,
     this.appBarTitleWidget,
+    this.appBarToolbarHeight,
     required this.tableContent,
     required this.toggleActions,
     this.mapContent,
@@ -523,6 +532,7 @@ class _TableModeMasterState extends State<_TableModeMaster> {
           widget.selectionAppBar!
         else
           AppBar(
+            toolbarHeight: widget.appBarToolbarHeight,
             title:
                 widget.appBarTitleWidget ??
                 TitleWithSubtitle(

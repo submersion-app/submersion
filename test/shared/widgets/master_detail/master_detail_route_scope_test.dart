@@ -6,6 +6,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_route_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 
+/// The save callback the edit form was last built with.
+void Function(String)? _lastOnSaved;
+
 /// One page under one key at both `/a` and `/b`, so the scaffold stays
 /// mounted while the address moves away from it, as a hidden Training tab's
 /// does.
@@ -25,7 +28,10 @@ GoRouter _router({
           return Text('Detail $id');
         },
         summaryBuilder: (_) => const Text('Summary'),
-        editBuilder: (_, id, _, _) => Text('Edit form $id'),
+        editBuilder: (_, id, onSaved, _) {
+          _lastOnSaved = onSaved;
+          return Text('Edit form $id');
+        },
       ),
     );
     return NoTransitionPage<void>(
@@ -103,6 +109,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Edit form 1'), findsOneWidget);
+  });
+
+  testWidgets('a save that lands while the address is elsewhere goes to its '
+      'own address', (tester) async {
+    final router = await _pump(
+      tester,
+      initialLocation: '/a?selected=1&mode=edit',
+      detailRequests: <String>[],
+    );
+    router.go('/b?selected=2');
+    await tester.pumpAndSettle();
+
+    _lastOnSaved!('1');
+    await tester.pumpAndSettle();
+
+    expect(
+      router.routerDelegate.currentConfiguration.uri.toString(),
+      '/a?selected=1',
+    );
   });
 
   testWidgets('follows the address again when it comes back', (tester) async {

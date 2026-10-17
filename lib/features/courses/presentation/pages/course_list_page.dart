@@ -78,6 +78,10 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
             SectionHeaderSlot.table,
             courseListCountLabel(context, ref),
           ),
+          appBarToolbarHeight: widget.headerTitle?.appBarHeight(
+            context,
+            courseListCountLabel(context, ref),
+          ),
           tableContent: CourseListContent(
             showAppBar: false,
             selectionController: tableSelection,

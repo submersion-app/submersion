@@ -491,6 +491,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       );
     }
     return AppBar(
+      // 8 here plus the switch's own 8px label padding puts the first name
+      // at the 16px every other app bar title sits at, as Equipment's does.
+      titleSpacing: 8,
       toolbarHeight: header.appBarHeight(context, subtitle),
       title: header.build(context, SectionHeaderSlot.appBar, subtitle),
       bottom: sectionHeaderActionsRow(actions),

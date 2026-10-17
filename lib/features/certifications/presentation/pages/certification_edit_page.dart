@@ -27,6 +27,7 @@ import 'package:submersion/features/certification_agencies/presentation/widgets/
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_level_dropdown_items.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/shared/widgets/tab_visibility.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -913,7 +914,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     // Embedded mode: no Scaffold wrapper
     if (widget.embedded) {
       return PopScope(
-        canPop: !_hasChanges,
+        // In a Training tab the diver has switched away from, Back leaves
+        // rather than asking about a form that is not on screen (#3437).
+        canPop: !_hasChanges || !TabVisibility.isVisible(context),
         onPopInvokedWithResult: (didPop, result) async {
           if (!didPop && _hasChanges) {
             final shouldDiscard = await _showDiscardDialog();

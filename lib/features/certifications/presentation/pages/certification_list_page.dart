@@ -80,6 +80,10 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
             SectionHeaderSlot.table,
             certificationListCountLabel(context, ref),
           ),
+          appBarToolbarHeight: widget.headerTitle?.appBarHeight(
+            context,
+            certificationListCountLabel(context, ref),
+          ),
           tableContent: CertificationListContent(
             showAppBar: false,
             selectionController: tableSelection,

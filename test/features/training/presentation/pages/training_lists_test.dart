@@ -88,6 +88,7 @@ void main() {
     required Size size,
     ListViewMode viewMode = ListViewMode.detailed,
     List<Override> extraOverrides = const [],
+    double textScale = 1,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -134,6 +135,12 @@ void main() {
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
         ),
       ),
     );
@@ -186,6 +193,38 @@ void main() {
       initialLocation: '/certifications',
       size: const Size(1200, 800),
       viewMode: ListViewMode.table,
+      extraOverrides: [
+        certificationListCountProvider.overrideWithValue(
+          const ListEntryCount.unfiltered(4),
+        ),
+      ],
+    );
+
+    // The table header is a standard toolbar, which clips a taller title:
+    // the count line under the switch lost its lower half to the table.
+    final count = tester.getRect(find.text('4 certifications'));
+    final bar = tester.getRect(
+      find.ancestor(of: toggle, matching: find.byType(AppBar)).first,
+    );
+    expect(count.bottom, lessThanOrEqualTo(bar.bottom));
+  });
+
+  testWidgets('table mode at large text: the header grows to keep the count', (
+    tester,
+  ) async {
+    final original = FlutterError.onError;
+    FlutterError.onError = (details) {
+      if (details.toString().contains('overflowed')) return;
+      original?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = original);
+
+    await pumpTraining(
+      tester,
+      initialLocation: '/certifications',
+      size: const Size(1200, 800),
+      viewMode: ListViewMode.table,
+      textScale: 1.5,
       extraOverrides: [
         certificationListCountProvider.overrideWithValue(
           const ListEntryCount.unfiltered(4),

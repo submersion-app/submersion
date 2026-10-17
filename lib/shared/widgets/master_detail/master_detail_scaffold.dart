@@ -217,6 +217,14 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     return _scopedQuery;
   }
 
+  /// The list address this scaffold's URL changes go to: its
+  /// [MasterDetailRouteScope]'s path, or the current one. Under a scope, a
+  /// save that lands after the diver switched tabs returns to its own tab
+  /// instead of writing its id into the other tab's address.
+  String get _ownPath =>
+      MasterDetailRouteScope.pathOf(context) ??
+      GoRouterState.of(context).uri.path;
+
   /// Get the currently selected item ID from URL query params
   String? get _selectedId => _query[widget.queryParamKey];
 
@@ -242,8 +250,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// (a site's dives, say) replaces its own URL and keeps the page it was
   /// opened from, where go() would erase it and the back arrow (#3292).
   void _onItemSelected(String? itemId) {
-    final state = GoRouterState.of(context);
-    final currentPath = state.uri.path;
+    final currentPath = _ownPath;
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       // Desktop: Update URL with query param, preserving map view state
@@ -287,8 +294,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
 
   /// Navigate to create mode
   void _onCreate() {
-    final state = GoRouterState.of(context);
-    final currentPath = state.uri.path;
+    final currentPath = _ownPath;
 
     if (ResponsiveBreakpoints.isMasterDetail(context) &&
         widget.createBuilder != null) {
@@ -302,16 +308,14 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
 
   /// Handle save from edit/create mode - go back to view mode
   void _onSaved(String savedId) {
-    final state = GoRouterState.of(context);
-    final currentPath = state.uri.path;
+    final currentPath = _ownPath;
     final key = widget.queryParamKey;
     context.goInPlace('$currentPath?$key=$savedId');
   }
 
   /// Handle cancel from edit/create mode - go back to previous state
   void _onCancel() {
-    final state = GoRouterState.of(context);
-    final currentPath = state.uri.path;
+    final currentPath = _ownPath;
     final selectedId = _selectedId;
 
     if (selectedId != null) {
