@@ -112,6 +112,28 @@ void main() {
       expect(change.gas, isNull);
     });
 
+    test('a role the diver set keeps the match over a guessed one', () {
+      // The guessed "OC" tank comes first; the diver set the other one.
+      final plan = applier.plan(
+        existing: [
+          tank(id: 't1', role: TankRole.oxygenSupply, order: 0),
+          tank(id: 't2', role: TankRole.diluent, order: 1),
+          tank(
+            id: 't3',
+            role: TankRole.oxygenSupply,
+            nameDerived: false,
+            order: 2,
+          ),
+        ],
+        items: ccrConfig,
+      );
+
+      final change = roleChanges(plan).single;
+      expect(change.tankId, 't1');
+      expect(change.role?.to, TankRole.bailout);
+      expect(plan.ops.whereType<InsertTank>(), isEmpty);
+    });
+
     test('fills the specs of the config cylinder it is offered', () {
       final plan = applier.plan(
         existing: [

@@ -112,17 +112,18 @@ class SpecChange<T> {
 /// so callers show the diver these changes and apply them only on consent
 /// (issue #2563). Like [FillTank] it never replaces a gas mix the diver or
 /// a dive computer put there (see [gas] for the one defaulted case), and it
-/// has no start pressure either: that is a reading of this dive, not a property of the
-/// cylinder a configuration describes.
+/// has no start pressure either: that is a reading of this dive, not a
+/// property of the cylinder a configuration describes.
 ///
 /// [role] is set only on a tank whose role the dive computer read off the
 /// transmitter's name, where the configuration says the cylinder is
 /// something else (issue #3307). [gas] can only accompany it: such a tank's
 /// mix is not the computer's either (a Shearwater transmitter reports none),
 /// but the default the importer gave the guessed role, such as 100% for an
-/// oxygen supply, so a bailout re-roled from O2 must not keep it. The plan's ops already treat that tank as
-/// the configuration's cylinder (its fill, and no duplicate insert), so a
-/// caller applies the ops together with the overwrites or not at all.
+/// oxygen supply, so a bailout re-roled from O2 must not keep it. The plan's
+/// ops already treat that tank as the configuration's cylinder (its fill,
+/// and no duplicate insert), so a caller applies the ops together with the
+/// overwrites or not at all.
 class OverwriteTank extends CylinderConfigOp {
   final String tankId;
 
@@ -267,7 +268,8 @@ class CylinderConfigApplier {
   /// evidence, and may be claimed by an item of another role, which the
   /// plan then offers the diver as a role change:
   ///
-  /// 1. Same role, without contradicting specs (a fitting size first).
+  /// 1. Same role, without contradicting specs: a fitting size first, then a
+  ///    role the diver set, so a guessed one is what is left over.
   /// 2. A name-derived tank left over whose specs fit another item.
   /// 3. Same role, specs contradicting (offered as an overwrite, as today).
   /// 4. A name-derived tank left over while its role's items are all
@@ -307,6 +309,7 @@ class CylinderConfigApplier {
       return candidates
               .where((t) => _fit(t, item) == _Fit.agrees)
               .firstOrNull ??
+          candidates.where((t) => !t.roleNameDerived).firstOrNull ??
           candidates.firstOrNull;
     });
     claimEach(
