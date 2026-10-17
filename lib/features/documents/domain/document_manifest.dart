@@ -1,0 +1,73 @@
+import 'package:csv/csv.dart';
+import 'package:intl/intl.dart';
+
+import 'package:submersion/features/documents/domain/document_archive_layout.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
+
+/// The localized words of the export manifest.
+class ManifestLabels {
+  /// The 14 column headers, in column order.
+  final List<String> headers;
+  final String Function(DocumentType type) type;
+  final String Function(DocumentOwnerKind kind) kind;
+  final String front;
+  final String back;
+
+  const ManifestLabels({
+    required this.headers,
+    required this.type,
+    required this.kind,
+    required this.front,
+    required this.back,
+  });
+}
+
+/// UTF-8 byte order mark, so spreadsheet apps read accents correctly.
+final _bom = String.fromCharCode(0xFEFF);
+final _iso = DateFormat('yyyy-MM-dd');
+
+/// `manifest.csv` for the export ZIP (#3397): one row per file, plus one row
+/// with no page or path for a document that has no file, so every
+/// document's details survive outside the app.
+String buildDocumentManifestCsv(
+  List<ArchiveDocumentInput> docs,
+  DocumentArchivePlan plan,
+  ManifestLabels labels,
+) {
+  String date(DateTime? d) => d == null ? '' : _iso.format(d);
+  final rows = <List<String>>[labels.headers];
+  for (final input in docs) {
+    final d = input.document;
+    final insurance = d.type == DocumentType.insurance;
+    final details = [
+      input.displayTitle,
+      labels.type(d.type),
+      labels.kind(d.owner.kind),
+      input.recordFolder ?? '',
+      d.issuer ?? '',
+      d.referenceNumber ?? '',
+      date(d.issueDate),
+      date(d.expiryDate),
+      d.notes,
+      insurance ? d.emergencyPhone ?? '' : '',
+      insurance ? d.phone ?? '' : '',
+    ];
+    final pages = [...input.pages]
+      ..sort((a, b) => a.pageIndex.compareTo(b.pageIndex));
+    if (pages.isEmpty) rows.add([...details, '', '', '']);
+    for (final (i, page) in pages.indexed) {
+      rows.add([
+        ...details,
+        '${i + 1}',
+        switch (page.side) {
+          DocumentPageSide.front => labels.front,
+          DocumentPageSide.back => labels.back,
+          null => '',
+        },
+        plan.pathsByPageId[page.id] ?? '',
+      ]);
+    }
+  }
+  return '$_bom${const ListToCsvConverter().convert(rows)}';
+}
