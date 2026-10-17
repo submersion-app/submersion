@@ -83,4 +83,23 @@ void main() {
     expect(SyncFailureStore(prefs).last, isNull);
     expect(container.read(syncFailureProvider), isNull);
   });
+
+  test('success on one backend keeps a failure stored for another', () async {
+    await SyncFailureStore(prefs).record(
+      SyncFailureRecord(
+        providerId: 'a-backend-switched-away-from',
+        at: DateTime(2026, 10, 1),
+        kind: SyncFailureKind.other,
+        message: 'earlier',
+      ),
+    );
+    final container = await makeContainer();
+
+    await container.read(syncStateProvider.notifier).performSync();
+
+    expect(
+      SyncFailureStore(prefs).last?.providerId,
+      'a-backend-switched-away-from',
+    );
+  });
 }

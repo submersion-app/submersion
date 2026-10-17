@@ -212,8 +212,12 @@ class SyncFailureNotifier extends StateNotifier<SyncFailureRecord?> {
     if (mounted) state = failure;
   }
 
-  Future<void> clear() async {
-    if (state == null && _store.last == null) return;
+  /// Forgets the stored failure once [providerId] syncs successfully. A
+  /// failure stored for another backend stays: switching back to it must
+  /// still show it.
+  Future<void> clearFor(String? providerId) async {
+    final stored = _store.last;
+    if (stored == null || stored.providerId != providerId) return;
     await _store.clear();
     if (mounted) state = null;
   }
@@ -1592,7 +1596,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
       if (result.isSuccess) {
         succeeded = true;
-        await _ref.read(syncFailureProvider.notifier).clear();
+        await _ref
+            .read(syncFailureProvider.notifier)
+            .clearFor(_ref.read(cloudStorageProviderProvider)?.providerId);
         if (!mounted) return false;
         final defaultMessage = result.conflictsFound > 0
             ? _l10n.settings_cloudSync_message_completedWithConflicts
