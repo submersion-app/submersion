@@ -293,6 +293,11 @@ class BackupService {
     // Persist record and update last backup time
     await _preferences.addRecord(record);
     await _preferences.setLastBackupTime(record.timestamp);
+    // Settings > Data health: a cloud copy the diver asked for and did not
+    // get. Every backup overwrites it, so one that uploads clears it.
+    await _preferences.setLastCloudCopyMissing(
+      settings.cloudBackupEnabled && location == BackupLocation.local,
+    );
 
     // Prune old backups
     await pruneOldBackups(settings.retentionCount);

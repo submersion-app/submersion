@@ -324,6 +324,11 @@ Future<void> runScheduledBackup({
     await notifier(success: true, cloudCopyMissing: cloudCopyMissing);
   } catch (e, stack) {
     log.error('Automatic backup failed', error: e, stackTrace: stack);
+    // Persisted for Settings > Data health, which runs in the foreground
+    // isolate long after this one is gone.
+    await BackupPreferences(
+      prefs,
+    ).setLastScheduledFailure(DateTime.now(), e.toString());
     await notifier(success: false, error: e.toString());
   }
 }

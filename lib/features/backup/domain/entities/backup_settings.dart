@@ -13,6 +13,14 @@ class BackupSettings extends Equatable {
   final String? backupLocation;
   final bool backupEncryptionEnabled;
 
+  /// When the last scheduled (automatic) backup failed, if it did. Counts
+  /// only while newer than [lastBackupTime]: any later success clears it.
+  final DateTime? lastScheduledFailureAt;
+  final String? lastScheduledFailureMessage;
+
+  /// Cloud backup is on but the most recent backup did not reach the cloud.
+  final bool lastCloudCopyMissing;
+
   const BackupSettings({
     this.enabled = false,
     this.frequency = BackupFrequency.weekly,
@@ -21,6 +29,9 @@ class BackupSettings extends Equatable {
     this.cloudBackupEnabled = false,
     this.backupLocation,
     this.backupEncryptionEnabled = false,
+    this.lastScheduledFailureAt,
+    this.lastScheduledFailureMessage,
+    this.lastCloudCopyMissing = false,
   });
 
   BackupSettings copyWith({
@@ -31,6 +42,9 @@ class BackupSettings extends Equatable {
     bool? cloudBackupEnabled,
     String? backupLocation,
     bool? backupEncryptionEnabled,
+    DateTime? lastScheduledFailureAt,
+    String? lastScheduledFailureMessage,
+    bool? lastCloudCopyMissing,
   }) {
     return BackupSettings(
       enabled: enabled ?? this.enabled,
@@ -41,6 +55,11 @@ class BackupSettings extends Equatable {
       backupLocation: backupLocation ?? this.backupLocation,
       backupEncryptionEnabled:
           backupEncryptionEnabled ?? this.backupEncryptionEnabled,
+      lastScheduledFailureAt:
+          lastScheduledFailureAt ?? this.lastScheduledFailureAt,
+      lastScheduledFailureMessage:
+          lastScheduledFailureMessage ?? this.lastScheduledFailureMessage,
+      lastCloudCopyMissing: lastCloudCopyMissing ?? this.lastCloudCopyMissing,
     );
   }
 
@@ -72,5 +91,8 @@ class BackupSettings extends Equatable {
     cloudBackupEnabled,
     backupLocation,
     backupEncryptionEnabled,
+    lastScheduledFailureAt,
+    lastScheduledFailureMessage,
+    lastCloudCopyMissing,
   ];
 }

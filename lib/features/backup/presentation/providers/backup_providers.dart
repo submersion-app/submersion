@@ -165,6 +165,25 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   void refresh() {
     state = _prefs.getSettings();
   }
+
+  /// Like [refresh], but first re-reads what the WorkManager isolate may
+  /// have written since this isolate cached its preferences.
+  Future<void> reloadFromDisk() async {
+    await _prefs.reload();
+    if (!mounted) return;
+    refresh();
+  }
+
+  /// Records a failed scheduled backup for Settings > Data health.
+  Future<void> recordScheduledFailure(String message) async {
+    final at = DateTime.now();
+    await _prefs.setLastScheduledFailure(at, message);
+    if (!mounted) return;
+    state = state.copyWith(
+      lastScheduledFailureAt: at,
+      lastScheduledFailureMessage: message,
+    );
+  }
 }
 
 final backupSettingsProvider =
@@ -703,8 +722,12 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       await _service.performBackup(isAutomatic: true);
       _ref.read(backupSettingsProvider.notifier).refresh();
       _ref.invalidate(backupHistoryProvider);
-    } catch (_) {
-      // Desktop automatic backup failure is silent — no notification system
+    } catch (e) {
+      // Desktop automatic backup failure has no notification system; it is
+      // recorded for Settings > Data health instead (#3394).
+      await _ref
+          .read(backupSettingsProvider.notifier)
+          .recordScheduledFailure(e.toString());
     }
   }
 

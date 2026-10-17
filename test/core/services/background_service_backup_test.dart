@@ -240,6 +240,70 @@ void main() {
     });
   });
 
+  // Settings > Data health (issues #3390, #3394) reads these after the
+  // background isolate is gone, so they must be persisted, not just notified.
+  group('what Settings > Data remembers', () {
+    test('a failed scheduled backup stores when and why', () async {
+      final prefs = await seedPrefs();
+
+      await run(prefs, dbAdapter: _FailingBackupDatabaseAdapter());
+
+      final settings = BackupPreferences(prefs).getSettings();
+      expect(settings.lastScheduledFailureAt, isNotNull);
+      expect(
+        settings.lastScheduledFailureMessage,
+        contains('no space left on device'),
+      );
+    });
+
+    test('a successful scheduled backup stores no failure', () async {
+      final prefs = await seedPrefs();
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastScheduledFailureAt,
+        isNull,
+      );
+    });
+
+    test('a cloud copy that failed to upload is remembered', () async {
+      cloud = _UploadFailingCloud();
+      final prefs = await seedPrefs();
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastCloudCopyMissing,
+        isTrue,
+      );
+    });
+
+    test('a later backup that uploads clears the missing cloud copy', () async {
+      final prefs = await seedPrefs();
+      await BackupPreferences(prefs).setLastCloudCopyMissing(true);
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastCloudCopyMissing,
+        isFalse,
+      );
+    });
+
+    test('with cloud backup off no cloud copy is missing', () async {
+      final prefs = await seedPrefs(cloudBackupEnabled: false);
+      await BackupPreferences(prefs).setLastCloudCopyMissing(true);
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastCloudCopyMissing,
+        isFalse,
+      );
+    });
+  });
+
   group('when no backup should run', () {
     test('automatic backups switched off: nothing happens at all', () async {
       final prefs = await seedPrefs(enabled: false);

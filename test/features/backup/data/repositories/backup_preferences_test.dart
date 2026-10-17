@@ -38,6 +38,21 @@ void main() {
       expect(backupPreferences.getSettings().backupEncryptionEnabled, isTrue);
     });
 
+    test('scheduled failure defaults empty and round-trips', () async {
+      expect(backupPreferences.getSettings().lastScheduledFailureAt, isNull);
+      final at = DateTime(2026, 10, 17, 9, 30);
+      await backupPreferences.setLastScheduledFailure(at, 'disk full');
+      final settings = backupPreferences.getSettings();
+      expect(settings.lastScheduledFailureAt, at);
+      expect(settings.lastScheduledFailureMessage, 'disk full');
+    });
+
+    test('lastCloudCopyMissing defaults false and round-trips', () async {
+      expect(backupPreferences.getSettings().lastCloudCopyMissing, isFalse);
+      await backupPreferences.setLastCloudCopyMissing(true);
+      expect(backupPreferences.getSettings().lastCloudCopyMissing, isTrue);
+    });
+
     test('setFrequency persists value', () async {
       await backupPreferences.setFrequency(BackupFrequency.daily);
 

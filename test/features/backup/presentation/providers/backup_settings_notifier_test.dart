@@ -13,6 +13,26 @@ void main() {
     notifier = BackupSettingsNotifier(prefs);
   });
 
+  group('Settings > Data health state', () {
+    test('recordScheduledFailure persists and shows the failure', () async {
+      await notifier.recordScheduledFailure('disk full');
+
+      expect(notifier.state.lastScheduledFailureAt, isNotNull);
+      expect(notifier.state.lastScheduledFailureMessage, 'disk full');
+      expect(prefs.getSettings().lastScheduledFailureMessage, 'disk full');
+    });
+
+    test('reloadFromDisk picks up a write made outside the notifier', () async {
+      // The WorkManager isolate writes through its own BackupPreferences.
+      await prefs.setLastScheduledFailure(DateTime(2026, 10, 17), 'offline');
+      expect(notifier.state.lastScheduledFailureAt, isNull);
+
+      await notifier.reloadFromDisk();
+
+      expect(notifier.state.lastScheduledFailureMessage, 'offline');
+    });
+  });
+
   group('cloud backup and custom location are mutually exclusive', () {
     test('cloud backup starts disabled', () {
       expect(notifier.state.cloudBackupEnabled, isFalse);
