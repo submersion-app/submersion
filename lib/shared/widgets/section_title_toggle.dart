@@ -73,6 +73,18 @@ class SectionTitleToggle extends StatelessWidget {
   /// less the 7px inset it has always had above and below.
   static const double pillHeight = 34;
 
+  /// The text scale [AppBar] caps its title at (its private
+  /// `_kMaxTitleTextScaleFactor`), which a switch in a toolbar and the count
+  /// under it both sit in.
+  static const double appBarTitleMaxTextScale = 1.34;
+
+  /// The names' style in a standard toolbar: 18px, a step under the usual
+  /// 22px app bar title, which leaves the count line room under the switch.
+  static TextStyle toolbarTitleStyle(BuildContext context) =>
+      (Theme.of(context).textTheme.titleMedium ?? const TextStyle()).copyWith(
+        fontSize: 18,
+      );
+
   /// The switcher's laid-out height with tabs of [tabHeight].
   static double heightFor(double tabHeight) => tabHeight + indicatorWeight;
 

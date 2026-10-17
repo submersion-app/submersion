@@ -10,7 +10,7 @@
 /// canonical order.
 ///
 /// The stored value is never rewritten here; the next save writes the new id,
-/// followed by the old one (see [withLegacyNavIds]).
+/// followed by its first old id (see [withLegacyNavIds]).
 const Map<String, String> kRenamedNavIds = {
   // The Statistics section became Insights.
   'statistics': 'insights',

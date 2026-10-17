@@ -44,17 +44,6 @@ class TrainingSectionToggle extends StatelessWidget {
   );
 }
 
-/// The text scale [AppBar] caps its title at (its private
-/// `_kMaxTitleTextScaleFactor`), which the switch and count both sit in.
-const double _appBarTitleMaxTextScale = 1.34;
-
-/// The toolbar title at 18px, a step under the usual 22px app bar title, as
-/// Equipment's phone switch uses.
-TextStyle _phoneTitleStyle(BuildContext context) =>
-    (Theme.of(context).textTheme.titleMedium ?? const TextStyle()).copyWith(
-      fontSize: 18,
-    );
-
 /// The desktop pane bar's title style, as every list pane's compact bar uses.
 TextStyle _paneTitleStyle(BuildContext context) =>
     (Theme.of(context).textTheme.titleMedium ?? const TextStyle()).copyWith(
@@ -74,10 +63,10 @@ SectionHeaderTitle trainingHeaderTitle({
     subtitle: subtitle,
   ),
   appBarHeight: (context, subtitle) {
-    final style = _phoneTitleStyle(context);
+    final style = SectionTitleToggle.toolbarTitleStyle(context);
     final scaler = MediaQuery.textScalerOf(
       context,
-    ).clamp(maxScaleFactor: _appBarTitleMaxTextScale);
+    ).clamp(maxScaleFactor: SectionTitleToggle.appBarTitleMaxTextScale);
     final toggle = SectionTitleToggle.heightFor(
       SectionTitleToggle.fittedTabHeight(
         context,
@@ -134,7 +123,7 @@ class _TrainingHeader extends ConsumerWidget {
           : SectionTitleToggle.defaultTabHeight,
     );
     final style = inToolbar
-        ? _phoneTitleStyle(context)
+        ? SectionTitleToggle.toolbarTitleStyle(context)
         : _paneTitleStyle(context);
     return TitleWithSubtitle(
       title: DefaultTextStyle.merge(style: style, child: toggle),
