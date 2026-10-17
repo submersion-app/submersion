@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_summary_pane.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -172,6 +173,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
+      // Nothing selected: the summary pane, scene or details.
+      expect(find.byType(SiteSummaryPane), findsOneWidget);
     });
 
     testWidgets('table mode renders FAB', (tester) async {
@@ -510,6 +513,7 @@ void main() {
 
       // MasterDetailScaffold is used when details pane is active
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
+      expect(find.byType(SiteSummaryPane), findsOneWidget);
     });
 
     testWidgets('table mode with details pane and selected entity', (

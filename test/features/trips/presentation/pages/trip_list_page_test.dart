@@ -15,6 +15,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_summary_pane.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -183,6 +184,8 @@ void main() {
 
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
       expect(find.byType(TableModeLayout), findsNothing);
+      // Nothing selected: the summary pane, scene or details.
+      expect(find.byType(TripSummaryPane), findsOneWidget);
     });
 
     testWidgets('table mode renders FAB', (tester) async {
@@ -565,6 +568,7 @@ void main() {
 
       // MasterDetailScaffold is used when details pane is active
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
+      expect(find.byType(TripSummaryPane), findsOneWidget);
     });
 
     testWidgets('table mode with details pane and selected entity', (

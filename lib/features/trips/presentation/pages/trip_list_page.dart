@@ -25,7 +25,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_summary_widget.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_summary_pane.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -89,7 +89,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
               context.goInPlace(state.uri.path);
             },
           ),
-          summaryBuilder: (context) => const TripSummaryWidget(),
+          summaryBuilder: (context) => const TripSummaryPane(),
           editBuilder: _buildEditPane,
           createBuilder: (context, onSaved, onCancel) => TripEditPage(
             embedded: true,
@@ -206,7 +206,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
             context.goInPlace(state.uri.path);
           },
         ),
-        summaryBuilder: (context) => const TripSummaryWidget(),
+        summaryBuilder: (context) => const TripSummaryPane(),
         editBuilder: _buildEditPane,
         createBuilder: (context, onSaved, onCancel) =>
             TripEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),

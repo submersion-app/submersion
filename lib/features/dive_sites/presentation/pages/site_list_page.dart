@@ -23,7 +23,7 @@ import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_map_content.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/site_summary_widget.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_summary_pane.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -112,7 +112,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
           embedded: true,
           onDeleted: () => _leaveDeletedSite(context),
         ),
-        summaryBuilder: (context) => const SiteSummaryWidget(),
+        summaryBuilder: (context) => const SiteSummaryPane(),
         editBuilder: (context, id, onSaved, onCancel) => SiteEditPage(
           siteId: id,
           embedded: true,
@@ -275,7 +275,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
             embedded: true,
             onDeleted: () => _leaveDeletedSite(context),
           ),
-          summaryBuilder: (context) => const SiteSummaryWidget(),
+          summaryBuilder: (context) => const SiteSummaryPane(),
           mapBuilder: (context, selectedId, onItemSelected) => SiteMapContent(
             selectedId: selectedId,
             onItemSelected: onItemSelected,
