@@ -1,4 +1,73 @@
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+
+/// Only an owner changes a library's name and description.
+class NotLibraryOwnerError extends StateError {
+  NotLibraryOwnerError(String libraryId)
+    : super('only an owner may change the details of $libraryId');
+}
+
+/// An owner's edit of a library's name and description (issue #3389),
+/// written to the folder's `info.json`, where every member's next sync
+/// reads it. The file is not signed (any member whose storage keys can
+/// write the folder could change it), so the owner rule is the app's.
+class LibraryDetailsService {
+  LibraryDetailsService({
+    required SharedLibraryStore store,
+    required Future<SharedLibraryTransport> Function(SharedLibrary)
+    transportFor,
+  }) : _store = store,
+       _transportFor = transportFor;
+
+  static const int maxNameLength = 80;
+  static const int maxDescriptionLength = 500;
+
+  final SharedLibraryStore _store;
+  final Future<SharedLibraryTransport> Function(SharedLibrary) _transportFor;
+
+  /// Saves [name] and [description] (blank clears it) for [libraryId] as
+  /// the profile [diverId], which must own it. The folder is written first:
+  /// when the storage refuses, nothing changes here.
+  Future<void> save({
+    required String libraryId,
+    required String diverId,
+    required String name,
+    String? description,
+  }) async {
+    final trimmedName = name.trim();
+    final trimmedDescription = description?.trim() ?? '';
+    if (trimmedName.isEmpty || trimmedName.length > maxNameLength) {
+      throw ArgumentError.value(name, 'name');
+    }
+    if (trimmedDescription.length > maxDescriptionLength) {
+      throw ArgumentError.value(description, 'description');
+    }
+    final library = await _store.getLibrary(libraryId);
+    if (library == null) throw StateError('library $libraryId not connected');
+    final membership = await _store.membership(
+      diverId: diverId,
+      libraryId: libraryId,
+    );
+    if (membership == null ||
+        library.roles.roleOf(membership.memberId) != SharedLibraryRole.owner) {
+      throw NotLibraryOwnerError(libraryId);
+    }
+    final t = await _transportFor(library);
+    // Keys this version does not know are kept for the versions that do.
+    final info = {...?await t.readInfo(), 'name': trimmedName}
+      ..remove('description');
+    if (trimmedDescription.isNotEmpty) info['description'] = trimmedDescription;
+    await t.writeInfo(info);
+    await applyLibraryDetails(
+      _store,
+      libraryId,
+      name: trimmedName,
+      description: trimmedDescription.isEmpty ? null : trimmedDescription,
+      clearDescription: trimmedDescription.isEmpty,
+    );
+  }
+}
 
 /// Records a library's [name] and [description] on this device: on its row
 /// and, for a changed name, on every local profile's membership, which
