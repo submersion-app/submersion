@@ -91,7 +91,9 @@ void main() {
     // skips that card, so Seascape follows Location directly here.
     final location = tester.getTopLeft(find.text('Location')).dy;
     final seascape = tester.getTopLeft(find.byType(SiteSeascapeSection)).dy;
+    final documents = tester.getTopLeft(find.text('Documents')).dy;
     expect(location, lessThan(seascape));
+    expect(seascape, lessThan(documents));
   });
 
   testWidgets('a site without coordinates has no seascape card', (
