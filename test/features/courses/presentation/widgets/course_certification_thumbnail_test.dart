@@ -15,8 +15,11 @@ final _front = base64Decode(
   'hKmMIQAAAABJRU5ErkJggg==',
 );
 
-/// Different bytes from [_front], so a test can tell which side was shown.
-final _back = Uint8List.fromList([..._front]);
+/// A different 1x1 PNG, so a test can tell which side was shown.
+final _back = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR42mM4IScHAAK2AQUK'
+  'W6YGAAAAAElFTkSuQmCC',
+);
 
 /// The course page's earned certification rows show each card (#3383).
 void main() {
@@ -57,7 +60,7 @@ void main() {
     final photo = tester.widget<CertificationCardPhoto>(
       find.byType(CertificationCardPhoto),
     );
-    expect(identical(photo.bytes, _front), isTrue);
+    expect(photo.bytes, _front);
     expect(photo.showShadow, isFalse);
     expect(photo.radius, lessThan(CertificationCardPhoto.borderRadius));
     expect(thumbnailSize(tester), const Size(72, 45));
@@ -69,7 +72,7 @@ void main() {
     final photo = tester.widget<CertificationCardPhoto>(
       find.byType(CertificationCardPhoto),
     );
-    expect(identical(photo.bytes, _back), isTrue);
+    expect(photo.bytes, _back);
   });
 
   testWidgets('falls back to the agency badge at the same size', (
