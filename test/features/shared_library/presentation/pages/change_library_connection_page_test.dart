@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/library_connection_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -40,6 +41,9 @@ class _FakeConnection implements LibraryConnectionService {
   /// When set, a check waits for it.
   Completer<void>? hold;
 
+  /// When set, a check or a save throws it.
+  Object? failWith;
+
   @override
   Future<LibraryLocationCheck> check({
     required String libraryId,
@@ -50,6 +54,7 @@ class _FakeConnection implements LibraryConnectionService {
   }) async {
     checks.add((account: account.id, prefix: prefix, secret: secret));
     await hold?.future;
+    if (failWith != null) throw failWith!;
     return secret != null && unlocked != null ? unlocked! : next;
   }
 
@@ -63,6 +68,7 @@ class _FakeConnection implements LibraryConnectionService {
     bool acceptOlder = false,
   }) async {
     if (rejectWith != null) throw LibraryLocationRejected(rejectWith!);
+    if (failWith != null) throw failWith!;
     repoints.add((prefix: prefix, acceptOlder: acceptOlder, secret: secret));
     return SharedLibrary(
       id: 'L',
@@ -91,6 +97,7 @@ Widget _app(
   _FakeConnection service, {
   String accountId = 'a',
   bool connected = true,
+  List<ConnectedAccount>? accounts,
 }) => testAppRouter(
   router: GoRouter(
     initialLocation: '/change',
@@ -121,7 +128,9 @@ Widget _app(
           ),
       ]),
     ),
-    eligibleLibraryAccountsProvider.overrideWith((ref) async => _accounts),
+    eligibleLibraryAccountsProvider.overrideWith(
+      (ref) async => accounts ?? _accounts,
+    ),
     libraryConnectionServiceProvider.overrideWithValue(service),
     sharedLibrarySyncProvider.overrideWith(_RecordingSync.new),
   ],
@@ -254,6 +263,65 @@ void main() {
       expect(find.text('Save anyway'), findsNothing);
     });
   }
+
+  for (final (verdict, message) in [
+    (
+      LibraryLocationVerdict.retired,
+      'This library was made by a test build of Submersion. Create it again.',
+    ),
+    (
+      LibraryLocationVerdict.needsNewerApp,
+      'This library needs a newer version of Submersion.',
+    ),
+  ]) {
+    testWidgets('${verdict.name} is explained', (tester) async {
+      final service = _FakeConnection()..next = LibraryLocationCheck(verdict);
+      await tester.pumpWidget(_app(service));
+      await tester.pumpAndSettle();
+      await _check(tester);
+      expect(find.text(message), findsOneWidget);
+      expect(find.text('Save connection'), findsNothing);
+    });
+  }
+
+  testWidgets('a folder that leaves the library space is refused', (
+    tester,
+  ) async {
+    final service = _FakeConnection();
+    await tester.pumpWidget(_app(service));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), '../x');
+    await _check(tester);
+    expect(service.checks, isEmpty);
+    expect(find.text('Save connection'), findsNothing);
+  });
+
+  testWidgets('a failed check and a failed save say why', (tester) async {
+    final service = _FakeConnection()
+      ..failWith = const CloudStorageException('storage unreachable');
+    await tester.pumpWidget(_app(service));
+    await tester.pumpAndSettle();
+    await _check(tester);
+    expect(find.text('storage unreachable'), findsOneWidget);
+
+    service.failWith = null;
+    await _check(tester);
+    service.failWith = const CloudStorageException('upload refused');
+    await tester.tap(find.text('Save connection'));
+    await tester.pumpAndSettle();
+    expect(find.text('upload refused'), findsOneWidget);
+    expect(find.text('library page'), findsNothing);
+    expect(_RecordingSync.synced, isEmpty);
+  });
+
+  testWidgets('with no account yet one can be added here', (tester) async {
+    await tester.pumpWidget(_app(_FakeConnection(), accounts: const []));
+    await tester.pumpAndSettle();
+    expect(find.text('Check location'), findsNothing);
+    await tester.tap(find.text('Add storage account'));
+    await tester.pumpAndSettle();
+    expect(find.byType(SegmentedButton<AccountKind>), findsOneWidget);
+  });
 
   testWidgets('a locked copy asks for the passphrase', (tester) async {
     final service = _FakeConnection()

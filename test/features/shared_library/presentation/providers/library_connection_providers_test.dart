@@ -71,6 +71,27 @@ void main() {
     expect(d.bucket, isNull);
   });
 
+  test('a library not connected here has no details', () async {
+    final container = ProviderContainer(
+      overrides: [
+        libraryAccountSetupProvider.overrideWithValue(_FakeSetup()),
+        sharedLibrariesProvider.overrideWith(
+          (ref) => Stream.value(const <SharedLibrary>[]),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(
+      libraryConnectionDetailsProvider('L'),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+    expect(
+      await container.read(libraryConnectionDetailsProvider('L').future),
+      isNull,
+    );
+  });
+
   test('an account no longer on the device is null', () async {
     final d = (await detailsFor('gone'))!;
     expect(d.account, isNull);
