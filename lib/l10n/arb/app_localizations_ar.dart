@@ -25241,28 +25241,28 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Backup';
+  String get dataHealth_feature_backup => 'النسخ الاحتياطي';
 
   @override
-  String get dataHealth_feature_sync => 'Sync';
+  String get dataHealth_feature_sync => 'المزامنة';
 
   @override
-  String get dataHealth_feature_libraries => 'Libraries';
+  String get dataHealth_feature_libraries => 'المكتبات';
 
   @override
-  String get dataHealth_feature_media => 'Media';
+  String get dataHealth_feature_media => 'الوسائط';
 
   @override
-  String get dataHealth_level_healthy => 'Healthy';
+  String get dataHealth_level_healthy => 'سليم';
 
   @override
-  String get dataHealth_level_attention => 'Needs attention';
+  String get dataHealth_level_attention => 'يحتاج إلى انتباه';
 
   @override
-  String get dataHealth_level_failing => 'Failing';
+  String get dataHealth_level_failing => 'متعطل';
 
   @override
-  String get dataHealth_level_notSetUp => 'Not set up';
+  String get dataHealth_level_notSetUp => 'غير مُعد';
 
   @override
   String dataHealth_semantics(String feature, String status) {
@@ -25271,50 +25271,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataHealth_backup_autoOff =>
-      'Recommended: turn on automatic backups';
+      'موصى به: فعّل النسخ الاحتياطي التلقائي';
 
   @override
   String dataHealth_backup_failed(String when) {
-    return 'Last backup failed $when';
+    return 'فشل آخر نسخ احتياطي: $when';
   }
 
   @override
   String dataHealth_backup_overdue(String when) {
-    return 'Backup overdue: last one $when';
+    return 'النسخ الاحتياطي متأخر (آخر نسخة: $when)';
   }
 
   @override
-  String get dataHealth_backup_never => 'No backup yet';
+  String get dataHealth_backup_never => 'لا توجد نسخة احتياطية بعد';
 
   @override
   String get dataHealth_backup_cloudCopyMissing =>
-      'Last backup did not reach the cloud';
+      'لم يصل آخر نسخ احتياطي إلى السحابة';
 
   @override
-  String get dataHealth_backup_noOffDeviceCopy => 'No copy off this device';
+  String get dataHealth_backup_noOffDeviceCopy =>
+      'لا توجد نسخة خارج هذا الجهاز';
 
   @override
-  String get dataHealth_sync_off => 'Recommended: turn on cloud sync';
+  String get dataHealth_sync_off => 'موصى به: فعّل المزامنة السحابية';
 
   @override
   String get dataHealth_sync_needsPassphrase =>
-      'Sync paused: enter your passphrase';
+      'المزامنة متوقفة مؤقتًا: أدخل عبارة المرور';
 
   @override
   String get dataHealth_sync_awaitingAdoption =>
-      'Sync paused: the cloud library was replaced';
+      'المزامنة متوقفة مؤقتًا: تم استبدال المكتبة السحابية';
 
   @override
-  String get dataHealth_sync_signedOut => 'Sync paused: sign in again';
+  String get dataHealth_sync_signedOut =>
+      'المزامنة متوقفة مؤقتًا: سجّل الدخول مجددًا';
 
   @override
   String dataHealth_sync_failed(String when) {
-    return 'Last sync failed $when';
+    return 'فشلت آخر مزامنة: $when';
   }
 
   @override
   String dataHealth_sync_offline(String when) {
-    return 'Offline: last synced $when';
+    return 'غير متصل (آخر مزامنة: $when)';
   }
 
   @override
@@ -25322,25 +25324,28 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sync conflicts to resolve',
-      one: '$count sync conflict to resolve',
+      other: '$count تعارض مزامنة بحاجة إلى حل',
+      many: '$count تعارضًا في المزامنة بحاجة إلى حل',
+      few: '$count تعارضات مزامنة بحاجة إلى حل',
+      two: 'تعارضا مزامنة بحاجة إلى حل',
+      one: '$count تعارض مزامنة بحاجة إلى حل',
     );
     return '$_temp0';
   }
 
   @override
   String get dataHealth_sync_peersHeld =>
-      'Another device needs attention before it can sync';
+      'جهاز آخر يحتاج إلى انتباه قبل أن يتمكن من المزامنة';
 
   @override
-  String get dataHealth_sync_autoOff => 'Recommended: turn on automatic sync';
+  String get dataHealth_sync_autoOff => 'موصى به: فعّل المزامنة التلقائية';
 
   @override
-  String get dataHealth_sync_neverSynced => 'Not synced yet';
+  String get dataHealth_sync_neverSynced => 'لم تتم المزامنة بعد';
 
   @override
   String dataHealth_sync_rowSubtitle(String when) {
-    return 'Synced $when';
+    return 'تمت المزامنة: $when';
   }
 
   @override
@@ -25348,15 +25353,18 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Synced $when · $count devices',
-      one: 'Synced $when · $count device',
+      other: 'تمت المزامنة: $when · $count جهاز',
+      many: 'تمت المزامنة: $when · $count جهازًا',
+      few: 'تمت المزامنة: $when · $count أجهزة',
+      two: 'تمت المزامنة: $when · جهازان',
+      one: 'تمت المزامنة: $when · $count جهاز',
     );
     return '$_temp0';
   }
 
   @override
   String dataHealth_libraries_failed(String name) {
-    return '$name: sync failed';
+    return '$name: فشلت المزامنة';
   }
 
   @override
@@ -25364,31 +25372,37 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count libraries failed to sync',
-      one: '$count library failed to sync',
+      other: 'تعذرت مزامنة $count مكتبة',
+      many: 'تعذرت مزامنة $count مكتبة',
+      few: 'تعذرت مزامنة $count مكتبات',
+      two: 'تعذرت مزامنة مكتبتين',
+      one: 'تعذرت مزامنة $count مكتبة',
     );
     return '$_temp0';
   }
 
   @override
   String dataHealth_libraries_editsHeld(String name) {
-    return '$name: your edits are on hold';
+    return '$name: تعديلاتك معلّقة';
   }
 
   @override
-  String get dataHealth_media_finishSetup =>
-      'Photos: finish setting up this device';
+  String get dataHealth_media_finishSetup => 'الصور: أكمل إعداد هذا الجهاز';
 
   @override
-  String get dataHealth_media_transfersPaused => 'Photo transfers are paused';
+  String get dataHealth_media_transfersPaused =>
+      'عمليات نقل الصور متوقفة مؤقتًا';
 
   @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives',
-      one: '$count dive',
+      other: '$count غوصة',
+      many: '$count غوصة',
+      few: '$count غوصات',
+      two: 'غوصتان',
+      one: '$count غوصة',
     );
     return '$_temp0';
   }
@@ -25398,8 +25412,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites',
-      one: '$count site',
+      other: '$count موقع',
+      many: '$count موقعًا',
+      few: '$count مواقع',
+      two: 'موقعان',
+      one: '$count موقع',
     );
     return '$_temp0';
   }
@@ -25409,8 +25426,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos and videos',
-      one: '$count photo or video',
+      other: '$count صورة ومقطع فيديو',
+      many: '$count صورة ومقطع فيديو',
+      few: '$count صور ومقاطع فيديو',
+      two: 'صورتان أو مقطعا فيديو',
+      one: '$count صورة أو فيديو',
     );
     return '$_temp0';
   }

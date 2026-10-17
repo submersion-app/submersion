@@ -51,6 +51,7 @@ const Map<String, String> keptEnglishValues = {
   'currencyRule_ssi_skills_update_name': _course,
   'dashboard_checklists_preDiveLabel@nl': _loanword,
   'dataQuality_carries_tags@de': _sameWord,
+  'dataHealth_facts_sites@fr': _sameWord,
   'decoCalculator_ppO2Danger@fr': _sameWord,
   'dive3d_tissue_tooltipHalfTime': _units,
   'diveCenters_hint_email': _exampleAddress,

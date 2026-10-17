@@ -24926,28 +24926,28 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Backup';
+  String get dataHealth_feature_backup => 'Mentés';
 
   @override
-  String get dataHealth_feature_sync => 'Sync';
+  String get dataHealth_feature_sync => 'Szinkronizálás';
 
   @override
-  String get dataHealth_feature_libraries => 'Libraries';
+  String get dataHealth_feature_libraries => 'Könyvtárak';
 
   @override
-  String get dataHealth_feature_media => 'Media';
+  String get dataHealth_feature_media => 'Média';
 
   @override
-  String get dataHealth_level_healthy => 'Healthy';
+  String get dataHealth_level_healthy => 'Rendben';
 
   @override
-  String get dataHealth_level_attention => 'Needs attention';
+  String get dataHealth_level_attention => 'Figyelmet igényel';
 
   @override
-  String get dataHealth_level_failing => 'Failing';
+  String get dataHealth_level_failing => 'Hibás';
 
   @override
-  String get dataHealth_level_notSetUp => 'Not set up';
+  String get dataHealth_level_notSetUp => 'Nincs beállítva';
 
   @override
   String dataHealth_semantics(String feature, String status) {
@@ -24956,50 +24956,53 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataHealth_backup_autoOff =>
-      'Recommended: turn on automatic backups';
+      'Ajánlott: kapcsold be az automatikus mentést';
 
   @override
   String dataHealth_backup_failed(String when) {
-    return 'Last backup failed $when';
+    return 'Az utolsó mentés sikertelen: $when';
   }
 
   @override
   String dataHealth_backup_overdue(String when) {
-    return 'Backup overdue: last one $when';
+    return 'Esedékes mentés (utolsó: $when)';
   }
 
   @override
-  String get dataHealth_backup_never => 'No backup yet';
+  String get dataHealth_backup_never => 'Még nincs mentés';
 
   @override
   String get dataHealth_backup_cloudCopyMissing =>
-      'Last backup did not reach the cloud';
+      'Az utolsó mentés nem került fel a felhőbe';
 
   @override
-  String get dataHealth_backup_noOffDeviceCopy => 'No copy off this device';
+  String get dataHealth_backup_noOffDeviceCopy =>
+      'Nincs másolat ezen az eszközön kívül';
 
   @override
-  String get dataHealth_sync_off => 'Recommended: turn on cloud sync';
+  String get dataHealth_sync_off =>
+      'Ajánlott: kapcsold be a felhő szinkronizálást';
 
   @override
   String get dataHealth_sync_needsPassphrase =>
-      'Sync paused: enter your passphrase';
+      'Szinkronizálás szüneteltetve: add meg a jelmondatot';
 
   @override
   String get dataHealth_sync_awaitingAdoption =>
-      'Sync paused: the cloud library was replaced';
+      'Szinkronizálás szüneteltetve: a felhőkönyvtárat lecserélték';
 
   @override
-  String get dataHealth_sync_signedOut => 'Sync paused: sign in again';
+  String get dataHealth_sync_signedOut =>
+      'Szinkronizálás szüneteltetve: jelentkezz be újra';
 
   @override
   String dataHealth_sync_failed(String when) {
-    return 'Last sync failed $when';
+    return 'Az utolsó szinkronizálás sikertelen: $when';
   }
 
   @override
   String dataHealth_sync_offline(String when) {
-    return 'Offline: last synced $when';
+    return 'Offline (utolsó szinkronizálás: $when)';
   }
 
   @override
@@ -25007,25 +25010,25 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sync conflicts to resolve',
-      one: '$count sync conflict to resolve',
+      other: '$count megoldandó szinkronizálási ütközés',
     );
     return '$_temp0';
   }
 
   @override
   String get dataHealth_sync_peersHeld =>
-      'Another device needs attention before it can sync';
+      'Egy másik eszköz figyelmet igényel, mielőtt szinkronizálhatna';
 
   @override
-  String get dataHealth_sync_autoOff => 'Recommended: turn on automatic sync';
+  String get dataHealth_sync_autoOff =>
+      'Ajánlott: kapcsold be az automatikus szinkronizálást';
 
   @override
-  String get dataHealth_sync_neverSynced => 'Not synced yet';
+  String get dataHealth_sync_neverSynced => 'Még nincs szinkronizálva';
 
   @override
   String dataHealth_sync_rowSubtitle(String when) {
-    return 'Synced $when';
+    return 'Szinkronizálva: $when';
   }
 
   @override
@@ -25033,15 +25036,14 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Synced $when · $count devices',
-      one: 'Synced $when · $count device',
+      other: 'Szinkronizálva: $when · $count eszköz',
     );
     return '$_temp0';
   }
 
   @override
   String dataHealth_libraries_failed(String name) {
-    return '$name: sync failed';
+    return '$name: a szinkronizálás sikertelen';
   }
 
   @override
@@ -25049,31 +25051,29 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count libraries failed to sync',
-      one: '$count library failed to sync',
+      other: '$count könyvtár szinkronizálása sikertelen',
     );
     return '$_temp0';
   }
 
   @override
   String dataHealth_libraries_editsHeld(String name) {
-    return '$name: your edits are on hold';
+    return '$name: a módosításaid várakoznak';
   }
 
   @override
   String get dataHealth_media_finishSetup =>
-      'Photos: finish setting up this device';
+      'Fotók: fejezd be az eszköz beállítását';
 
   @override
-  String get dataHealth_media_transfersPaused => 'Photo transfers are paused';
+  String get dataHealth_media_transfersPaused => 'A fotóátvitel szünetel';
 
   @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives',
-      one: '$count dive',
+      other: '$count merülés',
     );
     return '$_temp0';
   }
@@ -25083,8 +25083,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites',
-      one: '$count site',
+      other: '$count merülőhely',
     );
     return '$_temp0';
   }
@@ -25094,8 +25093,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos and videos',
-      one: '$count photo or video',
+      other: '$count fotó és videó',
     );
     return '$_temp0';
   }

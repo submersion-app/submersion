@@ -23661,80 +23661,76 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Backup';
+  String get dataHealth_feature_backup => '备份';
 
   @override
-  String get dataHealth_feature_sync => 'Sync';
+  String get dataHealth_feature_sync => '同步';
 
   @override
-  String get dataHealth_feature_libraries => 'Libraries';
+  String get dataHealth_feature_libraries => '潜点库';
 
   @override
-  String get dataHealth_feature_media => 'Media';
+  String get dataHealth_feature_media => '媒体';
 
   @override
-  String get dataHealth_level_healthy => 'Healthy';
+  String get dataHealth_level_healthy => '正常';
 
   @override
-  String get dataHealth_level_attention => 'Needs attention';
+  String get dataHealth_level_attention => '需要注意';
 
   @override
-  String get dataHealth_level_failing => 'Failing';
+  String get dataHealth_level_failing => '失败';
 
   @override
-  String get dataHealth_level_notSetUp => 'Not set up';
+  String get dataHealth_level_notSetUp => '未设置';
 
   @override
   String dataHealth_semantics(String feature, String status) {
-    return '$feature: $status';
+    return '$feature：$status';
   }
 
   @override
-  String get dataHealth_backup_autoOff =>
-      'Recommended: turn on automatic backups';
+  String get dataHealth_backup_autoOff => '建议：开启自动备份';
 
   @override
   String dataHealth_backup_failed(String when) {
-    return 'Last backup failed $when';
+    return '上次备份失败：$when';
   }
 
   @override
   String dataHealth_backup_overdue(String when) {
-    return 'Backup overdue: last one $when';
+    return '备份已逾期（上次：$when）';
   }
 
   @override
-  String get dataHealth_backup_never => 'No backup yet';
+  String get dataHealth_backup_never => '尚无备份';
 
   @override
-  String get dataHealth_backup_cloudCopyMissing =>
-      'Last backup did not reach the cloud';
+  String get dataHealth_backup_cloudCopyMissing => '上次备份未上传到云端';
 
   @override
-  String get dataHealth_backup_noOffDeviceCopy => 'No copy off this device';
+  String get dataHealth_backup_noOffDeviceCopy => '没有此设备之外的副本';
 
   @override
-  String get dataHealth_sync_off => 'Recommended: turn on cloud sync';
+  String get dataHealth_sync_off => '建议：开启云同步';
 
   @override
-  String get dataHealth_sync_needsPassphrase =>
-      'Sync paused: enter your passphrase';
+  String get dataHealth_sync_needsPassphrase => '同步已暂停：请输入密码短语';
 
   @override
-  String get dataHealth_sync_awaitingAdoption =>
-      'Sync paused: the cloud library was replaced';
+  String get dataHealth_sync_awaitingAdoption => '同步已暂停：云端资料库已被替换';
 
   @override
-  String get dataHealth_sync_signedOut => 'Sync paused: sign in again';
+  String get dataHealth_sync_signedOut => '同步已暂停：请重新登录';
 
   @override
   String dataHealth_sync_failed(String when) {
-    return 'Last sync failed $when';
+    return '上次同步失败：$when';
   }
 
   @override
   String dataHealth_sync_offline(String when) {
-    return 'Offline: last synced $when';
+    return '离线（上次同步：$when）';
   }
 
   @override
@@ -23742,25 +23738,23 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sync conflicts to resolve',
-      one: '$count sync conflict to resolve',
+      other: '$count 个同步冲突待解决',
     );
     return '$_temp0';
   }
 
   @override
-  String get dataHealth_sync_peersHeld =>
-      'Another device needs attention before it can sync';
+  String get dataHealth_sync_peersHeld => '另一台设备需要处理后才能同步';
 
   @override
-  String get dataHealth_sync_autoOff => 'Recommended: turn on automatic sync';
+  String get dataHealth_sync_autoOff => '建议：开启自动同步';
 
   @override
-  String get dataHealth_sync_neverSynced => 'Not synced yet';
+  String get dataHealth_sync_neverSynced => '尚未同步';
 
   @override
   String dataHealth_sync_rowSubtitle(String when) {
-    return 'Synced $when';
+    return '已同步：$when';
   }
 
   @override
@@ -23768,15 +23762,14 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Synced $when · $count devices',
-      one: 'Synced $when · $count device',
+      other: '已同步：$when · $count 台设备',
     );
     return '$_temp0';
   }
 
   @override
   String dataHealth_libraries_failed(String name) {
-    return '$name: sync failed';
+    return '$name：同步失败';
   }
 
   @override
@@ -23784,31 +23777,28 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count libraries failed to sync',
-      one: '$count library failed to sync',
+      other: '$count 个潜点库同步失败',
     );
     return '$_temp0';
   }
 
   @override
   String dataHealth_libraries_editsHeld(String name) {
-    return '$name: your edits are on hold';
+    return '$name：你的编辑已暂缓';
   }
 
   @override
-  String get dataHealth_media_finishSetup =>
-      'Photos: finish setting up this device';
+  String get dataHealth_media_finishSetup => '照片：完成此设备的设置';
 
   @override
-  String get dataHealth_media_transfersPaused => 'Photo transfers are paused';
+  String get dataHealth_media_transfersPaused => '照片传输已暂停';
 
   @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives',
-      one: '$count dive',
+      other: '$count 次潜水',
     );
     return '$_temp0';
   }
@@ -23818,8 +23808,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites',
-      one: '$count site',
+      other: '$count 个潜水点',
     );
     return '$_temp0';
   }
@@ -23829,8 +23818,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos and videos',
-      one: '$count photo or video',
+      other: '$count 个照片和视频',
     );
     return '$_temp0';
   }
