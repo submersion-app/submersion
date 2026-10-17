@@ -134,4 +134,121 @@ void main() {
     expect(find.text('Enter a whole number'), findsOneWidget);
     expect(host(tester).scrubberMinutes, 180);
   });
+
+  group('no recorded setpoints (#2802)', () {
+    Widget panel({
+      required double? lowHint,
+      required double? highHint,
+      required void Function(double? low, double? high) onSetpoints,
+    }) {
+      return localizedMaterialApp(
+        locale: const Locale('en'),
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: CcrSettingsPanel(
+              setpointLowHint: lowHint,
+              setpointHighHint: highHint,
+              onChanged:
+                  ({
+                    setpointLow,
+                    setpointHigh,
+                    setpointDeco,
+                    diluentGas,
+                    scrubberType,
+                    scrubberDurationMinutes,
+                    scrubberRemainingMinutes,
+                    loopVolume,
+                  }) => onSetpoints(setpointLow, setpointHigh),
+            ),
+          ),
+        ),
+      );
+    }
+
+    InputDecoration decorationOf(WidgetTester tester, String label) => tester
+        .widget<TextField>(
+          find.descendant(of: field(label), matching: find.byType(TextField)),
+        )
+        .decoration!;
+
+    String textOf(WidgetTester tester, String label) => tester
+        .widget<TextField>(
+          find.descendant(of: field(label), matching: find.byType(TextField)),
+        )
+        .controller!
+        .text;
+
+    testWidgets('fields stay empty and show the hints as suggestions', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'en_US';
+      tester.view.physicalSize = const Size(1000, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        panel(lowHint: 0.6, highHint: 1.2, onSetpoints: (_, _) {}),
+      );
+
+      expect(textOf(tester, 'Low (Desc/Asc)'), isEmpty);
+      expect(textOf(tester, 'High (Bottom)'), isEmpty);
+      expect(decorationOf(tester, 'Low (Desc/Asc)').hintText, '0.6');
+      expect(decorationOf(tester, 'High (Bottom)').hintText, '1.2');
+    });
+
+    testWidgets('the hints follow new values after the first build', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'en_US';
+      tester.view.physicalSize = const Size(1000, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Settings still hold their defaults when the page first builds...
+      await tester.pumpWidget(
+        panel(lowHint: 0.7, highHint: 1.3, onSetpoints: (_, _) {}),
+      );
+      expect(decorationOf(tester, 'Low (Desc/Asc)').hintText, '0.7');
+
+      // ...then the diver's own values load.
+      await tester.pumpWidget(
+        panel(lowHint: 0.6, highHint: 1.2, onSetpoints: (_, _) {}),
+      );
+      expect(decorationOf(tester, 'Low (Desc/Asc)').hintText, '0.6');
+      expect(decorationOf(tester, 'High (Bottom)').hintText, '1.2');
+    });
+
+    testWidgets('editing another field reports no setpoints', (tester) async {
+      Intl.defaultLocale = 'en_US';
+      tester.view.physicalSize = const Size(1000, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      var reported = false;
+      double? low = -1;
+      double? high = -1;
+      await tester.pumpWidget(
+        panel(
+          lowHint: 0.6,
+          highHint: 1.2,
+          onSetpoints: (l, h) {
+            reported = true;
+            low = l;
+            high = h;
+          },
+        ),
+      );
+
+      await tester.enterText(field('Type'), 'Sofnolime');
+      await tester.pump();
+
+      expect(reported, isTrue);
+      expect(
+        low,
+        isNull,
+        reason: 'a hint is a suggestion, never a recorded setpoint',
+      );
+      expect(high, isNull);
+    });
+  });
 }

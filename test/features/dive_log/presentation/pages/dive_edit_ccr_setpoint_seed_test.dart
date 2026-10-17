@@ -32,14 +32,15 @@ void main() {
   Future<void> pumpEditor(
     WidgetTester tester,
     String diveId, {
-    required AppSettings settings,
+    AppSettings? settings,
+    MockSettingsNotifier? settingsNotifier,
     void Function(String)? onSaved,
   }) async {
     tester.view.physicalSize = const Size(950, 8000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     final overrides = await getBaseOverrides(
-      settingsNotifier: MockSettingsNotifier(settings),
+      settingsNotifier: settingsNotifier ?? MockSettingsNotifier(settings),
     );
     await tester.pumpWidget(
       ProviderScope(
@@ -68,6 +69,18 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // Gas & Gear starts collapsed on a sparse dive; its header is a toggle,
+  // so open it only when the mode selector is not already showing.
+  Future<void> openGasGear(WidgetTester tester) async {
+    if (find.text('CCR').evaluate().isEmpty) {
+      final gasGear = find.textContaining('Gas & Gear');
+      await tester.ensureVisible(gasGear.first);
+      await tester.pumpAndSettle();
+      await tester.tap(gasGear.first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+    }
+  }
+
   testWidgets('switching a dive to CCR saves the diver own setpoints', (
     tester,
   ) async {
@@ -86,16 +99,8 @@ void main() {
       onSaved: (id) => savedId = id,
     );
 
-    // Gas & Gear starts collapsed on a sparse dive; its header is a toggle,
-    // so open it only when the mode selector is not already showing.
+    await openGasGear(tester);
     final ccr = find.text('CCR');
-    if (ccr.evaluate().isEmpty) {
-      final gasGear = find.textContaining('Gas & Gear');
-      await tester.ensureVisible(gasGear.first);
-      await tester.pumpAndSettle();
-      await tester.tap(gasGear.first, warnIfMissed: false);
-      await tester.pumpAndSettle();
-    }
     await tester.ensureVisible(ccr.first);
     await tester.pumpAndSettle();
     await tester.tap(ccr.first);
@@ -109,5 +114,84 @@ void main() {
     expect(reloaded.diveMode, DiveMode.ccr);
     expect(reloaded.setpointLow, 0.6);
     expect(reloaded.setpointHigh, 1.2);
+  });
+
+  group('a CCR dive with no recorded setpoints (#2802)', () {
+    Finder setpointField(String label) => find.descendant(
+      of: find.widgetWithText(TextFormField, label),
+      matching: find.byType(TextField),
+    );
+
+    testWidgets('shows the diver setpoints once settings load', (tester) async {
+      final dive = await repository.createDive(
+        Dive(
+          id: 'dive-2802-hydrate',
+          dateTime: DateTime.utc(2026, 5, 1, 10),
+          diveMode: DiveMode.ccr,
+        ),
+      );
+
+      // The page opens while settings still hold their defaults.
+      final settings = MockSettingsNotifier();
+      await pumpEditor(tester, dive.id, settingsNotifier: settings);
+      await openGasGear(tester);
+
+      await settings.setCcrPpO2Limits(
+        setpointLow: 0.6,
+        setpointHigh: 1.2,
+        diluentModPpO2: 1.4,
+      );
+      await tester.pumpAndSettle();
+
+      final low = tester.widget<TextField>(setpointField('Low (Desc/Asc)'));
+      final high = tester.widget<TextField>(setpointField('High (Bottom)'));
+      expect(low.decoration!.hintText, '0.6');
+      expect(high.decoration!.hintText, '1.2');
+      expect(
+        low.controller!.text,
+        isEmpty,
+        reason: 'nothing is recorded, so nothing is shown as a value',
+      );
+      expect(high.controller!.text, isEmpty);
+    });
+
+    testWidgets('saving after editing the panel records no setpoints', (
+      tester,
+    ) async {
+      final dive = await repository.createDive(
+        Dive(
+          id: 'dive-2802-save',
+          dateTime: DateTime.utc(2026, 5, 1, 10),
+          diveMode: DiveMode.ccr,
+        ),
+      );
+
+      String? savedId;
+      await pumpEditor(
+        tester,
+        dive.id,
+        settings: const AppSettings().copyWith(
+          ccrSetpointLow: 0.6,
+          ccrSetpointHigh: 1.2,
+        ),
+        onSaved: (id) => savedId = id,
+      );
+      await openGasGear(tester);
+
+      final type = find.widgetWithText(TextFormField, 'Type');
+      await tester.ensureVisible(type);
+      await tester.pumpAndSettle();
+      await tester.enterText(type, 'Sofnolime');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(savedId, isNotNull, reason: 'save should complete');
+
+      final reloaded = (await repository.getDiveById(dive.id))!;
+      expect(reloaded.scrubber?.type, 'Sofnolime');
+      expect(reloaded.setpointLow, isNull);
+      expect(reloaded.setpointHigh, isNull);
+    });
   });
 }

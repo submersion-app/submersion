@@ -3729,11 +3729,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: CcrSettingsPanel(
           // Switching to CCR seeds these from the diver's own CCR ppO2
           // limits (see the mode selector). A dive already logged as CCR
-          // with no setpoints shows those limits too, rather than the
-          // panel's hardcoded 0.70/1.30 literals, which the diver may not
-          // actually dive.
-          setpointLow: _setpointLow ?? ref.read(ccrSetpointLowProvider),
-          setpointHigh: _setpointHigh ?? ref.read(ccrSetpointHighProvider),
+          // with no setpoints leaves them empty, with those limits as hint
+          // text: nothing is shown that saving would not write (#2802).
+          // Watched, so the hints follow settings that load after the page.
+          setpointLow: _setpointLow,
+          setpointHigh: _setpointHigh,
+          setpointLowHint: ref.watch(ccrSetpointLowProvider),
+          setpointHighHint: ref.watch(ccrSetpointHighProvider),
           setpointDeco: _setpointDeco,
           diluentGas: _diluentGas,
           scrubberType: _scrubberType,
