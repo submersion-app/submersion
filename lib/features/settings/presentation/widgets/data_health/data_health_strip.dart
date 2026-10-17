@@ -49,27 +49,31 @@ class _Item extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // The label sits on the tappable node and the visuals are excluded, so
+    // a screen reader hears "Backup: Needs attention" and can still activate
+    // it (excluding at the outer Semantics would drop the tap action).
     return Semantics(
       button: true,
       label: healthSemanticsLabel(l10n, health),
-      excludeSemantics: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => context.push(dataFeatureRoute(health.feature)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: Column(
-            children: [
-              HealthSymbol(level: health.level),
-              const SizedBox(height: 6),
-              Text(
-                dataFeatureLabel(l10n, health.feature),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+        child: ExcludeSemantics(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: Column(
+              children: [
+                HealthSymbol(level: health.level),
+                const SizedBox(height: 6),
+                Text(
+                  dataFeatureLabel(l10n, health.feature),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -24,6 +24,8 @@ class DataFacts {
 
   /// Personal sites only; shared library rows belong to the club.
   final int sites;
+
+  /// Photos and videos; signatures and documents also live in media.
   final int media;
 
   /// The main database file plus its WAL.
@@ -39,7 +41,8 @@ class DataFactsRepository {
         (SELECT COUNT(*) FROM dives) AS dives,
         (SELECT COUNT(*) FROM dive_sites WHERE shared_library_id IS NULL)
           AS sites,
-        (SELECT COUNT(*) FROM media) AS media
+        (SELECT COUNT(*) FROM media WHERE file_type IN ('photo', 'video'))
+          AS media
     ''').getSingle();
     return DataFacts(
       dives: row.read<int>('dives'),

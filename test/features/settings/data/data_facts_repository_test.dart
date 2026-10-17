@@ -53,6 +53,23 @@ void main() {
             sharedLibraryId: const Value('lib-1'),
           ),
         );
+    // Not photos or videos: the facts line must not count them as such.
+    for (final (id, type) in [
+      ('sig1', 'instructor_signature'),
+      ('doc1', 'document'),
+    ]) {
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: id,
+              filePath: '/x/$id',
+              fileType: Value(type),
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+    }
     for (final id in ['m1', 'm2', 'm3']) {
       await db
           .into(db.media)
@@ -67,7 +84,7 @@ void main() {
     }
   }
 
-  test('counts dives, personal sites and media rows', () async {
+  test('counts dives, personal sites, photos and videos', () async {
     await seed();
 
     final facts = await const DataFactsRepository().load(db, null);

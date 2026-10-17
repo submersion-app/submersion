@@ -138,4 +138,23 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('screen readers can activate each strip item', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, _mixed);
+
+    for (final label in [
+      'Backup: Needs attention',
+      'Sync: Healthy',
+      'Libraries: Failing',
+      'Media: Not set up',
+    ]) {
+      expect(
+        tester.getSemantics(find.bySemanticsLabel(label)),
+        isSemantics(label: label, isButton: true, hasTapAction: true),
+        reason: label,
+      );
+    }
+    handle.dispose();
+  });
 }

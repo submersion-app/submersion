@@ -19,18 +19,17 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 // One health model behind the Settings > Data status strip and the row marks
 // (issues #3390, #3394), so the two can never disagree.
 
-const _notSetUp = <DataFeature, FeatureHealth>{
-  DataFeature.sharedLibraries: FeatureHealth(
-    feature: DataFeature.sharedLibraries,
-    level: HealthLevel.notSetUp,
-    reason: HealthReason.notSetUp,
-  ),
-  DataFeature.media: FeatureHealth(
-    feature: DataFeature.media,
-    level: HealthLevel.notSetUp,
-    reason: HealthReason.notSetUp,
-  ),
-};
+// What a feature reads as while its inputs load or fail to load.
+const _librariesNotSetUp = FeatureHealth(
+  feature: DataFeature.sharedLibraries,
+  level: HealthLevel.notSetUp,
+  reason: HealthReason.notSetUp,
+);
+const _mediaNotSetUp = FeatureHealth(
+  feature: DataFeature.media,
+  level: HealthLevel.notSetUp,
+  reason: HealthReason.notSetUp,
+);
 
 final backupHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
   final settings = ref.watch(backupSettingsProvider);
@@ -114,7 +113,7 @@ final sharedLibrariesHealthProvider = Provider.autoDispose<FeatureHealth>((
   ref,
 ) {
   final inputs = ref.watch(libraryHealthInputsProvider).value;
-  if (inputs == null) return _notSetUp[DataFeature.sharedLibraries]!;
+  if (inputs == null) return _librariesNotSetUp;
   return evaluateSharedLibraryHealth(inputs);
 });
 
@@ -166,7 +165,7 @@ final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
 
 final mediaHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
   final inputs = ref.watch(mediaHealthInputsProvider).value;
-  if (inputs == null) return _notSetUp[DataFeature.media]!;
+  if (inputs == null) return _mediaNotSetUp;
   return evaluateMediaHealth(inputs);
 });
 
