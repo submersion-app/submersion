@@ -85,6 +85,9 @@ class CertificationCardPhoto extends StatelessWidget {
                 bytes,
                 fit: BoxFit.contain,
                 cacheWidth: photoCacheWidth,
+                // A reload hands over a fresh buffer (a new image key); keep
+                // the last frame up while it decodes instead of blanking.
+                gaplessPlayback: true,
               ),
               if (infoLines.isNotEmpty) _buildInfoStrip(),
               if (badge != null) Positioned(top: 12, right: 12, child: badge!),
@@ -105,6 +108,7 @@ class CertificationCardPhoto extends StatelessWidget {
             bytes,
             fit: BoxFit.cover,
             cacheWidth: backdropCacheWidth,
+            gaplessPlayback: true,
           ),
         ),
         ColoredBox(color: Colors.black.withValues(alpha: 0.35)),

@@ -83,6 +83,17 @@ void main() {
       expect(find.byKey(const Key('test-badge')), findsOneWidget);
     });
 
+    testWidgets('keeps the last frame while reloaded bytes decode', (
+      tester,
+    ) async {
+      // A provider reload hands over a fresh buffer, a new image key; without
+      // gapless playback every card would blank out until it decodes (#3383).
+      await _pumpPhoto(tester);
+
+      final images = tester.widgetList<Image>(find.byType(Image));
+      expect(images.every((image) => image.gaplessPlayback), isTrue);
+    });
+
     testWidgets('keeps the e-card corner radius and shadow by default', (
       tester,
     ) async {
