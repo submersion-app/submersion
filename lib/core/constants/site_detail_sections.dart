@@ -8,35 +8,40 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Identifies each configurable card on the Site Details page.
 ///
-/// Declaration order is the default display order: the order the page had
-/// before it became configurable. The map card and the name header above
-/// these cards are pinned, so neither appears here; everything below them
-/// is the diver's to arrange.
+/// Declaration order is the default display order (issue #3387), planning
+/// first: what the site is and whether it suits the diver, then how to get
+/// in and when, then what is down there, then the diver's own history and
+/// records. The map card and the name header above these cards are pinned,
+/// so neither appears here; everything below them is the diver's to
+/// arrange.
+///
+/// An order a diver has saved is kept as saved. This order also decides
+/// where a card missing from a saved order joins it: right after its
+/// nearest preceding card here (see `section_order.ensureAllSections`).
 ///
 /// The two pairs in `kSiteDetailSectionPairs` are declared adjacently, in
 /// left-then-right order, so the default order already reads the way the
 /// paired layout renders.
 enum SiteDetailSectionId {
-  diveStatistics,
   description,
-  location,
-
-  /// The site's underwater terrain in 3D, inline. Declared right after
-  /// [location] so an order saved before this card existed gains it there.
-  seascape,
   depth,
-  altitude,
-  features,
-  tide,
-  reefHealth,
-  marineLife,
-  media,
-  tags,
   difficulty,
   rating,
   hazards,
   access,
+  location,
+  tide,
+
+  /// The site's underwater terrain in 3D, inline.
+  seascape,
+  features,
+  marineLife,
+  reefHealth,
+  media,
+  diveStatistics,
   notes,
+  tags,
+  altitude,
 
   /// Documents filed under the site (issue #2613).
   documents;
@@ -169,26 +174,26 @@ class SiteDetailSectionConfig {
   }
 
   static const List<SiteDetailSectionConfig> defaultSections = [
-    SiteDetailSectionConfig(
-      id: SiteDetailSectionId.diveStatistics,
-      visible: true,
-    ),
     SiteDetailSectionConfig(id: SiteDetailSectionId.description, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.location, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.seascape, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.depth, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.altitude, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.features, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.tide, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.reefHealth, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.marineLife, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.media, visible: true),
-    SiteDetailSectionConfig(id: SiteDetailSectionId.tags, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.difficulty, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.rating, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.hazards, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.access, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.location, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.tide, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.seascape, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.features, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.marineLife, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.reefHealth, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.media, visible: true),
+    SiteDetailSectionConfig(
+      id: SiteDetailSectionId.diveStatistics,
+      visible: true,
+    ),
     SiteDetailSectionConfig(id: SiteDetailSectionId.notes, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.tags, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.altitude, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.documents, visible: true),
   ];
 

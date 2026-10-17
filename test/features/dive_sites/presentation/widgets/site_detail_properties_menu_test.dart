@@ -96,7 +96,7 @@ void main() {
       find.byType(ReorderableListView),
     );
     expect(list.itemCount, SiteDetailSectionId.values.length);
-    expect(find.text('Dives at this Site'), findsOneWidget);
+    expect(find.text('Depth Range'), findsOneWidget);
   });
 
   testWidgets('choosing a layout writes the site layout only', (tester) async {
