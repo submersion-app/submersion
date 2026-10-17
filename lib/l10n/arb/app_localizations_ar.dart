@@ -27571,44 +27571,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'اتجاه استهلاك الغاز';
 
   @override
-  String get insights_gas_tankConfig_title => 'Tank configuration';
+  String get insights_gas_tankConfig_title => 'تكوين الأسطوانات';
 
   @override
   String get insights_gas_tankConfig_subtitle =>
-      'Dives by how the tanks were set up';
+      'الغوصات حسب طريقة حمل الأسطوانات';
 
   @override
-  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+  String get insights_gas_tankConfig_configurationHeading => 'التكوين';
 
   @override
-  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+  String get insights_gas_tankConfig_extrasHeading => 'إضافات';
 
   @override
-  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+  String get insights_gas_tankConfig_rebreather => 'جهاز إعادة تنفس';
 
   @override
-  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+  String get insights_gas_tankConfig_sidemount => 'تعليق جانبي';
 
   @override
-  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+  String get insights_gas_tankConfig_twinBackmount => 'أسطوانتان على الظهر';
 
   @override
-  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+  String get insights_gas_tankConfig_singleBackmount =>
+      'أسطوانة واحدة على الظهر';
 
   @override
-  String get insights_gas_tankConfig_other => 'Other';
+  String get insights_gas_tankConfig_other => 'أخرى';
 
   @override
-  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+  String get insights_gas_tankConfig_noTanks => 'لا توجد أسطوانات مسجلة';
 
   @override
-  String get insights_gas_tankConfig_stages => 'Stage(s)';
+  String get insights_gas_tankConfig_stages => 'أسطوانات مرحلية';
 
   @override
-  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+  String get insights_gas_tankConfig_decoGas => 'غاز تخفيف الضغط';
 
   @override
-  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+  String get insights_gas_tankConfig_multiGas => 'غازات متعددة';
 
   @override
   String insights_gas_tankConfig_countAndPercent(int count, String percent) {
@@ -27617,14 +27618,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      'تُحتسب الأسطوانات المزدوجة المسجلة كأسطوانة واحدة عندما يدل الاسم على ذلك (twin، double، D12، 2x12) أو عندما تكون الأسطوانة أكبر من أي أسطوانة مفردة شائعة. عيّن تعليق جانبي أيسر وتعليق جانبي أيمن لأسطوانات الغوصة لتُحتسب كتعليق جانبي.';
 
   @override
-  String get insights_gas_tankConfig_empty => 'No dives to show';
+  String get insights_gas_tankConfig_empty => 'لا توجد غوصات لعرضها';
 
   @override
-  String get insights_gas_tankConfig_error =>
-      'Unable to load tank configuration';
+  String get insights_gas_tankConfig_error => 'فشل تحميل تكوين الأسطوانات';
 
   @override
   String get insights_focus_title => 'تركيز الغطسات';

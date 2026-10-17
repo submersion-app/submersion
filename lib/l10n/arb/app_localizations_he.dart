@@ -26691,44 +26691,44 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'מגמת צריכת גז';
 
   @override
-  String get insights_gas_tankConfig_title => 'Tank configuration';
+  String get insights_gas_tankConfig_title => 'תצורת בלונים';
 
   @override
   String get insights_gas_tankConfig_subtitle =>
-      'Dives by how the tanks were set up';
+      'צלילות לפי אופן נשיאת הבלונים';
 
   @override
-  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+  String get insights_gas_tankConfig_configurationHeading => 'תצורה';
 
   @override
-  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+  String get insights_gas_tankConfig_extrasHeading => 'תוספות';
 
   @override
-  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+  String get insights_gas_tankConfig_rebreather => 'ריברידר';
 
   @override
-  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+  String get insights_gas_tankConfig_sidemount => 'סיידמאונט';
 
   @override
-  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+  String get insights_gas_tankConfig_twinBackmount => 'בלונים תאומים על הגב';
 
   @override
-  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+  String get insights_gas_tankConfig_singleBackmount => 'בלון יחיד על הגב';
 
   @override
-  String get insights_gas_tankConfig_other => 'Other';
+  String get insights_gas_tankConfig_other => 'אחר';
 
   @override
-  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+  String get insights_gas_tankConfig_noTanks => 'לא נרשמו בלונים';
 
   @override
-  String get insights_gas_tankConfig_stages => 'Stage(s)';
+  String get insights_gas_tankConfig_stages => 'סטייג\'ים';
 
   @override
-  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+  String get insights_gas_tankConfig_decoGas => 'גז דקו';
 
   @override
-  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+  String get insights_gas_tankConfig_multiGas => 'ריבוי גזים';
 
   @override
   String insights_gas_tankConfig_countAndPercent(int count, String percent) {
@@ -26737,14 +26737,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      'בלונים תאומים שנרשמו כבלון אחד נספרים כשהשם מציין זאת (twin, double, D12, 2x12) או כשהבלון גדול מכל בלון יחיד נפוץ. הגדר סיידמאונט שמאל וסיידמאונט ימין לבלוני הצלילה כדי שתיספר כסיידמאונט.';
 
   @override
-  String get insights_gas_tankConfig_empty => 'No dives to show';
+  String get insights_gas_tankConfig_empty => 'אין צלילות להצגה';
 
   @override
-  String get insights_gas_tankConfig_error =>
-      'Unable to load tank configuration';
+  String get insights_gas_tankConfig_error => 'שגיאה בטעינת תצורת הבלונים';
 
   @override
   String get insights_focus_title => 'מיקוד צלילות';

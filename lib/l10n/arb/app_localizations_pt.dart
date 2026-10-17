@@ -27399,14 +27399,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'Tendência do consumo de gás';
 
   @override
-  String get insights_gas_tankConfig_title => 'Tank configuration';
+  String get insights_gas_tankConfig_title => 'Configuração dos cilindros';
 
   @override
   String get insights_gas_tankConfig_subtitle =>
-      'Dives by how the tanks were set up';
+      'Mergulhos pela forma como os cilindros foram levados';
 
   @override
-  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+  String get insights_gas_tankConfig_configurationHeading => 'Configuração';
 
   @override
   String get insights_gas_tankConfig_extrasHeading => 'Extras';
@@ -27418,25 +27418,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_gas_tankConfig_sidemount => 'Sidemount';
 
   @override
-  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+  String get insights_gas_tankConfig_twinBackmount => 'Bicilindro';
 
   @override
-  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+  String get insights_gas_tankConfig_singleBackmount => 'Monocilindro';
 
   @override
-  String get insights_gas_tankConfig_other => 'Other';
+  String get insights_gas_tankConfig_other => 'Outro';
 
   @override
-  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+  String get insights_gas_tankConfig_noTanks => 'Nenhum cilindro registrado';
 
   @override
   String get insights_gas_tankConfig_stages => 'Stage(s)';
 
   @override
-  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+  String get insights_gas_tankConfig_decoGas => 'Gás de deco';
 
   @override
-  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+  String get insights_gas_tankConfig_multiGas => 'Vários gases';
 
   @override
   String insights_gas_tankConfig_countAndPercent(int count, String percent) {
@@ -27445,14 +27445,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      'Bicilindros registrados como um único cilindro são contados quando o nome indica (twin, double, D12, 2x12) ou o cilindro é maior que qualquer monocilindro comum. Defina Sidemount Esquerdo e Sidemount Direito nos cilindros de um mergulho para que ele conte como sidemount.';
 
   @override
-  String get insights_gas_tankConfig_empty => 'No dives to show';
+  String get insights_gas_tankConfig_empty => 'Nenhum mergulho para mostrar';
 
   @override
   String get insights_gas_tankConfig_error =>
-      'Unable to load tank configuration';
+      'Falha ao carregar a configuração dos cilindros';
 
   @override
   String get insights_focus_title => 'Foco de mergulhos';

@@ -25852,44 +25852,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_sacTrend_title => '气体消耗趋势';
 
   @override
-  String get insights_gas_tankConfig_title => 'Tank configuration';
+  String get insights_gas_tankConfig_title => '气瓶配置';
 
   @override
-  String get insights_gas_tankConfig_subtitle =>
-      'Dives by how the tanks were set up';
+  String get insights_gas_tankConfig_subtitle => '按气瓶携带方式分类的潜水';
 
   @override
-  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+  String get insights_gas_tankConfig_configurationHeading => '配置';
 
   @override
-  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+  String get insights_gas_tankConfig_extrasHeading => '附加';
 
   @override
-  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+  String get insights_gas_tankConfig_rebreather => '循环呼吸器';
 
   @override
-  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+  String get insights_gas_tankConfig_sidemount => '侧挂';
 
   @override
-  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+  String get insights_gas_tankConfig_twinBackmount => '背挂双瓶';
 
   @override
-  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+  String get insights_gas_tankConfig_singleBackmount => '背挂单瓶';
 
   @override
-  String get insights_gas_tankConfig_other => 'Other';
+  String get insights_gas_tankConfig_other => '其他';
 
   @override
-  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+  String get insights_gas_tankConfig_noTanks => '未记录气瓶';
 
   @override
-  String get insights_gas_tankConfig_stages => 'Stage(s)';
+  String get insights_gas_tankConfig_stages => '阶段瓶';
 
   @override
-  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+  String get insights_gas_tankConfig_decoGas => '减压气';
 
   @override
-  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+  String get insights_gas_tankConfig_multiGas => '多种气体';
 
   @override
   String insights_gas_tankConfig_countAndPercent(int count, String percent) {
@@ -25898,14 +25897,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      '记录为单个气瓶的双瓶，在名称表明时（twin、double、D12、2x12）或气瓶大于任何常见单瓶时会被计入。为潜水的气瓶设置左侧挂和右侧挂，使其计为侧挂。';
 
   @override
-  String get insights_gas_tankConfig_empty => 'No dives to show';
+  String get insights_gas_tankConfig_empty => '没有可显示的潜水';
 
   @override
-  String get insights_gas_tankConfig_error =>
-      'Unable to load tank configuration';
+  String get insights_gas_tankConfig_error => '加载气瓶配置失败';
 
   @override
   String get insights_focus_title => '潜水聚焦';

@@ -27277,44 +27277,44 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'Gázfogyasztási trend';
 
   @override
-  String get insights_gas_tankConfig_title => 'Tank configuration';
+  String get insights_gas_tankConfig_title => 'Palackkonfiguráció';
 
   @override
   String get insights_gas_tankConfig_subtitle =>
-      'Dives by how the tanks were set up';
+      'Merülések a palackok elrendezése szerint';
 
   @override
-  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+  String get insights_gas_tankConfig_configurationHeading => 'Konfiguráció';
 
   @override
-  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+  String get insights_gas_tankConfig_extrasHeading => 'Extrák';
 
   @override
-  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+  String get insights_gas_tankConfig_rebreather => 'Visszalélegeztető';
 
   @override
   String get insights_gas_tankConfig_sidemount => 'Sidemount';
 
   @override
-  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+  String get insights_gas_tankConfig_twinBackmount => 'Ikerpalack';
 
   @override
-  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+  String get insights_gas_tankConfig_singleBackmount => 'Egy palack';
 
   @override
-  String get insights_gas_tankConfig_other => 'Other';
+  String get insights_gas_tankConfig_other => 'Egyéb';
 
   @override
-  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+  String get insights_gas_tankConfig_noTanks => 'Nincs rögzített palack';
 
   @override
-  String get insights_gas_tankConfig_stages => 'Stage(s)';
+  String get insights_gas_tankConfig_stages => 'Stage palack(ok)';
 
   @override
-  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+  String get insights_gas_tankConfig_decoGas => 'Dekó gáz';
 
   @override
-  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+  String get insights_gas_tankConfig_multiGas => 'Több gáz';
 
   @override
   String insights_gas_tankConfig_countAndPercent(int count, String percent) {
@@ -27323,14 +27323,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      'Az egy palackként rögzített ikerpalackok akkor számítanak, ha a név ezt jelzi (twin, double, D12, 2x12), vagy a palack nagyobb bármely szokásos egyes palacknál. Állítsa be a Sidemount bal és Sidemount jobb szerepet egy merülés palackjain, hogy sidemountként számítson.';
 
   @override
-  String get insights_gas_tankConfig_empty => 'No dives to show';
+  String get insights_gas_tankConfig_empty => 'Nincs megjeleníthető merülés';
 
   @override
   String get insights_gas_tankConfig_error =>
-      'Unable to load tank configuration';
+      'Nem sikerült a palackkonfiguráció betöltése';
 
   @override
   String get insights_focus_title => 'Merülésfókusz';

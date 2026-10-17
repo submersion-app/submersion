@@ -27209,17 +27209,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'Gasverbruikstrend';
 
   @override
-  String get insights_gas_tankConfig_title => 'Tank configuration';
+  String get insights_gas_tankConfig_title => 'Flesconfiguratie';
 
   @override
   String get insights_gas_tankConfig_subtitle =>
-      'Dives by how the tanks were set up';
+      'Duiken naar hoe de flessen gedragen werden';
 
   @override
-  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+  String get insights_gas_tankConfig_configurationHeading => 'Configuratie';
 
   @override
-  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+  String get insights_gas_tankConfig_extrasHeading => 'Extra\'s';
 
   @override
   String get insights_gas_tankConfig_rebreather => 'Rebreather';
@@ -27228,25 +27228,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_tankConfig_sidemount => 'Sidemount';
 
   @override
-  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+  String get insights_gas_tankConfig_twinBackmount => 'Dubbelset';
 
   @override
-  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+  String get insights_gas_tankConfig_singleBackmount => 'Enkele fles';
 
   @override
-  String get insights_gas_tankConfig_other => 'Other';
+  String get insights_gas_tankConfig_other => 'Overig';
 
   @override
-  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+  String get insights_gas_tankConfig_noTanks => 'Geen flessen vastgelegd';
 
   @override
-  String get insights_gas_tankConfig_stages => 'Stage(s)';
+  String get insights_gas_tankConfig_stages => 'Stagefles(sen)';
 
   @override
-  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+  String get insights_gas_tankConfig_decoGas => 'Decogas';
 
   @override
-  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+  String get insights_gas_tankConfig_multiGas => 'Meerdere gassen';
 
   @override
   String insights_gas_tankConfig_countAndPercent(int count, String percent) {
@@ -27255,14 +27255,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      'Dubbelsets die als één fles zijn vastgelegd tellen mee als de naam het zegt (twin, double, D12, 2x12) of de fles groter is dan elke gangbare enkele fles. Stel Sidemount links en Sidemount rechts in op de flessen van een duik om hem als sidemount te laten tellen.';
 
   @override
-  String get insights_gas_tankConfig_empty => 'No dives to show';
+  String get insights_gas_tankConfig_empty => 'Geen duiken om te tonen';
 
   @override
-  String get insights_gas_tankConfig_error =>
-      'Unable to load tank configuration';
+  String get insights_gas_tankConfig_error => 'Kan flesconfiguratie niet laden';
 
   @override
   String get insights_focus_title => 'Duikfocus';
