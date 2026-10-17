@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/summary_pane_view.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/home_cards.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -158,6 +159,85 @@ void main() {
       final settings = container.read(settingsProvider);
       expect(settings.homeCardOrder, isEmpty);
       expect(settings.hiddenHomeCards, isEmpty);
+    });
+  });
+
+  group('Summary pane view persistence', () {
+    late ProviderContainer container;
+
+    Future<void> makeContainer() async {
+      final prefs = await SharedPreferences.getInstance();
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(settingsProvider.notifier);
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+
+    test('defaults to scene', () async {
+      SharedPreferences.setMockInitialValues({});
+      await makeContainer();
+      expect(
+        container.read(settingsProvider).summaryPaneView,
+        SummaryPaneView.scene,
+      );
+    });
+
+    test('setSummaryPaneView persists the name to SharedPreferences', () async {
+      SharedPreferences.setMockInitialValues({});
+      await makeContainer();
+      await container
+          .read(settingsProvider.notifier)
+          .setSummaryPaneView(SummaryPaneView.details);
+      expect(
+        container.read(settingsProvider).summaryPaneView,
+        SummaryPaneView.details,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(SettingsKeys.summaryPaneView), 'details');
+    });
+
+    test('a stored value that is not a view name loads as scene', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.summaryPaneView: 'bogus',
+      });
+      await makeContainer();
+      expect(
+        container.read(settingsProvider).summaryPaneView,
+        SummaryPaneView.scene,
+      );
+    });
+
+    test('a stored value of the wrong type loads as scene', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.summaryPaneView: 42,
+      });
+      await makeContainer();
+      expect(
+        container.read(settingsProvider).summaryPaneView,
+        SummaryPaneView.scene,
+      );
+    });
+
+    test('a stored details value is loaded on start', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.summaryPaneView: 'details',
+      });
+      await makeContainer();
+      expect(
+        container.read(settingsProvider).summaryPaneView,
+        SummaryPaneView.details,
+      );
     });
   });
 }

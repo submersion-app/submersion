@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/summary_pane_view.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart' hide Visibility;
@@ -150,6 +151,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setThemePresetId(String presetId) async =>
       state = state.copyWith(themePresetId: presetId);
+  @override
+  Future<void> setSummaryPaneView(SummaryPaneView view) async =>
+      state = state.copyWith(summaryPaneView: view);
   @override
   Future<void> setAccentNavIcons(bool value) async =>
       state = state.copyWith(accentNavIcons: value);

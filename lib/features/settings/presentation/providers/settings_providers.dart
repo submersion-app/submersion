@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/summary_pane_view.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -115,6 +116,9 @@ class SettingsKeys {
   // directly in SharedPreferences rather than per-diver in the DB).
   static const String homeCardOrder = 'home_card_order';
   static const String hiddenHomeCards = 'hidden_home_cards';
+
+  // What master-detail summary panes show by default; device-local.
+  static const String summaryPaneView = 'summary_pane_view';
 
   // Whether profile-chart metric overlays follow the visible depth window
   // when zoomed. Per-diver since v262; see [pscrRatio].
@@ -581,6 +585,10 @@ class AppSettings {
   /// values). Device-local, not per-diver.
   final Set<String> hiddenHomeCards;
 
+  /// What a master-detail summary pane shows when nothing is selected.
+  /// Device-local, not per-diver.
+  final SummaryPaneView summaryPaneView;
+
   /// Whether the dive profile chart's secondary-axis metric overlays (NDL,
   /// ppO2, GF, ...) follow the visible depth window when zoomed instead of
   /// magnifying with the depth axis and scrolling out of view. Per-diver
@@ -767,6 +775,7 @@ class AppSettings {
     this.hiddenHomeChips = const <String>{},
     this.homeCardOrder = const <String>[],
     this.hiddenHomeCards = const <String>{},
+    this.summaryPaneView = SummaryPaneView.scene,
     this.profileMetricsFollowViewport = false,
     this.o2CellUnit = O2CellUnit.ppO2,
     this.perdixOverlayEnabled = false,
@@ -962,6 +971,7 @@ class AppSettings {
     Set<String>? hiddenHomeChips,
     List<String>? homeCardOrder,
     Set<String>? hiddenHomeCards,
+    SummaryPaneView? summaryPaneView,
     bool? profileMetricsFollowViewport,
     O2CellUnit? o2CellUnit,
     bool? perdixOverlayEnabled,
@@ -1165,6 +1175,7 @@ class AppSettings {
       hiddenHomeChips: hiddenHomeChips ?? this.hiddenHomeChips,
       homeCardOrder: homeCardOrder ?? this.homeCardOrder,
       hiddenHomeCards: hiddenHomeCards ?? this.hiddenHomeCards,
+      summaryPaneView: summaryPaneView ?? this.summaryPaneView,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
@@ -1418,6 +1429,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     hiddenHomeChips: state.hiddenHomeChips,
     homeCardOrder: state.homeCardOrder,
     hiddenHomeCards: state.hiddenHomeCards,
+    summaryPaneView: state.summaryPaneView,
     o2CellUnit: state.o2CellUnit,
     perdixOverlayEnabled: state.perdixOverlayEnabled,
     perdixOverlayX: state.perdixOverlayX,
@@ -1475,6 +1487,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       homeCardOrder = const [];
       hiddenHomeCards = const <String>{};
     }
+    SummaryPaneView summaryPaneView;
+    try {
+      summaryPaneView = SummaryPaneView.fromName(
+        prefs.getString(SettingsKeys.summaryPaneView),
+      );
+    } catch (_) {
+      // A stored value of the wrong type falls back to the scene.
+      summaryPaneView = SummaryPaneView.scene;
+    }
     // Since v262 the pSCR ratio and "metrics follow viewport" are per-diver
     // (synced, issue #2948). These prefs are the store while no diver
     // exists, and the value a diver row that has never held one adopts.
@@ -1505,6 +1526,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
         hiddenHomeCards: hiddenHomeCards,
+        summaryPaneView: summaryPaneView,
         pscrRatio: pscrRatioPref ?? 100.0,
         profileMetricsFollowViewport: followViewportPref ?? false,
         o2CellUnit: o2CellUnit,
@@ -1575,6 +1597,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       hiddenHomeChips: hiddenHomeChips,
       homeCardOrder: homeCardOrder,
       hiddenHomeCards: hiddenHomeCards,
+      summaryPaneView: summaryPaneView,
       o2CellUnit: o2CellUnit,
       perdixOverlayEnabled: perdixOverlayEnabled,
       perdixOverlayX: perdixOverlayX,
@@ -1652,6 +1675,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       await prefs.setStringList(
         SettingsKeys.hiddenHomeCards,
         state.hiddenHomeCards.toList()..sort(),
+      );
+      await prefs.setString(
+        SettingsKeys.summaryPaneView,
+        state.summaryPaneView.name,
       );
       await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
       await prefs.setBool(
@@ -1869,6 +1896,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setThemePresetId(String presetId) async {
     state = state.copyWith(themePresetId: presetId);
+    await _saveSettings();
+  }
+
+  Future<void> setSummaryPaneView(SummaryPaneView view) async {
+    state = state.copyWith(summaryPaneView: view);
     await _saveSettings();
   }
 
