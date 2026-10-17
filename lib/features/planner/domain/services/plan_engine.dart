@@ -616,7 +616,8 @@ class PlanEngine {
   /// furthest above the ceiling: the deepest ceiling they were shallower than
   /// (#3354). Only authored legs are checked; the computed stops respect the
   /// ceiling by construction.
-  ({List<(int, double)> trace, List<_CeilingBreach> breaches}) _ceilingTrace(
+  ({List<(int, double)> trace, Iterable<_CeilingBreach> breaches})
+  _ceilingTrace(
     DecoModel model,
     domain.DivePlan plan,
     List<ResolvedLeg> legs,
@@ -626,7 +627,9 @@ class PlanEngine {
     TissueState initialState,
   ) {
     final trace = <(int, double)>[];
-    final breaches = <_CeilingBreach>[];
+    // Keyed by the authored segment, so the legs one segment expands into
+    // (a rate-split travel and hold) report as that one segment.
+    final breaches = <String, _CeilingBreach>{};
     var traceState = initialState;
     var runtime = 0;
 
@@ -693,7 +696,12 @@ class PlanEngine {
           );
         }
       }
-      if (worst != null) breaches.add(worst);
+      if (worst != null) {
+        final previous = breaches[worst.segmentId];
+        if (previous == null || worst.ceilingMeters > previous.ceilingMeters) {
+          breaches[worst.segmentId] = worst;
+        }
+      }
     }
 
     BreathingConfig ascentBreathingAt(double depth) {
@@ -708,7 +716,7 @@ class PlanEngine {
         leg.endDepth,
         leg.durationSeconds,
         (depth) => _breathingFor(plan, segment.gasMix, depth, segment: segment),
-        authoredSegmentId: segment.id,
+        authoredSegmentId: _authoredSegmentId(segment.id),
       );
     }
 
@@ -740,7 +748,18 @@ class PlanEngine {
       sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
     }
 
-    return (trace: trace, breaches: breaches);
+    return (trace: trace, breaches: breaches.values);
+  }
+
+  /// The diver-authored segment a resolved leg came from, or null for a leg
+  /// the engine inserted on its own (a diluent switch stop), which is never
+  /// the leg to blame or edit.
+  static String? _authoredSegmentId(String legId) {
+    if (legId.endsWith(diluentSwitchStopIdSuffix)) return null;
+    if (legId.endsWith(rateSplitHoldIdSuffix)) {
+      return legId.substring(0, legId.length - rateSplitHoldIdSuffix.length);
+    }
+    return legId;
   }
 
   /// Slack allowed between the ceiling and the diver before an authored leg
@@ -1120,7 +1139,7 @@ class PlanEngine {
     double cns,
     double otu,
     DiveEnvironment environment,
-    List<_CeilingBreach> ceilingBreaches,
+    Iterable<_CeilingBreach> ceilingBreaches,
   ) {
     final issues = <PlanIssue>[];
 

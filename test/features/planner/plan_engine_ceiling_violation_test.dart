@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -83,6 +84,86 @@ void main() {
       expect(issue.value, greaterThan(0));
       expect(issue.atDepth, lessThan(issue.value!));
       expect(outcome.isDiveable, isFalse);
+    });
+
+    test('a rate-split ascent is reported once, under its own id', () {
+      // Split at the configured rate, one authored segment becomes a travel
+      // leg plus a synthetic hold; both sit above the ceiling, but the diver
+      // authored one segment and can only edit that one.
+      final outcome = engine.compute(
+        _plan([
+          _descent(45),
+          _bottom(45, 25),
+          const PlanSegment(
+            id: 'ascent',
+            targetDepth: 3,
+            durationSeconds: 600,
+            tankId: _tankId,
+            gasMix: _air,
+            splitAtConfiguredRate: true,
+            order: 2,
+          ),
+        ]),
+      );
+
+      final issues = _ceilingIssues(outcome);
+      expect(issues.map((i) => i.segmentId), ['ascent']);
+    });
+
+    test('an inserted diluent switch stop is never the offending leg', () {
+      const dilA = GasMix(o2: 18, he: 45);
+      const dilB = GasMix(o2: 21, he: 35);
+      PlanSegment ccrLeg(
+        String id,
+        double depth,
+        int seconds,
+        String tank,
+        GasMix mix,
+        int order,
+      ) => PlanSegment(
+        id: id,
+        targetDepth: depth,
+        durationSeconds: seconds,
+        tankId: tank,
+        gasMix: mix,
+        order: order,
+      );
+      final plan = domain.DivePlan(
+        id: 'plan-ccr',
+        name: 'Switch test',
+        mode: domain.PlanMode.ccr,
+        gfLow: 40,
+        gfHigh: 80,
+        gasSwitchStopSeconds: 120,
+        tanks: const [
+          DiveTank(
+            id: 'dil-a',
+            volume: 3,
+            startPressure: 200,
+            gasMix: dilA,
+            role: TankRole.diluent,
+          ),
+          DiveTank(
+            id: 'dil-b',
+            volume: 3,
+            startPressure: 200,
+            gasMix: dilB,
+            role: TankRole.diluent,
+          ),
+        ],
+        segments: [
+          ccrLeg('descent', 45, 150, 'dil-a', dilA, 0),
+          ccrLeg('bottom', 45, 40 * 60, 'dil-a', dilA, 1),
+          ccrLeg('ascent', 3, 280, 'dil-a', dilA, 2),
+          ccrLeg('shallow', 3, 120, 'dil-b', dilB, 3),
+        ],
+        createdAt: DateTime(2026, 10, 16),
+        updatedAt: DateTime(2026, 10, 16),
+      );
+
+      final ids = _ceilingIssues(engine.compute(plan)).map((i) => i.segmentId);
+      expect(ids, contains('ascent'));
+      expect(ids.where((id) => id!.contains('__')), isEmpty);
     });
 
     test('the same dive left to the computed ascent is not flagged', () {
