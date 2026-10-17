@@ -404,6 +404,9 @@ class _KeyboardListItemState extends State<KeyboardListItem> {
         .dependOnInheritedWidgetOfExactType<_KeyboardListScope>();
     if (scope == null) return _withHeader(widget.child);
     return Listener(
+      // The whole row takes the press, the margin around its card included,
+      // so a click anywhere on it focuses the list there.
+      behavior: HitTestBehavior.opaque,
       onPointerDown: (_) => scope.state._pointerDownOn(widget.navigationKey),
       child: ExcludeFocus(child: _withHeader(widget.child)),
     );

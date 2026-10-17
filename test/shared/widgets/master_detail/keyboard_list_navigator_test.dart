@@ -197,6 +197,56 @@ void main() {
     expect(taps, ['a', 'b']);
   });
 
+  testWidgets('a press in a row\'s margin focuses the list there', (
+    tester,
+  ) async {
+    // Card rows sit inside a margin that keeps neighbouring cards apart. A
+    // press there still belongs to the row: the list takes focus and the
+    // arrows carry on from it.
+    final log = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: KeyboardListNavigator(
+            keys: const ['a', 'b', 'c'],
+            currentKey: null,
+            onMove: (key) => log.add('move:$key'),
+            child: ListView(
+              children: [
+                for (final key in const ['a', 'b', 'c'])
+                  KeyboardListItem(
+                    navigationKey: key,
+                    child: Padding(
+                      key: ValueKey('row-$key'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: InkWell(
+                        onTap: () {},
+                        child: SizedBox(height: 40, child: Text(key)),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tapAt(
+      tester.getTopLeft(find.byKey(const ValueKey('row-b'))) +
+          const Offset(4, 2),
+    );
+    await tester.pumpAndSettle();
+    expect(_primary?.debugLabel, KeyboardListNavigator.focusDebugLabel);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(log, ['move:c']);
+  });
+
   testWidgets('a click moves the cursor the arrows continue from', (
     tester,
   ) async {
