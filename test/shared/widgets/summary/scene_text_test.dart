@@ -92,4 +92,15 @@ void main() {
       Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
     );
   });
+
+  testWidgets('SceneFooter is bodySmall in the ink at 60 percent', (
+    tester,
+  ) async {
+    await _pump(tester, const SceneFooter('41 with GPS'));
+
+    final style = _styleOf(tester, '41 with GPS');
+    final context = tester.element(find.text('41 with GPS'));
+    expect(style.fontSize, Theme.of(context).textTheme.bodySmall!.fontSize);
+    expect(style.color, _ink.withValues(alpha: 0.6));
+  });
 }

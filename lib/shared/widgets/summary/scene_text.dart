@@ -133,6 +133,26 @@ class SceneLabel extends StatelessWidget {
   }
 }
 
+/// The quiet line along the bottom of a scene.
+class SceneFooter extends StatelessWidget {
+  const SceneFooter(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: _sceneStyle(
+        context,
+        Theme.of(context).textTheme.bodySmall,
+        opacity: 0.6,
+        weight: FontWeight.w400,
+      ),
+    );
+  }
+}
+
 /// A fact that opens something: plain text with a dotted underline, never a
 /// button, chevron or accent colour.
 class SceneLink extends StatelessWidget {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -90,5 +91,47 @@ void main() {
     );
 
     expect(ink, Colors.white);
+  });
+
+  testWidgets('the facts do not rebuild while the clock runs', (tester) async {
+    var builds = 0;
+    await pump(
+      tester,
+      child: Builder(
+        builder: (context) {
+          builds++;
+          return const SizedBox();
+        },
+      ),
+    );
+    final paintsBefore = calls.length;
+
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(microseconds: 16667));
+    }
+
+    expect(calls.length - paintsBefore, greaterThan(10));
+    expect(builds, 1);
+  });
+
+  testWidgets('the facts can read the pane clock', (tester) async {
+    late ValueListenable<double> time;
+    await pump(
+      tester,
+      child: Builder(
+        builder: (context) {
+          time = SceneTime.of(context);
+          return const SizedBox();
+        },
+      ),
+    );
+    await tester.pump();
+    final start = time.value;
+
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(microseconds: 16667));
+    }
+
+    expect(time.value - start, greaterThan(0.5));
   });
 }

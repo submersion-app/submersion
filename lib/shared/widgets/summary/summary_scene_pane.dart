@@ -33,23 +33,28 @@ class SummaryScenePane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
+    // Built once, outside the clock: the clock's builder hands back this
+    // same instance every frame, so the facts never rebuild, yet they sit
+    // under the clock and can reach it through SceneTime.
+    final facts = Positioned.fill(
+      child: SceneInk(color: ink, shadows: shadows, child: child),
+    );
     return SizedBox.expand(
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ExcludeSemantics(
-              child: RepaintBoundary(
-                child: SceneClock(
-                  builder: (context, seconds) =>
-                      CustomPaint(painter: painterBuilder(seconds, brightness)),
+      child: SceneClock(
+        builder: (context, seconds) => Stack(
+          children: [
+            Positioned.fill(
+              child: ExcludeSemantics(
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: painterBuilder(seconds, brightness),
+                  ),
                 ),
               ),
             ),
-          ),
-          Positioned.fill(
-            child: SceneInk(color: ink, shadows: shadows, child: child),
-          ),
-        ],
+            facts,
+          ],
+        ),
       ),
     );
   }

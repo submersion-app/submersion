@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 /// The shared slow clock behind every summary-pane scene.
@@ -106,9 +107,38 @@ class _SceneClockState extends State<SceneClock> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<double>(
-      valueListenable: _seconds,
-      builder: (context, seconds, _) => widget.builder(context, seconds),
+    return SceneTime(
+      seconds: _seconds,
+      child: ValueListenableBuilder<double>(
+        valueListenable: _seconds,
+        builder: (context, seconds, _) => widget.builder(context, seconds),
+      ),
     );
   }
+}
+
+/// The running scene clock, for a painter inside a scene's facts layer that
+/// moves (a pulsing mark) without rebuilding the text around it.
+///
+/// Hand [of]'s listenable to a `CustomPainter`'s `repaint:` so the painter
+/// repaints on every clock value while the widgets stay as they are.
+class SceneTime extends InheritedWidget {
+  const SceneTime({super.key, required this.seconds, required super.child});
+
+  /// Elapsed scene time, published by the nearest [SceneClock].
+  final ValueListenable<double> seconds;
+
+  static final ValueListenable<double> _still = ValueNotifier<double>(
+    SceneClock.stillSeconds,
+  );
+
+  /// The nearest scene clock, or a clock held at [SceneClock.stillSeconds]
+  /// outside a scene.
+  static ValueListenable<double> of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SceneTime>()?.seconds ??
+      _still;
+
+  @override
+  bool updateShouldNotify(SceneTime oldWidget) =>
+      !identical(oldWidget.seconds, seconds);
 }

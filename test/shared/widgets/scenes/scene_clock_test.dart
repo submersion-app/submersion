@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -95,5 +96,46 @@ void main() {
     expect(published.last, SceneClock.stillSeconds);
     expect(await countChangesOverOneSecond(tester), 0);
     expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
+  testWidgets('publishes its clock to descendants through SceneTime', (
+    tester,
+  ) async {
+    late ValueListenable<double> time;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SceneClock(
+          builder: (context, seconds) {
+            time = SceneTime.of(context);
+            return const SizedBox.expand();
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    final start = time.value;
+
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(microseconds: 16667));
+    }
+
+    expect(time.value - start, greaterThan(0.5));
+  });
+
+  testWidgets('SceneTime outside a clock holds the still frame', (
+    tester,
+  ) async {
+    late ValueListenable<double> time;
+    await tester.pumpWidget(
+      Builder(
+        builder: (context) {
+          time = SceneTime.of(context);
+          return const SizedBox();
+        },
+      ),
+    );
+
+    expect(time.value, SceneClock.stillSeconds);
   });
 }
