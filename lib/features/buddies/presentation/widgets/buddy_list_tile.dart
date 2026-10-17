@@ -28,9 +28,9 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 ///
 /// Configurable slots come from [buddyDetailedCardConfigProvider]; the
 /// avatar, certification chip, usual-role chip and contact icons are fixed
-/// identity elements. Hand-rolled rather than a ListTile so
-/// the title keeps its font role under every theme preset and nothing
-/// text-bearing sits in the trailing slot (issue #935).
+/// identity elements. Hand-rolled rather than a ListTile so the title keeps
+/// its font role under every theme preset and nothing text-bearing sits in
+/// the trailing slot (issue #935).
 class BuddyListTile extends ConsumerWidget {
   final BuddyWithDiveCount entry;
   final bool isSelected;
