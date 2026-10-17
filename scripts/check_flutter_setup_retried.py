@@ -15,8 +15,10 @@ retry. This guard keeps it that way, in two halves:
   an old example would otherwise bring back the unretried setup.
 * The local action really retries: at least two attempts, every attempt but
   the last with `continue-on-error: true` (or the first failure ends the
-  action before a retry runs), and the last without it (or an outage that
-  outlasts every retry would leave the job running with no Flutter at all).
+  action before a retry runs), each retry gated on the previous attempt's
+  `outcome == 'failure'` (a gate naming the wrong step never fires), and the
+  last without `continue-on-error` (or an outage that outlasts every retry
+  would leave the job running with no Flutter at all).
 
 Pure stdlib, like the other guards: the job that runs it installs no YAML
 parser, and the few keys checked here are matched line by line.
@@ -44,6 +46,8 @@ _USES_UPSTREAM = re.compile(
 _TOLERATES = re.compile(
     r"^\s*(?:-\s+)?continue-on-error:\s*(['\"]?)true\1" + _COMMENT
 )
+_STEP_ID = re.compile(r"^\s*(?:-\s+)?id:\s*['\"]?([A-Za-z0-9_-]+)['\"]?" + _COMMENT)
+_IF_KEY = re.compile(r"^\s*(?:-\s+)?if:\s*(.*)$")
 _STEPS_KEY = re.compile(r"^\s*steps:" + _COMMENT)
 _STEP_START = re.compile(r"^(\s*)-\s")
 
@@ -96,6 +100,27 @@ def tolerates_failure(step):
     return any(_TOLERATES.match(ln) for ln in step)
 
 
+def step_id(step):
+    """Return the step's `id`, or None if it has none."""
+    for line in step:
+        match = _STEP_ID.match(line)
+        if match:
+            return match.group(1)
+    return None
+
+
+def gated_on_failure_of(step, previous_id):
+    """Return True if the step's `if:` runs it only when `previous_id` failed."""
+    gate = re.compile(
+        r"steps\." + re.escape(previous_id) + r"\.outcome\s*==\s*['\"]failure['\"]"
+    )
+    for line in step:
+        match = _IF_KEY.match(line)
+        if match:
+            return bool(gate.search(match.group(1)))
+    return False
+
+
 def action_violations(text):
     """Return what keeps the local action from retrying; empty == it retries."""
     attempts = flutter_attempts(text)
@@ -112,6 +137,21 @@ def action_violations(text):
             violations.append(
                 f"attempt {number} of {UPSTREAM} lacks continue-on-error: true, "
                 "so its failure ends the action before any retry runs"
+            )
+    for number, (previous, step) in enumerate(
+        zip(attempts, attempts[1:]), start=2
+    ):
+        previous_id = step_id(previous)
+        if previous_id is None:
+            violations.append(
+                f"attempt {number - 1} has no id, so attempt {number} cannot "
+                "test whether it failed"
+            )
+        elif not gated_on_failure_of(step, previous_id):
+            violations.append(
+                f"attempt {number} is not gated on "
+                f"steps.{previous_id}.outcome == 'failure'; a gate that names "
+                "another step never fires, which disables the retry"
             )
     if tolerates_failure(attempts[-1]):
         violations.append(
@@ -147,14 +187,14 @@ def _caller_files(root):
     files = [
         os.path.join(WORKFLOW_DIR, n) for n in names if n.endswith((".yml", ".yaml"))
     ]
-    actions_dir = os.path.join(root, ACTIONS_DIR)
-    if os.path.isdir(actions_dir):
-        for action in sorted(os.listdir(actions_dir)):
-            for meta in ("action.yml", "action.yaml"):
-                rel = os.path.join(ACTIONS_DIR, action, meta)
-                if rel != ACTION_PATH and os.path.isfile(os.path.join(root, rel)):
-                    files.append(rel)
-    return files
+    actions = []
+    for dirpath, _, filenames in os.walk(os.path.join(root, ACTIONS_DIR)):
+        for meta in ("action.yml", "action.yaml"):
+            if meta in filenames:
+                rel = os.path.relpath(os.path.join(dirpath, meta), root)
+                if rel != ACTION_PATH:
+                    actions.append(rel)
+    return files + sorted(actions)
 
 
 def find_violations(root):

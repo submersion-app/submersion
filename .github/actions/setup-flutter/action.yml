@@ -39,6 +39,11 @@ runs:
       run: |
         echo "::warning::Flutter setup attempt 1 failed; retrying in 30s"
         if [ -n "$SDK_PATH" ]; then
+          # On Windows the path is C:\hostedtoolcache\...; give rm the POSIX
+          # form rather than rely on Git Bash accepting the Win32 spelling.
+          if command -v cygpath >/dev/null 2>&1; then
+            SDK_PATH="$(cygpath -u "$SDK_PATH")"
+          fi
           rm -rf "$SDK_PATH"
         fi
         sleep 30
@@ -60,6 +65,11 @@ runs:
       run: |
         echo "::warning::Flutter setup attempt 2 failed; retrying in 60s"
         if [ -n "$SDK_PATH" ]; then
+          # On Windows the path is C:\hostedtoolcache\...; give rm the POSIX
+          # form rather than rely on Git Bash accepting the Win32 spelling.
+          if command -v cygpath >/dev/null 2>&1; then
+            SDK_PATH="$(cygpath -u "$SDK_PATH")"
+          fi
           rm -rf "$SDK_PATH"
         fi
         sleep 60

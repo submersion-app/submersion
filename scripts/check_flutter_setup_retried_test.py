@@ -142,6 +142,40 @@ class ActionTests(unittest.TestCase):
         self.assertEqual(len(violations), 1)
         self.assertIn("final attempt", violations[0])
 
+    def test_retry_gated_on_the_wrong_step_is_flagged(self):
+        # A typo in the gate means the retry never runs, which is the same as
+        # having no retry at all.
+        text = GREEN_ACTION.replace(
+            "      id: second\n      if: steps.first.outcome == 'failure'\n",
+            "      id: second\n      if: steps.frist.outcome == 'failure'\n",
+        )
+        violations = guard.action_violations(text)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("attempt 2", violations[0])
+        self.assertIn("steps.first.outcome", violations[0])
+
+    def test_ungated_retry_is_flagged(self):
+        text = GREEN_ACTION.replace(
+            "      id: second\n      if: steps.first.outcome == 'failure'\n",
+            "      id: second\n",
+        )
+        violations = guard.action_violations(text)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("attempt 2", violations[0])
+
+    def test_attempt_without_id_cannot_gate_the_next(self):
+        text = GREEN_ACTION.replace("      id: first\n", "")
+        violations = guard.action_violations(text)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("attempt 1 has no id", violations[0])
+
+    def test_gate_inside_an_expression_is_understood(self):
+        text = GREEN_ACTION.replace(
+            "      if: steps.second.outcome == 'failure'\n      uses:",
+            "      if: ${{ steps.second.outcome == \"failure\" }}  # last\n      uses:",
+        )
+        self.assertEqual(guard.action_violations(text), [])
+
     def test_quoted_and_commented_keys_are_understood(self):
         text = GREEN_ACTION.replace(
             "continue-on-error: true\n", "continue-on-error: 'true'  # retry\n"
@@ -159,14 +193,16 @@ class ActionTests(unittest.TestCase):
         self.assertIn("1 attempt", guard.action_violations(text)[0])
 
     def test_step_starting_with_uses_is_one_step(self):
-        # `- uses:` opens the step on the same line as the key; the
-        # continue-on-error below it still belongs to that step.
+        # `- uses:` opens the step on the same line as the key; the keys
+        # below it still belong to that step.
         text = """\
 runs:
   steps:
     - uses: subosito/flutter-action@v2
+      id: first
       continue-on-error: true
     - uses: subosito/flutter-action@v2
+      if: steps.first.outcome == 'failure'
 """
         self.assertEqual(guard.action_violations(text), [])
 
@@ -241,6 +277,19 @@ class RepositoryTests(unittest.TestCase):
         self.assertEqual(len(violations), 1)
         self.assertIn(
             os.path.join(guard.ACTIONS_DIR, "setup-build", "action.yml") + ":8",
+            violations[0],
+        )
+
+    def test_direct_use_in_a_nested_local_action_is_flagged(self):
+        root = self._repo(GREEN_ACTION, {"ci.yaml": GREEN_WORKFLOW})
+        nested = os.path.join(root, guard.ACTIONS_DIR, "platform", "windows")
+        os.makedirs(nested)
+        with open(os.path.join(nested, "action.yaml"), "w") as fh:
+            fh.write(RED_WORKFLOW)
+        violations = guard.find_violations(root)
+        self.assertEqual(len(violations), 1)
+        self.assertIn(
+            os.path.join(guard.ACTIONS_DIR, "platform", "windows", "action.yaml"),
             violations[0],
         )
 
