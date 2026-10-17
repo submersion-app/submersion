@@ -175,6 +175,46 @@ void main() {
     expect(await store.membership(diverId: 'd1', libraryId: 'L'), before);
   });
 
+  test(
+    'repoint writes every local profile\'s card at the new folder',
+    () async {
+      await DiverRepository().createDiver(
+        Diver(
+          id: 'd2',
+          name: 'Bob',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await store.upsertMembership(
+        SharedLibraryMembership(
+          id: 'ms2',
+          diverId: 'd2',
+          libraryId: 'L',
+          memberId: 'c',
+          displayName: 'Bob',
+          libraryName: 'Reef Survey',
+          backendKind: 's3',
+          signingKey: await testMemberKey('c'),
+        ),
+      );
+      await copyAt('b');
+      await repoint('b');
+      final cards = await at('b').listMembers();
+      expect(cards.map((m) => m.memberId), containsAll(['a', 'c']));
+      expect(cards.every((m) => m.cardVerified), isTrue);
+    },
+  );
+
+  test('roles no owner signed are not taken as current', () async {
+    await copyAt('b');
+    // Newer, but signed by someone the trusted roles make no owner.
+    await at(
+      'b',
+    ).writeRoles(await signedTestRoles(owners: {'mallory'}, version: 9));
+    expect((await check('b')).verdict, LibraryLocationVerdict.olderCopy);
+  });
+
   test('different library is refused and nothing moves', () async {
     await copyAt('b', id: 'M');
     final c = await check('b');

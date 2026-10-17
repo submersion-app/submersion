@@ -3,10 +3,13 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart' hide ConnectedAccount;
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
+import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 /// What a candidate location holds, against a connected library.
@@ -56,11 +59,15 @@ class LibraryConnectionService {
   LibraryConnectionService({
     required SharedLibraryStore store,
     required LibraryTransportFactory transportFor,
+    String appVersion = 'unknown',
   }) : _store = store,
-       _transportFor = transportFor;
+       _transportFor = transportFor,
+       _appVersion = appVersion;
 
   final SharedLibraryStore _store;
   final LibraryTransportFactory _transportFor;
+  final String _appVersion;
+  final _log = LoggerService.forClass(LibraryConnectionService);
   AppDatabase get _db => DatabaseService.instance.database;
 
   /// What [prefix] of [account] holds, for the profile [diverId]. A
@@ -109,6 +116,7 @@ class LibraryConnectionService {
     // the location hints the profile's other devices see.
     final moved =
         before.connectedAccountId != account.id || before.prefix != prefix;
+    if (moved) await _writeCards(found.transport, libraryId);
     await _db.transaction(() async {
       await (_db.update(
         _db.sharedLibraries,
@@ -149,7 +157,37 @@ class LibraryConnectionService {
     return (await _store.getLibrary(libraryId))!;
   });
 
-  Future<({LibraryLocationCheck check, LibraryCipher? opened})> _inspect({
+  /// Every local profile's signed card at the new location, as joining
+  /// writes one: a copy may lack them, and a sync rewrites only the card of
+  /// the profile it runs for. A card the storage refuses is no failed move
+  /// (readers may write cards by policy); the sync retries it.
+  Future<void> _writeCards(SharedLibraryTransport t, String libraryId) async {
+    try {
+      final there = {for (final m in await t.listMembers()) m.memberId: m};
+      for (final m in await _store.membershipsForLibrary(libraryId)) {
+        final key = m.signingKey;
+        if (key == null) continue;
+        final card = await SharedLibraryMember.signed(
+          memberId: m.memberId,
+          displayName: m.displayName,
+          joinedAt: there[m.memberId]?.joinedAt ?? DateTime.now().toUtc(),
+          key: key,
+        );
+        await t.writeMember(card, appVersion: _appVersion);
+      }
+    } catch (e) {
+      _log.warning('Could not write member cards for $libraryId: $e');
+    }
+  }
+
+  Future<
+    ({
+      LibraryLocationCheck check,
+      LibraryCipher? opened,
+      SharedLibraryTransport transport,
+    })
+  >
+  _inspect({
     required String libraryId,
     required ConnectedAccount account,
     required String prefix,
@@ -172,7 +210,7 @@ class LibraryConnectionService {
         ? LibraryLocationVerdict.differentLibrary
         : null;
     if (early != null) {
-      return (check: verdict(early, found.name), opened: null);
+      return (check: verdict(early, found.name), opened: null, transport: t);
     }
     LibraryCipher? opened;
     if (found.encrypted) {
@@ -182,7 +220,11 @@ class LibraryConnectionService {
           : null;
       if (cipher == null) {
         if (secret == null) {
-          return (check: verdict(LibraryLocationVerdict.locked), opened: null);
+          return (
+            check: verdict(LibraryLocationVerdict.locked),
+            opened: null,
+            transport: t,
+          );
         }
         final slots = await t.readKeyslots();
         cipher = slots == null
@@ -196,15 +238,31 @@ class LibraryConnectionService {
         ..encrypting = true;
     }
     final name = found.name ?? await t.readName() ?? library.name;
+    // Current: the very roles this device trusts, or newer ones the sync
+    // would take. Older, missing, or signed by no owner it knows: a copy
+    // to warn about.
     final roles = await t.readRolesOrNull();
-    final trusted = library.roles.version;
-    final older = trusted > 0 && (roles == null || roles.version < trusted);
+    final trusted = library.roles;
+    final current =
+        trusted.version == 0 ||
+        (roles != null &&
+            (roles == trusted ||
+                (roles.version > trusted.version &&
+                    await judgeRoles(
+                          trusted: trusted,
+                          incoming: roles,
+                          libraryId: library.id,
+                        ) !=
+                        RolesVerdict.rejected)));
     return (
       check: verdict(
-        older ? LibraryLocationVerdict.olderCopy : LibraryLocationVerdict.same,
+        current
+            ? LibraryLocationVerdict.same
+            : LibraryLocationVerdict.olderCopy,
         name,
       ),
       opened: opened,
+      transport: t,
     );
   }
 }

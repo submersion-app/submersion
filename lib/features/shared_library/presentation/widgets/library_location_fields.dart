@@ -81,8 +81,8 @@ class LibraryLocationFields extends ConsumerStatefulWidget {
 
   final LibraryLocationController controller;
 
-  /// False while the caller is busy (checking, joining): the account form
-  /// waits.
+  /// False while the caller is busy (checking, joining): the location and
+  /// the account form wait.
   final bool enabled;
   final List<ConnectedAccount> accounts;
   final VoidCallback onEdited;
@@ -150,10 +150,12 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
                   child: Text(a.label, overflow: TextOverflow.ellipsis),
                 ),
             ],
-            onChanged: (a) {
-              _c.selectAccount(a);
-              widget.onEdited();
-            },
+            onChanged: widget.enabled
+                ? (a) {
+                    _c.selectAccount(a);
+                    widget.onEdited();
+                  }
+                : null,
           ),
         if (_c.addingAccount) ...[
           if (list.isNotEmpty) const SizedBox(height: 12),
@@ -164,7 +166,9 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
             child: TextButton.icon(
               icon: const Icon(Icons.add),
               label: Text(l10n.sharedLibrary_connect_addAccount),
-              onPressed: () => _c.setAddingAccount(true),
+              onPressed: widget.enabled
+                  ? () => _c.setAddingAccount(true)
+                  : null,
             ),
           ),
         if (_error != null) ...[
@@ -186,6 +190,9 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
         TextField(
           key: const Key('library-prefix'),
           controller: _c.prefix,
+          // A check running against this location must not find it
+          // changed under its result.
+          enabled: widget.enabled,
           decoration: InputDecoration(
             labelText: l10n.sharedLibrary_connect_prefix_label,
             helperText: l10n.sharedLibrary_connect_prefix_help,

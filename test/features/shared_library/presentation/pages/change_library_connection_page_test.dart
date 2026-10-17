@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -35,6 +37,9 @@ class _FakeConnection implements LibraryConnectionService {
   final checks = <({String account, String prefix, String? secret})>[];
   final repoints = <({String prefix, bool acceptOlder, String? secret})>[];
 
+  /// When set, a check waits for it.
+  Completer<void>? hold;
+
   @override
   Future<LibraryLocationCheck> check({
     required String libraryId,
@@ -44,6 +49,7 @@ class _FakeConnection implements LibraryConnectionService {
     String? secret,
   }) async {
     checks.add((account: account.id, prefix: prefix, secret: secret));
+    await hold?.future;
     return secret != null && unlocked != null ? unlocked! : next;
   }
 
@@ -266,6 +272,24 @@ void main() {
     await tester.tap(find.text('Save connection'));
     await tester.pumpAndSettle();
     expect(service.repoints.single.secret, 'pw');
+  });
+
+  testWidgets('the location cannot change while a check runs', (tester) async {
+    final service = _FakeConnection()..hold = Completer<void>();
+    await tester.pumpWidget(_app(service));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Check location'));
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byKey(const Key('library-prefix'))).enabled,
+      isFalse,
+    );
+    service.hold!.complete();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byKey(const Key('library-prefix'))).enabled,
+      isTrue,
+    );
   });
 
   testWidgets('editing the folder clears the result', (tester) async {

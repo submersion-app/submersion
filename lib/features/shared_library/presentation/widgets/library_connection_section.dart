@@ -20,9 +20,11 @@ class LibraryConnectionSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    // .value keeps the last details through a reload rather than blanking
+    // the tiles for a frame.
     final details = ref
         .watch(libraryConnectionDetailsProvider(library.id))
-        .valueOrNull;
+        .value;
     final account = details?.account;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
