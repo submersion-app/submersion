@@ -70,19 +70,20 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
     // optional detail pane.
     final viewMode = ref.watch(certificationListViewModeProvider);
     if (viewMode == ListViewMode.table) {
+      final countLabel = certificationListCountLabel(context, ref);
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'certifications',
           appBarTitle: context.l10n.nav_certifications,
-          appBarSubtitle: certificationListCountLabel(context, ref),
+          appBarSubtitle: countLabel,
           appBarTitleWidget: widget.headerTitle?.build(
             context,
             SectionHeaderSlot.table,
-            certificationListCountLabel(context, ref),
+            countLabel,
           ),
           appBarToolbarHeight: widget.headerTitle?.appBarHeight(
             context,
-            certificationListCountLabel(context, ref),
+            countLabel,
           ),
           tableContent: CertificationListContent(
             showAppBar: false,

@@ -145,37 +145,37 @@ void main() {
     expect(trainingTabForPath('/training'), isNull);
   });
 
-  test(
-    'no code pushes a Training list root except the Home attention chip',
-    () {
-      // Both list roots build their page under kTrainingHostPageKey. Pushing a
-      // root while a Training host is already on the stack would give the
-      // Navigator two pages with one key, which asserts in debug builds. The
-      // Home chip is safe: Home never sits above a Training host.
-      final rootPush = RegExp(
-        r'''push(?:<[^>]*>)?\(\s*'/(certifications|courses)(\?[^']*)?'\s*\)''',
-      );
-      final allowed = p.join(
-        'lib',
-        'features',
-        'certifications',
-        'presentation',
-        'certification_attention_navigation.dart',
-      );
-      final hits = <String>[];
-      for (final entity in Directory('lib').listSync(recursive: true)) {
-        if (entity is! File || !entity.path.endsWith('.dart')) continue;
-        if (rootPush.hasMatch(entity.readAsStringSync())) {
-          hits.add(p.normalize(entity.path));
-        }
+  test('no code pushes a Training list root except the Home attention chip', () {
+    // Both list roots build their page under kTrainingHostPageKey. Pushing a
+    // root while a Training host is already on the stack would give the
+    // Navigator two pages with one key, which asserts in debug builds. The
+    // Home chip is safe: Home never sits above a Training host.
+    // By path (push, pushReplacement, pushOrReturnTo) or by route name
+    // (pushNamed, pushReplacementNamed), with or without more arguments.
+    final rootPush = RegExp(
+      r'''(?:(?:push|pushReplacement|pushOrReturnTo)(?:<[^>]*>)?\(\s*'/(?:certifications|courses)(?:\?[^']*)?'\s*[,)])'''
+      r'''|(?:(?:pushNamed|pushReplacementNamed)(?:<[^>]*>)?\(\s*'(?:certifications|courses)'\s*[,)])''',
+    );
+    final allowed = p.join(
+      'lib',
+      'features',
+      'certifications',
+      'presentation',
+      'certification_attention_navigation.dart',
+    );
+    final hits = <String>[];
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      if (rootPush.hasMatch(entity.readAsStringSync())) {
+        hits.add(p.normalize(entity.path));
       }
-      expect(
-        hits,
-        [allowed],
-        reason:
-            'A push of a Training list root can stack a second page with '
-            'kTrainingHostPageKey. Use go() or goInPlace() instead.',
-      );
-    },
-  );
+    }
+    expect(
+      hits,
+      [allowed],
+      reason:
+          'A push of a Training list root can stack a second page with '
+          'kTrainingHostPageKey. Use go() or goInPlace() instead.',
+    );
+  });
 }

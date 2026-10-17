@@ -68,19 +68,20 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
     // optional detail pane.
     final viewMode = ref.watch(courseListViewModeProvider);
     if (viewMode == ListViewMode.table) {
+      final countLabel = courseListCountLabel(context, ref);
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'courses',
           appBarTitle: context.l10n.nav_courses,
-          appBarSubtitle: courseListCountLabel(context, ref),
+          appBarSubtitle: countLabel,
           appBarTitleWidget: widget.headerTitle?.build(
             context,
             SectionHeaderSlot.table,
-            courseListCountLabel(context, ref),
+            countLabel,
           ),
           appBarToolbarHeight: widget.headerTitle?.appBarHeight(
             context,
-            courseListCountLabel(context, ref),
+            countLabel,
           ),
           tableContent: CourseListContent(
             showAppBar: false,
