@@ -88,6 +88,22 @@ void main() {
     expect(find.text('3 · 30%'), findsOneWidget);
   });
 
+  testWidgets('both groups draw against all dives', (tester) async {
+    await pumpCard(
+      tester,
+      const TankConfigurationStats(
+        totalDives: 10,
+        baseCounts: {TankBaseConfiguration.sidemount: 10},
+        extraCounts: {TankConfigurationExtra.stages: 3},
+      ),
+    );
+
+    final charts = tester.widgetList<HorizontalCategoryBarChart>(
+      find.byType(HorizontalCategoryBarChart),
+    );
+    expect(charts.map((c) => c.scaleTo), [10, 10]);
+  });
+
   testWidgets('shows the note', (tester) async {
     await pumpCard(tester, tenDives);
 

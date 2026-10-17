@@ -54,6 +54,8 @@ void main() {
     String role, {
     double o2 = 21.0,
     String? computerId,
+    String? sourceId,
+    String? sharedComputerIds,
   }) async {
     await db
         .into(db.diveTanks)
@@ -65,6 +67,8 @@ void main() {
             o2Percent: Value(o2),
             tankOrder: Value(order),
             computerId: Value(computerId),
+            sourceId: Value(sourceId),
+            sharedComputerIds: Value(sharedComputerIds),
           ),
         );
   }
@@ -84,14 +88,15 @@ void main() {
 
   Future<void> insertSource(
     String diveId,
-    String computerId, {
+    String? computerId, {
     required bool primary,
+    String? id,
   }) async {
     await db
         .into(db.diveDataSources)
         .insert(
           DiveDataSourcesCompanion(
-            id: Value('$diveId-$computerId'),
+            id: Value(id ?? '$diveId-$computerId'),
             diveId: Value(diveId),
             computerId: Value(computerId),
             isPrimary: Value(primary),
@@ -205,6 +210,47 @@ void main() {
       // The second computer's copy of the same cylinder, left unmatched.
       await insertTank('merged', 1, 'backGas', computerId: 'c2');
       await insertTank('merged', 2, 'stage', o2: 50);
+
+      final stats = await repository.getTankConfigurationStats();
+
+      expect(stats.baseCounts, {TankBaseConfiguration.singleBackmount: 1});
+      expect(stats.extraCounts[TankConfigurationExtra.stages], 1);
+    },
+  );
+
+  test(
+    'keeps a cylinder shared with the primary after the primary changes',
+    () async {
+      await insertComputer('c1');
+      await insertComputer('c2');
+      await insertDive('promoted');
+      // Merged into c1's row, shared with c2, then c2 made primary.
+      await insertSource('promoted', 'c1', primary: false);
+      await insertSource('promoted', 'c2', primary: true);
+      await insertTank(
+        'promoted',
+        0,
+        'backGas',
+        computerId: 'c1',
+        sharedComputerIds: '["c2"]',
+      );
+
+      final stats = await repository.getTankConfigurationStats();
+
+      expect(stats.baseCounts, {TankBaseConfiguration.singleBackmount: 1});
+    },
+  );
+
+  test(
+    "with sources that name no computer, counts the primary source's copy",
+    () async {
+      await insertDive('files');
+      await insertSource('files', null, primary: true, id: 's1');
+      await insertSource('files', null, primary: false, id: 's2');
+      await insertTank('files', 0, 'backGas', sourceId: 's1');
+      // The second file's copy of the same cylinder, left unmatched.
+      await insertTank('files', 1, 'backGas', sourceId: 's2');
+      await insertTank('files', 2, 'stage', o2: 50);
 
       final stats = await repository.getTankConfigurationStats();
 

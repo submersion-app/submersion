@@ -17,7 +17,8 @@ const Set<TankRole> _rebreatherRoles = {
 };
 
 final RegExp _twinWord = RegExp('twin|double|doppel|manifold');
-final RegExp _twinCount = RegExp(r'2\s*[x×]\s*\d');
+// The 2 must start a number: "12x232" is a 12 L single by its pressure.
+final RegExp _twinCount = RegExp(r'(?<![0-9.,])2\s*[x×]\s*\d');
 final RegExp _twinDCode = RegExp(r'(?<![a-z0-9])d\d{1,2}(?![a-z0-9])');
 
 /// Whether [tank] looks like a twin set logged as one cylinder: its name or

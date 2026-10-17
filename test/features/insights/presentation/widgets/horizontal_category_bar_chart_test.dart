@@ -35,6 +35,26 @@ void main() {
     expect(factors, [1.0, 0.5]);
   });
 
+  // Issue #3421: shares of a whole draw against the whole, so a bar's
+  // length matches its printed percentage.
+  testWidgets('a scale draws bars against it instead of the largest', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const HorizontalCategoryBarChart(
+          data: [(label: 'Stage', count: 2)],
+          scaleTo: 200,
+        ),
+      ),
+    );
+
+    final factor = tester
+        .widget<FractionallySizedBox>(find.byType(FractionallySizedBox))
+        .widthFactor;
+    expect(factor, 0.01);
+  });
+
   testWidgets('rows keep the order they are given', (tester) async {
     await tester.pumpWidget(
       _wrap(

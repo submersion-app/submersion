@@ -16,6 +16,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     this.barColor,
     this.formatCount,
     this.countWidth = 40,
+    this.scaleTo,
   });
 
   final List<({String label, int count})> data;
@@ -28,6 +29,11 @@ class HorizontalCategoryBarChart extends StatelessWidget {
   /// The width of the column the count text is drawn in, kept equal on
   /// every row so the bars share one right edge.
   final double countWidth;
+
+  /// The count a full-width bar stands for; the largest count when null.
+  /// Shares of a whole pass the whole, so each bar's length matches its
+  /// share.
+  final int? scaleTo;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +64,8 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     }
 
     final color = barColor ?? theme.colorScheme.primary;
-    final maxCount = data.map((e) => e.count).reduce((a, b) => a > b ? a : b);
+    final maxCount =
+        scaleTo ?? data.map((e) => e.count).reduce((a, b) => a > b ? a : b);
 
     return Semantics(
       label: context.l10n.insights_chart_barSemanticLabel(data.length),

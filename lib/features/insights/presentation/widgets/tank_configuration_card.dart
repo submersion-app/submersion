@@ -95,6 +95,7 @@ class TankConfigurationCard extends ConsumerWidget {
           barColor: theme.colorScheme.primary,
           formatCount: countAndShare,
           countWidth: _countWidth,
+          scaleTo: stats.totalDives,
         ),
         if (extras.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -104,6 +105,7 @@ class TankConfigurationCard extends ConsumerWidget {
             barColor: theme.colorScheme.tertiary,
             formatCount: countAndShare,
             countWidth: _countWidth,
+            scaleTo: stats.totalDives,
           ),
         ],
         const SizedBox(height: 12),

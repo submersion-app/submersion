@@ -8,9 +8,9 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
   ///
   /// Uses the plain statistics scope, not the gas one: a dive whose gas data
   /// is excluded from SAC still carried the tanks it lists. On a dive
-  /// consolidated from several computers only the primary computer's
-  /// cylinders count, plus any with no computer (added by hand), so a
-  /// cylinder the merge could not match is not counted twice.
+  /// consolidated from several recordings only the primary recording's
+  /// cylinders count (see [_ownedByPrimary]), so a cylinder the merge could
+  /// not match is not counted twice.
   Future<TankConfigurationStats> getTankConfigurationStats({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -27,29 +27,22 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
       final diveRows = await _db.customSelect('''
         SELECT d.id, d.dive_mode,
           EXISTS (SELECT 1 FROM dive_profile_series s
-                  WHERE s.dive_id = d.id AND s.is_primary = 1) AS has_profile
+                  WHERE s.dive_id = d.id AND s.is_primary = 1) AS has_profile,
+          p.id AS primary_source_id, p.computer_id AS primary_computer_id
         FROM dives d
+        LEFT JOIN dive_data_sources p
+          ON p.id = (SELECT id FROM dive_data_sources
+                     WHERE dive_id = d.id AND is_primary = 1 LIMIT 1)
         WHERE 1=1 $diverFilter ${df.clause}
         ''', variables: variables).get();
 
       final tankRows = await _db.customSelect('''
         SELECT t.id, t.dive_id, t.tank_role, t.volume, t.start_pressure,
           t.end_pressure, t.o2_percent, t.he_percent, t.tank_order,
-          t.tank_name, t.preset_name
+          t.tank_name, t.preset_name, t.computer_id, t.shared_computer_ids,
+          t.source_id
         FROM dive_tanks t
         WHERE t.dive_id IN ($inScope)
-          AND (
-            t.computer_id IS NULL
-            OR NOT EXISTS (
-              SELECT 1 FROM dive_data_sources p
-              WHERE p.dive_id = t.dive_id AND p.is_primary = 1
-                AND p.computer_id IS NOT NULL
-            )
-            OR t.computer_id IN (
-              SELECT p.computer_id FROM dive_data_sources p
-              WHERE p.dive_id = t.dive_id AND p.is_primary = 1
-            )
-          )
         ORDER BY t.dive_id, t.tank_order
         ''', variables: variables).get();
 
@@ -75,6 +68,11 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
             ),
             role: _tankRoleByName(r.read<String>('tank_role')),
             order: r.read<int>('tank_order'),
+            computerId: r.read<String?>('computer_id'),
+            sharedComputerIds: decodeSharedComputerIds(
+              r.read<String?>('shared_computer_ids'),
+            ),
+            sourceId: r.read<String?>('source_id'),
           ),
         );
       }
@@ -90,7 +88,15 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
         for (final r in diveRows)
           TankConfigurationDive(
             diveMode: _diveModeByName(r.read<String>('dive_mode')),
-            tanks: tanksByDive[r.read<String>('id')] ?? const [],
+            tanks: [
+              for (final t in tanksByDive[r.read<String>('id')] ?? const [])
+                if (_ownedByPrimary(
+                  t,
+                  primarySourceId: r.read<String?>('primary_source_id'),
+                  primaryComputerId: r.read<String?>('primary_computer_id'),
+                ))
+                  t,
+            ],
             gasSwitches: switchesByDive[r.read<String>('id')] ?? const [],
             hasProfile: r.read<bool>('has_profile'),
           ),
@@ -104,6 +110,25 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
       rethrow;
     }
   }
+}
+
+/// Whether [tank] belongs to the dive's primary recording, the rule
+/// `tripCylinderIdsTakenFor` uses to tell one recording's cylinders from
+/// another's copies. With a primary computer, the tank is its own, shared
+/// with it by consolidation, or unattributed ([domain.DiveTank.isUsedBy]).
+/// With a primary source that names no computer (#2716), the tank names no
+/// computer and is that source's or the dive's own. With no primary source
+/// every tank counts.
+bool _ownedByPrimary(
+  domain.DiveTank tank, {
+  required String? primarySourceId,
+  required String? primaryComputerId,
+}) {
+  if (primarySourceId == null) return true;
+  if (primaryComputerId != null) return tank.isUsedBy(primaryComputerId);
+  final sourceId = tank.sourceId;
+  return tank.computerId == null &&
+      (sourceId == null || sourceId == primarySourceId);
 }
 
 /// A stored role, or back gas for a name this build does not know (a newer

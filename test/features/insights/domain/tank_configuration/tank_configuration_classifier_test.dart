@@ -160,6 +160,11 @@ void main() {
       'D',
       'D123',
       'ED12',
+      // Volume by pressure, the usual European single label.
+      'Steel 12x232',
+      'Faber 12x300',
+      '12 x 300',
+      '232x12',
     ]) {
       test('name "$name" is not a twin set', () {
         expect(looksLikeTwinSet(tank(TankRole.backGas, name: name)), isFalse);
