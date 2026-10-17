@@ -137,6 +137,39 @@ void main() {
       },
     );
 
+    test(
+      'keeps the saved dive away from another workout at its old time',
+      () async {
+        // Workout B really started at 14:30, the time workout A's dive was
+        // saved at before #2811. A's dive is A's, whatever the score says.
+        when(
+          matcher.calculateMatchScore(
+            wearableStartTime: anyNamed('wearableStartTime'),
+            wearableMaxDepth: anyNamed('wearableMaxDepth'),
+            wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+            existingStartTime: anyNamed('existingStartTime'),
+            existingMaxDepth: anyNamed('existingMaxDepth'),
+            existingDurationSeconds: anyNamed('existingDurationSeconds'),
+          ),
+        ).thenReturn(0.9);
+        final bundle = await reviewed(
+          [
+            _incoming(),
+            _incoming(
+              sourceId: 'healthkit-workout-2',
+              startTime: _instant,
+              startInstant: DateTime.utc(2026, 3, 15, 19, 30),
+            ),
+          ],
+          [_saved(start: _instant)],
+        );
+
+        final dives = bundle.groups[ImportEntityType.dives]!;
+        expect(dives.duplicateIndices, {0});
+        expect(dives.matchResults![1], isNull);
+      },
+    );
+
     test('corrects every saved copy of the workout', () async {
       final bundle = await reviewed(
         [_incoming()],

@@ -200,6 +200,17 @@ class HealthKitAdapter implements ImportSourceAdapter {
     final savedByWorkout = existingDives
         .where((dive) => dive.importSource == 'appleWatch')
         .groupListsBy((dive) => dive.importId);
+    // A saved dive another fetched workout claims is that workout's dive, and
+    // may be about to move, so the time-based pass never offers it to a
+    // different workout that happens to start at its old time.
+    final claimedIds = {
+      for (final imported in _parsedDives)
+        for (final saved in savedByWorkout[imported.sourceId] ?? const <Dive>[])
+          saved.id,
+    };
+    final unclaimedDives = existingDives
+        .where((dive) => !claimedIds.contains(dive.id))
+        .toList();
 
     for (var i = 0; i < _parsedDives.length; i++) {
       final imported = _parsedDives[i];
@@ -237,7 +248,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
       DiveMatchResult? bestMatch;
 
-      for (final existing in existingDives) {
+      for (final existing in unclaimedDives) {
         final existingSeconds = _diveSeconds(existing);
         final score = _diveMatcher.calculateMatchScore(
           wearableStartTime: imported.startTime,
