@@ -266,6 +266,25 @@ void main() {
     expect(find.text('abc'), findsOneWidget);
   });
 
+  testWidgets('a tab keeps its text across a resize past the breakpoint', (
+    tester,
+  ) async {
+    await _pump(tester, size: const Size(1200, 800));
+    await tester.enterText(
+      find.byKey(const ValueKey('field-certifications')),
+      'abc',
+    );
+
+    // Desktop's in-place stack to the phone's sliding pages and back.
+    tester.view.physicalSize = const Size(400, 800);
+    await tester.pumpAndSettle();
+    expect(find.text('abc'), findsOneWidget);
+
+    tester.view.physicalSize = const Size(1200, 800);
+    await tester.pumpAndSettle();
+    expect(find.text('abc'), findsOneWidget);
+  });
+
   testWidgets('an address change from outside selects its tab', (tester) async {
     final router = await _pump(tester);
 
