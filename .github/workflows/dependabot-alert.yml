@@ -26,6 +26,9 @@ permissions:
 jobs:
   alert:
     name: Alert on failed Dependabot runs
+    # A fork with Actions enabled has no Dependabot history of its own to
+    # report, and must not open issues or page the maintainer.
+    if: github.repository == 'submersion-app/submersion'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
