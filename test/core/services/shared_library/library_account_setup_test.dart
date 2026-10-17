@@ -81,6 +81,24 @@ void main() {
     expect(account.label, 'ann @ dav.example.com (submersion-sites/site-sync)');
   });
 
+  test('webdavServer reads the stored server url', () async {
+    final account = await setup.saveWebDav(
+      WebDavConfig(
+        serverUrl: 'https://dav.example.com/remote.php/dav/files/ann',
+        username: 'ann',
+        password: 'pw',
+      ),
+      folder: 'site-sync',
+    );
+    expect(
+      await setup.webdavServer(account.id),
+      'https://dav.example.com/remote.php/dav/files/ann',
+    );
+    expect(await setup.webdavServer('missing'), isNull);
+    await credentials.write('broken', 'not json');
+    expect(await setup.webdavServer('broken'), isNull);
+  });
+
   test('two libraries on one bucket keep separate keys', () async {
     final a = await setup.saveS3(s3(key: 'AKIAONE'), folder: 'reef');
     final b = await setup.saveS3(s3(key: 'AKIATWO'), folder: 'wrecks');

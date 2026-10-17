@@ -8,7 +8,6 @@ import 'package:submersion/core/services/shared_library/shared_library_membershi
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
-import 'package:submersion/core/services/shared_library/shared_site_models.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -23,13 +22,6 @@ void main() {
   late SharedLibraryStore store;
   late LibraryConnectionService service;
   late SharedLibraryRoles roles;
-  final oldAccount = ConnectedAccount(
-    id: 'acc',
-    kind: AccountKind.s3,
-    label: 'Survey bucket',
-    createdAt: DateTime.utc(2026),
-    updatedAt: DateTime.utc(2026),
-  );
   final newAccount = ConnectedAccount(
     id: 'acc2',
     kind: AccountKind.webdav,

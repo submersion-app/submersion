@@ -59,6 +59,21 @@ class LibraryAccountSetup {
     }
   }
 
+  /// The server address the stored settings of the WebDAV account
+  /// [accountId] name, or null when they hold none (issue #3389).
+  Future<String?> webdavServer(String accountId) async {
+    try {
+      final json = await _credentials.read(accountId);
+      if (json == null) return null;
+      final decoded = jsonDecode(json);
+      if (decoded is! Map<String, dynamic>) return null;
+      final url = WebDavConfig.fromJson(decoded).serverUrl.trim();
+      return url.isEmpty ? null : url;
+    } on Object {
+      return null;
+    }
+  }
+
   Future<domain.ConnectedAccount> saveS3(
     S3Config server, {
     required String folder,
