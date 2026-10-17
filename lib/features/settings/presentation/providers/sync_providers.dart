@@ -43,6 +43,7 @@ import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/library_moved_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
+import 'package:submersion/core/services/sync/sync_failure_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
@@ -57,6 +58,7 @@ import 'package:submersion/features/gps_log/presentation/providers/gps_log_provi
 import 'package:submersion/features/media/presentation/providers/gallery_cloud_id_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -192,6 +194,35 @@ final libraryMovedStoreProvider = Provider<LibraryMovedStore>((ref) {
 final postRestoreSyncStoreProvider = Provider<PostRestoreSyncStore>((ref) {
   return PostRestoreSyncStore(ref.watch(sharedPreferencesProvider));
 });
+
+/// The last failed sync attempt, persisted for Settings > Data health.
+final syncFailureStoreProvider = Provider<SyncFailureStore>((ref) {
+  return SyncFailureStore(ref.watch(sharedPreferencesProvider));
+});
+
+/// Live view of [SyncFailureStore]: what the health model reads, updated
+/// by the sync notifier as each attempt ends (issues #3390, #3394).
+class SyncFailureNotifier extends StateNotifier<SyncFailureRecord?> {
+  SyncFailureNotifier(this._store) : super(_store.last);
+
+  final SyncFailureStore _store;
+
+  Future<void> record(SyncFailureRecord failure) async {
+    await _store.record(failure);
+    if (mounted) state = failure;
+  }
+
+  Future<void> clear() async {
+    if (state == null && _store.last == null) return;
+    await _store.clear();
+    if (mounted) state = null;
+  }
+}
+
+final syncFailureProvider =
+    StateNotifierProvider<SyncFailureNotifier, SyncFailureRecord?>((ref) {
+      return SyncFailureNotifier(ref.watch(syncFailureStoreProvider));
+    });
 
 /// Providers this install has successfully synced to (survives restore).
 final establishedProviderStoreProvider = Provider<EstablishedProviderStore>((
@@ -1431,6 +1462,23 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   /// One sync, run inside [performSync]'s single flight. True when it
   /// completed successfully (with or without conflicts).
+  /// Remembers a failed attempt against the active backend for Settings >
+  /// Data health, which must still show it after a restart.
+  Future<void> _recordSyncFailure(SyncFailureKind kind, String message) async {
+    final providerId = _ref.read(cloudStorageProviderProvider)?.providerId;
+    if (providerId == null) return;
+    await _ref
+        .read(syncFailureProvider.notifier)
+        .record(
+          SyncFailureRecord(
+            providerId: providerId,
+            at: DateTime.now(),
+            kind: kind,
+            message: message,
+          ),
+        );
+  }
+
   Future<bool> _runSyncOnce({required bool auto}) async {
     // Entered from the coordinator's queue, so the notifier may have been
     // disposed while another merge held the gate.
@@ -1544,6 +1592,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
       if (result.isSuccess) {
         succeeded = true;
+        await _ref.read(syncFailureProvider.notifier).clear();
+        if (!mounted) return false;
         final defaultMessage = result.conflictsFound > 0
             ? _l10n.settings_cloudSync_message_completedWithConflicts
             : _l10n.settings_cloudSync_message_completedSuccessfully;
@@ -1636,23 +1686,34 @@ class SyncNotifier extends StateNotifier<SyncState> {
         // in this sync waits on it. Contains its own failures.
         unawaited(_ref.read(equipmentFileConversionProvider)());
       } else {
+        final message =
+            result.message ?? _l10n.settings_cloudSync_message_syncFailed;
         state = state.copyWith(
           status: SyncStatus.error,
-          message:
-              result.message ?? _l10n.settings_cloudSync_message_syncFailed,
+          message: message,
           progress: null,
         );
+        await _recordSyncFailure(
+          result.status == SyncResultStatus.networkError
+              ? SyncFailureKind.network
+              : SyncFailureKind.other,
+          message,
+        );
+        if (!mounted) return false;
       }
     } catch (e) {
       if (!mounted) return false;
       final l10n = _l10n;
       final phase =
           state.message ?? l10n.settings_cloudSync_message_phaseDefault;
+      final message = l10n.settings_cloudSync_message_syncErrorDuring(phase, e);
       state = state.copyWith(
         status: SyncStatus.error,
-        message: l10n.settings_cloudSync_message_syncErrorDuring(phase, e),
+        message: message,
         progress: null,
       );
+      await _recordSyncFailure(SyncFailureKind.other, message);
+      if (!mounted) return false;
     }
 
     // Refresh state after a brief delay so status is readable.
