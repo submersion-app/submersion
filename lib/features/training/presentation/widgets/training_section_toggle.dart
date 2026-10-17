@@ -48,8 +48,8 @@ class TrainingSectionToggle extends StatelessWidget {
 /// `_kMaxTitleTextScaleFactor`), which the switch and count both sit in.
 const double _appBarTitleMaxTextScale = 1.34;
 
-/// The phone title at 18px, a step under the usual 22px app bar title, as
-/// Equipment's switch uses.
+/// The toolbar title at 18px, a step under the usual 22px app bar title, as
+/// Equipment's phone switch uses.
 TextStyle _phoneTitleStyle(BuildContext context) =>
     (Theme.of(context).textTheme.titleMedium ?? const TextStyle()).copyWith(
       fontSize: 18,
@@ -122,23 +122,22 @@ class _TrainingHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // The phone app bar and the table header are both standard toolbars,
+    // which clip a title taller than they are, so both take the compact
+    // switch and the 18px names that leave the count line room under it.
+    final inToolbar = slot != SectionHeaderSlot.pane;
     final toggle = TrainingSectionToggle(
       controller: controller,
       tab: tab,
-      tabHeight: slot == SectionHeaderSlot.appBar
+      tabHeight: inToolbar
           ? SectionTitleToggle.compactTabHeight
           : SectionTitleToggle.defaultTabHeight,
     );
-    final style = switch (slot) {
-      SectionHeaderSlot.appBar => _phoneTitleStyle(context),
-      SectionHeaderSlot.pane => _paneTitleStyle(context),
-      // The table header's own title style, which the app bar supplies.
-      SectionHeaderSlot.table => null,
-    };
+    final style = inToolbar
+        ? _phoneTitleStyle(context)
+        : _paneTitleStyle(context);
     return TitleWithSubtitle(
-      title: style == null
-          ? toggle
-          : DefaultTextStyle.merge(style: style, child: toggle),
+      title: DefaultTextStyle.merge(style: style, child: toggle),
       subtitle: subtitle,
       subtitleIndent: SectionTitleToggle.textInset(
         withAccentIcon: SectionTitleToggle.showsAccentIcon(

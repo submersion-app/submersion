@@ -8,6 +8,7 @@ import 'package:submersion/core/router/training_locations.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_summary_widget.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/features/training/presentation/pages/training_page.da
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/models/list_entry_count.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -85,6 +87,7 @@ void main() {
     required String initialLocation,
     required Size size,
     ListViewMode viewMode = ListViewMode.detailed,
+    List<Override> extraOverrides = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -125,6 +128,7 @@ void main() {
           certificationsForCourseProvider.overrideWith(
             (ref, id) async => const [],
           ),
+          ...extraOverrides,
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -166,6 +170,37 @@ void main() {
       expect(toggle, findsOneWidget);
     });
   }
+
+  testWidgets('table mode: the switch and its count fit the table header', (
+    tester,
+  ) async {
+    final original = FlutterError.onError;
+    FlutterError.onError = (details) {
+      if (details.toString().contains('overflowed')) return;
+      original?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = original);
+
+    await pumpTraining(
+      tester,
+      initialLocation: '/certifications',
+      size: const Size(1200, 800),
+      viewMode: ListViewMode.table,
+      extraOverrides: [
+        certificationListCountProvider.overrideWithValue(
+          const ListEntryCount.unfiltered(4),
+        ),
+      ],
+    );
+
+    // The table header is a standard toolbar, which clips a taller title:
+    // the count line under the switch lost its lower half to the table.
+    final count = tester.getRect(find.text('4 certifications'));
+    final bar = tester.getRect(
+      find.ancestor(of: toggle, matching: find.byType(AppBar)).first,
+    );
+    expect(count.bottom, lessThanOrEqualTo(bar.bottom));
+  });
 
   testWidgets('desktop: a link straight to a course opens the Courses tab on '
       'it, and Certifications opens on its own summary', (tester) async {
