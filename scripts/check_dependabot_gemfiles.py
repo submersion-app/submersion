@@ -25,7 +25,7 @@ import re
 import subprocess
 import sys
 
-_CALL_RE = re.compile(r"^\s*eval_gemfile\b(?P<rest>.*)$")
+_CALL_RE = re.compile(r"(?<![\w.])eval_gemfile\b(?P<rest>.*)$")
 _LITERAL_RE = re.compile(
     r"""^\s*\(?\s*(?P<q>['"])(?P<path>[^'"]*)(?P=q)\s*\)?\s*$"""
 )
@@ -41,7 +41,9 @@ def problems(gemfile):
     base = os.path.dirname(gemfile)
     with open(gemfile, encoding="utf-8") as fh:
         for number, line in enumerate(fh, start=1):
-            match = _CALL_RE.match(line)
+            if line.lstrip().startswith("#"):
+                continue
+            match = _CALL_RE.search(line)
             if not match:
                 continue
             literal = _LITERAL_RE.match(match.group("rest"))

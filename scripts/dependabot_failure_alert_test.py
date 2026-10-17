@@ -96,12 +96,10 @@ class FakeGh:
 
     def __call__(self, args):
         self.calls.append(list(args))
+        # An api path's query string is not part of what it matches on.
+        bare = [a.split("?", 1)[0] if a.startswith("repos/") else a for a in args]
         for prefix in sorted(self.responses, key=len, reverse=True):
-            joined = list(args[: len(prefix)])
-            # The runs path carries a query string; match on its path.
-            if joined and len(prefix) == 4 and "?" in joined[-1]:
-                joined[-1] = joined[-1].split("?", 1)[0]
-            if tuple(joined) == prefix:
+            if tuple(bare[: len(prefix)]) == prefix:
                 answer = self.responses[prefix]
                 if isinstance(answer, Exception):
                     raise answer
@@ -239,6 +237,13 @@ class RunTest(unittest.TestCase):
         (listing,) = [c for c in gh.commands("api") if "/runs" in c[-1]]
         self.assertIn("status=completed", listing[-1])
         self.assertIn("created=%3E%3D2026-09-12", listing[-1])
+
+    def test_no_runs_at_all_fails_rather_than_closing_the_alert(self):
+        # Dependabot that stopped running is not "every stream green".
+        gh = FakeGh(runs=[], open_issues=[OPEN_ALERT])
+        with self.assertRaises(RuntimeError):
+            _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "close"), [])
 
     def test_a_missing_dependabot_workflow_fails(self):
         gh = FakeGh(

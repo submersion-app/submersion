@@ -87,6 +87,11 @@ class ProblemsTest(unittest.TestCase):
         )
         self.assertEqual(len(found), 1)
 
+    def test_a_call_later_in_the_line_is_checked(self):
+        found = self.problems("x = 1; eval_gemfile(plugins_path)\n")
+        self.assertEqual(len(found), 1)
+        self.assertIn("string literal", found[0][1])
+
     def test_comments_are_ignored(self):
         self.assertEqual(self.problems("# eval_gemfile(plugins_path)\n"), [])
 

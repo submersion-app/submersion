@@ -233,7 +233,15 @@ def resolve_alert(gh, ctx):
 
 def run(ctx, gh=gh_cli, now=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    failing = failing_streams(_runs(gh, ctx["repo"], now), now)
+    runs = _runs(gh, ctx["repo"], now)
+    if not runs:
+        # pub and github_actions update weekly, so an empty window means
+        # Dependabot stopped running (a broken dependabot.yml, say). Failing
+        # the job beats closing the alert as though every stream were green.
+        raise RuntimeError(
+            f"no completed Dependabot run in the last {LOOKBACK_DAYS} days"
+        )
+    failing = failing_streams(runs, now)
     if failing:
         raise_alert(gh, ctx, failing)
     else:
