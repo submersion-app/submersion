@@ -8,9 +8,11 @@ import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 void main() {
   group('FeatureAccentColors', () {
     test('every routable nav destination has an entry in both palettes', () {
+      // By accentId, the key the nav colours each icon with: Training wears
+      // the Certifications accent (#3437).
       final routableIds = kNavDestinations
           .where((d) => d.id != 'more')
-          .map((d) => d.id);
+          .map((d) => d.accentId);
       for (final id in routableIds) {
         expect(
           FeatureAccentColors.light.of(id),
@@ -116,7 +118,7 @@ void main() {
     // always carry a text label; changing them would alter existing UI.
     final featureIds = kNavDestinations
         .where((d) => d.id != 'more')
-        .map((d) => d.id);
+        .map((d) => d.accentId);
 
     test('light accents clear 3:1 against the light surface', () {
       for (final id in featureIds) {
