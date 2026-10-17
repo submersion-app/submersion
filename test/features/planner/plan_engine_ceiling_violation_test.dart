@@ -228,7 +228,10 @@ void main() {
       final repetitive = engine.compute(_plan(segments), startState: seeded);
 
       expect(_ceilingIssues(fresh), isEmpty);
-      expect(_ceilingIssues(repetitive), isNotEmpty);
+      // Only the ascent is to blame. The diver starts this dive already
+      // under a ceiling, but a descent takes them deeper and no edit to it
+      // could clear the breach.
+      expect(_ceilingIssues(repetitive).map((i) => i.segmentId), ['ascent']);
     });
 
     test('the breach check does not change the chart sampling', () {

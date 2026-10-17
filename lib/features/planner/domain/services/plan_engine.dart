@@ -612,10 +612,13 @@ class PlanEngine {
   /// starts from, so a repetitive dive's residual loading shows on the chart
   /// just as it does in the stops.
   ///
-  /// [breaches] holds, per authored leg, the sample where the diver was
-  /// furthest above the ceiling: the deepest ceiling they were shallower than
-  /// (#3354). Only authored legs are checked; the computed stops respect the
-  /// ceiling by construction.
+  /// [breaches] holds, per authored segment, the sample with the deepest
+  /// ceiling the diver was shallower than (#3354): the depth the plan needed
+  /// them to stay at. Only authored legs that hold depth or go shallower are
+  /// checked. The computed stops respect the ceiling by construction, and a
+  /// descent only takes the diver deeper: when one starts above the ceiling
+  /// (a repetitive dive begun while still owing deco), no edit to it could
+  /// clear the breach.
   ({List<(int, double)> trace, Iterable<_CeilingBreach> breaches})
   _ceilingTrace(
     DecoModel model,
@@ -716,7 +719,9 @@ class PlanEngine {
         leg.endDepth,
         leg.durationSeconds,
         (depth) => _breathingFor(plan, segment.gasMix, depth, segment: segment),
-        authoredSegmentId: _authoredSegmentId(segment.id),
+        authoredSegmentId: leg.endDepth > leg.startDepth
+            ? null
+            : _authoredSegmentId(segment.id),
       );
     }
 
