@@ -109,6 +109,21 @@ void main() {
     expect(find.text('About'), findsNothing);
   });
 
+  testWidgets('a long description is clipped on the page', (tester) async {
+    final long = 'Reef ' * 400;
+    await tester.pumpWidget(
+      _app(
+        _FakeDetails(),
+        SharedLibraryRole.reader,
+        library: _library.copyWith(description: long),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final text = tester.widget<Text>(find.text(long));
+    expect(text.maxLines, LibraryAboutSection.descriptionLines);
+    expect(text.overflow, TextOverflow.ellipsis);
+  });
+
   testWidgets('an empty name blocks saving', (tester) async {
     final details = _FakeDetails();
     await tester.pumpWidget(_app(details, SharedLibraryRole.owner));

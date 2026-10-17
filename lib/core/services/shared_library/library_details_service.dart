@@ -9,6 +9,13 @@ class NotLibraryOwnerError extends StateError {
     : super('only an owner may change the details of $libraryId');
 }
 
+/// This device holds its writes back (roles it refused, an ownership reset
+/// waiting for an answer, or storage that only reads): the details wait too.
+class LibraryWritesHeldError extends StateError {
+  LibraryWritesHeldError(String libraryId)
+    : super('writes to $libraryId are held on this device');
+}
+
 /// An owner's edit of a library's name and description (issue #3389),
 /// written to the folder's `info.json`, where every member's next sync
 /// reads it. The file is not signed (any member whose storage keys can
@@ -55,6 +62,7 @@ class LibraryDetailsService {
         library.roles.roleOf(membership.memberId) != SharedLibraryRole.owner) {
       throw NotLibraryOwnerError(libraryId);
     }
+    if (library.writesHeld) throw LibraryWritesHeldError(libraryId);
     final t = await _transportFor(library);
     // Keys this version does not know are kept for the versions that do;
     // a file no one can read (any member's storage keys may write it) is

@@ -4,7 +4,7 @@ import 'package:submersion/core/database/database.dart' hide ConnectedAccount;
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
-import 'package:submersion/core/services/shared_library/shared_library_membership_errors.dart';
+import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -160,38 +160,24 @@ class LibraryConnectionService {
     final library = await _store.getLibrary(libraryId);
     if (library == null) throw StateError('library $libraryId not connected');
     final t = await _transportFor(account: account, prefix: prefix);
-    final manifest = await t.readManifest();
-    if (manifest == null) {
-      return (check: verdict(LibraryLocationVerdict.noLibrary), opened: null);
-    }
-    final version = (manifest['formatVersion'] as num?)?.toInt() ?? 1;
-    if (version < SharedLibraryLayout.minFormatVersion) {
-      return (check: verdict(LibraryLocationVerdict.retired), opened: null);
-    }
-    if (version > SharedLibraryLayout.formatVersion) {
-      return (
-        check: verdict(LibraryLocationVerdict.needsNewerApp),
-        opened: null,
-      );
-    }
-    final encrypted = manifest['encrypted'] == true;
-    if (manifest['id'] != library.id) {
-      final name = encrypted
-          ? null
-          : await t.readName() ??
-                switch (manifest['name']) {
-                  final String n => n,
-                  _ => null,
-                };
-      return (
-        check: verdict(LibraryLocationVerdict.differentLibrary, name),
-        opened: null,
-      );
+    // Read as the connect page reads a folder, so both judge it alike.
+    final found = await SharedLibraryMembershipService.probeWith(t);
+    final early = !found.exists
+        ? LibraryLocationVerdict.noLibrary
+        : found.retired
+        ? LibraryLocationVerdict.retired
+        : found.needsNewerApp
+        ? LibraryLocationVerdict.needsNewerApp
+        : found.id != library.id
+        ? LibraryLocationVerdict.differentLibrary
+        : null;
+    if (early != null) {
+      return (check: verdict(early, found.name), opened: null);
     }
     LibraryCipher? opened;
-    if (encrypted) {
-      final keyId = manifest['keyId'];
-      var cipher = keyId is String
+    if (found.encrypted) {
+      final keyId = found.keyId;
+      var cipher = keyId != null
           ? await _store.libraryCipherFor(library.id, keyId: keyId)
           : null;
       if (cipher == null) {
@@ -209,7 +195,7 @@ class LibraryConnectionService {
         ..cipher = cipher
         ..encrypting = true;
     }
-    final name = await t.readName() ?? library.name;
+    final name = found.name ?? await t.readName() ?? library.name;
     final roles = await t.readRolesOrNull();
     final trusted = library.roles.version;
     final older = trusted > 0 && (roles == null || roles.version < trusted);

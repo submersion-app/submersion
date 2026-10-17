@@ -147,6 +147,19 @@ void main() {
     expect((await t.readInfo())!['name'], 'Reef Survey');
   });
 
+  test('an owner whose writes are held is refused', () async {
+    // An ownership reset waits for this member's answer.
+    await store.setLibraryStatus(
+      lib.id,
+      pendingRoles: const SharedLibraryRoles(owners: {'x'}),
+    );
+    await expectLater(
+      details.save(libraryId: lib.id, diverId: 'd1', name: 'Held'),
+      throwsA(isA<LibraryWritesHeldError>()),
+    );
+    expect((await t.readInfo())!['name'], 'Reef Survey');
+  });
+
   test('an owner repairs an unreadable info.json', () async {
     // Any member whose keys can write the folder can break it.
     cloud.seedFile(

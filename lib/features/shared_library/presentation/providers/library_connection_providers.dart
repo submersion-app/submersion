@@ -52,15 +52,21 @@ final libraryConnectionDetailsProvider = FutureProvider.autoDispose
     .family<LibraryConnectionDetails?, String>((ref, libraryId) async {
       final accounts = ref.watch(connectedAccountsRepositoryProvider);
       ref.invalidateSelfWhen(accounts.watchAccountsChanges());
-      final library = (await ref.watch(
-        sharedLibrariesProvider.future,
-      )).firstWhereOrNull((l) => l.id == libraryId);
-      if (library == null) return null;
-      final account = await accounts.getById(library.connectedAccountId);
+      // Only the account and folder: a sync rewrites the row every run.
+      final where = await ref.watch(
+        sharedLibrariesProvider.selectAsync((libraries) {
+          final l = libraries.firstWhereOrNull((l) => l.id == libraryId);
+          return l == null
+              ? null
+              : (accountId: l.connectedAccountId, prefix: l.prefix);
+        }),
+      );
+      if (where == null) return null;
+      final account = await accounts.getById(where.accountId);
       final setup = ref.watch(libraryAccountSetupProvider);
       return LibraryConnectionDetails(
         account: account,
-        prefix: library.prefix,
+        prefix: where.prefix,
         bucket: account?.kind == AccountKind.s3
             ? await setup.s3Bucket(account!.id)
             : null,

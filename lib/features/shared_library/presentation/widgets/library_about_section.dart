@@ -21,6 +21,10 @@ class LibraryAboutSection extends ConsumerWidget {
   final SharedLibraryRole role;
   final SharedLibraryMembership? membership;
 
+  /// Lines of the description shown on the page: any member's storage keys
+  /// can write it, so a long one never floods the page.
+  static const descriptionLines = 4;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final me = membership;
@@ -30,7 +34,13 @@ class LibraryAboutSection extends ConsumerWidget {
     return ListTile(
       leading: const Icon(Icons.info_outline),
       title: Text(context.l10n.sharedLibrary_about_title),
-      subtitle: description == null ? null : Text(description),
+      subtitle: description == null
+          ? null
+          : Text(
+              description,
+              maxLines: descriptionLines,
+              overflow: TextOverflow.ellipsis,
+            ),
       trailing: owner ? const Icon(Icons.edit_outlined) : null,
       onTap: owner ? () => _edit(context, ref, me) : null,
     );
