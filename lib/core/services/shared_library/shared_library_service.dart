@@ -10,6 +10,7 @@ import 'package:submersion/core/services/shared_library/crypto/field_signatures.
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
+import 'package:submersion/core/services/shared_library/library_details_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -213,14 +214,11 @@ class SharedLibraryService {
       // every file has been rewritten plain.
       if (!encrypted && !rewriting) await _dropLibraryKeys(libraryId);
       final members = await t.listMembers();
-      await _store.setLibraryStatus(
+      await applyReadDetails(
+        _store,
         libraryId,
-        name:
-            await t.readName() ??
-            switch (manifest['name']) {
-              final String n => n,
-              _ => null,
-            },
+        await t.readDetails(),
+        manifest,
       );
       await _store.replaceMembers(libraryId, members);
       // Probed afresh every sync: a refused upload sets it, so upgraded

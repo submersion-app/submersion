@@ -12,9 +12,13 @@ class LibraryProbe {
     this.formatVersion = SharedLibraryLayout.formatVersion,
     this.encrypted = false,
     this.keyId,
+    this.description,
   });
 
   final bool exists;
+
+  /// From `info.json`; null for an encrypted library until it is unlocked.
+  final String? description;
   final String? id;
 
   /// Null for an encrypted library until it is unlocked.

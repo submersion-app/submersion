@@ -96,6 +96,27 @@ void main() {
     );
   });
 
+  test('probe reads the description from info.json', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'site-sync',
+      name: 'Reef Survey',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    expect(
+      (await service.probe(account: account, prefix: 'site-sync')).description,
+      isNull,
+    );
+    await SharedLibraryTransport(
+      cloud,
+      prefix: 'site-sync',
+    ).writeInfo({'name': 'Reef Survey', 'description': 'Club sites'});
+    final probe = await service.probe(account: account, prefix: 'site-sync');
+    expect(probe.id, lib.id);
+    expect(probe.description, 'Club sites');
+  });
+
   test('join refuses a prefix with no library or a newer format', () async {
     expect(
       () => service.join(

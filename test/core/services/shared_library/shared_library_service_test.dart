@@ -338,6 +338,29 @@ void main() {
     );
   });
 
+  test('sync picks up a renamed library and its description', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud);
+    final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
+    final svc = await device(cloud, 'a');
+    await svc.sync('L', diverId: 'd-a');
+    // An owner on another device renames the library and describes it.
+    await t.writeInfo({'name': 'Club Sites', 'description': 'Our dives'});
+    await svc.sync('L', diverId: 'd-a');
+    var lib = (await SharedLibraryStore().getLibrary('L'))!;
+    expect(lib.name, 'Club Sites');
+    expect(lib.description, 'Our dives');
+    final ms = await SharedLibraryStore().membership(
+      diverId: 'd-a',
+      libraryId: 'L',
+    );
+    expect(ms!.libraryName, 'Club Sites');
+    await t.writeInfo({'name': 'Club Sites'});
+    await svc.sync('L', diverId: 'd-a');
+    lib = (await SharedLibraryStore().getLibrary('L'))!;
+    expect(lib.description, isNull);
+  });
+
   test('roles and members are cached; ghost ids survive', () async {
     final cloud = FakeCloudStorageProvider();
     await seedLibrary(cloud, owners: {'a', 'ghost'});

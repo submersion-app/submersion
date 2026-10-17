@@ -382,10 +382,21 @@ class SharedLibraryTransport {
   /// The library's name from `info.json`, or null when it has none this
   /// device can read: a file any member's storage key may write never
   /// stops a probe, a join or a sync.
-  Future<String?> readName() async {
+  Future<String?> readName() async => (await readDetails())?.name;
+
+  /// The name and description `info.json` holds, in one read; null when it
+  /// names no library this device can read, as for [readName].
+  Future<({String name, String? description})?> readDetails() async {
     try {
-      return switch ((await readInfo())?['name']) {
-        final String name => name,
+      final info = await readInfo();
+      return switch (info?['name']) {
+        final String name => (
+          name: name,
+          description: switch (info?['description']) {
+            final String d when d.trim().isNotEmpty => d,
+            _ => null,
+          },
+        ),
         _ => null,
       };
     } catch (e) {

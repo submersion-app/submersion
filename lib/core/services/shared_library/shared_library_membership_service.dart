@@ -146,13 +146,15 @@ class SharedLibraryMembershipService with _MembershipOwnership {
     final found = await _probeWith(t);
     if (!found.encrypted) return found;
     await _unlock(t, secret);
+    final details = await t.readDetails();
     return LibraryProbe(
       exists: true,
       id: found.id,
-      name: await t.readName(),
+      name: details?.name,
       formatVersion: found.formatVersion,
       encrypted: true,
       keyId: found.keyId,
+      description: details?.description,
     );
   }
 
@@ -196,8 +198,11 @@ class SharedLibraryMembershipService with _MembershipOwnership {
       final String n => n,
       _ => null,
     };
+    String? description;
     if (version >= SharedLibraryLayout.minFormatVersion && !encrypted) {
-      name = await t.readName() ?? name;
+      final details = await t.readDetails();
+      name = details?.name ?? name;
+      description = details?.description;
     }
     return LibraryProbe(
       exists: true,
@@ -206,6 +211,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
       formatVersion: version,
       encrypted: encrypted,
       keyId: keyId is String ? keyId : null,
+      description: description,
     );
   }
 
