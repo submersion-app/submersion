@@ -50,6 +50,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     WidgetRef? ref,
     AppSettings settings = const AppSettings(),
     String displayName = 'HealthKit Import',
+    ChecklistDiveLinker? checklistLinker,
   }) : _healthService = healthService,
        _diveMatcher = diveMatcher,
        _converter = converter,
@@ -57,7 +58,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
        _diverId = diverId,
        _ref = ref,
        _settings = settings,
-       _displayName = displayName;
+       _displayName = displayName,
+       _checklistLinker = checklistLinker;
 
   final HealthImportService _healthService;
   final DiveMatcher _diveMatcher;
@@ -67,6 +69,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
   final WidgetRef? _ref;
   final AppSettings _settings;
   final String _displayName;
+  final ChecklistDiveLinker? _checklistLinker;
 
   List<ImportedDive> _parsedDives = [];
 
@@ -75,8 +78,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
   /// Saved dives found by [checkDuplicates] still holding the instant the
   /// import saved before #2811, by dive id, with the shift to their wall
-  /// clock. [performImport] applies them (issue #2812).
-  Map<String, Duration> _timeCorrections = const {};
+  /// clock and the start it moves to. [performImport] applies them (issue
+  /// #2812).
+  Map<String, ({Duration shift, DateTime correctedStart})> _timeCorrections =
+      const {};
 
   /// Load the list of fetched [ImportedDive]s into this adapter, with the
   /// date [range] they were fetched for.
@@ -190,7 +195,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
     final duplicateIndices = <int>{};
     final matchResults = <int, DiveMatchResult>{};
-    final timeCorrections = <String, Duration>{};
+    final timeCorrections =
+        <String, ({Duration shift, DateTime correctedStart})>{};
     final savedByWorkout = existingDives
         .where((dive) => dive.importSource == 'appleWatch')
         .groupListsBy((dive) => dive.importId);
@@ -208,7 +214,12 @@ class HealthKitAdapter implements ImportSourceAdapter {
       if (sameWorkout.isNotEmpty) {
         for (final saved in sameWorkout) {
           final shift = appleWatchWallClockShift(saved, imported);
-          if (shift != null) timeCorrections[saved.id] = shift;
+          if (shift != null) {
+            timeCorrections[saved.id] = (
+              shift: shift,
+              correctedStart: saved.effectiveEntryTime.add(shift),
+            );
+          }
         }
         final first = sameWorkout.first;
         duplicateIndices.add(i);
@@ -216,9 +227,9 @@ class HealthKitAdapter implements ImportSourceAdapter {
           imported,
           first,
           score: 1.0,
-          existingStart: first.effectiveEntryTime.add(
-            timeCorrections[first.id] ?? Duration.zero,
-          ),
+          existingStart:
+              timeCorrections[first.id]?.correctedStart ??
+              first.effectiveEntryTime,
           // A re-read of a workout the log already holds: the wizard
           // defaults it to skip instead of asking about each one.
           matchedExistingSource: true,
@@ -398,9 +409,23 @@ class HealthKitAdapter implements ImportSourceAdapter {
     final corrections = _timeCorrections;
     _timeCorrections = const {};
     // One write per offset: dives either side of a DST change differ.
-    final idsByShift = corrections.keys.groupListsBy((id) => corrections[id]!);
+    final idsByShift = corrections.keys.groupListsBy(
+      (id) => corrections[id]!.shift,
+    );
     for (final MapEntry(key: shift, value: ids) in idsByShift.entries) {
       await _diveRepository.shiftDiveTimes(ids, shift);
+    }
+    // Checklist runs were linked against the shifted start when the dive was
+    // first imported; link them again against the corrected one. Best-effort,
+    // as on import.
+    final linker = _checklistLinker ?? ChecklistDiveLinker();
+    for (final MapEntry(key: diveId, value: correction)
+        in corrections.entries) {
+      await linker.autoLinkForDive(
+        diveId: diveId,
+        diverId: _diverId,
+        diveStart: correction.correctedStart,
+      );
     }
     return corrections.length;
   }

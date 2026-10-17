@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 
 import 'healthkit_adapter_test.mocks.dart';
 
@@ -63,20 +64,41 @@ Dive _saved({
   );
 }
 
+/// Records the dives the adapter asks to relink, and links nothing.
+class _RecordingLinker implements ChecklistDiveLinker {
+  final calls = <({String diveId, String? diverId, DateTime diveStart})>[];
+
+  @override
+  Future<bool> autoLinkForDive({
+    required String diveId,
+    required String? diverId,
+    required DateTime diveStart,
+  }) async {
+    calls.add((diveId: diveId, diverId: diverId, diveStart: diveStart));
+    return false;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
   late MockDiveRepository repo;
+  late _RecordingLinker linker;
   late MockDiveMatcher matcher;
   late HealthKitAdapter adapter;
 
   setUp(() {
     repo = MockDiveRepository();
     matcher = MockDiveMatcher();
+    linker = _RecordingLinker();
     adapter = HealthKitAdapter(
       healthService: MockHealthImportService(),
       diveMatcher: matcher,
       converter: MockImportedDiveConverter(),
       diveRepository: repo,
       diverId: 'diver-1',
+      checklistLinker: linker,
     );
     // Five hours apart, the time-based matcher sees no likeness at all.
     when(
@@ -148,6 +170,16 @@ void main() {
       expect(result.skippedCount, 1);
     });
 
+    test('relinks checklist runs against the corrected start', () async {
+      final bundle = await reviewed([_incoming()], [_saved(start: _instant)]);
+
+      await adapter.performImport(bundle, {ImportEntityType.dives: {}}, {});
+
+      expect(linker.calls, [
+        (diveId: 'dive-1', diverId: 'diver-1', diveStart: _wallClock),
+      ]);
+    });
+
     test('corrects the saved dive only once per review', () async {
       final bundle = await reviewed([_incoming()], [_saved(start: _instant)]);
 
@@ -204,6 +236,7 @@ void main() {
       }, {});
       verifyNever(repo.shiftDiveTimes(any, any));
       expect(result.timesCorrectedCount, 0);
+      expect(linker.calls, isEmpty);
     }
 
     test('already at the wall clock (saved after #2811)', () async {
