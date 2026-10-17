@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/elapsed_duration_format.dart';
 
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
+import 'package:submersion/features/insights/presentation/formatters/time_of_day_colors.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class InsightsTimePatternsPage extends ConsumerWidget {
@@ -106,28 +111,45 @@ class InsightsTimePatternsPage extends ConsumerWidget {
       subtitle: context.l10n.insights_timePatterns_timeOfDay_subtitle,
       child: timeOfDayAsync.when(
         data: (raw) {
-          // The repository's bucket names are stable keys -- they are also its
-          // ORDER BY sort keys -- so they become display text only here.
+          // The repository's bucket names are stable keys, which the colours
+          // are looked up by, so they become display text only here.
           final data = localizeDistribution(
-            raw,
+            raw.segments,
             (key) => timeOfDayDistributionLabel(key, context.l10n),
           );
           final description = data
               .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
               .join(', ');
-          return Semantics(
+          final brightness = Theme.of(context).brightness;
+          final chart = Semantics(
             label: context.l10n.insights_timePatterns_timeOfDay_semanticLabel(
               description,
             ),
             child: DistributionPieChart(
               data: data,
-              colors: const [
-                Colors.amber, // Morning
-                Colors.orange, // Afternoon
-                Colors.deepOrange, // Evening
-                Colors.indigo, // Night
+              colors: [
+                for (final segment in raw.segments)
+                  timeOfDayColor(segment.label, brightness),
               ],
             ),
+          );
+          if (raw.divesWithoutLocation == 0) return chart;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              chart,
+              const SizedBox(height: 8),
+              Text(
+                _defaultSunTimesNote(
+                  context,
+                  raw.divesWithoutLocation,
+                  ref.watch(timeFormatProvider),
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           );
         },
         loading: () => const SizedBox(
@@ -139,6 +161,22 @@ class InsightsTimePatternsPage extends ConsumerWidget {
           message: context.l10n.insights_timePatterns_timeOfDay_error,
         ),
       ),
+    );
+  }
+
+  /// Tells the diver how many dives were bucketed on the fallback clock
+  /// times, with those times in their 12-hour or 24-hour format.
+  String _defaultSunTimesNote(
+    BuildContext context,
+    int dives,
+    TimeFormat timeFormat,
+  ) {
+    String clock(int hour) =>
+        DateFormat(timeFormat.pattern).format(DateTime(2000, 1, 1, hour));
+    return context.l10n.insights_timePatterns_timeOfDay_defaultSunTimes(
+      dives,
+      clock(TimeOfDayClassifier.fallbackSunriseHour),
+      clock(TimeOfDayClassifier.fallbackSunsetHour),
     );
   }
 

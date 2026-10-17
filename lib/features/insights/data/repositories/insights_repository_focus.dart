@@ -30,6 +30,9 @@ extension InsightsRepositoryFocus on InsightsRepository {
           d.id,
           d.dive_date_time,
           d.entry_time,
+          ${diveExitMillisSql('d')} AS exit_ms,
+          s.latitude AS site_latitude,
+          s.longitude AS site_longitude,
           d.max_depth,
           d.avg_depth,
           ${effectiveRuntimeSecondsSql('d')} / 60.0 AS duration_minutes,
@@ -86,18 +89,28 @@ extension InsightsRepositoryFocus on InsightsRepository {
         ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
+      DateTime? wallClock(int? ms) => ms == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+      final classifier = TimeOfDayClassifier();
+
       return [
         for (final row in results)
           FocusFactorRow(
             diveId: row.read<String>('id'),
-            dateTime: DateTime.fromMillisecondsSinceEpoch(
-              row.read<int>('dive_date_time'),
-              isUtc: true,
-            ),
-            entryTime: switch (row.read<int?>('entry_time')) {
-              final ms? => DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true),
-              null => null,
-            },
+            dateTime: wallClock(row.read<int>('dive_date_time'))!,
+            entryTime: wallClock(row.read<int?>('entry_time')),
+            timeOfDay: classifier
+                .classify(
+                  entry: wallClock(
+                    row.read<int?>('entry_time') ??
+                        row.read<int>('dive_date_time'),
+                  )!,
+                  exit: wallClock(row.read<int?>('exit_ms')),
+                  latitude: row.read<double?>('site_latitude'),
+                  longitude: row.read<double?>('site_longitude'),
+                )
+                .bucket,
             maxDepth: row.read<double?>('max_depth'),
             avgDepth: row.read<double?>('avg_depth'),
             durationMinutes: row.read<double?>('duration_minutes'),

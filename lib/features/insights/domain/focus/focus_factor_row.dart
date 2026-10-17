@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
+
 /// One dive's factors for Dive focus, in storage units. Categorical values
 /// are the stable keys the Insights distributions already emit, so the
 /// existing label helpers can render them.
@@ -9,6 +11,7 @@ class FocusFactorRow {
     required this.diveId,
     required this.dateTime,
     this.entryTime,
+    this.timeOfDay,
     this.maxDepth,
     this.avgDepth,
     this.durationMinutes,
@@ -34,6 +37,11 @@ class FocusFactorRow {
 
   /// `entry_time` when recorded; preferred for time of day.
   final DateTime? entryTime;
+
+  /// The Time patterns bucket, from sunrise and sunset at the dive site
+  /// (issue #3340). Null on a row built without one; the analyzer then
+  /// buckets the entry on the fallback clock times.
+  final TimeOfDayBucket? timeOfDay;
   final double? maxDepth;
   final double? avgDepth;
 

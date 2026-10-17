@@ -27078,7 +27078,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_error => '加载时段数据失败';
 
   @override
-  String get insights_timePatterns_timeOfDay_subtitle => '上午、下午、傍晚或夜间';
+  String get insights_timePatterns_timeOfDay_subtitle => '黎明、上午、下午、黄昏或夜间';
 
   @override
   String get insights_timePatterns_timeOfDay_title => '按时段统计的潜水次数';
@@ -43184,7 +43184,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => '下午';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => '傍晚';
+  String get insights_timePatterns_timeOfDay_dawn => '黎明';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水没有潜水点位置，使用默认的日出（$sunrise）和日落（$sunset）时间',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => '黄昏';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => '上午';

@@ -28661,7 +28661,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Morgens, nachmittags, abends oder nachts';
+      'Morgendämmerung, Morgen, Nachmittag, Abenddämmerung oder Nacht';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -45832,7 +45832,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Nachmittag';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Abend';
+  String get insights_timePatterns_timeOfDay_dawn => 'Morgendämmerung';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge haben keinen Tauchplatz-Standort und verwenden die Standardzeiten für Sonnenaufgang ($sunrise) und Sonnenuntergang ($sunset)',
+      one:
+          '1 Tauchgang hat keinen Tauchplatz-Standort und verwendet die Standardzeiten für Sonnenaufgang ($sunrise) und Sonnenuntergang ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Abenddämmerung';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Morgen';

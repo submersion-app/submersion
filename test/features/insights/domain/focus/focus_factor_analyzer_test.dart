@@ -3,6 +3,7 @@ import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_analyzer.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 
 FocusFactorRow row(
   String id, {
@@ -151,7 +152,8 @@ void main() {
         report,
         FocusFactorId.timeOfDay,
       ).top.map((s) => s.key),
-      containsAll(['Night', 'Morning', 'Evening']),
+      // With no bucket on the row, the clock rule decides on the entry.
+      containsAll(['Night', 'Morning']),
     );
   });
 
@@ -169,22 +171,30 @@ void main() {
     expect(site.top.single.label, 'House Reef');
   });
 
-  test('time of day uses the Time patterns buckets', () {
-    expect(
-      FocusFactorAnalyzer.timeOfDayKey(DateTime.utc(2025, 1, 1, 5)),
-      'Night',
+  test('time of day is the bucket the row carries', () {
+    FocusFactorRow timed(String id, TimeOfDayBucket bucket) => FocusFactorRow(
+      diveId: id,
+      // 09:00, which the clock alone would call a morning dive.
+      dateTime: DateTime.utc(2025, 3, 1, 9),
+      timeOfDay: bucket,
     );
-    expect(
-      FocusFactorAnalyzer.timeOfDayKey(DateTime.utc(2025, 1, 1, 6)),
-      'Morning',
+    final group = [
+      timed('a', TimeOfDayBucket.dawn),
+      timed('b', TimeOfDayBucket.dusk),
+      timed('c', TimeOfDayBucket.dusk),
+    ];
+    final report = FocusFactorAnalyzer.analyze(
+      group: group,
+      baseline: group,
+      metric: FocusMetric.rmv,
     );
+    final shares = factor<CategoricalFactor>(
+      report,
+      FocusFactorId.timeOfDay,
+    ).top;
     expect(
-      FocusFactorAnalyzer.timeOfDayKey(DateTime.utc(2025, 1, 1, 12)),
-      'Afternoon',
-    );
-    expect(
-      FocusFactorAnalyzer.timeOfDayKey(DateTime.utc(2025, 1, 1, 18)),
-      'Evening',
+      {for (final s in shares) s.key: s.groupCount},
+      {'Dusk': 2, 'Dawn': 1},
     );
   });
 

@@ -46282,7 +46282,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_timePatterns_timeOfDay_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Morning, afternoon, evening, or night'**
+  /// **'Dawn, morning, afternoon, dusk or night'**
   String get insights_timePatterns_timeOfDay_subtitle;
 
   /// No description provided for @insights_timePatterns_timeOfDay_title.
@@ -73244,11 +73244,27 @@ abstract class AppLocalizations {
   /// **'Afternoon'**
   String get insights_timePatterns_timeOfDay_afternoon;
 
-  /// No description provided for @insights_timePatterns_timeOfDay_evening.
+  /// No description provided for @insights_timePatterns_timeOfDay_dawn.
   ///
   /// In en, this message translates to:
-  /// **'Evening'**
-  String get insights_timePatterns_timeOfDay_evening;
+  /// **'Dawn'**
+  String get insights_timePatterns_timeOfDay_dawn;
+
+  /// Footnote under the dives-by-time-of-day pie chart, shown when some dives have no site coordinates and were bucketed on fixed clock times. The two times are already formatted in the diver's 12-hour or 24-hour setting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive has no site location and uses default sunrise ({sunrise}) and sunset ({sunset}) times} other{{count} dives have no site location and use default sunrise ({sunrise}) and sunset ({sunset}) times}}'**
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  );
+
+  /// No description provided for @insights_timePatterns_timeOfDay_dusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get insights_timePatterns_timeOfDay_dusk;
 
   /// No description provided for @insights_timePatterns_timeOfDay_morning.
   ///

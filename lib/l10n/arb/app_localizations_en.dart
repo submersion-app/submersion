@@ -28222,7 +28222,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Morning, afternoon, evening, or night';
+      'Dawn, morning, afternoon, dusk or night';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'Dives by Time of Day';
@@ -45240,7 +45240,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Afternoon';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Evening';
+  String get insights_timePatterns_timeOfDay_dawn => 'Dawn';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives have no site location and use default sunrise ($sunrise) and sunset ($sunset) times',
+      one:
+          '1 dive has no site location and uses default sunrise ($sunrise) and sunset ($sunset) times',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Dusk';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Morning';

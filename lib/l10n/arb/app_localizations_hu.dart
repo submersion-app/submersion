@@ -28576,7 +28576,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Reggel, délután, este vagy éjszaka';
+      'Hajnal, reggel, délután, alkonyat vagy éjszaka';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -45677,7 +45677,27 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Délután';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Este';
+  String get insights_timePatterns_timeOfDay_dawn => 'Hajnal';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülésnek nincs merülőhely-pozíciója, ezért az alapértelmezett napkelte ($sunrise) és napnyugta ($sunset) időpontot használják',
+      one:
+          '1 merülésnek nincs merülőhely-pozíciója, ezért az alapértelmezett napkelte ($sunrise) és napnyugta ($sunset) időpontot használja',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Alkonyat';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Reggel';

@@ -28896,7 +28896,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'صباحاً، بعد الظهر، مساءً، أو ليلاً';
+      'فجراً، صباحاً، بعد الظهر، عند الغسق، أو ليلاً';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'الغوصات حسب وقت اليوم';
@@ -46493,7 +46493,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'بعد الظهر';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'المساء';
+  String get insights_timePatterns_timeOfDay_dawn => 'الفجر';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      many:
+          '$count غطسة ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      few:
+          '$count غطسات ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      two:
+          'غطستان ليس لهما موقع محدد وتستخدمان الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      one:
+          'غطسة واحدة ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'الغسق';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'الصباح';

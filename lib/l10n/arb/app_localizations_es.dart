@@ -28751,7 +28751,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Mañana, tarde, atardecer o noche';
+      'Amanecer, mañana, tarde, anochecer o noche';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -45962,7 +45962,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Tarde';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Anochecer';
+  String get insights_timePatterns_timeOfDay_dawn => 'Amanecer';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count inmersiones no tienen ubicación del punto de buceo y usan las horas predeterminadas de salida ($sunrise) y puesta ($sunset) del sol',
+      one:
+          '1 inmersión no tiene ubicación del punto de buceo y usa las horas predeterminadas de salida ($sunrise) y puesta ($sunset) del sol',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Anochecer';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Mañana';

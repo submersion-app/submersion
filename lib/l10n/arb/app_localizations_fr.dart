@@ -28820,7 +28820,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Matin, après-midi, soir ou nuit';
+      'Aube, matin, après-midi, crépuscule ou nuit';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -46036,7 +46036,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Après-midi';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Soir';
+  String get insights_timePatterns_timeOfDay_dawn => 'Aube';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées n\'ont pas de position de site et utilisent les heures par défaut du lever ($sunrise) et du coucher ($sunset) du soleil',
+      one:
+          '$count plongée n\'a pas de position de site et utilise les heures par défaut du lever ($sunrise) et du coucher ($sunset) du soleil',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Crépuscule';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Matin';

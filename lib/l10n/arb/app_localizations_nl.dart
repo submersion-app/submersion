@@ -28518,7 +28518,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Ochtend, middag, avond of nacht';
+      'Ochtendschemering, ochtend, middag, avondschemering of nacht';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -45627,7 +45627,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Middag';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Avond';
+  String get insights_timePatterns_timeOfDay_dawn => 'Ochtendschemering';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken hebben geen locatie van de duikstek en gebruiken de standaardtijden voor zonsopgang ($sunrise) en zonsondergang ($sunset)',
+      one:
+          '1 duik heeft geen locatie van de duikstek en gebruikt de standaardtijden voor zonsopgang ($sunrise) en zonsondergang ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Avondschemering';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Ochtend';

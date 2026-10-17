@@ -27983,7 +27983,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'בוקר, צהריים, ערב או לילה';
+      'שחר, בוקר, צהריים, דמדומים או לילה';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'צלילות לפי שעה ביום';
@@ -44937,7 +44937,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'צהריים';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'ערב';
+  String get insights_timePatterns_timeOfDay_dawn => 'שחר';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ל-$count צלילות אין מיקום אתר והן משתמשות בזמני ברירת המחדל של הזריחה ($sunrise) והשקיעה ($sunset)',
+      one:
+          'לצלילה אחת אין מיקום אתר והיא משתמשת בזמני ברירת המחדל של הזריחה ($sunrise) והשקיעה ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'דמדומים';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'בוקר';

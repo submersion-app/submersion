@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 
 /// Compares a Dive focus group's factors with its baseline (issue #1611).
 ///
@@ -36,14 +37,6 @@ abstract final class FocusFactorAnalyzer {
       ],
     );
   }
-
-  /// The Time patterns page's buckets, on the stored wall clock.
-  static String timeOfDayKey(DateTime wallClock) => switch (wallClock.hour) {
-    < 6 => 'Night',
-    < 12 => 'Morning',
-    < 18 => 'Afternoon',
-    _ => 'Evening',
-  };
 
   static FocusFactorId? _selfFactor(FocusMetric metric) => switch (metric) {
     FocusMetric.maxDepth => FocusFactorId.maxDepth,
@@ -80,7 +73,11 @@ abstract final class FocusFactorAnalyzer {
     FocusFactorId.waterType => r.waterType,
     FocusFactorId.entryMethod => r.entryMethod,
     FocusFactorId.month => '${r.dateTime.month}',
-    FocusFactorId.timeOfDay => timeOfDayKey(r.entryTime ?? r.dateTime),
+    // The Time patterns page's buckets, from the same classifier.
+    FocusFactorId.timeOfDay =>
+      (r.timeOfDay ??
+              TimeOfDayClassifier.fallbackBucket(r.entryTime ?? r.dateTime))
+          .key,
     FocusFactorId.site => r.siteId,
     FocusFactorId.gas => r.gasClass,
     FocusFactorId.suit => r.suitKey,
