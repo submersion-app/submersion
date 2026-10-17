@@ -9827,6 +9827,52 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => 'Keresés törlése';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés',
+      one: '$dives merülés',
+    );
+    return '$_temp0 · $time víz alatt';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites merülőhely',
+      one: '$sites merülőhely',
+    );
+    return '$_temp0. Leggyakrabban ide tér vissza: $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites merülőhely',
+      one: '$sites merülőhely',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'a szokásos mélysége';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'legmélyebb, $site, $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'legmélyebb, $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer =>
       'Importálás számítógéprőL';
 
@@ -34357,6 +34403,25 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'A hosszú merülési szüneteket keskeny, sraffozott sávként mutatja';
+
+  @override
+  String get settings_appearance_summaryPanes => 'Összegző panelek';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'Mit mutat egy szakasz, ha nincs kijelölve semmi';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'Jelenet';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'Részletek';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'Részletek megjelenítése';
+
+  @override
+  String get summaryPane_toggle_showScene => 'Jelenet megjelenítése';
 
   @override
   String get settings_appearance_mapStyle => 'Térképstílus';

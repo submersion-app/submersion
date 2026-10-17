@@ -15751,6 +15751,42 @@ abstract class AppLocalizations {
   /// **'Clear search'**
   String get diveLog_speciesPicker_tooltip_clearSearch;
 
+  /// Headline of the Dives summary scene: career dive count and time underwater.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives, plural, =1{{dives} dive} other{{dives} dives}} · {time} below'**
+  String diveLog_scene_headline(int dives, String time);
+
+  /// Sentence under the Dives scene headline: site count and the most dived site.
+  ///
+  /// In en, this message translates to:
+  /// **'{sites, plural, =1{{sites} site} other{{sites} sites}}. You return most to {site}.'**
+  String diveLog_scene_sites(int sites, String site);
+
+  /// Sentence under the Dives scene headline when no site is most dived.
+  ///
+  /// In en, this message translates to:
+  /// **'{sites, plural, =1{{sites} site} other{{sites} sites}}.'**
+  String diveLog_scene_sitesNoTop(int sites);
+
+  /// Label of the Dives scene marker at the average maximum depth.
+  ///
+  /// In en, this message translates to:
+  /// **'your usual depth'**
+  String get diveLog_scene_usualDepth;
+
+  /// Label of the Dives scene marker at the deepest dive: its site and date.
+  ///
+  /// In en, this message translates to:
+  /// **'deepest, {site}, {date}'**
+  String diveLog_scene_deepest(String site, String date);
+
+  /// Label of the Dives scene marker at the deepest dive when it has no site.
+  ///
+  /// In en, this message translates to:
+  /// **'deepest, {date}'**
+  String diveLog_scene_deepestNoSite(String date);
+
   /// No description provided for @diveLog_summary_action_importComputer.
   ///
   /// In en, this message translates to:
@@ -54628,6 +54664,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show long breaks in diving as a narrow hatched band'**
   String get settings_appearance_trendGaps_subtitle;
+
+  /// Settings > Appearance: choice of what master-detail summary panes show.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary panes'**
+  String get settings_appearance_summaryPanes;
+
+  /// Subtitle of the Summary panes choice.
+  ///
+  /// In en, this message translates to:
+  /// **'What a section shows when nothing is selected'**
+  String get settings_appearance_summaryPanes_subtitle;
+
+  /// Summary panes option: the calm animated scene.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene'**
+  String get settings_appearance_summaryPanes_scene;
+
+  /// Summary panes option: the data-rich summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get settings_appearance_summaryPanes_details;
+
+  /// Tooltip of the summary pane corner button while the scene shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Show details'**
+  String get summaryPane_toggle_showDetails;
+
+  /// Tooltip of the summary pane corner button while the details show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show scene'**
+  String get summaryPane_toggle_showScene;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///

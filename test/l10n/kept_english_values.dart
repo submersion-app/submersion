@@ -81,6 +81,7 @@ const Map<String, String> keptEnglishValues = {
   'diveLog_export_uddfDescription@it': _technology,
   'diveLog_o2tox_label_maxPpO2@hu': _abbreviation,
   'diveLog_o2tox_label_maxPpO2@nl': _abbreviation,
+  'diveLog_scene_sitesNoTop@fr': _sameWord,
   'diveLog_search_gasTrimix': _abbreviation,
   'diveLog_sources_minutes@es': _units,
   'diveLog_sources_minutes@it': _units,

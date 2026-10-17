@@ -9785,6 +9785,52 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => 'Zoekopdracht wissen';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken',
+      one: '$dives duik',
+    );
+    return '$_temp0 · $time onder water';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites duikstekken',
+      one: '$sites duikstek',
+    );
+    return '$_temp0. Je keert het vaakst terug naar $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites duikstekken',
+      one: '$sites duikstek',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'je gebruikelijke diepte';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'diepste, $site, $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'diepste, $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer => 'Importeren van computer';
 
   @override
@@ -34296,6 +34342,25 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Lange duikpauzes tonen als een smalle gearceerde band';
+
+  @override
+  String get settings_appearance_summaryPanes => 'Overzichtspanelen';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'Wat een sectie toont als er niets is geselecteerd';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'Scène';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'Details';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'Details tonen';
+
+  @override
+  String get summaryPane_toggle_showScene => 'Scène tonen';
 
   @override
   String get settings_appearance_mapStyle => 'Kaartstijl';

@@ -9848,6 +9848,52 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => 'Suche löschen';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '$dives Tauchgang',
+    );
+    return '$_temp0 · $time unter Wasser';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites Tauchplätze',
+      one: '$sites Tauchplatz',
+    );
+    return '$_temp0. Am häufigsten zieht es Sie nach $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites Tauchplätze',
+      one: '$sites Tauchplatz',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'Ihre übliche Tiefe';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'am tiefsten, $site, $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'am tiefsten, $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer =>
       'Vom Computer importieren';
 
@@ -34469,6 +34515,25 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Lange Tauchpausen als schmales schraffiertes Band anzeigen';
+
+  @override
+  String get settings_appearance_summaryPanes => 'Übersichtsbereiche';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'Was ein Bereich zeigt, wenn nichts ausgewählt ist';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'Szene';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'Details';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'Details anzeigen';
+
+  @override
+  String get summaryPane_toggle_showScene => 'Szene anzeigen';
 
   @override
   String get settings_appearance_mapStyle => 'Kartenstil';

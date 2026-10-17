@@ -9971,6 +9971,61 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => 'مسح البحث';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غوصة',
+      many: '$dives غوصة',
+      few: '$dives غوصات',
+      two: 'غوصتان',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0 · $time تحت الماء';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites موقع',
+      many: '$sites موقعًا',
+      few: '$sites مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+    );
+    return '$_temp0. أكثر مكان تعود إليه هو $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites موقع',
+      many: '$sites موقعًا',
+      few: '$sites مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'عمقك المعتاد';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'الأعمق، $site، $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'الأعمق، $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer => 'استيراد من الكمبيوتر';
 
   @override
@@ -34968,6 +35023,25 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'عرض فترات الانقطاع الطويلة عن الغوص كشريط مخطط ضيق';
+
+  @override
+  String get settings_appearance_summaryPanes => 'لوحات الملخص';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'ما يعرضه القسم عندما لا يكون هناك شيء محدد';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'مشهد';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'التفاصيل';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'عرض التفاصيل';
+
+  @override
+  String get summaryPane_toggle_showScene => 'عرض المشهد';
 
   @override
   String get settings_appearance_mapStyle => 'نمط الخريطة';

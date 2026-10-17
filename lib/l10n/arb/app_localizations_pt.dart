@@ -9847,6 +9847,52 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => 'Limpar busca';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos',
+      one: '$dives mergulho',
+    );
+    return '$_temp0 · $time debaixo d\'água';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites locais',
+      one: '$sites local',
+    );
+    return '$_temp0. Você volta mais vezes a $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites locais',
+      one: '$sites local',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'sua profundidade habitual';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'o mais profundo, $site, $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'o mais profundo, $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer => 'Importar do Computador';
 
   @override
@@ -34532,6 +34578,25 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Mostrar longas pausas sem mergulho como uma faixa tracejada estreita';
+
+  @override
+  String get settings_appearance_summaryPanes => 'Painéis de resumo';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'O que uma seção mostra quando nada está selecionado';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'Cena';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'Detalhes';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'Mostrar detalhes';
+
+  @override
+  String get summaryPane_toggle_showScene => 'Mostrar cena';
 
   @override
   String get settings_appearance_mapStyle => 'Estilo do Mapa';

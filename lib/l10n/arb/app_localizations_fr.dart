@@ -9886,6 +9886,52 @@ class AppLocalizationsFr extends AppLocalizations {
       'Effacer la recherche';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées',
+      one: '$dives plongée',
+    );
+    return '$_temp0 · $time sous l\'eau';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites sites',
+      one: '$sites site',
+    );
+    return '$_temp0. Tu reviens le plus souvent à $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites sites',
+      one: '$sites site',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'ta profondeur habituelle';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'la plus profonde, $site, $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'la plus profonde, $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer =>
       'Importer depuis un ordinateur';
 
@@ -34643,6 +34689,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Afficher les longues pauses sans plongée comme une bande hachurée étroite';
+
+  @override
+  String get settings_appearance_summaryPanes => 'Panneaux de résumé';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'Ce qu\'une section affiche quand rien n\'est sélectionné';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'Scène';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'Détails';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'Afficher les détails';
+
+  @override
+  String get summaryPane_toggle_showScene => 'Afficher la scène';
 
   @override
   String get settings_appearance_mapStyle => 'Style de carte';

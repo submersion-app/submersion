@@ -5580,6 +5580,64 @@
   "diveLog_speciesPicker_searchHint": "Search species...",
   "diveLog_speciesPicker_title": "Add Species",
   "diveLog_speciesPicker_tooltip_clearSearch": "Clear search",
+  "diveLog_scene_headline": "{dives, plural, =1{{dives} dive} other{{dives} dives}} · {time} below",
+  "@diveLog_scene_headline": {
+    "description": "Headline of the Dives summary scene: career dive count and time underwater.",
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_scene_sites": "{sites, plural, =1{{sites} site} other{{sites} sites}}. You return most to {site}.",
+  "@diveLog_scene_sites": {
+    "description": "Sentence under the Dives scene headline: site count and the most dived site.",
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_scene_sitesNoTop": "{sites, plural, =1{{sites} site} other{{sites} sites}}.",
+  "@diveLog_scene_sitesNoTop": {
+    "description": "Sentence under the Dives scene headline when no site is most dived.",
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_scene_usualDepth": "your usual depth",
+  "@diveLog_scene_usualDepth": {
+    "description": "Label of the Dives scene marker at the average maximum depth."
+  },
+  "diveLog_scene_deepest": "deepest, {site}, {date}",
+  "@diveLog_scene_deepest": {
+    "description": "Label of the Dives scene marker at the deepest dive: its site and date.",
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_scene_deepestNoSite": "deepest, {date}",
+  "@diveLog_scene_deepestNoSite": {
+    "description": "Label of the Dives scene marker at the deepest dive when it has no site.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_summary_action_importComputer": "Import from Computer",
   "diveLog_summary_action_viewInsights": "View Insights",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{dive} other{dives}}",
@@ -20772,6 +20830,30 @@
   "settings_appearance_showProfilePanel_subtitle": "Display dive profile chart above the table by default",
   "settings_appearance_trendGaps": "Collapse gaps in trend charts",
   "settings_appearance_trendGaps_subtitle": "Show long breaks in diving as a narrow hatched band",
+  "settings_appearance_summaryPanes": "Summary panes",
+  "@settings_appearance_summaryPanes": {
+    "description": "Settings > Appearance: choice of what master-detail summary panes show."
+  },
+  "settings_appearance_summaryPanes_subtitle": "What a section shows when nothing is selected",
+  "@settings_appearance_summaryPanes_subtitle": {
+    "description": "Subtitle of the Summary panes choice."
+  },
+  "settings_appearance_summaryPanes_scene": "Scene",
+  "@settings_appearance_summaryPanes_scene": {
+    "description": "Summary panes option: the calm animated scene."
+  },
+  "settings_appearance_summaryPanes_details": "Details",
+  "@settings_appearance_summaryPanes_details": {
+    "description": "Summary panes option: the data-rich summary."
+  },
+  "summaryPane_toggle_showDetails": "Show details",
+  "@summaryPane_toggle_showDetails": {
+    "description": "Tooltip of the summary pane corner button while the scene shows."
+  },
+  "summaryPane_toggle_showScene": "Show scene",
+  "@summaryPane_toggle_showScene": {
+    "description": "Tooltip of the summary pane corner button while the details show."
+  },
   "settings_appearance_mapStyle": "Map Style",
   "settings_appearance_mapStyle_openStreetMap": "Street Map",
   "settings_appearance_mapStyle_openTopoMap": "Topographic",

@@ -9634,6 +9634,52 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => 'נקה חיפוש';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות',
+      one: '$dives צלילה',
+    );
+    return '$_temp0 · $time מתחת למים';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites אתרים',
+      one: '$sites אתר',
+    );
+    return '$_temp0. אתה חוזר הכי הרבה אל $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites אתרים',
+      one: '$sites אתר',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'העומק הרגיל שלך';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'העמוקה ביותר, $site, $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'העמוקה ביותר, $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer => 'ייבא ממחשב';
 
   @override
@@ -33684,6 +33730,25 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'הצגת הפסקות ארוכות בצלילה כרצועה מקווקוות צרה';
+
+  @override
+  String get settings_appearance_summaryPanes => 'חלוניות סיכום';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'מה מוצג במקטע כשלא נבחר דבר';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'סצנה';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'פרטים';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'הצג פרטים';
+
+  @override
+  String get summaryPane_toggle_showScene => 'הצג סצנה';
 
   @override
   String get settings_appearance_mapStyle => 'סגנון מפה';

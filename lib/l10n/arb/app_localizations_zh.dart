@@ -9368,6 +9368,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => '清除搜索';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives 次潜水',
+    );
+    return '$_temp0 · 水下 $time';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites 个潜点',
+    );
+    return '$_temp0。你最常回到 $site。';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites 个潜点',
+    );
+    return '$_temp0。';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => '你的常用深度';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return '最深，$site，$date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return '最深，$date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer => '从电脑导入';
 
   @override
@@ -32553,6 +32596,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_trendGaps_subtitle => '将长时间未潜水的时段显示为窄的斜线带';
+
+  @override
+  String get settings_appearance_summaryPanes => '摘要面板';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle => '未选择任何项目时分区显示的内容';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => '场景';
+
+  @override
+  String get settings_appearance_summaryPanes_details => '详情';
+
+  @override
+  String get summaryPane_toggle_showDetails => '显示详情';
+
+  @override
+  String get summaryPane_toggle_showScene => '显示场景';
 
   @override
   String get settings_appearance_mapStyle => '地图样式';

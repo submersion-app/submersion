@@ -9692,6 +9692,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_speciesPicker_tooltip_clearSearch => 'Clear search';
 
   @override
+  String diveLog_scene_headline(int dives, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '$dives dive',
+    );
+    return '$_temp0 · $time below';
+  }
+
+  @override
+  String diveLog_scene_sites(int sites, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites sites',
+      one: '$sites site',
+    );
+    return '$_temp0. You return most to $site.';
+  }
+
+  @override
+  String diveLog_scene_sitesNoTop(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites sites',
+      one: '$sites site',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get diveLog_scene_usualDepth => 'your usual depth';
+
+  @override
+  String diveLog_scene_deepest(String site, String date) {
+    return 'deepest, $site, $date';
+  }
+
+  @override
+  String diveLog_scene_deepestNoSite(String date) {
+    return 'deepest, $date';
+  }
+
+  @override
   String get diveLog_summary_action_importComputer => 'Import from Computer';
 
   @override
@@ -33953,6 +33999,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Show long breaks in diving as a narrow hatched band';
+
+  @override
+  String get settings_appearance_summaryPanes => 'Summary panes';
+
+  @override
+  String get settings_appearance_summaryPanes_subtitle =>
+      'What a section shows when nothing is selected';
+
+  @override
+  String get settings_appearance_summaryPanes_scene => 'Scene';
+
+  @override
+  String get settings_appearance_summaryPanes_details => 'Details';
+
+  @override
+  String get summaryPane_toggle_showDetails => 'Show details';
+
+  @override
+  String get summaryPane_toggle_showScene => 'Show scene';
 
   @override
   String get settings_appearance_mapStyle => 'Map Style';
