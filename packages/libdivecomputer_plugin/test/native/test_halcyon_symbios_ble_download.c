@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "array.h"
 #include "checksum.h"
 #include "libdc_wrapper.h"
 
@@ -50,6 +51,7 @@ typedef struct {
     unsigned char late[MAX_PACKET];
     size_t late_len;
 
+    unsigned int dive_requested;  // dive number of the last 0x05 request
     int files_started;
     int files_completed;
     int naks;
@@ -116,10 +118,8 @@ static void reply(fake_symbios_t *io, unsigned char rsp,
 
 static void reply_length(fake_symbios_t *io, unsigned char rsp,
                          size_t length) {
-    unsigned char le[4] = {
-        (unsigned char)(length & 0xFF), (unsigned char)((length >> 8) & 0xFF),
-        (unsigned char)((length >> 16) & 0xFF),
-        (unsigned char)((length >> 24) & 0xFF)};
+    unsigned char le[4];
+    array_uint32_le_set(le, (unsigned int)length);
     reply(io, rsp, le, sizeof(le));
 }
 
@@ -130,8 +130,7 @@ static void send_block(fake_symbios_t *io, int allow_fault) {
     unsigned int id = io->seq | (last ? 0x8000u : 0u);
 
     unsigned char payload[2 + BLOCK_SIZE];
-    payload[0] = (unsigned char)(id & 0xFF);
-    payload[1] = (unsigned char)(id >> 8);
+    array_uint16_le_set(payload, (unsigned short)id);
     memcpy(payload + 2, io->file + io->offset, io->block_bytes);
 
     unsigned char packet[MAX_PACKET];
@@ -178,6 +177,9 @@ static int fake_write(void *userdata, const void *data, size_t size,
         reply_length(io, 0x84, io->file_size);
         break;
     case 0x05:  // dive request: number + crc
+        assert(size == 4);
+        assert(cmd[3] == checksum_crc8(cmd + 1, 2, 0x00, 0x00));
+        io->dive_requested = array_uint16_le(cmd + 1);
         io->file = g_dive;
         io->file_size = sizeof(g_dive);
         io->block_rsp = 0x89;
@@ -326,6 +328,7 @@ static void test_lost_dive_block_is_requested_again(void) {
     // One dive newer than the fingerprint: the logbook, then that dive.
     int rc = run(&io, entry_fingerprint(LOGBOOK_ENTRIES - 2));
     assert(rc == LIBDC_STATUS_SUCCESS);
+    assert(io.dive_requested == LOGBOOK_ENTRIES);  // the newest entry
     assert(io.files_started == 2);
     assert(io.files_completed == 2);
     assert(io.naks == 1);
