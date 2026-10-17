@@ -10,6 +10,7 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -50,12 +51,13 @@ final connectedAccountUsageProvider =
       // Re-read when a library is connected or removed while the page is
       // open; sync and media changes happen on other pages, and this one
       // is autoDispose, so it re-reads when the user comes back.
-      ref.watch(sharedLibrariesProvider);
+      final libraries = ref.watch(sharedLibraryStoreProvider);
+      ref.invalidateSelfWhen(libraries.watchLibraries());
       return AccountUsageService(
         attachState: MediaStoreAttachState(
           prefs: ref.watch(sharedPreferencesProvider),
         ),
-        libraries: ref.watch(sharedLibraryStoreProvider),
+        libraries: libraries,
       ).load();
     });
 
@@ -118,6 +120,25 @@ class _AccountTile extends ConsumerWidget {
     AccountKind.adobeLightroom => Icons.photo_library_outlined,
   };
 
+  /// This account's usages, read at tap time rather than from the build: a
+  /// tap before the usage load finished would otherwise skip the warning. A
+  /// failed read falls back to no usages, so the menu still works (as it
+  /// did before usages existed) instead of throwing.
+  Future<List<AccountUsage>> _usagesAtTap(ProviderContainer container) async {
+    try {
+      return (await container.read(
+        connectedAccountUsageProvider.future,
+      )).usagesOf(account);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not read account usage',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const [];
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -168,15 +189,14 @@ class _AccountTile extends ConsumerWidget {
       ),
       trailing: PopupMenuButton<String>(
         onSelected: (choice) async {
+          // Removing the row rebuilds the list and can dispose this tile
+          // before the refresh below; the container outlives it.
+          final container = ProviderScope.containerOf(context, listen: false);
           final registry = ref.read(accountProviderRegistryProvider);
           final adapter = registry.capabilityFor<AccountProviderAdapter>(
             account.kind,
           );
-          // Read at tap time, not from the build: a tap before the usage
-          // load finished would otherwise skip the warning.
-          final used = (await ref.read(
-            connectedAccountUsageProvider.future,
-          )).usagesOf(account);
+          final used = await _usagesAtTap(container);
           if (!context.mounted) return;
           switch (choice) {
             case 'signOut':
@@ -219,12 +239,13 @@ class _AccountTile extends ConsumerWidget {
                   .read(connectedAccountsRepositoryProvider)
                   .delete(account.id);
           }
-          ref.invalidate(connectedAccountsWithStatusProvider);
-          ref.invalidate(connectedAccountUsageProvider);
+          container
+            ..invalidate(connectedAccountsWithStatusProvider)
+            ..invalidate(connectedAccountUsageProvider);
           // Disconnecting the WebDAV sync account clears the sync settings
           // too; the Cloud Sync tile reads them through this provider.
           if (account.kind == AccountKind.webdav) {
-            ref.invalidate(webdavConfigProvider);
+            container.invalidate(webdavConfigProvider);
           }
         },
         itemBuilder: (_) => [
@@ -242,6 +263,8 @@ class _AccountTile extends ConsumerWidget {
     );
   }
 }
+
+final _log = LoggerService.forClass(ConnectedAccountsPage);
 
 /// The name a usage is shown under, on the row and in the warnings.
 String usageName(AppLocalizations l10n, AccountUsage usage) =>

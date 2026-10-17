@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
@@ -56,7 +57,10 @@ void main() {
 
   tearDown(() => tearDownTestDatabase());
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    List<Override> overrides = const [],
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -64,6 +68,7 @@ void main() {
           accountProviderRegistryProvider.overrideWithValue(
             AccountProviderRegistry([dropbox]),
           ),
+          ...overrides,
         ],
         child: const MaterialApp(
           // Pinned: the assertions match English strings.
@@ -143,6 +148,23 @@ void main() {
     await pumpPage(tester);
 
     expect(find.text('Not used on this device'), findsOneWidget);
+  });
+
+  testWidgets('a failed usage read does not block signing out', (tester) async {
+    final account = await addDropbox(tester);
+    await pumpPage(
+      tester,
+      overrides: [
+        connectedAccountUsageProvider.overrideWith(
+          (ref) => Future.error(StateError('usage read failed')),
+        ),
+      ],
+    );
+
+    await openMenu(tester, 'Sign out on this device');
+    await settle(tester);
+
+    expect(dropbox.disconnected, [account.id]);
   });
 
   testWidgets('signing out an unused account needs no confirmation', (
