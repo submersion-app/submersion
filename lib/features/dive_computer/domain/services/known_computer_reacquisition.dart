@@ -65,6 +65,7 @@ const Map<String, Set<String>> interchangeableBleModels = {
     'leonardo 2.0',
     'donatello',
     'michelangelo',
+    'raffaello',
     'neon',
     'nepto',
   },
