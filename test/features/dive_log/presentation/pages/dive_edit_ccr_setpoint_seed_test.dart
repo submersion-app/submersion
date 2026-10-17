@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -19,13 +20,19 @@ import '../../../../helpers/test_database.dart';
 /// the panel showed.
 void main() {
   late DiveRepository repository;
+  late String? previousLocale;
 
   setUp(() async {
+    // The setpoint hints are formatted with the Intl locale, which
+    // MaterialApp's locale does not set; pin it so '0.6' is deterministic.
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
     await setUpTestDatabase();
     repository = DiveRepository();
   });
 
   tearDown(() async {
+    Intl.defaultLocale = previousLocale;
     await tearDownTestDatabase();
   });
 
