@@ -12,7 +12,6 @@ import 'package:submersion/features/connections/presentation/widgets/open_in_con
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
@@ -21,7 +20,6 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
-import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
@@ -655,14 +653,7 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                   ),
                 ),
                 children: [
-                  TileLayer(
-                    urlTemplate: ref.watch(mapTileUrlProvider),
-                    userAgentPackageName: 'app.submersion',
-                    maxZoom: ref.watch(mapTileMaxZoomProvider),
-                    tileProvider: TileCacheService.instance.tileProviderFor(
-                      urlTemplate: ref.watch(mapTileUrlProvider),
-                    ),
-                  ),
+                  submersionTileLayer(ref),
                   MarkerLayer(
                     markers: [
                       Marker(

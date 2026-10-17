@@ -210,15 +210,19 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
               ],
             ),
           ),
-          // The expand button (when there is one) with the map style
-          // switcher below it.
+          // The map style switcher, beside the expand button when there is
+          // one. Side by side rather than stacked: the story card's map is
+          // only 180px tall and its pins stay tappable.
           PositionedDirectional(
             top: 4,
             end: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const MapCornerControls(),
                 if (widget.onExpand != null) ...[
+                  const SizedBox(width: 8),
                   Material(
                     color: colorScheme.surface.withValues(alpha: 0.85),
                     shape: const CircleBorder(),
@@ -229,9 +233,7 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
                       onPressed: widget.onExpand,
                     ),
                   ),
-                  const SizedBox(height: 8),
                 ],
-                const MapCornerControls(),
               ],
             ),
           ),

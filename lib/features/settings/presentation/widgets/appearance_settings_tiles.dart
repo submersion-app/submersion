@@ -130,7 +130,7 @@ class AppearanceGeneralTiles extends ConsumerWidget {
             surface: AccentSurface.list,
           ),
           title: Text(l10n.settings_appearance_mapStyle),
-          subtitle: Text(_mapStyleName(context, settings.mapStyle)),
+          subtitle: Text(settings.mapStyle.label(l10n)),
           trailing: DropdownButton<MapStyle>(
             value: settings.mapStyle,
             underline: const SizedBox.shrink(),
@@ -141,10 +141,7 @@ class AppearanceGeneralTiles extends ConsumerWidget {
             },
             items: [
               for (final style in MapStyle.values)
-                DropdownMenuItem(
-                  value: style,
-                  child: Text(_mapStyleName(context, style)),
-                ),
+                DropdownMenuItem(value: style, child: Text(style.label(l10n))),
             ],
           ),
         ),
@@ -328,6 +325,3 @@ String _currentThemeName(BuildContext context, String presetId) {
     _ => nameKey,
   };
 }
-
-String _mapStyleName(BuildContext context, MapStyle style) =>
-    style.label(context.l10n);
