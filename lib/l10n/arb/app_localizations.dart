@@ -42216,12 +42216,6 @@ abstract class AppLocalizations {
   /// **'Data'**
   String get settings_section_data_title;
 
-  /// No description provided for @settings_section_decompression_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'GF, data sources & narcosis'**
-  String get settings_section_decompression_subtitle;
-
   /// No description provided for @settings_section_decompression_title.
   ///
   /// In en, this message translates to:

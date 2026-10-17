@@ -26081,10 +26081,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_section_data_title => 'Adatok';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, adatforrások és narkózis';
-
-  @override
   String get settings_section_decompression_title => 'Dekompresszió';
 
   @override

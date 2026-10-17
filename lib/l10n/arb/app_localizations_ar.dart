@@ -26394,10 +26394,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_data_title => 'البيانات';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF، مصادر البيانات والتخدير';
-
-  @override
   String get settings_section_decompression_title => 'تخفيف الضغط';
 
   @override

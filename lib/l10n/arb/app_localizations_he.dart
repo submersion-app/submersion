@@ -25533,10 +25533,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_data_title => 'נתונים';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, מקורות נתונים ונרקוזה';
-
-  @override
   String get settings_section_decompression_title => 'דקומפרסיה';
 
   @override

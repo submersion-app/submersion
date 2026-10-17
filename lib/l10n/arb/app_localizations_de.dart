@@ -26154,10 +26154,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_section_data_title => 'Daten';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, Datenquellen & Narkose';
-
-  @override
   String get settings_section_decompression_title => 'Dekompression';
 
   @override

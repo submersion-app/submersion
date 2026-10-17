@@ -199,6 +199,11 @@ class SettingsPage extends ConsumerWidget {
         return const SharedDataSectionContent();
       case 'debug':
         return const DebugLogViewerPage();
+      case 'decompression':
+        // An old link to the retired root section. build() redirects it to
+        // Safety after this frame; until then show nothing rather than the
+        // unknown-section fallback.
+        return const SizedBox.shrink();
       default:
         return Center(child: Text('Unknown section: $sectionId'));
     }

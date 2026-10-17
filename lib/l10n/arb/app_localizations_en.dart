@@ -25751,10 +25751,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_section_data_title => 'Data';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, data sources & narcosis';
-
-  @override
   String get settings_section_decompression_title => 'Decompression';
 
   @override

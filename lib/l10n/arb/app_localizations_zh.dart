@@ -24735,9 +24735,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_data_title => '数据';
 
   @override
-  String get settings_section_decompression_subtitle => '梯度因子、数据来源与麻醉';
-
-  @override
   String get settings_section_decompression_title => '减压';
 
   @override

@@ -111,6 +111,37 @@ void main() {
       );
     });
 
+    testWidgets('rows read in the active locale', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => MockSettingsNotifier(_settings),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SafetyHubPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sicherheit'), findsOneWidget);
+      expect(find.text('Dekompression'), findsOneWidget);
+      expect(find.text('Ausrüstungszustand'), findsOneWidget);
+      expect(find.text('Aus, Flugverbot Standard'), findsNothing);
+      expect(
+        find.text(
+          'An, $reviewTotal von $reviewTotal Regeln, Flugverbot Standard',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Equipment condition'), findsNothing);
+    });
+
     testWidgets('subtitles follow setting changes', (tester) async {
       final notifier = MockSettingsNotifier(_settings);
       await tester.pumpWidget(_plainApp(notifier));

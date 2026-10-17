@@ -26020,10 +26020,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_section_data_title => 'Gegevens';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, gegevensbronnen & narcose';
-
-  @override
   String get settings_section_decompression_title => 'Decompressie';
 
   @override
