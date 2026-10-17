@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -66,10 +67,31 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
   // ellipsis-truncating it (#3130), so they stack instead.
   static const double _narrowBreakpoint = 360;
 
+  /// Shows the diver's new Settings setpoint in [controller] while the plan
+  /// leaves that setpoint unset, so the field keeps matching what the engine
+  /// computes with after a Settings change or a late settings load.
+  void _followSettings(
+    double? Function(DivePlanState) planValue,
+    TextEditingController controller,
+    double next,
+  ) {
+    if (planValue(ref.read(divePlanNotifierProvider)) != null) return;
+    controller.text = formatRoundedForInput(next, 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final notifier = ref.read(divePlanNotifierProvider.notifier);
+    ref.listen<double>(
+      settingsProvider.select((s) => s.ccrSetpointLow),
+      (_, next) => _followSettings((s) => s.setpointLow, _lowController, next),
+    );
+    ref.listen<double>(
+      settingsProvider.select((s) => s.ccrSetpointHigh),
+      (_, next) =>
+          _followSettings((s) => s.setpointHigh, _highController, next),
+    );
 
     Widget field(
       TextEditingController controller,

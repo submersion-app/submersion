@@ -24,6 +24,8 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);
 
+  void replace(AppSettings settings) => state = settings;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -242,6 +244,37 @@ void main() {
     final fields = find.byType(TextFormField);
     expect(tester.widget<TextFormField>(fields.at(0)).controller!.text, '0.6');
     expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.2');
+  });
+
+  testWidgets('an unset setpoint field follows a Settings change; a set one '
+      'keeps its own value (issue #2801)', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+            ),
+          ),
+        ],
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+    container.read(divePlanNotifierProvider.notifier).updateSetpoints(low: 0.9);
+
+    (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
+        .replace(const AppSettings(ccrSetpointLow: 0.5, ccrSetpointHigh: 1.4));
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextFormField);
+    // The low field was seeded before the plan's own 0.9 was set, and a
+    // plan value is never overwritten by Settings.
+    expect(tester.widget<TextFormField>(fields.at(0)).controller!.text, '0.6');
+    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.4');
   });
 
   testWidgets('CCR settings fields stay in a row when there is room, and stack '

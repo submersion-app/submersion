@@ -846,10 +846,11 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Entering CCR seeds each setpoint still null (a fresh plan, one that has
   /// never been in CCR mode, or one with only a hand-set half) from the
   /// diver's own CCR ppO2 limits, independently per field. A setpoint the
-  /// diver already set (low or high, on its own) is never overwritten. The
-  /// alternative, leaving a missing half null, would fall through to
-  /// [domain.DivePlan]'s spec defaults (0.7 / 1.3) instead of the diver's
-  /// Settings.
+  /// diver already set (low or high, on its own) is never overwritten. A
+  /// null setpoint would still compute with the diver's Settings (the
+  /// engine's own fallback, issue #2801); the seed pins the values the plan
+  /// was built with, so a later Settings change does not move a plan the
+  /// diver has already started editing in CCR.
   ///
   /// Unlike [adoptGradientFactorsIfPristine], there is no later "adopt if
   /// pristine" for these settings: switching mode is itself a diver edit and

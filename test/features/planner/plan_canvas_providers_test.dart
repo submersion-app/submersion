@@ -5,6 +5,8 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
@@ -319,6 +321,29 @@ void main() {
     final config = container.read(planEngineConfigProvider);
     expect(config.ccrSetpointLow, 0.6);
     expect(config.ccrSetpointHigh, 1.2);
+  });
+
+  test('a CCR plan loaded without setpoints computes with the Settings '
+      'setpoints, not the spec 0.7 / 1.3 (issue #2801)', () {
+    final container = _container(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2);
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 60, bottomTimeMinutes: 25);
+    // The shape of a plan saved before the CCR seed existed, or imported
+    // from a file without setpoints: CCR, but no updateMode seed.
+    notifier.loadPlan(
+      container
+          .read(divePlanNotifierProvider)
+          .copyWith(mode: domain.PlanMode.ccr),
+    );
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.mode, domain.PlanMode.ccr);
+    expect(state.setpointHigh, isNull);
+
+    final bottom = container
+        .read(planOutcomeProvider)
+        .schedule
+        .firstWhere((r) => r.kind == PlanScheduleRowKind.level);
+    expect(bottom.ppO2, closeTo(1.2, 0.005));
   });
 
   test('an air leg at 32 m raises no END warning under a 40 m END limit '
