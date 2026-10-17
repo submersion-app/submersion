@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
+import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
@@ -83,6 +85,9 @@ Widget? dataPanePage(Uri location) {
     ['photos-media', 'setup'] => const PhotosMediaSetupPage(),
     ['media-sources'] => const MediaSourcesPage(),
     ['media-sources', 'network-sources'] => const NetworkSourcesPage(),
+    // Hidden pending Adobe review; while it is, the route redirects to Media
+    // Sources, so a push is left to the router.
+    ['lightroom'] when lightroomUiEnabled => const LightroomSettingsPage(),
     ['media-storage'] => const MediaStoragePage(),
     ['media-storage', 'transfers'] => const TransfersPage(),
     ['connected-accounts'] => const ConnectedAccountsPage(),

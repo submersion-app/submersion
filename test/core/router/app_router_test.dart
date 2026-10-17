@@ -37,6 +37,7 @@ import 'package:submersion/features/settings/presentation/widgets/appearance_set
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_settings_pane.dart';
+import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
@@ -2151,6 +2152,21 @@ void main() {
       }
     });
 
+    test('Lightroom opens in the pane only while its UI is enabled', () {
+      addTearDown(() => lightroomUiEnabled = false);
+      final lightroom = Uri.parse('/settings/lightroom');
+
+      lightroomUiEnabled = false;
+      expect(dataPanePage(lightroom), isNull);
+
+      lightroomUiEnabled = true;
+      expect(dataPanePage(lightroom), isA<LightroomSettingsPage>());
+      expect(
+        router.configuration.findMatch(lightroom).fullPath,
+        '/settings/lightroom',
+      );
+    });
+
     test('pages read their parameters from the location', () {
       final library =
           dataPanePage(Uri.parse('/settings/shared-libraries/lib1/members'))
@@ -2169,7 +2185,6 @@ void main() {
         '/settings/appearance',
         '/settings/safety/review',
         '/settings/debug-logs',
-        '/settings/lightroom',
         '/settings',
         '/dives/abc',
       ]) {
