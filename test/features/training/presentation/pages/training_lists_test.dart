@@ -179,35 +179,43 @@ void main() {
     });
   }
 
-  testWidgets('phone: both real lists hold their app bar still mid-switch', (
-    tester,
-  ) async {
-    final original = FlutterError.onError;
-    FlutterError.onError = (details) {
-      if (details.toString().contains('overflowed')) return;
-      original?.call(details);
-    };
-    addTearDown(() => FlutterError.onError = original);
-    await pumpTraining(
-      tester,
-      initialLocation: '/certifications',
-      size: const Size(400, 800),
-    );
+  for (final (name, mode) in const [
+    ('list', ListViewMode.detailed),
+    ('table', ListViewMode.table),
+  ]) {
+    testWidgets(
+      'phone $name: both real lists hold their app bar still mid-switch',
+      (tester) async {
+        final original = FlutterError.onError;
+        FlutterError.onError = (details) {
+          if (details.toString().contains('overflowed')) return;
+          original?.call(details);
+        };
+        addTearDown(() => FlutterError.onError = original);
+        await pumpTraining(
+          tester,
+          initialLocation: '/certifications',
+          size: const Size(400, 800),
+          viewMode: mode,
+        );
 
-    await tester.tap(
-      find.descendant(of: toggle, matching: find.text('Courses')),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+        // Through the switch's controller, as a tap would: under the test font
+        // the table header's actions crowd the names at phone width.
+        tester.widget<TabBar>(toggle).controller!.animateTo(1);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
-    // Each list's own bar, the one it builds itself, is held in place (#3465).
-    expect(find.byType(TabPinnedAppBar), findsNWidgets(2));
-    for (final bar in find.byType(AppBar).evaluate()) {
-      final box = bar.renderObject! as RenderBox;
-      expect(box.localToGlobal(Offset.zero).dx, 0);
-    }
-    await tester.pumpAndSettle();
-  });
+        // Each list's own bar, the one it builds itself, is held in place (#3465).
+        // ignore: avoid_print
+        expect(find.byType(TabPinnedAppBar), findsNWidgets(2));
+        for (final bar in find.byType(AppBar).evaluate()) {
+          final box = bar.renderObject! as RenderBox;
+          expect(box.localToGlobal(Offset.zero).dx, 0);
+        }
+        await tester.pumpAndSettle();
+      },
+    );
+  }
 
   testWidgets('table mode: the switch and its count fit the table header', (
     tester,
