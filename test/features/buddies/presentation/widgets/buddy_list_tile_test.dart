@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -100,6 +101,26 @@ void main() {
     expect(find.byIcon(Icons.phone_outlined), findsOneWidget);
     expect(find.text('JD'), findsOneWidget);
     expect(find.byType(ListTile), findsNothing);
+  });
+
+  testWidgets('draws the avatar without a ring, like the other sections', (
+    tester,
+  ) async {
+    // A PADI buddy used to get a 2 px ring in the agency's dark brand colour
+    // (issue #3466); the agency colour lives on the certification chip only.
+    final entry = BuddyWithDiveCount(buddy: _buddy(), diveCount: 1);
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        child: BuddyListTile(entry: entry, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+    expect(avatar.ringColor, isNull);
+    final circle = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+    expect(circle.radius, 20);
   });
 
   testWidgets('hides the usual role for the plain buddy role and empty bits', (

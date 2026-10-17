@@ -34,8 +34,8 @@ class ProfileAvatar extends StatelessWidget {
   final Color? backgroundColor;
   final Color? foregroundColor;
 
-  /// Draws a coloured ring around the avatar (the buddy list uses this for
-  /// the usual-role indicator).
+  /// Draws a coloured ring around the avatar (the dashboard hero uses this
+  /// to lift the avatar off its banner).
   final Color? ringColor;
 
   /// Overrides the initials text style. Two sites render initials at 36pt.
