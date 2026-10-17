@@ -61,19 +61,24 @@ void main() {
     }
   });
 
-  test('the trip list changes its own URL in place', () {
+  test('trip pages change their own URL in place', () {
     // A go() on a list pushed by openTripList discards the stack under it,
-    // and the way back with it; goInPlace keeps it.
-    const files = [
-      'lib/features/trips/presentation/pages/trip_list_page.dart',
-      'lib/features/trips/presentation/widgets/trip_list_content.dart',
-      'lib/features/trips/presentation/widgets/trip_summary_widget.dart',
-      'lib/features/trips/presentation/helpers/trip_edit_navigation.dart',
-    ];
+    // and the way back with it; goInPlace keeps it. Scans the whole trips
+    // presentation folder, so a new widget is covered without a list edit.
+    const allowedGo = <String, String>{
+      'lib/features/trips/presentation/pages/trip_detail_page.dart':
+          'the desktop redirect runs only on a page reached by URL, which '
+          'has nothing under it to keep',
+    };
     final go = RegExp(r'context\.go\(');
     final offenders = <String>[];
-    for (final path in files) {
-      final lines = File(path).readAsLinesSync();
+    for (final entity in Directory(
+      'lib/features/trips/presentation',
+    ).listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      final path = entity.path.replaceAll(r'\', '/');
+      if (allowedGo.containsKey(path)) continue;
+      final lines = entity.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
         if (lines[i].trimLeft().startsWith('//')) continue;
         if (go.hasMatch(lines[i])) offenders.add('$path:${i + 1}');
@@ -84,5 +89,14 @@ void main() {
       isEmpty,
       reason: 'use context.goInPlace so a pushed trip list keeps its way back',
     );
+    for (final entry in allowedGo.entries) {
+      expect(
+        go.hasMatch(File(entry.key).readAsStringSync()),
+        isTrue,
+        reason:
+            '${entry.key} is allowlisted as "${entry.value}" but no longer '
+            'calls context.go; remove it from the allowlist',
+      );
+    }
   });
 }
