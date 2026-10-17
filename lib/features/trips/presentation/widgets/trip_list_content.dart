@@ -842,8 +842,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       onCheckChanged: onCheckChanged,
                     ),
                   };
-                  // The banner is the row's header, outside the focus ring,
-                  // so the ring traces the trip's card alone (#3224).
+                  // The banner is the row's header: a click on it moves the
+                  // keyboard cursor to the trip (#3224).
                   return KeyboardListItem(
                     navigationKey: tripWithStats.trip.id,
                     header: tripWithStats.trip.isUpcoming

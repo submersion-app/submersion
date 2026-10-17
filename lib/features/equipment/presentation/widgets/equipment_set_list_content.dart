@@ -132,8 +132,8 @@ class EquipmentSetListContent extends ConsumerWidget {
       child: KeyboardListNavigator(
         keys: [for (final s in sets) s.id],
         currentKey: selectedId,
-        // No highlight of its own to move: at phone width the cursor's focus ring
-        // marks the row, and Enter opens it.
+        // No highlight of its own to move: at phone width an arrow moves the
+        // cursor without marking a row, and Enter opens the cursor's row.
         onMove: (id) => moveListCursor(
           context,
           canOpen: onItemSelected != null,

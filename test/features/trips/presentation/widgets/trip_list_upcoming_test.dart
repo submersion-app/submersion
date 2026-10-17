@@ -16,7 +16,6 @@ import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_ban
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
-import 'package:submersion/shared/widgets/master_detail/keyboard_list_focus_ring.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -240,45 +239,29 @@ void main() {
       expect(find.text('3 of 12 to-dos done'), findsOneWidget);
     });
 
-    testWidgets(
-      'an upcoming trip\'s banner is its row\'s header, outside the ring',
-      (tester) async {
-        // The banner belongs to the trip's row, so a click on it moves the
-        // keyboard cursor there, but it sits outside the focus ring, which
-        // traces the trip's card alone (#3224).
-        await setMobileSize(tester);
+    testWidgets('an upcoming trip\'s banner is part of its row', (
+      tester,
+    ) async {
+      // The banner belongs to the trip's row, so a click on it moves the
+      // keyboard cursor there (#3224).
+      await setMobileSize(tester);
 
-        await tester.pumpWidget(
-          _buildTestWidget(
-            overrides: baseOverrides([TripWithStats(trip: upcomingTrip)]),
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides([TripWithStats(trip: upcomingTrip)]),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        expect(find.byType(UpcomingTripBanner), findsOneWidget);
-        expect(
-          find.ancestor(
-            of: find.byType(UpcomingTripBanner),
-            matching: find.byType(KeyboardListItem),
-          ),
-          findsOneWidget,
-        );
-        expect(
-          find.ancestor(
-            of: find.byType(UpcomingTripBanner),
-            matching: find.byType(KeyboardListFocusRing),
-          ),
-          findsNothing,
-        );
-        expect(
-          find.ancestor(
-            of: find.text('Cozumel'),
-            matching: find.byType(KeyboardListFocusRing),
-          ),
-          findsOneWidget,
-        );
-      },
-    );
+      expect(find.byType(UpcomingTripBanner), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byType(UpcomingTripBanner),
+          matching: find.byType(KeyboardListItem),
+        ),
+        findsOneWidget,
+      );
+    });
 
     // Pinned, so this does not quietly depend on the date the suite runs.
     // 2026-10-09 is 24 days before the US fall-back on 2026-11-01, so a

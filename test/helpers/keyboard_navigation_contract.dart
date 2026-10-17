@@ -7,8 +7,8 @@ import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.
 
 /// Makes focus highlighting behave as it does on desktop, where it starts in
 /// the traditional mode and a mouse click leaves it there, for the rest of
-/// the test. Widget tests otherwise run as a touch platform, which never
-/// draws a list's focus ring.
+/// the test. Widget tests otherwise run as a touch platform, which hides
+/// focus decorations a desktop would draw.
 void useDesktopFocusHighlighting() {
   final focusManager = FocusManager.instance;
   final strategy = focusManager.highlightStrategy;
@@ -28,16 +28,6 @@ Future<void> clickWithMouse(WidgetTester tester, Finder finder) async {
   await tester.pump(const Duration(milliseconds: 50));
   await gesture.up();
   await gesture.removePointer();
-  await tester.pumpAndSettle();
-}
-
-/// Clicks [finder] to focus its list and put the cursor there, then presses
-/// an arrow, which on a one-row list leaves the cursor where it is. A click
-/// alone draws no focus ring; the ring shows once the list is used from the
-/// keyboard (#3385).
-Future<void> clickThenUseKeyboard(WidgetTester tester, Finder finder) async {
-  await clickWithMouse(tester, finder);
-  await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
   await tester.pumpAndSettle();
 }
 

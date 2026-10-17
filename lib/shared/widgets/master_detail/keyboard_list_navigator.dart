@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
-import 'package:submersion/shared/widgets/master_detail/keyboard_list_focus_ring.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// The move policy every master list shares (#3065).
@@ -42,8 +41,11 @@ void moveListCursor(
 /// groups, and do nothing otherwise rather than letting focus wander off.
 ///
 /// Rows go inside a [KeyboardListItem], which takes them out of the focus
-/// order, gives the list focus and the cursor when one is clicked, scrolls a
-/// newly reached row into view and draws the focus ring on the cursor's row.
+/// order, gives the list focus and the cursor when one is clicked, and
+/// scrolls a newly reached row into view. Nothing is drawn around the
+/// cursor's row (#3438): a move opens or highlights it, and the list's own
+/// highlight fill marks it as a click does. A list with no highlight at phone
+/// width leaves the cursor unmarked there until Enter opens its row.
 class KeyboardListNavigator extends StatefulWidget {
   const KeyboardListNavigator({
     super.key,
@@ -113,20 +115,6 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
 
   static Duration get _now =>
       SchedulerBinding.instance.currentSystemFrameTimeStamp;
-  bool _hasFocus = false;
-  FocusHighlightMode _highlightMode = FocusManager.instance.highlightMode;
-
-  /// Whether the list was last driven from the keyboard: a key pressed in it,
-  /// or focus arriving by Tab. A click clears it, so the open row shows only
-  /// its own highlight, not the ring as well (#3385). The highlight mode alone
-  /// cannot tell: on desktop a mouse click leaves it traditional.
-  bool _keyboardDriven = false;
-
-  @override
-  void initState() {
-    super.initState();
-    FocusManager.instance.addHighlightModeListener(_onHighlightModeChanged);
-  }
 
   @override
   void didUpdateWidget(KeyboardListNavigator oldWidget) {
@@ -152,13 +140,8 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
 
   @override
   void dispose() {
-    FocusManager.instance.removeHighlightModeListener(_onHighlightModeChanged);
     _focusNode.dispose();
     super.dispose();
-  }
-
-  void _onHighlightModeChanged(FocusHighlightMode mode) {
-    if (mounted) setState(() => _highlightMode = mode);
   }
 
   /// The cursor, or [KeyboardListNavigator.currentKey] when the cursor's row
@@ -179,15 +162,10 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
         keyboard.isMetaPressed;
   }
 
-  /// Focus arriving while Tab is down came by traversal into the list.
-  static bool _tabHeld() => HardwareKeyboard.instance.logicalKeysPressed
-      .contains(LogicalKeyboardKey.tab);
-
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
     // A shortcut (Cmd+F and the like) is not navigating the list.
     if (_anyModifierPressed()) return KeyEventResult.ignored;
-    if (!_keyboardDriven) setState(() => _keyboardDriven = true);
     final key = event.logicalKey;
 
     if (key == LogicalKeyboardKey.arrowDown) {
@@ -243,7 +221,7 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   }
 
   void _moveTo(String key, {required bool forward}) {
-    setState(() => _cursor = key);
+    _cursor = key;
     _unconfirmedMoves.add((key: key, at: _now));
     widget.onMove(key);
     WidgetsBinding.instance.addPostFrameCallback(
@@ -320,12 +298,7 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   void _pointerDownOn(String key) {
     _focusNode.requestFocus();
     _unconfirmedMoves.clear();
-    if (_cursor != key || _keyboardDriven) {
-      setState(() {
-        _cursor = key;
-        _keyboardDriven = false;
-      });
-    }
+    _cursor = key;
   }
 
   void _register(String key, BuildContext row) => _rows[key] = row;
@@ -336,61 +309,26 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
 
   @override
   Widget build(BuildContext context) {
-    final showsRing =
-        _hasFocus &&
-        _keyboardDriven &&
-        _highlightMode == FocusHighlightMode.traditional;
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: _onKeyEvent,
       onFocusChange: (focused) {
         if (!focused) _unconfirmedMoves.clear();
-        setState(() {
-          _hasFocus = focused;
-          // Focus handed back with no key held (the app resuming, a menu
-          // closing) or taken by a click leaves the ring as the list last had
-          // it; a click has already cleared it.
-          if (focused && _tabHeld()) _keyboardDriven = true;
-        });
       },
-      child: _KeyboardListScope(
-        state: this,
-        ringKey: showsRing ? _effectiveCursor : null,
-        child: widget.child,
-      ),
+      child: _KeyboardListScope(state: this, child: widget.child),
     );
   }
 }
 
-/// Tells rows which of them draws the focus ring. An [InheritedModel] keyed by
-/// row, so a cursor move rebuilds the row losing the ring and the row gaining
-/// it rather than every built row in the list.
-class _KeyboardListScope extends InheritedModel<String> {
-  const _KeyboardListScope({
-    required this.state,
-    required this.ringKey,
-    required super.child,
-  });
+/// Hands rows their navigator, so they can register and pass on clicks.
+class _KeyboardListScope extends InheritedWidget {
+  const _KeyboardListScope({required this.state, required super.child});
 
   final _KeyboardListNavigatorState state;
 
-  /// The row drawing the focus ring, or null while the list is not focused
-  /// from the keyboard.
-  final String? ringKey;
-
   @override
   bool updateShouldNotify(_KeyboardListScope oldWidget) =>
-      ringKey != oldWidget.ringKey || !identical(state, oldWidget.state);
-
-  @override
-  bool updateShouldNotifyDependent(
-    _KeyboardListScope oldWidget,
-    Set<String> dependencies,
-  ) {
-    if (!identical(state, oldWidget.state)) return true;
-    return dependencies.contains(ringKey) ||
-        dependencies.contains(oldWidget.ringKey);
-  }
+      !identical(state, oldWidget.state);
 }
 
 /// One row of a [KeyboardListNavigator].
@@ -412,8 +350,7 @@ class KeyboardListItem extends StatefulWidget {
   final Widget child;
 
   /// Shown above [child] as part of the row: a click on it moves the cursor
-  /// there and a keyboard move scrolls it into view with the row. It sits
-  /// outside the focus ring, which traces [child]'s card alone (#3224).
+  /// there and a keyboard move scrolls it into view with the row (#3224).
   final Widget? header;
 
   @override
@@ -463,27 +400,12 @@ class _KeyboardListItemState extends State<KeyboardListItem> {
 
   @override
   Widget build(BuildContext context) {
-    final scope = InheritedModel.inheritFrom<_KeyboardListScope>(
-      context,
-      aspect: widget.navigationKey,
-    );
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<_KeyboardListScope>();
     if (scope == null) return _withHeader(widget.child);
-    final hasRing = scope.ringKey == widget.navigationKey;
     return Listener(
       onPointerDown: (_) => scope.state._pointerDownOn(widget.navigationKey),
-      // Always a ring, with only its visibility changing: a click draws the
-      // ring while its tap is still in progress, and a box that came and went
-      // with the ring would rebuild the row's contents and lose that tap
-      // (#3208).
-      child: ExcludeFocus(
-        child: _withHeader(
-          KeyboardListFocusRing(
-            visible: hasRing,
-            color: Theme.of(context).colorScheme.primary,
-            child: widget.child,
-          ),
-        ),
-      ),
+      child: ExcludeFocus(child: _withHeader(widget.child)),
     );
   }
 
