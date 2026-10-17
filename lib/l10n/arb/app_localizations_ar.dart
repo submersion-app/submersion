@@ -36704,7 +36704,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'تسجيلات الدخول للسحابة والخدمات';
+      'تسجيلات الدخول المستخدمة للمزامنة وتخزين الوسائط والمكتبات المشتركة';
 
   @override
   String get settings_connectedAccounts_empty => 'لا توجد حسابات متصلة بعد';
@@ -36773,6 +36773,47 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'يُستخدم لـ: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'غير مستخدم على هذا الجهاز';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'مزامنة قاعدة البيانات';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'تخزين الوسائط';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'مكتبة مواقع مشتركة: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'تسجيل الخروج على هذا الجهاز؟';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'على هذا الجهاز، يُستخدم $account للميزات أدناه. ستتوقف عن العمل هنا حتى تسجّل الدخول مرة أخرى.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'على هذا الجهاز يُستخدم للميزات أدناه، والتي ستتوقف عن العمل هنا:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'قد تستخدم أجهزة أخرى هذا الحساب أيضًا.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>

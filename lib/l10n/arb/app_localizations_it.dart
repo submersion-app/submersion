@@ -36233,7 +36233,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_connectedAccounts_title => 'Account collegati';
 
   @override
-  String get settings_connectedAccounts_subtitle => 'Accessi cloud e servizi';
+  String get settings_connectedAccounts_subtitle =>
+      'Accessi usati da sincronizzazione, archiviazione media e librerie condivise';
 
   @override
   String get settings_connectedAccounts_empty => 'Nessun account collegato';
@@ -36305,6 +36306,48 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Impossibile caricare gli account';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Usato per: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Non usato su questo dispositivo';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Sincronizzazione del database';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage =>
+      'Archiviazione media';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Libreria di siti condivisa: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Uscire su questo dispositivo?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Su questo dispositivo, $account è usato per le funzioni seguenti. Smetteranno di funzionare qui finché non accedi di nuovo.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Su questo dispositivo è usato per le funzioni seguenti, che smetteranno di funzionare qui:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Anche altri dispositivi potrebbero usare questo account.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume non montato';

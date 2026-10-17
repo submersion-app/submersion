@@ -36017,7 +36017,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Felhő- és szolgáltatásfiókok';
+      'A szinkronizálás, a médiatárhely és a megosztott könyvtárak által használt fiókok';
 
   @override
   String get settings_connectedAccounts_empty =>
@@ -36090,6 +36090,47 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'A fiókok nem tölthetők be';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Felhasználás: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Ezen az eszközön nincs használatban';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Adatbázis-szinkronizálás';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'Médiatárhely';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Megosztott merülőhely-könyvtár: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Kijelentkezik ezen az eszközön?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Ezen az eszközön a(z) $account fiókot az alábbi funkciók használják. Ezek itt az újbóli bejelentkezésig nem működnek.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Ezen az eszközön az alábbi funkciók használják, amelyek itt ezután nem működnek:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Más eszközök is használhatják ezt a fiókot.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
