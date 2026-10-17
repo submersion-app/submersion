@@ -120,6 +120,38 @@ Future<String> _saveViaDialog(
   return _writeToDocuments(bytes, fileName);
 }
 
+/// Hand a file that already exists at [path] to the share sheet, or to the
+/// save dialog where [canShareFiles] is false.
+///
+/// Unlike [saveAndShareFileBytes] nothing is copied into the documents
+/// directory first, so an export built in temp space (an encrypted documents
+/// archive) leaves no lasting copy behind. Returns the shared path, the saved
+/// location, or null when the save dialog is cancelled.
+Future<String?> shareFileAtPath(
+  String path,
+  String fileName,
+  String mimeType, {
+  required String dialogTitle,
+  Rect? sharePositionOrigin,
+}) async {
+  if (!canShareFiles) {
+    return saveBytesToFile(
+      await File(path).readAsBytes(),
+      fileName,
+      dialogTitle: dialogTitle,
+      mimeType: mimeType,
+    );
+  }
+  await SharePlus.instance.share(
+    ShareParams(
+      files: [XFile(path, mimeType: mimeType, name: fileName)],
+      subject: fileName,
+      sharePositionOrigin: sharePositionOrigin,
+    ),
+  );
+  return path;
+}
+
 Future<String> _writeToDocuments(Uint8List bytes, String fileName) async {
   final directory = await getApplicationDocumentsDirectory();
   final file = File(p.join(directory.path, fileName));

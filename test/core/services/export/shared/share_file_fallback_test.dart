@@ -172,4 +172,56 @@ void main() {
       expect(picker.lastSavedFileName, isNull);
     });
   });
+
+  group('shareFileAtPath', () {
+    late File zip;
+
+    setUp(() {
+      zip = File(p.join(chosen.path, 'docs.zip'))..writeAsBytesSync([9, 8]);
+    });
+
+    test('hands the existing file to the sheet, copying nothing', () async {
+      debugCanShareFiles = true;
+
+      await shareFileAtPath(
+        zip.path,
+        'docs.zip',
+        'application/zip',
+        dialogTitle: 'Save',
+      );
+
+      expect(sharePlatform.calls.single.files!.single.path, zip.path);
+      expect(documents.listSync(), isEmpty);
+      expect(picker.lastSavedFileName, isNull);
+    });
+
+    test('without a sheet, saves the file through the dialog', () async {
+      final target = p.join(chosen.path, 'saved.zip');
+      picker.saveFileResult = Uri.file(target);
+
+      final saved = await shareFileAtPath(
+        zip.path,
+        'docs.zip',
+        'application/zip',
+        dialogTitle: 'Save',
+      );
+
+      expect(saved, target);
+      expect(picker.lastSavedFileName, 'docs.zip');
+      expect(picker.lastSavedBytes, [9, 8]);
+      expect(sharePlatform.calls, isEmpty);
+    });
+
+    test('a cancelled dialog returns null', () async {
+      expect(
+        await shareFileAtPath(
+          zip.path,
+          'docs.zip',
+          'application/zip',
+          dialogTitle: 'Save',
+        ),
+        isNull,
+      );
+    });
+  });
 }
