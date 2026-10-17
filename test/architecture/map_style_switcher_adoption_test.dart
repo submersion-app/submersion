@@ -2,16 +2,16 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Every file that builds a `FlutterMap` must also place the map style
-/// switcher (`MapCornerControls`) on it, unless it is listed below with the
-/// reason it skips the control.
+/// Every `FlutterMap` must carry the map style switcher (`MapCornerControls`),
+/// unless its file is listed below with the reason it skips the control.
 ///
 /// The switcher was added to every full map at once (issue #3386). Without a
 /// ratchet the next new map, or a refactor of an existing one, can ship
-/// without it and the "every map" promise quietly stops being true. The check
-/// is per file, not per map: a file with two maps (a mini preview and its
-/// fullscreen view) passes once either carries the control, so review still
-/// owns the second one.
+/// without it and the "every map" promise quietly stops being true. Each file
+/// must hold at least as many controls as maps, so a file with two maps (a
+/// mini preview and its fullscreen view) fails when either one loses its
+/// control. Comments are ignored, so naming a widget in prose counts for
+/// nothing.
 void main() {
   /// Maps that deliberately skip the switcher, each with the reason.
   const allowed = <String, String>{
@@ -23,7 +23,13 @@ void main() {
         'empty-state backdrop with nothing to look at',
   };
 
-  bool buildsMap(String code) => code.contains('FlutterMap(');
+  /// The file's code with `//` comments removed.
+  String codeOf(String source) =>
+      source.split('\n').map((line) => line.split('//').first).join('\n');
+
+  int count(String code, String call) => call.allMatches(code).length;
+
+  bool buildsMap(String source) => count(codeOf(source), 'FlutterMap(') > 0;
 
   test('every map file places the map style switcher', () {
     final offenders = <String>[];
@@ -31,9 +37,11 @@ void main() {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
       final path = entity.path.replaceAll(r'\', '/');
       if (allowed.containsKey(path)) continue;
-      final code = entity.readAsStringSync();
-      if (buildsMap(code) && !code.contains('MapCornerControls(')) {
-        offenders.add(path);
+      final code = codeOf(entity.readAsStringSync());
+      final maps = count(code, 'FlutterMap(');
+      final controls = count(code, 'MapCornerControls(');
+      if (controls < maps) {
+        offenders.add('$path: $maps map(s), $controls MapCornerControls');
       }
     }
     expect(
