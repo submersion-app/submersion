@@ -133,21 +133,23 @@ TankConfigurationDive _tankConfigurationDive(
 
 /// Whether [tank] belongs to the dive's primary recording, the rule
 /// `tripCylinderIdsTakenFor` uses to tell one recording's cylinders from
-/// another's copies. With a primary computer, the tank is its own, shared
-/// with it by consolidation, or unattributed ([domain.DiveTank.isUsedBy]).
-/// With a primary source that names no computer (#2716), the tank names no
-/// computer and is that source's or the dive's own. With no primary source
-/// every tank counts.
+/// another's copies. A tank that names a computer belongs when that is the
+/// primary computer or consolidation shared it with the primary. A tank
+/// that names no computer is its source's (#2716: a consolidated source
+/// that names no computer), so it belongs when it has no source or the
+/// primary source's; otherwise it is another recording's copy, whatever
+/// the primary is. With no primary source every tank counts.
 bool _ownedByPrimary(
   domain.DiveTank tank, {
   required String? primarySourceId,
   required String? primaryComputerId,
 }) {
   if (primarySourceId == null) return true;
-  if (primaryComputerId != null) return tank.isUsedBy(primaryComputerId);
-  final sourceId = tank.sourceId;
-  return tank.computerId == null &&
-      (sourceId == null || sourceId == primarySourceId);
+  if (tank.computerId == null) {
+    final sourceId = tank.sourceId;
+    return sourceId == null || sourceId == primarySourceId;
+  }
+  return primaryComputerId != null && tank.isUsedBy(primaryComputerId);
 }
 
 /// Stored roles by name, built once. A name this build does not know (a

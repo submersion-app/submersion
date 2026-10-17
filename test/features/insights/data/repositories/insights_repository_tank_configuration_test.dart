@@ -259,21 +259,35 @@ void main() {
     },
   );
 
+  test("counts every cylinder when the primary recording owns none", () async {
+    await insertComputer('timer');
+    await insertComputer('c2');
+    await insertDive('timed');
+    // A bottom timer as primary logs no cylinders of its own.
+    await insertSource('timed', 'timer', primary: true);
+    await insertSource('timed', 'c2', primary: false);
+    await insertTank('timed', 0, 'sidemountLeft', computerId: 'c2');
+    await insertTank('timed', 1, 'sidemountRight', computerId: 'c2');
+
+    final stats = await repository.getTankConfigurationStats();
+
+    expect(stats.baseCounts, {TankBaseConfiguration.sidemount: 1});
+  });
+
   test(
-    "counts every cylinder when the primary recording owns none",
+    "leaves out a computerless secondary source's copy under a primary computer",
     () async {
-      await insertComputer('timer');
-      await insertComputer('c2');
-      await insertDive('timed');
-      // A bottom timer as primary logs no cylinders of its own.
-      await insertSource('timed', 'timer', primary: true);
-      await insertSource('timed', 'c2', primary: false);
-      await insertTank('timed', 0, 'sidemountLeft', computerId: 'c2');
-      await insertTank('timed', 1, 'sidemountRight', computerId: 'c2');
+      await insertComputer('c1');
+      await insertDive('mixed');
+      await insertSource('mixed', 'c1', primary: true);
+      // A consolidated file import that names no computer.
+      await insertSource('mixed', null, primary: false, id: 'file');
+      await insertTank('mixed', 0, 'backGas', computerId: 'c1');
+      await insertTank('mixed', 1, 'backGas', sourceId: 'file');
 
       final stats = await repository.getTankConfigurationStats();
 
-      expect(stats.baseCounts, {TankBaseConfiguration.sidemount: 1});
+      expect(stats.baseCounts, {TankBaseConfiguration.singleBackmount: 1});
     },
   );
 
