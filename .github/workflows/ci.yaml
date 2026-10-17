@@ -112,6 +112,7 @@ jobs:
             [ -n "$f" ] || continue
             case "$f" in
               .github/flutter-version.txt) code=true ;;   # SDK bump affects all
+              .github/actions/setup-flutter/*) code=true ;; # SDK setup for every job
               .github/*) ;;                                # other CI/meta: inert
               *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
@@ -121,11 +122,12 @@ jobs:
             # package (Swift and its Dart channel), the secure-storage and
             # database-security code whose keychain fallback only macOS takes,
             # the two tests, the macOS runner project they are built into, and
-            # the Flutter SDK. An edit to the job in this file is not listed:
-            # use [full-ci] for that. The test files here must match the run
-            # loop in integration-test-macos.
+            # the Flutter SDK and the action that installs it. An edit to the
+            # job in this file is not listed: use [full-ci] for that. The test
+            # files here must match the run loop in integration-test-macos.
             case "$f" in
-              .github/flutter-version.txt|macos/*|packages/submersion_transcoder/*) macos_native=true ;;
+              .github/flutter-version.txt|.github/actions/setup-flutter/*) macos_native=true ;;
+              macos/*|packages/submersion_transcoder/*) macos_native=true ;;
               lib/core/services/secure_storage/*|lib/core/services/security/*) macos_native=true ;;
               integration_test/darwin_transcode_test.dart|integration_test/db_security_test.dart) macos_native=true ;;
             esac
@@ -182,7 +184,7 @@ jobs:
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -276,7 +278,7 @@ jobs:
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -378,7 +380,7 @@ jobs:
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -490,7 +492,7 @@ jobs:
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -595,6 +597,12 @@ jobs:
         # script-tests itself went ungated from 2026-06-24 to 2026-09-03.
         run: python3 scripts/check_ci_success_gate.py
 
+      - name: Check Flutter setup is retried
+        # Fails if a workflow calls subosito/flutter-action directly instead of
+        # ./.github/actions/setup-flutter, or if that action stops retrying. One
+        # stalled SDK download turned main red in run 36852093336 (#2765).
+        run: python3 scripts/check_flutter_setup_retried.py
+
       - name: Check JNI local-reference hygiene (source)
         # Source-level guard: no build artifact needed (unlike the APK/mapping
         # guards), so it runs here. Fails if a libdivecomputer JNI callback
@@ -618,7 +626,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -633,6 +641,8 @@ jobs:
             scripts/check_dc_process_isolation_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_ci_success_gate_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_flutter_setup_retried_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_pr_issue_link_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -822,7 +832,7 @@ jobs:
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -954,7 +964,7 @@ jobs:
         with:
           xcode-version: 'latest-stable'
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -1036,7 +1046,7 @@ jobs:
         with:
           xcode-version: 'latest-stable'
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -1113,7 +1123,7 @@ jobs:
         with:
           xcode-version: 'latest-stable'
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -1240,7 +1250,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -1357,7 +1367,7 @@ jobs:
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -1543,7 +1553,7 @@ jobs:
         shell: bash
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}

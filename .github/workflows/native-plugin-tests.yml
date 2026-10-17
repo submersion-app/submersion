@@ -10,10 +10,12 @@ on:
     paths:
       - 'packages/libdivecomputer_plugin/**'
       - '.github/workflows/native-plugin-tests.yml'
+      - '.github/actions/setup-flutter/**'
   pull_request:
     paths:
       - 'packages/libdivecomputer_plugin/**'
       - '.github/workflows/native-plugin-tests.yml'
+      - '.github/actions/setup-flutter/**'
 
 permissions:
   contents: read
@@ -71,7 +73,7 @@ jobs:
         id: flutter-version
         run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ steps.flutter-version.outputs.version }}
 
@@ -111,7 +113,7 @@ jobs:
         with:
           xcode-version: '26'
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ steps.flutter-version.outputs.version }}
 
@@ -143,7 +145,7 @@ jobs:
         shell: bash
         run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ steps.flutter-version.outputs.version }}
 
@@ -168,7 +170,7 @@ jobs:
         id: flutter-version
         run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ steps.flutter-version.outputs.version }}
 

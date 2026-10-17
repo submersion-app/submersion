@@ -56,7 +56,7 @@ jobs:
           xcode-version: 'latest-stable'
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -185,7 +185,7 @@ jobs:
           xcode-version: 'latest-stable'
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}

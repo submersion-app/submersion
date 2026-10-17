@@ -1,0 +1,74 @@
+name: Set up Flutter (retried)
+description: >
+  subosito/flutter-action with up to three attempts, so one failed SDK
+  download does not fail the job. curl inside the upstream action retries only
+  what it counts as transient; a transfer that stalls part way (exit 56,
+  "Recv failure: Operation timed out") is not, and that is how run
+  36852093336 turned main red (issue #2765). Every workflow uses this action
+  instead of the upstream one; scripts/check_flutter_setup_retried.py
+  enforces that, and that the retry below stays in place.
+
+inputs:
+  flutter-version:
+    description: The Flutter version to install, usually read from .github/flutter-version.txt
+    required: true
+  channel:
+    description: The Flutter release channel
+    required: false
+    default: stable
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Flutter (attempt 1 of 3)
+      id: first
+      uses: subosito/flutter-action@v2
+      continue-on-error: true
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: ${{ inputs.channel }}
+
+    # A failed attempt can leave a half-extracted SDK behind. The upstream
+    # setup script skips the download whenever bin/flutter is present, so a
+    # retry over that directory would succeed with a broken SDK. Remove it.
+    - name: Clear the failed Flutter install, then wait before retrying
+      if: steps.first.outcome == 'failure'
+      shell: bash
+      env:
+        SDK_PATH: ${{ steps.first.outputs.CACHE-PATH }}
+      run: |
+        echo "::warning::Flutter setup attempt 1 failed; retrying in 30s"
+        if [ -n "$SDK_PATH" ]; then
+          rm -rf "$SDK_PATH"
+        fi
+        sleep 30
+
+    - name: Set up Flutter (attempt 2 of 3)
+      id: second
+      if: steps.first.outcome == 'failure'
+      uses: subosito/flutter-action@v2
+      continue-on-error: true
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: ${{ inputs.channel }}
+
+    - name: Clear the failed Flutter install, then wait before retrying
+      if: steps.second.outcome == 'failure'
+      shell: bash
+      env:
+        SDK_PATH: ${{ steps.second.outputs.CACHE-PATH }}
+      run: |
+        echo "::warning::Flutter setup attempt 2 failed; retrying in 60s"
+        if [ -n "$SDK_PATH" ]; then
+          rm -rf "$SDK_PATH"
+        fi
+        sleep 60
+
+    # No continue-on-error: an outage that outlasts every retry fails the job
+    # here, at setup, rather than later with no flutter on the PATH.
+    - name: Set up Flutter (attempt 3 of 3)
+      if: steps.second.outcome == 'failure'
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: ${{ inputs.channel }}

@@ -144,7 +144,7 @@ jobs:
           xcodebuild -version
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -424,7 +424,7 @@ jobs:
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -571,7 +571,7 @@ jobs:
             libssl-dev binutils
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -802,7 +802,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
@@ -1005,7 +1005,7 @@ jobs:
           fi
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:
           flutter-version: ${{ steps.flutter-ver.outputs.version }}
