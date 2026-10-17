@@ -11,6 +11,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/data/services/document_archive_exporter.dart';
+import 'package:submersion/features/documents/data/services/document_export_dirs.dart';
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
 import 'package:submersion/features/documents/domain/document_manifest.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -41,18 +42,6 @@ Future<void> exportAllDocuments(BuildContext context, WidgetRef ref) async {
     _log.error('Documents export failed', error: e, stackTrace: stack);
     say(l10n.documents_export_failed('$e'));
   }
-}
-
-/// Where the archive is built. One fixed folder, emptied at the start of
-/// every export: a shared ZIP has to outlive the share call (AirDrop, Mail
-/// and the Windows share targets read it afterwards), so it is only removed
-/// by the next export rather than straight away.
-Future<Directory> _freshExportDir() async {
-  final dir = Directory(
-    p.join(Directory.systemTemp.path, 'submersion_documents_export'),
-  );
-  if (dir.existsSync()) await dir.delete(recursive: true);
-  return dir.create(recursive: true);
 }
 
 Future<void> _exportAllDocuments(
@@ -109,7 +98,7 @@ Future<void> _exportAllDocuments(
     '${archiveDateFormat.format(now)}.zip',
   );
   // Before the dialog opens, so a failure here cannot strand it.
-  final dir = await _freshExportDir();
+  final dir = await newDocumentExportDir(now);
   if (!context.mounted) return;
   final progress = ValueNotifier<DocumentExportProgress>((
     done: 0,

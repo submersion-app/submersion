@@ -22,6 +22,21 @@ class ZipCryptoWriter {
     : _password = _checkedPassword(password),
       _random = random ?? Random.secure();
 
+  /// Opens [path] for a new archive, checking [password] first so a refused
+  /// one leaves no file behind.
+  static Future<ZipCryptoWriter> open(
+    String path, {
+    required String password,
+    Random? random,
+  }) async {
+    _checkedPassword(password);
+    return ZipCryptoWriter(
+      await File(path).open(mode: FileMode.write),
+      password: password,
+      random: random,
+    );
+  }
+
   final RandomAccessFile _out;
   final Uint8List _password;
   final Random _random;

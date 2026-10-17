@@ -12,6 +12,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/data/services/document_export_dirs.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/helpers/document_export_flow.dart';
@@ -71,9 +72,10 @@ Future<void> _save(String title, DocumentOwner owner, List<DocumentPage> p) =>
       p,
     );
 
-bool _exportDirExists() => Directory(
-  p.join(Directory.systemTemp.path, 'submersion_documents_export'),
-).existsSync();
+Set<String> _exportDirs() => {
+  for (final e in Directory.systemTemp.listSync())
+    if (p.basename(e.path).startsWith(exportDirPrefix)) e.path,
+};
 
 void main() {
   late MockFilePickerPlatform picker;
@@ -175,6 +177,7 @@ void main() {
     });
     final target = p.join(chosen.path, 'out.zip');
     picker.saveFileResult = Uri.file(target);
+    final dirsBefore = _exportDirs();
 
     await pump(t);
     await t.tap(find.text('go'));
@@ -214,7 +217,7 @@ void main() {
       'Dives/#142 Blue Hole 2026-10-12/Boat booking.jpg',
       'Personal/DAN.jpg',
     ]);
-    expect(_exportDirExists(), isFalse, reason: 'temp space cleaned up');
+    expect(_exportDirs(), dirsBefore, reason: 'temp space cleaned up');
   });
 
   Future<void> exportWithPassword(WidgetTester t, String destination) async {
@@ -245,12 +248,12 @@ void main() {
     SharePlatform.instance = share;
     addTearDown(() => SharePlatform.instance = original);
     debugCanShareFiles = true;
-    // The export keeps a shared ZIP until the next export; tidy it here.
+    // The export keeps a shared ZIP for its target; tidy it here.
+    final dirsBefore = _exportDirs();
     addTearDown(() {
-      final dir = Directory(
-        p.join(Directory.systemTemp.path, 'submersion_documents_export'),
-      );
-      if (dir.existsSync()) dir.deleteSync(recursive: true);
+      for (final d in _exportDirs().difference(dirsBefore)) {
+        Directory(d).deleteSync(recursive: true);
+      }
     });
     await t.runAsync(
       () => _save('DAN', const DocumentOwner.personal(), [
@@ -321,5 +324,44 @@ void main() {
         .files
         .map((f) => f.name);
     expect(names, contains('Certifications/Advanced Nitrox/Nitrox log.jpg'));
+  });
+
+  testWidgets('an export sweeps shared folders over an hour old', (t) async {
+    final now = DateTime.now();
+    final stale = Directory(
+      p.join(
+        Directory.systemTemp.path,
+        '$exportDirPrefix'
+        '${now.subtract(const Duration(hours: 2)).microsecondsSinceEpoch}',
+      ),
+    )..createSync();
+    final recent = Directory(
+      p.join(
+        Directory.systemTemp.path,
+        '$exportDirPrefix'
+        '${now.subtract(const Duration(minutes: 5)).microsecondsSinceEpoch}',
+      ),
+    )..createSync();
+    addTearDown(() {
+      for (final d in [stale, recent]) {
+        if (d.existsSync()) d.deleteSync(recursive: true);
+      }
+    });
+    await t.runAsync(
+      () => _save('DAN', const DocumentOwner.personal(), [
+        _page(0, [3]),
+      ]),
+    );
+    picker.saveFileResult = Uri.file(p.join(chosen.path, 'out.zip'));
+
+    await pump(t);
+    await exportWithPassword(t, 'Save to File');
+    await settleReal(
+      t,
+      () => find.text('Documents exported').evaluate().isNotEmpty,
+    );
+
+    expect(stale.existsSync(), isFalse);
+    expect(recent.existsSync(), isTrue, reason: 'may still be shared');
   });
 }
