@@ -118,6 +118,26 @@ void main() {
     expect(created, [TrainingTab.certifications]);
   });
 
+  testWidgets('pushing the other tab\'s detail over the host builds only '
+      'the detail, never a second host', (tester) async {
+    // A course page links to its certification with push('/certifications/
+    // <id>'). go_router builds a pushed location as one page, its leaf, so
+    // the Certifications list under it is not built a second time beside the
+    // Courses host already on the stack.
+    final created = <TrainingTab>[];
+    final router = await _pump(tester, created, initial: '/courses');
+
+    router.push('/certifications/x');
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('detail'), findsOneWidget);
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('host courses'), findsOneWidget);
+    expect(created, [TrainingTab.courses]);
+  });
+
   test('trainingTabForPath matches list roots only', () {
     expect(trainingTabForPath('/certifications'), TrainingTab.certifications);
     expect(trainingTabForPath('/courses'), TrainingTab.courses);
