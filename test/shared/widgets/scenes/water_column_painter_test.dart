@@ -74,4 +74,15 @@ void main() {
       );
     },
   );
+
+  test('white type reaches 3:1 contrast in the light headline band', () async {
+    const size = Size(400, 400);
+    final light = await render(painter(3, Brightness.light), size);
+    // The facts start at 11 % of the height on the start edge, left of the
+    // first light ray; sample the band they occupy.
+    for (final y in [44, 60, 80, 100]) {
+      final lum = luminanceAt(light, 400, 12, y);
+      expect((1.05) / (lum + 0.05), greaterThanOrEqualTo(3.0), reason: 'y=$y');
+    }
+  });
 }

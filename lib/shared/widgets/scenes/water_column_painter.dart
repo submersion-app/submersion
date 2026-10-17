@@ -14,6 +14,7 @@ class WaterColumnPalette {
     required this.snowOpacity,
     required this.foamOpacity,
     required this.snow,
+    this.headScrim = 0,
   });
 
   final Color surface;
@@ -24,6 +25,10 @@ class WaterColumnPalette {
   final double foamOpacity;
   final Color snow;
 
+  /// Opacity of a deep-water scrim behind the headline band, so white type
+  /// keeps 3:1 contrast on the bright light-mode surface; zero for none.
+  final double headScrim;
+
   static const light = WaterColumnPalette(
     surface: Color(0xFFA9E6EF),
     mid: Color(0xFF3EA3C6),
@@ -32,6 +37,7 @@ class WaterColumnPalette {
     snowOpacity: 0.85,
     foamOpacity: 0.42,
     snow: Color(0xFFFFFFFF),
+    headScrim: 0.5,
   );
 
   static const dark = WaterColumnPalette(
@@ -123,6 +129,22 @@ class WaterColumnPainter extends ScenePainter {
           stops: const [0, 0.48, 1],
         ).createShader(rect),
     );
+    if (palette.headScrim > 0) {
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              palette.deep.withValues(alpha: palette.headScrim),
+              palette.deep.withValues(alpha: palette.headScrim * 0.9),
+              palette.deep.withValues(alpha: 0),
+            ],
+            stops: const [0, 0.28, 0.5],
+          ).createShader(rect),
+      );
+    }
     canvas.save();
     canvas.clipRect(rect);
     _paintRays(canvas, size, palette);
