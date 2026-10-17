@@ -69,6 +69,10 @@ class DocumentArchiveExporter {
         }
         await add(file.path, bytes);
       }
+      // A cancel pressed while the last file was written has no next entry
+      // to be seen at, so it is checked once more before the archive is
+      // finished and handed over.
+      if (isCancelled?.call() ?? false) throw const DocumentExportCancelled();
       await writer.close();
     } catch (_) {
       try {

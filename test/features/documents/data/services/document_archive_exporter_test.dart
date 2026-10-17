@@ -165,4 +165,19 @@ void main() {
     );
     expect(File(out).existsSync(), isFalse);
   });
+
+  test('a cancel during the last file still cancels', () async {
+    var written = 0;
+    await expectLater(
+      write(
+        repo,
+        onProgress: (done, _) => written = done,
+        // Only true once every entry is written: nothing is left to check
+        // the flag before, so it must be checked before finishing.
+        isCancelled: () => written >= 4,
+      ),
+      throwsA(isA<DocumentExportCancelled>()),
+    );
+    expect(File(out).existsSync(), isFalse);
+  });
 }

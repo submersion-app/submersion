@@ -99,7 +99,10 @@ Future<void> _exportAllDocuments(
   );
   // Before the dialog opens, so a failure here cannot strand it.
   final dir = await newDocumentExportDir(now);
-  if (!context.mounted) return;
+  if (!context.mounted) {
+    await dir.delete(recursive: true);
+    return;
+  }
   final progress = ValueNotifier<DocumentExportProgress>((
     done: 0,
     total: plan.files.length + 1,

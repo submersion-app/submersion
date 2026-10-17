@@ -67,8 +67,9 @@ class DocumentArchivePlan {
 }
 
 /// How the export writes dates: in folder and file names, so they sort,
-/// and in the manifest.
-final archiveDateFormat = DateFormat('yyyy-MM-dd');
+/// and in the manifest. Pinned to en_US, like `fileNameDate`, so the digits
+/// stay ASCII whatever locale the app runs in.
+final archiveDateFormat = DateFormat('yyyy-MM-dd', 'en_US');
 
 /// Longest name a path segment gets, well inside every file system's limit.
 const _maxSegment = 120;

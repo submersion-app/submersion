@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -203,5 +204,12 @@ void main() {
       expect(plan.pathsByPageId, {page.id: 'Personal/DAN.pdf'});
       expect(plan.files.single.pageId, page.id);
     });
+  });
+
+  test('archive dates are ASCII ISO whatever the app locale', () {
+    final previous = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previous);
+    Intl.defaultLocale = 'ar';
+    expect(archiveDateFormat.format(DateTime(2026, 10, 12)), '2026-10-12');
   });
 }
