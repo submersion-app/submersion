@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/summary_pane_view.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
@@ -86,6 +87,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(notifier.state.trendGapThreshold, TrendGapThreshold.years2);
+    });
+
+    testWidgets('the summary panes tile shows Scene by default', (
+      tester,
+    ) async {
+      await _pumpGeneralTiles(tester);
+      final tile = find.byKey(const ValueKey('settings-summary-pane-view'));
+
+      expect(tile, findsOneWidget);
+      expect(
+        find.descendant(of: tile, matching: find.text('Summary panes')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: tile, matching: find.text('Scene')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('choosing Details saves the summary pane view', (tester) async {
+      final notifier = await _pumpGeneralTiles(tester);
+      final tile = find.byKey(const ValueKey('settings-summary-pane-view'));
+
+      await tester.tap(find.descendant(of: tile, matching: find.text('Scene')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Details').last);
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.summaryPaneView, SummaryPaneView.details);
     });
 
     testWidgets('Color Theme opens the theme gallery', (tester) async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/summary_pane_view.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/insights/presentation/formatters/trend_gap_label.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -178,6 +179,36 @@ class AppearanceGeneralTiles extends ConsumerWidget {
           ),
           subtitle: Text(l10n.settings_appearance_trendGaps_subtitle),
         ),
+        // Device-local default for every master-detail summary pane; each
+        // pane's corner button still flips it for the session.
+        ListTile(
+          key: const ValueKey('settings-summary-pane-view'),
+          leading: const FeatureAccentIcon(
+            Icons.water,
+            featureId: 'settings-appearance',
+            surface: AccentSurface.list,
+          ),
+          title: LabelWithControl(
+            label: Text(l10n.settings_appearance_summaryPanes),
+            control: DropdownButton<SummaryPaneView>(
+              value: settings.summaryPaneView,
+              underline: const SizedBox.shrink(),
+              onChanged: (view) {
+                if (view != null) {
+                  ref.read(settingsProvider.notifier).setSummaryPaneView(view);
+                }
+              },
+              items: [
+                for (final view in SummaryPaneView.values)
+                  DropdownMenuItem(
+                    value: view,
+                    child: Text(_summaryPaneViewName(context, view)),
+                  ),
+              ],
+            ),
+          ),
+          subtitle: Text(l10n.settings_appearance_summaryPanes_subtitle),
+        ),
         const NavCustomizationTile(),
       ], separator),
     );
@@ -341,3 +372,11 @@ String _mapStyleName(BuildContext context, MapStyle style) {
     MapStyle.esriSatellite => l10n.settings_appearance_mapStyle_esriSatellite,
   };
 }
+
+String _summaryPaneViewName(BuildContext context, SummaryPaneView view) =>
+    switch (view) {
+      SummaryPaneView.scene =>
+        context.l10n.settings_appearance_summaryPanes_scene,
+      SummaryPaneView.details =>
+        context.l10n.settings_appearance_summaryPanes_details,
+    };
