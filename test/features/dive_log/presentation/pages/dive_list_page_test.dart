@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/summary_pane_view.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_scene.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
+import 'package:submersion/shared/widgets/summary/summary_pane_switcher.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -179,13 +183,14 @@ void main() {
     Future<List<Override>> buildBranchOverrides({
       ListViewMode viewMode = ListViewMode.detailed,
       bool showProfilePanel = false,
+      AppSettings settings = const AppSettings(),
     }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
       return [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
@@ -314,6 +319,72 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
+    });
+
+    Future<void> pumpDesktopSummary(
+      WidgetTester tester, {
+      required int loggedDives,
+      AppSettings settings = const AppSettings(),
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await buildBranchOverrides(settings: settings);
+      await tester.pumpWidget(
+        buildBranchTestWidget(
+          child: const DiveListPage(),
+          overrides: [
+            ...overrides,
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: loggedDives,
+                totalTimeSeconds: loggedDives * 3000,
+                maxDepth: loggedDives == 0 ? 0 : 30,
+                avgMaxDepth: loggedDives == 0 ? 0 : 18,
+                totalSites: loggedDives == 0 ? 0 : 3,
+              ),
+            ),
+            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ],
+        ),
+      );
+      // The scene clock keeps ticking, so settle with bounded pumps.
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    testWidgets('desktop mode shows the dive scene by default', (tester) async {
+      await pumpDesktopSummary(tester, loggedDives: 12);
+
+      expect(find.byType(DiveSummaryScene), findsOneWidget);
+      expect(find.byType(DiveSummaryWidget), findsNothing);
+    });
+
+    testWidgets('desktop mode shows the summary widget when the setting '
+        'says details', (tester) async {
+      await pumpDesktopSummary(
+        tester,
+        loggedDives: 12,
+        settings: const AppSettings(summaryPaneView: SummaryPaneView.details),
+      );
+
+      expect(find.byType(DiveSummaryWidget), findsOneWidget);
+      expect(find.byType(DiveSummaryScene), findsNothing);
+    });
+
+    testWidgets('an empty log shows the summary widget and keeps the toggle', (
+      tester,
+    ) async {
+      await pumpDesktopSummary(tester, loggedDives: 0);
+
+      expect(find.byType(DiveSummaryWidget), findsOneWidget);
+      expect(find.byType(SummaryPaneToggle), findsOneWidget);
     });
 
     testWidgets('table mode renders FAB', (tester) async {

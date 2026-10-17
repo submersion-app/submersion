@@ -39,7 +39,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_map_conte
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_pane.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_card_stat_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -220,7 +220,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             },
           );
         },
-        summaryBuilder: (context) => const DiveSummaryWidget(),
+        summaryBuilder: (context) => const DiveSummaryPane(),
         editBuilder: (context, id, onSaved, onCancel) => DiveEditPage(
           diveId: id,
           embedded: true,
@@ -405,7 +405,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             },
           );
         },
-        summaryBuilder: (context) => const DiveSummaryWidget(),
+        summaryBuilder: (context) => const DiveSummaryPane(),
         mapBuilder: (context, selectedId, onItemSelected) => DiveMapContent(
           selectedId: selectedId,
           onItemSelected: onItemSelected,
