@@ -16,14 +16,21 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   // Null means "leave at the AppSettings default", so these fixtures cannot
   // drift away from the real defaults.
-  _TestSettingsNotifier({int? gfLow, int? gfHigh, double? endLimit})
-    : super(
-        const AppSettings().copyWith(
-          gfLow: gfLow,
-          gfHigh: gfHigh,
-          endLimit: endLimit,
-        ),
-      );
+  _TestSettingsNotifier({
+    int? gfLow,
+    int? gfHigh,
+    double? endLimit,
+    double? ccrSetpointLow,
+    double? ccrSetpointHigh,
+  }) : super(
+         const AppSettings().copyWith(
+           gfLow: gfLow,
+           gfHigh: gfHigh,
+           endLimit: endLimit,
+           ccrSetpointLow: ccrSetpointLow,
+           ccrSetpointHigh: ccrSetpointHigh,
+         ),
+       );
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -45,7 +52,13 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
+ProviderContainer _container({
+  int? gfLow,
+  int? gfHigh,
+  double? endLimit,
+  double? ccrSetpointLow,
+  double? ccrSetpointHigh,
+}) {
   final container = ProviderContainer(
     overrides: [
       settingsProvider.overrideWith(
@@ -53,6 +66,8 @@ ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
           gfLow: gfLow,
           gfHigh: gfHigh,
           endLimit: endLimit,
+          ccrSetpointLow: ccrSetpointLow,
+          ccrSetpointHigh: ccrSetpointHigh,
         ),
       ),
     ],
@@ -297,6 +312,13 @@ void main() {
   test('planEngineConfig carries the Settings END limit (issue #1499)', () {
     final container = _container(endLimit: 40.0);
     expect(container.read(planEngineConfigProvider).endLimitMeters, 40.0);
+  });
+
+  test('planEngineConfig carries the Settings CCR setpoints (issue #2801)', () {
+    final container = _container(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2);
+    final config = container.read(planEngineConfigProvider);
+    expect(config.ccrSetpointLow, 0.6);
+    expect(config.ccrSetpointHigh, 1.2);
   });
 
   test('an air leg at 32 m raises no END warning under a 40 m END limit '

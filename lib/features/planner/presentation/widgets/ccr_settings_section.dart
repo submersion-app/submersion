@@ -4,8 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
-    as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -29,18 +27,22 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
   void initState() {
     super.initState();
     final state = ref.read(divePlanNotifierProvider);
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    // An unset plan setpoint shows the diver's Settings value, the same
+    // fallback the PlanEngine computes with (issue #2801).
+    //
     // A setpoint is decimal by nature (1,2 bar for a comma-decimal diver), so
     // the seed and the parse both go through the locale helpers (#1091).
     _lowController = TextEditingController(
       text: formatRoundedForInput(
-        state.setpointLow ?? domain.DivePlan.specSetpointLow,
+        state.setpointLow ?? settings.ccrSetpointLow,
         1,
       ),
     );
     _highController = TextEditingController(
       text: formatRoundedForInput(
-        state.setpointHigh ?? domain.DivePlan.specSetpointHigh,
+        state.setpointHigh ?? settings.ccrSetpointHigh,
         1,
       ),
     );

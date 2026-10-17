@@ -26,6 +26,8 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     ppO2Working: ref.watch(ppO2MaxWorkingProvider),
     ppO2Deco: ref.watch(ppO2MaxDecoProvider),
     ccrDiluentModPpO2: ref.watch(ccrDiluentModPpO2Provider),
+    ccrSetpointLow: ref.watch(ccrSetpointLowProvider),
+    ccrSetpointHigh: ref.watch(ccrSetpointHighProvider),
     cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
     o2Narcotic: ref.watch(settingsProvider.select((s) => s.o2Narcotic)),
     endLimitMeters: ref.watch(settingsProvider.select((s) => s.endLimit)),

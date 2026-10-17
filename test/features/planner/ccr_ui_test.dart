@@ -18,7 +18,7 @@ import '../../helpers/test_database.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier([super.state = const AppSettings()]);
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -214,6 +214,34 @@ void main() {
     await tester.enterText(fields.at(0), '0');
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
+  });
+
+  testWidgets('CCR settings pre-fill an unset setpoint from the diver\'s '
+      'Settings, not the spec 0.7 / 1.3 (issue #2801)', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+            ),
+          ),
+        ],
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+    // A plan that reached CCR without the mode switch's seed (an imported
+    // file, or one saved before the seed existed) carries no setpoints.
+    expect(container.read(divePlanNotifierProvider).setpointLow, isNull);
+    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+
+    final fields = find.byType(TextFormField);
+    expect(tester.widget<TextFormField>(fields.at(0)).controller!.text, '0.6');
+    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.2');
   });
 
   testWidgets('CCR settings fields stay in a row when there is room, and stack '
