@@ -35,6 +35,10 @@ class DocumentArchiveExporter {
     void Function(int done, int total)? onProgress,
     bool Function()? isCancelled,
   }) async {
+    // Checked before the file exists, so a refused password leaves nothing.
+    if (!ZipCryptoWriter.isValidPassword(password)) {
+      throw ArgumentError.value('<hidden>', 'password', 'not a valid password');
+    }
     final writer = ZipCryptoWriter(
       await File(outputPath).open(mode: FileMode.write),
       password: password,

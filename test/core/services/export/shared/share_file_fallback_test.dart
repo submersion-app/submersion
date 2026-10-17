@@ -28,11 +28,12 @@ class _FakePathProvider extends PathProviderPlatform
 
 class _FakeSharePlatform extends SharePlatform {
   final List<ShareParams> calls = [];
+  ShareResultStatus status = ShareResultStatus.success;
 
   @override
   Future<ShareResult> share(ShareParams params) async {
     calls.add(params);
-    return const ShareResult('ok', ShareResultStatus.success);
+    return ShareResult('ok', status);
   }
 }
 
@@ -62,6 +63,7 @@ void main() {
     picker = MockFilePickerPlatform();
     FilePickerPlatform.instance = picker;
     sharePlatform.calls.clear();
+    sharePlatform.status = ShareResultStatus.success;
     debugCanShareFiles = false;
   });
 
@@ -210,6 +212,21 @@ void main() {
       expect(picker.lastSavedFileName, 'docs.zip');
       expect(picker.lastSavedBytes, [9, 8]);
       expect(sharePlatform.calls, isEmpty);
+    });
+
+    test('a dismissed share sheet returns null', () async {
+      debugCanShareFiles = true;
+      sharePlatform.status = ShareResultStatus.dismissed;
+
+      expect(
+        await shareFileAtPath(
+          zip.path,
+          'docs.zip',
+          'application/zip',
+          dialogTitle: 'Save',
+        ),
+        isNull,
+      );
     });
 
     test('a cancelled dialog returns null', () async {

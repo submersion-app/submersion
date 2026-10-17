@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/data/services/document_archive_exporter.dart';
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
@@ -65,7 +65,13 @@ Future<void> _exportAllDocuments(
   final anchor = shareAnchorFrom(context);
 
   final repo = ref.read(documentRepositoryProvider);
-  final entries = await ref.read(allDocumentsProvider.future);
+  final catalog = ref.read(certificationCatalogSyncProvider);
+  final entries = [
+    // A certification with no custom title is named the way the Documents
+    // page names it (#3366), not by its empty stored name.
+    for (final e in await ref.read(allDocumentsProvider.future))
+      withCertificationOwnerTitle(e, l10n, catalog: catalog),
+  ];
   if (entries.isEmpty) {
     say(l10n.documents_export_nothing);
     return;
@@ -100,7 +106,7 @@ Future<void> _exportAllDocuments(
   final now = DateTime.now();
   final fileName = sanitizeArchiveSegment(
     '${l10n.documents_export_fileNamePrefix} '
-    '${DateFormat('yyyy-MM-dd').format(now)}.zip',
+    '${archiveDateFormat.format(now)}.zip',
   );
   // Before the dialog opens, so a failure here cannot strand it.
   final dir = await _freshExportDir();
@@ -166,7 +172,8 @@ Future<void> _exportAllDocuments(
     closeDialog();
     rethrow;
   } finally {
-    progress.dispose();
+    // progress is not disposed here: the dialog is still listening while it
+    // animates out, and a ValueNotifier holds nothing that needs releasing.
     if (!keepForShare) {
       try {
         await dir.delete(recursive: true);
@@ -207,7 +214,7 @@ String? _recordFolder(DocumentListEntry entry) {
   if (date == null) return label == null || label.isEmpty ? null : label;
   return [
     if (label != null && label.isNotEmpty) label.replaceAll(' · ', ' '),
-    DateFormat('yyyy-MM-dd').format(date),
+    archiveDateFormat.format(date),
   ].join(' ');
 }
 

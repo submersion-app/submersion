@@ -1,5 +1,4 @@
 import 'package:csv/csv.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -25,7 +24,6 @@ class ManifestLabels {
 
 /// UTF-8 byte order mark, so spreadsheet apps read accents correctly.
 final _bom = String.fromCharCode(0xFEFF);
-final _iso = DateFormat('yyyy-MM-dd');
 
 /// `manifest.csv` for the export ZIP (#3397): one row per file, plus one row
 /// with no page or path for a document that has no file, so every
@@ -35,7 +33,7 @@ String buildDocumentManifestCsv(
   DocumentArchivePlan plan,
   ManifestLabels labels,
 ) {
-  String date(DateTime? d) => d == null ? '' : _iso.format(d);
+  String date(DateTime? d) => d == null ? '' : archiveDateFormat.format(d);
   final rows = <List<String>>[labels.headers];
   for (final input in docs) {
     final d = input.document;

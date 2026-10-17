@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -64,6 +65,10 @@ class DocumentArchivePlan {
 
   const DocumentArchivePlan({required this.files, required this.pathsByPageId});
 }
+
+/// How the export writes dates: in folder and file names, so they sort,
+/// and in the manifest.
+final archiveDateFormat = DateFormat('yyyy-MM-dd');
 
 /// Longest name a path segment gets, well inside every file system's limit.
 const _maxSegment = 120;

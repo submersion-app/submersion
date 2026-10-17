@@ -151,4 +151,18 @@ void main() {
     await expectLater(write(_ThrowingRepository()), throwsStateError);
     expect(File(out).existsSync(), isFalse);
   });
+
+  test('a refused password leaves no file behind', () async {
+    await expectLater(
+      DocumentArchiveExporter(repo).write(
+        plan: plan,
+        manifestCsv: '',
+        password: 'pässwörd1',
+        outputPath: out,
+        now: DateTime(2026, 10, 17),
+      ),
+      throwsArgumentError,
+    );
+    expect(File(out).existsSync(), isFalse);
+  });
 }

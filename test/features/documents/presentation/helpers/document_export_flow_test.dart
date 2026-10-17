@@ -4,9 +4,11 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -70,8 +72,7 @@ Future<void> _save(String title, DocumentOwner owner, List<DocumentPage> p) =>
     );
 
 bool _exportDirExists() => Directory(
-  '${Directory.systemTemp.path}${Platform.pathSeparator}'
-  'submersion_documents_export',
+  p.join(Directory.systemTemp.path, 'submersion_documents_export'),
 ).existsSync();
 
 void main() {
@@ -172,7 +173,7 @@ void main() {
         _page(0, [3]),
       ]);
     });
-    final target = '${chosen.path}${Platform.pathSeparator}out.zip';
+    final target = p.join(chosen.path, 'out.zip');
     picker.saveFileResult = Uri.file(target);
 
     await pump(t);
@@ -247,8 +248,7 @@ void main() {
     // The export keeps a shared ZIP until the next export; tidy it here.
     addTearDown(() {
       final dir = Directory(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}'
-        'submersion_documents_export',
+        p.join(Directory.systemTemp.path, 'submersion_documents_export'),
       );
       if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
@@ -286,5 +286,40 @@ void main() {
       () => find.textContaining('Export failed').evaluate().isNotEmpty,
     );
     expect(find.textContaining('Export failed'), findsOneWidget);
+  });
+
+  // #3366: a certification with no custom title stores an empty name; the
+  // export must use the derived title, as the Documents page does.
+  testWidgets('a certification with no custom title names its folder', (
+    t,
+  ) async {
+    await t.runAsync(() async {
+      await DatabaseService.instance.database.customStatement(
+        'INSERT INTO certifications (id, diver_id, name, agency, level, '
+        "created_at, updated_at) VALUES ('c1', 'd1', '', 'padi', "
+        "'advancedNitrox', 0, 0)",
+      );
+      await _save(
+        'Nitrox log',
+        const DocumentOwner(DocumentOwnerKind.certification, 'c1'),
+        [
+          _page(0, [5]),
+        ],
+      );
+    });
+    picker.saveFileResult = Uri.file(p.join(chosen.path, 'out.zip'));
+
+    await pump(t);
+    await exportWithPassword(t, 'Save to File');
+    await settleReal(
+      t,
+      () => find.text('Documents exported').evaluate().isNotEmpty,
+    );
+
+    final names = ZipDecoder()
+        .decodeBytes(picker.lastSavedBytes!, password: _password)
+        .files
+        .map((f) => f.name);
+    expect(names, contains('Certifications/Advanced Nitrox/Nitrox log.jpg'));
   });
 }

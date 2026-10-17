@@ -126,7 +126,7 @@ Future<String> _saveViaDialog(
 /// Unlike [saveAndShareFileBytes] nothing is copied into the documents
 /// directory first, so an export built in temp space (an encrypted documents
 /// archive) leaves no lasting copy behind. Returns the shared path, the saved
-/// location, or null when the save dialog is cancelled.
+/// location, or null when the sheet is dismissed or the dialog cancelled.
 Future<String?> shareFileAtPath(
   String path,
   String fileName,
@@ -142,14 +142,14 @@ Future<String?> shareFileAtPath(
       mimeType: mimeType,
     );
   }
-  await SharePlus.instance.share(
+  final result = await SharePlus.instance.share(
     ShareParams(
       files: [XFile(path, mimeType: mimeType, name: fileName)],
       subject: fileName,
       sharePositionOrigin: sharePositionOrigin,
     ),
   );
-  return path;
+  return result.status == ShareResultStatus.dismissed ? null : path;
 }
 
 Future<String> _writeToDocuments(Uint8List bytes, String fileName) async {
