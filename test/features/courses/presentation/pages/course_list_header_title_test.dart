@@ -47,6 +47,13 @@ final _header = SectionHeaderTitle(
   appBarHeight: (context, subtitle) => 72,
 );
 
+/// The same header, saying it is narrow enough to share the pane's row.
+final _narrowHeader = SectionHeaderTitle(
+  build: (context, slot, subtitle) => Text('HEADER-${slot.name}'),
+  appBarHeight: (context, subtitle) => 72,
+  paneTitleWidth: (context) => 60,
+);
+
 void main() {
   late SharedPreferences prefs;
 
@@ -59,6 +66,7 @@ void main() {
     WidgetTester tester, {
     required Size size,
     ListViewMode viewMode = ListViewMode.detailed,
+    SectionHeaderTitle? header,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -68,7 +76,8 @@ void main() {
       routes: [
         GoRoute(
           path: '/courses',
-          builder: (context, state) => CourseListPage(headerTitle: _header),
+          builder: (context, state) =>
+              CourseListPage(headerTitle: header ?? _header),
         ),
       ],
     );
@@ -126,6 +135,21 @@ void main() {
       final title = tester.getRect(find.text('HEADER-pane'));
       final sort = tester.getRect(find.byIcon(Icons.sort));
       expect(sort.top, greaterThanOrEqualTo(title.bottom));
+    });
+
+    testWidgets('desktop: a title that fits shares one row with the icons', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        size: const Size(1200, 800),
+        header: _narrowHeader,
+      );
+
+      final title = tester.getRect(find.text('HEADER-pane'));
+      final sort = tester.getRect(find.byIcon(Icons.sort));
+      expect(sort.top, lessThan(title.bottom));
+      expect(sort.left, greaterThan(title.right));
     });
 
     testWidgets('table mode: titles the table header', (tester) async {

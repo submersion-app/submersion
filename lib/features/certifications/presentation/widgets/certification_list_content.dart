@@ -618,6 +618,7 @@ class _CertificationListContentState
     if (header != null) {
       return SectionHeaderRows(
         title: header.build(context, SectionHeaderSlot.pane, subtitle),
+        titleWidth: header.paneTitleWidth?.call(context),
         actions: icons,
       );
     }

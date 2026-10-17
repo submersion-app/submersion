@@ -563,6 +563,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     if (header != null) {
       return SectionHeaderRows(
         title: header.build(context, SectionHeaderSlot.pane, subtitle),
+        titleWidth: header.paneTitleWidth?.call(context),
         actions: icons,
       );
     }

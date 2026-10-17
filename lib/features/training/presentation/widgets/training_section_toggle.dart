@@ -96,6 +96,15 @@ SectionHeaderTitle trainingHeaderTitle({
           );
     return math.max(kToolbarHeight, toggle + count);
   },
+  // Counts the accent icon whether or not it shows: the pane bar only needs
+  // to know whether the names and its icons fit one row, and erring wide
+  // costs a second row, never a clipped name.
+  paneTitleWidth: (context) => SectionTitleToggle.naturalWidth(
+    context,
+    _paneTitleStyle(context),
+    labels: TrainingSectionToggle.labels(context),
+    withAccentIcon: true,
+  ),
 );
 
 class _TrainingHeader extends ConsumerWidget {
