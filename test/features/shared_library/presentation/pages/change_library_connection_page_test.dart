@@ -81,7 +81,11 @@ class _RecordingSync extends SharedLibrarySyncNotifier {
   }
 }
 
-Widget _app(_FakeConnection service, {String accountId = 'a'}) => testAppRouter(
+Widget _app(
+  _FakeConnection service, {
+  String accountId = 'a',
+  bool connected = true,
+}) => testAppRouter(
   router: GoRouter(
     initialLocation: '/change',
     routes: [
@@ -102,12 +106,13 @@ Widget _app(_FakeConnection service, {String accountId = 'a'}) => testAppRouter(
     validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
     sharedLibrariesProvider.overrideWith(
       (ref) => Stream.value([
-        SharedLibrary(
-          id: 'L',
-          name: 'Reef Survey',
-          connectedAccountId: accountId,
-          prefix: 'site-sync',
-        ),
+        if (connected)
+          SharedLibrary(
+            id: 'L',
+            name: 'Reef Survey',
+            connectedAccountId: accountId,
+            prefix: 'site-sync',
+          ),
       ]),
     ),
     eligibleLibraryAccountsProvider.overrideWith((ref) async => _accounts),
@@ -156,6 +161,13 @@ void main() {
     await tester.pumpWidget(_app(_FakeConnection()));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a library no longer connected says so', (tester) async {
+    await tester.pumpWidget(_app(_FakeConnection(), connected: false));
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('No shared site library connected yet.'), findsOneWidget);
   });
 
   testWidgets('a stored account no longer on the device is named', (

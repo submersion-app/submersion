@@ -395,6 +395,8 @@ class SharedLibraryMembershipService with _MembershipOwnership {
       lastAutoBackupAt: held?.lastAutoBackupAt,
       encrypted: found.encrypted,
       keyId: cipher?.keyId,
+      // As the probe read it; a sealed one comes with the first sync.
+      description: found.description ?? held?.description,
     );
     // Connecting on another device finds the profile's membership already
     // synced in: keep its id, or the profile ends up with two and leaving

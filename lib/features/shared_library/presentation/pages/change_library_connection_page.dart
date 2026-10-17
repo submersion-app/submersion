@@ -60,8 +60,9 @@ class _ChangeLibraryConnectionPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final libraries = ref.watch(sharedLibrariesProvider).valueOrNull;
     SharedLibrary? library;
-    for (final l in ref.watch(sharedLibrariesProvider).valueOrNull ?? []) {
+    for (final l in libraries ?? const <SharedLibrary>[]) {
       if (l.id == widget.libraryId) library = l;
     }
     if (library != null && !_seeded) {
@@ -73,7 +74,12 @@ class _ChangeLibraryConnectionPageState
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sharedLibrary_connection_change)),
       body: library == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: libraries == null
+                  ? const CircularProgressIndicator()
+                  // Left meanwhile, or reached by a stale link.
+                  : Text(l10n.sharedLibrary_list_empty),
+            )
           : accounts.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text(e.toString())),
