@@ -63,12 +63,30 @@ class SettingsPaneNavigator extends StatefulWidget {
     required this.pageFor,
   });
 
-  /// The locations [uri] opens in a pane reading [queryParam], outermost
-  /// first, before any are checked against what the pane can show.
-  static List<String> locationsIn(Uri uri, String queryParam) => [
-    for (final path in uri.queryParametersAll[queryParam] ?? const <String>[])
-      '$_root$path',
-  ];
+  /// The page [pageFor] shows for [location], or null when [location] is not
+  /// under `/settings/` or names no page.
+  static Widget? pageAt(String location, Widget? Function(Uri) pageFor) {
+    if (!location.startsWith(_root)) return null;
+    final uri = Uri.tryParse(location);
+    return uri == null ? null : pageFor(uri);
+  }
+
+  /// The pages [uri] opens in a pane reading [queryParam], outermost first,
+  /// each once, keeping only those [pageFor] can show.
+  static List<(String, Widget)> stackIn(
+    Uri uri,
+    String queryParam,
+    Widget? Function(Uri) pageFor,
+  ) {
+    final stack = <(String, Widget)>[];
+    for (final path in uri.queryParametersAll[queryParam] ?? const <String>[]) {
+      final location = '$_root$path';
+      if (stack.any((entry) => entry.$1 == location)) continue;
+      final page = pageAt(location, pageFor);
+      if (page != null) stack.add((location, page));
+    }
+    return stack;
+  }
 
   @override
   State<SettingsPaneNavigator> createState() => _SettingsPaneNavigatorState();
@@ -82,30 +100,15 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
   /// Opens awaiting their page's close, by location.
   final _waiting = <String, Completer<void>>{};
 
-  /// The stack as last built.
+  /// The open pages: as last built, or as last sent to the URL when that is
+  /// newer, so two opens in one frame see each other.
   List<String> _stack = const [];
 
-  Widget? _pageAt(String location) {
-    if (!location.startsWith(_root)) return null;
-    final uri = Uri.tryParse(location);
-    return uri == null ? null : widget.pageFor(uri);
-  }
-
-  bool canShow(String location) => _pageAt(location) != null;
-
-  /// The pages [uri] opens that this pane can show, each once.
-  List<String> _stackIn(Uri uri) {
-    final stack = <String>[];
-    for (final location in SettingsPaneNavigator.locationsIn(
-      uri,
-      widget.queryParam,
-    )) {
-      if (!stack.contains(location) && canShow(location)) stack.add(location);
-    }
-    return stack;
-  }
+  bool canShow(String location) =>
+      SettingsPaneNavigator.pageAt(location, widget.pageFor) != null;
 
   void _go(List<String> stack) {
+    _stack = stack;
     final uri = GoRouterState.of(context).uri;
     context.goInPlace(
       Uri(
@@ -128,8 +131,7 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
       if (index < _stack.length - 1) _go(_stack.sublist(0, index + 1));
       return Future.value();
     }
-    final completer = Completer<void>();
-    _waiting[location] = completer;
+    final completer = _waiting.putIfAbsent(location, Completer<void>.new);
     _go([..._stack, location]);
     return completer.future;
   }
@@ -170,7 +172,12 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
 
   @override
   Widget build(BuildContext context) {
-    final stack = _stackIn(GoRouterState.of(context).uri);
+    final pages = SettingsPaneNavigator.stackIn(
+      GoRouterState.of(context).uri,
+      widget.queryParam,
+      widget.pageFor,
+    );
+    final stack = [for (final (location, _) in pages) location];
     _settle(stack);
     _stack = stack;
 
@@ -186,11 +193,8 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
               key: ValueKey('${widget.sectionId}-hub'),
               child: widget.hub,
             ),
-            for (final location in stack)
-              MaterialPage<void>(
-                key: ValueKey(location),
-                child: _pageAt(location)!,
-              ),
+            for (final (location, page) in pages)
+              MaterialPage<void>(key: ValueKey(location), child: page),
           ],
           // Back or Navigator.pop closed a page: drop it, and every page above
           // it, from the URL so the next build does not reopen it.

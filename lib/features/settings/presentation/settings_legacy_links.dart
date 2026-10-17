@@ -39,14 +39,12 @@ String? resolveLegacySettingsLocation(Uri uri, {required bool masterDetail}) {
 
 /// The innermost page a Data pane URL opens, or null when it opens none.
 String? _topDataPage(Uri uri) {
-  final pages =
-      SettingsPaneNavigator.locationsIn(uri, DataSettingsPane.queryParam).where(
-        (location) {
-          final parsed = Uri.tryParse(location);
-          return parsed != null && dataPanePage(parsed) != null;
-        },
-      );
-  return pages.isEmpty ? null : pages.last;
+  final pages = SettingsPaneNavigator.stackIn(
+    uri,
+    DataSettingsPane.queryParam,
+    dataPanePage,
+  );
+  return pages.isEmpty ? null : pages.last.$1;
 }
 
 /// Where a `/settings/section/<id>` link should go instead of the generic

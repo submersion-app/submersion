@@ -264,6 +264,36 @@ void main() {
     expect(find.text('Page A'), findsOneWidget);
   });
 
+  testWidgets('a system back closes the top pane page', (tester) async {
+    final router = await _pump(
+      tester,
+      '/settings?selected=data&dataPage=a&dataPage=a%2Fb',
+    );
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(_stack(router), ['a']);
+    expect(find.text('Page A'), findsOneWidget);
+  });
+
+  testWidgets('two opens in one frame both complete', (tester) async {
+    await _pump(tester, '/settings?selected=data');
+
+    // A double tap lands both taps before the URL rebuilds the pane.
+    final button = find.text('await c');
+    await tester.tap(button);
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    expect(find.text('Page C '), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('returns 2'), findsOneWidget);
+    expect(find.text('Hub'), findsOneWidget);
+  });
+
   testWidgets('an awaited open completes when its page closes', (tester) async {
     await _pump(tester, '/settings?selected=data');
 
