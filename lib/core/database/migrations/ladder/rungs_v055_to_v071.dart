@@ -254,6 +254,9 @@ extension RungsV55ToV71 on AppDatabase {
     if (from < 61) await reportProgress();
 
     if (from < 62) {
+      // Twins saved before this index existed would make it fail and leave
+      // the database unable to open (issue #3343).
+      await _collapseViewConfigDuplicates();
       await customStatement('''
             CREATE UNIQUE INDEX IF NOT EXISTS idx_view_configs_unique
             ON view_configs(diver_id, view_mode)

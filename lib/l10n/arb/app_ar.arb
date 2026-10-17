@@ -4298,6 +4298,7 @@
   "cylinderConfigs_fieldVolume": "الحجم",
   "cylinderConfigs_fieldWorkingPressure": "ضغط العمل",
   "cylinderConfigs_fieldMaterial": "المادة",
+  "cylinderConfigs_fieldGasMix": "خليط الغاز",
   "cylinderConfigs_sectionTitle": "الإعدادات",
   "equipment_serviceClocks_hoursSource": "محسوب من زمن الغوص المسجل",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} من {total} ساعة، متبقٍ {remaining}",

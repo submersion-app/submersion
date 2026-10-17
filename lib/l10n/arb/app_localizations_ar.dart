@@ -14943,6 +14943,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'المادة';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'خليط الغاز';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'الإعدادات';
 
   @override

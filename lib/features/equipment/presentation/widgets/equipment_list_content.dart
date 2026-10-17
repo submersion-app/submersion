@@ -1709,10 +1709,9 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
                 return EquipmentListTile(
                   item: item,
                   label: labels[item.id],
-                  onTap: () {
-                    close(context, item);
-                    context.push('/equipment/${item.id}');
-                  },
+                  // Opened over the search rather than in place of it, so back
+                  // from the detail returns to these results (#3377).
+                  onTap: () => context.push('/equipment/${item.id}'),
                 );
               },
             );

@@ -7,6 +7,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -314,6 +315,30 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   bool _searchingForKnownDevice = false;
   bool _noDives = false;
 
+  /// The discovery notifier whose scan this step started to re-acquire a
+  /// saved computer and still owes a stop: the scan runs on through the
+  /// connect, as it does in the scan-and-download flow (issue #3369), and
+  /// ends once the download is over or the step closes.
+  DiscoveryNotifier? _ownedScan;
+
+  @override
+  void dispose() {
+    _releaseScan();
+    super.dispose();
+  }
+
+  /// Stops the re-acquire scan if this step still owns one.
+  void _releaseScan() {
+    final notifier = _ownedScan;
+    if (notifier == null) return;
+    _ownedScan = null;
+    logFailure(
+      notifier.stopScan(),
+      DcAdapterDownloadStep,
+      'stop the re-acquire scan',
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -346,6 +371,12 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   /// one; a successful download then rewrites the stored address. With no
   /// such device, or more than one, the step falls back to the stored
   /// address exactly as before.
+  ///
+  /// The scan is left running through the connect (issue #3369): Android
+  /// connected a saved Shearwater only from the scan-and-download flow,
+  /// whose scan is still running when it connects, while this path used to
+  /// stop its scan the moment the address advertised and connect straight
+  /// after. [_releaseScan] stops it.
   Future<void> _reacquireKnownDevice(DiveComputer computer) async {
     if (!mounted) return;
     final address = computer.bluetoothAddress;
@@ -373,15 +404,33 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     }
 
     setState(() => _searchingForKnownDevice = true);
+    _ownedScan = notifier;
     var device = await notifier.scanForAddress(
       address,
       timeout: DcAdapterDownloadStep.knownDeviceScanTimeout,
+      stopScanWhenDone: false,
     );
-    if (device == null && mounted) {
+    // Closed while scanning: nothing here should download. Dispose stopped
+    // the scan, but on Android the scan only starts once the permission
+    // prompt returns, which can be after the step closed, so stop it again.
+    if (!mounted) {
+      logFailure(
+        notifier.stopScan(),
+        DcAdapterDownloadStep,
+        'stop the re-acquire scan',
+      );
+      return;
+    }
+    if (device != null) {
+      _log.info(
+        'Re-acquired ${computer.displayName} at ${device.address}; keeping '
+        'the scan running through the connect',
+        category: LogCategory.bluetooth,
+      );
+    } else {
       device = _sameModelFallback(computer, address);
     }
     if (device != null) notifier.selectDevice(device);
-    if (!mounted) return;
     setState(() {
       _searchingForKnownDevice = false;
       _computerResolved = true;
@@ -628,6 +677,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   }) {
     if (_captured) return;
     _captured = true;
+    _releaseScan();
     widget.adapter.setSinceCutoff(state.sinceCutoff);
     widget.adapter.setDownloadedDives(
       state.downloadedDives,

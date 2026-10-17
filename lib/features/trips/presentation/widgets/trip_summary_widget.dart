@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -245,7 +246,7 @@ class TripSummaryWidget extends ConsumerWidget {
                 onTap: () {
                   final state = GoRouterState.of(context);
                   final currentPath = state.uri.path;
-                  context.go('$currentPath?selected=${trip.id}');
+                  context.goInPlace('$currentPath?selected=${trip.id}');
                 },
               );
             }).toList(),
@@ -320,7 +321,7 @@ class TripSummaryWidget extends ConsumerWidget {
             onTap: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
-              context.go('$currentPath?selected=${nextTrip.trip.id}');
+              context.goInPlace('$currentPath?selected=${nextTrip.trip.id}');
             },
           ),
         ),
@@ -347,7 +348,7 @@ class TripSummaryWidget extends ConsumerWidget {
               onPressed: () {
                 final state = GoRouterState.of(context);
                 final currentPath = state.uri.path;
-                context.go('$currentPath?mode=new');
+                context.goInPlace('$currentPath?mode=new');
               },
               icon: const Icon(Icons.add),
               label: Text(context.l10n.trips_summary_quickActions_add),

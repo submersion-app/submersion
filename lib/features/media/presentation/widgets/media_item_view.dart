@@ -43,7 +43,9 @@ const double _viewerZoomHeadroom = 2.0;
 ///   * [BytesData] — [Image.memory] (signatures, small assets only)
 ///   * [UnavailableData] — [UnavailableMediaPlaceholder] (badge with reason)
 ///
-/// While the future is loading, shows a [_ShimmerThumbnail] placeholder.
+/// While the future is loading, a tile shows a [_ShimmerThumbnail]
+/// placeholder; a full-screen view shows nothing, so the viewer's own
+/// background shows through (see [_MediaItemViewState._loading]).
 /// If the resolver future completes with an error, falls back to an
 /// [UnavailableMediaPlaceholder] (kind: [UnavailableKind.notFound]) so a
 /// failure never looks like a permanent shimmer.
@@ -332,6 +334,22 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     );
   }
 
+  /// Whether this view fills a full-screen viewer page rather than a tile.
+  ///
+  /// The same test the decode bound in [build] uses: the viewers pass neither
+  /// [MediaItemView.thumbnail] nor a [MediaItemView.targetSize], and every
+  /// tile passes at least one.
+  bool get _fullScreen => !widget.thumbnail && widget.targetSize == null;
+
+  /// What to draw while the bytes are on their way.
+  ///
+  /// A tile gets the opaque surface fill so the grid keeps its shape. A
+  /// full-screen view draws nothing: the viewers paint a black gallery behind
+  /// every page, and the tile fill (near white on a light theme) slid in ahead
+  /// of each photo as a pale panel (#3298).
+  Widget _loading() =>
+      _fullScreen ? const SizedBox.expand() : const _ShimmerThumbnail();
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_Resolution>(
@@ -343,7 +361,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           );
         }
         if (!snapshot.hasData) {
-          return const _ShimmerThumbnail();
+          return _loading();
         }
         final resolution = snapshot.data!;
         if (resolution.videoPosterMissing) {
@@ -414,7 +432,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             imageUrl: u.toString(),
             httpHeaders: h,
             fit: widget.fit,
-            placeholder: (_, _) => const _ShimmerThumbnail(),
+            // The same decode bound as the file and bytes branches: without
+            // it a served original decodes at native size, and the viewers
+            // keep a neighbour built either side of the current page.
+            memCacheWidth: cacheWidth,
+            placeholder: (_, _) => _loading(),
             errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
               data: UnavailableData(kind: UnavailableKind.networkError),
             ),

@@ -14657,6 +14657,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Materiaal';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gasmengsel';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configuraties';
 
   @override

@@ -45,8 +45,7 @@ Future<void> _pumpRingedTile(WidgetTester tester, Widget tile) async {
       ),
     ),
   );
-  await clickWithMouse(tester, find.byType(Card));
-  await tester.pumpAndSettle();
+  await clickThenUseKeyboard(tester, find.byType(Card));
 }
 
 /// The ring traced on the tile's card: a 2px border on the card's own edge

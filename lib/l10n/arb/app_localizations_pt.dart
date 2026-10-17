@@ -14751,6 +14751,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Material';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Mistura de gás';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurações';
 
   @override

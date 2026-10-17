@@ -34,72 +34,76 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_navCustomization_title)),
-      body: Column(
-        children: [
-          alwaysHideLabelsAsync.when(
-            data: (alwaysHideLabels) => SwitchListTile(
-              key: const ValueKey('navAlwaysHideLabelsSwitch'),
-              title: Text(
-                l10n.settings_navCustomization_alwaysHideLabels_title,
-              ),
-              subtitle: Text(
-                l10n.settings_navCustomization_alwaysHideLabels_subtitle,
-              ),
-              value: alwaysHideLabels,
-              onChanged: (value) async {
-                try {
-                  await ref
-                      .read(appSettingsRepositoryProvider)
-                      .setNavAlwaysHideLabels(value);
-                  ref.invalidate(navAlwaysHideLabelsProvider);
-                } catch (_) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.common_error_tryAgain)),
-                  );
-                }
-              },
-            ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: SegmentedButton<NavOrderScope>(
-              key: const ValueKey('navScopeSegments'),
-              segments: [
-                ButtonSegment(
-                  value: NavOrderScope.phone,
-                  icon: const Icon(Icons.smartphone),
-                  label: Text(l10n.settings_navCustomization_scopePhone),
+      // Keyed by scope so switching surfaces builds a fresh editor seeded from
+      // the other provider rather than reusing the mirror. The settings ride
+      // in as its header so the whole page shares the list's scroll axis
+      // (#3370).
+      body: NavOrderEditor(
+        key: ValueKey(scope),
+        scope: scope,
+        header: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            alwaysHideLabelsAsync.when(
+              data: (alwaysHideLabels) => SwitchListTile(
+                key: const ValueKey('navAlwaysHideLabelsSwitch'),
+                title: Text(
+                  l10n.settings_navCustomization_alwaysHideLabels_title,
                 ),
-                ButtonSegment(
-                  value: NavOrderScope.desktop,
-                  icon: const Icon(Icons.desktop_windows_outlined),
-                  label: Text(l10n.settings_navCustomization_scopeDesktop),
+                subtitle: Text(
+                  l10n.settings_navCustomization_alwaysHideLabels_subtitle,
                 ),
-              ],
-              selected: {scope},
-              onSelectionChanged: (selection) =>
-                  setState(() => _scope = selection.first),
+                value: alwaysHideLabels,
+                onChanged: (value) async {
+                  try {
+                    await ref
+                        .read(appSettingsRepositoryProvider)
+                        .setNavAlwaysHideLabels(value);
+                    ref.invalidate(navAlwaysHideLabelsProvider);
+                  } catch (_) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.common_error_tryAgain)),
+                    );
+                  }
+                },
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-            child: Text(
-              scope == NavOrderScope.phone
-                  ? l10n.settings_navCustomization_description
-                  : l10n.settings_navCustomization_descriptionDesktop,
-              style: Theme.of(context).textTheme.bodySmall,
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: SegmentedButton<NavOrderScope>(
+                key: const ValueKey('navScopeSegments'),
+                segments: [
+                  ButtonSegment(
+                    value: NavOrderScope.phone,
+                    icon: const Icon(Icons.smartphone),
+                    label: Text(l10n.settings_navCustomization_scopePhone),
+                  ),
+                  ButtonSegment(
+                    value: NavOrderScope.desktop,
+                    icon: const Icon(Icons.desktop_windows_outlined),
+                    label: Text(l10n.settings_navCustomization_scopeDesktop),
+                  ),
+                ],
+                selected: {scope},
+                onSelectionChanged: (selection) =>
+                    setState(() => _scope = selection.first),
+              ),
             ),
-          ),
-          Expanded(
-            // Keyed by scope so switching surfaces builds a fresh editor
-            // seeded from the other provider rather than reusing the mirror.
-            child: NavOrderEditor(key: ValueKey(scope), scope: scope),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: Text(
+                scope == NavOrderScope.phone
+                    ? l10n.settings_navCustomization_description
+                    : l10n.settings_navCustomization_descriptionDesktop,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

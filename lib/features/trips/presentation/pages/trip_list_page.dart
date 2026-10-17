@@ -6,11 +6,15 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/router/list_return_scope.dart';
+import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/trips/query/trip_query_entity.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
+import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/table_selection_owner.dart';
@@ -28,7 +32,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 
 class TripListPage extends ConsumerStatefulWidget {
-  const TripListPage({super.key});
+  const TripListPage({super.key, this.returnTo});
+
+  /// Set when this list was pushed by `openTripList`: what to put back when
+  /// it goes away. Null for the Trips tab itself.
+  final TripListReturn? returnTo;
 
   @override
   ConsumerState<TripListPage> createState() => _TripListPageState();
@@ -37,7 +45,10 @@ class TripListPage extends ConsumerStatefulWidget {
 class _TripListPageState extends ConsumerState<TripListPage>
     with TableSelectionOwner {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ListReturnScope(returnTo: widget.returnTo, child: _buildPage(context));
+
+  Widget _buildPage(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -45,7 +56,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
         if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
-          context.go('$currentPath?mode=new');
+          context.goInPlace('$currentPath?mode=new');
         } else {
           context.push('/trips/new');
         }
@@ -75,7 +86,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
             embedded: true,
             onDeleted: () {
               final state = GoRouterState.of(context);
-              context.go(state.uri.path);
+              context.goInPlace(state.uri.path);
             },
           ),
           summaryBuilder: (context) => const TripSummaryWidget(),
@@ -185,13 +196,14 @@ class _TripListPageState extends ConsumerState<TripListPage>
           onItemSelected: onItemSelected,
           selectedId: selectedId,
           showAppBar: false,
+          showBackButton: isPushedRoute(context),
         ),
         detailBuilder: (context, tripId) => TripDetailPage(
           tripId: tripId,
           embedded: true,
           onDeleted: () {
             final state = GoRouterState.of(context);
-            context.go(state.uri.path);
+            context.goInPlace(state.uri.path);
           },
         ),
         summaryBuilder: (context) => const TripSummaryWidget(),

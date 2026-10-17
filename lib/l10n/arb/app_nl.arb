@@ -4298,6 +4298,7 @@
   "cylinderConfigs_fieldVolume": "Volume",
   "cylinderConfigs_fieldWorkingPressure": "Werkdruk",
   "cylinderConfigs_fieldMaterial": "Materiaal",
+  "cylinderConfigs_fieldGasMix": "Gasmengsel",
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} van {total} uur, {remaining} resterend",

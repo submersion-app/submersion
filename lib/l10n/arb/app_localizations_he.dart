@@ -14455,6 +14455,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'חומר';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'תערובת גז';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'תצורות';
 
   @override

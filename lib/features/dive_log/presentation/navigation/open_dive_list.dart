@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/router/list_return_scope.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
@@ -12,11 +13,23 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 /// Carried as the `/dives` route's `extra`. The highlight matters as much as
 /// the filter: it is global, and a table-mode list under the pushed one
 /// replays it into its own URL once uncovered (#3292).
-class DiveListReturn {
+class DiveListReturn implements ListReturn {
   const DiveListReturn({required this.filter, required this.highlightedDiveId});
 
   final DiveFilterState filter;
   final String? highlightedDiveId;
+
+  @override
+  VoidCallback bindRestore(WidgetRef ref) {
+    final filterController = ref.read(diveFilterProvider.notifier);
+    final highlightController = ref.read(highlightedDiveIdProvider.notifier);
+    return () {
+      if (filterController.mounted) filterController.state = filter;
+      if (highlightController.mounted) {
+        highlightController.state = highlightedDiveId;
+      }
+    };
+  }
 }
 
 /// Shows the dives matching [filter] on a dive list pushed over the current
@@ -37,7 +50,7 @@ void openDiveList(
   bool map = false,
 }) {
   final location = map ? '/dives?view=map' : '/dives';
-  if (_showingOnTop(context, location) &&
+  if (isPushedOnTop(context, location) &&
       ref.read(diveFilterProvider) == filter) {
     return;
   }
@@ -47,14 +60,4 @@ void openDiveList(
   );
   ref.read(diveFilterProvider.notifier).state = filter;
   context.push(location, extra: returnTo);
-}
-
-/// Whether the top page of the stack is a pushed dive list at [location].
-bool _showingOnTop(BuildContext context, String location) {
-  final matches = GoRouter.of(
-    context,
-  ).routerDelegate.currentConfiguration.matches;
-  if (matches.isEmpty) return false;
-  final top = leafMatch(matches.last);
-  return top is ImperativeRouteMatch && top.matches.uri.toString() == location;
 }

@@ -4198,6 +4198,7 @@
   "cylinderConfigs_fieldVolume": "נפח",
   "cylinderConfigs_fieldWorkingPressure": "לחץ עבודה",
   "cylinderConfigs_fieldMaterial": "חומר",
+  "cylinderConfigs_fieldGasMix": "תערובת גז",
   "cylinderConfigs_sectionTitle": "תצורות",
   "equipment_serviceClocks_hoursSource": "מחושב מזמן הצלילה המתועד",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} מתוך {total} שעות, נותרו {remaining}",
