@@ -156,6 +156,15 @@ static void send_block(fake_symbios_t *io, int allow_fault) {
     enqueue(io, packet, len);
 }
 
+// The late block reaches the queue: during the driver's wait if it waits,
+// otherwise by the time it sends its next command.
+static void deliver_late(fake_symbios_t *io) {
+    if (io->late_len) {
+        enqueue(io, io->late, io->late_len);
+        io->late_len = 0;
+    }
+}
+
 static int fake_write(void *userdata, const void *data, size_t size,
                       size_t *actual) {
     fake_symbios_t *io = (fake_symbios_t *)userdata;
@@ -166,6 +175,9 @@ static int fake_write(void *userdata, const void *data, size_t size,
         io->naks++;
         trace(io, 'N');
     }
+    // A late block the driver did not wait for lands now, ahead of
+    // whatever this command makes the device send.
+    deliver_late(io);
     if (io->silent) return LIBDC_STATUS_SUCCESS;
 
     switch (cmd[0]) {
@@ -223,11 +235,6 @@ static int fake_read(void *userdata, void *data, size_t size,
     if (io->queue_count == 0) {
         io->timeouts++;
         trace(io, 'T');
-        // A late block lands just after the read gave up on it.
-        if (io->late_len) {
-            enqueue(io, io->late, io->late_len);
-            io->late_len = 0;
-        }
         if (actual) *actual = 0;
         return LIBDC_STATUS_TIMEOUT;
     }
@@ -259,6 +266,7 @@ static int fake_sleep(void *userdata, unsigned int milliseconds) {
     fake_symbios_t *io = (fake_symbios_t *)userdata;
     io->last_sleep_ms = milliseconds;
     trace(io, 'S');
+    deliver_late(io);
     return LIBDC_STATUS_SUCCESS;
 }
 
@@ -343,8 +351,9 @@ static void test_late_block_is_purged_before_the_nak(void) {
     fake_symbios_t io;
     init(&io, FAULT_LATE, 0, 1);
     int rc = run(&io, entry_fingerprint(LOGBOOK_ENTRIES - 1));
-    // Without the purge the late copy is read as the re-sent block, and the
-    // real re-sent copy then arrives where the next block should be.
+    // The late copy lands during the 300 ms wait. Without the wait, or
+    // without the purge after it, that copy is read as the re-sent block,
+    // and the real re-sent copy then arrives where the next block should be.
     assert(rc == LIBDC_STATUS_SUCCESS);
     assert(io.files_completed == 1);
     assert(io.naks == 1);
