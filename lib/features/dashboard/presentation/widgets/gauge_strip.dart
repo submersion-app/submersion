@@ -370,7 +370,8 @@ class GaugeStrip extends ConsumerWidget {
             trip.daysUntilStart,
           ),
           tone: _Tone.ok,
-          onTap: () => context.push('/trips'),
+          // The chip names one trip, so it opens that trip (#3350).
+          onTap: () => context.push('/trips/${trip.id}'),
         ),
       );
     }

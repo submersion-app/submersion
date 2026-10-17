@@ -16,16 +16,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// is one line (type, expiry, what it is filed under) so the pages get the
 /// screen; expanded it shows every detail, scrolling within half the
 /// height so the pages always keep the other half.
-class DocumentDetailsPanel extends StatefulWidget {
+class DocumentDetailsPanel extends ConsumerStatefulWidget {
   final DocumentListEntry entry;
 
   const DocumentDetailsPanel({super.key, required this.entry});
 
   @override
-  State<DocumentDetailsPanel> createState() => _DocumentDetailsPanelState();
+  ConsumerState<DocumentDetailsPanel> createState() =>
+      _DocumentDetailsPanelState();
 }
 
-class _DocumentDetailsPanelState extends State<DocumentDetailsPanel> {
+class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
   bool _expanded = false;
 
   @override
@@ -33,9 +34,12 @@ class _DocumentDetailsPanelState extends State<DocumentDetailsPanel> {
     final l10n = context.l10n;
     final doc = widget.entry.document;
     final status = documentExpiryStatus(doc, DateTime.now());
+    final owner = widget.entry.ownerText(
+      UnitFormatter(ref.watch(settingsProvider)),
+    );
     final summary = [
       documentTypeLabel(l10n, doc.type),
-      widget.entry.ownerLabel ?? documentOwnerKindLabel(l10n, doc.owner.kind),
+      owner ?? documentOwnerKindLabel(l10n, doc.owner.kind),
     ].join(' · ');
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -60,7 +64,7 @@ class _DocumentDetailsPanelState extends State<DocumentDetailsPanel> {
               child: SingleChildScrollView(
                 child: DocumentDetailsCard(
                   document: doc,
-                  ownerLabel: widget.entry.ownerLabel,
+                  ownerLabel: owner,
                   flat: true,
                 ),
               ),

@@ -14748,6 +14748,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Material';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gasgemisch';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Konfigurationen';
 
   @override
@@ -19484,6 +19487,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent überschreitet seine Dil-MOD-Grenze bei $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Das Profil geht über das Deko-Ceiling von $ceiling, erforderliche Stopps werden ausgelassen';
   }
 
   @override
@@ -49315,6 +49323,35 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Ein kleines Symbol, das zeigt, woher jedes Element geladen wird. Problem-Badges werden immer angezeigt.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title =>
+      'Bild-Cache im Arbeitsspeicher';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Dekodierte Bilder, die für die Galerien und die Vollbildansicht im Arbeitsspeicher bleiben. Gilt sofort und nur auf diesem Gerät.';
+
+  @override
+  String get settings_mediaCache_disk_title =>
+      'Miniaturen-Cache auf dem Datenträger';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Auf diesem Gerät gespeicherte Miniaturen. Originale und komprimierte Kopien zählen nicht mit.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Cache leeren';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Miniaturen-Cache geleert';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Der Miniaturen-Cache konnte nicht geleert werden';
 
   @override
   String get media_status_transferFailed => 'Upload fehlgeschlagen';

@@ -37,7 +37,7 @@ Submersion adapts its navigation to your screen size.
 
 **On a desktop or tablet** (a window at least 800 px wide), a **navigation rail** runs down the left edge with every destination:
 
-> Home · Dives · Sites · Trips · Media · Equipment · Buddies · Dive Centers · Certifications · Courses · Species · Insights · Planning · Transfer · Tracks · Settings
+> Home · Dives · Sites · Trips · Equipment · Buddies · Dive Centers · Certifications · Media · Documents · Courses · Species · Insights · Planning · Transfer · Tracks · Settings
 
 On a wide enough window the rail shows a label next to each icon. **Home** always stays at the top.
 

@@ -17,26 +17,40 @@ import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 /// segment's padding and minimum size here; only density moves the width.
 const VisualDensity _kSegmentDensity = VisualDensity(horizontal: -4);
 
-/// Narrowest row width at which the four view-mode segments fit beside the
-/// three compact icon buttons with 8dp to spare. Measured at 1x on the
-/// default Material 3 theme with a throwaway test: 40dp per compact icon
-/// button and 192dp for four segments at [_kSegmentDensity], so
-/// 3 x 40 + 192 + 8. MediaLibraryView pads the row by 8dp each side, so
-/// phones 336dp and wider keep the segments and only the 320dp class
-/// collapses to [_ViewModeMenuButton]. Re-measure if the theme's button
-/// metrics change.
-const double kMediaToolbarFourSegmentMinWidth = 320;
+/// Width of one compact icon button: filter, sort, select and, on rows too
+/// narrow for the slider, thumbnail size.
+const double _kCompactIconButtonWidth = 40;
 
-/// Width of the thumbnail size slider: seven stops about 16dp apart once
-/// the slider's own 24dp of padding at each end is taken off.
+/// Width of the four view-mode segments at [_kSegmentDensity].
+const double _kFourSegmentWidth = 192;
+
+/// Narrowest row width at which the four view-mode segments fit beside the
+/// four compact icon buttons. Measured at 1x on the default Material 3
+/// theme with a throwaway test: 40dp per compact icon button and 192dp for
+/// four segments at [_kSegmentDensity], so 4 x 40 + 192 with nothing to
+/// spare (issue #3398). MediaLibraryView pads the row by 8dp each side, so
+/// phones 368dp and wider (a 375dp iPhone hands the row 359dp) keep the
+/// segments, and narrower ones collapse to [_ViewModeMenuButton].
+/// Re-measure if the theme's button metrics change.
+const double kMediaToolbarFourSegmentMinWidth =
+    4 * _kCompactIconButtonWidth + _kFourSegmentWidth;
+
+/// Width of the inline thumbnail size slider: seven stops about 16dp apart
+/// once the slider's own 24dp of padding at each end is taken off.
 const double _kThumbnailSliderWidth = 140;
 
-/// Narrowest row that also holds the thumbnail size slider (issue #3297):
-/// the four-segment budget above plus the slider. Below it the slider is
-/// left out rather than collapsing the view modes to make room, so phones
-/// in portrait keep the default size.
+/// Width of the slider in the thumbnail size menu: wider than the inline
+/// one, so the stops are easier to hit with a thumb.
+const double _kThumbnailMenuSliderWidth = 240;
+
+/// Narrowest row that holds the inline thumbnail size slider (issue #3297):
+/// three icon buttons, the four segments, the slider, and 8dp to spare.
+/// Below it the slider moves behind [_ThumbnailSizeButton] (issue #3398).
 const double kMediaToolbarThumbnailSliderMinWidth =
-    kMediaToolbarFourSegmentMinWidth + _kThumbnailSliderWidth;
+    3 * _kCompactIconButtonWidth +
+    _kFourSegmentWidth +
+    _kThumbnailSliderWidth +
+    8;
 
 /// The library's control row: filter, sort, select, thumbnail size, and
 /// view mode.
@@ -45,11 +59,12 @@ const double kMediaToolbarThumbnailSliderMinWidth =
 /// replaced was an Expanded horizontal scroller that claimed all free width
 /// and squeezed the view-mode selector beside it.
 ///
-/// Fixed widths also mean the row has a hard budget. The fourth view mode
-/// (map) pushed the segmented button past what 320dp can hold next to the
-/// three compact icon buttons, so the row measures itself: with room, four
-/// segments; without, one menu button showing the current mode's icon, the
-/// way the dive list picks its view mode.
+/// Fixed widths also mean the row has a hard budget. Four segments beside
+/// four compact icon buttons need [kMediaToolbarFourSegmentMinWidth], so
+/// the row measures itself: with room, four segments; without, one menu
+/// button showing the current mode's icon, the way the dive list picks its
+/// view mode. The threshold ignores which buttons the current mode shows,
+/// so switching modes never reshapes the view-mode control.
 class MediaLibraryToolbar extends ConsumerWidget {
   const MediaLibraryToolbar({
     super.key,
@@ -99,6 +114,10 @@ class MediaLibraryToolbar extends ConsumerWidget {
       builder: (context, constraints) {
         final compactModes =
             constraints.maxWidth < kMediaToolbarFourSegmentMinWidth;
+        // The map has no thumbnail grid to size.
+        final sizable = mode != MediaLibraryViewMode.map;
+        final inlineSlider =
+            constraints.maxWidth >= kMediaToolbarThumbnailSliderMinWidth;
         return Row(
           children: [
             IconButton(
@@ -144,10 +163,9 @@ class MediaLibraryToolbar extends ConsumerWidget {
                 onPressed: selection.enterExplicit,
               ),
             const Spacer(),
-            // The map has no thumbnail grid to size.
-            if (mode != MediaLibraryViewMode.map &&
-                constraints.maxWidth >= kMediaToolbarThumbnailSliderMinWidth)
-              const _ThumbnailSizeSlider(),
+            if (sizable && inlineSlider)
+              const _ThumbnailSizeSlider(width: _kThumbnailSliderWidth),
+            if (sizable && !inlineSlider) const _ThumbnailSizeButton(),
             if (compactModes)
               _ViewModeMenuButton(
                 current: mode,
@@ -179,7 +197,9 @@ class MediaLibraryToolbar extends ConsumerWidget {
 
 /// Seven stops from the smallest thumbnails to two across (issue #3297).
 class _ThumbnailSizeSlider extends ConsumerWidget {
-  const _ThumbnailSizeSlider();
+  const _ThumbnailSizeSlider({required this.width});
+
+  final double width;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -191,7 +211,7 @@ class _ThumbnailSizeSlider extends ConsumerWidget {
       // tooltip too would read it twice.
       excludeFromSemantics: true,
       child: SizedBox(
-        width: _kThumbnailSliderWidth,
+        width: width,
         child: Semantics(
           label: l10n.media_library_thumbnailSize,
           child: Slider(
@@ -204,6 +224,34 @@ class _ThumbnailSizeSlider extends ConsumerWidget {
                 .setStep(value.round()),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The narrow-width thumbnail size control (issue #3398): a compact icon
+/// button opening a menu that holds the slider, for rows with no room for
+/// the slider itself.
+class _ThumbnailSizeButton extends StatelessWidget {
+  const _ThumbnailSizeButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return MenuAnchor(
+      menuChildren: const [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: _ThumbnailSizeSlider(width: _kThumbnailMenuSliderWidth),
+        ),
+      ],
+      builder: (context, controller, _) => IconButton(
+        key: const ValueKey('thumbnail_size_button'),
+        icon: const Icon(Icons.photo_size_select_large, size: 20),
+        visualDensity: VisualDensity.compact,
+        tooltip: l10n.media_library_thumbnailSize,
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
       ),
     );
   }

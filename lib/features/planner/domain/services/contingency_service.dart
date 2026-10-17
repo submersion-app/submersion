@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -50,15 +51,29 @@ class ContingencyService {
 
   /// The deeper / longer / both variants (empty when the plan has no
   /// segments).
-  List<DeviationOutcome> deviations(domain.DivePlan plan) {
+  ///
+  /// Every method here takes the live plan's [startState] (a repetitive
+  /// dive's residual tissue loading): a contingency is an alternative to the
+  /// live plan, so it starts from the same tissues.
+  List<DeviationOutcome> deviations(
+    domain.DivePlan plan, {
+    TissueState? startState,
+  }) {
     if (plan.segments.isEmpty) return const [];
-    return [for (final key in deviationKeys) deviationFor(plan, key)!];
+    return [
+      for (final key in deviationKeys)
+        deviationFor(plan, key, startState: startState)!,
+    ];
   }
 
   /// A single deviation variant by [key] ('deeper' | 'longer' | 'both'), or
   /// null when the plan has no segments. Lets callers (the chart ghost) run
   /// just the one variant the user selected instead of all three.
-  DeviationOutcome? deviationFor(domain.DivePlan plan, String key) {
+  DeviationOutcome? deviationFor(
+    domain.DivePlan plan,
+    String key, {
+    TissueState? startState,
+  }) {
     if (plan.segments.isEmpty) return null;
     final variant = switch (key) {
       'deeper' => _deepened(plan),
@@ -68,7 +83,7 @@ class ContingencyService {
     return DeviationOutcome(
       key: key,
       plan: variant,
-      outcome: _engine.compute(variant),
+      outcome: _engine.compute(variant, startState: startState),
     );
   }
 
@@ -87,7 +102,10 @@ class ContingencyService {
   /// One outcome per losable cylinder (see [isLosable]). Empty for CCR plans
   /// (loop loss is the bailout solver's job) and when no such cylinder is
   /// carried.
-  List<LostGasOutcome> lostGas(domain.DivePlan inputPlan) {
+  List<LostGasOutcome> lostGas(
+    domain.DivePlan inputPlan, {
+    TissueState? startState,
+  }) {
     if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
       return const [];
     }
@@ -97,7 +115,7 @@ class ContingencyService {
     final results = <LostGasOutcome>[];
     for (final tank in plan.tanks) {
       if (!isLosable(tank)) continue;
-      final outcome = lostGasFor(plan, tank.id);
+      final outcome = lostGasFor(plan, tank.id, startState: startState);
       if (outcome != null) results.add(outcome);
     }
     return results;
@@ -107,7 +125,11 @@ class ContingencyService {
   /// missing, not losable, the only cylinder carried, or the plan can't be
   /// varied (no segments, or CCR). Lets callers (the chart ghost, a tapped
   /// row) run just the one variant selected instead of the full set.
-  LostGasOutcome? lostGasFor(domain.DivePlan inputPlan, String tankId) {
+  LostGasOutcome? lostGasFor(
+    domain.DivePlan inputPlan,
+    String tankId, {
+    TissueState? startState,
+  }) {
     if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
       return null;
     }
@@ -143,7 +165,7 @@ class ContingencyService {
     return LostGasOutcome(
       tank: tank,
       plan: without,
-      outcome: _engine.compute(without),
+      outcome: _engine.compute(without, startState: startState),
     );
   }
 

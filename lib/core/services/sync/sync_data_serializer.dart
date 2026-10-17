@@ -21,6 +21,7 @@ import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
+import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -5408,13 +5409,11 @@ class SyncDataSerializer {
             );
         return;
       case 'viewConfigs':
-        await _db
-            .into(_db.viewConfigs)
-            .insertOnConflictUpdate(
-              ViewConfig.fromJson(
-                _withTimestampDefaults(data),
-              ).toCompanion(false),
-            );
+        await applyViewConfigRecord(
+          _db,
+          ViewConfig.fromJson(_withTimestampDefaults(data)),
+          syncRepository: _syncRepository,
+        );
         return;
       case 'fieldPresets':
         await _db
@@ -6966,18 +6965,16 @@ class SyncDataSerializer {
         );
         return;
       case 'viewConfigs':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.viewConfigs,
-            records
-                .map(
-                  (r) => ViewConfig.fromJson(
-                    _withTimestampDefaults(r),
-                  ).toCompanion(false),
-                )
-                .toList(),
-          ),
-        );
+        // One at a time rather than one batch: a peer's row may need merging
+        // with a rival this device holds for the same view (issue #3343).
+        // A diver has a handful of these rows, so the batch saved nothing.
+        for (final r in records) {
+          await applyViewConfigRecord(
+            _db,
+            ViewConfig.fromJson(_withTimestampDefaults(r)),
+            syncRepository: _syncRepository,
+          );
+        }
         return;
       case 'fieldPresets':
         await _db.batch(

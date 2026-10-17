@@ -14943,6 +14943,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'المادة';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'خليط الغاز';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'الإعدادات';
 
   @override
@@ -19764,6 +19767,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'يتجاوز غاز التخفيف حد MOD الخاص به عند $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'المسار يتجاوز سقف تخفيف الضغط عند $ceiling ويتخطى توقفات إلزامية';
   }
 
   @override
@@ -50053,6 +50061,35 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'التخزين المؤقت';
+
+  @override
+  String get settings_mediaCache_memory_title => 'ذاكرة الصور المؤقتة';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'الصور المفكوكة المحفوظة في الذاكرة للمعارض والعارض بملء الشاشة. يسري فورا وعلى هذا الجهاز فقط.';
+
+  @override
+  String get settings_mediaCache_disk_title =>
+      'التخزين المؤقت للصور المصغرة على القرص';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'الصور المصغرة المحفوظة على هذا الجهاز. لا تحتسب الملفات الأصلية والنسخ المضغوطة.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'إفراغ التخزين المؤقت';
+
+  @override
+  String get settings_mediaCache_disk_emptied =>
+      'تم إفراغ التخزين المؤقت للصور المصغرة';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'تعذر إفراغ التخزين المؤقت للصور المصغرة';
 
   @override
   String get media_status_transferFailed => 'فشل الرفع';

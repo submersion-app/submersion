@@ -14751,6 +14751,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Material';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Mezcla de gas';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configuraciones';
 
   @override
@@ -19498,6 +19501,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'El diluyente excede su MOD Dil a $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'El perfil sobrepasa el techo de descompresión de $ceiling y omite paradas obligatorias';
   }
 
   @override
@@ -49475,6 +49483,33 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Un pequeño icono que indica de dónde procede cada elemento. Los distintivos de problemas siempre se muestran.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Caché';
+
+  @override
+  String get settings_mediaCache_memory_title => 'Caché de imágenes en memoria';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Imágenes decodificadas que se conservan en memoria para las galerías y el visor a pantalla completa. Se aplica de inmediato y solo en este dispositivo.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Caché de miniaturas en disco';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Miniaturas guardadas en este dispositivo. Los originales y las copias comprimidas no se cuentan.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Vaciar caché';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Caché de miniaturas vaciada';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'No se pudo vaciar la caché de miniaturas';
 
   @override
   String get media_status_transferFailed => 'Falló la subida';

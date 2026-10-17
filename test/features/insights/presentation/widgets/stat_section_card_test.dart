@@ -53,4 +53,44 @@ void main() {
     );
     expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
+
+  testWidgets('a wide trailing control drops below a long title instead of '
+      'squeezing it (#3358)', (tester) async {
+    await pump(
+      tester,
+      const SizedBox(
+        width: 320,
+        child: StatSectionHeader(
+          title: 'Belastung der Ausruestung nach Tauchgaengen',
+          subtitle: 'Wie viel jedes Teil getaucht ist',
+          trailing: SizedBox(key: Key('control'), width: 220, height: 40),
+        ),
+      ),
+    );
+
+    final title = tester.getRect(
+      find.text('Belastung der Ausruestung nach Tauchgaengen'),
+    );
+    final control = tester.getRect(find.byKey(const Key('control')));
+    // The title keeps the full width, so it breaks between words.
+    expect(title.width, greaterThan(200));
+    expect(control.top, greaterThanOrEqualTo(title.bottom));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'a header with both a trailing control and a chevron keeps both',
+    (tester) async {
+      await pump(
+        tester,
+        const StatSectionHeader(
+          title: 'Depth',
+          trailing: Icon(Icons.info),
+          showChevron: true,
+        ),
+      );
+      expect(find.byIcon(Icons.info), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+    },
+  );
 }

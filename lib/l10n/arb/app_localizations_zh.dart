@@ -14098,6 +14098,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => '材质';
 
   @override
+  String get cylinderConfigs_fieldGasMix => '混合气';
+
+  @override
   String get cylinderConfigs_sectionTitle => '配置';
 
   @override
@@ -18575,6 +18578,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return '稀释气在 $depth 处超过其 MOD（ppO₂ $value bar）';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return '潜水剖面超过 $ceiling 的减压上升限制，跳过了必需的停留';
   }
 
   @override
@@ -46387,6 +46395,31 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       '一个小图标，显示每个项目的来源。问题徽章始终显示。';
+
+  @override
+  String get settings_photosMedia_cacheHeader => '缓存';
+
+  @override
+  String get settings_mediaCache_memory_title => '内存图像缓存';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      '为图库和全屏查看器保留在内存中的已解码图像。立即生效，仅限此设备。';
+
+  @override
+  String get settings_mediaCache_disk_title => '缩略图磁盘缓存';
+
+  @override
+  String get settings_mediaCache_disk_subtitle => '保存在此设备上的缩略图。原始文件和压缩副本不计入。';
+
+  @override
+  String get settings_mediaCache_disk_empty => '清空缓存';
+
+  @override
+  String get settings_mediaCache_disk_emptied => '缩略图缓存已清空';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed => '无法清空缩略图缓存';
 
   @override
   String get media_status_transferFailed => '上传失败';

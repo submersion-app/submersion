@@ -26,6 +26,7 @@ import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 // ---------------------------------------------------------------------------
 // Section metadata
@@ -643,21 +644,23 @@ class _DetailedCardConfigSection extends ConsumerWidget {
         ),
         ...config.slots.map((slot) {
           return ListTile(
-            title: Text(_slotDisplayName(context, slot.slotId)),
-            trailing: DropdownButton<DiveField>(
-              value: slot.field,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  notifier.updateSlot(slot.slotId, value);
-                }
-              },
-              items: DiveField.values.map((field) {
-                return DropdownMenuItem(
-                  value: field,
-                  child: Text(field.localizedDisplayName(context.l10n)),
-                );
-              }).toList(),
+            title: LabelWithControl(
+              label: Text(_slotDisplayName(context, slot.slotId)),
+              control: DropdownButton<DiveField>(
+                value: slot.field,
+                underline: const SizedBox(),
+                onChanged: (value) {
+                  if (value != null) {
+                    notifier.updateSlot(slot.slotId, value);
+                  }
+                },
+                items: DiveField.values.map((field) {
+                  return DropdownMenuItem(
+                    value: field,
+                    child: Text(field.localizedDisplayName(context.l10n)),
+                  );
+                }).toList(),
+              ),
             ),
           );
         }),
@@ -790,23 +793,25 @@ class _SlotCardConfigSection extends ConsumerWidget {
                 child: ListView(
                   children: config.slots.map((slot) {
                     return ListTile(
-                      title: Text(_slotDisplayName(context, slot.slotId)),
-                      trailing: DropdownButton<DiveField>(
-                        value: slot.field,
-                        underline: const SizedBox(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            notifier.updateSlot(slot.slotId, value);
-                          }
-                        },
-                        items: allFields.map((field) {
-                          return DropdownMenuItem(
-                            value: field,
-                            child: Text(
-                              field.localizedDisplayName(context.l10n),
-                            ),
-                          );
-                        }).toList(),
+                      title: LabelWithControl(
+                        label: Text(_slotDisplayName(context, slot.slotId)),
+                        control: DropdownButton<DiveField>(
+                          value: slot.field,
+                          underline: const SizedBox(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              notifier.updateSlot(slot.slotId, value);
+                            }
+                          },
+                          items: allFields.map((field) {
+                            return DropdownMenuItem(
+                              value: field,
+                              child: Text(
+                                field.localizedDisplayName(context.l10n),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     );
                   }).toList(),
@@ -1003,32 +1008,34 @@ class _EntityCardConfigSection<F extends EntityField> extends ConsumerWidget {
         ),
         ...config.slots.map((slot) {
           return ListTile(
-            title: Text(_slotDisplayName(context, slot.slotId)),
-            trailing: DropdownButton<F>(
-              value: slot.field,
-              underline: const SizedBox(),
-              onChanged: (value) {
-                if (value != null) {
-                  onChanged(
-                    ref,
-                    config.copyWith(
-                      slots: config.slots
-                          .map(
-                            (s) => s.slotId == slot.slotId
-                                ? s.copyWith(field: value)
-                                : s,
-                          )
-                          .toList(),
-                    ),
+            title: LabelWithControl(
+              label: Text(_slotDisplayName(context, slot.slotId)),
+              control: DropdownButton<F>(
+                value: slot.field,
+                underline: const SizedBox(),
+                onChanged: (value) {
+                  if (value != null) {
+                    onChanged(
+                      ref,
+                      config.copyWith(
+                        slots: config.slots
+                            .map(
+                              (s) => s.slotId == slot.slotId
+                                  ? s.copyWith(field: value)
+                                  : s,
+                            )
+                            .toList(),
+                      ),
+                    );
+                  }
+                },
+                items: allFields.map((field) {
+                  return DropdownMenuItem(
+                    value: field,
+                    child: Text(field.localizedDisplayName(context.l10n)),
                   );
-                }
-              },
-              items: allFields.map((field) {
-                return DropdownMenuItem(
-                  value: field,
-                  child: Text(field.localizedDisplayName(context.l10n)),
-                );
-              }).toList(),
+                }).toList(),
+              ),
             ),
           );
         }),

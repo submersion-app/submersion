@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,6 +83,21 @@ class _BlockedScanNotifier extends DiscoveryNotifier {
   }
 }
 
+/// Discovery notifier whose scan starts only when the test releases it,
+/// the way Android's runtime permission prompt holds [startScan] open.
+class _SlowStartNotifier extends DiscoveryNotifier {
+  _SlowStartNotifier({required super.service})
+    : super(requiresRuntimePermissions: false);
+
+  final Completer<void> permission = Completer<void>();
+
+  @override
+  Future<void> startScan() async {
+    await permission.future;
+    await super.startScan();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Test data
 // ---------------------------------------------------------------------------
@@ -148,10 +165,15 @@ class _Harness {
   final _RecordingHostApi hostApi;
   final DiscoveryState _seed;
   final bool _blockScan;
+
+  /// When set, the step's discovery notifier; its scan waits for the test.
+  _SlowStartNotifier? slowStart;
   final FakeImportAdapterDeps deps = FakeImportAdapterDeps();
   late final pigeon.DiveComputerService service;
 
-  Widget build(DiveComputer computer) {
+  /// The step for [computer], or with [stepClosed] the same provider scope
+  /// with the step removed: the app-wide discovery notifier outlives it.
+  Widget build(DiveComputer computer, {bool stepClosed = false}) {
     final adapter = DiveComputerAdapter(
       importService: deps.importService,
       computerRepository: deps.computerRepo,
@@ -164,7 +186,9 @@ class _Harness {
       overrides: [
         diveComputerServiceProvider.overrideWithValue(service),
         discoveryNotifierProvider.overrideWith(
-          (ref) => _blockScan
+          (ref) => slowStart != null
+              ? slowStart!
+              : _blockScan
               ? _BlockedScanNotifier(service: service, seed: _seed)
               : _SeededDiscoveryNotifier(service: service, seed: _seed),
         ),
@@ -177,10 +201,12 @@ class _Harness {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: DcAdapterDownloadStep(
-            adapter: adapter,
-            knownComputer: computer,
-          ),
+          body: stepClosed
+              ? const SizedBox()
+              : DcAdapterDownloadStep(
+                  adapter: adapter,
+                  knownComputer: computer,
+                ),
         ),
       ),
     );
@@ -229,11 +255,8 @@ void main() {
         h.service.onDeviceDiscovered(_advert(_savedAddress));
         await _settle(tester);
 
-        expect(h.hostApi.calls, [
-          'startDiscovery',
-          'stopDiscovery',
-          'startDownload',
-        ]);
+        // The scan keeps running through the connect (issue #3369).
+        expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
         final sent = h.hostApi.downloads.single;
         expect(sent.address, _savedAddress);
         // The freshly advertised device carries the descriptor the driver
@@ -259,11 +282,7 @@ void main() {
         );
         await _settle(tester);
 
-        expect(h.hostApi.calls, [
-          'startDiscovery',
-          'stopDiscovery',
-          'startDownload',
-        ]);
+        expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
         expect(h.hostApi.downloads.single.address, _savedAddress);
       },
     );
@@ -379,11 +398,7 @@ void main() {
         );
         await _settle(tester);
 
-        expect(h.hostApi.calls, [
-          'startDiscovery',
-          'stopDiscovery',
-          'startDownload',
-        ]);
+        expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
         final sent = h.hostApi.downloads.single;
         expect(sent.address, freshAddress);
         expect(sent.vendor, 'Shearwater');
@@ -451,9 +466,99 @@ void main() {
       await tester.pump();
       await _settle(tester);
 
-      expect(h.hostApi.calls, ['stopDiscovery', 'startDownload']);
+      expect(h.hostApi.calls, ['startDownload']);
       expect(h.hostApi.downloads.single.address, _savedAddress);
       expect(_selectedDevice(tester), isNull);
+    });
+  });
+
+  // Issue #3369: a saved Petrel 3 or Perdix 2 still failed to download on
+  // Android while "Connect new computer" worked for the same unit. That flow
+  // never stops its scan before connecting; the saved-computer path stopped
+  // its scan the moment the address advertised and connected straight
+  // after. The saved-computer path now keeps its scan running through the
+  // connect too, and stops it once the download is over or the step closes.
+  group('DcAdapterDownloadStep keeps the re-acquire scan running', () {
+    testWidgets('until the step closes', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer()));
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(_savedAddress));
+      await _settle(tester);
+      expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
+
+      await tester.pumpWidget(const SizedBox());
+
+      expect(h.hostApi.calls, [
+        'startDiscovery',
+        'startDownload',
+        'stopDiscovery',
+      ]);
+    });
+
+    testWidgets('until the download completes', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer()));
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(_savedAddress));
+      await _settle(tester);
+      expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
+
+      h.service.onDownloadComplete(0, null, null, null, null, null);
+      await _settle(tester);
+
+      expect(h.hostApi.calls, [
+        'startDiscovery',
+        'startDownload',
+        'stopDiscovery',
+      ]);
+    });
+
+    testWidgets('and stops a scan the step closes before it finds the '
+        'device', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer()));
+      await tester.pump();
+      expect(h.hostApi.calls, ['startDiscovery']);
+
+      await tester.pumpWidget(const SizedBox());
+      // The pending re-acquisition must not outlive the step.
+      await tester.pump(
+        DcAdapterDownloadStep.knownDeviceScanTimeout +
+            const Duration(seconds: 1),
+      );
+
+      // Stopping twice is harmless; what matters is that the scan ends.
+      expect(h.hostApi.calls.first, 'startDiscovery');
+      expect(h.hostApi.calls.skip(1), everyElement('stopDiscovery'));
+      expect(h.hostApi.calls.skip(1), isNotEmpty);
+      expect(h.hostApi.downloads, isEmpty);
+    });
+    testWidgets('and stops a scan that only starts after the step closed', (
+      tester,
+    ) async {
+      final h = _Harness();
+      final slow = _SlowStartNotifier(service: h.service);
+      h.slowStart = slow;
+      await tester.pumpWidget(h.build(_savedComputer()));
+      await tester.pump();
+      expect(h.hostApi.calls, isEmpty);
+
+      // Closed while the permission prompt is up: nothing has started yet.
+      await tester.pumpWidget(h.build(_savedComputer(), stepClosed: true));
+      slow.permission.complete();
+      await tester.pump();
+      await tester.pump(
+        DcAdapterDownloadStep.knownDeviceScanTimeout +
+            const Duration(seconds: 1),
+      );
+
+      expect(h.hostApi.calls.last, 'stopDiscovery');
+      expect(
+        h.hostApi.calls.lastIndexOf('stopDiscovery'),
+        greaterThan(h.hostApi.calls.indexOf('startDiscovery')),
+      );
+      expect(h.hostApi.downloads, isEmpty);
     });
   });
 }

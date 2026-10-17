@@ -14455,6 +14455,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'חומר';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'תערובת גז';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'תצורות';
 
   @override
@@ -19074,6 +19077,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'המדלל חורג מ-MOD מדלל ב-$depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'הפרופיל חוצה את תקרת הדקומפרסיה של $ceiling ומדלג על עצירות נדרשות';
   }
 
   @override
@@ -48379,6 +48387,33 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'מטמון';
+
+  @override
+  String get settings_mediaCache_memory_title => 'מטמון תמונות בזיכרון';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'תמונות מפוענחות שנשמרות בזיכרון עבור הגלריות והצגת מסך מלא. חל מיד, במכשיר זה בלבד.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'מטמון תמונות ממוזערות בדיסק';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'תמונות ממוזערות שנשמרות במכשיר זה. קובצי מקור ועותקים דחוסים אינם נספרים.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'ריקון המטמון';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'מטמון התמונות הממוזערות רוקן';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'לא ניתן היה לרוקן את מטמון התמונות הממוזערות';
 
   @override
   String get media_status_transferFailed => 'ההעלאה נכשלה';

@@ -14795,6 +14795,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Matériau';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Mélange gazeux';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurations';
 
   @override
@@ -19561,6 +19564,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Le diluant dépasse sa MOD Dil à $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Le profil dépasse le plafond de décompression de $ceiling et saute des paliers obligatoires';
   }
 
   @override
@@ -49537,6 +49545,33 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Une petite icône indiquant d\'où provient chaque élément. Les badges de problème restent toujours visibles.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title => 'Cache d’images en mémoire';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Images décodées conservées en mémoire pour les galeries et la visionneuse plein écran. S’applique immédiatement, sur cet appareil uniquement.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Cache disque des vignettes';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Vignettes conservées sur cet appareil. Les originaux et les copies compressées ne sont pas comptés.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Vider le cache';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Cache des vignettes vidé';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Impossible de vider le cache des vignettes';
 
   @override
   String get media_status_transferFailed => 'Échec du téléversement';

@@ -276,4 +276,81 @@ void main() {
       expect(result.tanks.single.presetName, 'al_1_5');
     });
   });
+
+  group('a role read off the transmitter name (issue #3307)', () {
+    // "O2", "Dil" and an "OC" bailout the computer imported as O2.
+    const imported = [
+      DiveTank(
+        id: 't1',
+        role: TankRole.oxygenSupply,
+        roleSource: TankRoleSource.transmitterName,
+        gasMix: GasMix(o2: 100),
+      ),
+      DiveTank(
+        id: 't2',
+        role: TankRole.diluent,
+        roleSource: TankRoleSource.transmitterName,
+        order: 1,
+      ),
+      DiveTank(
+        id: 't3',
+        role: TankRole.oxygenSupply,
+        roleSource: TankRoleSource.transmitterName,
+        gasMix: GasMix(o2: 100),
+        order: 2,
+      ),
+    ];
+    final ccr = [
+      cfg(id: 'o2', role: TankRole.oxygenSupply, o2: 100, volume: 3),
+      cfg(id: 'dil', role: TankRole.diluent, order: 1, volume: 3),
+      cfg(id: 'bo', role: TankRole.bailout, order: 2, volume: 5.7),
+    ];
+
+    test('is offered as a change and left alone until accepted', () {
+      final result = adapter.apply(tanks: imported, items: ccr, newId: newId);
+
+      final change = result.overwrites.single;
+      expect(change.tankId, 't3');
+      expect(change.role?.to, TankRole.bailout);
+      final t3 = result.tanks.singleWhere((t) => t.id == 't3');
+      expect(t3.role, TankRole.oxygenSupply);
+      expect(t3.roleSource, TankRoleSource.transmitterName);
+      // The bailout's size is not put on a tank still marked O2.
+      expect(t3.volume, isNull);
+      expect(t3.gasMix.o2, 100);
+    });
+
+    test('accepted, takes the config role and drops the marker', () {
+      final result = adapter.apply(
+        tanks: imported,
+        items: ccr,
+        newId: newId,
+        overwrite: true,
+      );
+
+      expect(result.added, 0);
+      expect(result.tanks, hasLength(3));
+      final t3 = result.tanks.singleWhere((t) => t.id == 't3');
+      expect(t3.role, TankRole.bailout);
+      expect(t3.roleSource, isNull);
+      expect(t3.volume, 5.7);
+      // The 100% O2 was defaulted from the guessed role, so the config's
+      // bailout mix replaces it.
+      expect(t3.gasMix.o2, 21);
+      expect(t3.gasMix.he, 0);
+    });
+
+    test('a fitting size confirms the role without asking', () {
+      final result = adapter.apply(
+        tanks: [imported.first.copyWith(volume: 3)],
+        items: [ccr.first],
+        newId: newId,
+      );
+
+      expect(result.overwrites, isEmpty);
+      expect(result.changed, isTrue);
+      expect(result.tanks.single.role, TankRole.oxygenSupply);
+      expect(result.tanks.single.roleSource, isNull);
+    });
+  });
 }

@@ -1,4 +1,5 @@
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 /// Decides whether a completed resolution should change a row's orphan flag.
 ///
@@ -21,6 +22,32 @@ bool? reconciledOrphanFlag({
   if (desired == null || desired == currentlyOrphaned) return null;
   return desired;
 }
+
+/// [reconciledOrphanFlag] for a check that looked at the source without
+/// resolving it: the deferred look at a photo's original behind a cached
+/// thumbnail (issue #3337).
+///
+/// Held to the same rule. Only [VerifyResult.available] and
+/// [VerifyResult.notFound] are findings about the bytes; every other verdict
+/// is a failure to reach them and writes nothing.
+bool? orphanFlagForVerdict({
+  required bool currentlyOrphaned,
+  required VerifyResult verdict,
+}) => switch (verdict) {
+  VerifyResult.available => reconciledOrphanFlag(
+    currentlyOrphaned: currentlyOrphaned,
+    failure: null,
+  ),
+  VerifyResult.notFound => reconciledOrphanFlag(
+    currentlyOrphaned: currentlyOrphaned,
+    failure: UnavailableKind.notFound,
+  ),
+  VerifyResult.unauthenticated ||
+  VerifyResult.transientError ||
+  VerifyResult.fromOtherDevice ||
+  VerifyResult.volumeOffline ||
+  VerifyResult.accessDenied => null,
+};
 
 /// Exhaustive with no default arm, so a new [UnavailableKind] cannot ship
 /// without someone deciding whether it is evidence of absence. The correct

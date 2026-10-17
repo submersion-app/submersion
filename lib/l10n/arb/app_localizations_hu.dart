@@ -14708,6 +14708,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Anyag';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gázkeverék';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Konfigurációk';
 
   @override
@@ -19437,6 +19440,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'A hígítógáz meghaladja a Dil-MOD-ot $depth mélységben (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'A profil a $ceiling dekompressziós plafon fölé megy, kötelező megállókat kihagyva';
   }
 
   @override
@@ -49151,6 +49159,35 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Gyorsítótár';
+
+  @override
+  String get settings_mediaCache_memory_title => 'Memóriában tartott képek';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'A galériákhoz és a teljes képernyős megjelenítőhöz memóriában tartott, dekódolt képek. Azonnal érvénybe lép, csak ezen az eszközön.';
+
+  @override
+  String get settings_mediaCache_disk_title =>
+      'Bélyegképek lemezes gyorsítótára';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Az ezen az eszközön tárolt bélyegképek. Az eredeti fájlok és a tömörített másolatok nem számítanak bele.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Gyorsítótár ürítése';
+
+  @override
+  String get settings_mediaCache_disk_emptied =>
+      'A bélyegképek gyorsítótára kiürítve';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Nem sikerült kiüríteni a bélyegképek gyorsítótárát';
 
   @override
   String get media_status_transferFailed => 'A feltöltés sikertelen';

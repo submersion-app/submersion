@@ -108,8 +108,8 @@ void main() {
       await _pump(tester, width: 600, sections: _config());
 
       final description = _rectOf(tester, SiteDetailSectionId.description);
-      final location = _rectOf(tester, SiteDetailSectionId.location);
-      expect(location.top - description.bottom, kSiteDetailCardGap);
+      final depth = _rectOf(tester, SiteDetailSectionId.depth);
+      expect(depth.top - description.bottom, kSiteDetailCardGap);
     });
 
     testWidgets('Difficulty and Rating sit side by side on a wide pane', (

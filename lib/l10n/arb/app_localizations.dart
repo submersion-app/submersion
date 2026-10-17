@@ -23921,6 +23921,12 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get cylinderConfigs_fieldMaterial;
 
+  /// No description provided for @cylinderConfigs_fieldGasMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas mix'**
+  String get cylinderConfigs_fieldGasMix;
+
   /// No description provided for @cylinderConfigs_sectionTitle.
   ///
   /// In en, this message translates to:
@@ -31194,6 +31200,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)'**
   String plannerCanvas_issue_diluentModExceeded(String depth, String value);
+
+  /// No description provided for @plannerCanvas_issue_ceilingViolated.
+  ///
+  /// In en, this message translates to:
+  /// **'The profile goes above the {ceiling} decompression ceiling, skipping required stops'**
+  String plannerCanvas_issue_ceilingViolated(String ceiling);
 
   /// No description provided for @plannerCanvas_issue_noBailout.
   ///
@@ -78378,6 +78390,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A small glyph showing where each item is served from. Problem badges always show.'**
   String get settings_media_provenanceBadgesSubtitle;
+
+  /// No description provided for @settings_photosMedia_cacheHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache'**
+  String get settings_photosMedia_cacheHeader;
+
+  /// No description provided for @settings_mediaCache_memory_title.
+  ///
+  /// In en, this message translates to:
+  /// **'In-memory image cache'**
+  String get settings_mediaCache_memory_title;
+
+  /// No description provided for @settings_mediaCache_memory_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decoded images kept in memory for the galleries and the full-screen viewer. Applies immediately, on this device only.'**
+  String get settings_mediaCache_memory_subtitle;
+
+  /// No description provided for @settings_mediaCache_disk_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail disk cache'**
+  String get settings_mediaCache_disk_title;
+
+  /// No description provided for @settings_mediaCache_disk_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnails kept on this device. Originals and compressed copies are not counted.'**
+  String get settings_mediaCache_disk_subtitle;
+
+  /// No description provided for @settings_mediaCache_disk_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty cache'**
+  String get settings_mediaCache_disk_empty;
+
+  /// No description provided for @settings_mediaCache_disk_emptied.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail cache emptied'**
+  String get settings_mediaCache_disk_emptied;
+
+  /// No description provided for @settings_mediaCache_disk_emptyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not empty the thumbnail cache'**
+  String get settings_mediaCache_disk_emptyFailed;
 
   /// No description provided for @media_status_transferFailed.
   ///

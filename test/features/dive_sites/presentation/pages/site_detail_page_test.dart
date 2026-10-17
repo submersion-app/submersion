@@ -588,6 +588,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // The button lives on the Dive statistics card, below the fold.
+      await tester.ensureVisible(find.byTooltip('3D History'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('3D History'));
       await tester.pumpAndSettle();
 

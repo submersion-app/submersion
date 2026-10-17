@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_api_exception.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/core/services/suunto_cloud/suunto_sml_normalizer.dart
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_fetch_step.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+const _log = LoggerService('SuuntoCloudAdapterSteps');
 
 /// Sign-in step for the Suunto cloud import wizard.
 ///
@@ -314,7 +317,14 @@ class SuuntoCloudFetchStep extends StatelessWidget {
                 samples: export.samples,
               ).copyWith(notes: page[i].notes),
             );
-          } catch (_) {
+          } catch (e, stackTrace) {
+            // Skipped, not shown: the step lists it as failed to download.
+            // Logged so a dive that keeps failing can still be diagnosed.
+            _log.error(
+              'Suunto dive ${page[i].key} failed to download or parse',
+              error: e,
+              stackTrace: stackTrace,
+            );
             results.add(null);
           }
         }

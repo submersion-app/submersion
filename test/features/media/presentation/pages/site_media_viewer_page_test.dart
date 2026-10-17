@@ -174,6 +174,21 @@ void main() {
     expect(views.every((v) => v.showAccessActions), isTrue);
   });
 
+  // Issue #3298: a neighbour built only once it slides into view arrives as
+  // an empty placeholder and pops in after the swipe ends.
+  testWidgets('the neighbouring photo is built before it is swiped to', (
+    tester,
+  ) async {
+    await pumpViewer(tester);
+
+    final ids = tester
+        .widgetList<MediaItemView>(
+          find.byType(MediaItemView, skipOffstage: false),
+        )
+        .map((v) => v.item.id);
+    expect(ids, containsAll(['m1', 'm2']));
+  });
+
   testWidgets('initialMediaId selects that item rather than the first', (
     tester,
   ) async {

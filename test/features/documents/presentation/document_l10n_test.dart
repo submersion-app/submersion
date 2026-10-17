@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -74,5 +76,22 @@ void main() {
       documentDisplayTitle(l10n, permit, ownerLabel: 'Bonaire'),
       'Marine park',
     );
+  });
+
+  test('an owner line joins the name and the date in the diver format '
+      '(#3391)', () {
+    const units = UnitFormatter(AppSettings());
+    final when = DateTime.utc(2026, 10, 12, 9);
+    final date = units.formatDate(when);
+    expect(
+      documentOwnerText(units, '#142 · Blue Hole', when),
+      '#142 · Blue Hole · $date',
+    );
+    // An unnumbered dive with no site goes by its date alone.
+    expect(documentOwnerText(units, null, when), date);
+    expect(documentOwnerText(units, '', when), date);
+    // Every other owner has no date.
+    expect(documentOwnerText(units, 'Bonaire', null), 'Bonaire');
+    expect(documentOwnerText(units, null, null), isNull);
   });
 }

@@ -49,13 +49,68 @@ class DiverSettingsRepository {
     return db.tableUpdates(TableUpdateQuery.onTable(db.diverSettings));
   }
 
+  /// The diver's rows, the one every read uses first.
+  ///
+  /// `diver_settings` has no unique index on `diver_id`, and sync merges its
+  /// rows by id, so two devices that each created a row for the diver before
+  /// syncing leave both behind (issue #3343). A read that expected one row
+  /// then threw "Too many elements". The newest row wins: one with an HLC
+  /// over one without, then the later clock (its packed form sorts as it
+  /// compares), then updatedAt, with the id breaking a tie so that every
+  /// device picks the same one.
+  SimpleSelectStatement<$DiverSettingsTable, DiverSetting> _rowsNewestFirst(
+    String diverId,
+  ) => _db.select(_db.diverSettings)
+    ..where((t) => t.diverId.equals(diverId))
+    ..orderBy([
+      (t) => OrderingTerm.asc(t.hlc.isNull()),
+      (t) => OrderingTerm.desc(t.hlc),
+      (t) => OrderingTerm.desc(t.updatedAt),
+      (t) => OrderingTerm.asc(t.id),
+    ]);
+
+  /// The diver's settings row, or null when there is none. See
+  /// [_rowsNewestFirst] for which row wins when sync has left two.
+  Future<DiverSetting?> _rowFor(String diverId) =>
+      (_rowsNewestFirst(diverId)..limit(1)).getSingleOrNull();
+
+  /// Deletes every settings row of [diverId] but the one [_rowFor] reads,
+  /// with a tombstone for each so that peers drop it too (issue #3343).
+  ///
+  /// A failure is logged, not thrown: the reads already pick the right row,
+  /// so a duplicate left in place costs nothing but this retry next load.
+  Future<void> _dropDuplicateRows(String diverId) async {
+    try {
+      final rows = await _rowsNewestFirst(diverId).get();
+      if (rows.length < 2) return;
+      final duplicateIds = [for (final row in rows.skip(1)) row.id];
+      await _db.transaction(() async {
+        await (_db.delete(
+          _db.diverSettings,
+        )..where((t) => t.id.isIn(duplicateIds))).go();
+        await _syncRepository.logDeletions(
+          entityType: 'diverSettings',
+          recordIds: duplicateIds,
+        );
+      });
+      SyncEventBus.notifyLocalChange();
+      _log.warning(
+        'Dropped ${duplicateIds.length} duplicate settings row(s) for diver '
+        '$diverId, keeping ${rows.first.id}',
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to drop duplicate settings rows for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   /// Get settings for a specific diver
   Future<AppSettings?> getSettingsForDiver(String diverId) async {
     try {
-      final query = _db.select(_db.diverSettings)
-        ..where((t) => t.diverId.equals(diverId));
-
-      final row = await query.getSingleOrNull();
+      final row = await _rowFor(diverId);
       return row != null ? _mapRowToAppSettings(row) : null;
     } catch (e, stackTrace) {
       _log.error(
@@ -72,9 +127,7 @@ class DiverSettingsRepository {
   /// device-local pref: a null column marks a pre-v151 row (or a diver
   /// with no row yet), the only cases where the pref may seed the value.
   Future<bool> hasSeascapeAppearance(String diverId) async {
-    final query = _db.select(_db.diverSettings)
-      ..where((t) => t.diverId.equals(diverId));
-    final row = await query.getSingleOrNull();
+    final row = await _rowFor(diverId);
     return row?.seascapeAppearance != null;
   }
 
@@ -83,9 +136,7 @@ class DiverSettingsRepository {
   /// unset for both: the load creates it with both columns null.
   Future<({bool pscrRatio, bool profileMetricsFollowViewport})>
   unsetAdoptableColumns(String diverId) async {
-    final row = await (_db.select(
-      _db.diverSettings,
-    )..where((t) => t.diverId.equals(diverId))).getSingleOrNull();
+    final row = await _rowFor(diverId);
     return (
       pscrRatio: row?.pscrRatio == null,
       profileMetricsFollowViewport: row?.profileMetricsFollowViewport == null,
@@ -108,6 +159,9 @@ class DiverSettingsRepository {
       return false;
     }
     try {
+      // Keyed on the diver like updateSettingsForDiver, so twins collapse
+      // first for the same reason (issue #3343).
+      await _dropDuplicateRows(diverId);
       // One transaction: both columns and the sync mark land together, and
       // the table-updates stream fires once.
       final adopted = await _db.transaction(() async {
@@ -406,6 +460,10 @@ class DiverSettingsRepository {
     AppSettings? previous,
   }) async {
     try {
+      // The writes below key on the diver, so a twin row a sync delivered
+      // since the load would take the write too and tie with the row the
+      // reads use (issue #3343).
+      await _dropDuplicateRows(diverId);
       final columns = _storedColumns(settings).toColumns(false);
       final changed = previous == null
           ? columns
@@ -454,9 +512,7 @@ class DiverSettingsRepository {
     int now, {
     bool notify = true,
   }) async {
-    final row = await (_db.select(
-      _db.diverSettings,
-    )..where((t) => t.diverId.equals(diverId))).getSingleOrNull();
+    final row = await _rowFor(diverId);
     if (row == null) return;
     await _syncRepository.markRecordPending(
       entityType: 'diverSettings',
@@ -676,6 +732,7 @@ class DiverSettingsRepository {
     String diverId, {
     AppSettings? defaultSettings,
   }) async {
+    await _dropDuplicateRows(diverId);
     final existing = await getSettingsForDiver(diverId);
     if (existing != null) {
       return existing;

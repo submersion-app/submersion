@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show Size;
 
@@ -8,6 +9,7 @@ import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
+import 'package:submersion/features/media/data/services/local_thumbnail_cache.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
 import 'package:submersion/features/media/data/services/volume_status.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -67,9 +69,16 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     Future<String?> Function(String deviceId)? deviceLabel,
     bool Function()? readsContentUris,
     Future<MediaSourceData?> Function(MediaItem item)? findInLibrary,
+    LocalThumbnailCache? thumbnails,
+    Future<void> Function(MediaItem item, VerifyResult verdict)?
+    onOriginChecked,
+    Future<void> Function(MediaItem item)? onThumbnailDropped,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
        _videoThumbnails = videoThumbnails,
+       _thumbnails = thumbnails,
+       _onOriginChecked = onOriginChecked,
+       _onThumbnailDropped = onThumbnailDropped,
        _localDeviceId = localDeviceId,
        _deviceLabel = deviceLabel,
        _readsContentUris = readsContentUris ?? (() => Platform.isAndroid),
@@ -84,6 +93,28 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
            (() => Platform.isIOS || Platform.isMacOS);
 
   final VideoThumbnailService? _videoThumbnails;
+
+  /// On-disk thumbnails of photo files, consulted before the original
+  /// (issue #3337). Null leaves photo thumbnails as they were: the original,
+  /// decoded small by the tile.
+  final LocalThumbnailCache? _thumbnails;
+
+  /// Told what [_checkOriginOnce] found. Serving a cached thumbnail skips
+  /// the original, and scrolling past a photo whose file has gone used to be
+  /// what flagged it; this is how that finding still reaches the row.
+  final Future<void> Function(MediaItem item, VerifyResult verdict)?
+  _onOriginChecked;
+
+  /// Told when [_checkOriginOnce] drops a thumbnail made before its file
+  /// changed. The next one is written to the same path, and the decoded
+  /// image cache is keyed by path, so the old picture must leave memory too
+  /// or it goes on being drawn for the new file.
+  final Future<void> Function(MediaItem item)? _onThumbnailDropped;
+
+  /// Rows whose original has been checked behind a cached thumbnail since
+  /// this resolver was built. Once is enough: the point is to notice a file
+  /// that went missing between sessions, not to stat on every scroll.
+  final Set<String> _originChecked = {};
 
   /// Whether the volume under a path is mounted, memoized per mount root for
   /// [kVolumeProbeTtl].
@@ -465,7 +496,119 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
         );
       }
     }
+    final thumbnails = _thumbnails;
+    if (thumbnails != null && item.mediaType == MediaType.photo) {
+      return _resolvePhotoThumbnail(item, thumbnails);
+    }
     return resolve(item);
+  }
+
+  /// A photo's thumbnail: the cached one when there is one, otherwise made
+  /// from the original now and cached for next time (issue #3337).
+  ///
+  /// One size for every gallery, whatever [resolveThumbnail]'s target: the
+  /// largest tiles draw it scaled up. Only the full-screen viewer, which
+  /// calls [resolve], decodes the original.
+  ///
+  /// A hit never touches the original. On the bookmark and content URI paths
+  /// that saves reading the whole file across a platform channel per tile;
+  /// on a network share it saves the stat and the open.
+  Future<MediaSourceData> _resolvePhotoThumbnail(
+    MediaItem item,
+    LocalThumbnailCache thumbnails,
+  ) async {
+    final hit = await thumbnails.cached(item);
+    if (hit != null && !item.isOrphaned) {
+      _checkOriginOnce(item, hit, thumbnails);
+      return FileData(
+        file: hit,
+        originUntouched: true,
+        servedFrom: ServedFrom.localDisk,
+        servedTier: ServedTier.thumbnail,
+      );
+    }
+    if (hit != null) {
+      // An orphaned row: its original decides. A cache hit alone would skip
+      // the tile's reconciliation, and the once-per-session check has
+      // already run, so a file put back would never clear the flag this
+      // session. The thumbnail it already has still serves once the original
+      // answers.
+      final original = await resolve(item);
+      return switch (original) {
+        FileData() || BytesData() => FileData(
+          file: hit,
+          servedFrom: ServedFrom.localDisk,
+          servedTier: ServedTier.thumbnail,
+        ),
+        NetworkData() || UnavailableData() => original,
+      };
+    }
+    // Resolved inside the generation's slot, not before it: on the bookmark
+    // and content URI paths the original is the whole file in memory.
+    MediaSourceData? original;
+    final made = await thumbnails.generateFrom(item, () async {
+      final resolved = original = await resolve(item);
+      return switch (resolved) {
+        FileData(file: final f) => (file: f, bytes: null),
+        BytesData(bytes: final b) => (file: null, bytes: b),
+        NetworkData() || UnavailableData() => null,
+      };
+    });
+    // No thumbnail (an undecodable file, a cache that cannot be written):
+    // the original, decoded small by the tile, exactly as before. Resolved
+    // here when this request joined another's generation.
+    if (made == null) return original ?? await resolve(item);
+    return FileData(
+      file: made,
+      servedFrom: ServedFrom.localDisk,
+      servedTier: ServedTier.thumbnail,
+    );
+  }
+
+  /// Looks at [item]'s original behind the cached [thumbnail] just served,
+  /// off the tile's critical path and once per row.
+  void _checkOriginOnce(
+    MediaItem item,
+    File thumbnail,
+    LocalThumbnailCache thumbnails,
+  ) {
+    if (!_originChecked.add(item.id)) return;
+    unawaited(_checkOrigin(item, thumbnail, thumbnails));
+  }
+
+  Future<void> _checkOrigin(
+    MediaItem item,
+    File thumbnail,
+    LocalThumbnailCache thumbnails,
+  ) async {
+    try {
+      // A stat and an open, no read. Null for a row only a read could
+      // settle (a bookmark with no usable path): those are left to the
+      // verification sweep, since reading the file is the cost being saved.
+      final verdict = await probe(item);
+      if (verdict == null) return;
+      await _onOriginChecked?.call(item, verdict);
+      if (verdict == VerifyResult.available &&
+          await _changedSince(item, thumbnail)) {
+        // Edited or replaced in place. The next request makes a new one.
+        await thumbnails.remove(item);
+        await _onThumbnailDropped?.call(item);
+      }
+    } on Object catch (e) {
+      _log.debug('Origin check failed for item ${item.id}', error: e);
+    }
+  }
+
+  /// Whether [item]'s file was modified after [thumbnail] was written.
+  Future<bool> _changedSince(MediaItem item, File thumbnail) async {
+    final localPath = item.localPath ?? item.filePath;
+    if (localPath == null || localPath.isEmpty) return false;
+    try {
+      final original = await File(localPath).lastModified();
+      return original.isAfter(await thumbnail.lastModified());
+    } on FileSystemException {
+      return false;
+    }
   }
 
   /// The same decision tree as [verify], stopped before any byte read.

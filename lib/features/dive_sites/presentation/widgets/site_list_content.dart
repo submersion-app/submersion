@@ -1766,20 +1766,19 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    return DebouncedSearchResults<DiveSite>(
+    return DebouncedSearchResults<SiteWithDiveCount>(
       query: query,
-      watchProvider: (ref, q) => ref.watch(siteSearchProvider(q)),
-      dataBuilder: (context, sites) {
+      watchProvider: (ref, q) => ref.watch(siteSearchWithDiveCountProvider(q)),
+      dataBuilder: (context, entries) {
         return ListView.builder(
-          itemCount: sites.length,
+          itemCount: entries.length,
           itemBuilder: (context, index) {
-            final site = sites[index];
+            final entry = entries[index];
             return SiteListTile(
-              entry: SiteWithDiveCount(site: site, diveCount: 0),
-              onTap: () {
-                close(context, site);
-                context.push('/sites/${site.id}');
-              },
+              entry: entry,
+              // Opened over the search rather than in place of it, so back
+              // from the site returns to these results (#3377).
+              onTap: () => context.push('/sites/${entry.site.id}'),
             );
           },
         );

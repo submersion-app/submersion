@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_details_panel.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -53,6 +56,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     }
     final entry = ref.watch(documentEntryProvider(widget.documentId));
     final pages = ref.watch(documentPagesProvider(widget.documentId));
+    final units = UnitFormatter(ref.watch(settingsProvider));
     return entry.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -62,14 +66,20 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
         appBar: AppBar(automaticallyImplyLeading: !widget.embedded),
         body: Center(child: Text(l10n.documents_error_load('$e'))),
       ),
-      data: (entry) {
-        if (entry == null) {
+      data: (stored) {
+        if (stored == null) {
           return Scaffold(
             appBar: AppBar(automaticallyImplyLeading: !widget.embedded),
             body: Center(child: Text(l10n.documents_empty)),
           );
         }
+        final entry = withCertificationOwnerTitle(
+          stored,
+          l10n,
+          catalog: ref.watch(certificationCatalogSyncProvider),
+        );
         final doc = entry.document;
+        final owner = entry.ownerText(units);
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: !widget.embedded,
@@ -82,10 +92,30 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () => _edit(doc.id),
               ),
-              IconButton(
-                tooltip: l10n.common_action_delete,
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _delete(doc),
+              // Delete waits behind the overflow menu, as on the other
+              // detail pages, not one tap away beside Edit (#3384).
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'delete') _delete(doc);
+                },
+                itemBuilder: (context) {
+                  final error = Theme.of(context).colorScheme.error;
+                  return [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, color: error),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.common_action_delete,
+                            style: TextStyle(color: error),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
               ),
             ],
           ),
@@ -105,7 +135,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                         constraints: const BoxConstraints(maxWidth: 640),
                         child: DocumentDetailsCard(
                           document: doc,
-                          ownerLabel: entry.ownerLabel,
+                          ownerLabel: owner,
                         ),
                       ),
                     ),
@@ -128,7 +158,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                         padding: const EdgeInsets.all(16),
                         child: DocumentDetailsCard(
                           document: doc,
-                          ownerLabel: entry.ownerLabel,
+                          ownerLabel: owner,
                         ),
                       ),
                     ),

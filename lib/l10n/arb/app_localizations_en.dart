@@ -14542,6 +14542,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Material';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gas mix';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurations';
 
   @override
@@ -19214,6 +19217,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent exceeds its Dil MOD at $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'The profile goes above the $ceiling decompression ceiling, skipping required stops';
   }
 
   @override
@@ -48647,6 +48655,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'A small glyph showing where each item is served from. Problem badges always show.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title => 'In-memory image cache';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Decoded images kept in memory for the galleries and the full-screen viewer. Applies immediately, on this device only.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Thumbnail disk cache';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Thumbnails kept on this device. Originals and compressed copies are not counted.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Empty cache';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Thumbnail cache emptied';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Could not empty the thumbnail cache';
 
   @override
   String get media_status_transferFailed => 'Upload failed';

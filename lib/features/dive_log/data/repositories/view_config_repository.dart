@@ -29,13 +29,7 @@ class ViewConfigRepository {
 
   /// Returns the saved [domain.TableViewConfig] for [diverId], or the default.
   Future<domain.TableViewConfig> getTableConfig(String diverId) async {
-    final row =
-        await (_db.select(_db.viewConfigs)..where(
-              (r) =>
-                  r.diverId.equals(diverId) &
-                  r.viewMode.equals(ListViewMode.table.name),
-            ))
-            .getSingleOrNull();
+    final row = await _rowFor(diverId, ListViewMode.table.name);
 
     if (row == null) return domain.TableViewConfig.defaultConfig();
     return domain.TableViewConfig.fromJson(
@@ -63,11 +57,7 @@ class ViewConfigRepository {
   /// null if none is saved. Used by generic [EntityTableConfigNotifier] with
   /// keys like `"table_sites"`, `"table_trips"`, etc.
   Future<String?> getRawConfig(String diverId, String viewModeKey) async {
-    final row =
-        await (_db.select(_db.viewConfigs)..where(
-              (r) => r.diverId.equals(diverId) & r.viewMode.equals(viewModeKey),
-            ))
-            .getSingleOrNull();
+    final row = await _rowFor(diverId, viewModeKey);
     return row?.configJson;
   }
 
@@ -94,11 +84,7 @@ class ViewConfigRepository {
     String diverId,
     ListViewMode mode,
   ) async {
-    final row =
-        await (_db.select(_db.viewConfigs)..where(
-              (r) => r.diverId.equals(diverId) & r.viewMode.equals(mode.name),
-            ))
-            .getSingleOrNull();
+    final row = await _rowFor(diverId, mode.name);
 
     if (row == null) return _defaultCardConfig(mode);
     return domain.CardViewConfig.fromJson(
@@ -252,6 +238,28 @@ class ViewConfigRepository {
   // Private helpers
   // ---------------------------------------------------------------------------
 
+  /// The saved row for [diverId] and [viewMode], or null.
+  ///
+  /// Only a database that upgraded through v62 has the unique index on
+  /// (diver_id, view_mode); a fresh install has none, and sync merges these
+  /// rows by id, so two devices can each leave a row for the same view
+  /// (issue #3343). The newest row wins, in the order the sync merge uses
+  /// (HLC first, then updatedAt, then the lower id), rather than a "Too many
+  /// elements" throw.
+  Future<ViewConfig?> _rowFor(String diverId, String viewMode) =>
+      (_db.select(_db.viewConfigs)
+            ..where(
+              (r) => r.diverId.equals(diverId) & r.viewMode.equals(viewMode),
+            )
+            ..orderBy([
+              (r) => OrderingTerm.asc(r.hlc.isNull()),
+              (r) => OrderingTerm.desc(r.hlc),
+              (r) => OrderingTerm.desc(r.updatedAt),
+              (r) => OrderingTerm.asc(r.id),
+            ])
+            ..limit(1))
+          .getSingleOrNull();
+
   Future<void> _upsertViewConfig({
     required String diverId,
     required String viewMode,
@@ -259,11 +267,7 @@ class ViewConfigRepository {
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final existing =
-        await (_db.select(_db.viewConfigs)..where(
-              (r) => r.diverId.equals(diverId) & r.viewMode.equals(viewMode),
-            ))
-            .getSingleOrNull();
+    final existing = await _rowFor(diverId, viewMode);
 
     final String rowId;
     if (existing != null) {

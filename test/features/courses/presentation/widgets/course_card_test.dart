@@ -47,4 +47,64 @@ void main() {
       expect(find.byType(Checkbox), selecting ? findsOneWidget : findsNothing);
     });
   }
+
+  // Courses used a bespoke padded card, so its rows were taller, wider inset
+  // and further apart than every other section's (issue #3382). It now uses
+  // the same Card + ListTile shape as CertificationListTile and
+  // EquipmentListTile.
+  group('matches the other sections\' list tiles (#3382)', () {
+    Future<void> pump(WidgetTester tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await getBaseOverrides(),
+          locale: const Locale('en'),
+          child: CourseCard(course: _course, onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('uses the shared card margin', (tester) async {
+      await pump(tester);
+
+      final card = tester.widget<Card>(find.byType(Card));
+      expect(
+        card.margin,
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      );
+    });
+
+    testWidgets('lays its content out as a ListTile', (tester) async {
+      await pump(tester);
+
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.byType(ListTile)),
+        findsOneWidget,
+      );
+      expect(find.text('Advanced Open Water Diver'), findsOneWidget);
+      expect(find.text('Completed'), findsNothing);
+      expect(find.text('In Progress'), findsOneWidget);
+
+      final subtitle = tester.widget<Text>(
+        find.textContaining('Instructor: Maximiliane'),
+      );
+      expect(subtitle.maxLines, 1);
+      expect(subtitle.overflow, TextOverflow.ellipsis);
+    });
+
+    testWidgets('rounds the status icon like the other tiles', (tester) async {
+      await pump(tester);
+
+      final box = tester.widget<Container>(
+        find
+            .ancestor(
+              of: find.byIcon(Icons.school_outlined),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      final decoration = box.decoration! as BoxDecoration;
+      expect(decoration.borderRadius, BorderRadius.circular(8));
+    });
+  });
 }

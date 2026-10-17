@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
@@ -194,6 +195,12 @@ class _MediaLibraryGridState extends State<MediaLibraryGrid> {
       child: GridView.builder(
         // Lets Ctrl + wheel resize instead of scroll (issue #3297).
         physics: const MediaThumbnailWheelZoomPhysics(),
+        // Two pane heights beyond the visible area, not the default 250px:
+        // a fast scroll otherwise brings tiles on screen before their decode
+        // has finished (issue #3337). Only here. The grouped views build a
+        // whole group's thumbnails at once, so a wider margin there would
+        // start many decodes together.
+        scrollCacheExtent: const ScrollCacheExtent.viewport(2),
         padding: const EdgeInsets.all(4),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: widget.columns,

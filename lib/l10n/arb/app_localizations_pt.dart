@@ -14751,6 +14751,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Material';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Mistura de gás';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurações';
 
   @override
@@ -19506,6 +19509,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'O diluente excede a MOD Dil a $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'O perfil ultrapassa o teto de descompressão de $ceiling, saltando paragens obrigatórias';
   }
 
   @override
@@ -49424,6 +49432,34 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Um pequeno ícone que mostra de onde cada item vem. Os selos de problema sempre aparecem.';
+
+  @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title => 'Cache de imagens na memória';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Imagens decodificadas mantidas na memória para as galerias e o visualizador em tela cheia. Aplica-se imediatamente, apenas neste dispositivo.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Cache de miniaturas em disco';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Miniaturas mantidas neste dispositivo. Os originais e as cópias comprimidas não são contados.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Esvaziar cache';
+
+  @override
+  String get settings_mediaCache_disk_emptied =>
+      'Cache de miniaturas esvaziado';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'Não foi possível esvaziar o cache de miniaturas';
 
   @override
   String get media_status_transferFailed => 'Falha no envio';

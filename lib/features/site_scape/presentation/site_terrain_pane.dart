@@ -55,11 +55,15 @@ class SiteTerrainPane extends ConsumerStatefulWidget {
   /// parameter existed.
   final SeascapePlaybackContext? playbackContext;
 
+  /// See [Dive3dInteractiveViewport.insideScrollingPage].
+  final bool insideScrollingPage;
+
   const SiteTerrainPane({
     super.key,
     required this.siteId,
     this.leadingActions = const [],
     this.playbackContext,
+    this.insideScrollingPage = false,
   });
 
   @override
@@ -437,6 +441,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                                         u: imagery.frame.whiteU,
                                         v: imagery.frame.whiteV,
                                       ),
+                                insideScrollingPage: widget.insideScrollingPage,
                                 onZoomSettled: (zoom) {
                                   if (mounted) {
                                     setState(() => _settledZoom = zoom);

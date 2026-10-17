@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/widgets/display_zoom_s
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 // The tiles of Settings > Appearance, shared by the two surfaces that render
 // it: AppearancePage, pushed on a phone, and the inline Appearance pane of
@@ -129,21 +130,26 @@ class AppearanceGeneralTiles extends ConsumerWidget {
             featureId: 'settings-appearance',
             surface: AccentSurface.list,
           ),
-          title: Text(l10n.settings_appearance_mapStyle),
-          subtitle: Text(settings.mapStyle.label(l10n)),
-          trailing: DropdownButton<MapStyle>(
-            value: settings.mapStyle,
-            underline: const SizedBox.shrink(),
-            onChanged: (style) {
-              if (style != null) {
-                ref.read(settingsProvider.notifier).setMapStyle(style);
-              }
-            },
-            items: [
-              for (final style in MapStyle.values)
-                DropdownMenuItem(value: style, child: Text(style.label(l10n))),
-            ],
+          title: LabelWithControl(
+            label: Text(l10n.settings_appearance_mapStyle),
+            control: DropdownButton<MapStyle>(
+              value: settings.mapStyle,
+              underline: const SizedBox.shrink(),
+              onChanged: (style) {
+                if (style != null) {
+                  ref.read(settingsProvider.notifier).setMapStyle(style);
+                }
+              },
+              items: [
+                for (final style in MapStyle.values)
+                  DropdownMenuItem(
+                    value: style,
+                    child: Text(style.label(l10n)),
+                  ),
+              ],
+            ),
           ),
+          subtitle: Text(settings.mapStyle.label(l10n)),
         ),
         ListTile(
           key: const ValueKey('settings-trend-gaps'),
@@ -152,24 +158,26 @@ class AppearanceGeneralTiles extends ConsumerWidget {
             featureId: 'settings-appearance',
             surface: AccentSurface.list,
           ),
-          title: Text(l10n.settings_appearance_trendGaps),
-          subtitle: Text(l10n.settings_appearance_trendGaps_subtitle),
-          trailing: DropdownButton<TrendGapThreshold>(
-            value: settings.trendGapThreshold,
-            underline: const SizedBox.shrink(),
-            onChanged: (t) {
-              if (t != null) {
-                ref.read(settingsProvider.notifier).setTrendGapThreshold(t);
-              }
-            },
-            items: [
-              for (final t in TrendGapThreshold.values)
-                DropdownMenuItem(
-                  value: t,
-                  child: Text(trendGapThresholdLabel(t, l10n)),
-                ),
-            ],
+          title: LabelWithControl(
+            label: Text(l10n.settings_appearance_trendGaps),
+            control: DropdownButton<TrendGapThreshold>(
+              value: settings.trendGapThreshold,
+              underline: const SizedBox.shrink(),
+              onChanged: (t) {
+                if (t != null) {
+                  ref.read(settingsProvider.notifier).setTrendGapThreshold(t);
+                }
+              },
+              items: [
+                for (final t in TrendGapThreshold.values)
+                  DropdownMenuItem(
+                    value: t,
+                    child: Text(trendGapThresholdLabel(t, l10n)),
+                  ),
+              ],
+            ),
           ),
+          subtitle: Text(l10n.settings_appearance_trendGaps_subtitle),
         ),
         const NavCustomizationTile(),
       ], separator),

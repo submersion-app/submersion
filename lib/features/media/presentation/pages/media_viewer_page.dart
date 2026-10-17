@@ -882,6 +882,12 @@ class _PhotoGallery extends ConsumerWidget {
     return PhotoViewGallery.builder(
       scrollPhysics: const BouncingScrollPhysics(),
       pageController: pageController,
+      // Build the page either side of the current one, so the next photo has
+      // resolved and decoded before a swipe or arrow press brings it in.
+      // Built on demand, it slid in empty and popped in afterwards (#3298).
+      // Each page's decode is bounded by MediaItemView, so the extra
+      // neighbour costs one viewport-sized bitmap, not an original.
+      allowImplicitScrolling: true,
       itemCount: mediaList.length,
       onPageChanged: onPageChanged,
       backgroundDecoration: const BoxDecoration(color: Colors.black),
@@ -911,6 +917,7 @@ class _PhotoGallery extends ConsumerWidget {
             maxScale: PhotoViewComputedScale.contained, // No zoom for videos
             child: _VideoItem(
               item: item,
+              isCurrent: index == currentIndex,
               showOverlay: showOverlay,
               fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
@@ -1033,6 +1040,11 @@ class _ConnectorVideoItem extends ConsumerWidget {
 /// Video player item that loads and plays video files.
 class _VideoItem extends ConsumerStatefulWidget {
   final MediaItem item;
+
+  /// Whether this is the page on screen. The pager keeps each neighbour
+  /// built so it loads ahead of a swipe (#3298), so a video can be mounted
+  /// while off screen: it must neither keep playing nor hold keyboard focus.
+  final bool isCurrent;
   final bool showOverlay;
 
   /// The viewer's fullscreen mode: the centre play indicator follows the
@@ -1048,6 +1060,7 @@ class _VideoItem extends ConsumerStatefulWidget {
 
   const _VideoItem({
     required this.item,
+    required this.isCurrent,
     required this.showOverlay,
     this.fullscreen = false,
     required this.onSetOverlay,
@@ -1065,10 +1078,46 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   String? _error;
   final FocusNode _focusNode = FocusNode();
 
+  /// Bumped whenever a load starts or the page leaves the screen, so a load
+  /// that finishes after its page moved on knows to release its player.
+  int _loadGeneration = 0;
+
   @override
   void initState() {
     super.initState();
-    _initializeVideo();
+    // A neighbour built ahead holds no native player: only the page on
+    // screen gets a decoder and texture, as before neighbours stayed built
+    // (#1175 is the memory budget this protects).
+    if (widget.isCurrent) _initializeVideo();
+  }
+
+  @override
+  void didUpdateWidget(covariant _VideoItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isCurrent && widget.isCurrent) {
+      _initializeVideo();
+    } else if (oldWidget.isCurrent && !widget.isCurrent) {
+      _release();
+    }
+  }
+
+  /// Swiped away: release the player, which also stops playback, rather
+  /// than keep it one page off screen. Keyboard focus goes back too: a swipe
+  /// on to a photo requests none, so the space bar would otherwise still
+  /// reach this page. The previously focused node is the viewer's own, which
+  /// keeps the arrow keys working.
+  void _release() {
+    _loadGeneration++;
+    _focusNode.unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
+    final controller = _controller;
+    // Plain assignments: didUpdateWidget is always followed by a build.
+    _controller = null;
+    _isInitialized = false;
+    _isLoading = true;
+    _error = null;
+    if (controller == null) return;
+    widget.onControllerChanged(widget.item.id, null);
+    unawaited(controller.dispose());
   }
 
   /// Handle keyboard events for video playback
@@ -1086,9 +1135,13 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     // cannot clean up a controller that never got that far, and each leak
     // orphans a native decoder/texture for the process lifetime.
     VideoPlayerController? pending;
+    final generation = ++_loadGeneration;
+    // Gone, or swiped away and released while this load was in flight.
+    bool stale() => !mounted || generation != _loadGeneration;
     try {
       final path = await ref.read(resolvedFilePathProvider(widget.item).future);
 
+      if (stale()) return;
       if (path == null) {
         setState(() {
           _error = 'videoFileNotFound';
@@ -1101,7 +1154,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       pending = controller;
       await controller.initialize();
 
-      if (!mounted) {
+      if (stale()) {
         controller.dispose();
         return;
       }
@@ -1116,7 +1169,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       widget.onControllerChanged(widget.item.id, controller);
     } catch (e) {
       await pending?.dispose();
-      if (mounted) {
+      if (!stale()) {
         setState(() {
           _error = 'failedToLoadVideo';
           _isLoading = false;
@@ -1172,6 +1225,13 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   Widget build(BuildContext context) {
+    // A neighbour built ahead never starts loading, so it would spin forever,
+    // and an indeterminate indicator one page off screen keeps scheduling
+    // frames. The black gallery behind it is all there is to see.
+    if (!widget.isCurrent && _controller == null) {
+      return const SizedBox.expand();
+    }
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white54),
@@ -1201,8 +1261,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       );
     }
 
-    // Request focus when video is ready to enable keyboard controls
-    _focusNode.requestFocus();
+    // Request focus when video is ready to enable keyboard controls. Only on
+    // screen: a neighbour built ahead would otherwise take the space bar.
+    if (widget.isCurrent) _focusNode.requestFocus();
 
     return Focus(
       focusNode: _focusNode,

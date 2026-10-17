@@ -33,15 +33,35 @@ String derivedCertificationTitle(
 String _normalized(String value) =>
     value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
+/// The columns a certification's title is made from, for a surface that
+/// reads them straight from the row rather than loading a [Certification]
+/// (the document owner picker and list, issue #3366).
+typedef CertificationTitleFields = ({
+  String name,
+  String agency,
+  String? level,
+});
+
 /// True when [cert]'s stored name carries no information beyond agency and
 /// level -- including an empty name.
-bool hasDerivedName(Certification cert, {CertificationCatalog? catalog}) {
-  final stored = _normalized(cert.name);
+bool hasDerivedName(Certification cert, {CertificationCatalog? catalog}) =>
+    hasDerivedNameFields((
+      name: cert.name,
+      agency: cert.agency,
+      level: cert.level,
+    ), catalog: catalog);
+
+/// [hasDerivedName] for a certification known only by its title columns.
+bool hasDerivedNameFields(
+  CertificationTitleFields fields, {
+  CertificationCatalog? catalog,
+}) {
+  final stored = _normalized(fields.name);
   if (stored.isEmpty) return true;
 
   final c = catalog ?? CertificationCatalog.builtInOnly;
-  final agencyName = c.agency(cert.agency).interchangeName;
-  final level = cert.level;
+  final agencyName = c.agency(fields.agency).interchangeName;
+  final level = fields.level;
   final levelName = level == null ? null : c.level(level).interchangeName;
   final candidates = <String>[
     agencyName,

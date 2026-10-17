@@ -80,6 +80,42 @@ void main() {
       },
     );
 
+    test('leaves the scan running when asked to, for the caller to stop '
+        '(issue #3369)', () async {
+      final pending = notifier.scanForAddress(
+        _savedAddress,
+        timeout: const Duration(seconds: 5),
+        stopScanWhenDone: false,
+      );
+      await pumpEventQueue();
+
+      service.onDeviceDiscovered(_advert(_savedAddress));
+
+      final device = await pending;
+      expect(device?.address, _savedAddress);
+      expect(hostApi.stopDiscoveryCalls, 0);
+      expect(notifier.state.isScanning, isTrue);
+
+      await notifier.stopScan();
+      expect(hostApi.stopDiscoveryCalls, 1);
+      expect(notifier.state.isScanning, isFalse);
+    });
+
+    test(
+      'a scan stopped after the notifier is disposed does not throw',
+      () async {
+        final local = DiscoveryNotifier(
+          service: service,
+          requiresRuntimePermissions: false,
+        );
+        await local.startScan();
+        final stopping = local.stopScan();
+        local.dispose();
+        await stopping;
+        expect(hostApi.stopDiscoveryCalls, 1);
+      },
+    );
+
     test('matches the saved address regardless of letter case', () async {
       final pending = notifier.scanForAddress(
         _savedAddress.toLowerCase(),
