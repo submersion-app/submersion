@@ -102,7 +102,9 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
 }
 
 /// One dive's classifier input from its row, keeping only the cylinders
-/// its primary recording owns.
+/// its primary recording owns. A primary that owns none (a bottom timer
+/// that logs no cylinders) has no copies to double count, so the dive keeps
+/// every cylinder rather than reading as no tanks.
 TankConfigurationDive _tankConfigurationDive(
   QueryRow row,
   Map<String, List<domain.DiveTank>> tanksByDive,
@@ -111,17 +113,19 @@ TankConfigurationDive _tankConfigurationDive(
   final id = row.read<String>('id');
   final primarySourceId = row.read<String?>('primary_source_id');
   final primaryComputerId = row.read<String?>('primary_computer_id');
+  final all = tanksByDive[id] ?? const <domain.DiveTank>[];
+  final owned = [
+    for (final t in all)
+      if (_ownedByPrimary(
+        t,
+        primarySourceId: primarySourceId,
+        primaryComputerId: primaryComputerId,
+      ))
+        t,
+  ];
   return TankConfigurationDive(
     diveMode: _diveModesByName[row.read<String>('dive_mode')] ?? DiveMode.oc,
-    tanks: [
-      for (final t in tanksByDive[id] ?? const <domain.DiveTank>[])
-        if (_ownedByPrimary(
-          t,
-          primarySourceId: primarySourceId,
-          primaryComputerId: primaryComputerId,
-        ))
-          t,
-    ],
+    tanks: owned.isEmpty ? all : owned,
     gasSwitches: switchesByDive[id] ?? const [],
     hasProfile: row.read<bool>('has_profile'),
   );

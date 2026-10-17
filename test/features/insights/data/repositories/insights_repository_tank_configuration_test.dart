@@ -259,6 +259,24 @@ void main() {
     },
   );
 
+  test(
+    "counts every cylinder when the primary recording owns none",
+    () async {
+      await insertComputer('timer');
+      await insertComputer('c2');
+      await insertDive('timed');
+      // A bottom timer as primary logs no cylinders of its own.
+      await insertSource('timed', 'timer', primary: true);
+      await insertSource('timed', 'c2', primary: false);
+      await insertTank('timed', 0, 'sidemountLeft', computerId: 'c2');
+      await insertTank('timed', 1, 'sidemountRight', computerId: 'c2');
+
+      final stats = await repository.getTankConfigurationStats();
+
+      expect(stats.baseCounts, {TankBaseConfiguration.sidemount: 1});
+    },
+  );
+
   test('a gas switch row marks a deco tank breathed', () async {
     await insertDive('switched');
     await insertProfile('switched');
