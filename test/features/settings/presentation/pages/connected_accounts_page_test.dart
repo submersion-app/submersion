@@ -150,7 +150,9 @@ void main() {
     expect(find.text('Not used on this device'), findsOneWidget);
   });
 
-  testWidgets('a failed usage read does not block signing out', (tester) async {
+  // An unknown is not an unused: a failed read still asks before acting,
+  // and the action still works once confirmed.
+  testWidgets('a failed usage read asks before signing out', (tester) async {
     final account = await addDropbox(tester);
     await pumpPage(
       tester,
@@ -164,7 +166,76 @@ void main() {
     await openMenu(tester, 'Sign out on this device');
     await settle(tester);
 
+    expect(
+      find.textContaining('Could not check what this account is used for'),
+      findsOneWidget,
+    );
+    expect(dropbox.disconnected, isEmpty);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Sign out on this device'),
+      ),
+    );
+    await settle(tester);
     expect(dropbox.disconnected, [account.id]);
+  });
+
+  testWidgets('a failed usage read is named in the remove warning', (
+    tester,
+  ) async {
+    await addDropbox(tester);
+    await pumpPage(
+      tester,
+      overrides: [
+        connectedAccountUsageProvider.overrideWith(
+          (ref) => Future.error(StateError('usage read failed')),
+        ),
+      ],
+    );
+
+    await openMenu(tester, 'Remove from library');
+    await settle(tester);
+
+    expect(
+      find.textContaining('Could not check what this account is used for'),
+      findsOneWidget,
+    );
+  });
+
+  // The page stays mounted under the Settings routes that change what an
+  // account is used for, so it refreshes on their change signals.
+  testWidgets('the row follows a sync selection made while it is open', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await pumpPage(tester);
+    expect(find.text('Not used on this device'), findsOneWidget);
+
+    await useForSync(tester, account.id);
+    await settle(tester);
+
+    expect(find.text('Used for: Database sync'), findsOneWidget);
+  });
+
+  testWidgets('the row follows a media store attach made while it is open', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await pumpPage(tester);
+    expect(find.text('Not used on this device'), findsOneWidget);
+
+    await tester.runAsync(
+      () => MediaStoreAttachState(prefs: prefs).setAttached(
+        'store-1',
+        providerType: CloudProviderType.dropbox,
+        accountId: account.id,
+      ),
+    );
+    await settle(tester);
+
+    expect(find.text('Used for: Media storage'), findsOneWidget);
   });
 
   testWidgets('signing out an unused account needs no confirmation', (

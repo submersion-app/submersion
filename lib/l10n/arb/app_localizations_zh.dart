@@ -34227,6 +34227,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '其他设备可能也在使用此账户。';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      '无法确认此账户在此设备上的用途。此处使用它的功能可能会停止工作。';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
 
   @override

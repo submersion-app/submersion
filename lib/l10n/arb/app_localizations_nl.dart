@@ -36094,6 +36094,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Andere apparaten gebruiken dit account mogelijk ook.';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Kon niet nagaan waarvoor dit account op dit apparaat wordt gebruikt. Wat het hier gebruikt, werkt mogelijk niet meer.';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'Volume niet gekoppeld';
 

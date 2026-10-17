@@ -36454,6 +36454,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'D\'autres appareils peuvent aussi utiliser ce compte.';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Impossible de vérifier à quoi sert ce compte sur cet appareil. Ce qui l\'utilise ici pourrait cesser de fonctionner.';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume non monté';
 
   @override

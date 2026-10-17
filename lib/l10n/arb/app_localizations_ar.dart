@@ -36816,6 +36816,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'قد تستخدم أجهزة أخرى هذا الحساب أيضًا.';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'تعذر التحقق مما يُستخدم له هذا الحساب على هذا الجهاز. قد يتوقف ما يستخدمه هنا عن العمل.';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'وحدة التخزين غير مثبتة';
 

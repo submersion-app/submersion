@@ -57284,6 +57284,12 @@ abstract class AppLocalizations {
   /// **'Other devices may also use this account.'**
   String get settings_connectedAccounts_removeConfirmOtherDevices;
 
+  /// No description provided for @settings_connectedAccounts_usage_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check what this account is used for on this device. Anything that uses it here may stop working.'**
+  String get settings_connectedAccounts_usage_unknown;
+
   /// No description provided for @media_unavailablePlaceholder_volumeOffline.
   ///
   /// In en, this message translates to:

@@ -10343,6 +10343,7 @@
   "settings_connectedAccounts_signOutConfirmBody": "Neste dispositivo, {account} é usado para os recursos abaixo. Eles deixam de funcionar aqui até você entrar novamente.",
   "settings_connectedAccounts_removeConfirmUsedHere": "Neste dispositivo, é usado para os recursos abaixo, que deixam de funcionar aqui:",
   "settings_connectedAccounts_removeConfirmOtherDevices": "Outros dispositivos também podem usar esta conta.",
+  "settings_connectedAccounts_usage_unknown": "Não foi possível verificar para que esta conta é usada neste dispositivo. O que a usa aqui pode deixar de funcionar.",
   "media_unavailablePlaceholder_volumeOffline": "Volume não montado",
   "media_unavailablePlaceholder_stillFetching": "Ainda a carregar. Toque para tentar novamente.",
   "media_unavailablePlaceholder_accessDenied": "Sem acesso à biblioteca de fotos",

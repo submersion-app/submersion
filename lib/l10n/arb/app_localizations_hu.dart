@@ -36133,6 +36133,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Más eszközök is használhatják ezt a fiókot.';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Nem sikerült ellenőrizni, mire szolgál ez a fiók ezen az eszközön. Ami itt használja, leállhat.';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'A kötet nincs csatlakoztatva';
 

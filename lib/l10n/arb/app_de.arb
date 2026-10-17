@@ -10484,6 +10484,7 @@
   "settings_connectedAccounts_signOutConfirmBody": "Auf diesem Gerät wird {account} für die folgenden Funktionen verwendet. Sie funktionieren hier erst nach einer erneuten Anmeldung wieder.",
   "settings_connectedAccounts_removeConfirmUsedHere": "Auf diesem Gerät wird es für die folgenden Funktionen verwendet, die hier dann nicht mehr funktionieren:",
   "settings_connectedAccounts_removeConfirmOtherDevices": "Andere Geräte verwenden dieses Konto möglicherweise ebenfalls.",
+  "settings_connectedAccounts_usage_unknown": "Es konnte nicht geprüft werden, wofür dieses Konto auf diesem Gerät verwendet wird. Was es hier verwendet, funktioniert möglicherweise nicht mehr.",
   "media_unavailablePlaceholder_volumeOffline": "Volume nicht eingebunden",
   "media_unavailablePlaceholder_stillFetching": "Wird noch geladen. Zum Wiederholen tippen.",
   "media_unavailablePlaceholder_accessDenied": "Kein Zugriff auf die Fotomediathek",

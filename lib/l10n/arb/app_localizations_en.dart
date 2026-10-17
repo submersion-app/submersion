@@ -35725,6 +35725,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Other devices may also use this account.';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Could not check what this account is used for on this device. Anything that uses it here may stop working.';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
 
   @override

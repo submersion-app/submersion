@@ -35435,6 +35435,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'ייתכן שגם מכשירים אחרים משתמשים בחשבון זה.';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'לא ניתן לבדוק למה משמש חשבון זה במכשיר זה. מה שמשתמש בו כאן עלול להפסיק לפעול.';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
 
   @override

@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -48,11 +49,16 @@ final connectedAccountsWithStatusProvider =
 /// same [AccountUsageService] the pending-setup card routes with.
 final connectedAccountUsageProvider =
     FutureProvider.autoDispose<AccountUsageSnapshot>((ref) async {
-      // Re-read when a library is connected or removed while the page is
-      // open; sync and media changes happen on other pages, and this one
-      // is autoDispose, so it re-reads when the user comes back.
+      // Re-read on any change to what the usages come from, the page stays
+      // mounted under the Settings routes that make those changes: shared
+      // libraries (table updates), the sync selection (setSyncAccount and
+      // setCloudProvider notify the sync event bus) and the media store
+      // attachment (every attach change fires markerMismatchChanges).
       final libraries = ref.watch(sharedLibraryStoreProvider);
-      ref.invalidateSelfWhen(libraries.watchLibraries());
+      ref
+        ..invalidateSelfWhen(libraries.watchLibraries())
+        ..invalidateSelfWhen(SyncEventBus.changes)
+        ..invalidateSelfWhen(MediaStoreAttachState.markerMismatchChanges);
       return AccountUsageService(
         attachState: MediaStoreAttachState(
           prefs: ref.watch(sharedPreferencesProvider),
@@ -121,10 +127,10 @@ class _AccountTile extends ConsumerWidget {
   };
 
   /// This account's usages, read at tap time rather than from the build: a
-  /// tap before the usage load finished would otherwise skip the warning. A
-  /// failed read falls back to no usages, so the menu still works (as it
-  /// did before usages existed) instead of throwing.
-  Future<List<AccountUsage>> _usagesAtTap(ProviderContainer container) async {
+  /// tap before the usage load finished would otherwise skip the warning.
+  /// Null when the read failed: the caller confirms conservatively rather
+  /// than treating an unknown as unused.
+  Future<List<AccountUsage>?> _usagesAtTap(ProviderContainer container) async {
     try {
       return (await container.read(
         connectedAccountUsageProvider.future,
@@ -135,7 +141,7 @@ class _AccountTile extends ConsumerWidget {
         error: e,
         stackTrace: stackTrace,
       );
-      return const [];
+      return null;
     }
   }
 
@@ -200,18 +206,21 @@ class _AccountTile extends ConsumerWidget {
           if (!context.mounted) return;
           switch (choice) {
             case 'signOut':
-              // Nothing here depends on it: signing out breaks nothing, so
-              // it acts at once, as it always has.
-              if (used.isNotEmpty &&
+              // Known to be unused here: signing out breaks nothing, so it
+              // acts at once, as it always has. Used, or unknown because
+              // the read failed, asks first.
+              if (used?.isEmpty != true &&
                   !await _confirm(
                     context,
                     title: l10n.settings_connectedAccounts_signOutConfirmTitle,
                     paragraphs: [
-                      l10n.settings_connectedAccounts_signOutConfirmBody(
-                        account.label,
-                      ),
+                      used == null
+                          ? l10n.settings_connectedAccounts_usage_unknown
+                          : l10n.settings_connectedAccounts_signOutConfirmBody(
+                              account.label,
+                            ),
                     ],
-                    usages: used,
+                    usages: used ?? const [],
                     action: l10n.settings_connectedAccounts_disconnectDevice,
                   )) {
                 return;
@@ -223,10 +232,12 @@ class _AccountTile extends ConsumerWidget {
                 title: l10n.settings_connectedAccounts_removeConfirmTitle,
                 paragraphs: [
                   l10n.settings_connectedAccounts_removeConfirmBody,
-                  if (used.isNotEmpty)
+                  if (used == null)
+                    l10n.settings_connectedAccounts_usage_unknown
+                  else if (used.isNotEmpty)
                     l10n.settings_connectedAccounts_removeConfirmUsedHere,
                 ],
-                usages: used,
+                usages: used ?? const [],
                 // The roster row goes from every device, and what other
                 // devices use it for is not known here.
                 footer:

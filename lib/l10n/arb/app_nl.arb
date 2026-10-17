@@ -10343,6 +10343,7 @@
   "settings_connectedAccounts_signOutConfirmBody": "Op dit apparaat wordt {account} gebruikt voor de onderstaande functies. Ze werken hier pas weer als je opnieuw aanmeldt.",
   "settings_connectedAccounts_removeConfirmUsedHere": "Op dit apparaat wordt het gebruikt voor de onderstaande functies, die hier dan niet meer werken:",
   "settings_connectedAccounts_removeConfirmOtherDevices": "Andere apparaten gebruiken dit account mogelijk ook.",
+  "settings_connectedAccounts_usage_unknown": "Kon niet nagaan waarvoor dit account op dit apparaat wordt gebruikt. Wat het hier gebruikt, werkt mogelijk niet meer.",
   "media_unavailablePlaceholder_volumeOffline": "Volume niet gekoppeld",
   "media_unavailablePlaceholder_stillFetching": "Nog aan het laden. Tik om opnieuw te proberen.",
   "media_unavailablePlaceholder_accessDenied": "Geen toegang tot fotobibliotheek",

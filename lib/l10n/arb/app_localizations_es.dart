@@ -36380,6 +36380,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Es posible que otros dispositivos también usen esta cuenta.';
 
   @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'No se pudo comprobar para qué se usa esta cuenta en este dispositivo. Lo que la use aquí podría dejar de funcionar.';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volumen no montado';
 
   @override

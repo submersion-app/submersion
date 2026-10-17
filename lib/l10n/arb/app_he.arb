@@ -10343,6 +10343,7 @@
   "settings_connectedAccounts_signOutConfirmBody": "במכשיר זה, {account} משמש עבור התכונות שלהלן. הן יפסיקו לפעול כאן עד שתתחבר שוב.",
   "settings_connectedAccounts_removeConfirmUsedHere": "במכשיר זה הוא משמש עבור התכונות שלהלן, שיפסיקו לפעול כאן:",
   "settings_connectedAccounts_removeConfirmOtherDevices": "ייתכן שגם מכשירים אחרים משתמשים בחשבון זה.",
+  "settings_connectedAccounts_usage_unknown": "לא ניתן לבדוק למה משמש חשבון זה במכשיר זה. מה שמשתמש בו כאן עלול להפסיק לפעול.",
   "media_unavailablePlaceholder_volumeOffline": "הכונן אינו מחובר",
   "media_unavailablePlaceholder_stillFetching": "עדיין נטען. הקש כדי לנסות שוב.",
   "media_unavailablePlaceholder_accessDenied": "אין גישה לספריית התמונות",
