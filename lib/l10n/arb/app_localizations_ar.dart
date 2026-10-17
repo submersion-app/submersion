@@ -19825,6 +19825,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'المسار يتجاوز سقف تخفيف الضغط عند $ceiling ويتخطى توقفات إلزامية';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout =>
       'خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)';
 
@@ -26444,10 +26449,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_data_title => 'البيانات';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF، مصادر البيانات والتخدير';
-
-  @override
   String get settings_section_decompression_title => 'تخفيف الضغط';
 
   @override
@@ -27627,6 +27628,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'اتجاه استهلاك الغاز';
+
+  @override
+  String get insights_gas_tankConfig_title => 'تكوين الأسطوانات';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'الغوصات حسب طريقة حمل الأسطوانات';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'التكوين';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'إضافات';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'جهاز إعادة تنفس';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'تعليق جانبي';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'أسطوانتان على الظهر';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount =>
+      'أسطوانة واحدة على الظهر';
+
+  @override
+  String get insights_gas_tankConfig_other => 'أخرى';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'لا توجد أسطوانات مسجلة';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'أسطوانات مرحلية';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'غاز تخفيف الضغط';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'غازات متعددة';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'تُحتسب الأسطوانات المزدوجة المسجلة كأسطوانة واحدة عندما يدل الاسم على ذلك (twin، double، D12، 2x12) أو عندما تكون الأسطوانة أكبر من أي أسطوانة مفردة شائعة. عيّن تعليق جانبي أيسر وتعليق جانبي أيمن لأسطوانات الغوصة لتُحتسب كتعليق جانبي.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'لا توجد غوصات لعرضها';
+
+  @override
+  String get insights_gas_tankConfig_error => 'فشل تحميل تكوين الأسطوانات';
 
   @override
   String get insights_focus_title => 'تركيز الغطسات';
@@ -36781,7 +36838,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'تسجيلات الدخول للسحابة والخدمات';
+      'تسجيلات الدخول المستخدمة للمزامنة وتخزين الوسائط والمكتبات المشتركة';
 
   @override
   String get settings_connectedAccounts_empty => 'لا توجد حسابات متصلة بعد';
@@ -36850,6 +36907,51 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'يُستخدم لـ: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'غير مستخدم على هذا الجهاز';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'مزامنة قاعدة البيانات';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'تخزين الوسائط';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'مكتبة مواقع مشتركة: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'تسجيل الخروج على هذا الجهاز؟';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'على هذا الجهاز، يُستخدم $account للميزات أدناه. ستتوقف عن العمل هنا حتى تسجّل الدخول مرة أخرى.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'على هذا الجهاز يُستخدم للميزات أدناه، والتي ستتوقف عن العمل هنا:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'قد تستخدم أجهزة أخرى هذا الحساب أيضًا.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'تعذر التحقق مما يُستخدم له هذا الحساب على هذا الجهاز. قد يتوقف ما يستخدمه هنا عن العمل.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
@@ -37663,6 +37765,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'صارم (18/24/48 س)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'مفعّل، $enabled من $total قاعدة، حظر الطيران $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'متوقف، حظر الطيران $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'قياسي';
+
+  @override
+  String get safetyHub_noFlyStrict => 'صارم';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'مفعّل، $enabled من $total قاعدة';
+  }
+
+  @override
+  String get safetyHub_off => 'متوقف';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط';
 
@@ -38216,7 +38342,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'قواعد المراجعة والطيران بعد الغوص';
+      'قواعد المراجعة وتخفيف الضغط والمعدات';
 
   @override
   String get settings_section_equipmentCondition_title => 'حالة المعدات';
@@ -50132,6 +50258,35 @@ class AppLocalizationsAr extends AppLocalizations {
       'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
 
   @override
+  String get settings_photosMedia_cacheHeader => 'التخزين المؤقت';
+
+  @override
+  String get settings_mediaCache_memory_title => 'ذاكرة الصور المؤقتة';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'الصور المفكوكة المحفوظة في الذاكرة للمعارض والعارض بملء الشاشة. يسري فورا وعلى هذا الجهاز فقط.';
+
+  @override
+  String get settings_mediaCache_disk_title =>
+      'التخزين المؤقت للصور المصغرة على القرص';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'الصور المصغرة المحفوظة على هذا الجهاز. لا تحتسب الملفات الأصلية والنسخ المضغوطة.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'إفراغ التخزين المؤقت';
+
+  @override
+  String get settings_mediaCache_disk_emptied =>
+      'تم إفراغ التخزين المؤقت للصور المصغرة';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'تعذر إفراغ التخزين المؤقت للصور المصغرة';
+
+  @override
   String get media_status_transferFailed => 'فشل الرفع';
 
   @override
@@ -51258,6 +51413,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_field_label => 'التسمية';
 
   @override
+  String get transmitters_field_label_helper =>
+      'يصبح اسم الأسطوانة في الغطسة بمجرد مطابقة جهاز الإرسال هذا';
+
+  @override
   String get transmitters_field_serial => 'الرقم التسلسلي لجهاز الإرسال';
 
   @override
@@ -51274,13 +51433,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_field_gear => 'أسطوانة من المعدات';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'الأسطوانة التي يبلغ جهاز الإرسال هذا عن ضغطها';
+
+  @override
   String get transmitters_field_transmitterGear => 'جهاز إرسال من المعدات';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'تتبع البطارية/الصيانة، لا يُستخدم للمطابقة';
 
   @override
   String get transmitters_field_material => 'المادة';
 
   @override
   String get transmitters_gear_none => 'لا شيء';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'لا يوجد حجم أو ضغط مسجل لهذه الأسطوانة، لذا سيبقى الحجم فارغًا في الغطسة';
 
   @override
   String get transmitters_validation_key =>

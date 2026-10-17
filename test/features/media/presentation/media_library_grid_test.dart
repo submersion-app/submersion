@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -564,5 +565,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(mediaLibraryFilterProvider).mediaType, isNull);
+  });
+
+  // Issue #3337: a fast scroll used to bring tiles on screen before their
+  // decode had finished, because only about 250px beyond the pane was
+  // prepared. The grouped views build each group's thumbnails all at once,
+  // so they keep the default.
+  testWidgets('the flat grid prepares two pane heights beyond the visible '
+      'area, and the grouped views do not', (tester) async {
+    final notifier = _SeededLibraryNotifier(
+      MediaLibraryState(entries: [for (var i = 0; i < 12; i++) entry('m$i')]),
+    );
+    await tester.pumpWidget(host(notifier));
+    await tester.pumpAndSettle();
+
+    final grid = tester.widget<GridView>(
+      find.descendant(
+        of: find.byType(MediaLibraryGrid),
+        matching: find.byType(GridView),
+      ),
+    );
+    expect(grid.scrollCacheExtent, const ScrollCacheExtent.viewport(2));
+
+    await tester.tap(find.byIcon(Icons.calendar_month));
+    await tester.pumpAndSettle();
+    final grouped = tester.widgetList<ScrollView>(
+      find.descendant(
+        of: find.byType(MediaLibraryGroupedList),
+        matching: find.byWidgetPredicate((w) => w is ScrollView),
+      ),
+    );
+    expect(grouped, isNotEmpty);
+    for (final view in grouped) {
+      expect(view.scrollCacheExtent, isNull);
+    }
   });
 }

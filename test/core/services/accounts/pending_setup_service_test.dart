@@ -211,6 +211,32 @@ void main() {
     expect(routes['account_${syncAccount.id}'], '/settings/cloud-sync');
   });
 
+  // Issue #3388: routing reads the same usage map as the Connected Accounts
+  // page, so the account this device is attached through goes to Media
+  // Storage even when the announced store has since moved to another kind.
+  test('the attached media account routes to media storage', () async {
+    final mediaAccount = await accounts.create(
+      kind: AccountKind.s3,
+      label: 'S3 media storage',
+    );
+    await stores.upsertActive(
+      storeId: 'store-2',
+      providerType: 'dropbox',
+      displayHint: 'hint',
+    );
+    await MediaStoreAttachState(prefs: prefs).setAttached(
+      'store-1',
+      providerType: CloudProviderType.s3,
+      accountId: mediaAccount.id,
+    );
+    await service().dismiss('store_store-2');
+
+    final items = await service().compute();
+
+    expect(items.single.key, 'account_${mediaAccount.id}');
+    expect(items.single.route, '/settings/media-storage');
+  });
+
   test('dismissal is per key and sticks', () async {
     final account = await accounts.create(kind: AccountKind.s3, label: 'M');
     final svc = service();

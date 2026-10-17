@@ -129,6 +129,8 @@ import 'package:submersion/features/settings/presentation/pages/fix_dive_times_p
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
@@ -145,7 +147,9 @@ import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
-import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
@@ -1329,10 +1333,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // Sections that render a full page of their own would get a
                 // second app bar from the wrapper, so send deep links to the
                 // dedicated route. Returns null for genuine section content,
-                // which belongs in the wrapper.
-                redirect: (context, state) =>
-                    settingsSectionDedicatedRoutes[state
-                        .pathParameters['sectionId']],
+                // which belongs in the wrapper. The old Decompression section
+                // follows the window: the Safety pane on a master-detail
+                // window, its own page on a phone.
+                redirect: (context, state) => resolveSettingsSectionRedirect(
+                  state.pathParameters['sectionId'],
+                  masterDetail: ResponsiveBreakpoints.isMasterDetail(context),
+                ),
                 builder: (context, state) => SettingsSectionDetailPage(
                   sectionId: state.pathParameters['sectionId']!,
                 ),
@@ -1446,8 +1453,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'safety',
                 name: 'safetySettings',
-                builder: (context, state) => const SafetySettingsPage(),
+                builder: (context, state) => const SafetyHubPage(),
                 routes: [
+                  GoRoute(
+                    path: 'review',
+                    name: 'safetyReviewSettings',
+                    builder: (context, state) =>
+                        const SafetyReviewSettingsPage(),
+                  ),
+                  GoRoute(
+                    path: 'decompression',
+                    name: 'decompressionSettings',
+                    builder: (context, state) =>
+                        const DecompressionSettingsPage(),
+                  ),
                   GoRoute(
                     path: 'equipment-condition',
                     name: 'equipmentConditionSettings',

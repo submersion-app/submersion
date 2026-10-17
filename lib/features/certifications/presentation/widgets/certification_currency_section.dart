@@ -4,12 +4,14 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/domain/entities/credential_currency.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_event.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_pref.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
 import 'package:submersion/features/certifications/domain/services/certification_currency_engine.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/currency_rule_display.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/utils/currency_severity_colors.dart';
@@ -117,9 +119,11 @@ class _CurrencyRow extends ConsumerWidget {
     final small = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
+    final catalog = ref.watch(certificationCatalogSyncProvider);
     final others = [
       for (final m in group.members)
-        if (m.certification.id != certification.id) m.certification.name,
+        if (m.certification.id != certification.id)
+          certificationTitleL10n(m.certification, l10n, catalog: catalog),
     ];
     final advisory = currencyRuleAdvisory(l10n, s.rule);
     final activity = s.rule.clockKind == CurrencyClockKind.activity;

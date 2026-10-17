@@ -5,8 +5,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/dive_computer/data/clock_sync_preferences.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/media_cache_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
@@ -53,6 +55,17 @@ List<dynamic> rootProviderOverrides({
     // diver's actual choice.
     mediaProvenanceBadgesProvider.overrideWith(
       (ref) => MediaProvenanceBadgesNotifier(prefs),
+    ),
+    // Unstored by default for the same reason; here the media cache sizes
+    // gain persistence, and a smaller disk size trims the thumbnail pool at
+    // once instead of at the next download (issue #3337).
+    mediaCacheSettingsProvider.overrideWith(
+      (ref) => MediaCacheSettingsNotifier(
+        prefs,
+        onDiskCapChanged: () async =>
+            (await openMediaCacheStore(prefs)).evictIfNeeded(),
+        onEmptyDiskCache: () => emptyThumbnailCache(prefs),
+      ),
     ),
     // Same reasoning as the badges: the default is unstored so pages that
     // watch it never error in a container without prefs; here it gains

@@ -16,7 +16,7 @@ import 'package:submersion/features/gps_log/presentation/widgets/track_point_inf
 import 'package:submersion/features/gps_log/presentation/widgets/track_stats_header.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_timeline_scrubber.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -487,7 +487,11 @@ class _TrackMapState extends ConsumerState<_TrackMap> {
                 ),
                 MarkerLayer(markers: _markers(context, drawable)),
                 const MapAttribution(),
-                MapCompassButton(controller: controller),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: MapCornerControls(controller: controller),
+                ),
               ],
             ),
           ),

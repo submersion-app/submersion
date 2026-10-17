@@ -22,6 +22,13 @@ enum PlanIssueType {
   noBailoutCarried,
   minGasViolation,
   diluentModExceeded,
+
+  /// An authored segment takes the diver shallower than the deco ceiling,
+  /// skipping stops the plan still owes (#3354). Unlike the limit-exceeded
+  /// types, [PlanIssue.value] is the ceiling (the depth the diver had to
+  /// stay at) and [PlanIssue.threshold] the depth they were actually at, so
+  /// grouping by the highest value keeps the deepest ceiling.
+  ceilingViolated,
 }
 
 /// One issue found while computing a plan.

@@ -550,14 +550,16 @@ class MediaRepository {
   /// tombstoned. That makes a caller's "is this row still doomed?" check
   /// atomic with the delete: one made earlier, outside the transaction, can
   /// be overtaken by a relink before the delete runs.
-  Future<void> deleteMultipleMedia(
+  ///
+  /// Returns the ids actually deleted: [ids] less any row [keepIf] kept.
+  Future<List<String>> deleteMultipleMedia(
     List<String> ids, {
     bool Function(MediaData row)? keepIf,
   }) async {
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return const [];
     try {
       _log.info('Deleting ${ids.length} media items');
-      await _db.transaction(() async {
+      final deleted = await _db.transaction(() async {
         var targets = ids;
         if (keepIf != null) {
           targets = [
@@ -567,7 +569,7 @@ class MediaRepository {
               )..where((t) => t.id.isIn(chunk))).get())
                 if (!keepIf(row)) row.id,
           ];
-          if (targets.isEmpty) return;
+          if (targets.isEmpty) return const <String>[];
         }
         // Before the parents: the enrichment rows would otherwise vanish on
         // the FK cascade, which removes them without logging anything. See
@@ -577,9 +579,11 @@ class MediaRepository {
           await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
           await _syncRepository.logDeletion(entityType: 'media', recordId: id);
         }
+        return targets;
       });
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted ${ids.length} media items');
+      return deleted;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete multiple media',

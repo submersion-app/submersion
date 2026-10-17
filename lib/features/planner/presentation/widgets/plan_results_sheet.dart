@@ -101,6 +101,10 @@ String planIssueMessage(
         units.formatDepth(issue.atDepth ?? 0, decimals: 0),
         issue.value?.toStringAsFixed(2) ?? '--',
       );
+    case PlanIssueType.ceilingViolated:
+      return l10n.plannerCanvas_issue_ceilingViolated(
+        units.formatDepth(issue.value ?? 0, decimals: 1),
+      );
   }
 }
 

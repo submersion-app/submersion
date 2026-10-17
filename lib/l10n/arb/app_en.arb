@@ -12317,6 +12317,14 @@
       }
     }
   },
+  "plannerCanvas_issue_ceilingViolated": "The profile goes above the {ceiling} decompression ceiling, skipping required stops",
+  "@plannerCanvas_issue_ceilingViolated": {
+    "placeholders": {
+      "ceiling": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_noBailout": "CCR decompression plan carries no bailout gas",
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
   "plannerCanvas_range_base": "Base",
@@ -15054,7 +15062,6 @@
   "settings_section_appearance_title": "Appearance",
   "settings_section_data_subtitle": "Backup, restore & storage",
   "settings_section_data_title": "Data",
-  "settings_section_decompression_subtitle": "GF, data sources & narcosis",
   "settings_section_decompression_title": "Decompression",
   "settings_section_diverProfile_subtitle": "Active diver & profiles",
   "settings_section_diverProfile_title": "Diver Profile",
@@ -15849,6 +15856,30 @@
   "insights_gas_sacTrend_error": "Failed to load consumption trend",
   "insights_gas_sacTrend_subtitle": "Every dive in range",
   "insights_gas_sacTrend_title": "Gas consumption trend",
+  "insights_gas_tankConfig_title": "Tank configuration",
+  "insights_gas_tankConfig_subtitle": "Dives by how the tanks were set up",
+  "insights_gas_tankConfig_configurationHeading": "Configuration",
+  "insights_gas_tankConfig_extrasHeading": "Extras",
+  "insights_gas_tankConfig_rebreather": "Rebreather",
+  "insights_gas_tankConfig_sidemount": "Sidemount",
+  "insights_gas_tankConfig_twinBackmount": "Twin backmount",
+  "insights_gas_tankConfig_singleBackmount": "Single backmount",
+  "insights_gas_tankConfig_other": "Other",
+  "insights_gas_tankConfig_noTanks": "No tanks logged",
+  "insights_gas_tankConfig_stages": "Stage(s)",
+  "insights_gas_tankConfig_decoGas": "Deco gas",
+  "insights_gas_tankConfig_multiGas": "Multi-gas",
+  "insights_gas_tankConfig_countAndPercent": "{count} · {percent}",
+  "@insights_gas_tankConfig_countAndPercent": {
+    "description": "A bar's dive count and its share of all dives in scope, e.g. 131 · 62%",
+    "placeholders": {
+      "count": {"type": "int"},
+      "percent": {"type": "String"}
+    }
+  },
+  "insights_gas_tankConfig_note": "Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive's tanks for it to count as sidemount.",
+  "insights_gas_tankConfig_empty": "No dives to show",
+  "insights_gas_tankConfig_error": "Unable to load tank configuration",
   "insights_focus_title": "Dive focus",
   "insights_focus_intro": "See what a group of your dives has in common.",
   "insights_focus_error": "Failed to load dive focus",
@@ -22328,7 +22359,7 @@
   "settings_photosMedia_networkSources_title": "Network sources",
   "settings_photosMedia_networkSources_subtitle": "URLs and manifest feeds (advanced)",
   "settings_connectedAccounts_title": "Connected Accounts",
-  "settings_connectedAccounts_subtitle": "Cloud and service sign-ins",
+  "settings_connectedAccounts_subtitle": "Sign-ins used by sync, media storage and shared libraries",
   "settings_connectedAccounts_empty": "No accounts connected yet",
   "settings_connectedAccounts_status_signedIn": "Signed in",
   "settings_connectedAccounts_status_needsSignIn": "Needs sign-in",
@@ -22349,6 +22380,41 @@
   "settings_setupGuide_statusTodo": "Not set up",
   "settings_setupGuide_open": "Open",
   "settings_connectedAccounts_loadError": "Could not load accounts",
+  "settings_connectedAccounts_usage_label": "Used for: {uses}",
+  "@settings_connectedAccounts_usage_label": {
+    "description": "Connected account row: what the account is used for on this device. uses is a comma-separated list of usage names.",
+    "placeholders": {
+      "uses": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_usage_none": "Not used on this device",
+  "settings_connectedAccounts_usage_databaseSync": "Database sync",
+  "settings_connectedAccounts_usage_mediaStorage": "Media storage",
+  "settings_connectedAccounts_usage_sharedLibrary": "Shared site library: {name}",
+  "@settings_connectedAccounts_usage_sharedLibrary": {
+    "description": "Connected account usage: a shared site library by name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_usage_lightroom": "Lightroom",
+  "settings_connectedAccounts_signOutConfirmTitle": "Sign out on this device?",
+  "settings_connectedAccounts_signOutConfirmBody": "On this device, {account} is used for the features below. They stop working here until you sign in again.",
+  "@settings_connectedAccounts_signOutConfirmBody": {
+    "description": "Sign-out confirmation body; account is the account's label.",
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_removeConfirmUsedHere": "On this device it is used for the features below, which stop working here:",
+  "settings_connectedAccounts_removeConfirmOtherDevices": "Other devices may also use this account.",
+  "settings_connectedAccounts_usage_unknown": "Could not check what this account is used for on this device. Anything that uses it here may stop working.",
   "media_unavailablePlaceholder_volumeOffline": "Volume not mounted",
   "media_unavailablePlaceholder_stillFetching": "Still loading. Tap to retry.",
   "media_unavailablePlaceholder_accessDenied": "No photo library access",
@@ -22616,6 +22682,54 @@
   "safetySettings_cnsOtuHeader": "Current dive load",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
+  "safetyHub_reviewOn": "On, {enabled} of {total} rules, no-fly {noFly}",
+  "@safetyHub_reviewOn": {
+    "description": "Safety hub row subtitle: the safety review is on, with how many rules are enabled and the no-fly preset word",
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "noFly": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_reviewOff": "Off, no-fly {noFly}",
+  "@safetyHub_reviewOff": {
+    "description": "Safety hub row subtitle: the safety review is off; the no-fly preset still applies",
+    "placeholders": {
+      "noFly": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFlyStandard": "Standard",
+  "@safetyHub_noFlyStandard": {
+    "description": "Short name of the standard no-fly preset, used inside safetyHub_reviewOn/Off"
+  },
+  "safetyHub_noFlyStrict": "Strict",
+  "@safetyHub_noFlyStrict": {
+    "description": "Short name of the strict no-fly preset, used inside safetyHub_reviewOn/Off"
+  },
+  "safetyHub_conditionOn": "On, {enabled} of {total} rules",
+  "@safetyHub_conditionOn": {
+    "description": "Safety hub row subtitle: equipment condition checks are on, with how many rules are enabled",
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_off": "Off",
+  "@safetyHub_off": {
+    "description": "Safety hub row subtitle: the feature is switched off"
+  },
   "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
   "flightWindow_closed": "No more diving before your flight",
   "flightWindow_conflict": "Your no-fly time extends past your flight departure",
@@ -22949,7 +23063,7 @@
   "planning_card_noFly_subtitle": "Guideline countdown from your last dives",
   "planning_card_cnsOtu_subtitle": "Live decay since your last dive",
   "settings_section_safety_title": "Safety",
-  "settings_section_safety_subtitle": "Review rules & flying after diving",
+  "settings_section_safety_subtitle": "Review rules, decompression & equipment",
   "settings_section_equipmentCondition_title": "Equipment condition",
   "settings_section_equipmentCondition_subtitle": "Exposure thresholds for service clocks",
   "equipmentConditionSettings_title": "Equipment condition",
@@ -29327,6 +29441,14 @@
   "media_servedFrom_embedded": "Stored in this logbook",
   "settings_media_provenanceBadges": "Show source badges on thumbnails",
   "settings_media_provenanceBadgesSubtitle": "A small glyph showing where each item is served from. Problem badges always show.",
+  "settings_photosMedia_cacheHeader": "Cache",
+  "settings_mediaCache_memory_title": "In-memory image cache",
+  "settings_mediaCache_memory_subtitle": "Decoded images kept in memory for the galleries and the full-screen viewer. Applies immediately, on this device only.",
+  "settings_mediaCache_disk_title": "Thumbnail disk cache",
+  "settings_mediaCache_disk_subtitle": "Thumbnails kept on this device. Originals and compressed copies are not counted.",
+  "settings_mediaCache_disk_empty": "Empty cache",
+  "settings_mediaCache_disk_emptied": "Thumbnail cache emptied",
+  "settings_mediaCache_disk_emptyFailed": "Could not empty the thumbnail cache",
   "media_status_transferFailed": "Upload failed",
   "media_status_transferring": "Uploading",
   "media_status_queued": "Waiting to upload",
@@ -30180,14 +30302,18 @@
   "transmitters_edit_title": "Edit transmitter",
   "transmitters_new_title": "New transmitter",
   "transmitters_field_label": "Label",
+  "transmitters_field_label_helper": "Becomes the cylinder's name on the dive once this transmitter is matched",
   "transmitters_field_serial": "Transmitter serial",
   "transmitters_field_computer": "Dive computer (when no serial is reported)",
   "transmitters_field_channel": "Channel",
   "transmitters_field_role": "Role",
   "transmitters_field_gear": "Cylinder from gear",
+  "transmitters_field_gear_subtitle": "The cylinder this transmitter reports pressure for",
   "transmitters_field_transmitterGear": "Transmitter from gear",
+  "transmitters_field_transmitterGear_subtitle": "Battery/service tracking, not matching",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "None",
+  "transmitters_hint_missingSize": "This cylinder has no size or pressure on file, so size will stay empty on the dive",
   "transmitters_validation_key": "Enter a transmitter serial, or pick a dive computer and channel",
   "transmitters_validation_positive": "Enter a value greater than zero",
   "transmitters_validation_duplicate": "Already assigned to {label}",

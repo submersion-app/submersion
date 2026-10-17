@@ -66,6 +66,11 @@ int mediaThumbnailColumnsForStep(int step, double paneWidth) {
 /// little soft there. A larger step would hold four times the pixels per
 /// tile (a 1600 decode at 2x is about 40 MB a tile) for the few widest
 /// desktop panes.
+///
+/// This is an upper bound on the decode, not a promise of pixels. A photo
+/// linked from a local file is drawn from its cached thumbnail, 512px on
+/// its longest edge, at every size here (issue #3337); a decode is never
+/// scaled up, so the larger targets cost such a tile nothing more.
 Size mediaThumbnailDecodeTarget(double paneWidth, int columns) {
   final extent = paneWidth / columns;
   final side = extent <= 200

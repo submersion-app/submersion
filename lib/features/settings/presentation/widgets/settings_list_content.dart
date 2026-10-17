@@ -63,12 +63,6 @@ const settingsSections = [
     subtitle: 'Health data integration',
   ),
   SettingsSection(
-    id: 'decompression',
-    icon: Icons.timeline,
-    title: 'Decompression',
-    subtitle: 'GF, data sources & narcosis',
-  ),
-  SettingsSection(
     id: 'profile',
     icon: Icons.person,
     title: 'Diver Profile',
@@ -78,7 +72,7 @@ const settingsSections = [
     id: 'safety',
     icon: Icons.health_and_safety_outlined,
     title: 'Safety',
-    subtitle: 'Review rules & flying after diving',
+    subtitle: 'Review rules, decompression & equipment',
   ),
   SettingsSection(
     id: 'security',
@@ -299,8 +293,6 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_diverProfile_title;
       case 'units':
         return context.l10n.settings_section_units_title;
-      case 'decompression':
-        return context.l10n.settings_section_decompression_title;
       case 'appearance':
         return context.l10n.settings_section_appearance_title;
       case 'network':
@@ -334,8 +326,6 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_diverProfile_subtitle;
       case 'units':
         return context.l10n.settings_section_units_subtitle;
-      case 'decompression':
-        return context.l10n.settings_section_decompression_subtitle;
       case 'appearance':
         return context.l10n.settings_section_appearance_subtitle;
       case 'network':

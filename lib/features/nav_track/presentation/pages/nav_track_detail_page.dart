@@ -11,6 +11,9 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
@@ -321,25 +324,58 @@ class NavTrackDetailPage extends ConsumerWidget {
                       )
                     : ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: FlutterMap(
-                          options: MapOptions(
-                            initialCenter: LatLng(
-                              route.anchor!.latitude,
-                              route.anchor!.longitude,
-                            ),
-                            initialZoom: 15,
-                          ),
-                          children: [
-                            submersionTileLayer(ref),
-                            NavTrackPolylineLayer(route: route),
-                          ],
-                        ),
+                        child: _RouteMap(route: route),
                       ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+/// The inline preview of an anchored route. Stateful only to own the map's
+/// controller, which the reset-to-north compass needs: the map rotates, and
+/// without the compass a twisted map had no way back to north.
+class _RouteMap extends ConsumerStatefulWidget {
+  const _RouteMap({required this.route});
+
+  final NavTrack route;
+
+  @override
+  ConsumerState<_RouteMap> createState() => _RouteMapState();
+}
+
+class _RouteMapState extends ConsumerState<_RouteMap> {
+  final _controller = MapController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final anchor = widget.route.anchor!;
+    return FlutterMap(
+      mapController: _controller,
+      options: MapOptions(
+        initialCenter: LatLng(anchor.latitude, anchor.longitude),
+        initialZoom: 15,
+        interactionOptions: rotatableMapInteraction,
+      ),
+      children: [
+        submersionTileLayer(ref),
+        NavTrackPolylineLayer(route: widget.route),
+        const MapAttribution(),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: MapCornerControls(controller: _controller),
+        ),
+      ],
     );
   }
 }

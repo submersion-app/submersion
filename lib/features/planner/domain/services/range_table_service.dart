@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -59,10 +60,13 @@ class RangeTableService {
   static const defaultDepthDeltas = [-6.0, -3.0, 0.0, 3.0, 6.0];
   static const defaultTimeDeltas = [-10, -5, 0, 5, 10];
 
+  /// [startState] is the live plan's seeded tissues (a repetitive dive's
+  /// residual loading); every cell starts from it, as the live plan does.
   RangeTable compute(
     domain.DivePlan plan, {
     List<double> depthDeltas = defaultDepthDeltas,
     List<int> timeDeltas = defaultTimeDeltas,
+    TissueState? startState,
   }) {
     final engine = PlanEngine(config: config);
     final maxDepth = plan.maxDepth;
@@ -79,6 +83,7 @@ class RangeTableService {
               timeDelta,
               maxDepth: maxDepth,
               minBottomMinutes: minBottomMinutes,
+              startState: startState,
             ),
         ],
     ];
@@ -97,6 +102,7 @@ class RangeTableService {
     int timeDelta, {
     required double maxDepth,
     required int? minBottomMinutes,
+    required TissueState? startState,
   }) {
     if (plan.segments.isEmpty) return null;
     // A variant must keep the bottom under water and its duration positive.
@@ -113,7 +119,7 @@ class RangeTableService {
     return RangeCell(
       depthDelta: depthDelta,
       timeDelta: timeDelta,
-      outcome: engine.compute(variant),
+      outcome: engine.compute(variant, startState: startState),
     );
   }
 

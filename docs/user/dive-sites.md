@@ -80,6 +80,8 @@ Besides everything you entered, the site's detail page shows:
 - **Tides**, with no API key needed: from the nearest NOAA tide station when one is close, otherwise an ocean-model estimate (shown with its grid resolution and a caveat for complex coastlines). Times are in the site's local time.
 - **Attachments**: photos, site maps, PDFs and other files for the site. Give each one a category (**Access and entry**, **Anchorage and mooring**, **Parking**, **Site map**, **Underwater**, or **General**) and they are grouped under those headings, with maps and PDFs shown full width. An attachment's details change its category and display size; its file name stays as it is, because that is how your other devices find the file.
 
+Below the map and the site's name, the cards start in a planning-first order: what the site is and whether it suits you (description, depth, difficulty and rating, hazards and access), then how to get in and when (location, tides), then what is down there (seascape, features, species, ecosystem, media), then your own history and records (dive statistics, notes, tags, altitude, documents). **Settings > Appearance > Sites > Section Order & Visibility** (under **Site Details**) reorders and hides them. An order you have already saved is kept; **Reset to Default** on that page switches to this one.
+
 ## The map
 
 <!-- screenshot: images/dive-sites/site-map.png: clustered site map with heat map overlay -->

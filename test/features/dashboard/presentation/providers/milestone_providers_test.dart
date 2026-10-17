@@ -46,7 +46,7 @@ void main() {
       );
       expect(result.single.years, 10);
       expect(result.single.date, DateTime(2026, 8, 10));
-      expect(result.single.certName, 'Open Water');
+      expect(result.single.certification.name, 'Open Water');
     });
 
     test('excludes anniversary outside window', () {
@@ -84,7 +84,7 @@ void main() {
         DateTime(2026, 7, 24),
         windowDays: 60,
       );
-      expect(result.first.certName, 'AOW');
+      expect(result.first.certification.name, 'AOW');
     });
   });
 
@@ -180,7 +180,7 @@ void main() {
       ];
       final milestones = await container.read(milestonesProvider.future);
 
-      expect(milestones.anniversaries.single.certName, 'Open Water');
+      expect(milestones.anniversaries.single.certification.name, 'Open Water');
       expect(milestones.anniversaries.single.years, 10);
       expect(milestones.isEmpty, isFalse);
     });
