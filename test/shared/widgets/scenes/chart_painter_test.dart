@@ -93,4 +93,15 @@ void main() {
       }
     }
   });
+
+  test('ink shadows are a paper halo, the same list on every call', () {
+    for (final b in Brightness.values) {
+      final palette = ChartPalette.of(b);
+      expect(palette.inkShadows, same(palette.inkShadows));
+      expect(
+        palette.inkShadows.single.color.toARGB32() & 0xFFFFFF,
+        palette.paper.toARGB32() & 0xFFFFFF,
+      );
+    }
+  });
 }

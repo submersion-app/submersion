@@ -76,6 +76,20 @@ class ChartPalette {
 
   static ChartPalette of(Brightness brightness) =>
       brightness == Brightness.light ? light : dark;
+
+  /// A soft paper halo around the scene's type, so it stays legible where it
+  /// crosses a contour or a sounding. The same list instance every time, so
+  /// a scene's ink is identical between builds.
+  List<Shadow> get inkShadows =>
+      identical(this, light) ? _lightInkShadows : _darkInkShadows;
+
+  static final _lightInkShadows = [
+    Shadow(color: light.paper.withValues(alpha: 0.9), blurRadius: 6),
+  ];
+
+  static final _darkInkShadows = [
+    Shadow(color: dark.paper.withValues(alpha: 0.9), blurRadius: 6),
+  ];
 }
 
 /// The paper chart: a coastline on the end side with its land, three dashed
