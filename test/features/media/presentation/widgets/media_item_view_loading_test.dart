@@ -47,34 +47,37 @@ final _item = MediaItem(
 /// on a light theme is close to white: every swipe slid a pale panel in ahead
 /// of the photo.
 void main() {
-  Future<Color> pumpLoading(WidgetTester tester, {required bool thumbnail}) {
+  /// Pumps a view that never resolves and returns the tile fill colour.
+  Future<Color> pumpLoading(
+    WidgetTester tester, {
+    required bool thumbnail,
+  }) async {
     final theme = ThemeData.light();
-    return tester
-        .pumpWidget(
-          ProviderScope(
-            overrides: [
-              mediaSourceResolverRegistryProvider.overrideWithValue(
-                MediaSourceResolverRegistry({
-                  MediaSourceType.platformGallery: _PendingResolver(),
-                }),
-              ),
-            ],
-            child: MaterialApp(
-              theme: theme,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: Scaffold(
-                body: MediaItemView(
-                  item: _item,
-                  fit: thumbnail ? BoxFit.cover : BoxFit.contain,
-                  thumbnail: thumbnail,
-                ),
-              ),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.platformGallery: _PendingResolver(),
+            }),
+          ),
+        ],
+        child: MaterialApp(
+          theme: theme,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: MediaItemView(
+              item: _item,
+              fit: thumbnail ? BoxFit.cover : BoxFit.contain,
+              thumbnail: thumbnail,
             ),
           ),
-        )
-        .then((_) => tester.pump())
-        .then((_) => theme.colorScheme.surfaceContainerHighest);
+        ),
+      ),
+    );
+    await tester.pump();
+    return theme.colorScheme.surfaceContainerHighest;
   }
 
   Finder paintedWith(Color color) => find.descendant(

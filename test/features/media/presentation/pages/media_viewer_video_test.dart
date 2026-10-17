@@ -541,6 +541,12 @@ void main() {
     });
 
     expect(platform.created, 0);
+    // Nor an endless spinner: an indeterminate indicator one page off screen
+    // ticks every frame, so the viewer would never go idle.
+    expect(
+      find.byType(CircularProgressIndicator, skipOffstage: false),
+      findsNothing,
+    );
 
     await tester.runAsync(() async {
       await tester.tap(find.byTooltip('Next media'));

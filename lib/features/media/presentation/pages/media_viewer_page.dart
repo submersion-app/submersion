@@ -1225,6 +1225,13 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   Widget build(BuildContext context) {
+    // A neighbour built ahead never starts loading, so it would spin forever,
+    // and an indeterminate indicator one page off screen keeps scheduling
+    // frames. The black gallery behind it is all there is to see.
+    if (!widget.isCurrent && _controller == null) {
+      return const SizedBox.expand();
+    }
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white54),
