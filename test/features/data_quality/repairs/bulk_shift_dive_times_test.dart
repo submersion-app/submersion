@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -56,6 +57,43 @@ void main() {
     await repo.restoreDiveTimes(snapshot);
     final restored = (await repo.getDiveById('d3'))!;
     expect(restored.entryTime, entry);
+  });
+
+  test('shiftDiveTimes shifts every time column and tells sync', () async {
+    final entry = DateTime.utc(2026, 3, 15, 14, 30);
+    await repo.createDive(
+      domain.Dive(
+        id: 'd4',
+        dateTime: entry,
+        entryTime: entry,
+        exitTime: entry.add(const Duration(minutes: 42)),
+      ),
+    );
+    var notified = 0;
+    final subscription = SyncEventBus.changes.listen((_) => notified++);
+    addTearDown(subscription.cancel);
+
+    await repo.shiftDiveTimes(['d4'], const Duration(hours: -5));
+    await pumpEventQueue();
+
+    final shifted = (await repo.getDiveById('d4'))!;
+    final wallClock = DateTime.utc(2026, 3, 15, 9, 30);
+    expect(shifted.dateTime, wallClock);
+    expect(shifted.entryTime, wallClock);
+    expect(shifted.exitTime, wallClock.add(const Duration(minutes: 42)));
+    expect(notified, 1);
+  });
+
+  test('shiftDiveTimes with nothing to move stays quiet', () async {
+    var notified = 0;
+    final subscription = SyncEventBus.changes.listen((_) => notified++);
+    addTearDown(subscription.cancel);
+
+    await repo.shiftDiveTimes(const [], const Duration(hours: 1));
+    await repo.shiftDiveTimes(['missing'], Duration.zero);
+    await pumpEventQueue();
+
+    expect(notified, 0);
   });
 
   test('zero offset and empty ids are no-ops', () async {
