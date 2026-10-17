@@ -20,6 +20,10 @@ class UnifiedImportResult {
   /// data (replaceSource duplicate action).
   final int updatedCount;
 
+  /// Dives already in the log whose times this import corrected: Apple Watch
+  /// dives saved as the real instant before #2811 (issue #2812).
+  final int timesCorrectedCount;
+
   /// Planned dives filled from a download and promoted (issue #2002).
   final int filledCount;
 
@@ -58,6 +62,7 @@ class UnifiedImportResult {
     required this.importedCounts,
     required this.consolidatedCount,
     this.updatedCount = 0,
+    this.timesCorrectedCount = 0,
     this.filledCount = 0,
     this.fillOutcomes = const [],
     required this.skippedCount,

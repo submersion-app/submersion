@@ -6428,6 +6428,14 @@ class DiveRepository {
     }
   }
 
+  /// [bulkShiftDiveTimes] in its own transaction, telling sync once it has
+  /// committed, for callers that are not the repair executor.
+  Future<void> shiftDiveTimes(List<String> diveIds, Duration offset) async {
+    if (diveIds.isEmpty || offset == Duration.zero) return;
+    await _db.transaction(() => bulkShiftDiveTimes(diveIds, offset));
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Prior time columns for [diveIds]; feed to [restoreDiveTimes] for undo.
   Future<List<({String id, int diveDateTime, int? entryTime, int? exitTime})>>
   getDiveTimesSnapshot(List<String> diveIds) async {

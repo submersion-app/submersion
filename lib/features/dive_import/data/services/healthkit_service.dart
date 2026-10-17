@@ -258,6 +258,7 @@ class HealthKitService implements HealthImportService {
       sourceId: workoutPoint.uuid,
       source: ImportSource.appleWatch,
       startTime: wallClockStart,
+      startInstant: startTime.toUtc(),
       endTime: wallClockStart.add(endTime.difference(startTime)),
       maxDepth: maxDepth,
       avgDepth: avgDepth > 0 ? avgDepth : null,

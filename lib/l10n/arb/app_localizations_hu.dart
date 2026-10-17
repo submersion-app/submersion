@@ -34808,6 +34808,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Forrásadat lecserélve';
 
   @override
+  String get universalImport_label_timesCorrected => 'Merülési idők javítva';
+
+  @override
   String get universalImport_label_consolidated => 'Összevont';
 
   @override

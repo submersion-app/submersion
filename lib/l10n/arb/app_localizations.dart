@@ -55266,6 +55266,12 @@ abstract class AppLocalizations {
   /// **'Replaced source data'**
   String get universalImport_label_replacedSourceData;
 
+  /// Label for the count of dives already in the log whose start times an Apple Watch re-import corrected
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times corrected'**
+  String get universalImport_label_timesCorrected;
+
   /// Label for the count of consolidated dives in summary
   ///
   /// In en, this message translates to:

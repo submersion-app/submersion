@@ -523,6 +523,12 @@ void main() {
         // equality compares that flag, so a raw instant fails in any zone.
         expect(result.first.startTime, equals(DateTime.utc(2024, 1, 15, 9, 0)));
         expect(result.first.endTime, equals(DateTime.utc(2024, 1, 15, 10, 0)));
+        // The real instant rides along, so a re-import can recognize a dive
+        // saved before #2811 stored it as is (#2812).
+        expect(
+          result.first.startInstant,
+          equals(DateTime(2024, 1, 15, 9, 0).toUtc()),
+        );
         expect(result.first.sourceFileFormat, equals('healthkit'));
       });
 

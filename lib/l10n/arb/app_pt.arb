@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "Substituir Fonte",
   "universalImport_label_replaceSourceSubtitle": "Atualizar a partir do mesmo computador",
   "universalImport_label_replacedSourceData": "Dados de origem substituídos",
+  "universalImport_label_timesCorrected": "Horários de mergulho corrigidos",
   "universalImport_label_retainDiveNumbers": "Manter números de mergulho da origem",
   "universalImport_label_retainDiveNumbersSubtitle": "Usar os números de mergulho do arquivo importado em vez de atribuí-los automaticamente",
   "universalImport_label_retainDiveNumbersUnavailable": "Esta origem não fornece números de mergulho, por isso os mergulhos são numerados automaticamente",

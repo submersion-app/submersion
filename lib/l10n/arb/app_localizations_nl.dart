@@ -34747,6 +34747,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Brongegevens vervangen';
 
   @override
+  String get universalImport_label_timesCorrected => 'Duiktijden gecorrigeerd';
+
+  @override
   String get universalImport_label_consolidated => 'Geconsolideerd';
 
   @override

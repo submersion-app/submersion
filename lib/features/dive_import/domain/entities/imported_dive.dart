@@ -98,6 +98,12 @@ class ImportedDive extends Equatable {
   final String? sourceUuid;
   final ImportSource source;
   final DateTime startTime;
+
+  /// The real instant the source recorded the start at, flagged UTC, when it
+  /// reports one; [startTime] is the wall clock the diver saw. Only HealthKit
+  /// sets it: a re-import compares it with a saved dive's start to recognize
+  /// a dive the import saved as the instant before #2811 (issue #2812).
+  final DateTime? startInstant;
   final DateTime endTime;
   final double maxDepth;
   final double? avgDepth;
@@ -140,6 +146,7 @@ class ImportedDive extends Equatable {
     this.sourceUuid,
     required this.source,
     required this.startTime,
+    this.startInstant,
     required this.endTime,
     required this.maxDepth,
     this.avgDepth,
@@ -181,6 +188,7 @@ class ImportedDive extends Equatable {
     sourceUuid,
     source,
     startTime,
+    startInstant,
     endTime,
     maxDepth,
     avgDepth,

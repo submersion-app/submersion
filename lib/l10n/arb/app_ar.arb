@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "استبدال المصدر",
   "universalImport_label_replaceSourceSubtitle": "تحديث من نفس الكمبيوتر",
   "universalImport_label_replacedSourceData": "تم استبدال بيانات المصدر",
+  "universalImport_label_timesCorrected": "تم تصحيح أوقات الغطس",
   "universalImport_label_retainDiveNumbers": "الاحتفاظ بأرقام الغطسات الأصلية",
   "universalImport_label_retainDiveNumbersSubtitle": "استخدام أرقام الغطسات من الملف المستورد بدلاً من تعيينها تلقائياً",
   "universalImport_label_retainDiveNumbersUnavailable": "لا يوفّر هذا المصدر أرقام الغطسات، لذا تُرقَّم الغطسات تلقائياً",

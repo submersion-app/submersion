@@ -34921,6 +34921,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_label_replacedSourceData => 'Quelldaten ersetzt';
 
   @override
+  String get universalImport_label_timesCorrected => 'Tauchzeiten korrigiert';
+
+  @override
   String get universalImport_label_consolidated => 'Konsolidiert';
 
   @override

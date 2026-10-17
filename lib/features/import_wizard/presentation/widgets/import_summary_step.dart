@@ -66,6 +66,7 @@ class ImportSummaryStep extends ConsumerWidget {
       importedCounts: result.importedCounts,
       consolidatedCount: result.consolidatedCount,
       updatedCount: result.updatedCount,
+      timesCorrectedCount: result.timesCorrectedCount,
       filledCount: result.filledCount,
       fillOutcomes: result.fillOutcomes,
       skippedCount: result.skippedCount,
@@ -90,6 +91,7 @@ class _SuccessView extends StatelessWidget {
   final Map<ImportEntityType, int> importedCounts;
   final int consolidatedCount;
   final int updatedCount;
+  final int timesCorrectedCount;
   final int filledCount;
   final List<PlannedDiveFillOutcome> fillOutcomes;
   final int skippedCount;
@@ -107,6 +109,7 @@ class _SuccessView extends StatelessWidget {
     required this.importedCounts,
     required this.consolidatedCount,
     this.updatedCount = 0,
+    this.timesCorrectedCount = 0,
     this.filledCount = 0,
     this.fillOutcomes = const [],
     required this.skippedCount,
@@ -132,6 +135,7 @@ class _SuccessView extends StatelessWidget {
         totalImported > 0 ||
         consolidatedCount > 0 ||
         updatedCount > 0 ||
+        timesCorrectedCount > 0 ||
         filledCount > 0;
     final l10n = context.l10n;
     // "Import notes" explain dives that imported. Dives that did not (rows
@@ -150,7 +154,7 @@ class _SuccessView extends StatelessWidget {
     if (hasActivity) {
       if (totalImported > 0 || filledCount > 0) {
         title = l10n.universalImport_title_successImported;
-      } else if (updatedCount > 0) {
+      } else if (updatedCount > 0 || timesCorrectedCount > 0) {
         title = l10n.universalImport_title_successUpdated;
       } else {
         title = l10n.universalImport_title_successConsolidated;
@@ -215,6 +219,13 @@ class _SuccessView extends StatelessWidget {
                 label: l10n.universalImport_label_replacedSourceData,
                 count: updatedCount,
                 key: const Key('import_summary_updated_row'),
+              ),
+            if (timesCorrectedCount > 0)
+              _CountRow(
+                icon: Icons.schedule,
+                label: l10n.universalImport_label_timesCorrected,
+                count: timesCorrectedCount,
+                key: const Key('import_summary_times_corrected_row'),
               ),
             if (consolidatedCount > 0)
               _CountRow(

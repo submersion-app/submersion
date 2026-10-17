@@ -34998,6 +34998,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Dati sorgente sostituiti';
 
   @override
+  String get universalImport_label_timesCorrected =>
+      'Orari di immersione corretti';
+
+  @override
   String get universalImport_label_consolidated => 'Consolidate';
 
   @override

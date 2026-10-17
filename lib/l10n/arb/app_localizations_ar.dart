@@ -35432,6 +35432,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم استبدال بيانات المصدر';
 
   @override
+  String get universalImport_label_timesCorrected => 'تم تصحيح أوقات الغطس';
+
+  @override
   String get universalImport_label_consolidated => 'مدمجة';
 
   @override

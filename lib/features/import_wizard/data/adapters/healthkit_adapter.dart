@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,6 +18,7 @@ import 'package:submersion/features/dive_import/domain/services/health_import_se
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/import_wizard/data/adapters/apple_watch_wall_clock_repair.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -71,6 +73,11 @@ class HealthKitAdapter implements ImportSourceAdapter {
   /// The date range the fetch read, shown on the Review step (issue #161).
   DateTimeRange? _fetchedRange;
 
+  /// Saved dives found by [checkDuplicates] still holding the instant the
+  /// import saved before #2811, by dive id, with the shift to their wall
+  /// clock. [performImport] applies them (issue #2812).
+  Map<String, Duration> _timeCorrections = const {};
+
   /// Load the list of fetched [ImportedDive]s into this adapter, with the
   /// date [range] they were fetched for.
   ///
@@ -78,6 +85,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
   void setParsedDives(List<ImportedDive> dives, {DateTimeRange? range}) {
     _parsedDives = List.unmodifiable(dives);
     _fetchedRange = range;
+    _timeCorrections = const {};
   }
 
   // ---------------------------------------------------------------------------
@@ -174,6 +182,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
   @override
   Future<ImportBundle> checkDuplicates(ImportBundle bundle) async {
+    _timeCorrections = const {};
     final diveGroup = bundle.groups[ImportEntityType.dives];
     if (diveGroup == null || diveGroup.items.isEmpty) return bundle;
 
@@ -181,9 +190,32 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
     final duplicateIndices = <int>{};
     final matchResults = <int, DiveMatchResult>{};
+    final timeCorrections = <String, Duration>{};
 
     for (var i = 0; i < _parsedDives.length; i++) {
       final imported = _parsedDives[i];
+
+      // The same workout is the same dive, however far apart the times: a
+      // dive saved before #2811 sits a UTC offset away, too far for the
+      // time-based score below to recognize it (issue #2812).
+      final sameWorkout = existingDives.firstWhereOrNull(
+        (existing) => isSameAppleWatchWorkout(existing, imported),
+      );
+      if (sameWorkout != null) {
+        final shift = appleWatchWallClockShift(sameWorkout, imported);
+        if (shift != null) timeCorrections[sameWorkout.id] = shift;
+        duplicateIndices.add(i);
+        matchResults[i] = _matchResult(
+          imported,
+          sameWorkout,
+          score: 1.0,
+          existingStart: sameWorkout.effectiveEntryTime.add(
+            shift ?? Duration.zero,
+          ),
+        );
+        continue;
+      }
+
       DiveMatchResult? bestMatch;
 
       for (final existing in existingDives) {
@@ -199,18 +231,11 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
         if (score >= 0.5) {
           if (bestMatch == null || score > bestMatch.score) {
-            bestMatch = DiveMatchResult(
-              diveId: existing.id,
+            bestMatch = _matchResult(
+              imported,
+              existing,
               score: score,
-              timeDifferenceMs: imported.startTime
-                  .difference(existing.effectiveEntryTime)
-                  .inMilliseconds
-                  .abs(),
-              depthDifferenceMeters:
-                  ((imported.maxDepth) - (existing.maxDepth ?? 0.0)).abs(),
-              durationDifferenceSeconds:
-                  (imported.durationSeconds - existingSeconds).abs(),
-              siteName: existing.site?.name,
+              existingStart: existing.effectiveEntryTime,
             );
           }
         }
@@ -222,6 +247,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       }
     }
 
+    _timeCorrections = Map.unmodifiable(timeCorrections);
     return ImportBundle(
       source: bundle.source,
       groups: {
@@ -244,6 +270,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
+    // Whatever the diver picks for the duplicate, the saved dive's time is
+    // wrong, so it is corrected either way.
+    final timesCorrected = await _applyTimeCorrections();
+
     final baseSelections = Set<int>.from(
       selections[ImportEntityType.dives] ?? <int>{},
     );
@@ -340,6 +370,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: 0,
+      timesCorrectedCount: timesCorrected,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
       notices: [?numberConflict],
@@ -349,6 +380,41 @@ class HealthKitAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  /// Move the saved dives [checkDuplicates] found to their wall clock and
+  /// return how many moved. Taken before the write, so a second run of the
+  /// same review cannot shift them again.
+  Future<int> _applyTimeCorrections() async {
+    final corrections = _timeCorrections;
+    _timeCorrections = const {};
+    // One write per offset: dives either side of a DST change differ.
+    final idsByShift = corrections.keys.groupListsBy((id) => corrections[id]!);
+    for (final MapEntry(key: shift, value: ids) in idsByShift.entries) {
+      await _diveRepository.shiftDiveTimes(ids, shift);
+    }
+    return corrections.length;
+  }
+
+  DiveMatchResult _matchResult(
+    ImportedDive imported,
+    Dive existing, {
+    required double score,
+    required DateTime existingStart,
+  }) {
+    return DiveMatchResult(
+      diveId: existing.id,
+      score: score,
+      timeDifferenceMs: imported.startTime
+          .difference(existingStart)
+          .inMilliseconds
+          .abs(),
+      depthDifferenceMeters: (imported.maxDepth - (existing.maxDepth ?? 0.0))
+          .abs(),
+      durationDifferenceSeconds:
+          (imported.durationSeconds - _diveSeconds(existing)).abs(),
+      siteName: existing.site?.name,
+    );
+  }
 
   /// Use runtime (total time), not duration (bottom time), to match the
   /// incoming side which uses runtime ?? duration.

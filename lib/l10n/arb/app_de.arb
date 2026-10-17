@@ -9971,6 +9971,7 @@
   "universalImport_label_replaceSource": "Quelle ersetzen",
   "universalImport_label_replaceSourceSubtitle": "Vom selben Computer aktualisieren",
   "universalImport_label_replacedSourceData": "Quelldaten ersetzt",
+  "universalImport_label_timesCorrected": "Tauchzeiten korrigiert",
   "universalImport_label_retainDiveNumbers": "Tauchgangsnummern aus Quelle beibehalten",
   "universalImport_label_retainDiveNumbersSubtitle": "Tauchgangsnummern aus der importierten Datei verwenden, statt automatisch zuzuweisen",
   "universalImport_label_retainDiveNumbersUnavailable": "Diese Quelle liefert keine Tauchgangsnummern, daher werden die Tauchgänge automatisch nummeriert",

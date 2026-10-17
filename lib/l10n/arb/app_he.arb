@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "החלף מקור",
   "universalImport_label_replaceSourceSubtitle": "עדכן מאותו מחשב",
   "universalImport_label_replacedSourceData": "נתוני מקור הוחלפו",
+  "universalImport_label_timesCorrected": "זמני הצלילה תוקנו",
   "universalImport_label_retainDiveNumbers": "שמור על מספרי הצלילה מהמקור",
   "universalImport_label_retainDiveNumbersSubtitle": "השתמש במספרי הצלילה מהקובץ המיובא במקום להקצות אוטומטית",
   "universalImport_label_retainDiveNumbersUnavailable": "מקור זה אינו מספק מספרי צלילה, ולכן הצלילות ממוספרות אוטומטית",

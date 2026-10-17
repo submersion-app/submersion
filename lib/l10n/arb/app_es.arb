@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "Reemplazar Fuente",
   "universalImport_label_replaceSourceSubtitle": "Actualizar desde el mismo computador",
   "universalImport_label_replacedSourceData": "Datos de origen reemplazados",
+  "universalImport_label_timesCorrected": "Horas de inmersión corregidas",
   "universalImport_label_retainDiveNumbers": "Conservar números de inmersión de origen",
   "universalImport_label_retainDiveNumbersSubtitle": "Usar los números de inmersión del archivo importado en lugar de asignarlos automáticamente",
   "universalImport_label_retainDiveNumbersUnavailable": "Esta fuente no proporciona números de inmersión, así que las inmersiones se numeran automáticamente",

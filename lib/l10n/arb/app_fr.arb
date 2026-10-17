@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "Remplacer la source",
   "universalImport_label_replaceSourceSubtitle": "Mettre à jour depuis le même ordinateur",
   "universalImport_label_replacedSourceData": "Données source remplacées",
+  "universalImport_label_timesCorrected": "Heures de plongée corrigées",
   "universalImport_label_retainDiveNumbers": "Conserver les numéros de plongée source",
   "universalImport_label_retainDiveNumbersSubtitle": "Utiliser les numéros de plongée du fichier importé au lieu de les attribuer automatiquement",
   "universalImport_label_retainDiveNumbersUnavailable": "Cette source ne fournit pas de numéros de plongée, les plongées sont donc numérotées automatiquement",

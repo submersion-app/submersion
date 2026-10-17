@@ -34123,6 +34123,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_replacedSourceData => 'נתוני מקור הוחלפו';
 
   @override
+  String get universalImport_label_timesCorrected => 'זמני הצלילה תוקנו';
+
+  @override
   String get universalImport_label_consolidated => 'אוחדו';
 
   @override

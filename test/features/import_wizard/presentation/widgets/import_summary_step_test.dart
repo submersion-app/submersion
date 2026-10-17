@@ -897,6 +897,58 @@ void main() {
     );
   });
 
+  group('ImportSummaryStep - corrected dive times (#2812)', () {
+    testWidgets('counts the corrected dives when nothing else changed', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {},
+          consolidatedCount: 0,
+          timesCorrectedCount: 4,
+          skippedCount: 4,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Successfully Updated'), findsOneWidget);
+      expect(
+        find.byKey(const Key('import_summary_times_corrected_row')),
+        findsOneWidget,
+      );
+      expect(find.text('Dive times corrected'), findsOneWidget);
+      expect(find.text('View Dives'), findsOneWidget);
+    });
+
+    testWidgets('hides the row when no time was corrected', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_times_corrected_row')),
+        findsNothing,
+      );
+    });
+  });
+
   group('ImportSummaryStep - entity type coverage', () {
     testWidgets('shows equipment row', (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));

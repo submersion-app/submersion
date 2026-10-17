@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "Bron vervangen",
   "universalImport_label_replaceSourceSubtitle": "Bijwerken vanaf dezelfde computer",
   "universalImport_label_replacedSourceData": "Brongegevens vervangen",
+  "universalImport_label_timesCorrected": "Duiktijden gecorrigeerd",
   "universalImport_label_retainDiveNumbers": "Duiknummers van bron behouden",
   "universalImport_label_retainDiveNumbersSubtitle": "Gebruik de duiknummers uit het geïmporteerde bestand in plaats van automatisch toewijzen",
   "universalImport_label_retainDiveNumbersUnavailable": "Deze bron levert geen duiknummers, dus duiken worden automatisch genummerd",

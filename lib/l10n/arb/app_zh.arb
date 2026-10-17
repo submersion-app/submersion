@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "替换源数据",
   "universalImport_label_replaceSourceSubtitle": "从同一台计算机更新",
   "universalImport_label_replacedSourceData": "已替换源数据",
+  "universalImport_label_timesCorrected": "已更正潜水时间",
   "universalImport_label_retainDiveNumbers": "保留源潜水编号",
   "universalImport_label_retainDiveNumbersSubtitle": "使用导入文件中的潜水编号而不是自动分配",
   "universalImport_label_retainDiveNumbersUnavailable": "此来源不提供潜水编号，因此潜水将自动编号",

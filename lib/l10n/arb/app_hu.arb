@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "Forrás cseréje",
   "universalImport_label_replaceSourceSubtitle": "Frissítés ugyanarról a számítógépről",
   "universalImport_label_replacedSourceData": "Forrásadat lecserélve",
+  "universalImport_label_timesCorrected": "Merülési idők javítva",
   "universalImport_label_retainDiveNumbers": "Eredeti merülésszámok megtartása",
   "universalImport_label_retainDiveNumbersSubtitle": "Az importált fájl merülésszámainak használata az automatikus kiosztás helyett",
   "universalImport_label_retainDiveNumbersUnavailable": "Ez a forrás nem ad meg merülésszámokat, ezért a merülések automatikusan kapnak számot",

@@ -32977,6 +32977,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_replacedSourceData => '已替换源数据';
 
   @override
+  String get universalImport_label_timesCorrected => '已更正潜水时间';
+
+  @override
   String get universalImport_label_consolidated => '已合并';
 
   @override

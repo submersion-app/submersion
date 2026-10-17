@@ -35030,6 +35030,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Datos de origen reemplazados';
 
   @override
+  String get universalImport_label_timesCorrected =>
+      'Horas de inmersión corregidas';
+
+  @override
   String get universalImport_label_consolidated => 'Consolidadas';
 
   @override

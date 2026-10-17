@@ -9839,6 +9839,7 @@
   "universalImport_label_replaceSource": "Sostituisci sorgente",
   "universalImport_label_replaceSourceSubtitle": "Aggiorna dallo stesso computer",
   "universalImport_label_replacedSourceData": "Dati sorgente sostituiti",
+  "universalImport_label_timesCorrected": "Orari di immersione corretti",
   "universalImport_label_retainDiveNumbers": "Mantieni i numeri di immersione di origine",
   "universalImport_label_retainDiveNumbersSubtitle": "Usa i numeri di immersione dal file importato invece di assegnarli automaticamente",
   "universalImport_label_retainDiveNumbersUnavailable": "Questa sorgente non fornisce i numeri di immersione, quindi le immersioni vengono numerate automaticamente",
