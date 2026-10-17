@@ -192,7 +192,7 @@ class DiveSummaryScene extends ConsumerWidget {
 
 /// The deepest depth the scale shows, in metres, chosen so its three ticks
 /// (surface, one step, two steps) land on round numbers in the diver's unit
-/// and the two-step tick sits at 82 % of the pane.
+/// and the deepest dive fits above the scale's end.
 double scaleMaxMeters(double deepestMeters, DepthUnit unit) {
   final steps = unit == DepthUnit.feet
       ? const [10.0, 25.0, 50.0, 100.0, 200.0, 250.0, 500.0]

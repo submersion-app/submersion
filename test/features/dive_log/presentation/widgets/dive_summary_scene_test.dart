@@ -339,4 +339,23 @@ void main() {
       }
     }
   });
+
+  group('scaleMaxMeters', () {
+    test('fits the deepest dive within two and a quarter round steps', () {
+      // 41.2 m: a 20 m step, so the scale reads 0, 20 and 40 m to 45 m.
+      expect(scaleMaxMeters(41.2, DepthUnit.meters), closeTo(45, 1e-9));
+      // 135.2 ft: a 100 ft step, so the scale runs to 225 ft.
+      expect(
+        DepthUnit.meters.convert(
+          scaleMaxMeters(41.2, DepthUnit.feet),
+          DepthUnit.feet,
+        ),
+        closeTo(225, 1e-6),
+      );
+    });
+
+    test('a dive deeper than every step uses the largest step', () {
+      expect(scaleMaxMeters(600, DepthUnit.meters), closeTo(450, 1e-9));
+    });
+  });
 }
