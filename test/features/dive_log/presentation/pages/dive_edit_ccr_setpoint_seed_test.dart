@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +15,16 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Settings that are still loading from the database: [settingsLoaded] waits
+/// until the test completes [loaded], as the real notifier does until the
+/// diver's row lands.
+class _LoadingSettingsNotifier extends MockSettingsNotifier {
+  final loaded = Completer<void>();
+
+  @override
+  Future<void> get settingsLoaded => loaded.future;
+}
 
 /// Switching a dive to CCR prefills the setpoints from the diver's own CCR
 /// ppO2 limits (issue #2368). The prefill must reach the saved row, not only
@@ -200,5 +212,59 @@ void main() {
       expect(reloaded.setpointLow, isNull);
       expect(reloaded.setpointHigh, isNull);
     });
+  });
+
+  testWidgets('switching to CCR before settings load seeds the loaded values', (
+    tester,
+  ) async {
+    final dive = await repository.createDive(
+      Dive(id: 'dive-2802-switch', dateTime: DateTime.utc(2026, 5, 1, 10)),
+    );
+
+    String? savedId;
+    final settings = _LoadingSettingsNotifier();
+    await pumpEditor(
+      tester,
+      dive.id,
+      settingsNotifier: settings,
+      onSaved: (id) => savedId = id,
+    );
+
+    // The diver picks CCR while settings still hold their defaults...
+    await openGasGear(tester);
+    final ccr = find.text('CCR');
+    await tester.ensureVisible(ccr.first);
+    await tester.pumpAndSettle();
+    await tester.tap(ccr.first);
+    await tester.pumpAndSettle();
+
+    // ...then their own setpoints load.
+    await settings.setCcrPpO2Limits(
+      setpointLow: 0.6,
+      setpointHigh: 1.2,
+      diluentModPpO2: 1.4,
+    );
+    settings.loaded.complete();
+    await tester.pumpAndSettle();
+
+    final low = tester.widget<TextField>(
+      find.descendant(
+        of: find.widgetWithText(TextFormField, 'Low (Desc/Asc)'),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(
+      low.controller!.text,
+      '0.6',
+      reason: 'the panel shows the seeded value, not the defaults',
+    );
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(savedId, isNotNull, reason: 'save should complete');
+
+    final reloaded = (await repository.getDiveById(dive.id))!;
+    expect(reloaded.setpointLow, 0.6);
+    expect(reloaded.setpointHigh, 1.2);
   });
 }

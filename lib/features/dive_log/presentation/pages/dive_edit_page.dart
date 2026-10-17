@@ -459,6 +459,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // CCR settings
   double? _setpointLow;
   double? _setpointHigh;
+
+  /// Bumped when setpoints are seeded from Settings after the CCR panel may
+  /// already have built, so the panel rebuilds from the seeded state.
+  int _ccrSeedGeneration = 0;
   double? _setpointDeco;
   GasMix? _diluentGas;
   String? _scrubberType;
@@ -3627,17 +3631,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               dense: true,
               onChanged: (mode) {
                 _markDirty();
-                setState(() {
-                  // Entering CCR with no setpoints logged yet starts from
-                  // the diver's own CCR ppO2 limits. Seeded into state, not
-                  // just shown in the panel, so a dive saved without
-                  // touching the panel keeps what the panel displayed.
-                  if (mode == DiveMode.ccr && _diveMode != DiveMode.ccr) {
-                    _setpointLow ??= ref.read(ccrSetpointLowProvider);
-                    _setpointHigh ??= ref.read(ccrSetpointHighProvider);
-                  }
-                  _diveMode = mode;
-                });
+                final enteringCcr =
+                    mode == DiveMode.ccr && _diveMode != DiveMode.ccr;
+                setState(() => _diveMode = mode);
+                if (enteringCcr) _seedCcrSetpointsFromSettings();
               },
             ),
           ),
@@ -3722,11 +3719,36 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     ].join(' · ');
   }
 
+  /// Entering CCR with no setpoints logged yet starts from the diver's own
+  /// CCR ppO2 limits. Seeded into state, not just shown in the panel, so a
+  /// dive saved without touching the panel keeps what the panel displayed.
+  ///
+  /// Waits for the diver's settings first: until they load, the providers
+  /// hold the defaults, and seeding those would save setpoints the diver
+  /// never set (#2802). A failed load seeds nothing; the panel then shows
+  /// the held values as hints only.
+  Future<void> _seedCcrSetpointsFromSettings() async {
+    try {
+      await ref.read(settingsProvider.notifier).settingsLoaded;
+    } catch (_) {
+      // Already logged by the notifier.
+      return;
+    }
+    if (!mounted || _diveMode != DiveMode.ccr) return;
+    if (_setpointLow != null && _setpointHigh != null) return;
+    setState(() {
+      _setpointLow ??= ref.read(ccrSetpointLowProvider);
+      _setpointHigh ??= ref.read(ccrSetpointHighProvider);
+      _ccrSeedGeneration++;
+    });
+  }
+
   Widget? _rebreatherPanel() {
     if (_diveMode == DiveMode.ccr) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
         child: CcrSettingsPanel(
+          key: ValueKey(_ccrSeedGeneration),
           // Switching to CCR seeds these from the diver's own CCR ppO2
           // limits (see the mode selector). A dive already logged as CCR
           // with no setpoints leaves them empty, with those limits as hint
