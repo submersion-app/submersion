@@ -186,6 +186,21 @@ class UddfImportParsers {
     return declared(prefixed) ? prefixed : trimmed;
   }
 
+  /// Whether the document holding [element] declares any `<tankdata>`.
+  ///
+  /// Submersion's dives-only export wrote none before #1875, so in such a
+  /// file the starting-mix `<switchmix>` is the only record of a dive's
+  /// cylinder. Cached per document: a backup asks once for every dive.
+  static bool documentDeclaresTanks(XmlElement element) {
+    final document = element.document;
+    if (document == null) return false;
+    return _declaresTanks[document] ??= document
+        .findAllElements('tankdata')
+        .isNotEmpty;
+  }
+
+  static final _declaresTanks = Expando<bool>('declaresTanks');
+
   /// Whether the document holding [element] was written by Submersion, the
   /// only producer whose writer quirks the importer undoes.
   static bool writtenBySubmersion(XmlElement element) =>

@@ -128,6 +128,7 @@ void main() {
       String generator = 'Submersion',
       String tankdata = '',
       required String waypoints,
+      String otherDive = '',
     }) =>
         '''
 <?xml version="1.0" encoding="UTF-8"?>
@@ -145,6 +146,7 @@ void main() {
         <samples>$waypoints</samples>
         <informationafterdive><greatestdepth>18.0</greatestdepth><diveduration>1200</diveduration></informationafterdive>
       </dive>
+      $otherDive
     </repetitiongroup>
   </profiledata>
 </uddf>
@@ -158,8 +160,16 @@ void main() {
         '<tankdata id="tank_a"><link ref="mix_32_0"/>'
         '<tankvolume>11.1</tankvolume></tankdata>';
 
+    // A dive that did log a cylinder: a full backup declares its <tankdata>,
+    // which is what tells it apart from an old dives-only export.
+    const cylinderDive =
+        '<dive id="dive_2">'
+        '<informationbeforedive><datetime>2026-03-02T09:00:00</datetime></informationbeforedive>'
+        '$linkedTank'
+        '</dive>';
+
     Future<Map<String, dynamic>> parse(String xml) async =>
-        (await ExportService().importAllDataFromUddf(xml)).dives.single;
+        (await ExportService().importAllDataFromUddf(xml)).dives.first;
 
     test('an old backup of a dive without cylinders gains none', () async {
       // Before #1875 the marker sat on a separate (0 s, 0 m) waypoint.
@@ -170,6 +180,7 @@ void main() {
             wp(10, '4.5'),
             wp(600, '18.0'),
           ].join(),
+          otherDive: cylinderDive,
         ),
       );
 
@@ -203,6 +214,23 @@ void main() {
       );
 
       expect(dive['tanks'], hasLength(1));
+      expect(dive['gasSwitches'], isNull);
+    });
+
+    test('an old dives-only export keeps its cylinder, not a switch', () async {
+      // Before #1875 the dives-only export wrote no <tankdata> at all, so the
+      // starting mix was the only record of the dive's cylinder.
+      final dive = await parse(
+        uddf(
+          waypoints: [
+            wp(0, '0', mix: 'mix_32_0'),
+            wp(10, '4.5'),
+            wp(600, '18.0'),
+          ].join(),
+        ),
+      );
+
+      expect(dive['gasMix'], const GasMix(o2: 32));
       expect(dive['gasSwitches'], isNull);
     });
 
