@@ -14943,6 +14943,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'المادة';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'خليط الغاز';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'الإعدادات';
 
   @override
@@ -19764,6 +19767,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'يتجاوز غاز التخفيف حد MOD الخاص به عند $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'المسار يتجاوز سقف تخفيف الضغط عند $ceiling ويتخطى توقفات إلزامية';
   }
 
   @override

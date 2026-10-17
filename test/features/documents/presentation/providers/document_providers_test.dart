@@ -1,6 +1,10 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -132,5 +136,51 @@ void main() {
     );
     await mutations.delete(saved.id);
     expect(await c.read(documentByIdProvider(saved.id).future), isNull);
+  });
+
+  test('the list and detail labels follow a renamed owner (#3391)', () async {
+    final c = container();
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('s1', 'd1', 'Blue Hole', 0, 0)",
+    );
+    await db.customStatement(
+      'INSERT INTO dives (id, diver_id, dive_number, dive_date_time, site_id, '
+      "created_at, updated_at) VALUES ('v1', 'd1', 142, 0, 's1', 0, 0)",
+    );
+    final saved = await c
+        .read(documentMutationsProvider)
+        .save(
+          doc(
+            DocumentType.other,
+            null,
+            'Log',
+          ).copyWith(owner: const DocumentOwner(DocumentOwnerKind.dive, 'v1')),
+          const [],
+        );
+    final all = c.listen(allDocumentsProvider, (_, _) {});
+    final one = c.listen(documentEntryProvider(saved.id), (_, _) {});
+    expect(
+      (await c.read(allDocumentsProvider.future)).single.ownerLabel,
+      '#142 · Blue Hole',
+    );
+    await c.read(documentEntryProvider(saved.id).future);
+    // A table write Drift reports to listeners, as the site editor's is.
+    await db
+        .update(db.diveSites)
+        .write(const DiveSitesCompanion(name: Value('Great Blue Hole')));
+    // The owner tick is debounced so a sync's write burst refreshes once.
+    await Future<void>.delayed(DiveRepository.changeTickDebounce * 2);
+    expect(
+      (await c.read(allDocumentsProvider.future)).single.ownerLabel,
+      '#142 · Great Blue Hole',
+    );
+    expect(
+      (await c.read(documentEntryProvider(saved.id).future))!.ownerLabel,
+      '#142 · Great Blue Hole',
+    );
+    all.close();
+    one.close();
   });
 }

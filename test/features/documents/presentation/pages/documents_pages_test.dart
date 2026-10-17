@@ -156,6 +156,39 @@ void main() {
     expect(find.text('Clearance'), findsNothing);
   });
 
+  testWidgets('a dive owner is listed and found by its site and date '
+      '(#3391)', (t) async {
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('s1', 'd1', 'Blue Hole', 0, 0)",
+    );
+    final when = DateTime.utc(2026, 10, 12, 9).millisecondsSinceEpoch;
+    await db.customStatement(
+      'INSERT INTO dives (id, diver_id, dive_number, dive_date_time, site_id, '
+      "created_at, updated_at) VALUES ('v1', 'd1', 142, $when, 's1', 0, 0)",
+    );
+    await _save(
+      'Log sheet',
+      DocumentType.other,
+      owner: const DocumentOwner(DocumentOwnerKind.dive, 'v1'),
+    );
+    await _save('DAN', DocumentType.insurance);
+    await pump(t, '/documents');
+    expect(
+      find.textContaining(RegExp(r'^#142 · Blue Hole · .*2026')),
+      findsOneWidget,
+    );
+    await t.enterText(find.byType(TextField), 'blue hole');
+    await t.pumpAndSettle();
+    expect(find.text('Log sheet'), findsOneWidget);
+    expect(find.text('DAN'), findsNothing);
+    await t.enterText(find.byType(TextField), '2026');
+    await t.pumpAndSettle();
+    expect(find.text('Log sheet'), findsOneWidget);
+    expect(find.text('DAN'), findsNothing);
+  });
+
   testWidgets('a type from the route shows only that type', (t) async {
     await _save('DAN', DocumentType.insurance);
     await _save('Clearance', DocumentType.medicalClearance);
@@ -214,7 +247,14 @@ void main() {
     expect(find.text('Bonaire'), findsOneWidget);
     expect(find.text('Park permit.txt'), findsOneWidget);
 
-    await t.tap(find.byTooltip('Delete'));
+    await t.tap(
+      find.descendant(
+        of: find.byType(DocumentDetailPage),
+        matching: find.byType(PopupMenuButton<String>),
+      ),
+    );
+    await t.pumpAndSettle();
+    await t.tap(find.widgetWithText(PopupMenuItem<String>, 'Delete'));
     await t.pumpAndSettle();
     expect(find.text('Delete document?'), findsOneWidget);
     await t.tap(find.widgetWithText(FilledButton, 'Delete'));
@@ -238,6 +278,56 @@ void main() {
     // Not the standalone /documents/:id/edit page over the whole shell.
     expect(find.text('EDIT'), findsNothing);
     expect(find.byType(DocumentEditPage), findsOneWidget);
+  });
+
+  testWidgets('on a wide screen, Delete in the pane menu clears the pane', (
+    t,
+  ) async {
+    final doc = await _save('Park permit', DocumentType.permit);
+    await pump(t, '/documents?selected=${doc.id}', size: const Size(1400, 900));
+    await t.tap(
+      find.descendant(
+        of: find.byType(DocumentDetailPage),
+        matching: find.byType(PopupMenuButton<String>),
+      ),
+    );
+    await t.pumpAndSettle();
+    await t.tap(find.widgetWithText(PopupMenuItem<String>, 'Delete'));
+    await t.pumpAndSettle();
+    await t.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await t.pumpAndSettle();
+    expect(find.byType(DocumentDetailPage), findsNothing);
+    expect(await DocumentRepository().getById(doc.id), isNull);
+  });
+
+  // Issue #3366: a certification with no custom title stores an empty name,
+  // so a document filed under it showed a blank owner.
+  testWidgets('a certification with no custom title names its owner', (
+    t,
+  ) async {
+    await DatabaseService.instance.database.customStatement(
+      'INSERT INTO certifications (id, diver_id, name, agency, level, '
+      "created_at, updated_at) VALUES ('c1', 'd1', '', 'padi', "
+      "'advancedNitrox', 0, 0)",
+    );
+    final doc = await _save(
+      'Nitrox log',
+      DocumentType.other,
+      owner: const DocumentOwner(DocumentOwnerKind.certification, 'c1'),
+    );
+    await pump(t, '/documents');
+    expect(find.textContaining('Advanced Nitrox'), findsWidgets);
+    await t.enterText(find.byType(TextField), 'nitrox diver');
+    await t.pumpAndSettle();
+    expect(find.text('Nitrox log'), findsNothing);
+    await t.enterText(find.byType(TextField), 'advanced');
+    await t.pumpAndSettle();
+    expect(find.text('Nitrox log'), findsOneWidget);
+
+    await pump(t, '/documents/${doc.id}');
+    await t.tap(find.byKey(const ValueKey('document-details-toggle')));
+    await t.pumpAndSettle();
+    expect(find.text('Advanced Nitrox'), findsOneWidget);
   });
 
   testWidgets('the owner row opens the owner', (t) async {

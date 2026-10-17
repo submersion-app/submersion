@@ -30,6 +30,7 @@ final allDocumentsProvider = FutureProvider<List<DocumentListEntry>>((
 ) async {
   final repo = ref.watch(documentRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchChanges());
+  ref.invalidateSelfWhen(repo.watchOwnerChanges());
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (diverId == null) return const [];
   return repo.getAllForDiver(diverId);
@@ -49,6 +50,7 @@ final documentEntryProvider = FutureProvider.family<DocumentListEntry?, String>(
   (ref, id) async {
     final repo = ref.watch(documentRepositoryProvider);
     ref.invalidateSelfWhen(repo.watchChanges());
+    ref.invalidateSelfWhen(repo.watchOwnerChanges());
     return repo.getEntryById(id);
   },
 );

@@ -608,18 +608,42 @@ void main() {
       // Some residual customization may exist from the prior test, or the
       // page may already reflect defaults. In either case, the Reset button
       // should restore defaults afterward.
+      // The actions scroll with the rows (#3370), so bring the button on
+      // screen first; scrollUntilVisible alone stops once it is built in the
+      // cache extent below the screen.
       final resetBtn = find.widgetWithText(TextButton, 'Reset to defaults');
+      Future<void> revealReset() async {
+        await tester.scrollUntilVisible(
+          resetBtn,
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.ensureVisible(resetBtn);
+        await _settle(tester);
+      }
+
+      await revealReset();
       expect(resetBtn, findsOneWidget);
 
       // If Reset is disabled (already defaults), tap Move Equipment up to
       // create a customization the button can undo.
       final resetWidget = tester.widget<TextButton>(resetBtn);
       if (resetWidget.onPressed == null) {
-        await tester.tap(find.byTooltip('Move Equipment up'));
+        final equipmentUp = find.byTooltip('Move Equipment up');
+        // Revealing Reset scrolled the page to the bottom; scroll back up.
+        await tester.scrollUntilVisible(
+          equipmentUp,
+          -200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.ensureVisible(equipmentUp);
         await _settle(tester);
+        await tester.tap(equipmentUp);
+        await _settle(tester);
+        await revealReset();
       }
 
-      await tester.tap(find.widgetWithText(TextButton, 'Reset to defaults'));
+      await tester.tap(resetBtn);
       await _settle(tester);
 
       await popToBottomNav(tester);

@@ -23921,6 +23921,12 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get cylinderConfigs_fieldMaterial;
 
+  /// No description provided for @cylinderConfigs_fieldGasMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas mix'**
+  String get cylinderConfigs_fieldGasMix;
+
   /// No description provided for @cylinderConfigs_sectionTitle.
   ///
   /// In en, this message translates to:
@@ -31194,6 +31200,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)'**
   String plannerCanvas_issue_diluentModExceeded(String depth, String value);
+
+  /// No description provided for @plannerCanvas_issue_ceilingViolated.
+  ///
+  /// In en, this message translates to:
+  /// **'The profile goes above the {ceiling} decompression ceiling, skipping required stops'**
+  String plannerCanvas_issue_ceilingViolated(String ceiling);
 
   /// No description provided for @plannerCanvas_issue_noBailout.
   ///

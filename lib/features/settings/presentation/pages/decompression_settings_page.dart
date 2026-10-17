@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_factor_dialog.dart';
@@ -253,31 +254,37 @@ class DecompressionSettingsContent extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.swap_vert),
-              title: Text(context.l10n.settings_decompression_ascentGasLabel),
-              dense: true,
-              trailing: DropdownButton<AscentGasSet>(
-                value: settings.ascentGasSet,
-                underline: const SizedBox.shrink(),
-                items: [
-                  DropdownMenuItem(
-                    value: AscentGasSet.allCarried,
-                    child: Text(
-                      context.l10n.settings_decompression_ascentGas_allCarried,
+              title: LabelWithControl(
+                label: Text(context.l10n.settings_decompression_ascentGasLabel),
+                control: DropdownButton<AscentGasSet>(
+                  value: settings.ascentGasSet,
+                  underline: const SizedBox.shrink(),
+                  items: [
+                    DropdownMenuItem(
+                      value: AscentGasSet.allCarried,
+                      child: Text(
+                        context
+                            .l10n
+                            .settings_decompression_ascentGas_allCarried,
+                      ),
                     ),
-                  ),
-                  DropdownMenuItem(
-                    value: AscentGasSet.decoStageOnly,
-                    child: Text(
-                      context.l10n.settings_decompression_ascentGas_decoStage,
+                    DropdownMenuItem(
+                      value: AscentGasSet.decoStageOnly,
+                      child: Text(
+                        context.l10n.settings_decompression_ascentGas_decoStage,
+                      ),
                     ),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    ref.read(settingsProvider.notifier).setAscentGasSet(value);
-                  }
-                },
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      ref
+                          .read(settingsProvider.notifier)
+                          .setAscentGasSet(value);
+                    }
+                  },
+                ),
               ),
+              dense: true,
             ),
           ),
           const SizedBox(height: 24),
@@ -294,25 +301,27 @@ class DecompressionSettingsContent extends ConsumerWidget {
     required ValueChanged<MetricDataSource> onChanged,
   }) {
     return ListTile(
-      title: Text(title),
-      dense: true,
-      trailing: DropdownButton<MetricDataSource>(
-        value: value,
-        underline: const SizedBox.shrink(),
-        items: [
-          DropdownMenuItem(
-            value: MetricDataSource.calculated,
-            child: Text(context.l10n.settings_decompression_sourceCalculated),
-          ),
-          DropdownMenuItem(
-            value: MetricDataSource.computer,
-            child: Text(context.l10n.settings_decompression_sourceComputer),
-          ),
-        ],
-        onChanged: (newValue) {
-          if (newValue != null) onChanged(newValue);
-        },
+      title: LabelWithControl(
+        label: Text(title),
+        control: DropdownButton<MetricDataSource>(
+          value: value,
+          underline: const SizedBox.shrink(),
+          items: [
+            DropdownMenuItem(
+              value: MetricDataSource.calculated,
+              child: Text(context.l10n.settings_decompression_sourceCalculated),
+            ),
+            DropdownMenuItem(
+              value: MetricDataSource.computer,
+              child: Text(context.l10n.settings_decompression_sourceComputer),
+            ),
+          ],
+          onChanged: (newValue) {
+            if (newValue != null) onChanged(newValue);
+          },
+        ),
       ),
+      dense: true,
     );
   }
 

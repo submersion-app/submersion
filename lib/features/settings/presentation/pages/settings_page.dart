@@ -67,6 +67,7 @@ import 'package:submersion/features/settings/presentation/providers/debug_mode_p
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/settings/presentation/pages/network_settings_page.dart';
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 
@@ -1523,35 +1524,39 @@ class _NotificationsSectionContent extends ConsumerWidget {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.luggage),
-                title: Text(context.l10n.settings_notifications_tripLeadTitle),
+                title: LabelWithControl(
+                  label: Text(
+                    context.l10n.settings_notifications_tripLeadTitle,
+                  ),
+                  control: DropdownButton<int>(
+                    value: settings.tripServiceLeadDays,
+                    underline: const SizedBox.shrink(),
+                    // Always include the persisted value so a non-standard lead
+                    // time (a future UI, manual edit, or migration) never trips
+                    // DropdownButton's "value must appear in items" assertion.
+                    items:
+                        ({7, 14, 21, 30, settings.tripServiceLeadDays}.toList()
+                              ..sort())
+                            .map(
+                              (days) => DropdownMenuItem(
+                                value: days,
+                                child: Text('$days'),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (days) {
+                      if (days != null) {
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setTripServiceLeadDays(days);
+                      }
+                    },
+                  ),
+                ),
                 subtitle: Text(
                   context.l10n.settings_notifications_tripLeadDays(
                     settings.tripServiceLeadDays,
                   ),
-                ),
-                trailing: DropdownButton<int>(
-                  value: settings.tripServiceLeadDays,
-                  underline: const SizedBox.shrink(),
-                  // Always include the persisted value so a non-standard lead
-                  // time (a future UI, manual edit, or migration) never trips
-                  // DropdownButton's "value must appear in items" assertion.
-                  items:
-                      ({7, 14, 21, 30, settings.tripServiceLeadDays}.toList()
-                            ..sort())
-                          .map(
-                            (days) => DropdownMenuItem(
-                              value: days,
-                              child: Text('$days'),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (days) {
-                    if (days != null) {
-                      ref
-                          .read(settingsProvider.notifier)
-                          .setTripServiceLeadDays(days);
-                    }
-                  },
                 ),
               ),
             ),

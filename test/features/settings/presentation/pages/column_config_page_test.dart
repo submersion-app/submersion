@@ -433,6 +433,13 @@ void main() {
 
       // Detailed mode shows slot assignments
       expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+      // A slot row whose dropdown cannot fit beside its name puts it on a
+      // line of its own (#3358), so the section can sit below the fold.
+      await tester.scrollUntilVisible(
+        find.text('EXTRA FIELDS'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text('EXTRA FIELDS'), findsOneWidget);
     });
 
@@ -541,6 +548,13 @@ void main() {
 
       // Detailed mode shows slot assignments and extra fields
       expect(find.text('SLOT ASSIGNMENTS'), findsOneWidget);
+      // A slot row whose dropdown cannot fit beside its name puts it on a
+      // line of its own (#3358), so the section can sit below the fold.
+      await tester.scrollUntilVisible(
+        find.text('EXTRA FIELDS'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text('EXTRA FIELDS'), findsOneWidget);
     });
 

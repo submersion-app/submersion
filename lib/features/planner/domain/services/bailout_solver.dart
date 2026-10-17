@@ -141,13 +141,28 @@ class BailoutSolver {
   /// falling back to the diver's global settings every time (a diver
   /// confirmed this directly: the plan's own O2-narcotic choice changed
   /// the main table but never the bailout one).
-  BailoutOutcome? solve(domain.DivePlan inputPlan) {
+  ///
+  /// [startState] is the live plan's seeded tissues (a repetitive dive's
+  /// residual loading); the loop walk starts from it, as the live plan does.
+  BailoutOutcome? solve(domain.DivePlan inputPlan, {TissueState? startState}) {
     return BailoutSolver(
       config: config.resolvedFor(inputPlan),
-    )._solveInternal(inputPlan);
+    )._solveInternal(inputPlan, startState);
   }
 
-  BailoutOutcome? _solveInternal(domain.DivePlan inputPlan) {
+  BailoutOutcome? _solveInternal(
+    domain.DivePlan inputPlan,
+    TissueState? startState,
+  ) {
+    // Same contract as PlanEngine.compute: the walk below runs on BuhlmannGf,
+    // so a foreign seed fails here rather than on a cast mid-walk.
+    if (startState != null && startState is! BuhlmannState) {
+      throw ArgumentError.value(
+        startState,
+        'startState',
+        'BailoutSolver only accepts a BuhlmannState tissue seed',
+      );
+    }
     if (inputPlan.mode != domain.PlanMode.ccr) return null;
     // Diluent is the diver's one explicit per-tank choice on a loop plan
     // (TankRoleResolver); every other open-circuit cylinder carried
@@ -230,7 +245,7 @@ class BailoutSolver {
     );
     final sampleInterval = totalSeconds > 60 * 40 ? totalSeconds ~/ 40 : 60;
 
-    var state = model.initial();
+    var state = startState ?? model.initial();
     var elapsed = 0;
     final points = <BailoutPoint>[];
     // Tissue state at each point, same index -- retained so the worst

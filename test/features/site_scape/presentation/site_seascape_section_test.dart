@@ -1,8 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/preview_painter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -143,28 +145,63 @@ void main() {
     expect(opened, 1);
   });
 
+  // Issue #3393: inline, plain wheel ticks and two-finger swipes belong to
+  // the page; only a deliberate zoom (Ctrl/Cmd + wheel, a pinch) or a drag
+  // reaches the terrain.
+  Offset overTerrain(WidgetTester tester) {
+    final pane = tester.getRect(find.byType(SiteTerrainPane));
+    // Left of centre, clear of the zoom buttons on the right edge.
+    return Offset(pane.left + pane.width * 0.3, pane.center.dy);
+  }
+
+  double terrainZoom(WidgetTester tester) => tester
+      .widgetList<CustomPaint>(find.byType(CustomPaint))
+      .map((p) => p.painter)
+      .whereType<Dive3dScenePainter>()
+      .single
+      .zoom;
+
   group('mouse wheel inside a scrolling page', () {
-    Future<void> wheelAt(WidgetTester tester, Offset at) async {
+    Future<void> wheelAt(
+      WidgetTester tester,
+      Offset at, {
+      double dy = 120,
+    }) async {
       final mouse = TestPointer(1, PointerDeviceKind.mouse);
       await tester.sendEventToBinding(mouse.hover(at));
-      await tester.sendEventToBinding(mouse.scroll(const Offset(0, 120)));
+      await tester.sendEventToBinding(mouse.scroll(Offset(0, dy)));
       await tester.pump();
     }
 
-    testWidgets('over the terrain, the terrain takes it and the page stays', (
+    testWidgets('over the terrain, the page scrolls and the camera stays', (
       tester,
     ) async {
       final controller = await pumpInScrollingPage(tester);
-      final pane = tester.getRect(find.byType(SiteTerrainPane));
+      final zoom = terrainZoom(tester);
 
-      // Left of centre, clear of the zoom buttons on the right edge.
-      await wheelAt(
-        tester,
-        Offset(pane.left + pane.width * 0.3, pane.center.dy),
-      );
+      await wheelAt(tester, overTerrain(tester));
 
-      expect(controller.offset, 0);
+      expect(controller.offset, greaterThan(0));
+      expect(terrainZoom(tester), zoom);
     });
+
+    for (final key in [
+      LogicalKeyboardKey.controlLeft,
+      LogicalKeyboardKey.metaLeft,
+    ]) {
+      testWidgets('with ${key.keyLabel} held over the terrain, the camera '
+          'zooms and the page stays', (tester) async {
+        final controller = await pumpInScrollingPage(tester);
+        final zoom = terrainZoom(tester);
+
+        await tester.sendKeyDownEvent(key);
+        await wheelAt(tester, overTerrain(tester), dy: -120);
+        await tester.sendKeyUpEvent(key);
+
+        expect(controller.offset, 0);
+        expect(terrainZoom(tester), greaterThan(zoom));
+      });
+    }
 
     testWidgets('over the card title, the page scrolls', (tester) async {
       final controller = await pumpInScrollingPage(tester);
@@ -175,13 +212,21 @@ void main() {
     });
   });
 
-  group('trackpad two-finger swipe inside a scrolling page', () {
-    Future<void> swipeAt(WidgetTester tester, Offset at) async {
+  group('trackpad inside a scrolling page', () {
+    Future<void> swipeAt(
+      WidgetTester tester,
+      Offset at, {
+      double scale = 1,
+    }) async {
       final pad = TestPointer(2, PointerDeviceKind.trackpad);
       await tester.sendEventToBinding(pad.panZoomStart(at));
       for (var i = 1; i <= 10; i++) {
         await tester.sendEventToBinding(
-          pad.panZoomUpdate(at, pan: Offset(0, -12.0 * i)),
+          pad.panZoomUpdate(
+            at,
+            pan: Offset(0, -12.0 * i),
+            scale: 1 + (scale - 1) * i / 10,
+          ),
         );
         await tester.pump(const Duration(milliseconds: 16));
       }
@@ -195,22 +240,31 @@ void main() {
         .getTranslation()
         .y;
 
-    testWidgets('over the terrain, the terrain pans and the page stays', (
-      tester,
-    ) async {
+    testWidgets('a two-finger swipe over the terrain scrolls the page and '
+        'leaves the camera', (tester) async {
       final controller = await pumpInScrollingPage(tester);
-      final pane = tester.getRect(find.byType(SiteTerrainPane));
+      final zoom = terrainZoom(tester);
 
-      await swipeAt(
-        tester,
-        Offset(pane.left + pane.width * 0.3, pane.center.dy),
-      );
+      await swipeAt(tester, overTerrain(tester));
 
-      expect(controller.offset, 0);
-      expect(terrainPanY(tester), lessThan(0));
+      expect(controller.offset, greaterThan(0));
+      expect(terrainPanY(tester), 0);
+      expect(terrainZoom(tester), zoom);
     });
 
-    testWidgets('over the card title, the page scrolls', (tester) async {
+    testWidgets('a pinch over the terrain zooms the camera', (tester) async {
+      await pumpInScrollingPage(tester);
+      final zoom = terrainZoom(tester);
+
+      await swipeAt(tester, overTerrain(tester), scale: 1.5);
+
+      expect(terrainZoom(tester), greaterThan(zoom));
+      expect(terrainPanY(tester), 0);
+    });
+
+    testWidgets('a two-finger swipe over the card title scrolls the page', (
+      tester,
+    ) async {
       final controller = await pumpInScrollingPage(tester);
 
       await swipeAt(tester, tester.getCenter(find.text('Site Seascape')));

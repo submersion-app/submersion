@@ -14098,6 +14098,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => '材质';
 
   @override
+  String get cylinderConfigs_fieldGasMix => '混合气';
+
+  @override
   String get cylinderConfigs_sectionTitle => '配置';
 
   @override
@@ -18575,6 +18578,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return '稀释气在 $depth 处超过其 MOD（ppO₂ $value bar）';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return '潜水剖面超过 $ceiling 的减压上升限制，跳过了必需的停留';
   }
 
   @override

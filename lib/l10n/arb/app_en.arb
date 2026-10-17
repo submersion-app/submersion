@@ -8712,6 +8712,7 @@
   "cylinderConfigs_fieldVolume": "Volume",
   "cylinderConfigs_fieldWorkingPressure": "Working pressure",
   "cylinderConfigs_fieldMaterial": "Material",
+  "cylinderConfigs_fieldGasMix": "Gas mix",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Counted from logged dive time",
   "equipment_serviceClocks_hoursUsedAndLeft": "{used} of {total} hours, {remaining} left",
@@ -12254,6 +12255,14 @@
         "type": "String"
       },
       "value": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_issue_ceilingViolated": "The profile goes above the {ceiling} decompression ceiling, skipping required stops",
+  "@plannerCanvas_issue_ceilingViolated": {
+    "placeholders": {
+      "ceiling": {
         "type": "String"
       }
     }

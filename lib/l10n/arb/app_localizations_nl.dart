@@ -14657,6 +14657,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Materiaal';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gasmengsel';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configuraties';
 
   @override
@@ -19378,6 +19381,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Het profiel gaat boven het decompressieplafond van $ceiling en slaat verplichte stops over';
   }
 
   @override

@@ -75,7 +75,10 @@ class SiteSeascapeSection extends StatelessWidget {
                   height: constraints.maxWidth < narrowWidth
                       ? narrowTerrainHeight
                       : terrainHeight,
-                  child: SiteTerrainPane(siteId: siteId),
+                  child: SiteTerrainPane(
+                    siteId: siteId,
+                    insideScrollingPage: true,
+                  ),
                 ),
               ),
             ),
