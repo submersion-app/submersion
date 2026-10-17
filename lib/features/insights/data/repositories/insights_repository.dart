@@ -214,6 +214,11 @@ class InsightsRepository {
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveProfileSeries),
           TableUpdateQuery.onTable(_db.diveTanks),
+          // The tank configuration card reads which cylinders were switched
+          // to and which recording is primary (#3421); a sync pull or a
+          // primary-source change writes only these.
+          TableUpdateQuery.onTable(_db.gasSwitches),
+          TableUpdateQuery.onTable(_db.diveDataSources),
           TableUpdateQuery.onTable(_db.tankPressureSeries),
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),

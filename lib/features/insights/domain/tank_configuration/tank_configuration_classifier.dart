@@ -44,10 +44,8 @@ bool _namesTwin(String? raw) {
 /// Downloads tag every open-circuit gas under 41% O2 as Back Gas, so two
 /// Back Gas cylinders are a twin set only when they form a matched pair on
 /// one gas ([isMatchedPair]); air plus an untagged EAN32 is a single.
-TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) {
-  final tanks = dive.tanks;
-  return (base: _base(dive), extras: _extras(dive, tanks));
-}
+TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) =>
+    (base: _base(dive), extras: _extras(dive));
 
 TankBaseConfiguration _base(TankConfigurationDive dive) {
   final tanks = dive.tanks;
@@ -71,12 +69,11 @@ TankBaseConfiguration _base(TankConfigurationDive dive) {
   return TankBaseConfiguration.singleBackmount;
 }
 
-Set<TankConfigurationExtra> _extras(
-  TankConfigurationDive dive,
-  List<DiveTank> tanks,
-) => {
-  if (tanks.any((t) => t.role == TankRole.stage)) TankConfigurationExtra.stages,
-  if (tanks.any((t) => t.role == TankRole.deco)) TankConfigurationExtra.decoGas,
+Set<TankConfigurationExtra> _extras(TankConfigurationDive dive) => {
+  if (dive.tanks.any((t) => t.role == TankRole.stage))
+    TankConfigurationExtra.stages,
+  if (dive.tanks.any((t) => t.role == TankRole.deco))
+    TankConfigurationExtra.decoGas,
   if (_isMultiGas(dive)) TankConfigurationExtra.multiGas,
 };
 

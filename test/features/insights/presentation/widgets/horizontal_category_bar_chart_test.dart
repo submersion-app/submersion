@@ -55,6 +55,24 @@ void main() {
     expect(factor, 0.01);
   });
 
+  testWidgets('a count above the scale draws a full bar, not past it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const HorizontalCategoryBarChart(
+          data: [(label: 'Stage', count: 12)],
+          scaleTo: 10,
+        ),
+      ),
+    );
+
+    final factor = tester
+        .widget<FractionallySizedBox>(find.byType(FractionallySizedBox))
+        .widthFactor;
+    expect(factor, 1.0);
+  });
+
   testWidgets('rows keep the order they are given', (tester) async {
     await tester.pumpWidget(
       _wrap(

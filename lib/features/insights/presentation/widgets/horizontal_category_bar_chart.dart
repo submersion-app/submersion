@@ -87,7 +87,9 @@ class HorizontalCategoryBarChart extends StatelessWidget {
                   Expanded(
                     child: FractionallySizedBox(
                       alignment: AlignmentDirectional.centerStart,
-                      widthFactor: maxCount == 0 ? 0 : item.count / maxCount,
+                      widthFactor: maxCount == 0
+                          ? 0
+                          : (item.count / maxCount).clamp(0.0, 1.0),
                       child: Container(
                         height: 16,
                         decoration: BoxDecoration(
@@ -100,10 +102,18 @@ class HorizontalCategoryBarChart extends StatelessWidget {
                   const SizedBox(width: 8),
                   SizedBox(
                     width: countWidth,
-                    child: Text(
-                      formatCount?.call(item.count) ?? '${item.count}',
-                      style: theme.textTheme.bodySmall,
-                      textAlign: TextAlign.end,
+                    // Shrinks a count too long for the column (a large text
+                    // scale, a 4-digit count with its share) instead of
+                    // wrapping it onto a second line.
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Text(
+                        formatCount?.call(item.count) ?? '${item.count}',
+                        style: theme.textTheme.bodySmall,
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                      ),
                     ),
                   ),
                 ],

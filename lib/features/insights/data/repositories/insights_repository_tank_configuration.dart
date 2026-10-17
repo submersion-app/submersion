@@ -66,7 +66,9 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
               o2: r.read<double>('o2_percent'),
               he: r.read<double>('he_percent'),
             ),
-            role: _tankRoleByName(r.read<String>('tank_role')),
+            role:
+                _tankRolesByName[r.read<String>('tank_role')] ??
+                TankRole.backGas,
             order: r.read<int>('tank_order'),
             computerId: r.read<String?>('computer_id'),
             sharedComputerIds: decodeSharedComputerIds(
@@ -86,20 +88,7 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
 
       return TankConfigurationStats.fromDives([
         for (final r in diveRows)
-          TankConfigurationDive(
-            diveMode: _diveModeByName(r.read<String>('dive_mode')),
-            tanks: [
-              for (final t in tanksByDive[r.read<String>('id')] ?? const [])
-                if (_ownedByPrimary(
-                  t,
-                  primarySourceId: r.read<String?>('primary_source_id'),
-                  primaryComputerId: r.read<String?>('primary_computer_id'),
-                ))
-                  t,
-            ],
-            gasSwitches: switchesByDive[r.read<String>('id')] ?? const [],
-            hasProfile: r.read<bool>('has_profile'),
-          ),
+          _tankConfigurationDive(r, tanksByDive, switchesByDive),
       ]);
     } catch (e, stackTrace) {
       _log.error(
@@ -110,6 +99,32 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
       rethrow;
     }
   }
+}
+
+/// One dive's classifier input from its row, keeping only the cylinders
+/// its primary recording owns.
+TankConfigurationDive _tankConfigurationDive(
+  QueryRow row,
+  Map<String, List<domain.DiveTank>> tanksByDive,
+  Map<String, List<({String tankId, int timestamp})>> switchesByDive,
+) {
+  final id = row.read<String>('id');
+  final primarySourceId = row.read<String?>('primary_source_id');
+  final primaryComputerId = row.read<String?>('primary_computer_id');
+  return TankConfigurationDive(
+    diveMode: _diveModesByName[row.read<String>('dive_mode')] ?? DiveMode.oc,
+    tanks: [
+      for (final t in tanksByDive[id] ?? const <domain.DiveTank>[])
+        if (_ownedByPrimary(
+          t,
+          primarySourceId: primarySourceId,
+          primaryComputerId: primaryComputerId,
+        ))
+          t,
+    ],
+    gasSwitches: switchesByDive[id] ?? const [],
+    hasProfile: row.read<bool>('has_profile'),
+  );
 }
 
 /// Whether [tank] belongs to the dive's primary recording, the rule
@@ -131,12 +146,10 @@ bool _ownedByPrimary(
       (sourceId == null || sourceId == primarySourceId);
 }
 
-/// A stored role, or back gas for a name this build does not know (a newer
-/// peer's role), matching the column's default.
-TankRole _tankRoleByName(String name) =>
-    TankRole.values.asNameMap()[name] ?? TankRole.backGas;
+/// Stored roles by name, built once. A name this build does not know (a
+/// newer peer's role) reads as back gas, the column's default.
+final Map<String, TankRole> _tankRolesByName = TankRole.values.asNameMap();
 
-/// A stored dive mode, or open circuit for an unknown name, matching the
-/// column's default.
-DiveMode _diveModeByName(String name) =>
-    DiveMode.values.asNameMap()[name] ?? DiveMode.oc;
+/// Stored dive modes by name, built once. An unknown name reads as open
+/// circuit, the column's default.
+final Map<String, DiveMode> _diveModesByName = DiveMode.values.asNameMap();

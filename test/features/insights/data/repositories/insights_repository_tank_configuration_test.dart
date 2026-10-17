@@ -276,6 +276,31 @@ void main() {
     expect(stats.extraCounts[TankConfigurationExtra.multiGas], 1);
   });
 
+  // The card reads gas switches and data sources, so a write to only those
+  // (a sync pull, or setting the primary source) must refresh Insights.
+  Future<bool> fires(Future<void> Function() write) async {
+    var fired = false;
+    final sub = repository.watchInsightsChanges().listen((_) => fired = true);
+    addTearDown(sub.cancel);
+    await write();
+    for (var i = 0; i < 150 && !fired; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    return fired;
+  }
+
+  test('insights refresh on a gas switch write', () async {
+    await insertDive('w');
+    await insertTank('w', 0, 'backGas');
+    expect(await fires(() => insertSwitch('w', 'w-0', 600)), isTrue);
+  });
+
+  test('insights refresh on a data source write', () async {
+    await insertComputer('c1');
+    await insertDive('w');
+    expect(await fires(() => insertSource('w', 'c1', primary: true)), isTrue);
+  });
+
   test('scopes to the diver', () async {
     await db
         .into(db.divers)
