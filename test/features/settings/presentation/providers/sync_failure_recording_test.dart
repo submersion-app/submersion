@@ -8,7 +8,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
-import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The real SyncNotifier persists the outcome of each sync attempt for

@@ -18,6 +18,7 @@ import 'package:submersion/features/gas_calculators/presentation/gas_calculator_
 import 'package:submersion/features/settings/presentation/widgets/equipment_default_view_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
+import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
@@ -41,20 +42,16 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
-import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
-import 'package:submersion/features/settings/presentation/widgets/import_preferences_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -184,7 +181,7 @@ class SettingsPage extends ConsumerWidget {
       case 'manage':
         return const _ManageSectionContent();
       case 'data':
-        return _DataSectionContent(ref: ref);
+        return const DataSectionContent();
       case 'dataSources':
         return const _DataSourcesSectionContent();
       case 'about':
@@ -348,7 +345,7 @@ class SettingsSectionDetailPage extends ConsumerWidget {
       case 'manage':
         return const _ManageSectionContent();
       case 'data':
-        return _DataSectionContent(ref: ref);
+        return const DataSectionContent();
       case 'dataSources':
         return const _DataSourcesSectionContent();
       case 'about':
@@ -2719,179 +2716,6 @@ class SharedDataSectionContent extends ConsumerWidget {
         ],
       ),
     );
-  }
-}
-
-/// Data section content
-class _DataSectionContent extends ConsumerWidget {
-  final WidgetRef ref;
-
-  const _DataSectionContent({required this.ref});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final storageState = ref.watch(storageConfigNotifierProvider);
-    final isCustomFolder =
-        storageState.config.mode == StorageLocationMode.customFolder;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_data_header_backupSync,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.backup),
-                  title: Text(context.l10n.settings_data_backup),
-                  subtitle: _buildBackupSubtitle(context, ref),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/backup'),
-                ),
-                // Cloud sync is available on every platform (iCloud on
-                // Apple devices, S3-compatible storage elsewhere); the
-                // Cloud Sync page gates which providers each platform sees.
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.cloud_sync),
-                  title: Text(context.l10n.settings_cloudSync_appBar_title),
-                  subtitle: Text(
-                    context.l10n.settings_cloudSync_entry_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/cloud-sync'),
-                ),
-                const Divider(height: 1),
-                // Shared site libraries (issue #2567).
-                ListTile(
-                  leading: const Icon(Icons.groups_outlined),
-                  title: Text(context.l10n.sharedLibrary_settings_title),
-                  subtitle: Text(context.l10n.sharedLibrary_settings_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/shared-libraries'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.perm_media_outlined),
-                  title: Text(context.l10n.settings_photosMedia_title),
-                  subtitle: Text(context.l10n.settings_photosMedia_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/photos-media'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_data_header_storage,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.folder),
-                  title: Text(context.l10n.settings_data_databaseStorage),
-                  subtitle: Text(
-                    isCustomFolder
-                        ? context.l10n.settings_data_customFolder
-                        : context.l10n.settings_data_appDefaultLocation,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/storage'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.cloud_download),
-                  title: Text(context.l10n.settings_data_offlineMaps),
-                  subtitle: Text(
-                    context.l10n.settings_data_offlineMaps_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/offline-maps'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_data_header_import,
-          ),
-          const SizedBox(height: 8),
-          const ImportPreferencesCard(),
-          const SizedBox(height: 16),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_data_header_dataTools,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.access_time),
-                  title: Text(context.l10n.settings_fixDiveTimes_title),
-                  subtitle: Text(context.l10n.settings_fixDiveTimes_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/fix-dive-times'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.group_add),
-                  title: Text(context.l10n.buddies_linkText_page_title),
-                  subtitle: Text(context.l10n.buddies_linkText_page_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/link-buddy-names'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.category),
-                  title: Text(context.l10n.equipment_retypeOther_title),
-                  subtitle: Text(context.l10n.equipment_retypeOther_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/retype-other-gear'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.rule),
-                  title: Text(context.l10n.dataQuality_settings_title),
-                  subtitle: Text(context.l10n.dataQuality_settings_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/data-quality'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget? _buildBackupSubtitle(BuildContext context, WidgetRef ref) {
-    final lastBackup = ref.watch(lastBackupTimeProvider);
-    if (lastBackup == null) {
-      return Text(context.l10n.settings_data_backup_subtitle);
-    }
-    final diff = DateTime.now().difference(lastBackup);
-    final String timeAgo;
-    if (diff.inMinutes < 1) {
-      timeAgo = context.l10n.backup_time_justNow;
-    } else if (diff.inHours < 1) {
-      timeAgo = context.l10n.backup_time_minutesAgo(diff.inMinutes);
-    } else if (diff.inDays < 1) {
-      timeAgo = context.l10n.backup_time_hoursAgo(diff.inHours);
-    } else {
-      timeAgo = context.l10n.backup_time_daysAgo(diff.inDays);
-    }
-    return Text(context.l10n.backup_status_lastBackup(timeAgo));
   }
 }
 

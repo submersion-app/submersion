@@ -10,6 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
+import 'package:submersion/features/settings/presentation/widgets/import_preferences_group.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -55,8 +58,13 @@ void main() {
   double topOf(WidgetTester tester, String text) =>
       tester.getTopLeft(find.text(text)).dy;
 
-  Element cardOf(WidgetTester tester, String text) => tester.element(
-    find.ancestor(of: find.text(text), matching: find.byType(Card)).first,
+  Element groupOf(WidgetTester tester, String text) => tester.element(
+    find
+        .ancestor(
+          of: find.text(text),
+          matching: find.byType(ImportPreferencesGroup),
+        )
+        .first,
   );
 
   testWidgets('an Import header sits between Storage and Data Tools', (
@@ -88,22 +96,35 @@ void main() {
     }
   });
 
-  testWidgets('nothing sits above the Backup & Sync header', (tester) async {
+  testWidgets('only the dashboard sits above the Backup & Sync header', (
+    tester,
+  ) async {
     await pumpDataSection(tester);
 
-    // Every text on the Data page, not just cards: a bare tile or label
-    // reintroduced above the first header must fail this too.
+    // Every text on the Data page, not just rows: a bare tile or label
+    // reintroduced above the first header must fail this too. The health
+    // strip and facts line (issue #3390) are the one exception.
     final page = find
         .ancestor(
           of: find.text('Backup & Sync'),
           matching: find.byType(SingleChildScrollView),
         )
         .first;
+    final dashboard = find.descendant(
+      of: page,
+      matching: find.byWidgetPredicate(
+        (w) => w is DataHealthStrip || w is DataFactsLine,
+      ),
+    );
+    final dashboardTexts = find
+        .descendant(of: dashboard, matching: find.byType(Text))
+        .evaluate()
+        .toSet();
     final texts = find.descendant(of: page, matching: find.byType(Text));
     final firstHeaderTop = topOf(tester, 'Backup & Sync');
     for (final element in texts.evaluate()) {
       final text = (element.widget as Text).data;
-      if (text == 'Backup & Sync') continue;
+      if (text == 'Backup & Sync' || dashboardTexts.contains(element)) continue;
       // Read the element's own box: a widget-based lookup would throw on a
       // widget instance mounted in more than one place.
       final box = element.renderObject! as RenderBox;
@@ -115,12 +136,12 @@ void main() {
     }
   });
 
-  testWidgets('the import options share one card', (tester) async {
+  testWidgets('the import options share one group', (tester) async {
     await pumpDataSection(tester);
 
-    final card = cardOf(tester, importOptions.first);
+    final group = groupOf(tester, importOptions.first);
     for (final option in importOptions.skip(1)) {
-      expect(cardOf(tester, option), same(card), reason: option);
+      expect(groupOf(tester, option), same(group), reason: option);
     }
   });
 
