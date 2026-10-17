@@ -142,6 +142,22 @@ void main() {
     expect(service.checks.single.prefix, 'site-sync');
   });
 
+  testWidgets('a long account label fits a phone width', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    _accounts[0] = _accounts[0].copyWith(
+      label:
+          'group-sites @ s3.us-west-2.amazonaws.com (submersion-sites/puget-sound)',
+    );
+    addTearDown(
+      () => _accounts[0] = _accounts[0].copyWith(label: 'Old bucket'),
+    );
+    await tester.pumpWidget(_app(_FakeConnection()));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a stored account no longer on the device is named', (
     tester,
   ) async {

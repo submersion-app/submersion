@@ -137,12 +137,18 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
         if (list.isNotEmpty)
           DropdownButtonFormField<ConnectedAccount>(
             initialValue: _c.account,
+            // Library account labels name the bucket, host and folder: too
+            // long for a phone without an ellipsis.
+            isExpanded: true,
             decoration: InputDecoration(
               labelText: l10n.sharedLibrary_connect_account_label,
             ),
             items: [
               for (final a in list)
-                DropdownMenuItem(value: a, child: Text(a.label)),
+                DropdownMenuItem(
+                  value: a,
+                  child: Text(a.label, overflow: TextOverflow.ellipsis),
+                ),
             ],
             onChanged: (a) {
               _c.selectAccount(a);
