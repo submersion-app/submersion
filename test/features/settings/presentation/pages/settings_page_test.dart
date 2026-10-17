@@ -2711,4 +2711,97 @@ void main() {
       expect(backfill.counted, isEmpty);
     });
   });
+
+  group('old settings links (#3395)', () {
+    Future<GoRouter> pumpAt(WidgetTester tester, String location) async {
+      final router = GoRouter(
+        initialLocation: location,
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+            routes: [
+              GoRoute(
+                path: 'safety',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('safety hub')),
+                routes: [
+                  GoRoute(
+                    path: 'decompression',
+                    builder: (context, state) =>
+                        const DecompressionSettingsPage(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...getOverrides(),
+            allDiversProvider.overrideWith((ref) async => <Diver>[]),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return router;
+    }
+
+    testWidgets('on phone the old Decompression link lands on its page with '
+        'one app bar', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = await pumpAt(tester, '/settings?selected=decompression');
+
+      expect(router.state.uri.toString(), '/settings/safety/decompression');
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Decompression'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('on phone a Safety selection goes to its own route', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = await pumpAt(tester, '/settings?selected=safety');
+
+      expect(router.state.uri.toString(), '/settings/safety');
+      expect(find.text('safety hub'), findsOneWidget);
+    });
+
+    testWidgets('on desktop the old Decompression link selects Safety', (
+      tester,
+    ) async {
+      // MediaQuery follows the view, not the surface, and the master-detail
+      // breakpoint reads MediaQuery.
+      tester.view.physicalSize = const Size(1800, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final router = await pumpAt(tester, '/settings?selected=decompression');
+
+      expect(
+        router.state.uri.toString(),
+        '/settings?selected=safety&safetyPage=decompression',
+      );
+      expect(find.text('GF 50/85'), findsOneWidget);
+    });
+  });
 }

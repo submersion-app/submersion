@@ -51,6 +51,8 @@ import 'package:submersion/features/settings/presentation/widgets/diagnostics_ca
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/import_preferences_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
+import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -109,7 +111,32 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ResponsiveBreakpoints.isMasterDetail(context)) {
+    final masterDetail = ResponsiveBreakpoints.isMasterDetail(context);
+    Uri? uri;
+    try {
+      uri = GoRouterState.of(context).uri;
+    } catch (_) {
+      // GoRouter not available (e.g., in tests)
+    }
+
+    // An old link (Decompression before it moved under Safety, or a section
+    // that has a page of its own) is sent on after this frame: navigating
+    // during build is not allowed.
+    final legacyTarget = uri == null
+        ? null
+        : resolveLegacySettingsLocation(uri, masterDetail: masterDetail);
+    if (legacyTarget != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        if (masterDetail) {
+          context.goInPlace(legacyTarget);
+        } else {
+          context.go(legacyTarget);
+        }
+      });
+    }
+
+    if (masterDetail) {
       return MasterDetailScaffold(
         sectionId: 'settings',
         masterBuilder: (context, onItemSelected, selectedId) =>
@@ -125,16 +152,11 @@ class SettingsPage extends ConsumerWidget {
     }
 
     // Mobile: Check for selected section via query param
-    String? selectedSection;
-    try {
-      selectedSection = GoRouterState.of(
-        context,
-      ).uri.queryParameters['selected'];
-    } catch (_) {
-      // GoRouter not available (e.g., in tests)
-    }
+    final selectedSection = uri?.queryParameters['selected'];
 
-    if (selectedSection != null) {
+    // Until the redirect lands, show the list rather than wrapping a full
+    // page in the section wrapper for a frame.
+    if (selectedSection != null && legacyTarget == null) {
       // Show section detail page
       return SettingsSectionDetailPage(sectionId: selectedSection);
     }
