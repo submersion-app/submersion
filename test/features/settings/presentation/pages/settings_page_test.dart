@@ -35,6 +35,7 @@ import 'package:submersion/features/settings/presentation/pages/home_appearance_
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -1004,7 +1005,7 @@ void main() {
       );
       expect(find.text('Seguridad'), findsOneWidget);
       expect(
-        find.text('Reglas de revisión y volar tras bucear'),
+        find.text('Reglas de revisión, descompresión y equipo'),
         findsOneWidget,
       );
       // Never the hardcoded English fallback.
@@ -2419,11 +2420,11 @@ void main() {
   group('Decompression GTR settings', () {
     Widget buildDecompressionWidget(List<Override> overrides) {
       final router = GoRouter(
-        initialLocation: '/settings?selected=decompression',
+        initialLocation: '/settings',
         routes: [
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsPage(),
+            builder: (context, state) => const DecompressionSettingsPage(),
           ),
         ],
       );
@@ -2473,11 +2474,11 @@ void main() {
   group('Decompression ppO2 limits', () {
     Widget buildDecompressionWidget(List<Override> overrides) {
       final router = GoRouter(
-        initialLocation: '/settings?selected=decompression',
+        initialLocation: '/settings',
         routes: [
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsPage(),
+            builder: (context, state) => const DecompressionSettingsPage(),
           ),
         ],
       );
