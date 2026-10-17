@@ -221,6 +221,25 @@ void main() {
     }
   });
 
+  testWidgets('each marker hairline runs across the pane to the scale', (
+    tester,
+  ) async {
+    await pumpScene(tester);
+
+    final scaleLeft = tester
+        .getRect(find.byKey(const ValueKey('scene-depth-scale')))
+        .left;
+    final lines = find.descendant(
+      of: find.byType(DepthMarker),
+      matching: find.byKey(const ValueKey('depth-marker-line')),
+    );
+    expect(lines, findsNWidgets(2));
+    for (final element in lines.evaluate()) {
+      final rect = tester.getRect(find.byWidget(element.widget));
+      expect(rect.right, greaterThan(scaleLeft - 20));
+    }
+  });
+
   testWidgets('the deepest marker without a site shows the date alone', (
     tester,
   ) async {

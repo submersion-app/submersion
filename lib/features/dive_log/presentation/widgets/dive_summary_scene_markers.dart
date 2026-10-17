@@ -97,58 +97,66 @@ class DepthMarker extends StatelessWidget {
       height: 1.1,
       shadows: SceneInk.shadowsOf(context),
     );
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: lineOffset - 3),
-          child: Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: ink.withValues(alpha: 0.85),
-              boxShadow: [
-                BoxShadow(color: ink.withValues(alpha: 0.9), blurRadius: 10),
+    return LayoutBuilder(
+      builder: (context, constraints) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: lineOffset - 3),
+            child: Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: ink.withValues(alpha: 0.85),
+                boxShadow: [
+                  BoxShadow(color: ink.withValues(alpha: 0.9), blurRadius: 10),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          ConstrainedBox(
+            // The text wraps inside two thirds of the row; the hairline takes
+            // whatever is left, out to the depth scale.
+            constraints: BoxConstraints(maxWidth: constraints.maxWidth * 2 / 3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (compact && onTap != null)
+                  SceneLink(
+                    text: value,
+                    onTap: onTap!,
+                    semanticsLabel: semanticsLabel ?? '$value, $label',
+                    style: valueStyle,
+                  )
+                else
+                  Text(value, style: valueStyle),
+                if (!compact)
+                  onTap == null
+                      ? SceneLabel(label)
+                      : SceneLink(
+                          text: label,
+                          onTap: onTap!,
+                          semanticsLabel: semanticsLabel ?? '$value, $label',
+                        ),
               ],
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Flexible(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (compact && onTap != null)
-                SceneLink(
-                  text: value,
-                  onTap: onTap!,
-                  semanticsLabel: semanticsLabel ?? '$value, $label',
-                  style: valueStyle,
-                )
-              else
-                Text(value, style: valueStyle),
-              if (!compact)
-                onTap == null
-                    ? SceneLabel(label)
-                    : SceneLink(
-                        text: label,
-                        onTap: onTap!,
-                        semanticsLabel: semanticsLabel ?? '$value, $label',
-                      ),
-            ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: lineOffset),
+              child: Container(
+                key: const ValueKey('depth-marker-line'),
+                height: 1,
+                color: ink.withValues(alpha: 0.12),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: lineOffset),
-            child: Container(height: 1, color: ink.withValues(alpha: 0.12)),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
