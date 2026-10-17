@@ -293,6 +293,23 @@ class RunTest(unittest.TestCase):
         )
 
 
+class GhCliTest(unittest.TestCase):
+    def test_runs_gh_and_returns_stdout(self):
+        seen = {}
+
+        def fake_run(cmd, **kwargs):
+            seen["cmd"], seen["kwargs"] = cmd, kwargs
+            return subprocess.CompletedProcess(cmd, 0, stdout="out\n", stderr="")
+
+        original = alert.subprocess.run
+        alert.subprocess.run = fake_run
+        self.addCleanup(setattr, alert.subprocess, "run", original)
+        self.assertEqual(alert.gh_cli(["issue", "list"]), "out\n")
+        self.assertEqual(seen["cmd"], ["gh", "issue", "list"])
+        # check=True is what turns a failed gh call into a failed job.
+        self.assertTrue(seen["kwargs"]["check"])
+
+
 class MainTest(unittest.TestCase):
     def test_reads_its_inputs_from_the_environment(self):
         gh = FakeGh(runs=[BUNDLER_RED])
