@@ -35,18 +35,48 @@ _LITERAL_RE = re.compile(
 _SKIP_DIRS = frozenset({".git", ".dart_tool", "build", "Pods", "vendor", "node_modules"})
 
 
+def _code_only(line):
+    """Return line with string contents blanked and any comment cut off.
+
+    Offsets are preserved up to the cut, so a match on the result indexes the
+    original line. A mention of eval_gemfile inside a string or a comment is
+    not a call, and Dependabot ignores it too.
+    """
+    out = []
+    quote = None
+    escaped = False
+    for ch in line.rstrip("\n"):
+        if quote:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == quote:
+                quote = None
+                out.append(ch)
+                continue
+            out.append(" ")
+        elif ch in "'\"":
+            quote = ch
+            out.append(ch)
+        elif ch == "#":
+            break
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
 def problems(gemfile):
     """Return [(line number, message)] for each unparseable eval_gemfile."""
     found = []
     base = os.path.dirname(gemfile)
     with open(gemfile, encoding="utf-8") as fh:
         for number, line in enumerate(fh, start=1):
-            if line.lstrip().startswith("#"):
-                continue
-            match = _CALL_RE.search(line)
+            code = _code_only(line)
+            match = _CALL_RE.search(code)
             if not match:
                 continue
-            literal = _LITERAL_RE.match(match.group("rest"))
+            literal = _LITERAL_RE.match(line[match.start("rest") : len(code)])
             if not literal or "#{" in literal.group("path"):
                 found.append(
                     (

@@ -95,6 +95,21 @@ class ProblemsTest(unittest.TestCase):
     def test_comments_are_ignored(self):
         self.assertEqual(self.problems("# eval_gemfile(plugins_path)\n"), [])
 
+    def test_a_trailing_comment_mention_is_ignored(self):
+        self.assertEqual(
+            self.problems('gem "fastlane" # see eval_gemfile(plugins_path)\n'), []
+        )
+
+    def test_a_mention_inside_a_string_is_ignored(self):
+        self.assertEqual(self.problems("puts 'eval_gemfile(plugins_path)'\n"), [])
+        self.assertEqual(self.problems('puts "say \\"eval_gemfile(x)\\""\n'), [])
+
+    def test_a_literal_call_with_a_trailing_comment_passes(self):
+        self.write_pluginfile()
+        self.assertEqual(
+            self.problems('eval_gemfile "fastlane/Pluginfile" # plugins\n'), []
+        )
+
 
 class MainTest(unittest.TestCase):
     def test_the_repo_gemfiles_are_parseable_by_dependabot(self):

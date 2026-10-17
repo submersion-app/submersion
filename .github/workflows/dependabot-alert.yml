@@ -23,6 +23,14 @@ on:
 permissions:
   contents: read
 
+# One run at a time, so a dispatch overlapping the cron cannot open a second
+# rolling issue or close one the other is commenting on. Unlike beta.yml, a
+# pending run the group replaces loses nothing: every run reads the live runs
+# list and issue state, so the run that does go ahead sees the same failures.
+concurrency:
+  group: dependabot-failure-alert
+  cancel-in-progress: false
+
 jobs:
   alert:
     name: Alert on failed Dependabot runs
