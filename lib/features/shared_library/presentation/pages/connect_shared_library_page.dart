@@ -189,6 +189,15 @@ class _ConnectSharedLibraryPageState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // What the owners say the library is for (issue #3389), so the
+        // diver can tell they found the right one before joining.
+        if (probe.exists && probe.description != null) ...[
+          Text(
+            probe.description!,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+        ],
         if (!probe.exists) ...[
           Text(l10n.sharedLibrary_connect_notALibrary),
           const SizedBox(height: 8),

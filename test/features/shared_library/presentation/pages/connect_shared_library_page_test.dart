@@ -229,6 +229,41 @@ void main() {
     );
   });
 
+  testWidgets('the join preview shows the library description', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          eligibleLibraryAccountsProvider.overrideWith(
+            (ref) async => [_bucket()],
+          ),
+          sharedLibraryMembershipServiceProvider.overrideWithValue(
+            _FakeMembershipService(const {
+              'site-sync': LibraryProbe(
+                exists: true,
+                id: 'L',
+                name: 'Reef Survey',
+                description: 'Sites our club dives',
+              ),
+            }),
+          ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
+          currentDiverProvider.overrideWith((ref) async => null),
+        ],
+        locale: const Locale('en'),
+        child: const ConnectSharedLibraryPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('library-prefix')),
+      'site-sync',
+    );
+    await tester.tap(find.text('Check'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sites our club dives'), findsOneWidget);
+  });
+
   testWidgets('without an eligible account the hint shows', (tester) async {
     await tester.pumpWidget(
       testApp(
