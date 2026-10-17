@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -108,6 +110,39 @@ void main() {
     await pumpCard(tester, tenDives);
 
     expect(find.textContaining('Sidemount Left and Right'), findsOneWidget);
+  });
+
+  Future<void> pumpWith(
+    WidgetTester tester,
+    Future<TankConfigurationStats> Function() load,
+  ) => tester.pumpWidget(
+    ProviderScope(
+      overrides: [tankConfigurationStatsProvider.overrideWith((ref) => load())],
+      child: const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(child: TankConfigurationCard()),
+        ),
+      ),
+    ),
+  );
+
+  testWidgets('shows a spinner while loading', (tester) async {
+    final pending = Completer<TankConfigurationStats>();
+    await pumpWith(tester, () => pending.future);
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    pending.complete(TankConfigurationStats.empty);
+    await tester.pump();
+  });
+
+  testWidgets('a failed load shows the error state', (tester) async {
+    await pumpWith(tester, () async => throw StateError('query failed'));
+    await tester.pump();
+
+    expect(find.text('Unable to load tank configuration'), findsOneWidget);
   });
 
   testWidgets('empty stats show the empty state', (tester) async {
