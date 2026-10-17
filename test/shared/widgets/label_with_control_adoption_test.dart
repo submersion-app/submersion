@@ -16,7 +16,7 @@ void main() {
   // The trailing value, which `dart format` may put on the next code line
   // (after a comment, say) rather than beside `trailing:`.
   String trailingValue(List<String> lines, int index, String sameLine) {
-    if (sameLine.isNotEmpty) return sameLine;
+    if (sameLine.isNotEmpty && !sameLine.startsWith('//')) return sameLine;
     for (var i = index + 1; i < lines.length; i++) {
       final next = lines[i].trim();
       if (next.isEmpty || next.startsWith('//')) continue;
@@ -25,7 +25,7 @@ void main() {
     return '';
   }
 
-  final listTileCall = RegExp(r'\bListTile\(');
+  final listTileCall = RegExp(r'\bListTile(\.adaptive)?\(');
 
   // The call a named argument belongs to is the nearest line above it that
   // is indented less, as `dart format` lays arguments out.

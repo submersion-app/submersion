@@ -71,8 +71,8 @@ import 'package:submersion/features/settings/presentation/pages/debug_log_viewer
 import 'package:submersion/features/settings/presentation/pages/network_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';

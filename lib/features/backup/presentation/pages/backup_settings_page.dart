@@ -27,8 +27,8 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
-import 'package:path/path.dart' as p;
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:path/path.dart' as p;
 
 class BackupSettingsPage extends ConsumerWidget {
   const BackupSettingsPage({super.key});
