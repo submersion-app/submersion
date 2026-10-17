@@ -424,15 +424,15 @@ class _AlignPageBody extends ConsumerWidget {
                       child: Icon(Icons.add, size: 32, color: Colors.black87),
                     ),
                   ),
-                // Map style switcher, with the depth overlay toggle below it
-                // once the track is anchored.
+                // Map style switcher and reset-to-north compass, with the
+                // depth overlay toggle below them once the track is anchored.
                 Positioned(
                   top: 8,
                   right: 8,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const MapCornerControls(),
+                      MapCornerControls(controller: state._mapController),
                       if (anchor != null) ...[
                         const SizedBox(height: 8),
                         DepthOverlayToggleButton(siteLocation: anchor),
