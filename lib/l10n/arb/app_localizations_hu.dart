@@ -21494,86 +21494,87 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hozzáadás a megosztott merülőhely-könyvtárhoz';
 
   @override
-  String get sharedLibrary_about_title => 'About';
+  String get sharedLibrary_about_title => 'Névjegy';
 
   @override
-  String get sharedLibrary_about_edit_title => 'Edit library details';
+  String get sharedLibrary_about_edit_title =>
+      'Könyvtár adatainak szerkesztése';
 
   @override
-  String get sharedLibrary_about_name_label => 'Library name';
+  String get sharedLibrary_about_name_label => 'A könyvtár neve';
 
   @override
-  String get sharedLibrary_about_description_label => 'Description';
+  String get sharedLibrary_about_description_label => 'Leírás';
 
   @override
   String get sharedLibrary_about_description_help =>
-      'What this library holds and who it is for. Every member sees it.';
+      'Mit tartalmaz ez a könyvtár, és kinek szól. Minden tag látja.';
 
   @override
-  String get sharedLibrary_about_nameRequired => 'Enter a name';
+  String get sharedLibrary_about_nameRequired => 'Adj meg egy nevet';
 
   @override
-  String get sharedLibrary_connection_title => 'Connection on this device';
+  String get sharedLibrary_connection_title => 'Kapcsolat ezen az eszközön';
 
   @override
-  String get sharedLibrary_connection_s3 => 'S3 account';
+  String get sharedLibrary_connection_s3 => 'S3-fiók';
 
   @override
   String sharedLibrary_connection_s3Bucket(String bucket) {
-    return 'S3 account, bucket $bucket';
+    return 'S3-fiók, $bucket tároló';
   }
 
   @override
-  String get sharedLibrary_connection_webdav => 'WebDAV account';
+  String get sharedLibrary_connection_webdav => 'WebDAV-fiók';
 
   @override
   String sharedLibrary_connection_webdavServer(String server) {
-    return 'WebDAV account, $server';
+    return 'WebDAV-fiók, $server';
   }
 
   @override
   String get sharedLibrary_connection_accountMissing =>
-      'This account is no longer on this device';
+      'Ez a fiók már nincs ezen az eszközön';
 
   @override
-  String get sharedLibrary_connection_folder => 'Folder';
+  String get sharedLibrary_connection_folder => 'Mappa';
 
   @override
-  String get sharedLibrary_connection_change => 'Change connection';
+  String get sharedLibrary_connection_change => 'Kapcsolat módosítása';
 
   @override
-  String get sharedLibrary_connection_check => 'Check location';
+  String get sharedLibrary_connection_check => 'Hely ellenőrzése';
 
   @override
   String sharedLibrary_connection_same(String name) {
-    return 'Found $name here. This is the same library.';
+    return '$name itt található. Ez ugyanaz a könyvtár.';
   }
 
   @override
-  String get sharedLibrary_connection_save => 'Save connection';
+  String get sharedLibrary_connection_save => 'Kapcsolat mentése';
 
   @override
   String get sharedLibrary_connection_olderCopy =>
-      'This copy looks older than the one you have been syncing with.';
+      'Ez a másolat régebbinek tűnik annál, amellyel eddig szinkronizáltál.';
 
   @override
-  String get sharedLibrary_connection_saveAnyway => 'Save anyway';
+  String get sharedLibrary_connection_saveAnyway => 'Mentés mégis';
 
   @override
   String sharedLibrary_connection_different(String name) {
-    return 'This folder holds a different library ($name). Your connection is unchanged.';
+    return 'Ebben a mappában egy másik könyvtár van ($name). A kapcsolatod nem változik.';
   }
 
   @override
   String get sharedLibrary_connection_differentUnnamed =>
-      'This folder holds a different library. Your connection is unchanged.';
+      'Ebben a mappában egy másik könyvtár van. A kapcsolatod nem változik.';
 
   @override
   String get sharedLibrary_connection_none =>
-      'No library found in this folder. Your connection is unchanged.';
+      'Ebben a mappában nincs könyvtár. A kapcsolatod nem változik.';
 
   @override
-  String get sharedLibrary_connection_saved => 'Connection updated';
+  String get sharedLibrary_connection_saved => 'Kapcsolat frissítve';
 
   @override
   String get settings_cloudSync_adopt_confirm =>

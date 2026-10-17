@@ -21544,86 +21544,86 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zur geteilten Tauchplatzbibliothek hinzufügen';
 
   @override
-  String get sharedLibrary_about_title => 'About';
+  String get sharedLibrary_about_title => 'Über diese Bibliothek';
 
   @override
-  String get sharedLibrary_about_edit_title => 'Edit library details';
+  String get sharedLibrary_about_edit_title => 'Bibliotheksdetails bearbeiten';
 
   @override
-  String get sharedLibrary_about_name_label => 'Library name';
+  String get sharedLibrary_about_name_label => 'Name der Bibliothek';
 
   @override
-  String get sharedLibrary_about_description_label => 'Description';
+  String get sharedLibrary_about_description_label => 'Beschreibung';
 
   @override
   String get sharedLibrary_about_description_help =>
-      'What this library holds and who it is for. Every member sees it.';
+      'Was diese Bibliothek enthält und für wen sie gedacht ist. Alle Mitglieder sehen sie.';
 
   @override
-  String get sharedLibrary_about_nameRequired => 'Enter a name';
+  String get sharedLibrary_about_nameRequired => 'Geben Sie einen Namen ein';
 
   @override
-  String get sharedLibrary_connection_title => 'Connection on this device';
+  String get sharedLibrary_connection_title => 'Verbindung auf diesem Gerät';
 
   @override
-  String get sharedLibrary_connection_s3 => 'S3 account';
+  String get sharedLibrary_connection_s3 => 'S3-Konto';
 
   @override
   String sharedLibrary_connection_s3Bucket(String bucket) {
-    return 'S3 account, bucket $bucket';
+    return 'S3-Konto, Bucket $bucket';
   }
 
   @override
-  String get sharedLibrary_connection_webdav => 'WebDAV account';
+  String get sharedLibrary_connection_webdav => 'WebDAV-Konto';
 
   @override
   String sharedLibrary_connection_webdavServer(String server) {
-    return 'WebDAV account, $server';
+    return 'WebDAV-Konto, $server';
   }
 
   @override
   String get sharedLibrary_connection_accountMissing =>
-      'This account is no longer on this device';
+      'Dieses Konto ist nicht mehr auf diesem Gerät';
 
   @override
-  String get sharedLibrary_connection_folder => 'Folder';
+  String get sharedLibrary_connection_folder => 'Ordner';
 
   @override
-  String get sharedLibrary_connection_change => 'Change connection';
+  String get sharedLibrary_connection_change => 'Verbindung ändern';
 
   @override
-  String get sharedLibrary_connection_check => 'Check location';
+  String get sharedLibrary_connection_check => 'Speicherort prüfen';
 
   @override
   String sharedLibrary_connection_same(String name) {
-    return 'Found $name here. This is the same library.';
+    return '$name hier gefunden. Das ist dieselbe Bibliothek.';
   }
 
   @override
-  String get sharedLibrary_connection_save => 'Save connection';
+  String get sharedLibrary_connection_save => 'Verbindung speichern';
 
   @override
   String get sharedLibrary_connection_olderCopy =>
-      'This copy looks older than the one you have been syncing with.';
+      'Diese Kopie scheint älter zu sein als die, mit der Sie bisher synchronisiert haben.';
 
   @override
-  String get sharedLibrary_connection_saveAnyway => 'Save anyway';
+  String get sharedLibrary_connection_saveAnyway => 'Trotzdem speichern';
 
   @override
   String sharedLibrary_connection_different(String name) {
-    return 'This folder holds a different library ($name). Your connection is unchanged.';
+    return 'Dieser Ordner enthält eine andere Bibliothek ($name). Ihre Verbindung bleibt unverändert.';
   }
 
   @override
   String get sharedLibrary_connection_differentUnnamed =>
-      'This folder holds a different library. Your connection is unchanged.';
+      'Dieser Ordner enthält eine andere Bibliothek. Ihre Verbindung bleibt unverändert.';
 
   @override
   String get sharedLibrary_connection_none =>
-      'No library found in this folder. Your connection is unchanged.';
+      'In diesem Ordner wurde keine Bibliothek gefunden. Ihre Verbindung bleibt unverändert.';
 
   @override
-  String get sharedLibrary_connection_saved => 'Connection updated';
+  String get sharedLibrary_connection_saved => 'Verbindung aktualisiert';
 
   @override
   String get settings_cloudSync_adopt_confirm =>

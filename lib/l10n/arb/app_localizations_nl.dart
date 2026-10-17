@@ -21431,86 +21431,86 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toevoegen aan gedeelde duikstekbibliotheek';
 
   @override
-  String get sharedLibrary_about_title => 'About';
+  String get sharedLibrary_about_title => 'Over';
 
   @override
-  String get sharedLibrary_about_edit_title => 'Edit library details';
+  String get sharedLibrary_about_edit_title => 'Bibliotheekgegevens bewerken';
 
   @override
-  String get sharedLibrary_about_name_label => 'Library name';
+  String get sharedLibrary_about_name_label => 'Naam van de bibliotheek';
 
   @override
-  String get sharedLibrary_about_description_label => 'Description';
+  String get sharedLibrary_about_description_label => 'Beschrijving';
 
   @override
   String get sharedLibrary_about_description_help =>
-      'What this library holds and who it is for. Every member sees it.';
+      'Wat deze bibliotheek bevat en voor wie ze is. Alle leden zien deze.';
 
   @override
-  String get sharedLibrary_about_nameRequired => 'Enter a name';
+  String get sharedLibrary_about_nameRequired => 'Voer een naam in';
 
   @override
-  String get sharedLibrary_connection_title => 'Connection on this device';
+  String get sharedLibrary_connection_title => 'Verbinding op dit apparaat';
 
   @override
-  String get sharedLibrary_connection_s3 => 'S3 account';
+  String get sharedLibrary_connection_s3 => 'S3-account';
 
   @override
   String sharedLibrary_connection_s3Bucket(String bucket) {
-    return 'S3 account, bucket $bucket';
+    return 'S3-account, bucket $bucket';
   }
 
   @override
-  String get sharedLibrary_connection_webdav => 'WebDAV account';
+  String get sharedLibrary_connection_webdav => 'WebDAV-account';
 
   @override
   String sharedLibrary_connection_webdavServer(String server) {
-    return 'WebDAV account, $server';
+    return 'WebDAV-account, $server';
   }
 
   @override
   String get sharedLibrary_connection_accountMissing =>
-      'This account is no longer on this device';
+      'Dit account staat niet meer op dit apparaat';
 
   @override
-  String get sharedLibrary_connection_folder => 'Folder';
+  String get sharedLibrary_connection_folder => 'Map';
 
   @override
-  String get sharedLibrary_connection_change => 'Change connection';
+  String get sharedLibrary_connection_change => 'Verbinding wijzigen';
 
   @override
-  String get sharedLibrary_connection_check => 'Check location';
+  String get sharedLibrary_connection_check => 'Locatie controleren';
 
   @override
   String sharedLibrary_connection_same(String name) {
-    return 'Found $name here. This is the same library.';
+    return '$name hier gevonden. Dit is dezelfde bibliotheek.';
   }
 
   @override
-  String get sharedLibrary_connection_save => 'Save connection';
+  String get sharedLibrary_connection_save => 'Verbinding opslaan';
 
   @override
   String get sharedLibrary_connection_olderCopy =>
-      'This copy looks older than the one you have been syncing with.';
+      'Deze kopie lijkt ouder dan de bibliotheek waarmee je tot nu toe synchroniseerde.';
 
   @override
-  String get sharedLibrary_connection_saveAnyway => 'Save anyway';
+  String get sharedLibrary_connection_saveAnyway => 'Toch opslaan';
 
   @override
   String sharedLibrary_connection_different(String name) {
-    return 'This folder holds a different library ($name). Your connection is unchanged.';
+    return 'Deze map bevat een andere bibliotheek ($name). Je verbinding blijft ongewijzigd.';
   }
 
   @override
   String get sharedLibrary_connection_differentUnnamed =>
-      'This folder holds a different library. Your connection is unchanged.';
+      'Deze map bevat een andere bibliotheek. Je verbinding blijft ongewijzigd.';
 
   @override
   String get sharedLibrary_connection_none =>
-      'No library found in this folder. Your connection is unchanged.';
+      'Geen bibliotheek gevonden in deze map. Je verbinding blijft ongewijzigd.';
 
   @override
-  String get sharedLibrary_connection_saved => 'Connection updated';
+  String get sharedLibrary_connection_saved => 'Verbinding bijgewerkt';
 
   @override
   String get settings_cloudSync_adopt_confirm =>

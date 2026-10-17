@@ -20481,86 +20481,83 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_bulk_addToLibrary => '添加到共享潜点库';
 
   @override
-  String get sharedLibrary_about_title => 'About';
+  String get sharedLibrary_about_title => '关于';
 
   @override
-  String get sharedLibrary_about_edit_title => 'Edit library details';
+  String get sharedLibrary_about_edit_title => '编辑资料库详情';
 
   @override
-  String get sharedLibrary_about_name_label => 'Library name';
+  String get sharedLibrary_about_name_label => '资料库名称';
 
   @override
-  String get sharedLibrary_about_description_label => 'Description';
+  String get sharedLibrary_about_description_label => '描述';
 
   @override
   String get sharedLibrary_about_description_help =>
-      'What this library holds and who it is for. Every member sees it.';
+      '此资料库包含什么内容以及面向哪些人。所有成员都能看到。';
 
   @override
-  String get sharedLibrary_about_nameRequired => 'Enter a name';
+  String get sharedLibrary_about_nameRequired => '请输入名称';
 
   @override
-  String get sharedLibrary_connection_title => 'Connection on this device';
+  String get sharedLibrary_connection_title => '此设备上的连接';
 
   @override
-  String get sharedLibrary_connection_s3 => 'S3 account';
+  String get sharedLibrary_connection_s3 => 'S3 账户';
 
   @override
   String sharedLibrary_connection_s3Bucket(String bucket) {
-    return 'S3 account, bucket $bucket';
+    return 'S3 账户，存储桶 $bucket';
   }
 
   @override
-  String get sharedLibrary_connection_webdav => 'WebDAV account';
+  String get sharedLibrary_connection_webdav => 'WebDAV 账户';
 
   @override
   String sharedLibrary_connection_webdavServer(String server) {
-    return 'WebDAV account, $server';
+    return 'WebDAV 账户，$server';
   }
 
   @override
-  String get sharedLibrary_connection_accountMissing =>
-      'This account is no longer on this device';
+  String get sharedLibrary_connection_accountMissing => '此账户已不在此设备上';
 
   @override
-  String get sharedLibrary_connection_folder => 'Folder';
+  String get sharedLibrary_connection_folder => '文件夹';
 
   @override
-  String get sharedLibrary_connection_change => 'Change connection';
+  String get sharedLibrary_connection_change => '更改连接';
 
   @override
-  String get sharedLibrary_connection_check => 'Check location';
+  String get sharedLibrary_connection_check => '检查位置';
 
   @override
   String sharedLibrary_connection_same(String name) {
-    return 'Found $name here. This is the same library.';
+    return '在此处找到 $name。这是同一个资料库。';
   }
 
   @override
-  String get sharedLibrary_connection_save => 'Save connection';
+  String get sharedLibrary_connection_save => '保存连接';
 
   @override
-  String get sharedLibrary_connection_olderCopy =>
-      'This copy looks older than the one you have been syncing with.';
+  String get sharedLibrary_connection_olderCopy => '此副本似乎比你一直同步的那个更旧。';
 
   @override
-  String get sharedLibrary_connection_saveAnyway => 'Save anyway';
+  String get sharedLibrary_connection_saveAnyway => '仍然保存';
 
   @override
   String sharedLibrary_connection_different(String name) {
-    return 'This folder holds a different library ($name). Your connection is unchanged.';
+    return '此文件夹包含另一个资料库（$name）。你的连接保持不变。';
   }
 
   @override
   String get sharedLibrary_connection_differentUnnamed =>
-      'This folder holds a different library. Your connection is unchanged.';
+      '此文件夹包含另一个资料库。你的连接保持不变。';
 
   @override
-  String get sharedLibrary_connection_none =>
-      'No library found in this folder. Your connection is unchanged.';
+  String get sharedLibrary_connection_none => '此文件夹中没有找到资料库。你的连接保持不变。';
 
   @override
-  String get sharedLibrary_connection_saved => 'Connection updated';
+  String get sharedLibrary_connection_saved => '连接已更新';
 
   @override
   String get settings_cloudSync_adopt_confirm => '采用恢复的资料库';

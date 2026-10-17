@@ -21840,86 +21840,86 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة إلى مكتبة المواقع المشتركة';
 
   @override
-  String get sharedLibrary_about_title => 'About';
+  String get sharedLibrary_about_title => 'حول';
 
   @override
-  String get sharedLibrary_about_edit_title => 'Edit library details';
+  String get sharedLibrary_about_edit_title => 'تعديل تفاصيل المكتبة';
 
   @override
-  String get sharedLibrary_about_name_label => 'Library name';
+  String get sharedLibrary_about_name_label => 'اسم المكتبة';
 
   @override
-  String get sharedLibrary_about_description_label => 'Description';
+  String get sharedLibrary_about_description_label => 'الوصف';
 
   @override
   String get sharedLibrary_about_description_help =>
-      'What this library holds and who it is for. Every member sees it.';
+      'ما تحتويه هذه المكتبة ولمن هي. يراه جميع الأعضاء.';
 
   @override
-  String get sharedLibrary_about_nameRequired => 'Enter a name';
+  String get sharedLibrary_about_nameRequired => 'أدخل اسمًا';
 
   @override
-  String get sharedLibrary_connection_title => 'Connection on this device';
+  String get sharedLibrary_connection_title => 'الاتصال على هذا الجهاز';
 
   @override
-  String get sharedLibrary_connection_s3 => 'S3 account';
+  String get sharedLibrary_connection_s3 => 'حساب S3';
 
   @override
   String sharedLibrary_connection_s3Bucket(String bucket) {
-    return 'S3 account, bucket $bucket';
+    return 'حساب S3، الحاوية $bucket';
   }
 
   @override
-  String get sharedLibrary_connection_webdav => 'WebDAV account';
+  String get sharedLibrary_connection_webdav => 'حساب WebDAV';
 
   @override
   String sharedLibrary_connection_webdavServer(String server) {
-    return 'WebDAV account, $server';
+    return 'حساب WebDAV، $server';
   }
 
   @override
   String get sharedLibrary_connection_accountMissing =>
-      'This account is no longer on this device';
+      'لم يعد هذا الحساب على هذا الجهاز';
 
   @override
-  String get sharedLibrary_connection_folder => 'Folder';
+  String get sharedLibrary_connection_folder => 'المجلد';
 
   @override
-  String get sharedLibrary_connection_change => 'Change connection';
+  String get sharedLibrary_connection_change => 'تغيير الاتصال';
 
   @override
-  String get sharedLibrary_connection_check => 'Check location';
+  String get sharedLibrary_connection_check => 'التحقق من الموقع';
 
   @override
   String sharedLibrary_connection_same(String name) {
-    return 'Found $name here. This is the same library.';
+    return 'تم العثور على $name هنا. إنها المكتبة نفسها.';
   }
 
   @override
-  String get sharedLibrary_connection_save => 'Save connection';
+  String get sharedLibrary_connection_save => 'حفظ الاتصال';
 
   @override
   String get sharedLibrary_connection_olderCopy =>
-      'This copy looks older than the one you have been syncing with.';
+      'تبدو هذه النسخة أقدم من النسخة التي كنت تزامن معها.';
 
   @override
-  String get sharedLibrary_connection_saveAnyway => 'Save anyway';
+  String get sharedLibrary_connection_saveAnyway => 'حفظ على أي حال';
 
   @override
   String sharedLibrary_connection_different(String name) {
-    return 'This folder holds a different library ($name). Your connection is unchanged.';
+    return 'يحتوي هذا المجلد على مكتبة أخرى ($name). لم يتغير اتصالك.';
   }
 
   @override
   String get sharedLibrary_connection_differentUnnamed =>
-      'This folder holds a different library. Your connection is unchanged.';
+      'يحتوي هذا المجلد على مكتبة أخرى. لم يتغير اتصالك.';
 
   @override
   String get sharedLibrary_connection_none =>
-      'No library found in this folder. Your connection is unchanged.';
+      'لم يتم العثور على مكتبة في هذا المجلد. لم يتغير اتصالك.';
 
   @override
-  String get sharedLibrary_connection_saved => 'Connection updated';
+  String get sharedLibrary_connection_saved => 'تم تحديث الاتصال';
 
   @override
   String get settings_cloudSync_adopt_confirm => 'اعتماد المكتبة المستعادة';
