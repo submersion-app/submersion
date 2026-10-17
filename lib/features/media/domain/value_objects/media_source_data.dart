@@ -138,9 +138,21 @@ class FileData extends MediaSourceData {
   /// photo itself, resized.
   final bool isPoster;
 
+  /// Whether [file] was served without the item's own source being
+  /// consulted: a thumbnail this device made earlier, found again in its
+  /// cache (issue #3337).
+  ///
+  /// Bytes normally prove the source still has the item, and a resolution
+  /// that produced some clears the row's orphan flag on the strength of it.
+  /// These bytes prove nothing of the kind: the original may have been
+  /// deleted since the thumbnail was made. Consumers that reason about the
+  /// ORIGIN must treat such a resolution as inconclusive.
+  final bool originUntouched;
+
   const FileData({
     required this.file,
     this.isPoster = false,
+    this.originUntouched = false,
     super.servedFrom,
     super.servedTier,
   });

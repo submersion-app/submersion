@@ -8,7 +8,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
@@ -116,7 +116,7 @@ class _MatchSitesMapState extends ConsumerState<MatchSitesMap> {
         Positioned(
           top: 16,
           right: 16,
-          child: MapCompassButton(controller: _controller),
+          child: MapCornerControls(controller: _controller),
         ),
       ],
     );

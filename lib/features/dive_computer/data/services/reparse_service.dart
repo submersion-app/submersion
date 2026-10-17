@@ -12,6 +12,7 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
@@ -95,6 +96,9 @@ class ReparseService {
   ///
   /// Returns whether the dive's profile strand was left untouched because
   /// this source does not own it -- see [sourceOwnsProfileStrand].
+  ///
+  /// Throws [EmptyParseException], writing nothing, when [parsed] carries no
+  /// dive (see [isEmptyParse], issue #3368).
   Future<({bool profilePreserved})> applyParsedUpdate({
     required String diveId,
     required String sourceRowId,
@@ -106,6 +110,10 @@ class ReparseService {
     Uint8List? rawData,
     Uint8List? rawFingerprint,
   }) async {
+    // Before the transaction, so an empty parse leaves even the source row's
+    // lastParsedAt and clock alone and nothing is staged for sync.
+    if (isEmptyParse(parsed)) throw const EmptyParseException();
+
     final outcome = await db.transaction(() async {
       final now = DateTime.now();
 

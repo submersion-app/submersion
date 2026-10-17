@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -22,15 +22,15 @@ class _FakeSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 void main() {
-  /// Renders the SettingsPage on the mobile decompression detail page via
-  /// GoRouter (?selected=decompression), as cns_method_picker_test.dart does.
+  /// Renders the Decompression settings page under a GoRouter, as it is
+  /// reached from Settings > Safety.
   Widget buildDecompressionWidget(ProviderContainer container) {
     final router = GoRouter(
-      initialLocation: '/settings?selected=decompression',
+      initialLocation: '/settings',
       routes: [
         GoRoute(
           path: '/settings',
-          builder: (context, state) => const SettingsPage(),
+          builder: (context, state) => const DecompressionSettingsPage(),
         ),
       ],
     );

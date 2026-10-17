@@ -14098,6 +14098,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => '材质';
 
   @override
+  String get cylinderConfigs_fieldGasMix => '混合气';
+
+  @override
   String get cylinderConfigs_sectionTitle => '配置';
 
   @override
@@ -18575,6 +18578,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return '稀释气在 $depth 处超过其 MOD（ppO₂ $value bar）';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return '潜水剖面超过 $ceiling 的减压上升限制，跳过了必需的停留';
   }
 
   @override
@@ -24806,9 +24814,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_data_title => '数据';
 
   @override
-  String get settings_section_decompression_subtitle => '梯度因子、数据来源与麻醉';
-
-  @override
   String get settings_section_decompression_title => '减压';
 
   @override
@@ -25929,6 +25934,60 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => '气体消耗趋势';
+
+  @override
+  String get insights_gas_tankConfig_title => '气瓶配置';
+
+  @override
+  String get insights_gas_tankConfig_subtitle => '按气瓶携带方式分类的潜水';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => '配置';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => '附加';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => '循环呼吸器';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => '侧挂';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => '背挂双瓶';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => '背挂单瓶';
+
+  @override
+  String get insights_gas_tankConfig_other => '其他';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => '未记录气瓶';
+
+  @override
+  String get insights_gas_tankConfig_stages => '阶段瓶';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => '减压气';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => '多种气体';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      '记录为单个气瓶的双瓶，在名称表明时（twin、double、D12、2x12）或气瓶大于任何常见单瓶时会被计入。为潜水的气瓶设置左侧挂和右侧挂，使其计为侧挂。';
+
+  @override
+  String get insights_gas_tankConfig_empty => '没有可显示的潜水';
+
+  @override
+  String get insights_gas_tankConfig_error => '加载气瓶配置失败';
 
   @override
   String get insights_focus_title => '潜水聚焦';
@@ -34202,7 +34261,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_connectedAccounts_title => '已连接账户';
 
   @override
-  String get settings_connectedAccounts_subtitle => '云与服务登录';
+  String get settings_connectedAccounts_subtitle => '用于同步、媒体存储和共享库的登录';
 
   @override
   String get settings_connectedAccounts_empty => '尚未连接任何账户';
@@ -34266,6 +34325,48 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => '无法加载账户';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return '用于：$uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none => '此设备上未使用';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync => '数据库同步';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => '媒体存储';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return '共享潜点库：$name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle => '在此设备上退出登录？';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return '在此设备上，$account 用于以下功能。在你重新登录之前，这些功能将在此处停止工作。';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      '在此设备上，它用于以下功能，这些功能将在此处停止工作：';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      '其他设备可能也在使用此账户。';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      '无法确认此账户在此设备上的用途。此处使用它的功能可能会停止工作。';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
@@ -35070,6 +35171,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => '严格(18/24/48 小时)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return '已开启，$enabled/$total 条规则，禁飞：$noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return '已关闭，禁飞：$noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => '标准';
+
+  @override
+  String get safetyHub_noFlyStrict => '严格';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return '已开启，$enabled/$total 条规则';
+  }
+
+  @override
+  String get safetyHub_off => '已关闭';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle => '单次免减压潜水、重复潜水和减压潜水后的指导间隔';
 
   @override
@@ -35593,7 +35718,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_safety_title => '安全';
 
   @override
-  String get settings_section_safety_subtitle => '回顾规则与潜水后飞行';
+  String get settings_section_safety_subtitle => '回顾规则、减压与装备';
 
   @override
   String get settings_section_equipmentCondition_title => '装备状况';
@@ -46468,6 +46593,31 @@ class AppLocalizationsZh extends AppLocalizations {
       '一个小图标，显示每个项目的来源。问题徽章始终显示。';
 
   @override
+  String get settings_photosMedia_cacheHeader => '缓存';
+
+  @override
+  String get settings_mediaCache_memory_title => '内存图像缓存';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      '为图库和全屏查看器保留在内存中的已解码图像。立即生效，仅限此设备。';
+
+  @override
+  String get settings_mediaCache_disk_title => '缩略图磁盘缓存';
+
+  @override
+  String get settings_mediaCache_disk_subtitle => '保存在此设备上的缩略图。原始文件和压缩副本不计入。';
+
+  @override
+  String get settings_mediaCache_disk_empty => '清空缓存';
+
+  @override
+  String get settings_mediaCache_disk_emptied => '缩略图缓存已清空';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed => '无法清空缩略图缓存';
+
+  @override
   String get media_status_transferFailed => '上传失败';
 
   @override
@@ -47495,6 +47645,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transmitters_field_label => '标签';
 
   @override
+  String get transmitters_field_label_helper => '一旦此发射器匹配成功，将成为潜水记录中气瓶的名称';
+
+  @override
   String get transmitters_field_serial => '发射器序列号';
 
   @override
@@ -47510,13 +47663,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transmitters_field_gear => '来自装备的气瓶';
 
   @override
+  String get transmitters_field_gear_subtitle => '此发射器报告压力所对应的气瓶';
+
+  @override
   String get transmitters_field_transmitterGear => '来自装备的无线发射器';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle => '电池/保养追踪，不用于匹配';
 
   @override
   String get transmitters_field_material => '材质';
 
   @override
   String get transmitters_gear_none => '无';
+
+  @override
+  String get transmitters_hint_missingSize => '此气瓶未记录容量或压力，因此潜水记录中容量将留空';
 
   @override
   String get transmitters_validation_key => '请输入发射器序列号，或选择潜水电脑和通道';

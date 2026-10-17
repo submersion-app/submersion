@@ -619,7 +619,9 @@ void main() {
       // coordinator, which looks each row up (for a possible remote-blob
       // delete intent) and then batch-deletes.
       when(mockRepo.getMediaById(any)).thenAnswer((_) async => null);
-      when(mockRepo.deleteMultipleMedia(any)).thenAnswer((_) async {});
+      when(
+        mockRepo.deleteMultipleMedia(any),
+      ).thenAnswer((_) async => const <String>[]);
 
       final notifier = container.read(filesTabNotifierProvider.notifier);
       await notifier.undoCommit(['id-1', 'id-2', 'id-3']);
@@ -628,7 +630,9 @@ void main() {
     });
 
     test('undoCommit on empty list deletes nothing', () async {
-      when(mockRepo.deleteMultipleMedia(any)).thenAnswer((_) async {});
+      when(
+        mockRepo.deleteMultipleMedia(any),
+      ).thenAnswer((_) async => const <String>[]);
       final notifier = container.read(filesTabNotifierProvider.notifier);
       await notifier.undoCommit(const []);
       verifyNever(mockRepo.deleteMedia(any));

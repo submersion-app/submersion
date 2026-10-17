@@ -39,6 +39,29 @@ Widget _build(MockSettingsNotifier notifier) => ProviderScope(
 );
 
 void main() {
+  testWidgets('with onBack the app bar back arrow calls it', (tester) async {
+    // The desktop settings pane shows this page without pushing a route, so
+    // the arrow is how it returns to the Safety hub.
+    var backs = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: EquipmentConditionSettingsPage(onBack: () => backs++),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Back'));
+    expect(backs, 1);
+  });
+
   testWidgets('shows the defaults in metric and saves a new cold line', (
     tester,
   ) async {

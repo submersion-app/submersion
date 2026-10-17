@@ -130,6 +130,15 @@ void main() {
     expect(find.textContaining('Also covers Open Water Diver'), findsOneWidget);
   });
 
+  testWidgets('a covered card with no custom title is named by its level', (
+    tester,
+  ) async {
+    // An empty stored name means "use the level" (#3436).
+    await CertificationRepository().updateCertification(ow.copyWith(name: ''));
+    await pump(tester, aow);
+    expect(find.textContaining('Also covers Open Water'), findsOneWidget);
+  });
+
   testWidgets('logging a refresher flips the row to current', (tester) async {
     await pump(tester, aow);
     await openMenu(tester);

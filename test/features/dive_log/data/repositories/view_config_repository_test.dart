@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -373,6 +375,67 @@ void main() {
           expect(fired, isTrue);
         },
       );
+    });
+  });
+
+  // Issue #3343: only databases that upgraded through v62 carry the unique
+  // index on (diver_id, view_mode); a fresh install does not, and sync merges
+  // these rows by id, so two devices can each leave a row for one view.
+  group('two rows for one diver and view', () {
+    // A valid table config, tagged so a test can tell the rows apart.
+    String configMarked(String marker) => jsonEncode({
+      ...TableViewConfig.defaultConfig().toJson(),
+      'marker': marker,
+    });
+
+    String? markerOf(String? json) =>
+        json == null ? null : (jsonDecode(json) as Map)['marker'] as String?;
+
+    Future<void> insertRow(String id, String marker, int updatedAt) => db
+        .into(db.viewConfigs)
+        .insert(
+          ViewConfigsCompanion.insert(
+            id: id,
+            diverId: testDiverId,
+            viewMode: ListViewMode.table.name,
+            configJson: configMarked(marker),
+            updatedAt: updatedAt,
+          ),
+        );
+
+    setUp(() async {
+      // A database the beforeOpen backstop has not reached yet; once it
+      // runs, the unique index rules this state out.
+      await db.customStatement('DROP INDEX idx_view_configs_unique');
+      await insertRow('row-old', 'old', 1000);
+      await insertRow('row-new', 'new', 2000);
+    });
+
+    test('getRawConfig reads the most recently updated row', () async {
+      final json = await repository.getRawConfig(
+        testDiverId,
+        ListViewMode.table.name,
+      );
+
+      expect(markerOf(json), 'new');
+    });
+
+    test('getTableConfig does not throw', () async {
+      await expectLater(repository.getTableConfig(testDiverId), completes);
+    });
+
+    test('saving writes over the row the reads use', () async {
+      await repository.saveRawConfig(
+        testDiverId,
+        ListViewMode.table.name,
+        configMarked('saved'),
+      );
+
+      final json = await repository.getRawConfig(
+        testDiverId,
+        ListViewMode.table.name,
+      );
+      expect(markerOf(json), 'saved');
     });
   });
 }

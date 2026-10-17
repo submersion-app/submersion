@@ -14657,6 +14657,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cylinderConfigs_fieldMaterial => 'Materiaal';
 
   @override
+  String get cylinderConfigs_fieldGasMix => 'Gasmengsel';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configuraties';
 
   @override
@@ -19378,6 +19381,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String plannerCanvas_issue_ceilingViolated(String ceiling) {
+    return 'Het profiel gaat boven het decompressieplafond van $ceiling en slaat verplichte stops over';
   }
 
   @override
@@ -26094,10 +26102,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_section_data_title => 'Gegevens';
 
   @override
-  String get settings_section_decompression_subtitle =>
-      'GF, gegevensbronnen & narcose';
-
-  @override
   String get settings_section_decompression_title => 'Decompressie';
 
   @override
@@ -27289,6 +27293,61 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Gasverbruikstrend';
+
+  @override
+  String get insights_gas_tankConfig_title => 'Flesconfiguratie';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Duiken naar hoe de flessen gedragen werden';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Configuratie';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extra\'s';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Dubbelset';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Enkele fles';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Overig';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'Geen flessen vastgelegd';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stagefles(sen)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Decogas';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Meerdere gassen';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Dubbelsets die als één fles zijn vastgelegd tellen mee als de naam het zegt (twin, double, D12, 2x12) of de fles groter is dan elke gangbare enkele fles. Stel Sidemount links en Sidemount rechts in op de flessen van een duik om hem als sidemount te laten tellen.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'Geen duiken om te tonen';
+
+  @override
+  String get insights_gas_tankConfig_error => 'Kan flesconfiguratie niet laden';
 
   @override
   String get insights_focus_title => 'Duikfocus';
@@ -36061,7 +36120,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Cloud- en service-aanmeldingen';
+      'Aanmeldingen voor synchronisatie, mediaopslag en gedeelde bibliotheken';
 
   @override
   String get settings_connectedAccounts_empty => 'Nog geen accounts gekoppeld';
@@ -36133,6 +36192,51 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Accounts konden niet worden geladen';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Gebruikt voor: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Niet gebruikt op dit apparaat';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Databasesynchronisatie';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'Mediaopslag';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Gedeelde duikstekbibliotheek: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Afmelden op dit apparaat?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Op dit apparaat wordt $account gebruikt voor de onderstaande functies. Ze werken hier pas weer als je opnieuw aanmeldt.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Op dit apparaat wordt het gebruikt voor de onderstaande functies, die hier dan niet meer werken:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Andere apparaten gebruiken dit account mogelijk ook.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Kon niet nagaan waarvoor dit account op dit apparaat wordt gebruikt. Wat het hier gebruikt, werkt mogelijk niet meer.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
@@ -36948,6 +37052,30 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Strikt (18/24/48 u)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'Aan, $enabled van $total regels, vliegverbod $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Uit, vliegverbod $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Standaard';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Strikt';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'Aan, $enabled van $total regels';
+  }
+
+  @override
+  String get safetyHub_off => 'Uit';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Richttijden na een enkele duik zonder deco, herhalingsduiken en decoduiken';
 
@@ -37502,7 +37630,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Controleregels & vliegen na het duiken';
+      'Controleregels, decompressie & uitrusting';
 
   @override
   String get settings_section_equipmentCondition_title =>
@@ -49189,6 +49317,34 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.';
 
   @override
+  String get settings_photosMedia_cacheHeader => 'Cache';
+
+  @override
+  String get settings_mediaCache_memory_title =>
+      'Afbeeldingscache in het geheugen';
+
+  @override
+  String get settings_mediaCache_memory_subtitle =>
+      'Gedecodeerde afbeeldingen die in het geheugen blijven voor de galerijen en de weergave op volledig scherm. Geldt direct, alleen op dit apparaat.';
+
+  @override
+  String get settings_mediaCache_disk_title => 'Schijfcache voor miniaturen';
+
+  @override
+  String get settings_mediaCache_disk_subtitle =>
+      'Miniaturen die op dit apparaat worden bewaard. Originelen en gecomprimeerde kopieën tellen niet mee.';
+
+  @override
+  String get settings_mediaCache_disk_empty => 'Cache legen';
+
+  @override
+  String get settings_mediaCache_disk_emptied => 'Miniaturencache geleegd';
+
+  @override
+  String get settings_mediaCache_disk_emptyFailed =>
+      'De miniaturencache kon niet worden geleegd';
+
+  @override
   String get media_status_transferFailed => 'Uploaden mislukt';
 
   @override
@@ -50291,6 +50447,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transmitters_field_label => 'Label';
 
   @override
+  String get transmitters_field_label_helper =>
+      'Wordt de naam van de fles in de duik zodra deze zender is gekoppeld';
+
+  @override
   String get transmitters_field_serial => 'Serienummer van de zender';
 
   @override
@@ -50307,13 +50467,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transmitters_field_gear => 'Fles uit uitrusting';
 
   @override
+  String get transmitters_field_gear_subtitle =>
+      'De fles waarvan deze zender de druk meldt';
+
+  @override
   String get transmitters_field_transmitterGear => 'Zender uit uitrusting';
+
+  @override
+  String get transmitters_field_transmitterGear_subtitle =>
+      'Batterij-/onderhoudsregistratie, niet voor koppeling';
 
   @override
   String get transmitters_field_material => 'Materiaal';
 
   @override
   String get transmitters_gear_none => 'Geen';
+
+  @override
+  String get transmitters_hint_missingSize =>
+      'Voor deze fles zijn geen afmeting of druk vastgelegd, dus de afmeting blijft leeg bij de duik';
 
   @override
   String get transmitters_validation_key =>

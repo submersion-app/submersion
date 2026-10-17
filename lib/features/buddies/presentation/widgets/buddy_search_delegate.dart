@@ -87,10 +87,9 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
             final buddy = entry.buddy;
             return BuddyListTile(
               entry: entry,
-              onTap: () {
-                close(context, buddy);
-                context.push('/buddies/${buddy.id}');
-              },
+              // Opened over the search rather than in place of it, so back
+              // from the detail returns to these results (#3377).
+              onTap: () => context.push('/buddies/${buddy.id}'),
             );
           },
         );

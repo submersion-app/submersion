@@ -21,6 +21,19 @@ RouteMatchBase leafMatch(RouteMatchBase match) {
   return current;
 }
 
+/// Whether the page on top of the stack is a pushed page at [location].
+///
+/// Lets a "show these items" link tell that a second tap, landing before
+/// the first push has drawn, would only stack the same list again.
+bool isPushedOnTop(BuildContext context, String location) {
+  final matches = GoRouter.of(
+    context,
+  ).routerDelegate.currentConfiguration.matches;
+  if (matches.isEmpty) return false;
+  final top = leafMatch(matches.last);
+  return top is ImperativeRouteMatch && top.matches.uri.toString() == location;
+}
+
 /// Whether the page holding [context] was put on the stack by a push, as
 /// opposed to built from a URL by go().
 ///

@@ -26,7 +26,7 @@ import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_camera_animator.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -434,12 +434,13 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           ),
         ),
 
-        // Reset-to-north compass (hidden until the map is rotated), tucked
-        // under the controls card as on the master-detail map.
+        // Map style switcher and reset-to-north compass (hidden until the map
+        // is rotated), tucked under the controls card as on the master-detail
+        // map.
         Positioned(
           top: 64,
           right: 8,
-          child: MapCompassButton(controller: _mapController),
+          child: MapCornerControls(controller: _mapController),
         ),
 
         // Empty state overlay

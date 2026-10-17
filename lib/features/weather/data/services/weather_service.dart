@@ -24,16 +24,35 @@ class WeatherService {
 
   /// Fetch historical weather for a given location and date.
   ///
-  /// [entryTime] is used to select the closest hourly data point.
-  /// [useLocationTimezone] requests timestamps in the coordinate's local
-  /// timezone instead of Open-Meteo's default GMT.
+  /// [date] and [entryTime] are wall-clock values at the site: the request
+  /// asks for the coordinate's own timezone, so the day window and the hourly
+  /// timestamps are both in local time there, and [entryTime] selects the
+  /// closest hourly data point on its wall-clock fields.
   /// Returns null if the request fails or data is unavailable.
   Future<WeatherData?> fetchWeather({
     required double latitude,
     required double longitude,
     required DateTime date,
     required DateTime entryTime,
-    bool useLocationTimezone = false,
+  }) async {
+    final hourly = await fetchHourly(
+      latitude: latitude,
+      longitude: longitude,
+      date: date,
+    );
+    if (hourly == null) return null;
+    return mapHourly(hourly, entryTime: entryTime);
+  }
+
+  /// Fetch the raw hourly block for one site-local day.
+  ///
+  /// One response covers every dive made at that place on [date]; callers
+  /// that serve several dives from it map each with [mapHourly] at its own
+  /// entry time. Returns null if the request fails or data is unavailable.
+  Future<Map<String, dynamic>?> fetchHourly({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
   }) async {
     try {
       final dateStr =
@@ -45,10 +64,10 @@ class WeatherService {
         'start_date': dateStr,
         'end_date': dateStr,
         'hourly': _hourlyParams,
-        // Open-Meteo defaults to GMT. Surface-day summaries opt into the
-        // coordinate's local wall clock so their noon sample is really noon
-        // at the trip location; existing dive callers keep their current URL.
-        if (useLocationTimezone) 'timezone': 'auto',
+        // Open-Meteo defaults to GMT. Every caller passes the site's wall
+        // clock, so the day window and the hourly labels must be in the
+        // coordinate's own timezone too (issue #3349).
+        'timezone': 'auto',
       });
 
       final response = await _client.get(uri);
@@ -62,12 +81,24 @@ class WeatherService {
       }
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final hourly = json['hourly'] as Map<String, dynamic>?;
-      if (hourly == null) return null;
-
-      return WeatherMapper.mapApiResponse(hourly, targetHour: entryTime);
+      return json['hourly'] as Map<String, dynamic>?;
     } catch (e) {
       developer.log('Weather fetch failed: $e', name: 'WeatherService');
+      return null;
+    }
+  }
+
+  /// Map a block from [fetchHourly] to the sample nearest [entryTime].
+  ///
+  /// Returns null, and logs, if the block is malformed.
+  WeatherData? mapHourly(
+    Map<String, dynamic> hourly, {
+    required DateTime entryTime,
+  }) {
+    try {
+      return WeatherMapper.mapApiResponse(hourly, targetHour: entryTime);
+    } catch (e) {
+      developer.log('Weather mapping failed: $e', name: 'WeatherService');
       return null;
     }
   }

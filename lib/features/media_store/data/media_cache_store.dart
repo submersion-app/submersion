@@ -4,20 +4,26 @@ import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/media/data/media_cache_settings.dart';
 
 enum MediaCacheKind { original, thumb, rendition }
 
 /// Content-addressed local cache for store-fetched media (spec section 10).
 /// Files live under [root]; bookkeeping lives in media_cache_entries.
-/// Two pools with independent caps so bulk original downloads can never
+/// Separate pools with independent caps so bulk original downloads can never
 /// evict the thumbnails that keep grids rendering.
+///
+/// The thumbnail pool also holds the thumbnails this device makes of its own
+/// local photo files (issue #3337), keyed by a hash of the file's location
+/// rather than of its content. See `LocalThumbnailCache`.
 class MediaCacheStore {
   MediaCacheStore({
     required LocalCacheDatabase database,
     required Directory root,
     this.originalsCapBytes = 2 * 1024 * 1024 * 1024,
-    this.thumbsCapBytes = 256 * 1024 * 1024,
+    this.thumbsCapBytes = kDefaultDiskCacheMb * 1024 * 1024,
     this.renditionsCapBytes = 1 * 1024 * 1024 * 1024,
+    this.thumbsCapSource,
   }) : _db = database,
        _root = root;
 
@@ -27,7 +33,31 @@ class MediaCacheStore {
   final int thumbsCapBytes;
   final int renditionsCapBytes;
 
-  int _stagingCounter = 0;
+  /// The thumbnail cap as it stands when eviction runs, in place of
+  /// [thumbsCapBytes]. The cap is a setting the diver can change, and stores
+  /// are long-lived (the upload runtime keeps one for its whole life), so a
+  /// cap captured at construction would go on evicting to the old size.
+  final int Function()? thumbsCapSource;
+
+  /// Extension every thumbnail is stored under. Thumbnails are always JPEG,
+  /// whatever the source, which is what makes [peekThumb]'s path computable
+  /// without the index.
+  static const String thumbExtension = 'jpg';
+
+  /// Thumbnail hits not yet written to the index, per database: key to the
+  /// time of the latest hit. Shared by every store over one database, since
+  /// the store that serves a hit is rarely the one that next evicts. Lost on
+  /// exit, which only makes the LRU order slightly stale.
+  static final Expando<Map<String, int>> _pendingTouches = Expando();
+
+  Map<String, int> get _touches => _pendingTouches[_db] ??= <String, int>{};
+
+  /// Process-wide, not per store. A store is built per use, so a counter of
+  /// its own always read 1, leaving the clock as the only thing telling two
+  /// staging files apart, and the clock does not tick between two calls made
+  /// in the same instant. Two thumbnails staged at one path came out as one
+  /// picture filed under both photos.
+  static int _stagingCounter = 0;
 
   String _kindName(MediaCacheKind kind) => switch (kind) {
     MediaCacheKind.original => 'original',
@@ -35,21 +65,90 @@ class MediaCacheStore {
     MediaCacheKind.rendition => 'rendition',
   };
 
+  /// The directory under [_root] that holds [kind]'s pool.
+  String _poolDirName(MediaCacheKind kind) => switch (kind) {
+    MediaCacheKind.original => 'originals',
+    MediaCacheKind.thumb => 'thumbs',
+    MediaCacheKind.rendition => 'renditions',
+  };
+
   String _relativePath(
     String contentHash,
     MediaCacheKind kind, {
     String? extension,
   }) => p.join(
-    switch (kind) {
-      MediaCacheKind.original => 'originals',
-      MediaCacheKind.thumb => 'thumbs',
-      MediaCacheKind.rendition => 'renditions',
-    },
+    _poolDirName(kind),
     contentHash.substring(0, 2),
     extension == null || extension.isEmpty
         ? contentHash
         : '$contentHash.$extension',
   );
+
+  /// The cached thumbnail stored under [key], or null on a miss, without
+  /// touching the database (issue #3337).
+  ///
+  /// [get] costs an index read and a write per hit, and a gallery asks for a
+  /// thumbnail every time a tile scrolls into view. A thumbnail's path is a
+  /// pure function of its key, so one stat answers instead. The hit is noted
+  /// in memory and written to the index in one batch by [flushTouches], which
+  /// runs before any eviction, the only reader of that order.
+  ///
+  /// Finds only thumbnails stored with [thumbExtension]. Entries from before
+  /// that was universal have no extension; [get] still finds those.
+  Future<File?> peekThumb(String key) async {
+    // The layout shards on the first two characters; [get] answers the rest.
+    if (key.length < 2) return null;
+    final file = File(
+      p.join(
+        _root.path,
+        _relativePath(key, MediaCacheKind.thumb, extension: thumbExtension),
+      ),
+    );
+    try {
+      if (!await file.exists()) return null;
+    } on FileSystemException {
+      return null;
+    }
+    _touches[key] = DateTime.now().millisecondsSinceEpoch;
+    return file;
+  }
+
+  /// Writes the hits [peekThumb] noted to the index, as one batch.
+  Future<void> flushTouches() async {
+    final touches = _touches;
+    if (touches.isEmpty) return;
+    final pending = Map.of(touches);
+    touches.clear();
+    await _db.batch((batch) {
+      for (final MapEntry(key: key, value: at) in pending.entries) {
+        batch.update(
+          _db.mediaCacheEntries,
+          MediaCacheEntriesCompanion(lastAccessedAt: Value(at)),
+          where: (t) =>
+              t.contentHash.equals(key) &
+              t.kind.equals(_kindName(MediaCacheKind.thumb)),
+        );
+      }
+    });
+  }
+
+  /// Removes the entry for [contentHash], file and index row. A no-op when
+  /// there is none.
+  Future<void> remove(String contentHash, MediaCacheKind kind) async {
+    final indexed = await _relativePathOf(contentHash, kind);
+    final paths = {
+      ?indexed,
+      // A thumbnail's file can outlive its index row (the row is written
+      // after the file), and [peekThumb] goes by the file alone.
+      if (kind == MediaCacheKind.thumb)
+        _relativePath(contentHash, kind, extension: thumbExtension),
+    };
+    for (final relative in paths) {
+      await _bestEffortDelete(File(p.join(_root.path, relative)));
+    }
+    if (kind == MediaCacheKind.thumb) _touches.remove(contentHash);
+    if (indexed != null) await _deleteEntry(contentHash, kind);
+  }
 
   /// Cached file for [contentHash], or null on a miss. A hit refreshes the
   /// LRU timestamp; a dangling index row (file deleted externally) is
@@ -198,7 +297,9 @@ class MediaCacheStore {
     return File(
       p.join(
         dir.path,
-        'stage_${DateTime.now().microsecondsSinceEpoch}_$_stagingCounter',
+        // The pid keeps a second process on the same cache apart too.
+        'stage_${DateTime.now().microsecondsSinceEpoch}'
+        '_${pid}_$_stagingCounter',
       ),
     );
   }
@@ -246,9 +347,31 @@ class MediaCacheStore {
     return row.read(sum) ?? 0;
   }
 
+  /// Empties [kind]'s pool: every file in it, indexed or not, and its index
+  /// rows. The other pools are left alone.
+  Future<void> clear(MediaCacheKind kind) async {
+    if (kind == MediaCacheKind.thumb) _touches.clear();
+    await (_db.delete(
+      _db.mediaCacheEntries,
+    )..where((t) => t.kind.equals(_kindName(kind)))).go();
+    // The directory rather than the indexed paths: a file can be on disk
+    // with no row (written, then the app closed before it was indexed).
+    final pool = Directory(p.join(_root.path, _poolDirName(kind)));
+    try {
+      if (await pool.exists()) await pool.delete(recursive: true);
+    } on FileSystemException {
+      // A file held open elsewhere survives; the rest is gone and the index
+      // no longer points at it.
+    }
+  }
+
   Future<void> evictIfNeeded() async {
+    await flushTouches();
     await _evictPool(MediaCacheKind.original, originalsCapBytes);
-    await _evictPool(MediaCacheKind.thumb, thumbsCapBytes);
+    await _evictPool(
+      MediaCacheKind.thumb,
+      thumbsCapSource?.call() ?? thumbsCapBytes,
+    );
     await _evictPool(MediaCacheKind.rendition, renditionsCapBytes);
   }
 

@@ -537,4 +537,52 @@ void main() {
       );
     });
   });
+
+  group('planIssueMessage for a ceiling violation (issue #3354)', () {
+    const issue = PlanIssue(
+      type: PlanIssueType.ceilingViolated,
+      severity: PlanIssueSeverity.critical,
+      message: 'Ascent to 0 m passes the 18.4 m deco ceiling',
+      atDepth: 0,
+      segmentId: 'ascent',
+      value: 18.4,
+      threshold: 0,
+    );
+
+    Future<String> render(WidgetTester tester, AppSettings settings) async {
+      late String message;
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          child: Builder(
+            builder: (context) {
+              message = planIssueMessage(
+                context,
+                issue,
+                UnitFormatter(settings),
+              );
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return message;
+    }
+
+    testWidgets('names the ceiling the ascent went above', (tester) async {
+      expect(
+        await render(tester, const AppSettings()),
+        'The profile goes above the 18.4m decompression ceiling, '
+        'skipping required stops',
+      );
+    });
+
+    testWidgets('shows the ceiling in the diver\'s units', (tester) async {
+      expect(
+        await render(tester, const AppSettings(depthUnit: DepthUnit.feet)),
+        'The profile goes above the 60.4ft decompression ceiling, '
+        'skipping required stops',
+      );
+    });
+  });
 }

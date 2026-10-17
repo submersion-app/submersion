@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
@@ -1317,22 +1318,27 @@ class SiteRepository {
     }
   }
 
-  /// Search sites by name or location
+  /// Search sites by name or location, ignoring case.
+  ///
+  /// Each column is folded by `unicode_lower` to meet the Dart-lowered
+  /// needle: LIKE folds ASCII only, so "österreich" missed "Österreich"
+  /// (#3377).
   Future<List<domain.DiveSite>> searchSites(
     String query, {
     String? diverId,
   }) async {
     try {
       return await PerfTimer.measure('searchSites', () async {
+        final needle = query.toLowerCase();
         final searchQuery = _db.select(_db.diveSites)
           ..where(
             (t) =>
-                t.name.contains(query) |
-                t.country.contains(query) |
-                t.region.contains(query) |
-                t.city.contains(query) |
-                t.island.contains(query) |
-                t.bodyOfWater.contains(query),
+                t.name.unicodeLower().contains(needle) |
+                t.country.unicodeLower().contains(needle) |
+                t.region.unicodeLower().contains(needle) |
+                t.city.unicodeLower().contains(needle) |
+                t.island.unicodeLower().contains(needle) |
+                t.bodyOfWater.unicodeLower().contains(needle),
           )
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 

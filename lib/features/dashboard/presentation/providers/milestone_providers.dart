@@ -17,12 +17,15 @@ int? nextDiveMilestone(int totalDives) {
 
 /// An upcoming certification anniversary.
 class CertAnniversary {
-  final String certName;
+  /// The whole certification, not its stored name: a certification with no
+  /// custom title stores an empty name, so the card titles it from agency and
+  /// level in the active locale (#3436).
+  final Certification certification;
   final int years;
   final DateTime date;
 
   const CertAnniversary({
-    required this.certName,
+    required this.certification,
     required this.years,
     required this.date,
   });
@@ -48,7 +51,7 @@ List<CertAnniversary> upcomingAnniversaries(
     if (years <= 0) continue;
     if (next.difference(todayDay).inDays <= windowDays) {
       result.add(
-        CertAnniversary(certName: cert.name, years: years, date: next),
+        CertAnniversary(certification: cert, years: years, date: next),
       );
     }
   }

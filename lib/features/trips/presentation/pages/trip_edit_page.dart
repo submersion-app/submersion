@@ -22,6 +22,7 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 const _log = LoggerService('tripEditPage');
 
@@ -804,56 +805,64 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: colorScheme.primaryContainer,
-            child: Icon(
-              isEditing ? Icons.edit : Icons.add,
-              size: 20,
-              color: colorScheme.onPrimaryContainer,
+      child: LabelWithControl(
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: colorScheme.primaryContainer,
+              child: Icon(
+                isEditing ? Icons.edit : Icons.add,
+                size: 20,
+                color: colorScheme.onPrimaryContainer,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              isEditing
-                  ? context.l10n.trips_edit_appBar_edit
-                  : context.l10n.trips_edit_appBar_add,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                isEditing
+                    ? context.l10n.trips_edit_appBar_edit
+                    : context.l10n.trips_edit_appBar_add,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (_hasChanges) {
-                final discard = await _showDiscardDialog();
-                if (discard == true && mounted) {
+          ],
+        ),
+        control: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () async {
+                if (_hasChanges) {
+                  final discard = await _showDiscardDialog();
+                  if (discard == true && mounted) {
+                    _handleCancel();
+                  }
+                } else {
                   _handleCancel();
                 }
-              } else {
-                _handleCancel();
-              }
-            },
-            child: Text(context.l10n.trips_edit_button_cancel),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: _isSaving ? null : _saveTrip,
-            child: _isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Text(context.l10n.trips_edit_button_save),
-          ),
-        ],
+              },
+              child: Text(context.l10n.trips_edit_button_cancel),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _isSaving ? null : _saveTrip,
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(context.l10n.trips_edit_button_save),
+            ),
+          ],
+        ),
       ),
     );
   }

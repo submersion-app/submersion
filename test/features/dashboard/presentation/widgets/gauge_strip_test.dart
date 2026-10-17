@@ -119,7 +119,17 @@ Future<NavSpy> pumpStrip(
         path: '/certifications',
         builder: (_, _) => stub('/certifications'),
       ),
-      GoRoute(path: '/trips', builder: (_, _) => stub('/trips')),
+      GoRoute(
+        path: '/trips',
+        builder: (_, _) => stub('/trips'),
+        routes: [
+          GoRoute(
+            path: ':tripId',
+            builder: (_, state) =>
+                stub('/trips/${state.pathParameters['tripId']}'),
+          ),
+        ],
+      ),
       GoRoute(path: '/courses', builder: (_, _) => stub('/courses')),
       GoRoute(
         path: '/courses/:courseId',
@@ -987,7 +997,7 @@ void main() {
       expect(chipTone(tester, '1 certification needs attention'), 'alert');
     });
 
-    testWidgets('trip chip navigates', (tester) async {
+    testWidgets('trip chip opens the trip it names, over Home', (tester) async {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
@@ -1007,7 +1017,10 @@ void main() {
             .map((e) => (e.widget as Text).data!)
             .first,
       );
-      expect(spy.location, '/trips');
+      // The chip names one trip, so it opens that trip, pushed so Back
+      // returns Home at every width (#3350).
+      expect(spy.location, '/trips/Bonaire');
+      expect(spy.router.canPop(), isTrue);
     });
 
     testWidgets('checklist chip opens the active session', (tester) async {

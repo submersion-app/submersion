@@ -29,6 +29,7 @@ void main() {
       'getSacVolumePerDive': (r) => r.getSacVolumePerDive(),
       'getSacPressurePerDive': (r) => r.getSacPressurePerDive(),
       'getGasMixDistribution': (r) => r.getGasMixDistribution(),
+      'getTankConfigurationStats': (r) => r.getTankConfigurationStats(),
       'getSacVolumeRecords': (r) => r.getSacVolumeRecords(),
       'getSacPressureRecords': (r) => r.getSacPressureRecords(),
       'getSacVolumeByTankRole': (r) => r.getSacVolumeByTankRole(),

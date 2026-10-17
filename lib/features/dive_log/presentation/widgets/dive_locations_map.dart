@@ -8,7 +8,7 @@ import 'package:submersion/features/gps_log/domain/track_colorization.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_polyline_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -303,12 +303,13 @@ class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
           TrackpadZoomMap(controller: _effectiveController, child: map)
         else
           LockedMapScrollPassthrough(child: map),
-        // Reset-to-north compass (only when the map accepts rotation gestures)
+        // Map style switcher and reset-to-north compass, only on an interactive
+        // map: the locked decorative header gets neither.
         if (interactive)
           Positioned(
             top: 16,
             right: 16,
-            child: MapCompassButton(controller: _effectiveController),
+            child: MapCornerControls(controller: _effectiveController),
           ),
       ],
     );

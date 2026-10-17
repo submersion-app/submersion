@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_dive_list.dart';
@@ -119,6 +120,8 @@ class CloudImportFetchStep<TSummary, TParsed> extends ConsumerStatefulWidget {
 
 class _CloudImportFetchStepState<TSummary, TParsed>
     extends ConsumerState<CloudImportFetchStep<TSummary, TParsed>> {
+  static const _log = LoggerService('CloudImportFetchStep');
+
   bool _isFetching = true;
   bool _isLoadingMore = false;
   bool _isFetchingAll = false;
@@ -215,7 +218,10 @@ class _CloudImportFetchStepState<TSummary, TParsed>
         _hasFetched = true;
       });
       ref.read(widget.divesFetchedProvider.notifier).state = true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // The diver sees only the message, so the trace goes to the log they
+      // can share (issue #3343 arrived with the message alone).
+      _log.error('Cloud import fetch failed', error: e, stackTrace: stackTrace);
       if (!mounted) return;
       setState(() {
         _isFetching = false;
@@ -261,7 +267,12 @@ class _CloudImportFetchStepState<TSummary, TParsed>
 
       _publishSelection();
       setState(() => _isLoadingMore = false);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Cloud import Load More failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (!mounted) return;
       setState(() {
         _isLoadingMore = false;

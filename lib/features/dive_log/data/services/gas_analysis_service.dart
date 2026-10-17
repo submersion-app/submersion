@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
@@ -9,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
 /// Service for calculating SAC (Surface Air Consumption) metrics
 /// per segment and per cylinder.
@@ -88,7 +88,7 @@ class GasAnalysisService {
       // Calculate SAC for this segment
       // Window to prorate a pressure-series-less tank across: its own
       // usage range when the gas switches identify one, else the dive.
-      final usageRange = _getTankUsageRange(
+      final usageRange = tankUsageRange(
         tank: tank,
         gasSwitches: sortedSwitches,
         diveStart: profile.first.timestamp,
@@ -204,7 +204,12 @@ class GasAnalysisService {
       if (segmentProfile.isEmpty) continue;
 
       // Find active tank for this segment
-      final tank = _getActiveTankAtTimestamp(tanks, gasSwitches, seg.start);
+      final tank = activeTankAt(
+        tanks: tanks,
+        gasSwitches: gasSwitches,
+        timestamp: seg.start,
+        diveStart: profile.first.timestamp,
+      );
       if (tank == null) continue;
 
       // Calculate depth statistics
@@ -217,7 +222,7 @@ class GasAnalysisService {
       // Same proration window as the gas-switch path: a tank that was only
       // breathed for part of the dive must not have its drop spread across
       // the whole of it.
-      final usageRange = _getTankUsageRange(
+      final usageRange = tankUsageRange(
         tank: tank,
         gasSwitches: gasSwitches,
         diveStart: profile.first.timestamp,
@@ -284,7 +289,13 @@ class GasAnalysisService {
 
     final diveEnd =
         dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
-    final hasGasSwitches = gasSwitches != null && gasSwitches.isNotEmpty;
+    // Only a switch that says when a cylinder was breathed overrides a
+    // recorded duration: not a stale id (#110), nor one after the dive.
+    final hasGasSwitches = knownGasSwitches(
+      dive.tanks,
+      gasSwitches,
+      before: diveEnd,
+    ).isNotEmpty;
 
     for (final tank in dive.tanks) {
       // Its own size, else its matched partner's (issue #3109).
@@ -301,7 +312,7 @@ class GasAnalysisService {
       // long but not when, so its depth window is the whole dive.
       final usageRange = hasRecordedUsage
           ? (start: 0, end: diveEnd > 0 ? diveEnd : recordedSeconds)
-          : _getTankUsageRange(
+          : tankUsageRange(
               tank: tank,
               gasSwitches: gasSwitches,
               diveStart: 0,
@@ -350,7 +361,11 @@ class GasAnalysisService {
           gasMix: tank.gasMix,
           breathingSeconds: usageSeconds,
         );
-      } else if (tank.startPressure != null &&
+      }
+      // A series that shows no drop over the window (a flat or lost
+      // transmitter) falls back to the logged pressures (issue #3373).
+      if (sacRate == null &&
+          tank.startPressure != null &&
           tank.endPressure != null &&
           (avgDepthDuringUse ?? dive.avgDepth) != null) {
         // Basic calculation from start/end pressures with Z-factor correction.
@@ -541,102 +556,6 @@ class GasAnalysisService {
     merged.add(current);
 
     return merged;
-  }
-
-  /// Get the active tank at a given timestamp
-  DiveTank? _getActiveTankAtTimestamp(
-    List<DiveTank> tanks,
-    List<GasSwitchWithTank>? gasSwitches,
-    int timestamp,
-  ) {
-    if (tanks.isEmpty) return null;
-
-    if (gasSwitches == null || gasSwitches.isEmpty) {
-      // No gas switches - use first tank (or back gas)
-      return tanks.firstWhere(
-        (t) => t.role == TankRole.backGas,
-        orElse: () => tanks.first,
-      );
-    }
-
-    // Find the last switch before this timestamp
-    final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
-      ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
-
-    GasSwitchWithTank? activeSwitch;
-    for (final sw in sortedSwitches) {
-      if (sw.gasSwitch.timestamp <= timestamp) {
-        activeSwitch = sw;
-      } else {
-        break;
-      }
-    }
-
-    if (activeSwitch == null) {
-      // Before first switch - use first tank
-      return tanks.firstWhere(
-        (t) => t.role == TankRole.backGas,
-        orElse: () => tanks.first,
-      );
-    }
-
-    return tanks.firstWhere(
-      (t) => t.id == activeSwitch!.gasSwitch.tankId,
-      orElse: () => tanks.first,
-    );
-  }
-
-  /// Get the time range when a tank was in use
-  ({int start, int end})? _getTankUsageRange({
-    required DiveTank tank,
-    required List<GasSwitchWithTank>? gasSwitches,
-    required int diveStart,
-    required int diveEnd,
-    required List<DiveTank> tanks,
-  }) {
-    if (diveEnd <= diveStart) return null;
-
-    if (gasSwitches == null || gasSwitches.isEmpty) {
-      // No gas switches - assume single tank used entire dive
-      // For multi-tank without switches, use the back gas
-      if (tanks.length > 1 && tank.role != TankRole.backGas) {
-        return null; // Can't determine usage without gas switches
-      }
-      return (start: diveStart, end: diveEnd);
-    }
-
-    final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
-      ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
-
-    // Find all time ranges where this tank was active
-    int? rangeStart;
-    int totalEnd = diveEnd;
-
-    // Check if this tank is the initial tank (before first switch)
-    final firstSwitch = sortedSwitches.first;
-    if (firstSwitch.gasSwitch.tankId == tank.id) {
-      rangeStart = diveStart;
-    }
-
-    // Find switches to and from this tank
-    for (int i = 0; i < sortedSwitches.length; i++) {
-      final sw = sortedSwitches[i];
-      if (sw.gasSwitch.tankId == tank.id) {
-        // Switched TO this tank
-        rangeStart ??= sw.gasSwitch.timestamp;
-      } else if (rangeStart != null) {
-        // Switched AWAY from this tank
-        totalEnd = sw.gasSwitch.timestamp;
-        break;
-      }
-    }
-
-    // If we found a start but no end, tank was used until dive end
-    if (rangeStart != null) {
-      return (start: rangeStart, end: totalEnd);
-    }
-
-    return null;
   }
 
   /// Calculate SAC for a segment from profile data
