@@ -21,6 +21,14 @@ class CertificationCardPhoto extends StatelessWidget {
   /// An empty list suppresses the strip entirely.
   final List<String> infoLines;
 
+  /// Corner radius of this photo; [borderRadius] unless a smaller rendering,
+  /// such as a list thumbnail, needs a tighter corner.
+  final double radius;
+
+  /// Whether the photo casts a drop shadow. A thumbnail inside a list row
+  /// turns it off, since a shadow sized for the e-card swamps a small image.
+  final bool showShadow;
+
   /// Corner radius, matched to the generated card faces.
   static const double borderRadius = 16;
 
@@ -38,6 +46,8 @@ class CertificationCardPhoto extends StatelessWidget {
     required this.bytes,
     this.badge,
     this.infoLines = const [],
+    this.radius = borderRadius,
+    this.showShadow = true,
   });
 
   @override
@@ -46,14 +56,16 @@ class CertificationCardPhoto extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: showShadow
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : null,
       ),
       clipBehavior: Clip.antiAlias,
       child: LayoutBuilder(

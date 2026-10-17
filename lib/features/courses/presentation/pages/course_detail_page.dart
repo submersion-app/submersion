@@ -16,6 +16,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/courses/presentation/widgets/course_certification_thumbnail.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -482,23 +483,9 @@ class CourseDetailPage extends ConsumerWidget {
     final card = cert.cardNumber;
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(
-            _abbreviateAgency(agency),
-            style: TextStyle(
-              color: colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
-            ),
-          ),
-        ),
+      leading: CourseCertificationThumbnail(
+        certification: cert,
+        agencyName: agency,
       ),
       title: Text(cert.name),
       subtitle: Text(
@@ -507,14 +494,6 @@ class CourseDetailPage extends ConsumerWidget {
       trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
       onTap: () => context.push('/certifications/${cert.id}'),
     );
-  }
-
-  /// Safely abbreviate agency name to at most 4 characters
-  String _abbreviateAgency(String displayName) {
-    if (displayName.length <= 4) {
-      return displayName;
-    }
-    return displayName.substring(0, 4);
   }
 
   Widget _buildEmbeddedHeader(
