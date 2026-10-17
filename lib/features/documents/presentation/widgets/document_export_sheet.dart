@@ -78,8 +78,9 @@ class _DocumentExportSheetState extends State<DocumentExportSheet> {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        // Each field validates once it has been typed in, so the confirm
+        // field stays quiet until the user reaches it.
         child: Form(
-          autovalidateMode: AutovalidateMode.onUserInteraction,
           onChanged: () => setState(() {}),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -102,6 +103,7 @@ class _DocumentExportSheetState extends State<DocumentExportSheet> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _password,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 obscureText: _obscured,
                 autocorrect: false,
                 enableSuggestions: false,
@@ -115,6 +117,7 @@ class _DocumentExportSheetState extends State<DocumentExportSheet> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _confirm,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 obscureText: _obscured,
                 autocorrect: false,
                 enableSuggestions: false,

@@ -69,6 +69,13 @@ void main() {
     expect(enabled(t), isFalse);
   });
 
+  testWidgets('an untouched confirm field shows no error', (t) async {
+    await open(t);
+    await t.enterText(field('Password'), 'correct horse');
+    await t.pumpAndSettle();
+    expect(find.text('Passwords do not match'), findsNothing);
+  });
+
   testWidgets('the two passwords must match', (t) async {
     await open(t);
     await type(t, 'correct horse', 'correct house');
