@@ -29,14 +29,40 @@ const _zipMime = 'application/zip';
 /// Exports every document of the active diver as a password-protected ZIP
 /// (#3397): asks where it goes, asks for the password, writes the archive
 /// under a progress dialog, then shares or saves it. Used by the Documents
-/// page menu and by Transfer > Export.
+/// page menu and by Transfer > Export. Every failure ends in a snackbar.
 Future<void> exportAllDocuments(BuildContext context, WidgetRef ref) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
-  final navigator = Navigator.of(context, rootNavigator: true);
-  final anchor = shareAnchorFrom(context);
   void say(String text) =>
       messenger.showSnackBar(SnackBar(content: Text(text)));
+  try {
+    await _exportAllDocuments(context, ref, say);
+  } catch (e, stack) {
+    _log.error('Documents export failed', error: e, stackTrace: stack);
+    say(l10n.documents_export_failed('$e'));
+  }
+}
+
+/// Where the archive is built. One fixed folder, emptied at the start of
+/// every export: a shared ZIP has to outlive the share call (AirDrop, Mail
+/// and the Windows share targets read it afterwards), so it is only removed
+/// by the next export rather than straight away.
+Future<Directory> _freshExportDir() async {
+  final dir = Directory(
+    p.join(Directory.systemTemp.path, 'submersion_documents_export'),
+  );
+  if (dir.existsSync()) await dir.delete(recursive: true);
+  return dir.create(recursive: true);
+}
+
+Future<void> _exportAllDocuments(
+  BuildContext context,
+  WidgetRef ref,
+  void Function(String text) say,
+) async {
+  final l10n = context.l10n;
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final anchor = shareAnchorFrom(context);
 
   final repo = ref.read(documentRepositoryProvider);
   final entries = await ref.read(allDocumentsProvider.future);
@@ -76,6 +102,9 @@ Future<void> exportAllDocuments(BuildContext context, WidgetRef ref) async {
     '${l10n.documents_export_fileNamePrefix} '
     '${DateFormat('yyyy-MM-dd').format(now)}.zip',
   );
+  // Before the dialog opens, so a failure here cannot strand it.
+  final dir = await _freshExportDir();
+  if (!context.mounted) return;
   final progress = ValueNotifier<DocumentExportProgress>((
     done: 0,
     total: plan.files.length + 1,
@@ -91,18 +120,15 @@ Future<void> exportAllDocuments(BuildContext context, WidgetRef ref) async {
       ),
     ),
   );
-
-  final temp = await Directory.systemTemp.createTemp(
-    'submersion_documents_export_',
-  );
   var dialogOpen = true;
   void closeDialog() {
     if (dialogOpen) navigator.pop();
     dialogOpen = false;
   }
 
+  var keepForShare = false;
   try {
-    final path = p.join(temp.path, fileName);
+    final path = p.join(dir.path, fileName);
     await DocumentArchiveExporter(repo).write(
       plan: plan,
       manifestCsv: buildDocumentManifestCsv(inputs, plan, _manifest(l10n)),
@@ -113,35 +139,40 @@ Future<void> exportAllDocuments(BuildContext context, WidgetRef ref) async {
       isCancelled: () => cancelled,
     );
     closeDialog();
-    final delivered = switch (destination) {
-      ExportDestination.share => await shareFileAtPath(
-        path,
-        fileName,
-        _zipMime,
-        dialogTitle: l10n.documents_export_title,
-        sharePositionOrigin: anchor,
-      ),
-      ExportDestination.saveToFile => await saveBytesToFile(
-        await File(path).readAsBytes(),
-        fileName,
-        dialogTitle: l10n.documents_export_title,
-        mimeType: _zipMime,
-      ),
-    };
+    final String? delivered;
+    switch (destination) {
+      case ExportDestination.share:
+        keepForShare = true;
+        delivered = await shareFileAtPath(
+          path,
+          fileName,
+          _zipMime,
+          dialogTitle: l10n.documents_export_title,
+          sharePositionOrigin: anchor,
+        );
+      case ExportDestination.saveToFile:
+        delivered = await saveBytesToFile(
+          await File(path).readAsBytes(),
+          fileName,
+          dialogTitle: l10n.documents_export_title,
+          mimeType: _zipMime,
+        );
+    }
     if (delivered != null) say(l10n.documents_export_done);
   } on DocumentExportCancelled {
     closeDialog();
     say(l10n.documents_export_cancelled);
-  } catch (e, stack) {
+  } catch (_) {
     closeDialog();
-    _log.error('Documents export failed', error: e, stackTrace: stack);
-    say(l10n.documents_export_failed('$e'));
+    rethrow;
   } finally {
     progress.dispose();
-    try {
-      await temp.delete(recursive: true);
-    } on FileSystemException catch (e) {
-      _log.warning('Could not remove export temp space: $e');
+    if (!keepForShare) {
+      try {
+        await dir.delete(recursive: true);
+      } on FileSystemException catch (e) {
+        _log.warning('Could not remove export temp space: $e');
+      }
     }
   }
 }
