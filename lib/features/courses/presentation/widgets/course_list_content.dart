@@ -26,6 +26,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_card.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/section_header_title.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/courses/domain/models/course_filter_state.dart';
@@ -52,6 +53,9 @@ class CourseListContent extends ConsumerStatefulWidget {
   /// use. Left null, the list owns its own.
   final SelectionController? selectionController;
 
+  /// Replaces the header's own title, as Training's tab switch does (#3437).
+  final SectionHeaderTitle? headerTitle;
+
   const CourseListContent({
     super.key,
     this.onItemSelected,
@@ -59,6 +63,7 @@ class CourseListContent extends ConsumerStatefulWidget {
     this.showAppBar = true,
     this.floatingActionButton,
     this.selectionController,
+    this.headerTitle,
   });
 
   @override
@@ -200,12 +205,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         builder: (context, selection, _) => Scaffold(
           appBar: selection.isActive
               ? _buildSelectionBar(visibleCourses, SelectionBarShell.appBar)
-              : AppBar(
-                  title: FeatureAppBarTitle(
-                    featureId: 'courses',
-                    title: context.l10n.courses_title,
-                    subtitle: courseListCountLabel(context, ref),
-                  ),
+              : _buildPhoneAppBar(
+                  context,
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.sort),
@@ -471,6 +472,31 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     );
   }
 
+  /// The phone app bar: the plain title with its actions beside it, or a
+  /// [SectionHeaderTitle] with the actions on a row under it.
+  AppBar _buildPhoneAppBar(
+    BuildContext context, {
+    required List<Widget> actions,
+  }) {
+    final subtitle = courseListCountLabel(context, ref);
+    final header = widget.headerTitle;
+    if (header == null) {
+      return AppBar(
+        title: FeatureAppBarTitle(
+          featureId: 'courses',
+          title: context.l10n.courses_title,
+          subtitle: subtitle,
+        ),
+        actions: actions,
+      );
+    }
+    return AppBar(
+      toolbarHeight: header.appBarHeight(context, subtitle),
+      title: header.build(context, SectionHeaderSlot.appBar, subtitle),
+      bottom: sectionHeaderActionsRow(actions),
+    );
+  }
+
   Widget _buildCompactAppBar(BuildContext context) {
     final viewMode = ref.watch(courseListViewModeProvider);
 
@@ -485,22 +511,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           ),
         ),
       ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          // Expanded, and no Spacer: the title must be the row's only flexible
-          // child, or Spacer takes half the free space and the leftover half
-          // lands after the last icon (see trip_list_content for the detail).
-          Expanded(
-            child: FeatureAppBarTitle(
-              featureId: 'courses',
-              title: context.l10n.courses_title,
-              subtitle: courseListCountLabel(context, ref),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
+      child: _compactBarRow(
+        context,
+        icons: [
           if (viewMode != ListViewMode.table)
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
@@ -539,6 +552,38 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           ),
         ],
       ),
+    );
+  }
+
+  /// The pane bar's content: the plain title with [icons] beside it, or a
+  /// [SectionHeaderTitle] with [icons] on a row under it.
+  Widget _compactBarRow(BuildContext context, {required List<Widget> icons}) {
+    final subtitle = courseListCountLabel(context, ref);
+    final header = widget.headerTitle;
+    if (header != null) {
+      return SectionHeaderRows(
+        title: header.build(context, SectionHeaderSlot.pane, subtitle),
+        actions: icons,
+      );
+    }
+    return Row(
+      children: [
+        const SizedBox(width: 8),
+        // Expanded, and no Spacer: the title must be the row's only flexible
+        // child, or Spacer takes half the free space and the leftover half
+        // lands after the last icon (see trip_list_content for the detail).
+        Expanded(
+          child: FeatureAppBarTitle(
+            featureId: 'courses',
+            title: context.l10n.courses_title,
+            subtitle: subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+        ...icons,
+      ],
     );
   }
 

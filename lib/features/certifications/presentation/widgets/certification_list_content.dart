@@ -26,6 +26,7 @@ import 'package:submersion/features/certifications/domain/constants/certificatio
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/section_header_title.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_attention_filter_bar.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
@@ -55,6 +56,9 @@ class CertificationListContent extends ConsumerStatefulWidget {
   /// use. Left null, the list owns its own.
   final SelectionController? selectionController;
 
+  /// Replaces the header's own title, as Training's tab switch does (#3437).
+  final SectionHeaderTitle? headerTitle;
+
   const CertificationListContent({
     super.key,
     this.onItemSelected,
@@ -62,6 +66,7 @@ class CertificationListContent extends ConsumerStatefulWidget {
     this.showAppBar = true,
     this.floatingActionButton,
     this.selectionController,
+    this.headerTitle,
   });
 
   @override
@@ -264,12 +269,8 @@ class _CertificationListContentState
         builder: (context, selection, _) => Scaffold(
           appBar: selection.isActive
               ? _buildSelectionBar(visibleCerts, SelectionBarShell.appBar)
-              : AppBar(
-                  title: FeatureAppBarTitle(
-                    featureId: 'certifications',
-                    title: context.l10n.certifications_appBar_title,
-                    subtitle: certificationListCountLabel(context, ref),
-                  ),
+              : _buildPhoneAppBar(
+                  context,
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.wallet),
@@ -512,6 +513,31 @@ class _CertificationListContentState
     );
   }
 
+  /// The phone app bar: the plain title with its actions beside it, or a
+  /// [SectionHeaderTitle] with the actions on a row under it.
+  AppBar _buildPhoneAppBar(
+    BuildContext context, {
+    required List<Widget> actions,
+  }) {
+    final subtitle = certificationListCountLabel(context, ref);
+    final header = widget.headerTitle;
+    if (header == null) {
+      return AppBar(
+        title: FeatureAppBarTitle(
+          featureId: 'certifications',
+          title: context.l10n.certifications_appBar_title,
+          subtitle: subtitle,
+        ),
+        actions: actions,
+      );
+    }
+    return AppBar(
+      toolbarHeight: header.appBarHeight(context, subtitle),
+      title: header.build(context, SectionHeaderSlot.appBar, subtitle),
+      bottom: sectionHeaderActionsRow(actions),
+    );
+  }
+
   Widget _buildCompactAppBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -524,24 +550,9 @@ class _CertificationListContentState
           ),
         ),
       ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          // Expanded, and no Spacer: the title must be the row's only flexible
-          // child, or Spacer takes half the free space and the leftover half
-          // lands after the last icon (see trip_list_content for the detail).
-          // This bar felt it worst in the other direction too: halving starved
-          // "Certifications" to ~56px and it broke mid-word.
-          Expanded(
-            child: FeatureAppBarTitle(
-              featureId: 'certifications',
-              title: context.l10n.certifications_appBar_title,
-              subtitle: certificationListCountLabel(context, ref),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
+      child: _compactBarRow(
+        context,
+        icons: [
           IconButton(
             icon: const Icon(Icons.wallet, size: 20),
             tooltip: context.l10n.certifications_list_tooltip_walletView,
@@ -596,6 +607,40 @@ class _CertificationListContentState
           ),
         ],
       ),
+    );
+  }
+
+  /// The pane bar's content: the plain title with [icons] beside it, or a
+  /// [SectionHeaderTitle] with [icons] on a row under it.
+  Widget _compactBarRow(BuildContext context, {required List<Widget> icons}) {
+    final subtitle = certificationListCountLabel(context, ref);
+    final header = widget.headerTitle;
+    if (header != null) {
+      return SectionHeaderRows(
+        title: header.build(context, SectionHeaderSlot.pane, subtitle),
+        actions: icons,
+      );
+    }
+    return Row(
+      children: [
+        const SizedBox(width: 8),
+        // Expanded, and no Spacer: the title must be the row's only flexible
+        // child, or Spacer takes half the free space and the leftover half
+        // lands after the last icon (see trip_list_content for the detail).
+        // This bar felt it worst in the other direction too: halving starved
+        // "Certifications" to ~56px and it broke mid-word.
+        Expanded(
+          child: FeatureAppBarTitle(
+            featureId: 'certifications',
+            title: context.l10n.certifications_appBar_title,
+            subtitle: subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+        ...icons,
+      ],
     );
   }
 

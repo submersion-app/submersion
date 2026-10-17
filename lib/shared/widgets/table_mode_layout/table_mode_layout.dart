@@ -39,6 +39,11 @@ class TableModeLayout extends ConsumerWidget {
   /// Optional muted line under [appBarTitle], such as the entry count.
   final SubtitleText? appBarSubtitle;
 
+  /// Replaces the title and its subtitle line when set, such as a section
+  /// switch that carries its own count line (#3437). [appBarTitle] still
+  /// names the page.
+  final Widget? appBarTitleWidget;
+
   /// The table content widget (EntityTableView or similar).
   final Widget tableContent;
 
@@ -123,6 +128,7 @@ class TableModeLayout extends ConsumerWidget {
     required this.sectionKey,
     required this.appBarTitle,
     this.appBarSubtitle,
+    this.appBarTitleWidget,
     required this.tableContent,
     required this.detailBuilder,
     required this.summaryBuilder,
@@ -192,6 +198,7 @@ class TableModeLayout extends ConsumerWidget {
         return _TableModeMaster(
           appBarTitle: appBarTitle,
           appBarSubtitle: appBarSubtitle,
+          appBarTitleWidget: appBarTitleWidget,
           tableContent: tableContent,
           mapContent: showMap ? mapContent : null,
           profilePanelContent: showProfile ? profilePanelContent : null,
@@ -224,10 +231,12 @@ class TableModeLayout extends ConsumerWidget {
       appBar: isSelectionMode && selectionAppBar != null
           ? selectionAppBar
           : AppBar(
-              title: TitleWithSubtitle(
-                title: Text(appBarTitle),
-                subtitle: appBarSubtitle,
-              ),
+              title:
+                  appBarTitleWidget ??
+                  TitleWithSubtitle(
+                    title: Text(appBarTitle),
+                    subtitle: appBarSubtitle,
+                  ),
               actions: toggleActions,
             ),
       body: body,
@@ -423,6 +432,7 @@ class TableModeLayout extends ConsumerWidget {
 class _TableModeMaster extends StatefulWidget {
   final String appBarTitle;
   final SubtitleText? appBarSubtitle;
+  final Widget? appBarTitleWidget;
   final Widget tableContent;
   final Widget? mapContent;
   final Widget? profilePanelContent;
@@ -438,6 +448,7 @@ class _TableModeMaster extends StatefulWidget {
   const _TableModeMaster({
     required this.appBarTitle,
     this.appBarSubtitle,
+    this.appBarTitleWidget,
     required this.tableContent,
     required this.toggleActions,
     this.mapContent,
@@ -512,10 +523,12 @@ class _TableModeMasterState extends State<_TableModeMaster> {
           widget.selectionAppBar!
         else
           AppBar(
-            title: TitleWithSubtitle(
-              title: Text(widget.appBarTitle),
-              subtitle: widget.appBarSubtitle,
-            ),
+            title:
+                widget.appBarTitleWidget ??
+                TitleWithSubtitle(
+                  title: Text(widget.appBarTitle),
+                  subtitle: widget.appBarSubtitle,
+                ),
             actions: widget.toggleActions,
           ),
         if (widget.profilePanelContent != null) widget.profilePanelContent!,
