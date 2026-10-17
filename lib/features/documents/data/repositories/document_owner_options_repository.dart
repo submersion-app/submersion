@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/documents/domain/dive_owner_label.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// One record a document can be filed under, as the owner picker lists it.
@@ -114,21 +115,12 @@ class DocumentOwnerOptionsRepository {
   static String _diveLabel(int? number) => number == null ? '' : '#$number';
 
   /// The display name of [owner]'s record; null for personal or a record
-  /// that no longer exists.
+  /// that no longer exists. Not for dives: their label needs the diver's
+  /// date format, so they use [diveLabel] (#3391).
   Future<String?> labelFor(DocumentOwner owner) async {
+    assert(owner.kind != DocumentOwnerKind.dive, 'use diveLabel for a dive');
     final id = owner.id;
     if (id == null) return null;
-    if (owner.kind == DocumentOwnerKind.dive) {
-      final row = await _db
-          .customSelect(
-            'SELECT dive_number FROM dives WHERE id = ?',
-            variables: [Variable.withString(id)],
-          )
-          .getSingleOrNull();
-      return row == null
-          ? null
-          : _diveLabel(row.readNullable<int>('dive_number'));
-    }
     final row = await _db
         .customSelect(
           'SELECT name FROM ${_tables[owner.kind]} WHERE id = ?',
@@ -136,5 +128,23 @@ class DocumentOwnerOptionsRepository {
         )
         .getSingleOrNull();
     return row?.read<String>('name');
+  }
+
+  /// The parts of a dive's label; null for a dive that no longer exists.
+  Future<DiveOwnerLabel?> diveLabel(String diveId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT d.dive_number, d.dive_date_time, s.name AS site '
+          'FROM dives d LEFT JOIN dive_sites s ON s.id = d.site_id '
+          'WHERE d.id = ?',
+          variables: [Variable.withString(diveId)],
+        )
+        .getSingleOrNull();
+    if (row == null) return null;
+    return DiveOwnerLabel(
+      number: row.readNullable<int>('dive_number'),
+      siteName: row.readNullable<String>('site'),
+      date: wallClockUtcFromMillis(row.read<int>('dive_date_time')),
+    );
   }
 }

@@ -27,7 +27,7 @@ class DocumentOwnerField extends ConsumerWidget {
         ? null
         : ref.watch(documentOwnerLabelProvider(owner)).value;
     // The record's name, its kind shown by the icon; the kind's own label
-    // only when there is no name (Personal, or an unnumbered dive).
+    // only when there is no name (Personal, or a record that is gone).
     final text = name == null || name.isEmpty
         ? documentOwnerKindLabel(l10n, owner.kind)
         : name;

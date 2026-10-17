@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
+import 'package:submersion/features/documents/domain/dive_owner_label.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -95,10 +96,6 @@ void main() {
         await repo.labelFor(const DocumentOwner(DocumentOwnerKind.trip, 't1')),
         'Bonaire',
       );
-      expect(
-        await repo.labelFor(const DocumentOwner(DocumentOwnerKind.dive, 'v1')),
-        '#12',
-      );
       expect(await repo.labelFor(const DocumentOwner.personal()), isNull);
       expect(
         await repo.labelFor(
@@ -108,4 +105,23 @@ void main() {
       );
     },
   );
+
+  test('diveLabel gives the number, site and date (#3391)', () async {
+    expect(
+      await repo.diveLabel('v1'),
+      DiveOwnerLabel(
+        number: 12,
+        siteName: 'Salt Pier',
+        date: DateTime.utc(2026, 9, 1, 9),
+      ),
+    );
+    expect(await repo.diveLabel('gone'), isNull);
+  });
+
+  test('labelFor is not for dives, which need a date format', () {
+    expect(
+      () => repo.labelFor(const DocumentOwner(DocumentOwnerKind.dive, 'v1')),
+      throwsA(isA<AssertionError>()),
+    );
+  });
 }

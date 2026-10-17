@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
@@ -30,10 +31,30 @@ final allDocumentsProvider = FutureProvider<List<DocumentListEntry>>((
 ) async {
   final repo = ref.watch(documentRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchChanges());
+  final formatDate = _diveDateFormatter(ref);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (diverId == null) return const [];
-  return repo.getAllForDiver(diverId);
+  return resolveDiveOwnerLabels(await repo.getAllForDiver(diverId), formatDate);
 });
+
+/// Gives each dive-owned entry its label (#3391): `#142 · Blue Hole ·
+/// 12 Oct 2026`, with [formatDate] the diver's date format. Other entries
+/// are returned unchanged.
+List<DocumentListEntry> resolveDiveOwnerLabels(
+  List<DocumentListEntry> entries,
+  String Function(DateTime date) formatDate,
+) => [
+  for (final e in entries)
+    if (e.dive case final dive?)
+      e.withOwnerLabel(dive.display(formatDate(dive.date)))
+    else
+      e,
+];
+
+String Function(DateTime) _diveDateFormatter(Ref ref) {
+  final units = UnitFormatter(ref.watch(settingsProvider));
+  return units.formatDate;
+}
 
 final documentByIdProvider = FutureProvider.family<Document?, String>((
   ref,
@@ -49,7 +70,10 @@ final documentEntryProvider = FutureProvider.family<DocumentListEntry?, String>(
   (ref, id) async {
     final repo = ref.watch(documentRepositoryProvider);
     ref.invalidateSelfWhen(repo.watchChanges());
-    return repo.getEntryById(id);
+    final formatDate = _diveDateFormatter(ref);
+    final entry = await repo.getEntryById(id);
+    if (entry == null) return null;
+    return resolveDiveOwnerLabels([entry], formatDate).single;
   },
 );
 

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/dive_owner_label.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -350,7 +351,34 @@ void main() {
     );
     final all = await repo.getAllForDiver('d1');
     expect(all.single.ownerLabel, 'Bonaire');
+    expect(all.single.dive, isNull);
     expect(all.single.pageCount, 2);
+  });
+
+  test('a dive owner carries its number, site and date, not its name '
+      '(#3391)', () async {
+    final when = DateTime.utc(2026, 10, 12, 9);
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('s1', 'd1', 'Blue Hole', 0, 0)",
+    );
+    await db.customStatement(
+      'INSERT INTO dives (id, diver_id, dive_number, dive_date_time, site_id, '
+      "name, created_at, updated_at) VALUES ('v1', 'd1', 142, "
+      "${when.millisecondsSinceEpoch}, 's1', 'Night dive', 0, 0)",
+    );
+    await repo.save(
+      newDoc(owner: const DocumentOwner(DocumentOwnerKind.dive, 'v1')),
+      [
+        page(0, [1]),
+      ],
+    );
+    final entry = (await repo.getAllForDiver('d1')).single;
+    expect(
+      entry.dive,
+      DiveOwnerLabel(number: 142, siteName: 'Blue Hole', date: when),
+    );
+    expect(entry.ownerLabel, isNot(contains('Night dive')));
   });
 
   test('card images: save, read, clear one side, clear both', () async {

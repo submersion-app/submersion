@@ -7,7 +7,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/documents/data/repositories/document_row_mapper.dart';
+import 'package:submersion/features/documents/domain/dive_owner_label.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -18,10 +20,22 @@ class DocumentListEntry {
   final Document document;
 
   /// Name of the record the document is filed under; null when personal.
+  /// For a dive it is null until [resolveDiveOwnerLabels] formats [dive].
   final String? ownerLabel;
   final int pageCount;
 
-  const DocumentListEntry(this.document, this.ownerLabel, this.pageCount);
+  /// The parts of a dive owner's label (#3391); null for other owners.
+  final DiveOwnerLabel? dive;
+
+  const DocumentListEntry(
+    this.document,
+    this.ownerLabel,
+    this.pageCount, {
+    this.dive,
+  });
+
+  DocumentListEntry withOwnerLabel(String? label) =>
+      DocumentListEntry(document, label, pageCount, dive: dive);
 }
 
 typedef CardImages = ({Uint8List? front, Uint8List? back});
@@ -142,7 +156,11 @@ class DocumentRepository {
           '(SELECT COUNT(*) FROM document_pages p WHERE p.document_id = d.id) '
           'AS page_count, '
           'COALESCE(s.name, t.name, e.name, c.name, cert.name, b.name, '
-          "dc.name, dv.name, '#' || dv.dive_number) AS owner_label "
+          'dc.name) AS owner_label, '
+          // A dive's label needs the diver's date format, so the parts come
+          // back raw and presentation formats them (#3391).
+          'dv.id AS dive_ref, dv.dive_number AS dive_number, '
+          'dv.dive_date_time AS dive_date_time, dvs.name AS dive_site_name '
           'FROM documents d '
           'LEFT JOIN dive_sites s ON s.id = d.site_id '
           'LEFT JOIN trips t ON t.id = d.trip_id '
@@ -152,6 +170,7 @@ class DocumentRepository {
           'LEFT JOIN buddies b ON b.id = d.buddy_id '
           'LEFT JOIN dive_centers dc ON dc.id = d.dive_center_id '
           'LEFT JOIN dives dv ON dv.id = d.dive_id '
+          'LEFT JOIN dive_sites dvs ON dvs.id = dv.site_id '
           'WHERE $where '
           'ORDER BY d.type, d.title, d.created_at',
           variables: [Variable.withString(arg)],
@@ -164,6 +183,13 @@ class DocumentRepository {
           documentFromRow(_db.documents.map(r.data)),
           r.readNullable<String>('owner_label'),
           r.read<int>('page_count'),
+          dive: r.readNullable<String>('dive_ref') == null
+              ? null
+              : DiveOwnerLabel(
+                  number: r.readNullable<int>('dive_number'),
+                  siteName: r.readNullable<String>('dive_site_name'),
+                  date: wallClockUtcFromMillis(r.read<int>('dive_date_time')),
+                ),
         ),
     ];
   }
