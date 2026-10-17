@@ -46,6 +46,9 @@ class SharedLibraries extends Table {
   TextColumn get spareKeyId => text().nullable()();
   TextColumn get spareKey => text().nullable()();
 
+  /// The library's description from its `info.json` (issue #3389).
+  TextColumn get description => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

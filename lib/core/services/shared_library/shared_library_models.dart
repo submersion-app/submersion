@@ -624,10 +624,14 @@ class SharedLibrary extends Equatable {
     this.encrypted = false,
     this.keyId,
     this.lastAutoBackupAt,
+    this.description,
   });
 
   final String id;
   final String name;
+
+  /// What the library is for, from its `info.json` (issue #3389).
+  final String? description;
   final String connectedAccountId;
   final String prefix;
   final int formatVersion;
@@ -665,9 +669,12 @@ class SharedLibrary extends Equatable {
     String? lastError,
     bool clearLastError = false,
     bool? rolesRejected,
+    String? description,
+    bool clearDescription = false,
   }) => SharedLibrary(
     id: id,
     name: name ?? this.name,
+    description: clearDescription ? null : (description ?? this.description),
     connectedAccountId: connectedAccountId,
     prefix: prefix,
     formatVersion: formatVersion,
@@ -698,6 +705,7 @@ class SharedLibrary extends Equatable {
     encrypted,
     keyId,
     lastAutoBackupAt,
+    description,
   ];
 }
 

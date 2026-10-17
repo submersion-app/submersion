@@ -137,6 +137,28 @@ void main() {
     expect(await store.getLibrary('L'), isNull);
   });
 
+  test(
+    'upsertLibrary and setLibraryStatus round-trip the description',
+    () async {
+      await store.upsertLibrary(
+        const SharedLibrary(
+          id: 'L',
+          name: 'Reef Survey',
+          connectedAccountId: 'acc',
+          prefix: 'site-sync',
+          description: 'Club sites',
+        ),
+      );
+      expect((await store.getLibrary('L'))!.description, 'Club sites');
+      await store.setLibraryStatus('L', description: 'New');
+      expect((await store.getLibrary('L'))!.description, 'New');
+      await store.setLibraryStatus('L', lastError: 'x');
+      expect((await store.getLibrary('L'))!.description, 'New');
+      await store.setLibraryStatus('L', clearDescription: true);
+      expect((await store.getLibrary('L'))!.description, isNull);
+    },
+  );
+
   test('memberIdForDiver is stable across libraries', () async {
     final first = await store.memberIdForDiver('d1');
     await store.upsertMembership(

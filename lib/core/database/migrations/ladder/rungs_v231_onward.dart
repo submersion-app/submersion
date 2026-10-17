@@ -400,5 +400,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertSegmentSplitAtRateColumn();
     }
     if (from < 290) await reportProgress();
+    // v291: shared_libraries.description (issue #3389). Column only, read
+    // from each library's info.json at the next sync; re-asserted in
+    // beforeOpen through _assertSharedLibrarySchema.
+    if (from < 291) {
+      await _assertSharedLibrarySchema();
+    }
+    if (from < 291) await reportProgress();
   }
 }

@@ -59,6 +59,7 @@ class SharedLibraryStore {
             lastAutoBackupAt: Value(
               lib.lastAutoBackupAt?.millisecondsSinceEpoch,
             ),
+            description: Value(lib.description),
             createdAt:
                 existing?.createdAt ?? DateTime.now().millisecondsSinceEpoch,
           ),
@@ -107,6 +108,8 @@ class SharedLibraryStore {
     bool? readOnlyDetected,
     SharedLibraryRoles? roles,
     String? name,
+    String? description,
+    bool clearDescription = false,
     bool? rolesRejected,
     SharedLibraryRoles? pendingRoles,
     bool clearPendingRoles = false,
@@ -132,6 +135,11 @@ class SharedLibraryStore {
             ? const Value.absent()
             : Value(jsonEncode(roles.toJson())),
         name: name == null ? const Value.absent() : Value(name),
+        description: clearDescription
+            ? const Value(null)
+            : description == null
+            ? const Value.absent()
+            : Value(description),
         rolesRejected: rolesRejected == null
             ? const Value.absent()
             : Value(rolesRejected),
@@ -186,6 +194,7 @@ class SharedLibraryStore {
       lastAutoBackupAt: row.lastAutoBackupAt == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(row.lastAutoBackupAt!),
+      description: row.description,
     );
   }
 

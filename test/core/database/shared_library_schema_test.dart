@@ -127,5 +127,11 @@ void main() {
     );
     expect(await columnsOf(old, 'shared_library_backups'), contains('pinned'));
     expect(await columnsOf(old, 'library_site_notes'), contains('notes'));
+    expect(await columnsOf(old, 'shared_libraries'), contains('description'));
+  });
+
+  test('rung 291 adds the library description (issue #3389)', () async {
+    expect(AppDatabase.migrationVersions, contains(291));
+    expect(await columnsOf(db, 'shared_libraries'), contains('description'));
   });
 }
