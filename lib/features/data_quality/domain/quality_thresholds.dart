@@ -1,3 +1,5 @@
+import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
+
 /// Every detector threshold, in one place. Detectors never inline numbers.
 /// Units: meters, celsius, bar, seconds unless the name says otherwise.
 abstract final class QualityThresholds {
@@ -102,6 +104,11 @@ abstract final class QualityThresholds {
   static const double sourceTempDiffC = 3.0;
   static const double salinityRatioLow = 1.02;
   static const double salinityRatioHigh = 1.035;
+
+  // source_alignment: the same tolerance consolidation applies, so a dive
+  // consolidated today is never flagged by the scan that follows it.
+  static const int sourceAlignmentToleranceSeconds =
+      DiveConsolidationBuilder.clockToleranceSeconds;
 
   // neighbor lookup window for cross-dive detectors
   static const Duration neighborWindow = Duration(hours: 12);

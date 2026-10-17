@@ -11,6 +11,7 @@ import 'package:submersion/features/data_quality/domain/repairs/repair_predicate
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/data/services/source_time_alignment_service.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -48,12 +49,14 @@ class QualityRepairExecutor {
     TankPressureRepository? tankPressureRepository,
     QualityFindingsRepository? findingsRepository,
     ProfileRepairService? profileRepairService,
+    SourceTimeAlignmentService? alignmentService,
     Future<void> Function(List<DocumentSnapshotEntry> snapshot)?
     restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
        _findings = findingsRepository ?? QualityFindingsRepository(),
        _profiles = profileRepairService ?? ProfileRepairService(),
+       _alignment = alignmentService ?? SourceTimeAlignmentService(),
        _restoreDocuments =
            restoreDocuments ?? DocumentRepository().restoreSnapshot;
 
@@ -63,6 +66,7 @@ class QualityRepairExecutor {
   final TankPressureRepository _tankRepo;
   final QualityFindingsRepository _findings;
   final ProfileRepairService _profiles;
+  final SourceTimeAlignmentService _alignment;
   AppDatabase get _db => DatabaseService.instance.database;
 
   /// Queues the targeted quality rescan and a forced rebuild of the
@@ -456,5 +460,30 @@ class QualityRepairExecutor {
     await _finish(findingId, [diveId]);
     // set-primary has its own UI affordance to set back
     return const RepairResult.applied();
+  }
+
+  /// Moves secondary source [sourceId] of [diveId] to [offsetSeconds] from
+  /// the primary (#2894). The undo puts it back where it was.
+  Future<RepairResult> alignSource({
+    required String diveId,
+    required String sourceId,
+    required int offsetSeconds,
+    required String findingId,
+  }) async {
+    final previous = await _alignment.setOffset(
+      diveId: diveId,
+      sourceId: sourceId,
+      offsetSeconds: offsetSeconds,
+    );
+    if (previous == offsetSeconds) return const RepairResult.noChange();
+    await _finish(findingId, [diveId]);
+    return RepairResult.applied(() async {
+      await _alignment.setOffset(
+        diveId: diveId,
+        sourceId: sourceId,
+        offsetSeconds: previous,
+      );
+      _rescan([diveId]);
+    });
   }
 }

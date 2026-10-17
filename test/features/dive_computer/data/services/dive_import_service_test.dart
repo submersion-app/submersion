@@ -21,6 +21,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'dive_import_service_test.mocks.dart';
+import 'package:submersion/features/dive_log/data/services/source_time_alignment_service.dart';
 
 void main() {
   late MockDiveComputerRepository mockComputerRepo;
@@ -970,6 +971,101 @@ void main() {
       ).captured;
 
       expect(captured, [false]);
+    });
+
+    group('replaceSource keeps a secondary reading aligned (#2894)', () {
+      late _RecordingAlignment alignment;
+
+      ImportConflict conflictFor(String diveId) => ImportConflict(
+        downloaded: DownloadedDive(
+          fingerprint: 'fp-$diveId',
+          startTime: DateTime(2026, 9, 14, 9),
+          durationSeconds: 3000,
+          maxDepth: 25.0,
+          profile: const [],
+          tanks: const [],
+          events: const [],
+        ),
+        existingDiveId: diveId,
+        duplicateResult: DuplicateResult(
+          matchingDiveId: diveId,
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+
+      setUp(() {
+        alignment = _RecordingAlignment(storedOffset: 100);
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          sourceAlignment: alignment,
+        );
+      });
+
+      test('re-places the reading from its previous offset', () async {
+        when(
+          mockComputerRepo.clearSourceAndProfiles(
+            diveId: anyNamed('diveId'),
+            computerId: anyNamed('computerId'),
+          ),
+        ).thenAnswer((_) async => false);
+
+        await service.resolveConflict(
+          conflictFor('dive-976'),
+          ConflictResolution.replaceSource,
+          computer.id,
+        );
+
+        expect(alignment.placed, [('dive-976', computer.id, 100)]);
+      });
+
+      test('leaves a replaced primary reading alone', () async {
+        alignment = _RecordingAlignment(storedOffset: null);
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          sourceAlignment: alignment,
+        );
+        when(
+          mockComputerRepo.clearSourceAndProfiles(
+            diveId: anyNamed('diveId'),
+            computerId: anyNamed('computerId'),
+          ),
+        ).thenAnswer((_) async => true);
+
+        await service.resolveConflict(
+          conflictFor('dive-976'),
+          ConflictResolution.replaceSource,
+          computer.id,
+        );
+
+        expect(alignment.placed, isEmpty);
+      });
+
+      test('a failed re-alignment does not fail the download', () async {
+        alignment = _RecordingAlignment(storedOffset: 100, failPlace: true);
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          sourceAlignment: alignment,
+        );
+        when(
+          mockComputerRepo.clearSourceAndProfiles(
+            diveId: anyNamed('diveId'),
+            computerId: anyNamed('computerId'),
+          ),
+        ).thenAnswer((_) async => false);
+
+        expect(
+          await service.resolveConflict(
+            conflictFor('dive-976'),
+            ConflictResolution.replaceSource,
+            computer.id,
+          ),
+          'dive-976',
+        );
+      });
     });
 
     test('resolveConflict with consolidate returns null', () async {
@@ -1965,4 +2061,27 @@ void main() {
       expect(captured, [null, null]);
     });
   });
+}
+
+/// Records what the import asks of the alignment service.
+class _RecordingAlignment extends SourceTimeAlignmentService {
+  _RecordingAlignment({required this.storedOffset, this.failPlace = false});
+
+  final int? storedOffset;
+  final bool failPlace;
+  final placed = <(String, String, int?)>[];
+
+  @override
+  Future<int?> secondaryOffsetOf(String diveId, String computerId) async =>
+      storedOffset;
+
+  @override
+  Future<void> placeReimported({
+    required String diveId,
+    required String computerId,
+    required int? previousOffsetSeconds,
+  }) async {
+    if (failPlace) throw StateError('no database');
+    placed.add((diveId, computerId, previousOffsetSeconds));
+  }
 }

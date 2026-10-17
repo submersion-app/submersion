@@ -131,6 +131,7 @@ class QualityPrefilters {
       'tank_assignment': withPressures,
       'unknown_transmitter': withTransmitterSerials,
       'source_conflict': multiSource,
+      'source_alignment': multiSource,
       'shared_gear_overlap': sharedGear,
     };
   }

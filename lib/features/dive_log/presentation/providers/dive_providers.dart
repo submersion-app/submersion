@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_custom_field
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/data/services/source_time_alignment_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
@@ -221,6 +222,14 @@ final diveConsolidationServiceProvider = Provider<DiveConsolidationService>((
 ) {
   return DiveConsolidationService(ref.watch(diveRepositoryProvider));
 });
+
+/// Checks and moves a consolidated dive's secondary computers in time
+/// (#2894).
+final sourceTimeAlignmentServiceProvider = Provider<SourceTimeAlignmentService>(
+  (ref) {
+    return SourceTimeAlignmentService();
+  },
+);
 
 /// Split-a-source-into-its-own-dive service singleton (inverse of
 /// consolidation).

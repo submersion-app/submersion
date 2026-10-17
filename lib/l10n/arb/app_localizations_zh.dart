@@ -9742,6 +9742,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_menu_separate => '拆分合并的潜水';
 
   @override
+  String get diveLog_sources_menu_adjustTime => '调整时间对齐';
+
+  @override
+  String get diveLog_timeAlign_title => '时间对齐';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return '$name 在主电脑时间轴上的位置。移动它会同时平移其剖面、气压、事件和换气；当该电脑的时钟不准时使用。';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview => '前 10 分钟：主电脑与此电脑';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value 秒';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return '提前（$amount）';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return '推后（$amount）';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return '当前 $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return '深度曲线在 $value 时对齐最佳。';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit => '深度曲线吻合度不足，无法给出建议偏移；请手动调整。';
+
+  @override
+  String get diveLog_timeAlign_useFit => '使用深度匹配';
+
+  @override
+  String get diveLog_timeAlign_unavailable => '无法读取此电脑的深度曲线，因此无法对齐。';
+
+  @override
+  String get diveLog_timeAlign_updated => '时间对齐已更新';
+
+  @override
+  String get diveLog_timeAlign_failed => '无法更改时间对齐';
+
+  @override
   String get diveLog_sources_separateDialog_title => '要拆分合并的潜水吗？';
 
   @override
@@ -36535,6 +36589,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_repair_failed => '修复失败';
 
   @override
+  String get dataQuality_repair_undone => '已撤销修复';
+
+  @override
+  String get dataQuality_repair_undoFailed => '撤销失败';
+
+  @override
   String get dataQuality_chip_all => '全部';
 
   @override
@@ -36587,6 +36647,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_detector_source_conflict => '来源冲突';
+
+  @override
+  String get dataQuality_detector_source_alignment => '电脑时间不同步';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return '此电脑被放在距主电脑 $stored 处，但其深度曲线在 $fitted 处吻合。它的时钟可能有漂移。';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return '按深度匹配对齐（$value）';
+  }
 
   @override
   String get dataQuality_detector_shared_gear_overlap => '重叠潜水中的共享装备';

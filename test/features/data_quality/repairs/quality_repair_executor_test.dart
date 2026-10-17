@@ -723,6 +723,79 @@ void main() {
     },
   );
 
+  test('alignSource moves the source, resolves, and undo restores', () async {
+    final db = DatabaseService.instance.database;
+    await diveRepo.createDive(
+      domain.Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1)),
+    );
+    final now = DateTime.utc(2026, 7, 1);
+    Future<void> insertSource(String id, bool isPrimary, int? offset) => db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: Value(id),
+            diveId: const Value('d1'),
+            isPrimary: Value(isPrimary),
+            timeOffsetSeconds: Value(offset),
+            importedAt: Value(now),
+            createdAt: Value(now),
+          ),
+        );
+    await insertSource('src1', true, null);
+    await insertSource('src2', false, 100);
+    Future<int?> offsetOf() async => (await (db.select(
+      db.diveDataSources,
+    )..where((t) => t.id.equals('src2'))).getSingle()).timeOffsetSeconds;
+    final finding = await seedFindingForDive('d1');
+
+    final result = await executor.alignSource(
+      diveId: 'd1',
+      sourceId: 'src2',
+      offsetSeconds: 2,
+      findingId: finding.id,
+    );
+
+    expect(result.changed, isTrue);
+    expect(await offsetOf(), 2);
+    expect(await statusOf('d1'), QualityStatus.resolved);
+
+    await result.undo!();
+    expect(await offsetOf(), 100);
+  });
+
+  test('alignSource to the stored offset changes nothing', () async {
+    final db = DatabaseService.instance.database;
+    await diveRepo.createDive(
+      domain.Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1)),
+    );
+    final now = DateTime.utc(2026, 7, 1);
+    for (final (id, primary) in [('src1', true), ('src2', false)]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('d1'),
+              isPrimary: Value(primary),
+              timeOffsetSeconds: Value(primary ? null : 100),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+    }
+    final finding = await seedFindingForDive('d1');
+
+    final result = await executor.alignSource(
+      diveId: 'd1',
+      sourceId: 'src2',
+      offsetSeconds: 100,
+      findingId: finding.id,
+    );
+
+    expect(result.changed, isFalse);
+    expect(await statusOf('d1'), QualityStatus.open);
+  });
+
   group('deleteDuplicate', () {
     final entry = DateTime.utc(2026, 7, 1, 10);
     final richProfile = [

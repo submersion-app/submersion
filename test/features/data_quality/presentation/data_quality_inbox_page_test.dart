@@ -1551,6 +1551,56 @@ void main() {
     expect((await DiveRepository().getDiveById('d1'))!.waterTemp, 78);
   });
 
+  testWidgets('a second repair replaces the first one\'s undo bar', (
+    tester,
+  ) async {
+    // Queued bars each carried an undo for an older repair without naming
+    // it, so after a run of one-tap repairs an Undo reverted an early one.
+    for (final id in ['d1', 'd2']) {
+      await DiveRepository().createDive(
+        domain.Dive(id: id, dateTime: DateTime.utc(2026, 7, 1), waterTemp: 78),
+      );
+    }
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          for (final id in ['d1', 'd2'])
+            _f(
+              id: 'r-temp-$id',
+              diveId: id,
+              detectorId: 'temp_anomaly',
+              category: QualityCategory.temperature,
+              params: const {'waterTempC': 78.0, 'fahrenheitSuspected': true},
+            ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FilledButton).at(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FilledButton).at(1));
+    await tester.pumpAndSettle();
+    expect(find.text('Repair applied'), findsOneWidget);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Repair undone'), findsOneWidget);
+
+    // Exactly one repair came back: the latest one.
+    final temps = [
+      for (final id in ['d1', 'd2'])
+        (await DiveRepository().getDiveById(id))!.waterTemp,
+    ];
+    expect(temps.where((t) => t == 78), hasLength(1));
+
+    // No older bar is waiting behind it.
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+    expect(find.text('Repair applied'), findsNothing);
+  });
+
   testWidgets(
     'consolidate-duplicate repair opens the combine dialog with the primary '
     'selector instead of merging on the spot',

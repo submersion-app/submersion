@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/source_alignment_check.dart';
 
 /// Minimal dive for pure detector tests. If domain.Dive gains required
 /// constructor parameters, extend HERE only.
@@ -45,6 +46,7 @@ DiveQualityContext makeContext({
   // as a reason to withhold itself (#1720).
   bool? carriesDiverData = false,
   List<SharedGearOverlap> sharedGearOverlaps = const [],
+  List<SourceAlignmentCheck> sourceAlignments = const [],
 }) => DiveQualityContext(
   dive: dive,
   now: now ?? DateTime.utc(2026, 7, 17, 12),
@@ -59,6 +61,7 @@ DiveQualityContext makeContext({
   ppO2MaxBar: ppO2MaxBar,
   knownTransmitterSerials: knownTransmitterSerials,
   sharedGearOverlaps: sharedGearOverlaps,
+  sourceAlignments: sourceAlignments,
 );
 
 /// Descend to [depth] at t=0..60, hold, surface in the last minute.

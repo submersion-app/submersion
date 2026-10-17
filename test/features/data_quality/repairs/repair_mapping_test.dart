@@ -516,6 +516,33 @@ void main() {
     });
   });
 
+  group('source_alignment branches', () {
+    test('offers the depth-match offset and navigation', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'source_alignment',
+          params: {
+            'sourceId': 's1',
+            'storedOffsetSeconds': 100,
+            'fittedOffsetSeconds': 2,
+          },
+        ),
+      );
+      final align = actions.whereType<AlignSourceRepair>().single;
+      expect(align.diveId, 'd1');
+      expect(align.sourceId, 's1');
+      expect(align.offsetSeconds, 2);
+      expect(actions.whereType<GoToDiveRepair>(), hasLength(1));
+    });
+
+    test('without a fitted offset gets navigation only', () {
+      final actions = repairOptionsFor(
+        f(detectorId: 'source_alignment', params: {'sourceId': 's1'}),
+      );
+      expect(actions, [isA<GoToDiveRepair>()]);
+    });
+  });
+
   group('source_conflict branches', () {
     test('with a source id offers set-primary, split, and compare', () {
       final actions = repairOptionsFor(

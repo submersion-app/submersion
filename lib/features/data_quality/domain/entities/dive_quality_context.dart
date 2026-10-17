@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/source_alignment_check.dart';
 import 'package:submersion/features/data_quality/domain/entities/shared_gear_overlap.dart';
 
 export 'package:submersion/features/data_quality/domain/entities/shared_gear_overlap.dart';
@@ -74,6 +75,7 @@ class DiveQualityContext {
     this.ppO2MaxBar = QualityThresholds.ppO2WarnBar,
     this.knownTransmitterSerials = const {},
     this.sharedGearOverlaps = const [],
+    this.sourceAlignments = const [],
   });
 
   final domain.Dive dive;
@@ -121,4 +123,9 @@ class DiveQualityContext {
   /// this one (issue #2853). Empty for a dive without a profile and in a
   /// library with fewer than two profiles.
   final List<SharedGearOverlap> sharedGearOverlaps;
+
+  /// Each secondary computer's stored offset against where its depth trace
+  /// matches the primary's (#2894). Empty for a single-source dive. The fit
+  /// is computed when the context is built, so detectors stay pure.
+  final List<SourceAlignmentCheck> sourceAlignments;
 }

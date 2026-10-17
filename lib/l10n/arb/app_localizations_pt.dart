@@ -10232,6 +10232,65 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Separar mergulhos combinados';
 
   @override
+  String get diveLog_sources_menu_adjustTime =>
+      'Ajustar o alinhamento temporal';
+
+  @override
+  String get diveLog_timeAlign_title => 'Alinhamento temporal';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Onde $name fica na linha do tempo do computador principal. Movê-lo desloca o perfil, as pressões, os eventos e as trocas de gás; use quando o relógio desse computador estava errado.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'Primeiros 10 minutos: principal e este computador';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Mais cedo ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Mais tarde ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Atualmente $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'Os perfis de profundidade coincidem melhor em $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'Os perfis de profundidade não coincidem o suficiente para sugerir um deslocamento; ajuste-o manualmente.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Usar correspondência de profundidade';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'Não foi possível ler o perfil de profundidade deste computador, por isso não pode ser alinhado.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Alinhamento temporal atualizado';
+
+  @override
+  String get diveLog_timeAlign_failed =>
+      'Não foi possível alterar o alinhamento temporal';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'Separar os mergulhos combinados?';
 
@@ -38738,6 +38797,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dataQuality_repair_failed => 'Falha na correção';
 
   @override
+  String get dataQuality_repair_undone => 'Reparação desfeita';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Falha ao desfazer';
+
+  @override
   String get dataQuality_chip_all => 'Todos';
 
   @override
@@ -38790,6 +38855,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dataQuality_detector_source_conflict => 'Fontes em conflito';
+
+  @override
+  String get dataQuality_detector_source_alignment => 'Computador desalinhado';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Este computador está a $stored do principal, mas o seu perfil de profundidade coincide em $fitted. O relógio provavelmente estava adiantado ou atrasado.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Alinhar ao perfil de profundidade ($value)';
+  }
 
   @override
   String get dataQuality_detector_shared_gear_overlap =>

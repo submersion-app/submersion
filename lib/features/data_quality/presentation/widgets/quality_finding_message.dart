@@ -65,6 +65,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
       'unknown_transmitter' => l10n.dataQuality_detector_unknown_transmitter,
       'source_conflict' => l10n.dataQuality_detector_source_conflict,
+      'source_alignment' => l10n.dataQuality_detector_source_alignment,
       'shared_gear_overlap' => l10n.dataQuality_detector_shared_gear_overlap,
       _ => detectorId,
     };
@@ -199,6 +200,13 @@ QualityFindingMessage buildFindingMessage(
               fmt.pressure(d('inactiveDropBar')),
             )
           : l10n.dataQuality_msg_twinTanks;
+    case 'source_alignment':
+      String signed(int s) =>
+          l10n.diveLog_timeAlign_seconds(s > 0 ? '+$s' : '$s');
+      detail = l10n.dataQuality_msg_sourceAlignment(
+        signed(i('storedOffsetSeconds')),
+        signed(i('fittedOffsetSeconds')),
+      );
     case 'source_conflict':
       if (p.containsKey('primaryMaxDepth')) {
         detail = l10n.dataQuality_msg_sourceDepth(

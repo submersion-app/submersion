@@ -10231,6 +10231,64 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Kombinierte Tauchgänge trennen';
 
   @override
+  String get diveLog_sources_menu_adjustTime => 'Zeitabgleich anpassen';
+
+  @override
+  String get diveLog_timeAlign_title => 'Zeitabgleich';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Wo $name auf der Zeitachse des primären Computers liegt. Eine Verschiebung bewegt Profil, Drücke, Ereignisse und Gaswechsel; nutzen Sie sie, wenn die Uhr dieses Computers falsch ging.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'Erste 10 Minuten: primärer und dieser Computer';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Früher ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Später ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Derzeit $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'Die Tiefenverläufe passen bei $value am besten zusammen.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'Die Tiefenverläufe stimmen nicht genau genug überein, um einen Versatz vorzuschlagen; passen Sie ihn von Hand an.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Tiefenabgleich verwenden';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'Der Tiefenverlauf dieses Computers konnte nicht gelesen werden, daher ist kein Abgleich möglich.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Zeitabgleich aktualisiert';
+
+  @override
+  String get diveLog_timeAlign_failed =>
+      'Zeitabgleich konnte nicht geändert werden';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'Kombinierte Tauchgänge trennen?';
 
@@ -38676,6 +38734,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_repair_failed => 'Korrektur fehlgeschlagen';
 
   @override
+  String get dataQuality_repair_undone => 'Reparatur rückgängig gemacht';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Rückgängig fehlgeschlagen';
+
+  @override
   String get dataQuality_chip_all => 'Alle';
 
   @override
@@ -38728,6 +38792,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dataQuality_detector_source_conflict => 'Widersprüchliche Quellen';
+
+  @override
+  String get dataQuality_detector_source_alignment =>
+      'Computer zeitlich versetzt';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Dieser Computer liegt $stored vom primären entfernt, sein Tiefenverlauf passt aber bei $fitted. Seine Uhr ging vermutlich falsch.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Am Tiefenverlauf ausrichten ($value)';
+  }
 
   @override
   String get dataQuality_detector_shared_gear_overlap =>

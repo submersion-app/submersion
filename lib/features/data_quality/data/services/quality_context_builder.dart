@@ -5,6 +5,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/services/source_time_alignment_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -39,6 +40,7 @@ class QualityContextBuilder {
   final Map<String, Set<String>> _knownSerialsByDiver = {};
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
+  final _alignment = SourceTimeAlignmentService();
   AppDatabase get _db => DatabaseService.instance.database;
 
   /// ppO2 ceiling per diver id, resolved once per [buildAll] batch. The key
@@ -158,6 +160,7 @@ class QualityContextBuilder {
 
     final neighbors = await _neighbors(dive);
     final carriesDiverData = await _carriesDiverData(dive.id);
+    final sourceAlignments = await _sourceAlignments(dive.id, sources.length);
 
     return DiveQualityContext(
       dive: dive,
@@ -173,7 +176,23 @@ class QualityContextBuilder {
       ppO2MaxBar: await _ppO2Max(dive.diverId),
       knownTransmitterSerials: await _knownSerials(dive.diverId),
       sharedGearOverlaps: await _sharedGearOverlaps(dive),
+      sourceAlignments: sourceAlignments,
     );
+  }
+
+  /// Where each secondary computer sits against where its depth trace
+  /// matches the primary's (#2894). A failure only withholds that check: the
+  /// rest of the dive's scan must still run.
+  Future<List<SourceAlignmentCheck>> _sourceAlignments(
+    String diveId,
+    int sourceCount,
+  ) async {
+    if (sourceCount < 2) return const [];
+    try {
+      return await _alignment.check(diveId);
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// Other profiles' dives in the neighbour window that share an item with

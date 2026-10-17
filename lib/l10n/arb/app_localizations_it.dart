@@ -10235,6 +10235,65 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_sources_menu_separate => 'Separa le immersioni unite';
 
   @override
+  String get diveLog_sources_menu_adjustTime =>
+      'Regola l\'allineamento temporale';
+
+  @override
+  String get diveLog_timeAlign_title => 'Allineamento temporale';
+
+  @override
+  String diveLog_timeAlign_body(String name) {
+    return 'Dove si trova $name sulla linea temporale del computer principale. Spostarlo sposta profilo, pressioni, eventi e cambi gas; usalo quando l\'orologio di quel computer era sfasato.';
+  }
+
+  @override
+  String get diveLog_timeAlign_preview =>
+      'Primi 10 minuti: principale e questo computer';
+
+  @override
+  String diveLog_timeAlign_seconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String diveLog_timeAlign_earlier(String amount) {
+    return 'Prima ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_later(String amount) {
+    return 'Dopo ($amount)';
+  }
+
+  @override
+  String diveLog_timeAlign_stored(String value) {
+    return 'Attualmente $value';
+  }
+
+  @override
+  String diveLog_timeAlign_fitSuggestion(String value) {
+    return 'I profili di profondità coincidono meglio a $value.';
+  }
+
+  @override
+  String get diveLog_timeAlign_noFit =>
+      'I profili di profondità non coincidono abbastanza per suggerire uno scostamento; regolalo a mano.';
+
+  @override
+  String get diveLog_timeAlign_useFit => 'Usa corrispondenza di profondità';
+
+  @override
+  String get diveLog_timeAlign_unavailable =>
+      'Impossibile leggere il profilo di profondità di questo computer, quindi non può essere allineato.';
+
+  @override
+  String get diveLog_timeAlign_updated => 'Allineamento temporale aggiornato';
+
+  @override
+  String get diveLog_timeAlign_failed =>
+      'Impossibile modificare l\'allineamento temporale';
+
+  @override
   String get diveLog_sources_separateDialog_title =>
       'Separare le immersioni unite?';
 
@@ -38755,6 +38814,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_repair_failed => 'Correzione non riuscita';
 
   @override
+  String get dataQuality_repair_undone => 'Riparazione annullata';
+
+  @override
+  String get dataQuality_repair_undoFailed => 'Annullamento non riuscito';
+
+  @override
   String get dataQuality_chip_all => 'Tutti';
 
   @override
@@ -38807,6 +38872,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dataQuality_detector_source_conflict => 'Fonti in conflitto';
+
+  @override
+  String get dataQuality_detector_source_alignment => 'Computer sfasato';
+
+  @override
+  String dataQuality_msg_sourceAlignment(String stored, String fitted) {
+    return 'Questo computer è posizionato a $stored dal principale, ma il suo profilo di profondità coincide a $fitted. Probabilmente il suo orologio era sfasato.';
+  }
+
+  @override
+  String dataQuality_repairLabel_alignSource(String value) {
+    return 'Allinea al profilo di profondità ($value)';
+  }
 
   @override
   String get dataQuality_detector_shared_gear_overlap =>

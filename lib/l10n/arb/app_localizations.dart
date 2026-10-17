@@ -16429,6 +16429,90 @@ abstract class AppLocalizations {
   /// **'Separate combined dives'**
   String get diveLog_sources_menu_separate;
 
+  /// Data source card menu: move a secondary computer's recording in time.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust time alignment'**
+  String get diveLog_sources_menu_adjustTime;
+
+  /// Title of the dialog that moves a secondary computer in time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time alignment'**
+  String get diveLog_timeAlign_title;
+
+  /// Explains the time alignment dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Where {name} sits on the primary computer\'s timeline. Moving it shifts its profile, pressures, events and gas switches; use it when that computer\'s clock was off.'**
+  String diveLog_timeAlign_body(String name);
+
+  /// Label above the depth preview of the first 10 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'First 10 minutes: primary and this computer'**
+  String get diveLog_timeAlign_preview;
+
+  /// A signed number of seconds, e.g. +100 s.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} s'**
+  String diveLog_timeAlign_seconds(String value);
+
+  /// Tooltip: move the computer earlier by an amount, e.g. -10 s.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier ({amount})'**
+  String diveLog_timeAlign_earlier(String amount);
+
+  /// Tooltip: move the computer later by an amount, e.g. +10 s.
+  ///
+  /// In en, this message translates to:
+  /// **'Later ({amount})'**
+  String diveLog_timeAlign_later(String amount);
+
+  /// The offset stored before this change.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently {value}'**
+  String diveLog_timeAlign_stored(String value);
+
+  /// The offset at which the depth traces match, e.g. +2 s.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth traces line up best at {value}.'**
+  String diveLog_timeAlign_fitSuggestion(String value);
+
+  /// Shown when no reliable depth match exists.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth traces do not match closely enough to suggest an offset; adjust it by hand.'**
+  String get diveLog_timeAlign_noFit;
+
+  /// Button: set the offset to the depth match.
+  ///
+  /// In en, this message translates to:
+  /// **'Use depth match'**
+  String get diveLog_timeAlign_useFit;
+
+  /// Shown when the computer's trace cannot be read.
+  ///
+  /// In en, this message translates to:
+  /// **'This computer\'s depth trace could not be read, so it cannot be aligned.'**
+  String get diveLog_timeAlign_unavailable;
+
+  /// Snackbar after the offset is changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Time alignment updated'**
+  String get diveLog_timeAlign_updated;
+
+  /// Snackbar when changing the offset failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change the time alignment'**
+  String get diveLog_timeAlign_failed;
+
   /// No description provided for @diveLog_sources_separateDialog_title.
   ///
   /// In en, this message translates to:
@@ -61254,6 +61338,18 @@ abstract class AppLocalizations {
   /// **'Repair failed'**
   String get dataQuality_repair_failed;
 
+  /// Snackbar after a repair is undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair undone'**
+  String get dataQuality_repair_undone;
+
+  /// Snackbar prefix when undoing a repair fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo failed'**
+  String get dataQuality_repair_undoFailed;
+
   /// No description provided for @dataQuality_chip_all.
   ///
   /// In en, this message translates to:
@@ -61361,6 +61457,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conflicting sources'**
   String get dataQuality_detector_source_conflict;
+
+  /// Data quality check: a secondary computer's recording is out of step in time with the primary.
+  ///
+  /// In en, this message translates to:
+  /// **'Computer out of step'**
+  String get dataQuality_detector_source_alignment;
+
+  /// Finding detail: stored and fitted offsets, each a signed number of seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'This computer is placed {stored} from the primary, but its depth trace matches at {fitted}. Its clock had probably drifted.'**
+  String dataQuality_msg_sourceAlignment(String stored, String fitted);
+
+  /// Repair button: move the computer to the fitted offset.
+  ///
+  /// In en, this message translates to:
+  /// **'Align to depth match ({value})'**
+  String dataQuality_repairLabel_alignSource(String value);
 
   /// No description provided for @dataQuality_detector_shared_gear_overlap.
   ///
