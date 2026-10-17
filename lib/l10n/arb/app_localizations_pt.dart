@@ -34028,6 +34028,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Selecionar Região';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Arraste para mover o mapa; use pinça ou + / - para dar zoom';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Mover';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Selecionar';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Aproximar';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Afastar';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'A área cruza a linha internacional de data. Mantenha-a de um lado ou desenhe duas áreas.';
+
+  @override
   String get tankPresets_addPreset => 'Adicionar preset de cilindro';
 
   @override

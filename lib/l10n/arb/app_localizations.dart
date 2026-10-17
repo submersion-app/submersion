@@ -53759,6 +53759,42 @@ abstract class AppLocalizations {
   /// **'Select Region'**
   String get maps_regionSelector_selectRegionButton;
 
+  /// No description provided for @maps_regionSelector_dragToMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to move the map, pinch or use + / - to zoom'**
+  String get maps_regionSelector_dragToMove;
+
+  /// No description provided for @maps_regionSelector_modeMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get maps_regionSelector_modeMove;
+
+  /// No description provided for @maps_regionSelector_modeSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get maps_regionSelector_modeSelect;
+
+  /// No description provided for @maps_regionSelector_zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get maps_regionSelector_zoomIn;
+
+  /// No description provided for @maps_regionSelector_zoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get maps_regionSelector_zoomOut;
+
+  /// No description provided for @maps_regionSelector_dateLine.
+  ///
+  /// In en, this message translates to:
+  /// **'The box crosses the date line. Keep it on one side, or draw two boxes.'**
+  String get maps_regionSelector_dateLine;
+
   /// No description provided for @tankPresets_addPreset.
   ///
   /// In en, this message translates to:

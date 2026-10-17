@@ -32076,6 +32076,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => '选择地区';
 
   @override
+  String get maps_regionSelector_dragToMove => '拖动以移动地图，双指捏合或使用 + / - 缩放';
+
+  @override
+  String get maps_regionSelector_modeMove => '移动';
+
+  @override
+  String get maps_regionSelector_modeSelect => '选择';
+
+  @override
+  String get maps_regionSelector_zoomIn => '放大';
+
+  @override
+  String get maps_regionSelector_zoomOut => '缩小';
+
+  @override
+  String get maps_regionSelector_dateLine => '该区域跨越了国际日期变更线。请保持在一侧，或分别绘制两个区域。';
+
+  @override
   String get tankPresets_addPreset => '添加气瓶预设';
 
   @override

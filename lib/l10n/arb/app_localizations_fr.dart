@@ -34138,6 +34138,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Sélectionner la région';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Faites glisser pour déplacer la carte, pincez ou utilisez + / - pour zoomer';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Déplacer';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Sélectionner';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Zoom avant';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Zoom arrière';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'La zone traverse la ligne de changement de date. Restez d\'un seul côté ou dessinez deux zones.';
+
+  @override
   String get tankPresets_addPreset => 'Ajouter un preset de bloc';
 
   @override

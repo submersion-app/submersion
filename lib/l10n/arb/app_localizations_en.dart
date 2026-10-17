@@ -33459,6 +33459,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Select Region';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Drag to move the map, pinch or use + / - to zoom';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Move';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Select';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Zoom in';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Zoom out';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'The box crosses the date line. Keep it on one side, or draw two boxes.';
+
+  @override
   String get tankPresets_addPreset => 'Add tank preset';
 
   @override

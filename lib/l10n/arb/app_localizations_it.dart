@@ -34042,6 +34042,26 @@ class AppLocalizationsIt extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Seleziona regione';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Trascina per spostare la mappa, pizzica o usa + / - per lo zoom';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Sposta';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Seleziona';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Ingrandisci';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Riduci';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'L\'area attraversa la linea del cambio di data. Restane su un lato o disegna due aree.';
+
+  @override
   String get tankPresets_addPreset => 'Aggiungi preset bombola';
 
   @override

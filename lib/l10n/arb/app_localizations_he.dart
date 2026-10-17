@@ -33191,6 +33191,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'בחר אזור';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'גרור כדי להזיז את המפה, צבוט או השתמש ב-+ / - לזום';
+
+  @override
+  String get maps_regionSelector_modeMove => 'הזזה';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'בחירה';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'הגדלה';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'הקטנה';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'האזור חוצה את קו התאריך. הישאר בצד אחד או צייר שני אזורים.';
+
+  @override
   String get tankPresets_addPreset => 'הוסף תבנית מיכל';
 
   @override

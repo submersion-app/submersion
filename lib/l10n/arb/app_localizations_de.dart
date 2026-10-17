@@ -33969,6 +33969,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Region auswählen';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Ziehen, um die Karte zu verschieben; zum Zoomen zusammenziehen oder + / - verwenden';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Verschieben';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Auswählen';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Vergrößern';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Verkleinern';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'Der Bereich überschreitet die Datumsgrenze. Bleiben Sie auf einer Seite oder zeichnen Sie zwei Bereiche.';
+
+  @override
   String get tankPresets_addPreset => 'Flaschenvorlage hinzufügen';
 
   @override

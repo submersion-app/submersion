@@ -34473,6 +34473,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'تحديد المنطقة';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'اسحب لتحريك الخريطة، واضغط بإصبعين أو استخدم + / - للتكبير';
+
+  @override
+  String get maps_regionSelector_modeMove => 'تحريك';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'تحديد';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'تكبير';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'تصغير';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'تتجاوز المنطقة خط التاريخ الدولي. ابقَ في جانب واحد أو ارسم منطقتين.';
+
+  @override
   String get tankPresets_addPreset => 'إضافة إعداد أسطوانة';
 
   @override

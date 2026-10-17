@@ -33858,6 +33858,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Régió kiválasztása';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Húzza a térkép mozgatásához, csípje össze vagy használja a + / - gombokat a nagyításhoz';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Mozgatás';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Kijelölés';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Nagyítás';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Kicsinyítés';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'A terület átlépi a dátumválasztó vonalat. Maradjon az egyik oldalon, vagy rajzoljon két területet.';
+
+  @override
   String get tankPresets_addPreset => 'Palacksablon hozzáadása';
 
   @override

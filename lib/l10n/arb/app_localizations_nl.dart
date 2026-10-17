@@ -33795,6 +33795,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Selecteer regio';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Sleep om de kaart te verplaatsen, knijp of gebruik + / - om te zoomen';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Verplaatsen';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Selecteren';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Inzoomen';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Uitzoomen';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'Het gebied overschrijdt de datumgrens. Blijf aan één kant of teken twee gebieden.';
+
+  @override
   String get tankPresets_addPreset => 'Flesinstelling toevoegen';
 
   @override
