@@ -231,6 +231,19 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn(os.path.join(guard.WORKFLOW_DIR, "build-all.yml"), violations[0])
         self.assertIn(":8", violations[0])
 
+    def test_direct_use_in_another_local_action_is_flagged(self):
+        root = self._repo(GREEN_ACTION, {"ci.yaml": GREEN_WORKFLOW})
+        other = os.path.join(root, guard.ACTIONS_DIR, "setup-build")
+        os.makedirs(other)
+        with open(os.path.join(other, "action.yml"), "w") as fh:
+            fh.write(RED_WORKFLOW)
+        violations = guard.find_violations(root)
+        self.assertEqual(len(violations), 1)
+        self.assertIn(
+            os.path.join(guard.ACTIONS_DIR, "setup-build", "action.yml") + ":8",
+            violations[0],
+        )
+
     def test_non_workflow_files_are_ignored(self):
         root = self._repo(
             GREEN_ACTION, {"ci.yaml": GREEN_WORKFLOW, "notes.txt": RED_WORKFLOW}

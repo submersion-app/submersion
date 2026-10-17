@@ -10,7 +10,8 @@ Build macOS job lost its SDK download before compiling anything (issue #2765).
 `.github/actions/setup-flutter` wraps the upstream action in a step-level
 retry. This guard keeps it that way, in two halves:
 
-* No workflow calls `subosito/flutter-action` directly. A new job copied from
+* No workflow, and no other local action, calls `subosito/flutter-action`
+  directly. A new job copied from
   an old example would otherwise bring back the unretried setup.
 * The local action really retries: at least two attempts, every attempt but
   the last with `continue-on-error: true` (or the first failure ends the
@@ -28,7 +29,8 @@ import re
 import sys
 
 UPSTREAM = "subosito/flutter-action"
-ACTION_PATH = os.path.join(".github", "actions", "setup-flutter", "action.yml")
+ACTIONS_DIR = os.path.join(".github", "actions")
+ACTION_PATH = os.path.join(ACTIONS_DIR, "setup-flutter", "action.yml")
 WORKFLOW_DIR = os.path.join(".github", "workflows")
 # What a workflow step names in `uses:` to get the retrying action.
 LOCAL_REF = "./.github/actions/setup-flutter"
@@ -101,19 +103,19 @@ def action_violations(text):
     if count < 2:
         noun = "attempt" if count == 1 else "attempts"
         return [
-            f"runs {count} {noun} of {UPSTREAM} -- it needs at least 2, so one "
+            f"runs {count} {noun} of {UPSTREAM}; it needs at least 2, so one "
             "failed SDK download cannot fail the job"
         ]
     violations = []
     for number, step in enumerate(attempts[:-1], start=1):
         if not tolerates_failure(step):
             violations.append(
-                f"attempt {number} of {UPSTREAM} lacks continue-on-error: true "
-                "-- its failure ends the action before any retry runs"
+                f"attempt {number} of {UPSTREAM} lacks continue-on-error: true, "
+                "so its failure ends the action before any retry runs"
             )
     if tolerates_failure(attempts[-1]):
         violations.append(
-            f"the final attempt of {UPSTREAM} sets continue-on-error -- an "
+            f"the final attempt of {UPSTREAM} sets continue-on-error, so an "
             "outage that outlasts every retry would leave the job running "
             "without Flutter instead of failing at setup"
         )
@@ -134,6 +136,27 @@ def _read(path):
         return fh.read()
 
 
+def _caller_files(root):
+    """Return every workflow, and every other local action, relative to root.
+
+    Other local actions count as callers too: a composite action that ran the
+    upstream action itself would bring the unretried setup back into every
+    workflow that uses it. Raises OSError if the workflow directory is missing.
+    """
+    names = sorted(os.listdir(os.path.join(root, WORKFLOW_DIR)))
+    files = [
+        os.path.join(WORKFLOW_DIR, n) for n in names if n.endswith((".yml", ".yaml"))
+    ]
+    actions_dir = os.path.join(root, ACTIONS_DIR)
+    if os.path.isdir(actions_dir):
+        for action in sorted(os.listdir(actions_dir)):
+            for meta in ("action.yml", "action.yaml"):
+                rel = os.path.join(ACTIONS_DIR, action, meta)
+                if rel != ACTION_PATH and os.path.isfile(os.path.join(root, rel)):
+                    files.append(rel)
+    return files
+
+
 def find_violations(root):
     """Return a list of violation strings for the repository at `root`."""
     violations = []
@@ -141,23 +164,19 @@ def find_violations(root):
         action = _read(os.path.join(root, ACTION_PATH))
     except OSError:
         violations.append(
-            f"{ACTION_PATH} is missing -- workflows have no retrying Flutter setup"
+            f"{ACTION_PATH} is missing, so workflows have no retrying Flutter setup"
         )
     else:
         violations.extend(f"{ACTION_PATH}: {v}" for v in action_violations(action))
 
-    workflow_dir = os.path.join(root, WORKFLOW_DIR)
     try:
-        names = sorted(os.listdir(workflow_dir))
+        callers = _caller_files(root)
     except OSError as exc:
         return violations + [f"cannot list {WORKFLOW_DIR}: {exc}"]
-    for name in names:
-        if not name.endswith((".yml", ".yaml")):
-            continue
-        rel = os.path.join(WORKFLOW_DIR, name)
-        for number in direct_uses(_read(os.path.join(workflow_dir, name))):
+    for rel in callers:
+        for number in direct_uses(_read(os.path.join(root, rel))):
             violations.append(
-                f"{rel}:{number} uses {UPSTREAM} directly -- use {LOCAL_REF}, "
+                f"{rel}:{number} uses {UPSTREAM} directly; use {LOCAL_REF}, "
                 "which retries a failed SDK download"
             )
     return violations
