@@ -4,23 +4,19 @@ import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
-import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/s3_server_fields.dart';
-import 'package:submersion/features/settings/presentation/widgets/webdav_server_fields.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/picked_file_path.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
-import 'package:submersion/features/shared_library/presentation/widgets/storage_setup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Connect a shared site library (issue #2567): pick an S3 or WebDAV account,
@@ -47,9 +43,14 @@ class _ConnectSharedLibraryPageState
     _container = ProviderScope.containerOf(context, listen: false);
   }
 
-  late final TextEditingController _prefix = TextEditingController(
-    text: widget.initialPrefix ?? '',
-  );
+  late final _location = LibraryLocationController(
+    initialPrefix: widget.initialPrefix ?? '',
+  )..addListener(_relayout);
+
+  void _relayout() {
+    if (mounted) setState(() {});
+  }
+
   final _libraryName = TextEditingController();
   final _displayName = TextEditingController();
 
@@ -57,34 +58,18 @@ class _ConnectSharedLibraryPageState
   /// it unlocked the probed one.
   final _secret = TextEditingController();
   bool _unlocked = false;
-  ConnectedAccount? _account;
   LibraryProbe? _probe;
   String? _probedPrefix;
   bool _busy = false;
   String? _error;
   bool _nameSeeded = false;
 
-  // An account set up right here (issue #2567): its own folder,
-  // submersion-sites, is fixed by LibraryAccountSetup.
-  bool _addingAccount = false;
-  AccountKind _newKind = AccountKind.s3;
-  String? _selectedAccountId;
-  final _accountFormKey = GlobalKey<FormState>();
-  final _s3 = S3FormController(
-    defaultPrefix: '${SharedLibraryLayout.librariesDir}/',
-  );
-  final _webdav = WebDavFormController(
-    defaultFolder: SharedLibraryLayout.librariesDir,
-  );
-
   @override
   void dispose() {
-    _prefix.dispose();
+    _location.dispose();
     _libraryName.dispose();
     _displayName.dispose();
     _secret.dispose();
-    _s3.dispose();
-    _webdav.dispose();
     super.dispose();
   }
 
@@ -103,66 +88,27 @@ class _ConnectSharedLibraryPageState
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
         data: (list) {
-          if (list.isEmpty && !_addingAccount) return _noAccounts(context);
-          if (list.isEmpty) {
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _folderField(),
-                const SizedBox(height: 12),
-                _accountForm(),
-                ..._errorLine(context),
-              ],
-            );
+          if (list.isEmpty && !_location.addingAccount) {
+            return _noAccounts(context);
           }
-          // The list rebuilds with new instances whenever an account
-          // changes: keep the chosen one by id, or the dropdown loses it.
-          final wanted = _selectedAccountId ?? _account?.id;
-          _account = list.firstWhere(
-            (a) => a.id == wanted,
-            orElse: () => list.first,
-          );
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // The folder first: an account added below is saved for it.
-              _folderField(),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<ConnectedAccount>(
-                initialValue: _account,
-                decoration: InputDecoration(
-                  labelText: l10n.sharedLibrary_connect_account_label,
-                ),
-                items: [
-                  for (final a in list)
-                    DropdownMenuItem(value: a, child: Text(a.label)),
-                ],
-                onChanged: (a) => setState(() {
-                  _account = a;
-                  _selectedAccountId = a?.id;
-                  _probe = null;
-                }),
+              LibraryLocationFields(
+                controller: _location,
+                accounts: list,
+                onEdited: () => setState(() => _probe = null),
               ),
-              if (_addingAccount) ...[
+              if (list.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _accountForm(),
-              ] else
                 Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.sharedLibrary_connect_addAccount),
-                    onPressed: () => setState(() => _addingAccount = true),
+                  alignment: Alignment.centerRight,
+                  child: FilledButton.tonal(
+                    onPressed: _busy ? null : _runProbe,
+                    child: Text(l10n.sharedLibrary_connect_probe_action),
                   ),
                 ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.tonal(
-                  onPressed: _busy ? null : _runProbe,
-                  child: Text(l10n.sharedLibrary_connect_probe_action),
-                ),
-              ),
+              ],
               ..._errorLine(context),
               if (_probe != null) ...[const SizedBox(height: 16), _result()],
             ],
@@ -170,74 +116,6 @@ class _ConnectSharedLibraryPageState
         },
       ),
     );
-  }
-
-  Widget _folderField() {
-    final l10n = context.l10n;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          key: const Key('library-prefix'),
-          controller: _prefix,
-          decoration: InputDecoration(
-            labelText: l10n.sharedLibrary_connect_prefix_label,
-            helperText: l10n.sharedLibrary_connect_prefix_help,
-            helperMaxLines: 3,
-          ),
-          onChanged: (_) => setState(() => _probe = null),
-        ),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton.icon(
-            icon: const Icon(Icons.help_outline),
-            label: Text(l10n.sharedLibrary_setup_title),
-            onPressed: () async {
-              final bucket = await _bucketForGuide();
-              if (!mounted) return;
-              await showStorageSetupSheet(
-                context,
-                bucket: bucket,
-                folder: _prefix.text,
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// The bucket the example policies name: the one being typed in, or the
-  /// selected S3 account's own (from its stored settings: an account made
-  /// for personal sync carries a label of its own), else a placeholder.
-  Future<String> _bucketForGuide() async {
-    if (_addingAccount && _newKind == AccountKind.s3) {
-      final typed = _s3.bucket.text.trim();
-      if (typed.isNotEmpty) return typed;
-    }
-    final account = _account;
-    if (account != null && account.kind == AccountKind.s3) {
-      final stored = await ref
-          .read(libraryAccountSetupProvider)
-          .s3Bucket(account.id);
-      if (stored != null) return stored;
-    }
-    return 'your-bucket';
-  }
-
-  /// Why the typed folder cannot hold a library, or null when it can.
-  String? _folderProblem() {
-    final folder = _prefix.text.trim();
-    if (SharedLibraryTransport.leavesLibraries(folder)) {
-      return context.l10n.settings_webdavConfig_validation_folder;
-    }
-    if (SharedLibraryTransport.startsReserved(folder)) {
-      return context.l10n.sharedLibrary_connect_reservedFolder;
-    }
-    if (SharedLibraryTransport.hasPolicyWildcards(folder)) {
-      return context.l10n.sharedLibrary_connect_folderChars;
-    }
-    return null;
   }
 
   List<Widget> _errorLine(BuildContext context) => [
@@ -266,119 +144,12 @@ class _ConnectSharedLibraryPageState
             FilledButton.icon(
               icon: const Icon(Icons.add),
               label: Text(l10n.sharedLibrary_connect_addAccount),
-              onPressed: () => setState(() => _addingAccount = true),
+              onPressed: () => _location.setAddingAccount(true),
             ),
           ],
         ),
       ),
     );
-  }
-
-  /// An S3 or WebDAV account, set up here: server and keys only, as the
-  /// library's folder comes from the field below.
-  Widget _accountForm() {
-    final l10n = context.l10n;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _accountFormKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SegmentedButton<AccountKind>(
-                segments: [
-                  ButtonSegment(
-                    value: AccountKind.s3,
-                    label: Text(l10n.settings_cloudSync_provider_s3_title),
-                  ),
-                  ButtonSegment(
-                    value: AccountKind.webdav,
-                    label: Text(l10n.settings_mediaStorage_provider_webdav),
-                  ),
-                ],
-                selected: {_newKind},
-                onSelectionChanged: (kinds) =>
-                    setState(() => _newKind = kinds.first),
-              ),
-              const SizedBox(height: 12),
-              if (_newKind == AccountKind.s3)
-                S3ServerFields(
-                  controller: _s3,
-                  showPrefix: false,
-                  keyPrefix: 'library-s3',
-                )
-              else
-                WebDavServerFields(
-                  controller: _webdav,
-                  showFolder: false,
-                  keyPrefix: 'library-webdav',
-                ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: _busy
-                        ? null
-                        : () => setState(() => _addingAccount = false),
-                    child: Text(
-                      MaterialLocalizations.of(context).cancelButtonLabel,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _busy ? null : _saveAccount,
-                    child: Text(l10n.sharedLibrary_connect_saveAccount),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _saveAccount() async {
-    if (!(_accountFormKey.currentState?.validate() ?? false)) return;
-    final problem = _folderProblem();
-    if (problem != null) {
-      setState(() => _error = problem);
-      return;
-    }
-    final folder = _prefix.text.trim();
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      final setup = ref.read(libraryAccountSetupProvider);
-      final account = _newKind == AccountKind.s3
-          ? await setup.saveS3(_s3.build(), folder: folder)
-          // A self-signed server is offered for trust, as in the WebDAV
-          // settings, before its pin is saved with the account.
-          : await setup.saveWebDav(
-              await runWithCertificateTrust(
-                context,
-                _webdav,
-                setup.reachWebDav,
-              ),
-              folder: folder,
-            );
-      if (!mounted) return;
-      ref.invalidate(eligibleLibraryAccountsProvider);
-      setState(() {
-        _selectedAccountId = account.id;
-        _addingAccount = false;
-        _probe = null;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = libraryErrorText(context.l10n, e));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
   }
 
   Widget _result() {
@@ -461,7 +232,7 @@ class _ConnectSharedLibraryPageState
   /// Opens the probed encrypted library with the typed secret to show its
   /// name; the secret is used again to join.
   Future<void> _unlockProbe() async {
-    final account = _account;
+    final account = _location.account;
     final prefix = _probedPrefix;
     if (account == null || prefix == null) return;
     setState(() {
@@ -486,9 +257,9 @@ class _ConnectSharedLibraryPageState
   }
 
   Future<void> _runProbe() async {
-    final account = _account;
+    final account = _location.account;
     if (account == null) return;
-    final problem = _folderProblem();
+    final problem = libraryFolderProblem(context.l10n, _location.folder);
     if (problem != null) {
       setState(() => _error = problem);
       return;
@@ -500,11 +271,11 @@ class _ConnectSharedLibraryPageState
     try {
       final probe = await ref
           .read(sharedLibraryMembershipServiceProvider)
-          .probe(account: account, prefix: _prefix.text.trim());
+          .probe(account: account, prefix: _location.folder);
       if (!mounted) return;
       setState(() {
         _probe = probe;
-        _probedPrefix = _prefix.text.trim();
+        _probedPrefix = _location.folder;
         _unlocked = false;
       });
     } catch (e) {
@@ -538,7 +309,7 @@ class _ConnectSharedLibraryPageState
   }
 
   Future<void> _connect() async {
-    final account = _account;
+    final account = _location.account;
     final probe = _probe;
     if (account == null || probe == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
@@ -551,7 +322,7 @@ class _ConnectSharedLibraryPageState
     });
     try {
       final service = ref.read(sharedLibraryMembershipServiceProvider);
-      final prefix = _probedPrefix ?? _prefix.text.trim();
+      final prefix = _probedPrefix ?? _location.folder;
       final library = probe.exists
           ? await service.join(
               account: account,
@@ -599,7 +370,7 @@ class _ConnectSharedLibraryPageState
   /// library's id (issue #2567). An encrypted backup asks for its
   /// passphrase, with the page idle while it does.
   Future<void> _restoreFromBackup() async {
-    final account = _account;
+    final account = _location.account;
     final prefix = _probedPrefix;
     if (account == null || prefix == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
