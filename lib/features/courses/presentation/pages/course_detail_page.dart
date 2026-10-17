@@ -482,6 +482,9 @@ class CourseDetailPage extends ConsumerWidget {
         .localizedName(context.l10n);
     final card = cert.cardNumber;
     return ListTile(
+      // Keyed so a row is never reused for another certification: the card
+      // photo keeps its last frame while new bytes decode.
+      key: ValueKey(cert.id),
       contentPadding: EdgeInsets.zero,
       leading: CourseCertificationThumbnail(
         certification: cert,

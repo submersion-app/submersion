@@ -135,6 +135,25 @@ void main() {
     expect(find.text('CERT k-an'), findsOneWidget);
   });
 
+  testWidgets('each row is keyed by its certification', (tester) async {
+    // A row reused for another certification would keep the previous card's
+    // photo on screen while the new one decodes (#3383).
+    await pump(tester, [
+      cert('k-an', 'Advanced Nitrox', 'TDI-48211'),
+      cert('k-dp', 'Decompression Procedures', 'TDI-48212'),
+    ]);
+
+    final keys = tester
+        .widgetList<ListTile>(
+          find.ancestor(
+            of: find.byType(CourseCertificationThumbnail),
+            matching: find.byType(ListTile),
+          ),
+        )
+        .map((tile) => tile.key);
+    expect(keys, [const ValueKey('k-an'), const ValueKey('k-dp')]);
+  });
+
   testWidgets('a course with no certifications shows no section', (
     tester,
   ) async {
