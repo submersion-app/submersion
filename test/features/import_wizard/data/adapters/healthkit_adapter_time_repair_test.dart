@@ -110,8 +110,26 @@ void main() {
         // Measured against the corrected start, which is what the dive will
         // show once the import has run.
         expect(dives.matchResults![0]!.timeDifferenceMs, 0);
+        // A re-read of a saved workout, which the wizard defaults to skip.
+        expect(dives.matchResults![0]!.matchedExistingSource, isTrue);
       },
     );
+
+    test('corrects every saved copy of the workout', () async {
+      final bundle = await reviewed(
+        [_incoming()],
+        [_saved(start: _instant), _saved(id: 'dive-2', start: _instant)],
+      );
+
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: {},
+      }, {});
+
+      verify(
+        repo.shiftDiveTimes(['dive-1', 'dive-2'], const Duration(hours: -5)),
+      );
+      expect(result.timesCorrectedCount, 2);
+    });
 
     test('moves the saved dive to the wall clock and counts it', () async {
       final bundle = await reviewed([_incoming()], [_saved(start: _instant)]);

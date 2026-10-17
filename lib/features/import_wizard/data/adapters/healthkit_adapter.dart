@@ -191,27 +191,37 @@ class HealthKitAdapter implements ImportSourceAdapter {
     final duplicateIndices = <int>{};
     final matchResults = <int, DiveMatchResult>{};
     final timeCorrections = <String, Duration>{};
+    final savedByWorkout = existingDives
+        .where((dive) => dive.importSource == 'appleWatch')
+        .groupListsBy((dive) => dive.importId);
 
     for (var i = 0; i < _parsedDives.length; i++) {
       final imported = _parsedDives[i];
 
       // The same workout is the same dive, however far apart the times: a
       // dive saved before #2811 sits a UTC offset away, too far for the
-      // time-based score below to recognize it (issue #2812).
-      final sameWorkout = existingDives.firstWhereOrNull(
-        (existing) => isSameAppleWatchWorkout(existing, imported),
-      );
-      if (sameWorkout != null) {
-        final shift = appleWatchWallClockShift(sameWorkout, imported);
-        if (shift != null) timeCorrections[sameWorkout.id] = shift;
+      // time-based score below to recognize it (issue #2812). Every saved
+      // copy is corrected, in case the workout was imported as new twice.
+      final sameWorkout = (savedByWorkout[imported.sourceId] ?? const [])
+          .where((saved) => isSameAppleWatchWorkout(saved, imported))
+          .toList();
+      if (sameWorkout.isNotEmpty) {
+        for (final saved in sameWorkout) {
+          final shift = appleWatchWallClockShift(saved, imported);
+          if (shift != null) timeCorrections[saved.id] = shift;
+        }
+        final first = sameWorkout.first;
         duplicateIndices.add(i);
         matchResults[i] = _matchResult(
           imported,
-          sameWorkout,
+          first,
           score: 1.0,
-          existingStart: sameWorkout.effectiveEntryTime.add(
-            shift ?? Duration.zero,
+          existingStart: first.effectiveEntryTime.add(
+            timeCorrections[first.id] ?? Duration.zero,
           ),
+          // A re-read of a workout the log already holds: the wizard
+          // defaults it to skip instead of asking about each one.
+          matchedExistingSource: true,
         );
         continue;
       }
@@ -400,6 +410,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     Dive existing, {
     required double score,
     required DateTime existingStart,
+    bool matchedExistingSource = false,
   }) {
     return DiveMatchResult(
       diveId: existing.id,
@@ -413,6 +424,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       durationDifferenceSeconds:
           (imported.durationSeconds - _diveSeconds(existing)).abs(),
       siteName: existing.site?.name,
+      matchedExistingSource: matchedExistingSource,
     );
   }
 
