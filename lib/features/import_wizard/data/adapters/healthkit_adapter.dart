@@ -208,10 +208,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
       // dive saved before #2811 sits a UTC offset away, too far for the
       // time-based score below to recognize it (issue #2812). Every saved
       // copy is corrected, in case the workout was imported as new twice.
-      final sameWorkout = (savedByWorkout[imported.sourceId] ?? const [])
-          .where((saved) => isSameAppleWatchWorkout(saved, imported))
-          .toList();
-      if (sameWorkout.isNotEmpty) {
+      final sameWorkout = savedByWorkout[imported.sourceId];
+      if (sameWorkout != null) {
         for (final saved in sameWorkout) {
           final shift = appleWatchWallClockShift(saved, imported);
           if (shift != null) {
@@ -343,6 +341,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     // One instance for the run: its lookup cache collapses a batch of dives
     // at the same location into a single elevation request.
     final altitudeEnricher = DiveAltitudeEnricher();
+    final checklistLinker = _checklistLinker ?? ChecklistDiveLinker();
 
     for (var i = 0; i < sortedIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -361,7 +360,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       );
       await _diveRepository.createDive(dive);
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
-      await ChecklistDiveLinker().applyForImportedDive(dive);
+      await checklistLinker.applyForImportedDive(dive);
       await altitudeEnricher.applyForImportedDive(dive);
       // After the defaulter, never before: the defaulter bails on a dive
       // that already has equipment, so linking first would suppress the
