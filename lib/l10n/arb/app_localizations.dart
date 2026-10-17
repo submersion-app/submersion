@@ -44275,6 +44275,108 @@ abstract class AppLocalizations {
   /// **'Gas consumption trend'**
   String get insights_gas_sacTrend_title;
 
+  /// No description provided for @insights_gas_tankConfig_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank configuration'**
+  String get insights_gas_tankConfig_title;
+
+  /// No description provided for @insights_gas_tankConfig_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by how the tanks were set up'**
+  String get insights_gas_tankConfig_subtitle;
+
+  /// No description provided for @insights_gas_tankConfig_configurationHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration'**
+  String get insights_gas_tankConfig_configurationHeading;
+
+  /// No description provided for @insights_gas_tankConfig_extrasHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Extras'**
+  String get insights_gas_tankConfig_extrasHeading;
+
+  /// No description provided for @insights_gas_tankConfig_rebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather'**
+  String get insights_gas_tankConfig_rebreather;
+
+  /// No description provided for @insights_gas_tankConfig_sidemount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount'**
+  String get insights_gas_tankConfig_sidemount;
+
+  /// No description provided for @insights_gas_tankConfig_twinBackmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin backmount'**
+  String get insights_gas_tankConfig_twinBackmount;
+
+  /// No description provided for @insights_gas_tankConfig_singleBackmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Single backmount'**
+  String get insights_gas_tankConfig_singleBackmount;
+
+  /// No description provided for @insights_gas_tankConfig_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get insights_gas_tankConfig_other;
+
+  /// No description provided for @insights_gas_tankConfig_noTanks.
+  ///
+  /// In en, this message translates to:
+  /// **'No tanks logged'**
+  String get insights_gas_tankConfig_noTanks;
+
+  /// No description provided for @insights_gas_tankConfig_stages.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage(s)'**
+  String get insights_gas_tankConfig_stages;
+
+  /// No description provided for @insights_gas_tankConfig_decoGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco gas'**
+  String get insights_gas_tankConfig_decoGas;
+
+  /// No description provided for @insights_gas_tankConfig_multiGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-gas'**
+  String get insights_gas_tankConfig_multiGas;
+
+  /// A bar's dive count and its share of all dives in scope, e.g. 131 · 62%
+  ///
+  /// In en, this message translates to:
+  /// **'{count} · {percent}'**
+  String insights_gas_tankConfig_countAndPercent(int count, String percent);
+
+  /// No description provided for @insights_gas_tankConfig_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.'**
+  String get insights_gas_tankConfig_note;
+
+  /// No description provided for @insights_gas_tankConfig_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives to show'**
+  String get insights_gas_tankConfig_empty;
+
+  /// No description provided for @insights_gas_tankConfig_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load tank configuration'**
+  String get insights_gas_tankConfig_error;
+
   /// No description provided for @insights_focus_title.
   ///
   /// In en, this message translates to:

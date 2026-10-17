@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_gas
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
+import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -102,6 +104,44 @@ void main() {
 
     expect(find.byType(DiveTrendChart), findsOneWidget);
     expect(find.byKey(const ValueKey('trend-aggregation-sac')), findsOneWidget);
+  });
+
+  // Issue #3421: the tank configuration card follows Gas Mix.
+  testWidgets('tank configuration card sits below gas mix', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          tankConfigurationStatsProvider.overrideWith(
+            (ref) async => const TankConfigurationStats(
+              totalDives: 2,
+              baseCounts: {TankBaseConfiguration.sidemount: 2},
+              extraCounts: {},
+            ),
+          ),
+        ].cast(),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: InsightsGasPage(embedded: true)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final card = find.byType(TankConfigurationCard);
+    expect(card, findsOneWidget);
+    expect(
+      tester.getTopLeft(card).dy,
+      greaterThan(tester.getTopLeft(find.text('Gas Mix Distribution')).dy),
+    );
+    expect(
+      tester.getTopLeft(card).dy,
+      lessThan(tester.getTopLeft(find.text('Gas consumption by tank role')).dy),
+    );
   });
 
   // A dive breathing air from its back gas and nitrox from a deco tank

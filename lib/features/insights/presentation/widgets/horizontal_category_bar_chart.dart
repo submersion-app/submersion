@@ -14,10 +14,20 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     super.key,
     required this.data,
     this.barColor,
+    this.formatCount,
+    this.countWidth = 40,
   });
 
   final List<({String label, int count})> data;
   final Color? barColor;
+
+  /// The text beside each bar; the bare count when null. A longer text,
+  /// such as a count with its share, needs a wider [countWidth].
+  final String Function(int count)? formatCount;
+
+  /// The width of the column the count text is drawn in, kept equal on
+  /// every row so the bars share one right edge.
+  final double countWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +92,9 @@ class HorizontalCategoryBarChart extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   SizedBox(
-                    width: 40,
+                    width: countWidth,
                     child: Text(
-                      '${item.count}',
+                      formatCount?.call(item.count) ?? '${item.count}',
                       style: theme.textTheme.bodySmall,
                       textAlign: TextAlign.end,
                     ),

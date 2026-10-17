@@ -15,6 +15,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
@@ -44,6 +45,8 @@ class InsightsGasPage extends ConsumerWidget {
           _buildSacTrendSection(context, ref, units),
           const SizedBox(height: 16),
           _buildGasMixSection(context, ref),
+          const SizedBox(height: 16),
+          const TankConfigurationCard(),
           const SizedBox(height: 16),
           _buildSacByRoleSection(context, ref, units),
           const SizedBox(height: 16),

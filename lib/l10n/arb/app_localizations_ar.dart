@@ -27571,6 +27571,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'اتجاه استهلاك الغاز';
 
   @override
+  String get insights_gas_tankConfig_title => 'Tank configuration';
+
+  @override
+  String get insights_gas_tankConfig_subtitle =>
+      'Dives by how the tanks were set up';
+
+  @override
+  String get insights_gas_tankConfig_configurationHeading => 'Configuration';
+
+  @override
+  String get insights_gas_tankConfig_extrasHeading => 'Extras';
+
+  @override
+  String get insights_gas_tankConfig_rebreather => 'Rebreather';
+
+  @override
+  String get insights_gas_tankConfig_sidemount => 'Sidemount';
+
+  @override
+  String get insights_gas_tankConfig_twinBackmount => 'Twin backmount';
+
+  @override
+  String get insights_gas_tankConfig_singleBackmount => 'Single backmount';
+
+  @override
+  String get insights_gas_tankConfig_other => 'Other';
+
+  @override
+  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+
+  @override
+  String get insights_gas_tankConfig_stages => 'Stage(s)';
+
+  @override
+  String get insights_gas_tankConfig_decoGas => 'Deco gas';
+
+  @override
+  String get insights_gas_tankConfig_multiGas => 'Multi-gas';
+
+  @override
+  String insights_gas_tankConfig_countAndPercent(int count, String percent) {
+    return '$count · $percent';
+  }
+
+  @override
+  String get insights_gas_tankConfig_note =>
+      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+
+  @override
+  String get insights_gas_tankConfig_empty => 'No dives to show';
+
+  @override
+  String get insights_gas_tankConfig_error =>
+      'Unable to load tank configuration';
+
+  @override
   String get insights_focus_title => 'تركيز الغطسات';
 
   @override
