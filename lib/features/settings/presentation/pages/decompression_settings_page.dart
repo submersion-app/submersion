@@ -1,20 +1,23 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:submersion/core/utils/number_input.dart';
+
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/ascent_rate_thresholds_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
-import 'package:submersion/shared/widgets/label_with_control.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_factor_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/ppo2_limit_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 /// Reference URLs for the CNS calculation methods, opened from the CNS method
 /// picker dialog's "Sources" section.

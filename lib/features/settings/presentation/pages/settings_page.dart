@@ -120,9 +120,9 @@ class SettingsPage extends ConsumerWidget {
       // GoRouter not available (e.g., in tests)
     }
 
-    // An old link (Decompression before it moved under Safety, or a section
-    // that has a page of its own) is sent on after this frame: navigating
-    // during build is not allowed.
+    // An old link (Decompression before it moved under Safety, or Safety
+    // itself on a phone, where it is a full page) is sent on after this
+    // frame: navigating during build is not allowed.
     final legacyTarget = uri == null
         ? null
         : resolveLegacySettingsLocation(uri, masterDetail: masterDetail);
