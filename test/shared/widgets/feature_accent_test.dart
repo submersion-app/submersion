@@ -249,6 +249,22 @@ void main() {
       expect(find.byType(Icon), findsOneWidget);
     });
 
+    testWidgets('keeps the Certifications and Courses header icons after '
+        'their nav entries merged into Training', (tester) async {
+      for (final (id, glyph) in const [
+        ('certifications', Icons.card_membership),
+        ('courses', Icons.school),
+      ]) {
+        await tester.pumpWidget(
+          _harness(
+            FeatureAppBarTitle(featureId: id, title: id),
+            headerOn: true,
+          ),
+        );
+        expect(find.byIcon(glyph), findsOneWidget, reason: id);
+      }
+    });
+
     testWidgets('stays text-only for an id with no nav destination', (
       tester,
     ) async {

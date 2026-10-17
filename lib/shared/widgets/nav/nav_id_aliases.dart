@@ -1,4 +1,5 @@
-/// Nav destination ids that were renamed, mapped to the id that replaced them.
+/// Nav destination ids that were renamed or merged, mapped to the id that
+/// replaced them.
 ///
 /// A stored nav order (`nav_primary_ids`, `nav_rail_ids`) outlives the build
 /// that wrote it, so an id can still be there after its destination was
@@ -15,10 +16,20 @@ const Map<String, String> kRenamedNavIds = {
   'statistics': 'insights',
   // GPS Log became Tracks, which also holds underwater tracks (#2833).
   'gps-log': 'tracks',
+  // Certifications and Courses merged into Training (#3437). Listed first,
+  // certifications is the one a save writes back; see [withLegacyNavIds].
+  'certifications': 'training',
+  'courses': 'training',
 };
 
 /// [ids] as they should be saved: each renamed destination's old id written
 /// right after its new one.
+///
+/// A merged destination has several old ids; only the first listed in
+/// [kRenamedNavIds] is written. An older build appends the others in its own
+/// canonical place, where writing them side by side would have it give the
+/// next slot to the second old destination too, pushing another one out of
+/// the phone bottom bar.
 ///
 /// A build from before the rename that reads this order (this device after a
 /// downgrade; the orders no longer sync, issue #2947) knows only the old id.
@@ -30,9 +41,10 @@ const Map<String, String> kRenamedNavIds = {
 /// Drop an entry from [kRenamedNavIds] (and with it this extra write) once no
 /// supported build predates that rename.
 List<String> withLegacyNavIds(List<String> ids) {
-  final legacyFor = {
-    for (final entry in kRenamedNavIds.entries) entry.value: entry.key,
-  };
+  final legacyFor = <String, String>{};
+  for (final entry in kRenamedNavIds.entries) {
+    legacyFor.putIfAbsent(entry.value, () => entry.key);
+  }
   return List.unmodifiable([
     for (final id in ids) ...[id, ?legacyFor[id]],
   ]);

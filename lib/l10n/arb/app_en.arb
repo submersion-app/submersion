@@ -11459,7 +11459,6 @@
   "nav_buddies": "Buddies",
   "nav_certifications": "Certifications",
   "nav_courses": "Courses",
-  "nav_coursesSubtitle": "Training & Education",
   "nav_diveCenters": "Dive Centers",
   "nav_dives": "Dives",
   "nav_equipment": "Equipment",
@@ -12007,6 +12006,8 @@
   "nav_tooltip_expandMenu": "Expand menu",
   "nav_tracks": "Tracks",
   "nav_tracksSubtitle": "GPS and underwater tracks",
+  "nav_training": "Training",
+  "nav_trainingSubtitle": "Certifications and courses",
   "nav_transfer": "Transfer",
   "nav_trips": "Trips",
   "@nav_buddies": {
@@ -12018,8 +12019,11 @@
   "@nav_courses": {
     "description": "Navigation label for courses section"
   },
-  "@nav_coursesSubtitle": {
-    "description": "Subtitle for courses menu item"
+  "@nav_training": {
+    "description": "Navigation label for the Training section, which holds the certifications and courses tabs"
+  },
+  "@nav_trainingSubtitle": {
+    "description": "Subtitle for the Training menu item in the More sheet"
   },
   "@nav_diveCenters": {
     "description": "Navigation label for dive centers section"

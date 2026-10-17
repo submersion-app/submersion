@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/shared/widgets/nav/nav_selection.dart';
 
 void main() {
   group('kNavDestinations', () {
@@ -11,7 +12,7 @@ void main() {
     });
 
     test('has exactly 17 entries (16 routable + more sentinel)', () {
-      expect(kNavDestinations.length, 18);
+      expect(kNavDestinations.length, 17);
     });
 
     test('exactly two entries are pinned (dashboard and more)', () {
@@ -41,10 +42,9 @@ void main() {
         'equipment',
         'buddies',
         'dive-centers',
-        'certifications',
+        'training',
         'media',
         'documents',
-        'courses',
         'species',
         'insights',
         'planning',
@@ -59,6 +59,37 @@ void main() {
       final tracks = kNavDestinations.firstWhere((d) => d.id == 'tracks');
       expect(tracks.route, '/tracks');
       expect(kNavDestinations.map((d) => d.id), isNot(contains('gps-log')));
+    });
+
+    test('Training replaces Certifications and Courses', () {
+      final training = kNavDestinations.firstWhere((d) => d.id == 'training');
+      expect(training.route, '/training');
+      expect(training.extraMatchPaths, ['/certifications', '/courses']);
+      expect(training.icon, Icons.school_outlined);
+      expect(training.selectedIcon, Icons.school);
+      expect(training.accentId, 'certifications');
+      final ids = kNavDestinations.map((d) => d.id);
+      expect(ids, isNot(contains('certifications')));
+      expect(ids, isNot(contains('courses')));
+    });
+
+    test('Training is the selected entry on every training page', () {
+      final training = kNavDestinations.indexWhere((d) => d.id == 'training');
+      for (final location in const [
+        '/training',
+        '/certifications',
+        '/certifications/wallet',
+        '/certifications/abc/edit',
+        '/courses',
+        '/courses/abc',
+        '/courses?selected=abc',
+      ]) {
+        expect(
+          bestNavMatchIndex(kNavDestinations, Uri.parse(location)),
+          training,
+          reason: location,
+        );
+      }
     });
 
     test(
@@ -84,10 +115,9 @@ void main() {
         'equipment',
         'buddies',
         'dive-centers',
-        'certifications',
+        'training',
         'media',
         'documents',
-        'courses',
         'species',
         'insights',
         'planning',
@@ -98,7 +128,7 @@ void main() {
     });
 
     test('has exactly 15 entries', () {
-      expect(movableNavIds.length, 16);
+      expect(movableNavIds.length, 15);
     });
 
     test('Connections lives in Insights, not in the nav', () {

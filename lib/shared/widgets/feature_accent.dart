@@ -120,11 +120,19 @@ class FeatureAppBarTitle extends ConsumerWidget {
   Widget _titleBlock() =>
       TitleWithSubtitle(title: _titleText(), subtitle: subtitle);
 
-  static NavDestination? _navDestination(String featureId) {
+  /// Header icons for sections that kept their own headers but share a nav
+  /// entry with another section: Certifications and Courses are tabs of
+  /// Training (#3437).
+  static const Map<String, IconData> _sharedEntrySectionIcons = {
+    'certifications': Icons.card_membership,
+    'courses': Icons.school,
+  };
+
+  static IconData? _headerIcon(String featureId) {
     for (final candidate in kNavDestinations) {
-      if (candidate.id == featureId) return candidate;
+      if (candidate.id == featureId) return candidate.selectedIcon;
     }
-    return null;
+    return _sharedEntrySectionIcons[featureId];
   }
 
   @override
@@ -135,13 +143,13 @@ class FeatureAppBarTitle extends ConsumerWidget {
       surface: AccentSurface.header,
       featureId: featureId,
     );
-    final destination = color == null ? null : _navDestination(featureId);
-    if (color == null || destination == null) return _titleBlock();
+    final icon = color == null ? null : _headerIcon(featureId);
+    if (color == null || icon == null) return _titleBlock();
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(destination.selectedIcon, color: color),
+        Icon(icon, color: color),
         const SizedBox(width: 8),
         Flexible(child: _titleBlock()),
       ],

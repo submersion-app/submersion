@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/router/training_locations.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
@@ -41,7 +42,7 @@ class NavDestination {
   /// Returns the localized label for this destination.
   final String Function(AppLocalizations) label;
 
-  /// Optional localized subtitle, used for Courses, Planning, and Tracks.
+  /// Optional localized subtitle, used for Training, Planning, and Tracks.
   final String Function(AppLocalizations)? subtitle;
 
   /// When `true`, this destination cannot be moved between primary and overflow.
@@ -136,12 +137,21 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     selectedIcon: Icons.store,
     label: (l10n) => l10n.nav_diveCenters,
   ),
+  // Training holds Certifications and Courses as two tabs (#3437). It sits
+  // where Certifications did, since looking up a card is the common visit,
+  // and its tabs keep their own addresses, which select it too.
   NavDestination(
-    id: 'certifications',
-    route: '/certifications',
-    icon: Icons.card_membership_outlined,
-    selectedIcon: Icons.card_membership,
-    label: (l10n) => l10n.nav_certifications,
+    id: 'training',
+    route: kTrainingLocation,
+    extraMatchPaths: [
+      TrainingTab.certifications.path,
+      TrainingTab.courses.path,
+    ],
+    icon: Icons.school_outlined,
+    selectedIcon: Icons.school,
+    label: (l10n) => l10n.nav_training,
+    subtitle: (l10n) => l10n.nav_trainingSubtitle,
+    accent: 'certifications',
   ),
   // Media sits with Documents: both are reference collections a diver
   // browses, rather than the logging sections at the top of the list.
@@ -158,14 +168,6 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     icon: Icons.folder_copy_outlined,
     selectedIcon: Icons.folder_copy,
     label: (l10n) => l10n.nav_documents,
-  ),
-  NavDestination(
-    id: 'courses',
-    route: '/courses',
-    icon: Icons.school_outlined,
-    selectedIcon: Icons.school,
-    label: (l10n) => l10n.nav_courses,
-    subtitle: (l10n) => l10n.nav_coursesSubtitle,
   ),
   // Species closes the logging-and-training run that precedes the analysis
   // surfaces: it is a record of what dives turned up, so it reads last before

@@ -118,6 +118,53 @@ void main() {
       }
     });
 
+    test('a stored Certifications or Courses id keeps its slot as '
+        'Training', () {
+      for (final old in const ['certifications', 'courses']) {
+        expect(
+          normalizeNavOrder(
+            stored: ['dives', old, 'sites'],
+            movableIds: movableNavIds,
+          ).take(3).toList(),
+          ['dives', 'training', 'sites'],
+          reason: old,
+        );
+      }
+    });
+
+    test('an order holding both Certifications and Courses keeps one '
+        'Training slot, where the first of them was', () {
+      for (final (stored, first) in const [
+        (['certifications', 'dives', 'courses'], ['training', 'dives']),
+        (['courses', 'certifications', 'dives'], ['training', 'dives']),
+        (
+          ['dives', 'courses', 'sites', 'certifications'],
+          ['dives', 'training'],
+        ),
+      ]) {
+        final order = normalizeNavOrder(
+          stored: stored,
+          movableIds: movableNavIds,
+        );
+        expect(order.take(2).toList(), first, reason: '$stored');
+        expect(order.where((id) => id == 'training').length, 1);
+        expect(order, isNot(contains('certifications')));
+        expect(order, isNot(contains('courses')));
+      }
+    });
+
+    test('a save writes only certifications after training for older '
+        'builds', () {
+      // Writing courses too would make an older build put Courses in the
+      // slot after Certifications, pushing a destination out of the bar.
+      expect(withLegacyNavIds(const ['dives', 'training', 'sites']), [
+        'dives',
+        'training',
+        'certifications',
+        'sites',
+      ]);
+    });
+
     test('a save writes gps-log right after tracks for older builds', () {
       expect(withLegacyNavIds(const ['tracks', 'insights']), [
         'tracks',

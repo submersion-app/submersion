@@ -18826,9 +18826,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_courses => 'Tanfolyamok';
 
   @override
-  String get nav_coursesSubtitle => 'Képzés és oktatás';
-
-  @override
   String get nav_diveCenters => 'Merülőcentrumok';
 
   @override
@@ -19259,6 +19256,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_tracksSubtitle => 'GPS- és víz alatti nyomvonalak';
+
+  @override
+  String get nav_training => 'Képzés';
+
+  @override
+  String get nav_trainingSubtitle => 'Képesítések és tanfolyamok';
 
   @override
   String get nav_transfer => 'Átvitel';

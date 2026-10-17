@@ -19145,9 +19145,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_courses => 'الدورات';
 
   @override
-  String get nav_coursesSubtitle => 'التدريب والتعليم';
-
-  @override
   String get nav_diveCenters => 'مراكز الغوص';
 
   @override
@@ -19584,6 +19581,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_tracksSubtitle => 'مسارات GPS والمسارات تحت الماء';
+
+  @override
+  String get nav_training => 'التدريب';
+
+  @override
+  String get nav_trainingSubtitle => 'الشهادات والدورات';
 
   @override
   String get nav_transfer => 'نقل البيانات';

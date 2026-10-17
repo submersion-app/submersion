@@ -17978,9 +17978,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_courses => '课程';
 
   @override
-  String get nav_coursesSubtitle => '培训与教育';
-
-  @override
   String get nav_diveCenters => '潜水中心';
 
   @override
@@ -18402,6 +18399,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nav_tracksSubtitle => 'GPS 与水下轨迹';
+
+  @override
+  String get nav_training => '培训';
+
+  @override
+  String get nav_trainingSubtitle => '证书与课程';
 
   @override
   String get nav_transfer => '传输';

@@ -187,6 +187,7 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_detai
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/router/training_locations.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
@@ -823,6 +824,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ],
               ),
             ],
+          ),
+
+          // Training is the nav entry for the Certifications and Courses
+          // tabs (#3437); its own address opens Certifications.
+          GoRoute(
+            path: kTrainingLocation,
+            redirect: (_, _) => TrainingTab.certifications.path,
           ),
 
           // Certifications

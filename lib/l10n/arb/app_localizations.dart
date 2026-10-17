@@ -30181,12 +30181,6 @@ abstract class AppLocalizations {
   /// **'Courses'**
   String get nav_courses;
 
-  /// Subtitle for courses menu item
-  ///
-  /// In en, this message translates to:
-  /// **'Training & Education'**
-  String get nav_coursesSubtitle;
-
   /// Navigation label for dive centers section
   ///
   /// In en, this message translates to:
@@ -30936,6 +30930,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'GPS and underwater tracks'**
   String get nav_tracksSubtitle;
+
+  /// Navigation label for the Training section, which holds the certifications and courses tabs
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get nav_training;
+
+  /// Subtitle for the Training menu item in the More sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications and courses'**
+  String get nav_trainingSubtitle;
 
   /// Navigation label for data transfer section
   ///

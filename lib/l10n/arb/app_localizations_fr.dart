@@ -18946,9 +18946,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_courses => 'Cours';
 
   @override
-  String get nav_coursesSubtitle => 'Formation et enseignement';
-
-  @override
   String get nav_diveCenters => 'Centres de plongée';
 
   @override
@@ -19380,6 +19377,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nav_tracksSubtitle => 'Traces GPS et sous-marines';
+
+  @override
+  String get nav_training => 'Formation';
+
+  @override
+  String get nav_trainingSubtitle => 'Certifications et cours';
 
   @override
   String get nav_transfer => 'Transfert';

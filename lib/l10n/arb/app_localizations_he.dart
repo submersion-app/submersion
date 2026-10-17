@@ -18467,9 +18467,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_courses => 'קורסים';
 
   @override
-  String get nav_coursesSubtitle => 'הכשרה וחינוך';
-
-  @override
   String get nav_diveCenters => 'מועדוני צלילה';
 
   @override
@@ -18897,6 +18894,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get nav_tracksSubtitle => 'מסלולי GPS ומסלולים תת-ימיים';
+
+  @override
+  String get nav_training => 'הכשרה';
+
+  @override
+  String get nav_trainingSubtitle => 'הסמכות וקורסים';
 
   @override
   String get nav_transfer => 'העברה';
