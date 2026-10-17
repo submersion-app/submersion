@@ -24,26 +24,36 @@ const fileNameSegmentMaxBytes = 100;
 /// and digits of any script ("Curaçao", "台湾"), each run of anything else
 /// one underscore, none at either end, at most [fileNameSegmentMaxBytes]
 /// bytes. Empty when nothing usable is left.
-String fileNameSegment(String name) {
-  final runes = name.replaceAll(_separators, '_').runes.toList();
+String fileNameSegment(String name) => truncateUtf8(
+  name.replaceAll(_separators, '_'),
+  fileNameSegmentMaxBytes,
+).replaceAll(_edgeUnderscores, '');
+
+/// [text] cut to at most [maxBytes] UTF-8 bytes, whole code points only. A
+/// mark that does not fit takes its letter with it, so the cut never leaves
+/// "e" where the text said "é".
+String truncateUtf8(String text, int maxBytes) {
+  final runes = text.runes.toList();
   var bytes = 0;
   var end = 0;
   // By code point, so a character outside the BMP is kept or dropped whole.
   while (end < runes.length) {
     bytes += _utf8Length(runes[end]);
-    if (bytes > fileNameSegmentMaxBytes) break;
+    if (bytes > maxBytes) break;
     end++;
   }
-  // A mark that did not fit takes its letter with it, so the cut never
-  // leaves "e" where the name said "é".
   if (end < runes.length && _isMark(runes[end])) {
     while (end > 0 && _isMark(runes[end - 1])) {
       end--;
     }
     if (end > 0) end--;
   }
-  return String.fromCharCodes(runes.take(end)).replaceAll(_edgeUnderscores, '');
+  return String.fromCharCodes(runes.take(end));
 }
+
+/// Whether Windows reserves [stem] (a name without its extension) for a
+/// device, so a file called that cannot be saved or extracted there.
+bool isWindowsReservedName(String stem) => _windowsReserved.hasMatch(stem);
 
 bool _isMark(int rune) => _mark.hasMatch(String.fromCharCode(rune));
 
@@ -67,6 +77,6 @@ String fileNameDate(DateTime date) =>
 /// name Windows reserves for a device gets a trailing underscore.
 String exportFileName(Iterable<String> parts, String extension) {
   final stem = parts.where((p) => p.isNotEmpty).join('_');
-  final safe = _windowsReserved.hasMatch(stem) ? '${stem}_' : stem;
+  final safe = isWindowsReservedName(stem) ? '${stem}_' : stem;
   return '$safe.$extension';
 }

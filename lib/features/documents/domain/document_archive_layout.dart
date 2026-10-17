@@ -1,6 +1,6 @@
-import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 
@@ -66,35 +66,23 @@ class DocumentArchivePlan {
   const DocumentArchivePlan({required this.files, required this.pathsByPageId});
 }
 
-/// How the export writes dates: in folder and file names, so they sort,
-/// and in the manifest. Pinned to en_US, like `fileNameDate`, so the digits
-/// stay ASCII whatever locale the app runs in.
-final archiveDateFormat = DateFormat('yyyy-MM-dd', 'en_US');
-
-/// Longest name a path segment gets, well inside every file system's limit.
-const _maxSegment = 120;
-
 final _invalid = RegExp(r'[<>:"/\\|?*\x00-\x1f\x7f]');
-final _reserved = RegExp(
-  r'^(con|prn|aux|nul|com[1-9]|lpt[1-9])$',
-  caseSensitive: false,
-);
+final _trailingDotsAndSpaces = RegExp(r'[. ]+$');
 
 /// [raw] made safe as one path segment on Windows, macOS and Linux: invalid
-/// characters become `_`, outer spaces and trailing dots go, Windows device
-/// names get a `_`, and the result is never empty.
+/// characters become `_`, outer spaces and trailing dots go, the name is cut
+/// to [fileNameSegmentMaxBytes] UTF-8 bytes (file systems cap a name at 255
+/// bytes, and a suffix and extension still follow), Windows device names
+/// get a `_`, and the result is never empty.
 String sanitizeArchiveSegment(String raw) {
   var s = raw.replaceAll(_invalid, '_').trim();
-  s = s.replaceFirst(RegExp(r'[. ]+$'), '');
-  final runes = s.runes.toList();
-  if (runes.length > _maxSegment) {
-    s = String.fromCharCodes(
-      runes.take(_maxSegment),
-    ).replaceFirst(RegExp(r'[. ]+$'), '');
-  }
+  s = truncateUtf8(s, fileNameSegmentMaxBytes);
+  s = s.replaceFirst(_trailingDotsAndSpaces, '');
   if (s.isEmpty) return '_';
   final stem = s.split('.').first;
-  if (_reserved.hasMatch(stem)) return '${stem}_${s.substring(stem.length)}';
+  if (isWindowsReservedName(stem)) {
+    return '${stem}_${s.substring(stem.length)}';
+  }
   return s;
 }
 

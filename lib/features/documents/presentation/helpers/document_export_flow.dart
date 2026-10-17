@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -95,7 +96,7 @@ Future<void> _exportAllDocuments(
   final now = DateTime.now();
   final fileName = sanitizeArchiveSegment(
     '${l10n.documents_export_fileNamePrefix} '
-    '${archiveDateFormat.format(now)}.zip',
+    '${fileNameDate(now)}.zip',
   );
   // Before the dialog opens, so a failure here cannot strand it.
   final dir = await newDocumentExportDir(now);
@@ -108,20 +109,24 @@ Future<void> _exportAllDocuments(
     total: plan.files.length + 1,
   ));
   var cancelled = false;
-  unawaited(
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => DocumentExportProgressDialog(
-        progress: progress,
-        onCancel: () => cancelled = true,
-      ),
+  // Its own route, so closing removes this dialog even if something else
+  // was pushed above it during a long export.
+  final dialog = DialogRoute<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => DocumentExportProgressDialog(
+      progress: progress,
+      onCancel: () => cancelled = true,
     ),
   );
-  var dialogOpen = true;
+  unawaited(navigator.push(dialog));
   void closeDialog() {
-    if (dialogOpen) navigator.pop();
-    dialogOpen = false;
+    if (!dialog.isActive) return;
+    if (dialog.isCurrent) {
+      navigator.pop();
+    } else {
+      navigator.removeRoute(dialog);
+    }
   }
 
   var keepForShare = false;
@@ -206,7 +211,7 @@ String? _recordFolder(DocumentListEntry entry) {
   if (date == null) return label == null || label.isEmpty ? null : label;
   return [
     if (label != null && label.isNotEmpty) label.replaceAll(' · ', ' '),
-    archiveDateFormat.format(date),
+    fileNameDate(date),
   ].join(' ');
 }
 

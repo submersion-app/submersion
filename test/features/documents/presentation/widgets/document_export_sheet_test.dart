@@ -14,6 +14,7 @@ void main() {
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     closed = false;
+    result = null;
     await t.pumpWidget(
       testApp(
         locale: const Locale('en'),
@@ -91,6 +92,22 @@ void main() {
     await t.pumpAndSettle();
     expect(closed, isTrue);
     expect(result, 'correct horse');
+  });
+
+  testWidgets('Enter in the confirm field exports', (t) async {
+    await open(t);
+    await type(t, 'correct horse', 'correct horse');
+    await t.testTextInput.receiveAction(TextInputAction.done);
+    await t.pumpAndSettle();
+    expect(result, 'correct horse');
+  });
+
+  testWidgets('Enter does nothing while the password is refused', (t) async {
+    await open(t);
+    await type(t, 'short', 'short');
+    await t.testTextInput.receiveAction(TextInputAction.done);
+    await t.pumpAndSettle();
+    expect(closed, isFalse);
   });
 
   testWidgets('the password is hidden until shown', (t) async {

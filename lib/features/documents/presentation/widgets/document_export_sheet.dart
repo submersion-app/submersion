@@ -59,6 +59,10 @@ class _DocumentExportSheetState extends State<DocumentExportSheet> {
       ? null
       : context.l10n.documents_export_passwordMismatch;
 
+  void _submit() {
+    if (_valid) Navigator.of(context).pop(_password.text);
+  }
+
   bool get _valid =>
       ZipCryptoWriter.isValidPassword(_password.text) &&
       _confirm.text == _password.text;
@@ -124,6 +128,8 @@ class _DocumentExportSheetState extends State<DocumentExportSheet> {
                 decoration: InputDecoration(
                   labelText: l10n.documents_export_confirmPassword,
                 ),
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
                 validator: (v) => _confirmError(v ?? ''),
               ),
               const SizedBox(height: 16),
@@ -148,9 +154,7 @@ class _DocumentExportSheetState extends State<DocumentExportSheet> {
               ),
               const SizedBox(height: 24),
               FilledButton(
-                onPressed: _valid
-                    ? () => Navigator.of(context).pop(_password.text)
-                    : null,
+                onPressed: _valid ? _submit : null,
                 child: Text(l10n.documents_export_start),
               ),
             ],

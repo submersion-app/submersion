@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -33,7 +34,7 @@ String buildDocumentManifestCsv(
   DocumentArchivePlan plan,
   ManifestLabels labels,
 ) {
-  String date(DateTime? d) => d == null ? '' : archiveDateFormat.format(d);
+  String date(DateTime? d) => d == null ? '' : fileNameDate(d);
   final rows = <List<String>>[labels.headers];
   for (final input in docs) {
     final d = input.document;

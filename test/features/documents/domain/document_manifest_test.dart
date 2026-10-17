@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
 import 'package:submersion/features/documents/domain/document_manifest.dart';
@@ -184,5 +185,20 @@ void main() {
     final rows = _rows(buildDocumentManifestCsv(inputs, plan, _labels));
     expect(rows[1].sublist(9, 11), ['+1 919', '+1 800']);
     expect(rows[2].sublist(9, 11), ['', '']);
+  });
+
+  test('dates stay ASCII ISO whatever the app locale', () {
+    final previous = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previous);
+    Intl.defaultLocale = 'ar';
+    final inputs = [
+      _in(_doc(issue: DateTime(2026, 10, 12)), [_p('x', 0)]),
+    ];
+    final plan = planDocumentArchive(
+      inputs,
+      ArchiveNames(front: 'f', back: 'b', page: (n) => '$n'),
+    );
+    final row = _rows(buildDocumentManifestCsv(inputs, plan, _labels))[1];
+    expect(row[6], '2026-10-12');
   });
 }

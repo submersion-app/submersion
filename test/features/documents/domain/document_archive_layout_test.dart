@@ -1,5 +1,6 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -79,8 +80,23 @@ void main() {
       expect(sanitizeArchiveSegment(''), '_');
     });
 
-    test('caps the length', () {
-      expect(sanitizeArchiveSegment('x' * 300).length, 120);
+    test('caps the length in UTF-8 bytes, not characters', () {
+      expect(sanitizeArchiveSegment('x' * 300).length, 100);
+      // 3 bytes each: 120 of them would be 360 bytes, over the 255-byte
+      // name limit once a suffix and extension are added.
+      final cjk = sanitizeArchiveSegment(String.fromCharCode(0x53F0) * 120);
+      expect(utf8.encode(cjk).length, lessThanOrEqualTo(100));
+      expect(cjk.runes.length, 33);
+    });
+
+    test('never cuts a letter from its combining accent', () {
+      final decomposed = '${'x' * 99}e${String.fromCharCode(0x301)}';
+      expect(sanitizeArchiveSegment(decomposed), 'x' * 99);
+    });
+
+    test('suffixes the superscript device names too', () {
+      final com1 = 'COM${String.fromCharCode(0xB9)}';
+      expect(sanitizeArchiveSegment(com1), '${com1}_');
     });
   });
 
@@ -204,12 +220,5 @@ void main() {
       expect(plan.pathsByPageId, {page.id: 'Personal/DAN.pdf'});
       expect(plan.files.single.pageId, page.id);
     });
-  });
-
-  test('archive dates are ASCII ISO whatever the app locale', () {
-    final previous = Intl.defaultLocale;
-    addTearDown(() => Intl.defaultLocale = previous);
-    Intl.defaultLocale = 'ar';
-    expect(archiveDateFormat.format(DateTime(2026, 10, 12)), '2026-10-12');
   });
 }

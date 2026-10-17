@@ -19,7 +19,7 @@ const _shareRetention = Duration(hours: 1);
 /// place and swept here, by a later export, once it is over an hour old.
 Future<Directory> newDocumentExportDir(DateTime now) async {
   final temp = Directory.systemTemp;
-  for (final entry in temp.listSync()) {
+  await for (final entry in temp.list()) {
     final name = p.basename(entry.path);
     if (entry is! Directory || !name.startsWith(exportDirPrefix)) continue;
     final started = int.tryParse(name.substring(exportDirPrefix.length));
