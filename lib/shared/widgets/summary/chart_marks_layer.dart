@@ -99,6 +99,12 @@ class ChartMarksLayer extends StatelessWidget {
     final endSide = mark.spot.at.dx <= flipAt;
     final text = compact ? (mark.compactLabel ?? mark.label) : mark.label;
     final onTap = mark.onTap;
+    // Physical, like the dot: a wrapped label's lines hug the dot side in
+    // either reading direction.
+    final align = endSide ? TextAlign.left : TextAlign.right;
+    // Marks can sit a line or two apart on a short pane; the full label is
+    // still read out through the link's semantics.
+    final maxLines = compact ? 1 : 2;
     return Positioned(
       key: ValueKey('chart-mark-$index'),
       top: y - 9,
@@ -110,11 +116,13 @@ class ChartMarksLayer extends StatelessWidget {
           color: palette.markLabel,
           shadows: SceneInk.shadowsOf(context),
           child: onTap == null
-              ? SceneLabel(text)
+              ? SceneLabel(text, textAlign: align, maxLines: maxLines)
               : SceneLink(
                   text: text,
                   onTap: onTap,
                   semanticsLabel: mark.semanticsLabel ?? mark.label,
+                  textAlign: align,
+                  maxLines: maxLines,
                 ),
         ),
       ),

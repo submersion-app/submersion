@@ -115,14 +115,21 @@ class SceneSentence extends StatelessWidget {
 
 /// A small label under a secondary fact.
 class SceneLabel extends StatelessWidget {
-  const SceneLabel(this.text, {super.key});
+  const SceneLabel(this.text, {super.key, this.textAlign, this.maxLines});
 
   final String text;
+  final TextAlign? textAlign;
+
+  /// Caps the label's lines, ending the last with an ellipsis.
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
+      textAlign: textAlign,
+      maxLines: maxLines,
+      overflow: maxLines == null ? null : TextOverflow.ellipsis,
       style: _sceneStyle(
         context,
         Theme.of(context).textTheme.bodySmall,
@@ -162,6 +169,8 @@ class SceneLink extends StatelessWidget {
     required this.onTap,
     required this.semanticsLabel,
     this.style,
+    this.textAlign,
+    this.maxLines,
   });
 
   final String text;
@@ -170,6 +179,11 @@ class SceneLink extends StatelessWidget {
 
   /// Overrides the label-sized default, for a link that is itself a value.
   final TextStyle? style;
+
+  final TextAlign? textAlign;
+
+  /// Caps the link's lines, ending the last with an ellipsis.
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -194,6 +208,9 @@ class SceneLink extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           child: Text(
             text,
+            textAlign: textAlign,
+            maxLines: maxLines,
+            overflow: maxLines == null ? null : TextOverflow.ellipsis,
             style: base.copyWith(
               decoration: TextDecoration.underline,
               decorationStyle: TextDecorationStyle.dotted,

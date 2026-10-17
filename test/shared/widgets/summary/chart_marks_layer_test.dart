@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/shared/widgets/scenes/chart_marks_painter.dart';
@@ -123,5 +124,67 @@ void main() {
     );
 
     expect((paint.painter! as ChartMarksPainter).time, same(time));
+  });
+
+  /// The rect of the last [count] characters of [text], laid out on screen.
+  Rect tailRect(WidgetTester tester, String text, int count) {
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.descendant(of: find.text(text), matching: find.byType(RichText)),
+    );
+    final boxes = paragraph.getBoxesForSelection(
+      TextSelection(baseOffset: text.length - count, extentOffset: text.length),
+    );
+    final origin = paragraph.localToGlobal(Offset.zero);
+    final left = boxes.map((b) => b.left).reduce((a, b) => a < b ? a : b);
+    final right = boxes.map((b) => b.right).reduce((a, b) => a > b ? a : b);
+    return Rect.fromLTRB(origin.dx + left, 0, origin.dx + right, 1);
+  }
+
+  testWidgets('a wrapped label on the start side of its dot ends at the dot', (
+    tester,
+  ) async {
+    const text = 'Raja Ampat and the Banda Sea and the long way home trip';
+    await _pump(tester, [_mark(const Offset(0.8, 0.5), text)]);
+
+    // The short last line hugs the dot, not the far edge of the pane.
+    expect(tailRect(tester, text, 4).right, closeTo(0.8 * 900 - 12, 2));
+  });
+
+  testWidgets('in a right-to-left locale a wrapped label on the end side of '
+      'its dot starts at the dot', (tester) async {
+    const text = 'Raja Ampat and the Banda Sea, a liveaboard trip';
+    await _pump(tester, [
+      _mark(const Offset(0.3, 0.5), text),
+    ], direction: TextDirection.rtl);
+
+    expect(tailRect(tester, text, 4).left, closeTo(0.3 * 900 + 12, 2));
+  });
+
+  testWidgets('a label wraps to two lines at most, one when compact', (
+    tester,
+  ) async {
+    final long = 'A very long site name ' * 8;
+    await _pump(tester, [
+      _mark(const Offset(0.3, 0.5), 'Short'),
+      ChartMark(
+        spot: const ChartSpot(at: Offset(0.3, 0.2)),
+        label: long,
+        compactLabel: long,
+      ),
+    ]);
+    final line = tester.getSize(find.text('Short')).height;
+
+    expect(tester.getSize(find.text(long)).height, closeTo(2 * line, 1));
+
+    await _pump(tester, [
+      _mark(const Offset(0.3, 0.5), 'Short'),
+      ChartMark(
+        spot: const ChartSpot(at: Offset(0.3, 0.2)),
+        label: long,
+        compactLabel: long,
+      ),
+    ], compact: true);
+
+    expect(tester.getSize(find.text(long)).height, closeTo(line, 1));
   });
 }

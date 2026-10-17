@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show PathMetric;
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -47,18 +48,41 @@ class ChartMarksPainter extends CustomPainter {
 
   static const double dotRadius = 4;
 
+  /// How many times any painter has laid out its spots and course, so a
+  /// test can prove the geometry is kept between frames.
+  @visibleForTesting
+  static int courseGeometryBuilds = 0;
+
+  /// The spots and the measured course for the size they were laid out at.
+  /// This painter repaints on every clock tick without being rebuilt, so
+  /// only the dash phase changes from frame to frame.
+  Size? _laidOutFor;
+  List<Offset> _points = const [];
+  List<PathMetric> _courseMetrics = const [];
+
+  void _layOut(Size size) {
+    if (size == _laidOutFor) return;
+    courseGeometryBuilds++;
+    _laidOutFor = size;
+    _points = [
+      for (final spot in spots)
+        Offset(spot.at.dx * size.width, spot.at.dy * size.height),
+    ];
+    _courseMetrics = course && _points.length > 1
+        ? _course(_points).computeMetrics().toList()
+        : const [];
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final palette = ChartPalette.of(brightness);
     final seconds = time.value;
-    final points = [
-      for (final spot in spots)
-        Offset(spot.at.dx * size.width, spot.at.dy * size.height),
-    ];
-    if (course && points.length > 1) {
+    _layOut(size);
+    final points = _points;
+    if (_courseMetrics.isNotEmpty) {
       canvas.drawPath(
         // 220 px every 40 s, the mockup's dash creep.
-        dashedPath(_course(points), dash: 6, gap: 5, phase: seconds * 5.5),
+        dashedMetrics(_courseMetrics, dash: 6, gap: 5, phase: seconds * 5.5),
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.4

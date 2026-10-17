@@ -111,4 +111,20 @@ void main() {
     );
     expect(base.shouldRepaint(painter(0)), isTrue);
   });
+
+  test('builds the course geometry once per size, not once per frame', () {
+    final time = ValueNotifier<double>(0);
+    addTearDown(time.dispose);
+    final p = painter(0, time: time);
+    final before = ChartMarksPainter.courseGeometryBuilds;
+
+    for (var i = 0; i < 5; i++) {
+      time.value = i / 24;
+      p.paint(Canvas(ui.PictureRecorder()), const Size(200, 140));
+    }
+    expect(ChartMarksPainter.courseGeometryBuilds - before, 1);
+
+    p.paint(Canvas(ui.PictureRecorder()), const Size(300, 140));
+    expect(ChartMarksPainter.courseGeometryBuilds - before, 2);
+  });
 }
