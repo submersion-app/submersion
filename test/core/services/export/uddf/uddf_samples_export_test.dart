@@ -71,6 +71,17 @@ void main() {
         );
       });
 
+      test('marks no starting mix on a dive without cylinders', () async {
+        // Issue #1878: the marker named air for a tankless dive, and a
+        // restore turned it into a cylinder the diver never logged.
+        final tankless = dive(profile: recorded).copyWith(tanks: const []);
+
+        expect(
+          onlyDive(await write(tankless)).findAllElements('switchmix'),
+          isEmpty,
+        );
+      });
+
       test('writes no samples for a dive without a recorded profile', () async {
         // Depth and duration are known, which is what the old fallback drew
         // its invented descent, bottom and ascent from.

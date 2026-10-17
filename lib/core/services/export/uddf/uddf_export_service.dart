@@ -439,7 +439,7 @@ class UddfExportService {
                                     );
                                     // The starting mix rides on the first
                                     // recorded sample, as in the full backup.
-                                    if (index == 0) {
+                                    if (index == 0 && startMix != null) {
                                       builder.element(
                                         'switchmix',
                                         attributes: {'ref': startMix},

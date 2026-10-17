@@ -334,7 +334,7 @@ class UddfExportBuilders {
                     // The starting mix rides on the first recorded sample. A
                     // separate (0 s, 0 m) waypoint for it came back from
                     // every restore as an extra sample.
-                    if (index == 0) {
+                    if (index == 0 && startMix != null) {
                       builder.element(
                         'switchmix',
                         attributes: {'ref': startMix},
@@ -2066,12 +2066,16 @@ class UddfExportBuilders {
   }
 
   /// The gas mix id a dive starts on, for the `<switchmix>` on its first
-  /// sample: the first tank's mix, or air for a dive with no tanks. Both
-  /// dive writers use it, so the two exports name the same mix.
-  static String startMixId(Dive dive) {
+  /// sample: the first tank's mix. Both dive writers use it, so the two
+  /// exports name the same mix.
+  ///
+  /// Null for a dive with no tanks, whose starting gas is unknown. Naming air
+  /// there was a guess that a restore turned into a cylinder the diver never
+  /// logged (issue #1878).
+  static String? startMixId(Dive dive) {
     final tank = dive.tanks.firstOrNull;
     return tank == null
-        ? 'mix_21_0'
+        ? null
         : 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
   }
 

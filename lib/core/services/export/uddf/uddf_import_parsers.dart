@@ -157,7 +157,7 @@ class UddfImportParsers {
   ) {
     final profile = diveData['profile'];
     if (profile is! List<Map<String, dynamic>>) return;
-    if (!_writtenBySubmersion(diveElement)) return;
+    if (!writtenBySubmersion(diveElement)) return;
     if (_isInventedOutline(
       profile,
       maxDepth: diveData['maxDepth'] as double?,
@@ -167,8 +167,29 @@ class UddfImportParsers {
     }
   }
 
-  static bool _writtenBySubmersion(XmlElement diveElement) =>
-      diveElement.document?.rootElement
+  /// The `<tankdata>` id a `<gasswitch>`'s `<tankref>` names among [tanks].
+  ///
+  /// Submersion's full backup declares each cylinder as `tank_<id>` but has
+  /// always written the switch's `<tankref>` as the bare `<id>`, so every
+  /// recorded switch failed to resolve on restore and was dropped (issue
+  /// #1878). A ref that matches a declared tank as written is kept; a bare
+  /// one is mapped to its `tank_` form only when that tank is declared.
+  static String? resolveGasSwitchTankRef(
+    String? ref,
+    List<Map<String, dynamic>> tanks,
+  ) {
+    final trimmed = ref?.trim();
+    if (trimmed == null || trimmed.isEmpty) return ref;
+    bool declared(String id) => tanks.any((t) => t['uddfTankId'] == id);
+    if (declared(trimmed)) return trimmed;
+    final prefixed = 'tank_$trimmed';
+    return declared(prefixed) ? prefixed : trimmed;
+  }
+
+  /// Whether the document holding [element] was written by Submersion, the
+  /// only producer whose writer quirks the importer undoes.
+  static bool writtenBySubmersion(XmlElement element) =>
+      element.document?.rootElement
           .getElement('generator')
           ?.getElement('name')
           ?.innerText
