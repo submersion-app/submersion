@@ -172,7 +172,12 @@ class _AccountTile extends ConsumerWidget {
           final adapter = registry.capabilityFor<AccountProviderAdapter>(
             account.kind,
           );
-          final used = usages ?? const <AccountUsage>[];
+          // Read at tap time, not from the build: a tap before the usage
+          // load finished would otherwise skip the warning.
+          final used = (await ref.read(
+            connectedAccountUsageProvider.future,
+          )).usagesOf(account);
+          if (!context.mounted) return;
           switch (choice) {
             case 'signOut':
               // Nothing here depends on it: signing out breaks nothing, so

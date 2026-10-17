@@ -72,8 +72,20 @@ class AccountUsageService {
   final SharedLibraryStore _libraries;
 
   Future<AccountUsageSnapshot> load() async {
+    // Independent reads: run them together.
+    final (
+      libraries,
+      syncAccountId,
+      attachedStoreId,
+      attachedAccountId,
+    ) = await (
+      _libraries.getLibraries(),
+      _syncRepository.getSyncAccountId(),
+      _attachState.attachedStoreId(),
+      _attachState.attachedAccountId(),
+    ).wait;
     final libraryNames = <String, List<String>>{};
-    for (final library in await _libraries.getLibraries()) {
+    for (final library in libraries) {
       libraryNames.update(
         library.connectedAccountId,
         (names) => [...names, library.name],
@@ -81,12 +93,10 @@ class AccountUsageService {
       );
     }
     return AccountUsageSnapshot(
-      syncAccountId: await _syncRepository.getSyncAccountId(),
+      syncAccountId: syncAccountId,
       // Only account-layer attachments carry an id; the startup migration
       // gave every pre-account attachment one, so null means none attached.
-      mediaStoreAccountId: await _attachState.attachedStoreId() == null
-          ? null
-          : await _attachState.attachedAccountId(),
+      mediaStoreAccountId: attachedStoreId == null ? null : attachedAccountId,
       libraryNamesByAccount: {
         for (final MapEntry(:key, :value) in libraryNames.entries)
           key: [...value]
