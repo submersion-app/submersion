@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -6,6 +8,60 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 /// A switch this many seconds or less after the dive starts names the
 /// starting gas: computers log it at the first sample, not at second zero.
 const int startingSwitchGraceSeconds = 60;
+
+/// The switches of [gasSwitches] that say when a cylinder of [tanks] was
+/// breathed: those naming a current tank (a stale id a re-import left
+/// behind says nothing, #110) and, given [before], falling before it (the
+/// dive's end).
+List<GasSwitchWithTank> knownGasSwitches(
+  List<DiveTank> tanks,
+  List<GasSwitchWithTank>? gasSwitches, {
+  int? before,
+}) {
+  final tankIds = {for (final t in tanks) t.id};
+  return [
+    for (final sw in gasSwitches ?? const <GasSwitchWithTank>[])
+      if (tankIds.contains(sw.gasSwitch.tankId) &&
+          (before == null || sw.gasSwitch.timestamp < before))
+        sw,
+  ];
+}
+
+/// The cylinder breathed at [timestamp]: the one the last switch at or
+/// before it names, else the starting gas (see [_startingTank]). Null when
+/// there are no cylinders.
+DiveTank? activeTankAt({
+  required List<DiveTank> tanks,
+  required List<GasSwitchWithTank>? gasSwitches,
+  required int timestamp,
+  required int diveStart,
+}) {
+  if (tanks.isEmpty) return null;
+  final sorted = knownGasSwitches(tanks, gasSwitches)
+    ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
+  final active = sorted.lastWhereOrNull(
+    (sw) => sw.gasSwitch.timestamp <= timestamp,
+  );
+  if (active == null) return _startingTank(tanks, sorted, diveStart);
+  return tanks.firstWhere((t) => t.id == active.gasSwitch.tankId);
+}
+
+/// The cylinder the dive starts on: the one a switch in its first moments
+/// names, since computers log the starting gas at the first sample, else
+/// the cylinder a SAC is referenced to (the back gas, else the first).
+/// [sortedSwitches] are known switches in time order; [tanks] is non-empty.
+DiveTank _startingTank(
+  List<DiveTank> tanks,
+  List<GasSwitchWithTank> sortedSwitches,
+  int diveStart,
+) {
+  final first = sortedSwitches.firstOrNull;
+  if (first != null &&
+      first.gasSwitch.timestamp <= diveStart + startingSwitchGraceSeconds) {
+    return tanks.firstWhere((t) => t.id == first.gasSwitch.tankId);
+  }
+  return sacReferenceTankOf(tanks)!;
+}
 
 /// The time window, in seconds, when [tank] was breathed: from the dive's
 /// gas switches, else the whole dive for the primary gas. Null when nothing
@@ -23,16 +79,7 @@ const int startingSwitchGraceSeconds = 60;
   // switches say (issue #3373).
   if (tanks.length == 1) return (start: diveStart, end: diveEnd);
 
-  // A switch naming no cylinder of this dive (a stale id a re-import left
-  // behind, #110), or falling after it ends, says nothing about when any of
-  // them was breathed.
-  final tanksById = {for (final t in tanks) t.id: t};
-  final knownSwitches = [
-    for (final sw in gasSwitches ?? const <GasSwitchWithTank>[])
-      if (tanksById.containsKey(sw.gasSwitch.tankId) &&
-          sw.gasSwitch.timestamp < diveEnd)
-        sw,
-  ];
+  final knownSwitches = knownGasSwitches(tanks, gasSwitches, before: diveEnd);
 
   if (knownSwitches.isEmpty) {
     // Without switches only the primary gas is known to span the dive: the
@@ -67,14 +114,8 @@ const int startingSwitchGraceSeconds = 60;
   int? rangeStart;
   int totalEnd = diveEnd;
 
-  // Check if this tank is the initial tank (before first switch): the one a
-  // switch in the first moments names, since computers log the starting gas
-  // at the first sample, else the cylinder a SAC is referenced to.
-  final firstSwitch = sortedSwitches.first;
-  final initialTankId =
-      firstSwitch.gasSwitch.timestamp <= diveStart + startingSwitchGraceSeconds
-      ? firstSwitch.gasSwitch.tankId
-      : sacReferenceTankOf(tanks)!.id;
+  // Check if this tank is the initial tank (before first switch)
+  final initialTankId = _startingTank(tanks, sortedSwitches, diveStart).id;
   if (breathedWith(initialTankId)) {
     rangeStart = diveStart;
   }

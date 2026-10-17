@@ -204,7 +204,12 @@ class GasAnalysisService {
       if (segmentProfile.isEmpty) continue;
 
       // Find active tank for this segment
-      final tank = _getActiveTankAtTimestamp(tanks, gasSwitches, seg.start);
+      final tank = activeTankAt(
+        tanks: tanks,
+        gasSwitches: gasSwitches,
+        timestamp: seg.start,
+        diveStart: profile.first.timestamp,
+      );
       if (tank == null) continue;
 
       // Calculate depth statistics
@@ -284,12 +289,13 @@ class GasAnalysisService {
 
     final diveEnd =
         dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
-    // Only a switch naming a cylinder of this dive says when one was
-    // breathed; stale ids (#110) leave a recorded duration in force.
-    final tankIds = {for (final t in dive.tanks) t.id};
-    final hasGasSwitches =
-        gasSwitches?.any((sw) => tankIds.contains(sw.gasSwitch.tankId)) ??
-        false;
+    // Only a switch that says when a cylinder was breathed overrides a
+    // recorded duration: not a stale id (#110), nor one after the dive.
+    final hasGasSwitches = knownGasSwitches(
+      dive.tanks,
+      gasSwitches,
+      before: diveEnd,
+    ).isNotEmpty;
 
     for (final tank in dive.tanks) {
       // Its own size, else its matched partner's (issue #3109).
@@ -550,49 +556,6 @@ class GasAnalysisService {
     merged.add(current);
 
     return merged;
-  }
-
-  /// Get the active tank at a given timestamp
-  DiveTank? _getActiveTankAtTimestamp(
-    List<DiveTank> tanks,
-    List<GasSwitchWithTank>? gasSwitches,
-    int timestamp,
-  ) {
-    if (tanks.isEmpty) return null;
-
-    if (gasSwitches == null || gasSwitches.isEmpty) {
-      // No gas switches - use first tank (or back gas)
-      return sacReferenceTankOf(tanks);
-    }
-
-    // Find the last switch before this timestamp
-    final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
-      ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
-
-    GasSwitchWithTank? activeSwitch;
-    for (final sw in sortedSwitches) {
-      if (sw.gasSwitch.timestamp <= timestamp) {
-        activeSwitch = sw;
-      } else {
-        break;
-      }
-    }
-
-    // Before the first switch: the gas it names when it falls in the first
-    // moments (the starting gas, logged at the first sample, as
-    // [tankUsageRange] reads it), else the back gas or first tank.
-    if (activeSwitch == null) {
-      final first = sortedSwitches.first;
-      if (first.gasSwitch.timestamp > timestamp + startingSwitchGraceSeconds) {
-        return sacReferenceTankOf(tanks);
-      }
-      activeSwitch = first;
-    }
-
-    return tanks.firstWhere(
-      (t) => t.id == activeSwitch!.gasSwitch.tankId,
-      orElse: () => tanks.first,
-    );
   }
 
   /// Calculate SAC for a segment from profile data

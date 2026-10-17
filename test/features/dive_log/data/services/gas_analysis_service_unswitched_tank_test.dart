@@ -400,6 +400,36 @@ void main() {
     expect(unswitched!.map((s) => s.tankId).toSet(), {'back'});
   });
 
+  test('a switch after the dive ends leaves a recorded duration in '
+      'force', () {
+    const a = DiveTank(
+      id: 'a',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+      usageDuration: Duration(minutes: 20),
+    );
+    const b = DiveTank(
+      id: 'b',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+      role: TankRole.stage,
+      usageDuration: Duration(minutes: 40),
+    );
+    final dive = makeDive([a, b]);
+    final results = byId(
+      service.calculateCylinderSac(
+        dive: dive,
+        profile: dive.profile,
+        gasSwitches: [switchTo('b', 61 * 60)],
+      ),
+    );
+
+    expect(results['a']!.usageDuration?.inMinutes, 20);
+    expect(results['b']!.usageDuration?.inMinutes, 40);
+  });
+
   test('a stage with no recorded switch still has no SAC', () {
     // Without a switch nothing says how long the stage was breathed, and
     // spreading its drop over the whole dive would understate its rate.
