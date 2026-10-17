@@ -27,6 +27,10 @@ typedef TrainingTabBodyBuilder =
 /// selection and open form across a switch. A tap on the switch, or a swipe
 /// on phone, replaces the address with the other tab's; an address change
 /// from anywhere else selects its tab.
+///
+/// A switch works the way Equipment's does (#3465). On desktop the other tab
+/// shows in place at once. On phone the list slides, but under a header that
+/// stays put: each tab's own app bar is held still by [trainingHeaderTitle].
 class TrainingPage extends StatefulWidget {
   const TrainingPage({super.key, required this.tab, this.tabBodyBuilder});
 
@@ -52,8 +56,10 @@ class _TrainingPageState extends State<TrainingPage>
   /// index came from the switch or a swipe, and moves the address.
   late int _handledIndex = widget.tab.index;
 
-  /// Tabs shown at least once. A tab is built on its first visit, so opening
-  /// Training costs no more than opening Certifications did.
+  /// Tabs shown at least once. On desktop a tab is built on its first visit,
+  /// so opening Training costs no more than opening Certifications did. The
+  /// phone's [TabBarView] needs no help there: its pages are built as they
+  /// slide into view.
   late final Set<TrainingTab> _visited = {widget.tab};
 
   /// Each tab's last query string at its own address, given back when the
@@ -70,6 +76,14 @@ class _TrainingPageState extends State<TrainingPage>
   /// the tab returns. Hiding drops it from the scope's own history, and the
   /// list's keyboard shortcuts only hear keys from inside the list.
   final Map<TrainingTab, FocusNode> _lastFocus = {};
+
+  /// One key per tab, so a tab keeps its state when a resize across the
+  /// master-detail breakpoint moves it between the phone's [TabBarView] and
+  /// the desktop's stack.
+  final Map<TrainingTab, GlobalKey> _tabKeys = {
+    for (final tab in TrainingTab.values)
+      tab: GlobalKey(debugLabel: 'Training ${tab.name}'),
+  };
 
   TrainingTab get _shown => TrainingTab.values[_controller.index];
 
@@ -104,12 +118,13 @@ class _TrainingPageState extends State<TrainingPage>
   /// back; null while no switch is pending.
   VoidCallback? _pendingFocus;
 
-  /// Hands focus back to [tab] once the slide has brought it on screen.
+  /// Hands focus back to [tab] once the switch's animation has settled.
   ///
-  /// Not sooner: during a tapped switch the [TabBarView] holds its children
-  /// back until the slide's future completes, a frame after the slide ends,
-  /// so until then the tab still excludes focus. [_focusTab] retries for
-  /// that frame.
+  /// Not sooner: during a tapped switch on phone the [TabBarView] holds its
+  /// children back until the slide's future completes, a frame after the
+  /// slide ends, so until then the tab still excludes focus. [_focusTab]
+  /// retries for that frame. On desktop the tab is on screen at once, and
+  /// the wait is only the switch's own underline sliding across.
   void _focusAfterSwitch(TrainingTab tab) {
     final animation = _controller.animation!;
     _cancelPendingFocus();
@@ -179,6 +194,7 @@ class _TrainingPageState extends State<TrainingPage>
   Widget _buildTab(BuildContext context, TrainingTab tab) {
     final visible = tab == _shown;
     return TabVisibility(
+      key: _tabKeys[tab],
       visible: visible,
       child: HeroMode(
         enabled: visible,
@@ -214,18 +230,34 @@ class _TrainingPageState extends State<TrainingPage>
     final current = trainingTabForPath(uri.path);
     if (current != null) _queries[current] = uri.query;
 
+    // Desktop shows the other tab in place, as Equipment does. A TabBarView
+    // slides even with swiping off, since a tap animates it to the tab, and
+    // there a sideways trackpad gesture would fight the list and the table.
+    if (ResponsiveBreakpoints.isMasterDetail(context)) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          for (final tab in TrainingTab.values)
+            if (_visited.contains(tab))
+              Visibility(
+                key: ValueKey(tab),
+                visible: tab == _shown,
+                maintainState: true,
+                child: _buildTab(context, tab),
+              ),
+        ],
+      );
+    }
+
+    // Every page is the real tab, never a placeholder until its first visit.
+    // A tapped switch freezes the TabBarView's children until the slide ends,
+    // so a placeholder would slide in blank, taking the header with it at the
+    // halfway point where the pinned bars hand over.
     return TabBarView(
       controller: _controller,
-      // Swiping is for phone layouts; on desktop a sideways trackpad gesture
-      // would fight the list and the table.
-      physics: ResponsiveBreakpoints.isMasterDetail(context)
-          ? const NeverScrollableScrollPhysics()
-          : null,
       children: [
         for (final tab in TrainingTab.values)
-          _visited.contains(tab)
-              ? _KeepAlive(child: _buildTab(context, tab))
-              : const SizedBox.shrink(),
+          _KeepAlive(child: _buildTab(context, tab)),
       ],
     );
   }

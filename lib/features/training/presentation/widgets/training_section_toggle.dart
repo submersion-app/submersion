@@ -8,6 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 import 'package:submersion/shared/widgets/section_title_toggle.dart';
+import 'package:submersion/shared/widgets/tab_pinned_app_bar.dart';
 import 'package:submersion/shared/widgets/title_with_subtitle.dart';
 
 /// The Certifications / Courses switch, as the header's own title (#3437).
@@ -20,6 +21,7 @@ class TrainingSectionToggle extends StatelessWidget {
     required this.controller,
     required this.tab,
     this.tabHeight = SectionTitleToggle.defaultTabHeight,
+    this.onAppBar = false,
   });
 
   final TabController controller;
@@ -28,6 +30,9 @@ class TrainingSectionToggle extends StatelessWidget {
   final TrainingTab tab;
 
   final double tabHeight;
+
+  /// See [SectionTitleToggle.onAppBar].
+  final bool onAppBar;
 
   static List<String> labels(BuildContext context) => [
     context.l10n.nav_certifications,
@@ -40,6 +45,7 @@ class TrainingSectionToggle extends StatelessWidget {
     featureId: tab.featureId,
     labels: labels(context),
     tabHeight: tabHeight,
+    onAppBar: onAppBar,
     tabBarKey: const ValueKey('training_section_toggle'),
   );
 }
@@ -51,7 +57,8 @@ TextStyle _paneTitleStyle(BuildContext context) =>
     );
 
 /// The [SectionHeaderTitle] a Training tab's list shows: the switch, with the
-/// list's own entry count under it.
+/// list's own entry count under it. On phone, where the tabs slide, it holds
+/// the list's app bar still so only the list under it moves (#3465).
 SectionHeaderTitle trainingHeaderTitle({
   required TabController controller,
   required TrainingTab tab,
@@ -94,6 +101,11 @@ SectionHeaderTitle trainingHeaderTitle({
     labels: TrainingSectionToggle.labels(context),
     withAccentIcon: true,
   ),
+  appBarPin: (bar) => TabPinnedAppBar(
+    animation: controller.animation!,
+    index: tab.index,
+    child: bar,
+  ),
 );
 
 class _TrainingHeader extends ConsumerWidget {
@@ -121,6 +133,7 @@ class _TrainingHeader extends ConsumerWidget {
       tabHeight: inToolbar
           ? SectionTitleToggle.compactTabHeight
           : SectionTitleToggle.defaultTabHeight,
+      onAppBar: inToolbar,
     );
     final style = inToolbar
         ? SectionTitleToggle.toolbarTitleStyle(context)
