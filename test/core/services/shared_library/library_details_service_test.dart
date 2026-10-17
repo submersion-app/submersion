@@ -77,18 +77,18 @@ void main() {
       await details.save(
         libraryId: lib.id,
         diverId: 'd1',
-        name: '  Club Sites ',
+        name: '  Group Sites ',
         description: ' Our dives ',
       );
       final info = (await t.readInfo())!;
-      expect(info['name'], 'Club Sites');
+      expect(info['name'], 'Group Sites');
       expect(info['description'], 'Our dives');
       expect(info['icon'], 'reef');
       final row = (await store.getLibrary(lib.id))!;
-      expect(row.name, 'Club Sites');
+      expect(row.name, 'Group Sites');
       expect(row.description, 'Our dives');
       for (final m in await store.membershipsForLibrary(lib.id)) {
-        expect(m.libraryName, 'Club Sites');
+        expect(m.libraryName, 'Group Sites');
       }
     },
   );
@@ -98,7 +98,7 @@ void main() {
       libraryId: lib.id,
       diverId: 'd1',
       name: 'Reef Survey',
-      description: 'Club sites',
+      description: 'Group sites',
     );
     await details.save(
       libraryId: lib.id,
@@ -149,7 +149,7 @@ void main() {
       details.save(
         libraryId: lib.id,
         diverId: 'd1',
-        name: 'Club Sites',
+        name: 'Group Sites',
         description: 'Our dives',
       ),
       throwsA(anything),

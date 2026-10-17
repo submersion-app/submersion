@@ -38,10 +38,10 @@ and may need the owner to re-share access.
 
 - Changing the library's id, format version, roles, encryption or members:
   those already have their own sections or are fixed.
-- Moving the library's files. The user (or club) moves or copies the folder in
+- Moving the library's files. The user (or group) moves or copies the folder in
   their storage; this feature only repoints the device.
 - A contact field, cover image, or default site visibility rules. Contact was
-  considered and deferred until a club asks for it; images go against the rule
+  considered and deferred until a group asks for it; images go against the rule
   that the app stores no photos; visibility rules are a policy feature.
 - Signing `info.json`. The name is unsigned today and stays so; see
   Constraints.
@@ -143,7 +143,7 @@ rather than copied; that file is already 680 lines.
     "This copy looks older than the one you have been syncing with", with a
     **Save anyway** button in place of Save connection. This catches a
     folder copied instead of moved, restored from an old backup, or left
-    behind while the club writes elsewhere. A missing or unreadable
+    behind while the group writes elsewhere. A missing or unreadable
     `roles.json` at the new location is treated the same way (warn, allow
     save anyway). (Decided by the maintainer: warn, do not refuse, and do
     not probe the old location.)

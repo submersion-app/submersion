@@ -146,10 +146,10 @@ void main() {
           name: 'Reef Survey',
           connectedAccountId: 'acc',
           prefix: 'site-sync',
-          description: 'Club sites',
+          description: 'Group sites',
         ),
       );
-      expect((await store.getLibrary('L'))!.description, 'Club sites');
+      expect((await store.getLibrary('L'))!.description, 'Group sites');
       await store.setLibraryStatus('L', description: 'New');
       expect((await store.getLibrary('L'))!.description, 'New');
       await store.setLibraryStatus('L', lastError: 'x');

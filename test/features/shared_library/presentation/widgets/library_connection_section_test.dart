@@ -51,16 +51,16 @@ void main() {
     await tester.pumpWidget(
       _app(
         LibraryConnectionDetails(
-          account: _account(AccountKind.s3, 'club-sites @ s3.example.com'),
+          account: _account(AccountKind.s3, 'group-sites @ s3.example.com'),
           prefix: 'puget-sound',
-          bucket: 'club-sites',
+          bucket: 'group-sites',
         ),
       ),
     );
     await tester.pumpAndSettle();
     expect(find.text('Connection on this device'), findsOneWidget);
-    expect(find.text('club-sites @ s3.example.com'), findsOneWidget);
-    expect(find.text('S3 account, bucket club-sites'), findsOneWidget);
+    expect(find.text('group-sites @ s3.example.com'), findsOneWidget);
+    expect(find.text('S3 account, bucket group-sites'), findsOneWidget);
     expect(find.text('submersion-sites/puget-sound'), findsOneWidget);
   });
 

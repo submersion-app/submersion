@@ -25,7 +25,7 @@ void main() {
   final newAccount = ConnectedAccount(
     id: 'acc2',
     kind: AccountKind.webdav,
-    label: 'Club server',
+    label: 'Group server',
     createdAt: DateTime.utc(2026),
     updatedAt: DateTime.utc(2026),
   );
@@ -43,7 +43,7 @@ void main() {
       'name': 'Reef Survey',
       'formatVersion': 2,
     });
-    await t.writeInfo({'name': id == 'L' ? 'Reef Survey' : 'Other Club'});
+    await t.writeInfo({'name': id == 'L' ? 'Reef Survey' : 'Other Group'});
     await t.writeRoles(
       await signedTestRoles(owners: {'a'}, version: version, libraryId: id),
     );
@@ -144,7 +144,7 @@ void main() {
       expect(moved.lastSyncAt, DateTime.utc(2026, 5).toLocal());
       expect(moved.lastError, isNull);
       final ms = (await store.membership(diverId: 'd1', libraryId: 'L'))!;
-      expect(ms.locationHint, 'Club server: b');
+      expect(ms.locationHint, 'Group server: b');
       expect(ms.backendKind, 'webdav');
       expect((await store.getSiteState('s1'))!.remoteModifiedTime, isNull);
     },
@@ -154,7 +154,7 @@ void main() {
     await copyAt('b', id: 'M');
     final c = await check('b');
     expect(c.verdict, LibraryLocationVerdict.differentLibrary);
-    expect(c.foundName, 'Other Club');
+    expect(c.foundName, 'Other Group');
     expect(c.canSave, isFalse);
     await expectLater(repoint('b'), throwsA(isA<LibraryLocationRejected>()));
     final r = await row();

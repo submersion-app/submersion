@@ -45,7 +45,7 @@
 **Interfaces:**
 - Produces: `SharedLibrary.description` (`String?`); `SharedLibraryStore.setLibraryStatus(id, {..., String? description, bool clearDescription = false})`.
 
-- [ ] **Step 1:** Write failing test `upsertLibrary and setLibraryStatus round-trip the description`: upsert a library with `description: 'Club sites'`, read it back (equals), `setLibraryStatus(id, description: 'New')` reads back `'New'`, `setLibraryStatus(id, clearDescription: true)` reads back `null`, and `setLibraryStatus(id, lastError: 'x')` alone leaves the description as it was.
+- [ ] **Step 1:** Write failing test `upsertLibrary and setLibraryStatus round-trip the description`: upsert a library with `description: 'Group sites'`, read it back (equals), `setLibraryStatus(id, description: 'New')` reads back `'New'`, `setLibraryStatus(id, clearDescription: true)` reads back `null`, and `setLibraryStatus(id, lastError: 'x')` alone leaves the description as it was.
 - [ ] **Step 2:** Add a migration assertion beside the existing v289 shared library column checks: a database opened from 290 has `shared_libraries.description`.
 - [ ] **Step 3:** Run `flutter test test/core/services/shared_library/shared_library_store_test.dart`; expect FAIL (no `description`).
 - [ ] **Step 4:** Implement the column, rung, version, model field and store plumbing, then `dart run build_runner build --delete-conflicting-outputs`.
@@ -65,7 +65,7 @@
 - Consumes: Task 1's `setLibraryStatus(description:, clearDescription:)`.
 - Produces: `SharedLibraryTransport.readDescription()`, `LibraryProbe.description`.
 
-- [ ] **Step 1:** Write failing tests: `probe reads the description from info.json` (write `{'name': 'Reef', 'description': 'Club sites'}`, expect `probe.description == 'Club sites'`; a probe of a library whose `info.json` has no description gives null); `sync picks up a renamed library and its description` (after a first sync, rewrite `info.json` as another device would, sync again, expect the row's `name` and `description` and the membership's `libraryName` to follow; then remove `description` and expect it cleared).
+- [ ] **Step 1:** Write failing tests: `probe reads the description from info.json` (write `{'name': 'Reef', 'description': 'Group sites'}`, expect `probe.description == 'Group sites'`; a probe of a library whose `info.json` has no description gives null); `sync picks up a renamed library and its description` (after a first sync, rewrite `info.json` as another device would, sync again, expect the row's `name` and `description` and the membership's `libraryName` to follow; then remove `description` and expect it cleared).
 - [ ] **Step 2:** Run both files; expect FAIL.
 - [ ] **Step 3:** Implement. A `readDescription` that returns an empty string counts as none.
 - [ ] **Step 4:** Run both files; expect PASS.
@@ -166,7 +166,7 @@ New keys: `sharedLibrary_about_title` "About", `sharedLibrary_about_edit_title` 
 
 New keys: `sharedLibrary_connection_title` "Connection on this device", `sharedLibrary_connection_s3` "S3 account", `sharedLibrary_connection_s3Bucket` "S3 account, bucket {bucket}", `sharedLibrary_connection_webdav` "WebDAV account", `sharedLibrary_connection_webdavServer` "WebDAV account, {server}", `sharedLibrary_connection_accountMissing` "This account is no longer on this device", `sharedLibrary_connection_folder` "Folder", `sharedLibrary_connection_rootFolder` "The account's top folder", `sharedLibrary_connection_change` "Change connection".
 
-- [ ] **Step 1:** Failing widget tests (override `libraryConnectionDetailsProvider`): S3 account shows its label and "S3 account, bucket club-sites" and the folder; WebDAV shows the server; an empty prefix shows the root wording; a missing account shows the missing line and the button still navigates to `/settings/shared-libraries/L/connection` (Review Focus 3).
+- [ ] **Step 1:** Failing widget tests (override `libraryConnectionDetailsProvider`): S3 account shows its label and "S3 account, bucket group-sites" and the folder; WebDAV shows the server; an empty prefix shows the root wording; a missing account shows the missing line and the button still navigates to `/settings/shared-libraries/L/connection` (Review Focus 3).
 - [ ] **Step 2:** Run; expect FAIL. **Step 3:** Implement. **Step 4:** Run; expect PASS.
 - [ ] **Step 5:** Commit `feat(shared-library): show a library's connection`.
 

@@ -243,7 +243,7 @@ void main() {
                 exists: true,
                 id: 'L',
                 name: 'Reef Survey',
-                description: 'Sites our club dives',
+                description: 'Sites our group dives',
               ),
             }),
           ),
@@ -261,7 +261,7 @@ void main() {
     );
     await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
-    expect(find.text('Sites our club dives'), findsOneWidget);
+    expect(find.text('Sites our group dives'), findsOneWidget);
   });
 
   testWidgets('without an eligible account the hint shows', (tester) async {

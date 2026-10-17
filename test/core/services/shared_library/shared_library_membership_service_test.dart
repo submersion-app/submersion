@@ -111,10 +111,10 @@ void main() {
     await SharedLibraryTransport(
       cloud,
       prefix: 'site-sync',
-    ).writeInfo({'name': 'Reef Survey', 'description': 'Club sites'});
+    ).writeInfo({'name': 'Reef Survey', 'description': 'Group sites'});
     final probe = await service.probe(account: account, prefix: 'site-sync');
     expect(probe.id, lib.id);
-    expect(probe.description, 'Club sites');
+    expect(probe.description, 'Group sites');
   });
 
   test('join refuses a prefix with no library or a newer format', () async {

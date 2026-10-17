@@ -28,7 +28,7 @@ const _library = SharedLibrary(
   name: 'Reef Survey',
   connectedAccountId: 'a',
   prefix: 'site-sync',
-  description: 'Club sites around the sound',
+  description: 'Group sites around the sound',
 );
 
 const _membership = SharedLibraryMembership(
@@ -61,7 +61,7 @@ void main() {
     await tester.pumpWidget(_app(details, SharedLibraryRole.owner));
     await tester.pumpAndSettle();
     expect(find.text('About'), findsOneWidget);
-    expect(find.text('Club sites around the sound'), findsOneWidget);
+    expect(find.text('Group sites around the sound'), findsOneWidget);
     expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
 
     await tester.tap(find.text('About'));
@@ -69,7 +69,7 @@ void main() {
     expect(find.text('Edit library details'), findsOneWidget);
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Library name'),
-      '  Club Sites ',
+      '  Group Sites ',
     );
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Description'),
@@ -77,7 +77,7 @@ void main() {
     );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(details.calls.single.name, 'Club Sites');
+    expect(details.calls.single.name, 'Group Sites');
     expect(details.calls.single.description, 'Our dives');
     expect(details.calls.single.diverId, 'd');
     expect(find.text('Edit library details'), findsNothing);
@@ -87,7 +87,7 @@ void main() {
     final details = _FakeDetails();
     await tester.pumpWidget(_app(details, SharedLibraryRole.reader));
     await tester.pumpAndSettle();
-    expect(find.text('Club sites around the sound'), findsOneWidget);
+    expect(find.text('Group sites around the sound'), findsOneWidget);
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
     await tester.tap(find.text('About'));
     await tester.pumpAndSettle();

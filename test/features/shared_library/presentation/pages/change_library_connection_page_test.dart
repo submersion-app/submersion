@@ -186,9 +186,9 @@ void main() {
     (
       const LibraryLocationCheck(
         LibraryLocationVerdict.differentLibrary,
-        foundName: 'Other Club',
+        foundName: 'Other Group',
       ),
-      'This folder holds a different library (Other Club). Your connection is unchanged.',
+      'This folder holds a different library (Other Group). Your connection is unchanged.',
     ),
     (
       const LibraryLocationCheck(LibraryLocationVerdict.differentLibrary),
