@@ -9,7 +9,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_camera_animator.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -399,7 +399,7 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
         Positioned(
           top: 64,
           right: 8,
-          child: MapCompassButton(controller: _mapController),
+          child: MapCornerControls(controller: _mapController),
         ),
 
         if (state.points.isEmpty)

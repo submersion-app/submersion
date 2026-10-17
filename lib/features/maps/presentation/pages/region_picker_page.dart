@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/region_download_dialog.dart';
 import 'package:submersion/features/maps/presentation/widgets/region_selector.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -75,6 +76,9 @@ class _RegionPickerPageState extends ConsumerState<RegionPickerPage> {
             mapController: _mapController,
             onRegionSelected: _onRegionSelected,
           ),
+          // Above the selector's drawing layer so taps reach it. Switching
+          // style here picks which basemap the region downloads.
+          const Positioned(top: 16, right: 16, child: MapCornerControls()),
         ],
       ),
     );

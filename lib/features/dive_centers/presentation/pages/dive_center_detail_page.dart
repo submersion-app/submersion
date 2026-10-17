@@ -23,6 +23,8 @@ import 'package:submersion/features/dive_centers/presentation/widgets/rental_gea
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
+import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -723,6 +725,8 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                 ),
               ),
             ),
+            // Map style switcher, below the fullscreen button.
+            const Positioned(right: 8, top: 48, child: MapCornerControls()),
           ],
         ),
       ),
@@ -752,13 +756,11 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                 ),
               ),
               children: [
-                TileLayer(
-                  urlTemplate: ref.watch(mapTileUrlProvider),
-                  userAgentPackageName: 'app.submersion',
-                  maxZoom: ref.watch(mapTileMaxZoomProvider),
-                  tileProvider: TileCacheService.instance.tileProviderFor(
-                    urlTemplate: ref.watch(mapTileUrlProvider),
-                  ),
+                // Its own Consumer: this route is built from the detail
+                // page's ref, which would not rebuild the pushed route when
+                // the style switcher below changes the map style.
+                Consumer(
+                  builder: (context, ref, _) => submersionTileLayer(ref),
                 ),
                 MarkerLayer(
                   markers: [
@@ -794,6 +796,8 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                   ],
                 ),
                 const MapAttribution(),
+                // No compass: this map does not rotate.
+                const Positioned(top: 8, right: 8, child: MapCornerControls()),
               ],
             ),
           ),

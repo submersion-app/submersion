@@ -55,12 +55,13 @@ class TracksMapPane extends ConsumerWidget {
             controller: controller,
           ),
           // The cap limits this map alone (the list shows every track), so
-          // the notice says so here, where it is true.
+          // the notice says so here, where it is true. It stops short of the
+          // right edge so the map's corner controls stay reachable.
           if (truncated)
             Positioned(
               top: 12,
               left: 12,
-              right: 12,
+              right: 64,
               child: _CapNotice(
                 text: l10n.gpsTrack_map_truncated(kTracksOverviewLimit),
               ),
