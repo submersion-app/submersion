@@ -459,10 +459,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // CCR settings
   double? _setpointLow;
   double? _setpointHigh;
-
-  /// Bumped when setpoints are seeded from Settings after the CCR panel may
-  /// already have built, so the panel rebuilds from the seeded state.
-  int _ccrSeedGeneration = 0;
   double? _setpointDeco;
   GasMix? _diluentGas;
   String? _scrubberType;
@@ -473,6 +469,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final Map<BulkField, TextEditingController> _bulkNumberControllers = {};
   int? _scrubberRemainingMinutes;
   double? _loopVolume;
+
+  /// Bumped when setpoints are seeded from Settings after the CCR panel may
+  /// already have built, so the panel rebuilds from the seeded state.
+  int _ccrSeedGeneration = 0;
+
   // SCR settings
   ScrType? _scrType;
   double? _scrInjectionRate;
