@@ -11,6 +11,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/add_to_library_confirmation.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_about_section.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_connection_section.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_encryption_section.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_ownership_section.dart';
@@ -179,6 +180,11 @@ class SharedLibraryPage extends ConsumerWidget {
               onTap: () =>
                   context.push('/settings/shared-libraries/$libraryId/backups'),
             ),
+          const Divider(height: 1),
+          LibraryConnectionSection(
+            key: const ValueKey('connection'),
+            library: library,
+          ),
           const Divider(height: 1),
           LibraryOwnershipSection(
             key: const ValueKey('ownership'),

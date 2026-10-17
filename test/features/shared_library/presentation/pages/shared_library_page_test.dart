@@ -369,12 +369,22 @@ void main() {
   testWidgets('a lone owner is warned', (tester) async {
     await tester.pumpWidget(await _page(SharedLibraryRole.owner));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.textContaining('Only one owner'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.textContaining('Only one owner'), findsOneWidget);
   });
 
   testWidgets('an editor gets no owner warning', (tester) async {
     await tester.pumpWidget(await _page(SharedLibraryRole.editor));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Leave library'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.textContaining('Only one owner'), findsNothing);
   });
 
