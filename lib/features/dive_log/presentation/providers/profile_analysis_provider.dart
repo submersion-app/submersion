@@ -271,7 +271,6 @@ List<ProfileGasSegment> buildProfileGasSegments(
 ///
 /// [tanks] scopes the search to the analysed computer's cylinders on a
 /// multi-source dive; defaults to every tank.
-@visibleForTesting
 GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
   final candidates = tanks ?? dive.tanks;
   for (final tank in candidates) {
@@ -314,7 +313,6 @@ GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
 /// or bail out (issue #577). SCR ignores them.
 ///
 /// Null for open-circuit and gauge dives, which are not loop dives.
-@visibleForTesting
 List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
   Dive dive, {
   required List<DiveProfilePoint> profile,

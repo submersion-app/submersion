@@ -997,6 +997,7 @@ class BuhlmannAlgorithm {
       surfacePressureBar: environment.surfacePressureBar,
       inspiredN2Bar: inspiredN2,
       inspiredHeBar: inspiredHe,
+      gfLowCeilingAnchor: _gfLowCeilingAnchor,
     );
   }
 
