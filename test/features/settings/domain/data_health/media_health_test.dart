@@ -6,14 +6,12 @@ void main() {
   MediaHealthInputs inputs({
     bool storeAttachedHere = true,
     bool storeAnnounced = true,
-    bool attachItemPending = false,
     bool lightroomConnected = false,
     int mediaSetupItems = 0,
     bool transfersWaitingWithReason = false,
   }) => MediaHealthInputs(
     storeAttachedHere: storeAttachedHere,
     storeAnnounced: storeAnnounced,
-    attachItemPending: attachItemPending,
     lightroomConnected: lightroomConnected,
     mediaSetupItems: mediaSetupItems,
     transfersWaitingWithReason: transfersWaitingWithReason,
@@ -44,10 +42,19 @@ void main() {
 
   test('announced with attach item pending is attention finishSetup', () {
     expectHealth(
+      evaluateMediaHealth(inputs(storeAttachedHere: false, mediaSetupItems: 1)),
+      HealthLevel.attention,
+      HealthReason.mediaFinishSetup,
+    );
+  });
+
+  test('Lightroom needing sign-in here is attention, not unset', () {
+    expectHealth(
       evaluateMediaHealth(
         inputs(
           storeAttachedHere: false,
-          attachItemPending: true,
+          storeAnnounced: false,
+          lightroomConnected: false,
           mediaSetupItems: 1,
         ),
       ),

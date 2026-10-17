@@ -5,6 +5,7 @@ import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
+import 'package:submersion/features/settings/domain/data_health/media_health.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -222,7 +223,9 @@ void main() {
               MediaStoreAttachState(prefs: prefs),
             ),
             pendingSetupItemsProvider.overrideWith((ref) async => const []),
-            lightroomAccountProvider.overrideWith((ref) async => null),
+            lightroomDeviceStatusProvider.overrideWith(
+              (ref) async => LightroomDeviceStatus.notConnected,
+            ),
             mediaTransferSummaryProvider.overrideWith(
               (ref) => Stream.value(
                 const MediaTransferSummary(
@@ -251,6 +254,44 @@ void main() {
         expect(inputs.transfersWaitingWithReason, isTrue);
       },
     );
+  });
+
+  group('media Lightroom input', () {
+    setUp(() async {
+      await setUpTestDatabase();
+    });
+
+    tearDown(() {
+      DatabaseService.instance.resetForTesting();
+    });
+
+    Future<MediaHealthInputs> inputsFor(LightroomDeviceStatus status) async {
+      final c = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          mediaStoreAttachStateProvider.overrideWithValue(
+            MediaStoreAttachState(prefs: prefs),
+          ),
+          pendingSetupItemsProvider.overrideWith((ref) async => const []),
+          lightroomDeviceStatusProvider.overrideWith((ref) async => status),
+        ],
+      );
+      addTearDown(c.dispose);
+      final sub = c.listen(mediaHealthInputsProvider, (_, _) {});
+      addTearDown(sub.close);
+      return c.read(mediaHealthInputsProvider.future);
+    }
+
+    test('only a Lightroom signed in on this device counts', () async {
+      expect(
+        (await inputsFor(LightroomDeviceStatus.connected)).lightroomConnected,
+        isTrue,
+      );
+      expect(
+        (await inputsFor(LightroomDeviceStatus.needsSignIn)).lightroomConnected,
+        isFalse,
+      );
+    });
   });
 
   test('dataHealthProvider orders the four features', () {

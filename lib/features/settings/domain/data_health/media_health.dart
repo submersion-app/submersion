@@ -5,7 +5,6 @@ class MediaHealthInputs {
   const MediaHealthInputs({
     required this.storeAttachedHere,
     required this.storeAnnounced,
-    required this.attachItemPending,
     required this.lightroomConnected,
     required this.mediaSetupItems,
     required this.transfersWaitingWithReason,
@@ -17,9 +16,7 @@ class MediaHealthInputs {
   /// The library announces a media store (synced descriptor).
   final bool storeAnnounced;
 
-  /// The "attach on this device" setup item is showing (not dismissed).
-  final bool attachItemPending;
-
+  /// Lightroom is signed in on this device, not just on the roster.
   final bool lightroomConnected;
 
   /// Pending setup items that belong to media: store attach or reconnect,
@@ -37,7 +34,10 @@ FeatureHealth evaluateMediaHealth(MediaHealthInputs i) {
   FeatureHealth health(HealthLevel level, HealthReason reason) =>
       FeatureHealth(feature: DataFeature.media, level: level, reason: reason);
 
-  if (!i.storeAttachedHere && !i.lightroomConnected && !i.attachItemPending) {
+  // A pending media setup item (store to attach, Lightroom to sign in)
+  // means the feature is in use but unfinished here; a dismissed one is the
+  // diver's choice for this device and leaves it not set up.
+  if (!i.storeAttachedHere && !i.lightroomConnected && i.mediaSetupItems == 0) {
     return health(HealthLevel.notSetUp, HealthReason.notSetUp);
   }
   return pickHealth(DataFeature.media, [

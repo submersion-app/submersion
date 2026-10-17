@@ -137,7 +137,7 @@ int countMediaSetupItems(List<PendingSetupItem> items) => items
 final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
   (ref) async {
     final items = await ref.watch(pendingSetupItemsProvider.future);
-    final lightroom = await ref.watch(lightroomAccountProvider.future);
+    final lightroom = await ref.watch(lightroomDeviceStatusProvider.future);
     final stores = ref.watch(mediaStoresRepositoryProvider);
     ref.invalidateSelfWhen(stores.watchStoresChanges());
     final store = await stores.getActive();
@@ -155,10 +155,7 @@ final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
     return MediaHealthInputs(
       storeAttachedHere: attached,
       storeAnnounced: store != null,
-      attachItemPending: items.any(
-        (i) => i.kind == SetupItemKind.mediaStoreAttach,
-      ),
-      lightroomConnected: lightroom != null,
+      lightroomConnected: lightroom == LightroomDeviceStatus.connected,
       mediaSetupItems: countMediaSetupItems(items),
       transfersWaitingWithReason:
           summary != null &&
