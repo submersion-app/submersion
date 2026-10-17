@@ -6912,6 +6912,97 @@
   "diveSites_map_semantics_diveSiteMarker": "Dive site: {name}",
   "diveSites_map_tooltip_fitAllSites": "Fit All Sites",
   "diveSites_map_tooltip_listView": "List View",
+  "diveSites_scene_headline": "{sites, plural, =1{{sites} site} other{{sites} sites}}, {countries, plural, =1{{countries} country} other{{countries} countries}}",
+  "@diveSites_scene_headline": {
+    "description": "Headline of the Dive sites summary scene: how many sites and in how many countries.",
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "countries": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_scene_headlineNoCountries": "{sites, plural, =1{{sites} site} other{{sites} sites}}",
+  "@diveSites_scene_headlineNoCountries": {
+    "description": "Headline of the Dive sites summary scene when no site has a country.",
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_scene_sentence": "Most dived: {mostDived}. Best rated: {bestRated}. Last dived: {lastDived}.",
+  "@diveSites_scene_sentence": {
+    "description": "Sentence of the Dive sites summary scene naming the most dived, best rated and most recently dived site.",
+    "placeholders": {
+      "mostDived": {
+        "type": "String"
+      },
+      "bestRated": {
+        "type": "String"
+      },
+      "lastDived": {
+        "type": "String"
+      }
+    }
+  },
+  "diveSites_scene_sentenceUnrated": "Most dived: {mostDived}. Last dived: {lastDived}.",
+  "@diveSites_scene_sentenceUnrated": {
+    "description": "Sentence of the Dive sites summary scene when no site is rated.",
+    "placeholders": {
+      "mostDived": {
+        "type": "String"
+      },
+      "lastDived": {
+        "type": "String"
+      }
+    }
+  },
+  "diveSites_scene_sentenceUndived": "Best rated: {bestRated}. None dived yet.",
+  "@diveSites_scene_sentenceUndived": {
+    "description": "Sentence of the Dive sites summary scene when no site has been dived but one is rated.",
+    "placeholders": {
+      "bestRated": {
+        "type": "String"
+      }
+    }
+  },
+  "diveSites_scene_sentenceNone": "Saved, and waiting for a first dive.",
+  "@diveSites_scene_sentenceNone": {
+    "description": "Sentence of the Dive sites summary scene when no site has been dived or rated."
+  },
+  "diveSites_scene_mark": "{site} · {dives}",
+  "@diveSites_scene_mark": {
+    "description": "Label of a site mark on the Dive sites chart: the site name and its dive count.",
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "dives": {
+        "type": "String"
+      }
+    }
+  },
+  "diveSites_scene_withGps": "{count, plural, =1{{count} with GPS} other{{count} with GPS}}",
+  "@diveSites_scene_withGps": {
+    "description": "Footer fact of the Dive sites summary scene: how many sites have GPS coordinates.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_scene_notDived": "{count, plural, =1{{count} not yet dived} other{{count} not yet dived}}",
+  "@diveSites_scene_notDived": {
+    "description": "Footer fact of the Dive sites summary scene: how many saved sites have never been dived.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_summary_action_addSite": "Add Site",
   "diveSites_summary_action_import": "Import",
   "diveSites_summary_action_viewMap": "View Map",
@@ -17880,6 +17971,94 @@
   "trips_search_error": "Couldn't search your trips.",
   "trips_search_tooltip_back": "Back",
   "trips_search_tooltip_clear": "Clear search",
+  "trips_scene_headline": "{trips, plural, =1{{trips} trip} other{{trips} trips}}, {days, plural, =1{{days} day diving} other{{days} days diving}}",
+  "@trips_scene_headline": {
+    "description": "Headline of the Trips summary scene: how many trips and days of diving.",
+    "placeholders": {
+      "trips": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scene_sentence": "Next: {next}. {countdown}. Last: {last}, {date}.",
+  "@trips_scene_sentence": {
+    "description": "Sentence of the Trips summary scene: the next trip with its countdown (a full clause from trips_list_countdown), then the last trip with its month.",
+    "placeholders": {
+      "next": {
+        "type": "String"
+      },
+      "countdown": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scene_sentenceNextOnly": "Next: {next}. {countdown}.",
+  "@trips_scene_sentenceNextOnly": {
+    "description": "Sentence of the Trips summary scene when there is no past trip.",
+    "placeholders": {
+      "next": {
+        "type": "String"
+      },
+      "countdown": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scene_sentenceLastOnly": "Last: {last}, {date}.",
+  "@trips_scene_sentenceLastOnly": {
+    "description": "Sentence of the Trips summary scene when there is no upcoming trip.",
+    "placeholders": {
+      "last": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scene_mark": "{trip} · {when}",
+  "@trips_scene_mark": {
+    "description": "Label of a trip mark on the Trips chart: the trip name and when it is.",
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scene_home": "Home",
+  "@trips_scene_home": {
+    "description": "Label of the mark the Trips chart course starts from: where the diver lives."
+  },
+  "trips_scene_liveaboards": "{count, plural, =1{{count} liveaboard} other{{count} liveaboards}}",
+  "@trips_scene_liveaboards": {
+    "description": "Footer fact of the Trips summary scene: how many trips were liveaboards.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scene_divesAway": "{count, plural, =1{{count} dive away} other{{count} dives away}}",
+  "@trips_scene_divesAway": {
+    "description": "Footer fact of the Trips summary scene: how many dives were logged on trips.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trips_summary_header_subtitle": "Select a trip from the list to view details",
   "trips_summary_header_title": "Trips",
   "trips_summary_overview_title": "Overview",

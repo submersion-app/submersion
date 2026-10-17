@@ -89,6 +89,7 @@ const Map<String, String> keptEnglishValues = {
   'diveLog_tank_modMndInfo': _abbreviation,
   'diveLog_tooltip_extraDeco@nl': _loanword,
   'diveSites_list_count@fr': _sameWord,
+  'diveSites_scene_headlineNoCountries@fr': _sameWord,
   'diveSites_summary_stat_totalSites@fr': _sameWord,
   'enum_altitudeGroup_extreme_range': _units,
   'enum_altitudeGroup_group1_range': _units,
@@ -246,6 +247,8 @@ const Map<String, String> keptEnglishValues = {
   'transfer_importCloud_divelogsTitle': _brand,
   'trips_day_photoCount@fr': _sameWord,
   'trips_detail_preDive_action@nl': _loanword,
+  'trips_scene_liveaboards@nl': _loanword,
+  'trips_scene_liveaboards@pt': _loanword,
   'units_profileMetric_gPerL': _units,
   'universalImport_compare_serial@de': _germanSerial,
 };

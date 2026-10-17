@@ -11234,6 +11234,78 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_map_tooltip_listView => '列表视图';
 
   @override
+  String diveSites_scene_headline(int sites, int countries) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites 个潜点',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      countries,
+      locale: localeName,
+      other: '$countries 个国家',
+    );
+    return '$_temp0，$_temp1';
+  }
+
+  @override
+  String diveSites_scene_headlineNoCountries(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites 个潜点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_scene_sentence(
+    String mostDived,
+    String bestRated,
+    String lastDived,
+  ) {
+    return '潜水最多：$mostDived。评分最高：$bestRated。最近潜水：$lastDived。';
+  }
+
+  @override
+  String diveSites_scene_sentenceUnrated(String mostDived, String lastDived) {
+    return '潜水最多：$mostDived。最近潜水：$lastDived。';
+  }
+
+  @override
+  String diveSites_scene_sentenceUndived(String bestRated) {
+    return '评分最高：$bestRated。尚未潜过任何潜点。';
+  }
+
+  @override
+  String get diveSites_scene_sentenceNone => '已保存，等待第一次潜水。';
+
+  @override
+  String diveSites_scene_mark(String site, String dives) {
+    return '$site · $dives';
+  }
+
+  @override
+  String diveSites_scene_withGps(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个有 GPS',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_scene_notDived(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个尚未潜过',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_summary_action_addSite => '添加潜水点';
 
   @override
@@ -29206,6 +29278,69 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_search_tooltip_clear => '清除搜索';
+
+  @override
+  String trips_scene_headline(int trips, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: '$trips 次旅行',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 天潜水',
+    );
+    return '$_temp0，$_temp1';
+  }
+
+  @override
+  String trips_scene_sentence(
+    String next,
+    String countdown,
+    String last,
+    String date,
+  ) {
+    return '下一次：$next，$countdown。上一次：$last，$date。';
+  }
+
+  @override
+  String trips_scene_sentenceNextOnly(String next, String countdown) {
+    return '下一次：$next，$countdown。';
+  }
+
+  @override
+  String trips_scene_sentenceLastOnly(String last, String date) {
+    return '上一次：$last，$date。';
+  }
+
+  @override
+  String trips_scene_mark(String trip, String when) {
+    return '$trip · $when';
+  }
+
+  @override
+  String get trips_scene_home => '家';
+
+  @override
+  String trips_scene_liveaboards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次船宿',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scene_divesAway(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '旅行中 $count 次潜水',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get trips_summary_header_subtitle => '从列表中选择一个旅行以查看详情';

@@ -18841,6 +18841,64 @@ abstract class AppLocalizations {
   /// **'List View'**
   String get diveSites_map_tooltip_listView;
 
+  /// Headline of the Dive sites summary scene: how many sites and in how many countries.
+  ///
+  /// In en, this message translates to:
+  /// **'{sites, plural, =1{{sites} site} other{{sites} sites}}, {countries, plural, =1{{countries} country} other{{countries} countries}}'**
+  String diveSites_scene_headline(int sites, int countries);
+
+  /// Headline of the Dive sites summary scene when no site has a country.
+  ///
+  /// In en, this message translates to:
+  /// **'{sites, plural, =1{{sites} site} other{{sites} sites}}'**
+  String diveSites_scene_headlineNoCountries(int sites);
+
+  /// Sentence of the Dive sites summary scene naming the most dived, best rated and most recently dived site.
+  ///
+  /// In en, this message translates to:
+  /// **'Most dived: {mostDived}. Best rated: {bestRated}. Last dived: {lastDived}.'**
+  String diveSites_scene_sentence(
+    String mostDived,
+    String bestRated,
+    String lastDived,
+  );
+
+  /// Sentence of the Dive sites summary scene when no site is rated.
+  ///
+  /// In en, this message translates to:
+  /// **'Most dived: {mostDived}. Last dived: {lastDived}.'**
+  String diveSites_scene_sentenceUnrated(String mostDived, String lastDived);
+
+  /// Sentence of the Dive sites summary scene when no site has been dived but one is rated.
+  ///
+  /// In en, this message translates to:
+  /// **'Best rated: {bestRated}. None dived yet.'**
+  String diveSites_scene_sentenceUndived(String bestRated);
+
+  /// Sentence of the Dive sites summary scene when no site has been dived or rated.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, and waiting for a first dive.'**
+  String get diveSites_scene_sentenceNone;
+
+  /// Label of a site mark on the Dive sites chart: the site name and its dive count.
+  ///
+  /// In en, this message translates to:
+  /// **'{site} · {dives}'**
+  String diveSites_scene_mark(String site, String dives);
+
+  /// Footer fact of the Dive sites summary scene: how many sites have GPS coordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} with GPS} other{{count} with GPS}}'**
+  String diveSites_scene_withGps(int count);
+
+  /// Footer fact of the Dive sites summary scene: how many saved sites have never been dived.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} not yet dived} other{{count} not yet dived}}'**
+  String diveSites_scene_notDived(int count);
+
   /// No description provided for @diveSites_summary_action_addSite.
   ///
   /// In en, this message translates to:
@@ -49236,6 +49294,59 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear search'**
   String get trips_search_tooltip_clear;
+
+  /// Headline of the Trips summary scene: how many trips and days of diving.
+  ///
+  /// In en, this message translates to:
+  /// **'{trips, plural, =1{{trips} trip} other{{trips} trips}}, {days, plural, =1{{days} day diving} other{{days} days diving}}'**
+  String trips_scene_headline(int trips, int days);
+
+  /// Sentence of the Trips summary scene: the next trip with its countdown (a full clause from trips_list_countdown), then the last trip with its month.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {next}. {countdown}. Last: {last}, {date}.'**
+  String trips_scene_sentence(
+    String next,
+    String countdown,
+    String last,
+    String date,
+  );
+
+  /// Sentence of the Trips summary scene when there is no past trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {next}. {countdown}.'**
+  String trips_scene_sentenceNextOnly(String next, String countdown);
+
+  /// Sentence of the Trips summary scene when there is no upcoming trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Last: {last}, {date}.'**
+  String trips_scene_sentenceLastOnly(String last, String date);
+
+  /// Label of a trip mark on the Trips chart: the trip name and when it is.
+  ///
+  /// In en, this message translates to:
+  /// **'{trip} · {when}'**
+  String trips_scene_mark(String trip, String when);
+
+  /// Label of the mark the Trips chart course starts from: where the diver lives.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get trips_scene_home;
+
+  /// Footer fact of the Trips summary scene: how many trips were liveaboards.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} liveaboard} other{{count} liveaboards}}'**
+  String trips_scene_liveaboards(int count);
+
+  /// Footer fact of the Trips summary scene: how many dives were logged on trips.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive away} other{{count} dives away}}'**
+  String trips_scene_divesAway(int count);
 
   /// No description provided for @trips_summary_header_subtitle.
   ///

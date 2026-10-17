@@ -11970,6 +11970,98 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_map_tooltip_listView => 'عرض القائمة';
 
   @override
+  String diveSites_scene_headline(int sites, int countries) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites موقع',
+      many: '$sites موقعًا',
+      few: '$sites مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      countries,
+      locale: localeName,
+      other: '$countries دولة',
+      many: '$countries دولة',
+      few: '$countries دول',
+      two: 'دولتان',
+      one: 'دولة واحدة',
+    );
+    return '$_temp0، $_temp1';
+  }
+
+  @override
+  String diveSites_scene_headlineNoCountries(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites موقع',
+      many: '$sites موقعًا',
+      few: '$sites مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_scene_sentence(
+    String mostDived,
+    String bestRated,
+    String lastDived,
+  ) {
+    return 'الأكثر غوصًا: $mostDived. الأعلى تقييمًا: $bestRated. آخر غوصة: $lastDived.';
+  }
+
+  @override
+  String diveSites_scene_sentenceUnrated(String mostDived, String lastDived) {
+    return 'الأكثر غوصًا: $mostDived. آخر غوصة: $lastDived.';
+  }
+
+  @override
+  String diveSites_scene_sentenceUndived(String bestRated) {
+    return 'الأعلى تقييمًا: $bestRated. لم يُغطس في أي منها بعد.';
+  }
+
+  @override
+  String get diveSites_scene_sentenceNone => 'محفوظة، بانتظار أول غوصة.';
+
+  @override
+  String diveSites_scene_mark(String site, String dives) {
+    return '$site · $dives';
+  }
+
+  @override
+  String diveSites_scene_withGps(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count موقع مع GPS',
+      many: '$count موقعًا مع GPS',
+      few: '$count مواقع مع GPS',
+      two: 'موقعان مع GPS',
+      one: 'موقع واحد مع GPS',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_scene_notDived(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count موقع لم يُغطس فيه بعد',
+      many: '$count موقعًا لم يُغطس فيه بعد',
+      few: '$count مواقع لم يُغطس فيها بعد',
+      two: 'موقعان لم يُغطس فيهما بعد',
+      one: 'موقع واحد لم يُغطس فيه بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_summary_action_addSite => 'إضافة موقع';
 
   @override
@@ -31312,6 +31404,85 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_search_tooltip_clear => 'مسح البحث';
+
+  @override
+  String trips_scene_headline(int trips, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: '$trips رحلة',
+      many: '$trips رحلة',
+      few: '$trips رحلات',
+      two: 'رحلتان',
+      one: 'رحلة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم غوص',
+      many: '$days يوم غوص',
+      few: '$days أيام غوص',
+      two: 'يوما غوص',
+      one: 'يوم غوص واحد',
+    );
+    return '$_temp0، $_temp1';
+  }
+
+  @override
+  String trips_scene_sentence(
+    String next,
+    String countdown,
+    String last,
+    String date,
+  ) {
+    return 'التالية: $next. $countdown. الأخيرة: $last، $date.';
+  }
+
+  @override
+  String trips_scene_sentenceNextOnly(String next, String countdown) {
+    return 'التالية: $next. $countdown.';
+  }
+
+  @override
+  String trips_scene_sentenceLastOnly(String last, String date) {
+    return 'الأخيرة: $last، $date.';
+  }
+
+  @override
+  String trips_scene_mark(String trip, String when) {
+    return '$trip · $when';
+  }
+
+  @override
+  String get trips_scene_home => 'المنزل';
+
+  @override
+  String trips_scene_liveaboards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رحلة سفينة غوص',
+      many: '$count رحلة سفينة غوص',
+      few: '$count رحلات سفينة غوص',
+      two: 'رحلتا سفينة غوص',
+      one: 'رحلة سفينة غوص واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scene_divesAway(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة في الرحلات',
+      many: '$count غوصة في الرحلات',
+      few: '$count غوصات في الرحلات',
+      two: 'غوصتان في الرحلات',
+      one: 'غوصة واحدة في الرحلات',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get trips_summary_header_subtitle =>

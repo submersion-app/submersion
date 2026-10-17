@@ -11805,6 +11805,84 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_map_tooltip_listView => 'Vista elenco';
 
   @override
+  String diveSites_scene_headline(int sites, int countries) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites siti',
+      one: '$sites sito',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      countries,
+      locale: localeName,
+      other: '$countries paesi',
+      one: '$countries paese',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String diveSites_scene_headlineNoCountries(int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites siti',
+      one: '$sites sito',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_scene_sentence(
+    String mostDived,
+    String bestRated,
+    String lastDived,
+  ) {
+    return 'Più frequentato: $mostDived. Più apprezzato: $bestRated. Ultima immersione: $lastDived.';
+  }
+
+  @override
+  String diveSites_scene_sentenceUnrated(String mostDived, String lastDived) {
+    return 'Più frequentato: $mostDived. Ultima immersione: $lastDived.';
+  }
+
+  @override
+  String diveSites_scene_sentenceUndived(String bestRated) {
+    return 'Più apprezzato: $bestRated. Ancora nessuna immersione.';
+  }
+
+  @override
+  String get diveSites_scene_sentenceNone =>
+      'Salvati, in attesa della prima immersione.';
+
+  @override
+  String diveSites_scene_mark(String site, String dives) {
+    return '$site · $dives';
+  }
+
+  @override
+  String diveSites_scene_withGps(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count con GPS',
+      one: '$count con GPS',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_scene_notDived(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count non ancora immersi',
+      one: '$count non ancora immerso',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_summary_action_addSite => 'Aggiungi sito';
 
   @override
@@ -30969,6 +31047,73 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trips_search_tooltip_clear => 'Cancella ricerca';
+
+  @override
+  String trips_scene_headline(int trips, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trips,
+      locale: localeName,
+      other: '$trips viaggi',
+      one: '$trips viaggio',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days giorni di immersione',
+      one: '$days giorno di immersione',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String trips_scene_sentence(
+    String next,
+    String countdown,
+    String last,
+    String date,
+  ) {
+    return 'Prossimo: $next. $countdown. Ultimo: $last, $date.';
+  }
+
+  @override
+  String trips_scene_sentenceNextOnly(String next, String countdown) {
+    return 'Prossimo: $next. $countdown.';
+  }
+
+  @override
+  String trips_scene_sentenceLastOnly(String last, String date) {
+    return 'Ultimo: $last, $date.';
+  }
+
+  @override
+  String trips_scene_mark(String trip, String when) {
+    return '$trip · $when';
+  }
+
+  @override
+  String get trips_scene_home => 'Casa';
+
+  @override
+  String trips_scene_liveaboards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count crociere subacquee',
+      one: '$count crociera subacquea',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_scene_divesAway(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni in viaggio',
+      one: '$count immersione in viaggio',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get trips_summary_header_subtitle =>
