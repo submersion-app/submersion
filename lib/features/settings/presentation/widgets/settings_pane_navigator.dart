@@ -108,6 +108,7 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
       SettingsPaneNavigator.pageAt(location, widget.pageFor) != null;
 
   void _go(List<String> stack) {
+    _settle(stack);
     _stack = stack;
     final uri = GoRouterState.of(context).uri;
     context.goInPlace(
@@ -127,9 +128,10 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
   Future<void> open(String location) {
     final index = _stack.indexOf(location);
     if (index >= 0) {
-      // Already open: walk back to it rather than stacking a second copy.
+      // Already open: walk back to it rather than stacking a second copy, and
+      // wait on it like the open that put it there.
       if (index < _stack.length - 1) _go(_stack.sublist(0, index + 1));
-      return Future.value();
+      return _waiting[location]?.future ?? Future.value();
     }
     final completer = _waiting.putIfAbsent(location, Completer<void>.new);
     _go([..._stack, location]);
@@ -145,8 +147,9 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
     _go([...below.where((l) => l != location), location]);
   }
 
-  /// Completes the opens whose page is no longer in [stack]. Deferred to after
-  /// the frame so the awaiting code does not run during build.
+  /// Completes the opens whose page is no longer in [stack], whether the URL
+  /// or this pane removed it. Deferred to after the frame so the awaiting code
+  /// does not run during build.
   void _settle(List<String> stack) {
     final closed = [
       for (final location in _waiting.keys)

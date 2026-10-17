@@ -294,6 +294,20 @@ void main() {
     expect(find.text('Hub'), findsOneWidget);
   });
 
+  testWidgets('an open of the page already on top waits for it to close', (
+    tester,
+  ) async {
+    await _pump(tester, '/settings?selected=data');
+
+    final button = find.text('await c');
+    await tester.tap(button);
+    await tester.tap(button);
+    await tester.pump();
+
+    // Neither await has returned while the page is open.
+    expect(find.text('returns 0', skipOffstage: false), findsOneWidget);
+  });
+
   testWidgets('an awaited open completes when its page closes', (tester) async {
     await _pump(tester, '/settings?selected=data');
 
