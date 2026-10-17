@@ -277,6 +277,37 @@ void main() {
     expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.4');
   });
 
+  testWidgets('a Settings change leaves a field the diver blanked alone '
+      '(issue #2801)', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+            ),
+          ),
+        ],
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+    final fields = find.byType(TextFormField);
+    // Blank text leaves the plan's setpoint unset, so only the field's own
+    // text says the diver is editing it.
+    await tester.enterText(fields.at(1), '');
+    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+
+    (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
+        .replace(const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.4));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '');
+  });
+
   testWidgets('CCR settings fields stay in a row when there is room, and stack '
       'vertically when there is not (#3130)', (tester) async {
     await tester.pumpWidget(

@@ -69,13 +69,20 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
 
   /// Shows the diver's new Settings setpoint in [controller] while the plan
   /// leaves that setpoint unset, so the field keeps matching what the engine
-  /// computes with after a Settings change or a late settings load.
+  /// computes with after a Settings change or a late settings load. A field
+  /// no longer showing the [previous] Settings value (blanked, or mid-edit)
+  /// is the diver's text and is left alone.
   void _followSettings(
     double? Function(DivePlanState) planValue,
     TextEditingController controller,
+    double? previous,
     double next,
   ) {
     if (planValue(ref.read(divePlanNotifierProvider)) != null) return;
+    if (previous != null &&
+        controller.text != formatRoundedForInput(previous, 1)) {
+      return;
+    }
     controller.text = formatRoundedForInput(next, 1);
   }
 
@@ -85,12 +92,17 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     ref.listen<double>(
       settingsProvider.select((s) => s.ccrSetpointLow),
-      (_, next) => _followSettings((s) => s.setpointLow, _lowController, next),
+      (previous, next) =>
+          _followSettings((s) => s.setpointLow, _lowController, previous, next),
     );
     ref.listen<double>(
       settingsProvider.select((s) => s.ccrSetpointHigh),
-      (_, next) =>
-          _followSettings((s) => s.setpointHigh, _highController, next),
+      (previous, next) => _followSettings(
+        (s) => s.setpointHigh,
+        _highController,
+        previous,
+        next,
+      ),
     );
 
     Widget field(
