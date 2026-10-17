@@ -28,7 +28,6 @@ import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
-import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
@@ -42,7 +41,6 @@ import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_session
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_sessions_page.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templates_page.dart';
-import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
@@ -188,6 +186,7 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_seasc
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/router/training_locations.dart';
+import 'package:submersion/features/training/presentation/pages/training_page.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
@@ -837,9 +836,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/certifications',
             name: 'certifications',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const CertificationListPage(),
+            // Both Training tabs build one host under one page key, so it
+            // stays mounted across a switch (#3437).
+            pageBuilder: (context, state) => trainingHostPage(
+              const TrainingPage(tab: TrainingTab.certifications),
             ),
             routes: [
               GoRoute(
@@ -921,14 +921,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Training Courses
+          // Training Courses, the second Training tab
           GoRoute(
             path: '/courses',
             name: 'courses',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const CourseListPage(),
-            ),
+            pageBuilder: (context, state) =>
+                trainingHostPage(const TrainingPage(tab: TrainingTab.courses)),
             routes: [
               GoRoute(
                 path: 'new',

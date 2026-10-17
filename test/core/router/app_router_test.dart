@@ -11,6 +11,8 @@ import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/router/training_locations.dart';
+import 'package:submersion/features/training/presentation/pages/training_page.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
@@ -414,6 +416,47 @@ void main() {
         '/tracks/underwater/r1/3d',
       );
       expect(await redirect('gps-logger', '/planning/gps-logger'), '/tracks');
+    });
+
+    testWidgets('Training opens on Certifications, and both tab addresses '
+        'build the one Training host (#3437)', (tester) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      GoRouterState stateAt(String path) => GoRouterState(
+        router.configuration,
+        uri: Uri.parse(path),
+        matchedLocation: path,
+        fullPath: path,
+        pathParameters: const {},
+        pageKey: ValueKey(path),
+      );
+
+      final training = _findRouteByPath(
+        router.configuration.routes,
+        kTrainingLocation,
+      );
+      expect(
+        await training!.redirect!(capturedContext, stateAt(kTrainingLocation)),
+        '/certifications',
+      );
+
+      for (final tab in TrainingTab.values) {
+        final route = _findRouteByPath(router.configuration.routes, tab.path);
+        final page = route!.pageBuilder!(capturedContext, stateAt(tab.path));
+        expect(page.key, kTrainingHostPageKey, reason: tab.path);
+        final child = (page as NoTransitionPage<void>).child;
+        expect(child, isA<TrainingPage>(), reason: tab.path);
+        expect((child as TrainingPage).tab, tab);
+      }
     });
 
     test('old planning gps-logger path is a redirect', () {
