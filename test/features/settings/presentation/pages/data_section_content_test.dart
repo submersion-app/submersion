@@ -132,7 +132,7 @@ void main() {
       devices: 3,
     );
 
-    expect(find.text('Synced 12m ago · 3 devices'), findsOneWidget);
+    expect(find.text('Synced: 12m ago · 3 devices'), findsOneWidget);
   });
 
   testWidgets('sync row ignores a stale sync time while sync is off', (

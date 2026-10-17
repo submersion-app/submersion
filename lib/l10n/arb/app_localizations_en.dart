@@ -24656,12 +24656,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataHealth_backup_failed(String when) {
-    return 'Last backup failed $when';
+    return 'Last backup failed: $when';
   }
 
   @override
   String dataHealth_backup_overdue(String when) {
-    return 'Backup overdue: last one $when';
+    return 'Backup overdue (last: $when)';
   }
 
   @override
@@ -24690,12 +24690,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataHealth_sync_failed(String when) {
-    return 'Last sync failed $when';
+    return 'Last sync failed: $when';
   }
 
   @override
   String dataHealth_sync_offline(String when) {
-    return 'Offline: last synced $when';
+    return 'Offline (last synced: $when)';
   }
 
   @override
@@ -24721,7 +24721,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataHealth_sync_rowSubtitle(String when) {
-    return 'Synced $when';
+    return 'Synced: $when';
   }
 
   @override
@@ -24729,8 +24729,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Synced $when · $count devices',
-      one: 'Synced $when · $count device',
+      other: 'Synced: $when · $count devices',
+      one: 'Synced: $when · $count device',
     );
     return '$_temp0';
   }

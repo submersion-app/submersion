@@ -40375,13 +40375,13 @@ abstract class AppLocalizations {
   /// No description provided for @dataHealth_backup_failed.
   ///
   /// In en, this message translates to:
-  /// **'Last backup failed {when}'**
+  /// **'Last backup failed: {when}'**
   String dataHealth_backup_failed(String when);
 
   /// No description provided for @dataHealth_backup_overdue.
   ///
   /// In en, this message translates to:
-  /// **'Backup overdue: last one {when}'**
+  /// **'Backup overdue (last: {when})'**
   String dataHealth_backup_overdue(String when);
 
   /// No description provided for @dataHealth_backup_never.
@@ -40429,13 +40429,13 @@ abstract class AppLocalizations {
   /// No description provided for @dataHealth_sync_failed.
   ///
   /// In en, this message translates to:
-  /// **'Last sync failed {when}'**
+  /// **'Last sync failed: {when}'**
   String dataHealth_sync_failed(String when);
 
   /// No description provided for @dataHealth_sync_offline.
   ///
   /// In en, this message translates to:
-  /// **'Offline: last synced {when}'**
+  /// **'Offline (last synced: {when})'**
   String dataHealth_sync_offline(String when);
 
   /// No description provided for @dataHealth_sync_conflicts.
@@ -40465,13 +40465,13 @@ abstract class AppLocalizations {
   /// No description provided for @dataHealth_sync_rowSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Synced {when}'**
+  /// **'Synced: {when}'**
   String dataHealth_sync_rowSubtitle(String when);
 
   /// No description provided for @dataHealth_sync_rowSubtitleDevices.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Synced {when} · {count} device} other{Synced {when} · {count} devices}}'**
+  /// **'{count, plural, one{Synced: {when} · {count} device} other{Synced: {when} · {count} devices}}'**
   String dataHealth_sync_rowSubtitleDevices(String when, int count);
 
   /// No description provided for @dataHealth_libraries_failed.
