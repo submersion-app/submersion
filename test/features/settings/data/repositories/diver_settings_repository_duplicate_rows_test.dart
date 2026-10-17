@@ -69,6 +69,27 @@ void main() {
       expect(settings?.depthUnit, DepthUnit.feet);
     });
 
+    test('the later sync clock wins over a later updatedAt', () async {
+      // The mac row's clock is newer though its updatedAt is older: the HLC
+      // decides, as it does in the sync merge.
+      await (db.update(
+        db.diverSettings,
+      )..where((t) => t.id.equals('settings-mac'))).write(
+        const DiverSettingsCompanion(hlc: Value('000000000002000:000000:mac')),
+      );
+      await (db.update(
+        db.diverSettings,
+      )..where((t) => t.id.equals('settings-iphone'))).write(
+        const DiverSettingsCompanion(
+          hlc: Value('000000000001000:000000:iphone'),
+        ),
+      );
+
+      final settings = await repository.getSettingsForDiver('d1');
+
+      expect(settings?.depthUnit, DepthUnit.meters);
+    });
+
     test('hasSeascapeAppearance reads the most recently updated row', () async {
       await (db.update(db.diverSettings)
             ..where((t) => t.id.equals('settings-iphone')))
