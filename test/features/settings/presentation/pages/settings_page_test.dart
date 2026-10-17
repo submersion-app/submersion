@@ -2190,7 +2190,7 @@ void main() {
         '/settings/safety',
         reason:
             'routing Safety through /settings/section/safety nests '
-            'SafetySettingsPage inside the wrapper Scaffold',
+            'SafetyHubPage inside the wrapper Scaffold',
       );
     });
 

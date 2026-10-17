@@ -17,7 +17,7 @@ import 'package:submersion/features/settings/presentation/widgets/equipment_defa
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
-import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
@@ -154,7 +154,7 @@ class SettingsPage extends ConsumerWidget {
       case 'profile':
         return const DiverProfileHubPage();
       case 'safety':
-        return const SafetySettingsPage();
+        return const SafetyHubPage();
       case 'security':
         return const SecuritySettingsPage();
       case 'units':
@@ -318,7 +318,7 @@ class SettingsSectionDetailPage extends ConsumerWidget {
       case 'profile':
         return const DiverProfileHubPage();
       case 'safety':
-        return const SafetySettingsPage();
+        return const SafetyHubPage();
       case 'security':
         return const SecuritySettingsPage();
       case 'units':

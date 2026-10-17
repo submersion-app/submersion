@@ -18,7 +18,11 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// a switched-off rule is hidden at display time, so turning it back on
 /// costs no recompute.
 class EquipmentConditionSettingsPage extends ConsumerStatefulWidget {
-  const EquipmentConditionSettingsPage({super.key});
+  /// Set when shown inside the desktop settings pane, where nothing was
+  /// pushed: the back arrow then returns to the Safety hub.
+  final VoidCallback? onBack;
+
+  const EquipmentConditionSettingsPage({super.key, this.onBack});
 
   @override
   ConsumerState<EquipmentConditionSettingsPage> createState() =>
@@ -42,7 +46,12 @@ class _EquipmentConditionSettingsPageState
     final engineOn = settings.conditionEngineEnabled;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.equipmentConditionSettings_title)),
+      appBar: AppBar(
+        title: Text(l10n.equipmentConditionSettings_title),
+        leading: widget.onBack == null
+            ? null
+            : BackButton(onPressed: widget.onBack),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

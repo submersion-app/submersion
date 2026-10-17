@@ -1493,7 +1493,7 @@ void main() {
         'own', (tester) async {
       // SettingsSectionDetailPage supplies a Scaffold and an AppBar, so a
       // deep link to /settings/section/safety would stack a second app bar
-      // on top of SafetySettingsPage's. Fixing only the list tile leaves the
+      // on top of SafetyHubPage's. Fixing only the list tile leaves the
       // URL reachable; the route itself has to normalize it.
       late BuildContext capturedContext;
       await tester.pumpWidget(
