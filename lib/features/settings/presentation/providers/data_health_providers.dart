@@ -132,13 +132,14 @@ final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
         .watch(mediaStoreAttachStateProvider)
         .attachedStoreId();
     final attached = attachedId != null;
-    // Only an attached store has a transfer runtime worth asking about.
+    // The DB-backed summary only. The suspended flag lives on the media
+    // runtime, and watching it would build that runtime (keychain read,
+    // store build, queue drain) just because Settings > Data opened; the
+    // marker mismatch behind a suspension already shows as the
+    // mediaStoreReconnect setup item.
     final summary = attached
         ? ref.watch(mediaTransferSummaryProvider).value
         : null;
-    final suspended = attached
-        ? ref.watch(mediaTransfersSuspendedProvider).value ?? false
-        : false;
     return MediaHealthInputs(
       storeAttachedHere: attached,
       storeAnnounced: store != null,
@@ -147,7 +148,6 @@ final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
       ),
       lightroomConnected: lightroom != null,
       mediaSetupItems: countMediaSetupItems(items),
-      transfersSuspended: suspended,
       transfersWaitingWithReason:
           summary != null &&
           (summary.waitingReason != null || summary.hold != null),

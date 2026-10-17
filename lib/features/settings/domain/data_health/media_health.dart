@@ -8,7 +8,6 @@ class MediaHealthInputs {
     required this.attachItemPending,
     required this.lightroomConnected,
     required this.mediaSetupItems,
-    required this.transfersSuspended,
     required this.transfersWaitingWithReason,
   });
 
@@ -27,7 +26,7 @@ class MediaHealthInputs {
   /// and sign-ins for the store's account or Lightroom.
   final int mediaSetupItems;
 
-  final bool transfersSuspended;
+  /// Transfers are deferred with a recorded failure, or the drain holds.
   final bool transfersWaitingWithReason;
 }
 
@@ -44,7 +43,7 @@ FeatureHealth evaluateMediaHealth(MediaHealthInputs i) {
   return pickHealth(DataFeature.media, [
     if (i.mediaSetupItems > 0)
       health(HealthLevel.attention, HealthReason.mediaFinishSetup),
-    if (i.transfersSuspended || i.transfersWaitingWithReason)
+    if (i.transfersWaitingWithReason)
       health(HealthLevel.attention, HealthReason.mediaTransfersPaused),
   ]);
 }

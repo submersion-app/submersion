@@ -2,6 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -192,6 +197,60 @@ void main() {
         4,
       );
     });
+  });
+
+  group('mediaHealthInputsProvider', () {
+    setUp(() async {
+      await setUpTestDatabase();
+    });
+
+    tearDown(() {
+      DatabaseService.instance.resetForTesting();
+    });
+
+    test(
+      'never builds the media runtime, even with a store attached',
+      () async {
+        await MediaStoreAttachState(
+          prefs: prefs,
+        ).setAttached('store-1', providerType: CloudProviderType.s3);
+        var runtimeAsked = false;
+        final c = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaStoreAttachStateProvider.overrideWithValue(
+              MediaStoreAttachState(prefs: prefs),
+            ),
+            pendingSetupItemsProvider.overrideWith((ref) async => const []),
+            lightroomAccountProvider.overrideWith((ref) async => null),
+            mediaTransferSummaryProvider.overrideWith(
+              (ref) => Stream.value(
+                const MediaTransferSummary(
+                  waiting: 1,
+                  waitingReason: 'offline',
+                ),
+              ),
+            ),
+            // Building this awaits mediaStoreRuntimeProvider: a keychain read,
+            // a store build and a queue drain. Settings > Data must not.
+            mediaTransfersSuspendedProvider.overrideWith((ref) {
+              runtimeAsked = true;
+              return Stream.value(false);
+            }),
+          ],
+        );
+        addTearDown(c.dispose);
+        final sub = c.listen(mediaHealthInputsProvider, (_, _) {});
+        addTearDown(sub.close);
+        await c.read(mediaTransferSummaryProvider.future);
+
+        final inputs = await c.read(mediaHealthInputsProvider.future);
+
+        expect(runtimeAsked, isFalse);
+        expect(inputs.storeAttachedHere, isTrue);
+        expect(inputs.transfersWaitingWithReason, isTrue);
+      },
+    );
   });
 
   test('dataHealthProvider orders the four features', () {

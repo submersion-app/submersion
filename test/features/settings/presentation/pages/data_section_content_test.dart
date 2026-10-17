@@ -6,6 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
@@ -41,6 +44,7 @@ void main() {
 
   Future<void> pumpData(
     WidgetTester tester, {
+    List<FeatureHealth> dataHealth = health,
     DateTime? lastSync,
     int devices = 1,
   }) async {
@@ -59,7 +63,7 @@ void main() {
       ProviderScope(
         overrides: [
           ...await getBaseOverrides(
-            dataHealth: health,
+            dataHealth: dataHealth,
             lastSync: lastSync,
             syncedDevices: devices,
           ),
@@ -131,11 +135,74 @@ void main() {
     expect(find.text('Synced 12m ago · 3 devices'), findsOneWidget);
   });
 
+  testWidgets('sync row ignores a stale sync time while sync is off', (
+    tester,
+  ) async {
+    // Signing out keeps the last sync timestamp, so the row must follow the
+    // strip, not the timestamp.
+    await pumpData(
+      tester,
+      dataHealth: [
+        health[0],
+        const FeatureHealth(
+          feature: DataFeature.sync,
+          level: HealthLevel.attention,
+          reason: HealthReason.syncOff,
+        ),
+        health[2],
+        health[3],
+      ],
+      lastSync: DateTime.now().subtract(const Duration(days: 12)),
+      devices: 3,
+    );
+
+    expect(find.text('Sync via cloud storage'), findsOneWidget);
+    expect(find.textContaining('Synced'), findsNothing);
+  });
+
   testWidgets('sync row without a sync keeps its generic subtitle', (
     tester,
   ) async {
     await pumpData(tester);
 
     expect(find.text('Sync via cloud storage'), findsOneWidget);
+  });
+
+  testWidgets('a resume picks up a backup outcome written in the background', (
+    tester,
+  ) async {
+    await pumpData(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DataHealthStrip)),
+    );
+    expect(
+      container.read(backupSettingsProvider).lastScheduledFailureAt,
+      isNull,
+    );
+
+    // The WorkManager job writes through its own preferences while the
+    // page stays open behind the app switcher.
+    final prefs = await SharedPreferences.getInstance();
+    await BackupPreferences(
+      prefs,
+    ).setLastScheduledFailure(DateTime(2026, 10, 17, 3), 'disk full');
+    // Background and back, through the transitions Flutter allows; it ends
+    // resumed, the state every test starts in.
+    for (final state in const [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(backupSettingsProvider).lastScheduledFailureMessage,
+      'disk full',
+    );
   });
 }

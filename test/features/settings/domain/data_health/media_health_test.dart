@@ -9,7 +9,6 @@ void main() {
     bool attachItemPending = false,
     bool lightroomConnected = false,
     int mediaSetupItems = 0,
-    bool transfersSuspended = false,
     bool transfersWaitingWithReason = false,
   }) => MediaHealthInputs(
     storeAttachedHere: storeAttachedHere,
@@ -17,7 +16,6 @@ void main() {
     attachItemPending: attachItemPending,
     lightroomConnected: lightroomConnected,
     mediaSetupItems: mediaSetupItems,
-    transfersSuspended: transfersSuspended,
     transfersWaitingWithReason: transfersWaitingWithReason,
   );
 
@@ -85,14 +83,6 @@ void main() {
       evaluateMediaHealth(inputs(mediaSetupItems: 2)),
       HealthLevel.attention,
       HealthReason.mediaFinishSetup,
-    );
-  });
-
-  test('suspended transfers is attention paused', () {
-    expectHealth(
-      evaluateMediaHealth(inputs(transfersSuspended: true)),
-      HealthLevel.attention,
-      HealthReason.mediaTransfersPaused,
     );
   });
 

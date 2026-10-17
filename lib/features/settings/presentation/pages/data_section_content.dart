@@ -26,16 +26,28 @@ class DataSectionContent extends ConsumerStatefulWidget {
 }
 
 class _DataSectionContentState extends ConsumerState<DataSectionContent> {
+  late final AppLifecycleListener _lifecycle;
+
   @override
   void initState() {
     super.initState();
     // The WorkManager backup job writes from another isolate, and the facts
-    // are a snapshot: refresh both each time the page opens.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(backupSettingsProvider.notifier).reloadFromDisk();
-      ref.invalidate(dataFactsProvider);
-    });
+    // are a snapshot: refresh both when the page opens and each time the app
+    // comes back while it is showing.
+    _lifecycle = AppLifecycleListener(onResume: _refresh);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  void _refresh() {
+    if (!mounted) return;
+    ref.read(backupSettingsProvider.notifier).reloadFromDisk();
+    ref.invalidate(dataFactsProvider);
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
   }
 
   @override
@@ -105,7 +117,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
               l10n.settings_cloudSync_appBar_title,
               DataFeature.sync,
             ),
-            subtitle: _syncSubtitle(context),
+            subtitle: _syncSubtitle(context, health[DataFeature.sync]),
             route: '/settings/cloud-sync',
           ),
           // Shared site libraries (issue #2567).
@@ -204,10 +216,19 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
     );
   }
 
-  Widget _syncSubtitle(BuildContext context) {
+  /// "Synced 12m ago · 3 devices" while sync is in use. Signing out keeps
+  /// the last sync timestamp, so the row follows the strip's verdict rather
+  /// than the timestamp alone.
+  Widget _syncSubtitle(BuildContext context, FeatureHealth? syncHealth) {
     final l10n = context.l10n;
     final lastSync = ref.watch(lastSyncTimeProvider);
-    if (lastSync == null) return Text(l10n.settings_cloudSync_entry_subtitle);
+    final inUse =
+        syncHealth != null &&
+        syncHealth.level != HealthLevel.notSetUp &&
+        syncHealth.reason != HealthReason.syncOff;
+    if (lastSync == null || !inUse) {
+      return Text(l10n.settings_cloudSync_entry_subtitle);
+    }
     final when = relativeAgo(l10n, lastSync, DateTime.now());
     final devices = ref.watch(syncedDeviceCountProvider);
     return Text(
