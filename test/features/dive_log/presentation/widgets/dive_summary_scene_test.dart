@@ -277,6 +277,37 @@ void main() {
     }
   });
 
+  testWidgets('markers stay below the headline on a short filtered pane', (
+    tester,
+  ) async {
+    await pumpScene(
+      tester,
+      size: const Size(400, 400),
+      filter: const DiveFilterState(siteIds: ['s1']),
+      scopedStats: _stats(
+        dives: 34,
+        sites: 4,
+        avgMaxDepth: 3,
+        topSites: [
+          TopSiteStat(
+            siteId: 's1',
+            siteName: 'The Long Named Wall at Rapid Bay Jetty',
+            diveCount: 9,
+          ),
+        ],
+      ),
+    );
+
+    final headlineBottom = tester
+        .getRect(find.textContaining('Filtered:'))
+        .bottom;
+    for (final marker in find.byType(DepthMarker).evaluate()) {
+      final rect = tester.getRect(find.byWidget(marker.widget));
+      expect(rect.top, greaterThanOrEqualTo(headlineBottom));
+    }
+    expect(find.byType(DepthMarker), findsNWidgets(2));
+  });
+
   testWidgets('puts the scale at the start edge in a right-to-left locale', (
     tester,
   ) async {

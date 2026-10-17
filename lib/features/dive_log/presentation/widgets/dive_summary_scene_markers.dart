@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/summary/scene_text.dart';
 
-/// Where a depth sits on the water column, as a fraction of the pane
-/// height: the surface line is at 18 %, [maxMeters] at 90 %.
+/// Where a depth sits in the depth region below the headline, as a fraction
+/// of the region's height: the surface at 6 %, [maxMeters] at 90 %.
 double depthToFraction(double meters, double maxMeters) =>
-    0.18 + (meters / maxMeters).clamp(0.0, 1.0) * 0.72;
+    0.06 + (meters / maxMeters).clamp(0.0, 1.0) * 0.84;
 
 /// The hairline depth scale at the end edge of the water column, with tick
 /// labels at the surface, one step and two steps down.
@@ -39,7 +39,7 @@ class DepthScale extends StatelessWidget {
             children: [
               PositionedDirectional(
                 end: 0,
-                top: h * 0.18,
+                top: h * depthToFraction(0, maxMeters),
                 bottom: h * 0.10,
                 child: Container(width: 1, color: ink.withValues(alpha: 0.4)),
               ),

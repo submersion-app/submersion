@@ -62,31 +62,47 @@ class DiveSummaryScene extends ConsumerWidget {
           final h = constraints.maxHeight;
           final compact = w < compactWidth;
           final inset = w * 0.075;
-          return Stack(
-            children: [
-              PositionedDirectional(
-                start: inset,
-                end: compact ? inset : w * 0.24,
-                top: h * 0.11,
-                child: _Headline(
-                  stats: ready ? stats : null,
-                  career: career,
-                  isFiltered: isFiltered,
-                  compact: compact,
-                  showFacts: ready && !hasError,
+          // The headline takes its natural height; the depth region fills
+          // what is left below it, so markers can never ride up into the
+          // headline on a short pane.
+          return Padding(
+            padding: EdgeInsets.only(top: h * 0.11),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    start: inset,
+                    end: compact ? inset : w * 0.24,
+                  ),
+                  child: _Headline(
+                    stats: ready ? stats : null,
+                    career: career,
+                    isFiltered: isFiltered,
+                    compact: compact,
+                    showFacts: ready && !hasError,
+                  ),
                 ),
-              ),
-              if (ready && !hasError)
-                ..._depthLayer(
-                  context,
-                  stats: stats,
-                  records: recordsAsync.value,
-                  units: units,
-                  width: w,
-                  height: h,
-                  compact: compact,
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ready && !hasError
+                      ? LayoutBuilder(
+                          builder: (context, region) => Stack(
+                            children: _depthLayer(
+                              context,
+                              stats: stats,
+                              records: recordsAsync.value,
+                              units: units,
+                              width: w,
+                              height: region.maxHeight,
+                              compact: compact,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
-            ],
+              ],
+            ),
           );
         },
       ),
@@ -116,7 +132,8 @@ class DiveSummaryScene extends ConsumerWidget {
     final markerEnd = inset + DepthScale.width;
 
     double topFor(double meters) =>
-        height * depthToFraction(meters, maxMeters) - DepthMarker.lineOffset;
+        (height * depthToFraction(meters, maxMeters) - DepthMarker.lineOffset)
+            .clamp(0.0, double.infinity);
 
     final crowded =
         usual != null &&
