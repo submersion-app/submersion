@@ -253,4 +253,19 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('TRIP t1'), findsOneWidget);
   });
+
+  for (final (name, size) in [
+    ('phone', const Size(420, 900)),
+    ('wide', const Size(1400, 900)),
+  ]) {
+    testWidgets('the menu offers Export all documents ($name)', (t) async {
+      await pump(t, '/documents', size: size);
+      await t.tap(find.byTooltip('Show menu'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Export all documents'));
+      await t.pumpAndSettle();
+      // No documents yet, so the flow says so instead of asking anything.
+      expect(find.text('There are no documents to export'), findsOneWidget);
+    });
+  }
 }

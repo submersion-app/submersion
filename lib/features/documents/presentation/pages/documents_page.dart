@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
+import 'package:submersion/features/documents/presentation/helpers/document_export_flow.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -288,11 +289,66 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
         );
       },
     );
-    if (!widget.showAppBar) return body;
+    if (!widget.showAppBar) {
+      return Column(
+        children: [
+          _compactHeader(context),
+          Expanded(child: body),
+        ],
+      );
+    }
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.documents_title)),
+      appBar: AppBar(
+        title: Text(l10n.documents_title),
+        actions: [_menu(context)],
+      ),
       floatingActionButton: widget.floatingActionButton,
       body: body,
+    );
+  }
+
+  Widget _menu(BuildContext context, {double? iconSize}) =>
+      PopupMenuButton<String>(
+        icon: Icon(Icons.more_vert, size: iconSize),
+        onSelected: (_) => exportAllDocuments(context, ref),
+        itemBuilder: (context) => [
+          PopupMenuItem<String>(
+            value: 'export',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.archive_outlined),
+              title: Text(context.l10n.documents_export_action),
+            ),
+          ),
+        ],
+      );
+
+  /// The master pane's title row on wide screens, where the list has no app
+  /// bar of its own.
+  Widget _compactHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              context.l10n.documents_title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          _menu(context, iconSize: 20),
+        ],
+      ),
     );
   }
 
