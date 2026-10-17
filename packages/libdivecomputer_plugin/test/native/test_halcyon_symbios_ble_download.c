@@ -5,6 +5,10 @@
 // for the next session too. The fake below speaks the Symbios block protocol
 // (status, logbook and dive requests, ACK to advance, NAK to re-send the
 // current block) and can lose one block, deliver it late, or go silent.
+//
+// Every check here is an assert, so a build that defines NDEBUG would pass
+// without checking anything.
+#undef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
