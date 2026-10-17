@@ -24080,6 +24080,127 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => 'Export all documents';
+
+  @override
+  String get documents_export_title => 'Export documents';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return 'Documents: $documents, files: $files';
+  }
+
+  @override
+  String get documents_export_password => 'Password';
+
+  @override
+  String get documents_export_confirmPassword => 'Confirm password';
+
+  @override
+  String get documents_export_showPassword => 'Show password';
+
+  @override
+  String get documents_export_hidePassword => 'Hide password';
+
+  @override
+  String get documents_export_passwordTooShort => 'Use at least 8 characters';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      'Use only letters A to Z, digits, spaces and common symbols, so the ZIP opens on every computer';
+
+  @override
+  String get documents_export_passwordMismatch => 'Passwords do not match';
+
+  @override
+  String get documents_export_note =>
+      'This password cannot be recovered. The ZIP opens by double-clicking on a computer, not on a phone. The protection keeps out casual snooping but is not strong encryption, and file and folder names stay readable without the password.';
+
+  @override
+  String get documents_export_start => 'Export';
+
+  @override
+  String get documents_export_cancel => 'Cancel';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return 'File $done of $total';
+  }
+
+  @override
+  String get documents_export_nothing => 'There are no documents to export';
+
+  @override
+  String get documents_export_done => 'Documents exported';
+
+  @override
+  String documents_export_failed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get documents_export_cancelled => 'Export cancelled';
+
+  @override
+  String get documents_export_fileNamePrefix => 'Submersion documents';
+
+  @override
+  String get documents_export_unknownRecord => 'Unknown';
+
+  @override
+  String get documents_export_front => 'front';
+
+  @override
+  String get documents_export_back => 'back';
+
+  @override
+  String documents_export_page(int n) {
+    return 'page $n';
+  }
+
+  @override
+  String get documents_export_manifest_title => 'Title';
+
+  @override
+  String get documents_export_manifest_type => 'Type';
+
+  @override
+  String get documents_export_manifest_kind => 'Filed under (kind)';
+
+  @override
+  String get documents_export_manifest_filedUnder => 'Filed under';
+
+  @override
+  String get documents_export_manifest_issuer => 'Issuer';
+
+  @override
+  String get documents_export_manifest_reference => 'Reference number';
+
+  @override
+  String get documents_export_manifest_issueDate => 'Issue date';
+
+  @override
+  String get documents_export_manifest_expiryDate => 'Expiry date';
+
+  @override
+  String get documents_export_manifest_notes => 'Notes';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => 'Emergency phone';
+
+  @override
+  String get documents_export_manifest_phone => 'Phone';
+
+  @override
+  String get documents_export_manifest_page => 'Page';
+
+  @override
+  String get documents_export_manifest_side => 'Side';
+
+  @override
+  String get documents_export_manifest_path => 'Path in ZIP';
+
+  @override
   String get documents_filter_all => 'All';
 
   @override
@@ -29581,6 +29702,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'CSV Export';
+
+  @override
+  String get transfer_export_documentsSubtitle =>
+      'All your documents as a password-protected ZIP';
+
+  @override
+  String get transfer_export_documentsTitle => 'Documents';
 
   @override
   String get transfer_export_excelSubtitle =>

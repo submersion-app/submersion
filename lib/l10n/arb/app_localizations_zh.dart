@@ -23136,6 +23136,127 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => '导出所有文档';
+
+  @override
+  String get documents_export_title => '导出文档';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return '文档：$documents，文件：$files';
+  }
+
+  @override
+  String get documents_export_password => '密码';
+
+  @override
+  String get documents_export_confirmPassword => '确认密码';
+
+  @override
+  String get documents_export_showPassword => '显示密码';
+
+  @override
+  String get documents_export_hidePassword => '隐藏密码';
+
+  @override
+  String get documents_export_passwordTooShort => '请至少使用 8 个字符';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      '只能使用 A 到 Z 的字母、数字、空格和常见符号，以便 ZIP 能在任何电脑上打开';
+
+  @override
+  String get documents_export_passwordMismatch => '两次输入的密码不一致';
+
+  @override
+  String get documents_export_note =>
+      '此密码无法找回。ZIP 文件可在电脑上双击打开，手机上无法打开。这种保护可以挡住随意的窥看，但不是强加密，而且无需密码也能看到文件和文件夹的名称。';
+
+  @override
+  String get documents_export_start => '导出';
+
+  @override
+  String get documents_export_cancel => '取消';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return '第 $done 个文件，共 $total 个';
+  }
+
+  @override
+  String get documents_export_nothing => '没有可导出的文档';
+
+  @override
+  String get documents_export_done => '文档已导出';
+
+  @override
+  String documents_export_failed(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
+  String get documents_export_cancelled => '导出已取消';
+
+  @override
+  String get documents_export_fileNamePrefix => 'Submersion 文档';
+
+  @override
+  String get documents_export_unknownRecord => '未知';
+
+  @override
+  String get documents_export_front => '正面';
+
+  @override
+  String get documents_export_back => '背面';
+
+  @override
+  String documents_export_page(int n) {
+    return '第 $n 页';
+  }
+
+  @override
+  String get documents_export_manifest_title => '标题';
+
+  @override
+  String get documents_export_manifest_type => '类型';
+
+  @override
+  String get documents_export_manifest_kind => '归档于（类别）';
+
+  @override
+  String get documents_export_manifest_filedUnder => '归档于';
+
+  @override
+  String get documents_export_manifest_issuer => '签发机构';
+
+  @override
+  String get documents_export_manifest_reference => '参考编号';
+
+  @override
+  String get documents_export_manifest_issueDate => '签发日期';
+
+  @override
+  String get documents_export_manifest_expiryDate => '到期日期';
+
+  @override
+  String get documents_export_manifest_notes => '备注';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => '紧急电话';
+
+  @override
+  String get documents_export_manifest_phone => '电话';
+
+  @override
+  String get documents_export_manifest_page => '页码';
+
+  @override
+  String get documents_export_manifest_side => '面';
+
+  @override
+  String get documents_export_manifest_path => 'ZIP 中的路径';
+
+  @override
   String get documents_filter_all => '全部';
 
   @override
@@ -28401,6 +28522,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'CSV 导出';
+
+  @override
+  String get transfer_export_documentsSubtitle => '将所有文档导出为受密码保护的 ZIP';
+
+  @override
+  String get transfer_export_documentsTitle => '文档';
 
   @override
   String get transfer_export_excelSubtitle => '所有数据在一个文件中（潜水、潜水点、装备、统计）';

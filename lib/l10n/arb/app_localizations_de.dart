@@ -24458,6 +24458,130 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => 'Alle Dokumente exportieren';
+
+  @override
+  String get documents_export_title => 'Dokumente exportieren';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return 'Dokumente: $documents, Dateien: $files';
+  }
+
+  @override
+  String get documents_export_password => 'Passwort';
+
+  @override
+  String get documents_export_confirmPassword => 'Passwort bestätigen';
+
+  @override
+  String get documents_export_showPassword => 'Passwort anzeigen';
+
+  @override
+  String get documents_export_hidePassword => 'Passwort verbergen';
+
+  @override
+  String get documents_export_passwordTooShort =>
+      'Mindestens 8 Zeichen verwenden';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      'Nur Buchstaben A bis Z, Ziffern, Leerzeichen und gängige Symbole verwenden, damit sich die ZIP-Datei auf jedem Computer öffnen lässt';
+
+  @override
+  String get documents_export_passwordMismatch =>
+      'Die Passwörter stimmen nicht überein';
+
+  @override
+  String get documents_export_note =>
+      'Dieses Passwort kann nicht wiederhergestellt werden. Die ZIP-Datei öffnet sich per Doppelklick auf einem Computer, nicht auf einem Telefon. Der Schutz hält neugierige Blicke ab, ist aber keine starke Verschlüsselung, und Datei- und Ordnernamen bleiben ohne Passwort lesbar.';
+
+  @override
+  String get documents_export_start => 'Exportieren';
+
+  @override
+  String get documents_export_cancel => 'Abbrechen';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return 'Datei $done von $total';
+  }
+
+  @override
+  String get documents_export_nothing =>
+      'Es gibt keine Dokumente zum Exportieren';
+
+  @override
+  String get documents_export_done => 'Dokumente exportiert';
+
+  @override
+  String documents_export_failed(String error) {
+    return 'Export fehlgeschlagen: $error';
+  }
+
+  @override
+  String get documents_export_cancelled => 'Export abgebrochen';
+
+  @override
+  String get documents_export_fileNamePrefix => 'Submersion-Dokumente';
+
+  @override
+  String get documents_export_unknownRecord => 'Unbekannt';
+
+  @override
+  String get documents_export_front => 'Vorderseite';
+
+  @override
+  String get documents_export_back => 'Rückseite';
+
+  @override
+  String documents_export_page(int n) {
+    return 'Seite $n';
+  }
+
+  @override
+  String get documents_export_manifest_title => 'Titel';
+
+  @override
+  String get documents_export_manifest_type => 'Typ';
+
+  @override
+  String get documents_export_manifest_kind => 'Abgelegt unter (Art)';
+
+  @override
+  String get documents_export_manifest_filedUnder => 'Abgelegt unter';
+
+  @override
+  String get documents_export_manifest_issuer => 'Aussteller';
+
+  @override
+  String get documents_export_manifest_reference => 'Referenznummer';
+
+  @override
+  String get documents_export_manifest_issueDate => 'Ausstellungsdatum';
+
+  @override
+  String get documents_export_manifest_expiryDate => 'Ablaufdatum';
+
+  @override
+  String get documents_export_manifest_notes => 'Notizen';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => 'Notfalltelefon';
+
+  @override
+  String get documents_export_manifest_phone => 'Telefon';
+
+  @override
+  String get documents_export_manifest_page => 'Seite';
+
+  @override
+  String get documents_export_manifest_side => 'Seite der Karte';
+
+  @override
+  String get documents_export_manifest_path => 'Pfad in der ZIP-Datei';
+
+  @override
   String get documents_filter_all => 'Alle';
 
   @override
@@ -30029,6 +30153,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'CSV-Export';
+
+  @override
+  String get transfer_export_documentsSubtitle =>
+      'Alle Dokumente als passwortgeschützte ZIP-Datei';
+
+  @override
+  String get transfer_export_documentsTitle => 'Dokumente';
 
   @override
   String get transfer_export_excelSubtitle =>

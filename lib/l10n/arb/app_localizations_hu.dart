@@ -24387,6 +24387,128 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => 'Az összes dokumentum exportálása';
+
+  @override
+  String get documents_export_title => 'Dokumentumok exportálása';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return 'Dokumentumok: $documents, fájlok: $files';
+  }
+
+  @override
+  String get documents_export_password => 'Jelszó';
+
+  @override
+  String get documents_export_confirmPassword => 'Jelszó megerősítése';
+
+  @override
+  String get documents_export_showPassword => 'Jelszó megjelenítése';
+
+  @override
+  String get documents_export_hidePassword => 'Jelszó elrejtése';
+
+  @override
+  String get documents_export_passwordTooShort =>
+      'Legalább 8 karaktert használj';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      'Csak az A-tól Z-ig terjedő betűket, számjegyeket, szóközt és gyakori szimbólumokat használj, hogy a ZIP minden számítógépen megnyíljon';
+
+  @override
+  String get documents_export_passwordMismatch => 'A jelszavak nem egyeznek';
+
+  @override
+  String get documents_export_note =>
+      'Ez a jelszó nem állítható vissza. A ZIP dupla kattintással nyílik meg számítógépen, telefonon nem. A védelem a kíváncsi szemek ellen véd, de nem erős titkosítás, és a fájl- és mappanevek jelszó nélkül is olvashatók.';
+
+  @override
+  String get documents_export_start => 'Exportálás';
+
+  @override
+  String get documents_export_cancel => 'Mégse';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return '$done. fájl / $total';
+  }
+
+  @override
+  String get documents_export_nothing => 'Nincs exportálható dokumentum';
+
+  @override
+  String get documents_export_done => 'Dokumentumok exportálva';
+
+  @override
+  String documents_export_failed(String error) {
+    return 'Az exportálás sikertelen: $error';
+  }
+
+  @override
+  String get documents_export_cancelled => 'Exportálás megszakítva';
+
+  @override
+  String get documents_export_fileNamePrefix => 'Submersion-dokumentumok';
+
+  @override
+  String get documents_export_unknownRecord => 'Ismeretlen';
+
+  @override
+  String get documents_export_front => 'előlap';
+
+  @override
+  String get documents_export_back => 'hátlap';
+
+  @override
+  String documents_export_page(int n) {
+    return '$n. oldal';
+  }
+
+  @override
+  String get documents_export_manifest_title => 'Cím';
+
+  @override
+  String get documents_export_manifest_type => 'Típus';
+
+  @override
+  String get documents_export_manifest_kind => 'Iktatva (fajta)';
+
+  @override
+  String get documents_export_manifest_filedUnder => 'Iktatva';
+
+  @override
+  String get documents_export_manifest_issuer => 'Kiállító';
+
+  @override
+  String get documents_export_manifest_reference => 'Hivatkozási szám';
+
+  @override
+  String get documents_export_manifest_issueDate => 'Kiállítás dátuma';
+
+  @override
+  String get documents_export_manifest_expiryDate => 'Lejárat dátuma';
+
+  @override
+  String get documents_export_manifest_notes => 'Jegyzetek';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => 'Segélyhívó szám';
+
+  @override
+  String get documents_export_manifest_phone => 'Telefon';
+
+  @override
+  String get documents_export_manifest_page => 'Oldal';
+
+  @override
+  String get documents_export_manifest_side => 'Kártyaoldal';
+
+  @override
+  String get documents_export_manifest_path => 'Útvonal a ZIP-ben';
+
+  @override
   String get documents_filter_all => 'Mind';
 
   @override
@@ -29944,6 +30066,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'CSV exportálás';
+
+  @override
+  String get transfer_export_documentsSubtitle =>
+      'Az összes dokumentum jelszóval védett ZIP-ben';
+
+  @override
+  String get transfer_export_documentsTitle => 'Dokumentumok';
 
   @override
   String get transfer_export_excelSubtitle =>

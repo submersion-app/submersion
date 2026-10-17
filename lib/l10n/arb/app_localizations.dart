@@ -39376,6 +39376,228 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load documents: {error}'**
   String documents_error_load(String error);
 
+  /// No description provided for @documents_export_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Export all documents'**
+  String get documents_export_action;
+
+  /// No description provided for @documents_export_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Export documents'**
+  String get documents_export_title;
+
+  /// No description provided for @documents_export_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents: {documents}, files: {files}'**
+  String documents_export_summary(int documents, int files);
+
+  /// No description provided for @documents_export_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get documents_export_password;
+
+  /// No description provided for @documents_export_confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get documents_export_confirmPassword;
+
+  /// No description provided for @documents_export_showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get documents_export_showPassword;
+
+  /// No description provided for @documents_export_hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get documents_export_hidePassword;
+
+  /// No description provided for @documents_export_passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 8 characters'**
+  String get documents_export_passwordTooShort;
+
+  /// No description provided for @documents_export_passwordCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'Use only letters A to Z, digits, spaces and common symbols, so the ZIP opens on every computer'**
+  String get documents_export_passwordCharacters;
+
+  /// No description provided for @documents_export_passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get documents_export_passwordMismatch;
+
+  /// No description provided for @documents_export_note.
+  ///
+  /// In en, this message translates to:
+  /// **'This password cannot be recovered. The ZIP opens by double-clicking on a computer, not on a phone. The protection keeps out casual snooping but is not strong encryption, and file and folder names stay readable without the password.'**
+  String get documents_export_note;
+
+  /// No description provided for @documents_export_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get documents_export_start;
+
+  /// No description provided for @documents_export_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get documents_export_cancel;
+
+  /// No description provided for @documents_export_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'File {done} of {total}'**
+  String documents_export_progress(int done, int total);
+
+  /// No description provided for @documents_export_nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no documents to export'**
+  String get documents_export_nothing;
+
+  /// No description provided for @documents_export_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents exported'**
+  String get documents_export_done;
+
+  /// No description provided for @documents_export_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String documents_export_failed(String error);
+
+  /// No description provided for @documents_export_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Export cancelled'**
+  String get documents_export_cancelled;
+
+  /// No description provided for @documents_export_fileNamePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion documents'**
+  String get documents_export_fileNamePrefix;
+
+  /// No description provided for @documents_export_unknownRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get documents_export_unknownRecord;
+
+  /// No description provided for @documents_export_front.
+  ///
+  /// In en, this message translates to:
+  /// **'front'**
+  String get documents_export_front;
+
+  /// No description provided for @documents_export_back.
+  ///
+  /// In en, this message translates to:
+  /// **'back'**
+  String get documents_export_back;
+
+  /// No description provided for @documents_export_page.
+  ///
+  /// In en, this message translates to:
+  /// **'page {n}'**
+  String documents_export_page(int n);
+
+  /// No description provided for @documents_export_manifest_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get documents_export_manifest_title;
+
+  /// No description provided for @documents_export_manifest_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get documents_export_manifest_type;
+
+  /// No description provided for @documents_export_manifest_kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Filed under (kind)'**
+  String get documents_export_manifest_kind;
+
+  /// No description provided for @documents_export_manifest_filedUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'Filed under'**
+  String get documents_export_manifest_filedUnder;
+
+  /// No description provided for @documents_export_manifest_issuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuer'**
+  String get documents_export_manifest_issuer;
+
+  /// No description provided for @documents_export_manifest_reference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference number'**
+  String get documents_export_manifest_reference;
+
+  /// No description provided for @documents_export_manifest_issueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue date'**
+  String get documents_export_manifest_issueDate;
+
+  /// No description provided for @documents_export_manifest_expiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get documents_export_manifest_expiryDate;
+
+  /// No description provided for @documents_export_manifest_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get documents_export_manifest_notes;
+
+  /// No description provided for @documents_export_manifest_emergencyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency phone'**
+  String get documents_export_manifest_emergencyPhone;
+
+  /// No description provided for @documents_export_manifest_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get documents_export_manifest_phone;
+
+  /// No description provided for @documents_export_manifest_page.
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get documents_export_manifest_page;
+
+  /// No description provided for @documents_export_manifest_side.
+  ///
+  /// In en, this message translates to:
+  /// **'Side'**
+  String get documents_export_manifest_side;
+
+  /// No description provided for @documents_export_manifest_path.
+  ///
+  /// In en, this message translates to:
+  /// **'Path in ZIP'**
+  String get documents_export_manifest_path;
+
   /// No description provided for @documents_filter_all.
   ///
   /// In en, this message translates to:
@@ -47916,6 +48138,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CSV Export'**
   String get transfer_export_csvTitle;
+
+  /// No description provided for @transfer_export_documentsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All your documents as a password-protected ZIP'**
+  String get transfer_export_documentsSubtitle;
+
+  /// No description provided for @transfer_export_documentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get transfer_export_documentsTitle;
 
   /// No description provided for @transfer_export_excelSubtitle.
   ///

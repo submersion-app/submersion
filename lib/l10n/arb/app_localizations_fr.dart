@@ -24575,6 +24575,129 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => 'Exporter tous les documents';
+
+  @override
+  String get documents_export_title => 'Exporter les documents';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return 'Documents : $documents, fichiers : $files';
+  }
+
+  @override
+  String get documents_export_password => 'Mot de passe';
+
+  @override
+  String get documents_export_confirmPassword => 'Confirmer le mot de passe';
+
+  @override
+  String get documents_export_showPassword => 'Afficher le mot de passe';
+
+  @override
+  String get documents_export_hidePassword => 'Masquer le mot de passe';
+
+  @override
+  String get documents_export_passwordTooShort =>
+      'Utilisez au moins 8 caractères';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      'Utilisez uniquement les lettres A à Z, des chiffres, des espaces et des symboles courants, pour que le ZIP s\'ouvre sur tout ordinateur';
+
+  @override
+  String get documents_export_passwordMismatch =>
+      'Les mots de passe ne correspondent pas';
+
+  @override
+  String get documents_export_note =>
+      'Ce mot de passe ne peut pas être récupéré. Le ZIP s\'ouvre d\'un double-clic sur un ordinateur, pas sur un téléphone. La protection arrête les curieux mais n\'est pas un chiffrement fort, et les noms de fichiers et de dossiers restent lisibles sans le mot de passe.';
+
+  @override
+  String get documents_export_start => 'Exporter';
+
+  @override
+  String get documents_export_cancel => 'Annuler';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return 'Fichier $done sur $total';
+  }
+
+  @override
+  String get documents_export_nothing => 'Aucun document à exporter';
+
+  @override
+  String get documents_export_done => 'Documents exportés';
+
+  @override
+  String documents_export_failed(String error) {
+    return 'Échec de l\'export : $error';
+  }
+
+  @override
+  String get documents_export_cancelled => 'Export annulé';
+
+  @override
+  String get documents_export_fileNamePrefix => 'Documents Submersion';
+
+  @override
+  String get documents_export_unknownRecord => 'Inconnu';
+
+  @override
+  String get documents_export_front => 'recto';
+
+  @override
+  String get documents_export_back => 'verso';
+
+  @override
+  String documents_export_page(int n) {
+    return 'page $n';
+  }
+
+  @override
+  String get documents_export_manifest_title => 'Titre';
+
+  @override
+  String get documents_export_manifest_type => 'Type';
+
+  @override
+  String get documents_export_manifest_kind => 'Classé sous (genre)';
+
+  @override
+  String get documents_export_manifest_filedUnder => 'Classé sous';
+
+  @override
+  String get documents_export_manifest_issuer => 'Émetteur';
+
+  @override
+  String get documents_export_manifest_reference => 'Numéro de référence';
+
+  @override
+  String get documents_export_manifest_issueDate => 'Date d\'émission';
+
+  @override
+  String get documents_export_manifest_expiryDate => 'Date d\'expiration';
+
+  @override
+  String get documents_export_manifest_notes => 'Notes';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => 'Téléphone d\'urgence';
+
+  @override
+  String get documents_export_manifest_phone => 'Téléphone';
+
+  @override
+  String get documents_export_manifest_page => 'Page';
+
+  @override
+  String get documents_export_manifest_side => 'Face';
+
+  @override
+  String get documents_export_manifest_path => 'Chemin dans le ZIP';
+
+  @override
   String get documents_filter_all => 'Tous';
 
   @override
@@ -30196,6 +30319,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'Export CSV';
+
+  @override
+  String get transfer_export_documentsSubtitle =>
+      'Tous vos documents dans un ZIP protégé par mot de passe';
+
+  @override
+  String get transfer_export_documentsTitle => 'Documents';
 
   @override
   String get transfer_export_excelSubtitle =>

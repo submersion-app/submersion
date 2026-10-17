@@ -23873,6 +23873,127 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => 'ייצוא כל המסמכים';
+
+  @override
+  String get documents_export_title => 'ייצוא מסמכים';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return 'מסמכים: $documents, קבצים: $files';
+  }
+
+  @override
+  String get documents_export_password => 'סיסמה';
+
+  @override
+  String get documents_export_confirmPassword => 'אישור סיסמה';
+
+  @override
+  String get documents_export_showPassword => 'הצגת הסיסמה';
+
+  @override
+  String get documents_export_hidePassword => 'הסתרת הסיסמה';
+
+  @override
+  String get documents_export_passwordTooShort => 'יש להשתמש ב-8 תווים לפחות';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      'יש להשתמש רק באותיות A עד Z, ספרות, רווחים וסמלים נפוצים, כדי שקובץ ה-ZIP ייפתח בכל מחשב';
+
+  @override
+  String get documents_export_passwordMismatch => 'הסיסמאות אינן תואמות';
+
+  @override
+  String get documents_export_note =>
+      'לא ניתן לשחזר את הסיסמה הזו. קובץ ה-ZIP נפתח בלחיצה כפולה במחשב, לא בטלפון. ההגנה מונעת הצצה מזדמנת אך אינה הצפנה חזקה, ושמות הקבצים והתיקיות נשארים קריאים גם בלי הסיסמה.';
+
+  @override
+  String get documents_export_start => 'ייצוא';
+
+  @override
+  String get documents_export_cancel => 'ביטול';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return 'קובץ $done מתוך $total';
+  }
+
+  @override
+  String get documents_export_nothing => 'אין מסמכים לייצוא';
+
+  @override
+  String get documents_export_done => 'המסמכים יוצאו';
+
+  @override
+  String documents_export_failed(String error) {
+    return 'הייצוא נכשל: $error';
+  }
+
+  @override
+  String get documents_export_cancelled => 'הייצוא בוטל';
+
+  @override
+  String get documents_export_fileNamePrefix => 'מסמכי Submersion';
+
+  @override
+  String get documents_export_unknownRecord => 'לא ידוע';
+
+  @override
+  String get documents_export_front => 'חזית';
+
+  @override
+  String get documents_export_back => 'גב';
+
+  @override
+  String documents_export_page(int n) {
+    return 'עמוד $n';
+  }
+
+  @override
+  String get documents_export_manifest_title => 'כותרת';
+
+  @override
+  String get documents_export_manifest_type => 'סוג';
+
+  @override
+  String get documents_export_manifest_kind => 'מתויק תחת (סוג)';
+
+  @override
+  String get documents_export_manifest_filedUnder => 'מתויק תחת';
+
+  @override
+  String get documents_export_manifest_issuer => 'מנפיק';
+
+  @override
+  String get documents_export_manifest_reference => 'מספר אסמכתה';
+
+  @override
+  String get documents_export_manifest_issueDate => 'תאריך הנפקה';
+
+  @override
+  String get documents_export_manifest_expiryDate => 'תאריך תפוגה';
+
+  @override
+  String get documents_export_manifest_notes => 'הערות';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => 'טלפון חירום';
+
+  @override
+  String get documents_export_manifest_phone => 'טלפון';
+
+  @override
+  String get documents_export_manifest_page => 'עמוד';
+
+  @override
+  String get documents_export_manifest_side => 'צד';
+
+  @override
+  String get documents_export_manifest_path => 'נתיב בקובץ ה-ZIP';
+
+  @override
   String get documents_filter_all => 'הכול';
 
   @override
@@ -29336,6 +29457,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'ייצוא CSV';
+
+  @override
+  String get transfer_export_documentsSubtitle =>
+      'כל המסמכים שלך בקובץ ZIP מוגן בסיסמה';
+
+  @override
+  String get transfer_export_documentsTitle => 'מסמכים';
 
   @override
   String get transfer_export_excelSubtitle =>

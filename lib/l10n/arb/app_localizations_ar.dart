@@ -24691,6 +24691,127 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => 'تصدير جميع المستندات';
+
+  @override
+  String get documents_export_title => 'تصدير المستندات';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return 'المستندات: $documents، الملفات: $files';
+  }
+
+  @override
+  String get documents_export_password => 'كلمة المرور';
+
+  @override
+  String get documents_export_confirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get documents_export_showPassword => 'إظهار كلمة المرور';
+
+  @override
+  String get documents_export_hidePassword => 'إخفاء كلمة المرور';
+
+  @override
+  String get documents_export_passwordTooShort => 'استخدم 8 أحرف على الأقل';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      'استخدم فقط الحروف اللاتينية من A إلى Z والأرقام والمسافات والرموز الشائعة، حتى يُفتح ملف ZIP على أي حاسوب';
+
+  @override
+  String get documents_export_passwordMismatch => 'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get documents_export_note =>
+      'لا يمكن استعادة كلمة المرور هذه. يُفتح ملف ZIP بالنقر المزدوج على الحاسوب، وليس على الهاتف. تمنع الحماية التطفل العابر لكنها ليست تشفيرًا قويًا، وتبقى أسماء الملفات والمجلدات مقروءة دون كلمة المرور.';
+
+  @override
+  String get documents_export_start => 'تصدير';
+
+  @override
+  String get documents_export_cancel => 'إلغاء';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return 'الملف $done من $total';
+  }
+
+  @override
+  String get documents_export_nothing => 'لا توجد مستندات للتصدير';
+
+  @override
+  String get documents_export_done => 'تم تصدير المستندات';
+
+  @override
+  String documents_export_failed(String error) {
+    return 'فشل التصدير: $error';
+  }
+
+  @override
+  String get documents_export_cancelled => 'تم إلغاء التصدير';
+
+  @override
+  String get documents_export_fileNamePrefix => 'مستندات Submersion';
+
+  @override
+  String get documents_export_unknownRecord => 'غير معروف';
+
+  @override
+  String get documents_export_front => 'الوجه الأمامي';
+
+  @override
+  String get documents_export_back => 'الوجه الخلفي';
+
+  @override
+  String documents_export_page(int n) {
+    return 'الصفحة $n';
+  }
+
+  @override
+  String get documents_export_manifest_title => 'العنوان';
+
+  @override
+  String get documents_export_manifest_type => 'النوع';
+
+  @override
+  String get documents_export_manifest_kind => 'مصنف تحت (الفئة)';
+
+  @override
+  String get documents_export_manifest_filedUnder => 'مصنف تحت';
+
+  @override
+  String get documents_export_manifest_issuer => 'الجهة المصدرة';
+
+  @override
+  String get documents_export_manifest_reference => 'الرقم المرجعي';
+
+  @override
+  String get documents_export_manifest_issueDate => 'تاريخ الإصدار';
+
+  @override
+  String get documents_export_manifest_expiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get documents_export_manifest_notes => 'ملاحظات';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => 'هاتف الطوارئ';
+
+  @override
+  String get documents_export_manifest_phone => 'الهاتف';
+
+  @override
+  String get documents_export_manifest_page => 'الصفحة';
+
+  @override
+  String get documents_export_manifest_side => 'الوجه';
+
+  @override
+  String get documents_export_manifest_path => 'المسار داخل ZIP';
+
+  @override
   String get documents_filter_all => 'الكل';
 
   @override
@@ -30418,6 +30539,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'تصدير CSV';
+
+  @override
+  String get transfer_export_documentsSubtitle =>
+      'جميع مستنداتك في ملف ZIP محمي بكلمة مرور';
+
+  @override
+  String get transfer_export_documentsTitle => 'المستندات';
 
   @override
   String get transfer_export_excelSubtitle =>

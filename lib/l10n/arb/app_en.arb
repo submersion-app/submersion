@@ -14222,6 +14222,77 @@
       }
     }
   },
+  "documents_export_action": "Export all documents",
+  "documents_export_title": "Export documents",
+  "documents_export_summary": "Documents: {documents}, files: {files}",
+  "@documents_export_summary": {
+    "placeholders": {
+      "documents": {
+        "type": "int"
+      },
+      "files": {
+        "type": "int"
+      }
+    }
+  },
+  "documents_export_password": "Password",
+  "documents_export_confirmPassword": "Confirm password",
+  "documents_export_showPassword": "Show password",
+  "documents_export_hidePassword": "Hide password",
+  "documents_export_passwordTooShort": "Use at least 8 characters",
+  "documents_export_passwordCharacters": "Use only letters A to Z, digits, spaces and common symbols, so the ZIP opens on every computer",
+  "documents_export_passwordMismatch": "Passwords do not match",
+  "documents_export_note": "This password cannot be recovered. The ZIP opens by double-clicking on a computer, not on a phone. The protection keeps out casual snooping but is not strong encryption, and file and folder names stay readable without the password.",
+  "documents_export_start": "Export",
+  "documents_export_cancel": "Cancel",
+  "documents_export_progress": "File {done} of {total}",
+  "@documents_export_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "documents_export_nothing": "There are no documents to export",
+  "documents_export_done": "Documents exported",
+  "documents_export_failed": "Export failed: {error}",
+  "@documents_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "documents_export_cancelled": "Export cancelled",
+  "documents_export_fileNamePrefix": "Submersion documents",
+  "documents_export_unknownRecord": "Unknown",
+  "documents_export_front": "front",
+  "documents_export_back": "back",
+  "documents_export_page": "page {n}",
+  "@documents_export_page": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "documents_export_manifest_title": "Title",
+  "documents_export_manifest_type": "Type",
+  "documents_export_manifest_kind": "Filed under (kind)",
+  "documents_export_manifest_filedUnder": "Filed under",
+  "documents_export_manifest_issuer": "Issuer",
+  "documents_export_manifest_reference": "Reference number",
+  "documents_export_manifest_issueDate": "Issue date",
+  "documents_export_manifest_expiryDate": "Expiry date",
+  "documents_export_manifest_notes": "Notes",
+  "documents_export_manifest_emergencyPhone": "Emergency phone",
+  "documents_export_manifest_phone": "Phone",
+  "documents_export_manifest_page": "Page",
+  "documents_export_manifest_side": "Side",
+  "documents_export_manifest_path": "Path in ZIP",
   "documents_filter_all": "All",
   "documents_detail_owner": "Filed under",
   "documents_owner_pickerTitle": "File under",
@@ -17498,6 +17569,8 @@
   "transfer_export_completed": "Export completed",
   "transfer_export_csvSubtitle": "Spreadsheet format",
   "transfer_export_csvTitle": "CSV Export",
+  "transfer_export_documentsSubtitle": "All your documents as a password-protected ZIP",
+  "transfer_export_documentsTitle": "Documents",
   "transfer_export_excelSubtitle": "All data in one file (dives, sites, equipment, stats)",
   "transfer_export_excelTitle": "Excel Workbook",
   "transfer_export_failed": "Export failed: {error}",

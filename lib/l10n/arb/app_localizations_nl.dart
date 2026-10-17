@@ -24342,6 +24342,129 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get documents_export_action => 'Alle documenten exporteren';
+
+  @override
+  String get documents_export_title => 'Documenten exporteren';
+
+  @override
+  String documents_export_summary(int documents, int files) {
+    return 'Documenten: $documents, bestanden: $files';
+  }
+
+  @override
+  String get documents_export_password => 'Wachtwoord';
+
+  @override
+  String get documents_export_confirmPassword => 'Wachtwoord bevestigen';
+
+  @override
+  String get documents_export_showPassword => 'Wachtwoord tonen';
+
+  @override
+  String get documents_export_hidePassword => 'Wachtwoord verbergen';
+
+  @override
+  String get documents_export_passwordTooShort => 'Gebruik minstens 8 tekens';
+
+  @override
+  String get documents_export_passwordCharacters =>
+      'Gebruik alleen de letters A tot Z, cijfers, spaties en gangbare symbolen, zodat de ZIP op elke computer opent';
+
+  @override
+  String get documents_export_passwordMismatch =>
+      'De wachtwoorden komen niet overeen';
+
+  @override
+  String get documents_export_note =>
+      'Dit wachtwoord kan niet worden hersteld. De ZIP opent met dubbelklikken op een computer, niet op een telefoon. De beveiliging houdt nieuwsgierige blikken tegen maar is geen sterke versleuteling, en bestands- en mapnamen blijven zonder wachtwoord leesbaar.';
+
+  @override
+  String get documents_export_start => 'Exporteren';
+
+  @override
+  String get documents_export_cancel => 'Annuleren';
+
+  @override
+  String documents_export_progress(int done, int total) {
+    return 'Bestand $done van $total';
+  }
+
+  @override
+  String get documents_export_nothing =>
+      'Er zijn geen documenten om te exporteren';
+
+  @override
+  String get documents_export_done => 'Documenten geëxporteerd';
+
+  @override
+  String documents_export_failed(String error) {
+    return 'Exporteren mislukt: $error';
+  }
+
+  @override
+  String get documents_export_cancelled => 'Exporteren geannuleerd';
+
+  @override
+  String get documents_export_fileNamePrefix => 'Submersion-documenten';
+
+  @override
+  String get documents_export_unknownRecord => 'Onbekend';
+
+  @override
+  String get documents_export_front => 'voorkant';
+
+  @override
+  String get documents_export_back => 'achterkant';
+
+  @override
+  String documents_export_page(int n) {
+    return 'pagina $n';
+  }
+
+  @override
+  String get documents_export_manifest_title => 'Titel';
+
+  @override
+  String get documents_export_manifest_type => 'Type';
+
+  @override
+  String get documents_export_manifest_kind => 'Opgeslagen onder (soort)';
+
+  @override
+  String get documents_export_manifest_filedUnder => 'Opgeslagen onder';
+
+  @override
+  String get documents_export_manifest_issuer => 'Uitgever';
+
+  @override
+  String get documents_export_manifest_reference => 'Referentienummer';
+
+  @override
+  String get documents_export_manifest_issueDate => 'Uitgiftedatum';
+
+  @override
+  String get documents_export_manifest_expiryDate => 'Vervaldatum';
+
+  @override
+  String get documents_export_manifest_notes => 'Notities';
+
+  @override
+  String get documents_export_manifest_emergencyPhone => 'Noodnummer';
+
+  @override
+  String get documents_export_manifest_phone => 'Telefoon';
+
+  @override
+  String get documents_export_manifest_page => 'Pagina';
+
+  @override
+  String get documents_export_manifest_side => 'Zijde';
+
+  @override
+  String get documents_export_manifest_path => 'Pad in de ZIP';
+
+  @override
   String get documents_filter_all => 'Alle';
 
   @override
@@ -29884,6 +30007,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_export_csvTitle => 'CSV-export';
+
+  @override
+  String get transfer_export_documentsSubtitle =>
+      'Al je documenten als ZIP met wachtwoord';
+
+  @override
+  String get transfer_export_documentsTitle => 'Documenten';
 
   @override
   String get transfer_export_excelSubtitle =>
