@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rework: trips, buddies, equipment, gas, and the toggle</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #0e1116; color: #e8ebf0; line-height: 1.45; padding: 28px 32px 72px; }
+  body[data-mode="light"] { background: #eef0f3; color: #1c2430; }
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 10px; max-width: 1560px; }
+  header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  header p { margin-top: 5px; opacity: .72; max-width: 880px; font-size: 14px; }
+  .seg { display: inline-flex; border: 1px solid rgba(128,140,160,.35); border-radius: 999px; overflow: hidden; flex-shrink: 0; margin-top: 2px; }
+  .seg button { background: transparent; border: 0; color: inherit; padding: 6px 14px; cursor: pointer; opacity: .6; font: inherit; font-size: 13px; }
+  .seg button.on { opacity: 1; background: rgba(128,140,160,.2); }
+  h2.group { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; opacity: .55; margin: 34px 0 4px; }
+  p.groupnote { font-size: 13px; opacity: .7; margin-bottom: 14px; max-width: 880px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 28px; max-width: 1560px; }
+  @media (max-width: 1180px) { .grid { grid-template-columns: 1fr; } }
+  .dir { border-radius: 18px; padding: 12px; cursor: pointer; border: 2px solid transparent; transition: border-color .2s, background .2s; }
+  .dir:hover { background: rgba(128,140,160,.08); }
+  .dir.selected { border-color: #4fb3d9; background: rgba(79,179,217,.09); }
+  .cap { display: flex; gap: 12px; align-items: baseline; padding: 12px 6px 2px; }
+  .cap .k { font-size: 12px; font-weight: 700; letter-spacing: .08em; opacity: .5; min-width: 1.4em; }
+  .cap h3 { font-size: 16px; font-weight: 600; }
+  .cap h3 small { font-weight: 400; opacity: .55; font-size: 12px; margin-left: 8px; }
+  .cap p { font-size: 13px; opacity: .72; margin-top: 3px; line-height: 1.45; }
+  .pane { position: relative; aspect-ratio: 16 / 11; border-radius: 14px; overflow: hidden; isolation: isolate; box-shadow: 0 10px 30px rgba(0,0,0,.28); }
+  .pane canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .pane svg.fill { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .eyebrow { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; opacity: .68; }
+  .head { position: absolute; left: 7.5%; top: 11%; right: 30%; }
+  .hl { font-size: 26px; font-weight: 300; margin-top: 6px; line-height: 1.2; }
+  .sub { font-size: 13.5px; opacity: .74; margin-top: 6px; line-height: 1.5; }
+  .side { position: absolute; right: 7.5%; top: 20%; text-align: right; font-size: 12.5px; opacity: .72; line-height: 1.7; }
+  .side b { font-weight: 400; font-size: 16px; }
+  .foot { position: absolute; left: 7.5%; right: 7.5%; bottom: 9%; display: flex; justify-content: space-between; font-size: 12px; opacity: .6; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+  @keyframes bob { 0%,100% { transform: translateY(-50%); } 50% { transform: translateY(calc(-50% - 7px)); } }
+  @keyframes sway { from { transform: rotate(calc(var(--rot) - 2.5deg)) translateX(-6px); opacity: calc(var(--op) * .55); } to { transform: rotate(calc(var(--rot) + 2.5deg)) translateX(6px); opacity: var(--op); } }
+  @media (prefers-reduced-motion: reduce) { .pane * { animation: none !important; } }
+
+  /* the toggle in the corner, and the data view it reveals */
+  .toggle { position: absolute; right: 3.2%; top: 5.5%; z-index: 4; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.10); color: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: .6; transition: opacity .2s, background .2s; backdrop-filter: blur(4px); }
+  .toggle:hover { opacity: 1; background: rgba(255,255,255,.18); }
+  .toggle svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .pane.lightink .toggle { border-color: rgba(0,0,0,.18); background: rgba(0,0,0,.06); }
+  .pane.lightink .toggle:hover { background: rgba(0,0,0,.12); }
+  .pane.data .toggle { opacity: .85; border-color: rgba(128,140,160,.4); background: rgba(128,140,160,.15); color: #1c2430; }
+  body[data-mode="dark"] .pane.data .toggle { color: #e8ebf0; }
+  .datapane { position: absolute; inset: 0; z-index: 3; display: none; overflow: hidden; padding: 6.5% 7.5%; background: #f3f5f7; color: #1c2430; font-size: 12px; }
+  body[data-mode="dark"] .datapane { background: #151b22; color: #e3e8ee; }
+  .pane.data .datapane { display: block; }
+  .datapane .dh { display: flex; align-items: center; gap: 10px; }
+  .datapane .dh .ico { width: 28px; height: 28px; border-radius: 6px; background: rgba(0,119,182,.18); }
+  .datapane .dh h4 { font-size: 18px; font-weight: 700; }
+  .datapane .dh p { opacity: .6; font-size: 11.5px; }
+  .datapane .lab { margin: 14px 0 8px; font-weight: 600; font-size: 12.5px; }
+  .datapane .cards { display: flex; flex-wrap: wrap; gap: 8px; }
+  .datapane .card { width: 23%; min-width: 92px; background: #fff; border-radius: 10px; padding: 10px 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  body[data-mode="dark"] .datapane .card { background: #1f2730; box-shadow: none; }
+  .datapane .card .ci { width: 26px; height: 26px; border-radius: 6px; margin: 0 auto 6px; background: var(--c, #3a86ff); opacity: .28; }
+  .datapane .card .cv { font-weight: 700; font-size: 14px; }
+  .datapane .card .cl { opacity: .6; font-size: 10.5px; margin-top: 2px; }
+  .datapane .list { margin-top: 10px; background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  body[data-mode="dark"] .datapane .list { background: #1f2730; box-shadow: none; }
+  .datapane .list div { display: flex; justify-content: space-between; padding: 7px 12px; border-top: 1px solid rgba(128,140,160,.18); font-size: 11.5px; }
+  .datapane .list div:first-child { border-top: 0; }
+  .datapane .btns { margin-top: 12px; display: flex; gap: 8px; }
+  .datapane .btns span { padding: 6px 12px; border-radius: 999px; background: #0077b6; color: #fff; font-size: 11px; }
+  .datapane .btns span.o { background: transparent; color: inherit; border: 1px solid rgba(128,140,160,.5); }
+
+  /* A. water column */
+  .pa { --a0:#1b6d8d; --a1:#0d3a60; --a2:#030b1b; background: linear-gradient(180deg, var(--a0) 0%, var(--a1) 48%, var(--a2) 100%); color: #f3fbff; }
+  body[data-mode="light"] .pa { --a0:#a9e6ef; --a1:#3ea3c6; --a2:#0c3f70; color: #f6fdff; }
+  .ray { position: absolute; top: -12%; width: 16%; height: 130%; transform-origin: 50% 0; mix-blend-mode: screen; filter: blur(7px); --op: 1;
+         background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,0) 72%); animation: sway 18s ease-in-out infinite alternate; }
+  body[data-mode="light"] .ray { background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 70%); }
+  .ray.r1 { left: 22%; --rot:-16deg; animation-delay: -3s; }
+  .ray.r2 { left: 46%; --rot:-11deg; width: 10%; --op:.7; animation-delay: -9s; animation-duration: 22s; }
+  .ray.r3 { left: 68%; --rot:-19deg; width: 20%; --op:.6; animation-delay: -14s; animation-duration: 26s; }
+  .surf { position: absolute; top: -8px; left: 0; width: 200%; height: 34px; animation: slide 26s linear infinite; opacity: .9; }
+  .surf path { fill: rgba(255,255,255,.16); }
+  body[data-mode="light"] .surf path { fill: rgba(255,255,255,.42); }
+  .pa .head { right: 24%; }
+  .scale { position: absolute; right: 7.5%; top: 18%; bottom: 8%; width: 1px; background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.4) 12%, rgba(255,255,255,.4) 88%, rgba(255,255,255,0)); }
+  .tick { position: absolute; right: calc(7.5% + 10px); font-size: 10px; opacity: .55; transform: translateY(-50%); letter-spacing: .06em; }
+  .rule { position: absolute; left: 7.5%; right: 7.5%; height: 1px; background: rgba(255,255,255,.12); }
+  .mark { position: absolute; left: 7.5%; transform: translateY(-50%); animation: bob 9s ease-in-out infinite; padding-left: 14px; }
+  .mark::before { content: ""; position: absolute; left: 0; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 0 14px rgba(255,255,255,.9); }
+  .mark .v { font-size: 24px; font-weight: 300; line-height: 1.1; text-shadow: 0 2px 18px rgba(0,0,0,.3); }
+  .mark .l { font-size: 12px; opacity: .78; margin-top: 2px; }
+  .mark.m2 { animation-duration: 11s; animation-delay: -4s; }
+
+  /* D. current */
+  .pd { background: linear-gradient(160deg, #06151d, #0b2430 60%, #0d2b36); color: #e3f3f7; }
+  body[data-mode="light"] .pd { background: linear-gradient(160deg, #e1f1f4, #c8e2e8 60%, #bfdce3); color: #15323c; }
+  .pd .stack { position: absolute; left: 7.5%; top: 12%; display: flex; flex-direction: column; gap: 16px; }
+  .pd .stack .v { font-size: 34px; font-weight: 200; letter-spacing: -.02em; line-height: 1; }
+  .pd .stack .l { font-size: 12px; opacity: .7; margin-top: 5px; }
+  .pd .eyebrow { position: absolute; left: 7.5%; bottom: 8%; }
+  .chip { position: absolute; left: -35%; padding: 6px 13px; border-radius: 999px; font-size: 12px; white-space: nowrap; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(4px); animation: carry var(--t, 80s) linear infinite; animation-delay: var(--dl, 0s); }
+  .chip span { display: inline-block; animation: bob2 7s ease-in-out infinite; }
+  body[data-mode="light"] .chip { background: rgba(255,255,255,.55); border-color: rgba(20,70,90,.12); }
+  .chip.k1 { top: 24%; --t: 85s; --dl: -30s; }
+  .chip.k2 { top: 50%; --t: 100s; --dl: -62s; }
+  .chip.k3 { top: 71%; --t: 115s; --dl: -15s; }
+  @keyframes carry { from { left: -35%; } to { left: 105%; } }
+  @keyframes bob2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+  /* H. strata */
+  .ph { background: #06182b; color: #0e2f40; }
+  .ph .band { position: absolute; left: 0; right: 0; }
+  .ph .b1 { top: 0; height: 42%; background: #bfe9ee; }
+  .ph .b2 { top: 36%; height: 40%; background: #5aa8c6; }
+  .ph .b3 { top: 70%; bottom: 0; background: #1f4f7a; }
+  body[data-mode="dark"] .ph .b1 { background: #1a6a85; }
+  body[data-mode="dark"] .ph .b2 { background: #0e3f5e; }
+  body[data-mode="dark"] .ph .b3 { background: #06182b; }
+  body[data-mode="dark"] .ph { color: #e3f1f7; }
+  .ph .wave { position: absolute; left: 0; width: 200%; height: 44px; animation: slide 44s linear infinite; }
+  .ph .wave.s1 { top: calc(38% - 36px); }
+  .ph .wave.s1 path { fill: #5aa8c6; }
+  .ph .wave.s2 { top: calc(72% - 36px); animation-duration: 58s; animation-direction: reverse; }
+  .ph .wave.s2 path { fill: #1f4f7a; }
+  body[data-mode="dark"] .ph .wave.s1 path { fill: #0e3f5e; }
+  body[data-mode="dark"] .ph .wave.s2 path { fill: #06182b; }
+  .ph .t { position: absolute; left: 7.5%; right: 7.5%; }
+  .ph .t .v { font-size: 23px; font-weight: 300; line-height: 1.2; }
+  .ph .t .l { font-size: 12.5px; opacity: .72; margin-top: 4px; }
+  .ph .t1 { top: 11%; }
+  .ph .t2 { top: 47%; color: #f0f8fb; }
+  .ph .t3 { top: 80%; color: #e3f1f7; }
+  .ph .zone { position: absolute; right: 7.5%; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; opacity: .5; }
+  .ph .grain { position: absolute; inset: 0; opacity: .07; pointer-events: none; mix-blend-mode: multiply; }
+  body[data-mode="dark"] .ph .grain { mix-blend-mode: screen; opacity: .06; }
+
+  /* I. chart, with a passage */
+  .pi { background: #efe7d2; color: #3b3324; }
+  body[data-mode="dark"] .pi { background: #121c26; color: #d9e2ea; }
+  .pi svg.fill { animation: chartdrift 70s ease-in-out infinite alternate; }
+  @keyframes chartdrift { from { transform: translate(-1.2%, -0.6%) scale(1.02); } to { transform: translate(1.2%, 0.8%) scale(1.02); } }
+  .pi .ink { stroke: rgba(70,60,40,.55); fill: none; stroke-width: 1; }
+  .pi .ink.c { stroke-dasharray: 3 4; stroke-width: .8; opacity: .8; }
+  .pi .land { fill: #e4dabd; stroke: rgba(70,60,40,.5); }
+  .pi text { font-family: "Iowan Old Style", Palatino, Georgia, serif; fill: rgba(60,50,30,.55); font-size: 11px; }
+  body[data-mode="dark"] .pi .ink { stroke: rgba(190,210,225,.4); }
+  body[data-mode="dark"] .pi .land { fill: #1c2a36; stroke: rgba(190,210,225,.35); }
+  body[data-mode="dark"] .pi text { fill: rgba(200,215,228,.55); }
+  .pi .site { fill: #2a8aa6; }
+  body[data-mode="dark"] .pi .site { fill: #7fd3ea; }
+  .pi .glow { fill: #2a8aa6; opacity: .25; animation: pulse 8s ease-in-out infinite; }
+  body[data-mode="dark"] .pi .glow { fill: #7fd3ea; }
+  @keyframes pulse { 0%,100% { transform: scale(1); opacity: .25; } 50% { transform: scale(1.6); opacity: .08; } }
+  .pi .sitename { font-family: system-ui, sans-serif; font-size: 11px; fill: #1d5d70 !important; }
+  body[data-mode="dark"] .pi .sitename { fill: #bfe8f3 !important; }
+  .pi .course { fill: none; stroke: #b7352b; stroke-width: 1.4; stroke-dasharray: 6 5; opacity: .8; animation: course 40s linear infinite; }
+  body[data-mode="dark"] .pi .course { stroke: #f08a7a; }
+  @keyframes course { to { stroke-dashoffset: -220; } }
+  .pi .sweep { position: absolute; top: -20%; left: -30%; width: 26%; height: 140%; transform: rotate(18deg); background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.35), rgba(255,255,255,0)); filter: blur(14px); animation: sweep 42s linear infinite; }
+  body[data-mode="dark"] .pi .sweep { background: linear-gradient(90deg, rgba(160,200,230,0), rgba(160,200,230,.12), rgba(160,200,230,0)); }
+  @keyframes sweep { from { left: -30%; } to { left: 120%; } }
+
+  /* globe */
+  .pg2 { background: radial-gradient(120% 100% at 30% 20%, #0a1a2e, #040a14 70%); color: #d8e6f2; }
+  body[data-mode="light"] .pg2 { background: radial-gradient(120% 100% at 30% 20%, #1f4466, #102842 70%); color: #e8f1f8; }
+  .pg2 .head { right: 48%; }
+
+  /* M. kelp, named */
+  .pm { background: linear-gradient(180deg, #0b3a4e 0%, #06202e 60%, #03121b 100%); color: #e3f2f7; }
+  body[data-mode="light"] .pm { background: linear-gradient(180deg, #9fdbe8 0%, #3f98b6 60%, #22627f 100%); color: #f3fbfd; }
+  .pm .ray { background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0) 70%); animation-duration: 20s; --rot: -14deg; }
+  body[data-mode="light"] .pm .ray { background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,0) 70%); }
+  .pm .ray.r2 { left: 58%; --rot: -9deg; width: 11%; --op: .7; animation-delay: -8s; animation-duration: 25s; }
+  .pm .ray.r1 { left: 30%; animation-delay: -3s; }
+  .kelp { position: absolute; bottom: -2%; width: 14%; height: 92%; transform-origin: 50% 100%; animation: kelp var(--t, 9s) ease-in-out infinite alternate; animation-delay: var(--dl, 0s); }
+  .kelp svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .kelp path { fill: #082a28; }
+  body[data-mode="light"] .kelp path { fill: #1d5c4e; }
+  .kelp.back { opacity: .55; filter: blur(1.5px); height: 70%; }
+  .kelp.back path { fill: #0d3a3a; }
+  body[data-mode="light"] .kelp.back path { fill: #2f7a6b; }
+  .kelp .name { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; opacity: .85; text-align: center; line-height: 1.35; }
+  .kelp .name small { display: block; font-size: 9.5px; opacity: .7; }
+  @keyframes kelp { from { transform: rotate(-2.2deg) skewX(-2deg); } to { transform: rotate(2.2deg) skewX(2deg); } }
+  .pm .head { right: 32%; }
+
+  /* O. constellation */
+  .po { background: radial-gradient(120% 100% at 30% 20%, #0a1a2e, #040a14 70%); color: #d8e6f2; }
+  body[data-mode="light"] .po { background: radial-gradient(120% 100% at 30% 20%, #1f4466, #102842 70%); color: #e8f1f8; }
+  .po .labels { position: absolute; inset: 0; pointer-events: none; }
+  .po .lab { position: absolute; font-size: 11.5px; opacity: .78; transform: translate(10px, -50%); white-space: nowrap; }
+  .po .lab small { display: block; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
+
+  /* shoal */
+  .psh { background: linear-gradient(180deg, #1a6a8e 0%, #0d3f63 55%, #06203a 100%); color: #eaf6fb; }
+  body[data-mode="light"] .psh { background: linear-gradient(180deg, #8fd6e8 0%, #3f9fc0 55%, #1c5f82 100%); color: #f4fbfe; }
+  .psh .head { right: 36%; }
+  .psh .dim { position: absolute; left: 7.5%; right: 7.5%; bottom: 18%; font-size: 12px; line-height: 1.8; opacity: .8; }
+  .psh .dim span { display: block; padding-left: 16px; position: relative; }
+  .psh .dim span::before { content: ""; position: absolute; left: 0; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: #f0b060; box-shadow: 0 0 8px #f0b060; }
+</style>
+</head>
+<body data-mode="dark">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter>
+</svg>
+<header>
+  <div>
+    <h1>The swaps, and the toggle</h1>
+    <p>Every pane now has a small round button in its top-right corner. Click it to flip that pane to a wireframe of today's data-rich page, and again to come back; Settings &gt; Appearance would hold the default. Below: two candidates for Trips, one each for Buddies, Equipment and Gas calculators, and the three pages that inherit a realm (Courses, Insights, Transfer). Click the ones that work.</p>
+  </div>
+  <div class="seg"><button data-m="dark" class="on">Dark</button><button data-m="light">Light</button></div>
+</header>
+
+<h2 class="group">Trips: pick one</h2>
+<p class="groupnote">Both are nautical and both are about going somewhere.</p>
+<main class="grid">
+
+  <section class="dir" data-choice="trips-passage" onclick="pick(this)">
+    <div class="pane pi lightink" id="p-passage">
+      <svg class="fill" viewBox="0 0 1000 690" preserveAspectRatio="xMidYMid slice">
+        <path class="land" d="M690 0 C 640 90, 730 180, 660 260 S 720 420, 640 520 S 700 640, 660 690 L1000 690 L1000 0 Z"/>
+        <path class="land" d="M0 690 V500 C 60 480, 120 520, 180 560 C 220 600, 200 650, 230 690 Z"/>
+        <path class="ink c" d="M640 0 C 590 90, 680 180, 610 260 S 670 420, 590 520 S 650 640, 610 690"/>
+        <path class="ink c" d="M590 0 C 540 90, 630 180, 560 260 S 620 420, 540 520 S 600 640, 560 690"/>
+        <text x="120" y="330">12</text><text x="250" y="420">18</text><text x="380" y="300">27</text><text x="430" y="500">33</text><text x="320" y="620">21</text><text x="470" y="380">24</text>
+        <g transform="translate(130 150)"><circle class="ink" r="46"/><circle class="ink" r="30"/><path class="ink" d="M0 -58 V58 M-58 0 H58"/><text x="-4" y="-66" style="font-size:12px">N</text></g>
+        <path class="course" d="M190 560 C 300 470, 420 520, 540 400 S 700 330, 770 240"/>
+        <g transform="translate(190 560)"><circle class="site" r="4"/><text class="sitename" x="-10" y="-12">Home</text></g>
+        <g transform="translate(540 400)"><circle class="glow" r="14" style="transform-origin:0 0"/><circle class="site" r="4"/><text class="sitename" x="12" y="4">Bali &middot; May 2026</text></g>
+        <g transform="translate(770 240)"><circle class="glow" r="14" style="transform-origin:0 0; animation-delay:-4s"/><circle class="site" r="4"/><text class="sitename" x="12" y="4">Komodo &middot; in 23 days</text></g>
+      </svg>
+      <div class="sweep"></div>
+      <div class="head">
+        <div class="eyebrow">trips</div>
+        <div class="hl">23 trips, 96 days diving</div>
+        <div class="sub">Next: Komodo, in 23 days. Last: Bali, in May.</div>
+      </div>
+      <div class="foot"><span>4 liveaboards &middot; 6 countries &middot; 214 dives away</span></div>
+    </div>
+    <div class="cap"><span class="k">T1</span><div><h3>The passage<small>the chart, with a course</small></h3><p>Same paper chart as Sites, but the marks are trips and a dashed course runs from home through the last trip to the next one. Shares the chart painter with Sites.</p></div></div>
+  </section>
+
+  <section class="dir" data-choice="trips-globe" onclick="pick(this)">
+    <div class="pane pg2" id="p-globe">
+      <canvas id="globeC"></canvas>
+      <div class="head">
+        <div class="eyebrow">trips</div>
+        <div class="hl">23 trips, 96 days diving</div>
+        <div class="sub">Six countries. Next: Komodo, in 23 days.</div>
+      </div>
+      <div class="foot"><span>4 liveaboards &middot; 214 dives away from home</span></div>
+    </div>
+    <div class="cap"><span class="k">T2</span><div><h3>The globe<small>new</small></h3><p>A sphere of faint dots turning very slowly, home and the places you have dived lit on it, thin arcs from home to each. The next trip glows.</p></div></div>
+  </section>
+</main>
+
+<h2 class="group">Buddies, Equipment, Gas calculators</h2>
+<p class="groupnote">One proposal each; say if any still misses.</p>
+<main class="grid">
+
+  <section class="dir" data-choice="buddies-kelp" onclick="pick(this)">
+    <div class="pane pm" id="p-buddies">
+      <div class="ray r1"></div><div class="ray r2"></div>
+      <div class="kelp back" style="left:3%; --t:11s; --dl:-4s; height:50%"><svg viewBox="-30 -400 60 400" preserveAspectRatio="none"><path d="M-9 0 C -24 -110, 12 -210, -4 -330 C 8 -210, 22 -110, 9 0 Z"/></svg></div>
+      <div class="kelp back" style="left:30%; --t:13s; --dl:-7s; height:44%"><svg viewBox="-30 -400 60 400" preserveAspectRatio="none"><path d="M-8 0 C -20 -120, 14 -230, -2 -350 C 6 -230, 20 -120, 8 0 Z"/></svg></div>
+      <div class="kelp back" style="left:58%; --t:10s; --dl:-2s; height:40%"><svg viewBox="-30 -400 60 400" preserveAspectRatio="none"><path d="M-9 0 C -26 -100, 10 -220, -6 -340 C 10 -220, 24 -100, 9 0 Z"/></svg></div>
+      <div class="kelp back" style="left:86%; --t:12s; --dl:-9s; height:36%"><svg viewBox="-30 -400 60 400" preserveAspectRatio="none"><path d="M-9 0 C -22 -120, 16 -240, -4 -370 C 8 -240, 22 -120, 9 0 Z"/></svg></div>
+      <div class="kelp" style="left:12%; --t:9s; --dl:-1s; height:72%"><svg viewBox="-30 -400 60 400" preserveAspectRatio="none"><path d="M-10 0 C -26 -100, 14 -200, -2 -330 C 10 -200, 24 -100, 10 0 Z"/></svg><div class="name" style="top:-9%">Sam Lee<small>42 dives together</small></div></div>
+      <div class="kelp" style="left:44%; --t:12s; --dl:-5s; height:58%"><svg viewBox="-30 -400 60 400" preserveAspectRatio="none"><path d="M-9 0 C -22 -120, 16 -240, -4 -370 C 8 -240, 22 -120, 9 0 Z"/></svg><div class="name" style="top:-12%">Priya Nair<small>27 dives</small></div></div>
+      <div class="kelp" style="left:70%; --t:10.5s; --dl:-3s; height:48%"><svg viewBox="-30 -400 60 400" preserveAspectRatio="none"><path d="M-10 0 C -28 -110, 12 -230, -5 -360 C 10 -230, 26 -110, 10 0 Z"/></svg><div class="name" style="top:-14%">Tom Baker<small>19 dives</small></div></div>
+      <div class="head">
+        <div class="eyebrow">buddies</div>
+        <div class="hl">31 buddies</div>
+        <div class="sub">19 with a card on file. Twelve of them in the water with you this year.</div>
+      </div>
+    </div>
+    <div class="cap"><span class="k">B</span><div><h3>Buddies in the kelp<small>M, one blade per buddy</small></h3><p>The blades are your regulars, taller the more dives you share, each named at its tip; the rest of the forest is everyone else. They sway together, which is rather the point.</p></div></div>
+  </section>
+
+  <section class="dir" data-choice="equipment-shoal" onclick="pick(this)">
+    <div class="pane psh" id="p-equipment">
+      <canvas id="shoalC"></canvas>
+      <div class="head">
+        <div class="eyebrow">equipment</div>
+        <div class="hl">32 items, 29 in use</div>
+        <div class="sub">Every fish is an item. Three have strayed from the shoal.</div>
+      </div>
+      <div class="dim">
+        <span>Apeks XTX50 regulator, service in 18 days</span>
+        <span>Hollis BCD, inspection overdue</span>
+        <span>Perdix 2, battery at 20 %</span>
+      </div>
+      <div class="foot"><span>Worth about $6,400</span><span>Wish list $900</span></div>
+    </div>
+    <div class="cap"><span class="k">E</span><div><h3>Equipment as a shoal<small>new</small></h3><p>Thirty-two small fish moving as one slow shoal through open blue, one per item. The ones due for service turn amber and drift off the edge of the group. Flocking at a tenth of the usual speed is hypnotic rather than busy.</p></div></div>
+  </section>
+
+  <section class="dir" data-choice="gas-column" onclick="pick(this)">
+    <div class="pane pa" id="p-gas">
+      <div class="ray r1"></div><div class="ray r2"></div><div class="ray r3"></div>
+      <canvas id="snowG"></canvas>
+      <svg class="surf" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0 20 Q150 4 300 20 T600 20 T900 20 T1200 20 V0 H0 Z"/></svg>
+      <div class="head">
+        <div class="eyebrow">gas calculators</div>
+        <div class="hl">Six calculators</div>
+        <div class="sub">Your last mixes, placed at their limits.</div>
+      </div>
+      <div class="scale"></div>
+      <div class="tick" style="top:18%">0 m</div><div class="tick" style="top:54%">30 m</div><div class="tick" style="top:90%">60 m</div>
+      <div class="rule" style="top:57.7%"></div>
+      <div class="mark m2" style="top:57.7%"><div class="v">33.1 m</div><div class="l">EAN32, MOD at 1.4 bar</div></div>
+      <div class="rule" style="top:86%"></div>
+      <div class="mark" style="top:86%"><div class="v">56 m</div><div class="l">21/35, MOD at 1.4 &middot; END 26 m at 45 m</div></div>
+    </div>
+    <div class="cap"><span class="k">G</span><div><h3>Gas calculators in the water column<small>A, with MOD marks</small></h3><p>The column is the natural place for a maximum operating depth. Your last mixes sit at their limits, so the page says something true before you touch a calculator.</p></div></div>
+  </section>
+</main>
+
+<h2 class="group">Pages that inherit a realm</h2>
+<p class="groupnote">Courses takes the strata from Certifications. Insights takes the constellation. The Transfer home takes the current.</p>
+<main class="grid">
+
+  <section class="dir" data-choice="courses-strata" onclick="pick(this)">
+    <div class="pane ph" id="p-courses">
+      <div class="band b1"></div><div class="band b2"></div><div class="band b3"></div>
+      <svg class="wave s1" viewBox="0 0 1200 44" preserveAspectRatio="none"><path d="M0 22 Q150 4 300 22 T600 22 T900 22 T1200 22 V44 H0 Z"/></svg>
+      <svg class="wave s2" viewBox="0 0 1200 44" preserveAspectRatio="none"><path d="M0 22 Q150 6 300 22 T600 22 T900 22 T1200 22 V44 H0 Z"/></svg>
+      <svg class="grain fill"><rect width="100%" height="100%" filter="url(#grain)"/></svg>
+      <div class="t t1"><div class="v">3 courses</div><div class="l">2 completed, 1 in progress</div></div>
+      <div class="zone" style="top:12%">sunlit</div>
+      <div class="t t2"><div class="v">Advanced Nitrox</div><div class="l">in progress with TDI, 3 of 6 dives done</div></div>
+      <div class="zone" style="top:48%">twilight</div>
+      <div class="t t3"><div class="v">Decompression Procedures</div><div class="l">planned next</div></div>
+      <div class="zone" style="top:81%">midnight</div>
+    </div>
+    <div class="cap"><span class="k">C</span><div><h3>Courses<small>H, the strata</small></h3><p>Counts in the sunlit band, the course in progress in twilight, what comes next in midnight.</p></div></div>
+  </section>
+
+  <section class="dir" data-choice="insights-constellation" onclick="pick(this)">
+    <div class="pane po" id="p-insights">
+      <canvas id="starsO"></canvas>
+      <div class="labels" id="labelsO">
+        <div class="lab" style="left:72%; top:62%"><small>deepest</small>41.2 m, Blue Hole</div>
+        <div class="lab" style="left:40%; top:74%"><small>longest</small>78 min, Pescador</div>
+        <div class="lab" style="left:82%; top:38%"><small>coldest</small>9 &deg;C, Edithburgh</div>
+      </div>
+      <div class="head">
+        <div class="eyebrow">insights</div>
+        <div class="hl">214 dives, 61 h 20 m</div>
+        <div class="sub">Every point is a dive. The brighter ones went deeper. Three records are joined.</div>
+      </div>
+      <div class="foot"><span>Last twelve months: 38 dives, 12 new sites, 2 records</span></div>
+    </div>
+    <div class="cap"><span class="k">I</span><div><h3>Insights<small>O, the constellation</small></h3><p>The overview pane of Insights, with the records joined. The data-rich overview stays one toggle away.</p></div></div>
+  </section>
+
+  <section class="dir" data-choice="transfer-current" onclick="pick(this)">
+    <div class="pane pd" id="p-transfer">
+      <canvas id="flowD"></canvas>
+      <div class="stack">
+        <div><div class="v">3</div><div class="l">new dives in the last import</div></div>
+        <div><div class="v">2</div><div class="l">computers paired</div></div>
+        <div><div class="v">2</div><div class="l">cloud sources connected</div></div>
+      </div>
+      <div class="chip k1"><span>Perdix 2 &middot; 3 dives, 12 days ago</span></div>
+      <div class="chip k2"><span>Suunto cloud &middot; synced yesterday</span></div>
+      <div class="chip k3"><span>UDDF export &middot; in May</span></div>
+      <div class="eyebrow">transfer</div>
+    </div>
+    <div class="cap"><span class="k">X</span><div><h3>Transfer home<small>D, the current</small></h3><p>The current carries dives into the log: recent imports, syncs and exports drift past, counts on the left. Replaces a pane that only says "select a section".</p></div></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var body = document.body;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var segButtons = document.querySelectorAll('.seg button');
+  segButtons.forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      body.dataset.mode = b.dataset.m;
+      segButtons.forEach(function (x) { x.classList.toggle('on', x === b); });
+      if (window.brainstorm) window.brainstorm.send({ type: 'mode', value: b.dataset.m });
+    });
+  });
+  window.pick = function (el) { el.classList.toggle('selected'); };
+  function light() { return body.dataset.mode === 'light'; }
+
+  // The toggle and the wireframe data view
+  var wires = {
+    'p-passage': { t: 'Trips', s: 'Select a trip from the list to view details', cards: [['23', 'Total Trips', '#3a86ff'], ['214', 'Total Dives', '#2a9d8f'], ['96', 'Days Diving', '#e76f51'], ['4', 'Liveaboards', '#8e7cc3']], list: [['Komodo', 'Nov 2026 • in 23 days'], ['Bali', 'May 2026'], ['Red Sea', 'Oct 2023']], btns: ['Add Trip'] },
+    'p-globe': null,
+    'p-buddies': { t: 'Dive Buddies', s: 'Select a buddy from the list to view details', cards: [['31', 'Total Buddies', '#3a86ff'], ['19', 'With Certification', '#2a9d8f'], ['42', 'Most Dives', '#e76f51']], list: [['Sam Lee', '42 dives'], ['Priya Nair', '27 dives'], ['Tom Baker', '19 dives']], btns: ['Add Buddy'] },
+    'p-equipment': { t: 'Equipment', s: 'Select equipment from the list to view details', cards: [['32', 'Total Items', '#3a86ff'], ['29', 'Active', '#2a9d8f'], ['3', 'Service Due', '#e76f51'], ['$6,400', 'Total Value', '#8e7cc3']], list: [['Apeks XTX50', 'service due'], ['Hollis BCD', 'service due'], ['Perdix 2', 'service due']], btns: ['Add Equipment'] },
+    'p-gas': { t: 'Gas Calculators', s: 'Select a calculator to get started', cards: [], list: [['Planning tools are aids. Your training decides.', '']], btns: [] },
+    'p-courses': { t: 'Training Courses', s: 'Select a course from the list to view details', cards: [['3', 'Total', '#3a86ff'], ['1', 'In Progress', '#e9a23b'], ['2', 'Completed', '#2a9d8f']], list: [['Advanced Nitrox', 'in progress'], ['Rescue Diver', 'completed'], ['Open Water', 'completed']], btns: ['Add Course'] },
+    'p-insights': { t: 'Overview', s: 'Career totals and highlights', cards: [['214', 'Dives', '#3a86ff'], ['61h', 'Dive Time', '#2a9d8f'], ['41.2 m', 'Deepest', '#8e7cc3'], ['48', 'Sites', '#e76f51']], list: [['Deepest', '41.2 m'], ['Longest', '78 min'], ['Coldest', '9 °C']], btns: [] },
+    'p-transfer': { t: 'Transfer', s: 'Import and export dive data', cards: [], list: [['Select a section from the list', '']], btns: [] }
+  };
+  wires['p-globe'] = wires['p-passage'];
+  var icon = '<svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>';
+  Object.keys(wires).forEach(function (id) {
+    var pane = document.getElementById(id), w = wires[id];
+    var btn = document.createElement('button'); btn.className = 'toggle'; btn.title = 'Show the data view'; btn.innerHTML = icon;
+    btn.addEventListener('click', function (e) { e.stopPropagation(); pane.classList.toggle('data'); if (window.brainstorm) window.brainstorm.send({ type: 'toggle', value: id, data: pane.classList.contains('data') }); });
+    var dp = document.createElement('div'); dp.className = 'datapane';
+    var html = '<div class="dh"><div class="ico"></div><div><h4>' + w.t + '</h4><p>' + w.s + '</p></div></div>';
+    if (w.cards.length) { html += '<div class="lab">Overview</div><div class="cards">' + w.cards.map(function (c) { return '<div class="card"><div class="ci" style="--c:' + c[2] + '"></div><div class="cv">' + c[0] + '</div><div class="cl">' + c[1] + '</div></div>'; }).join('') + '</div>'; }
+    if (w.list.length) { html += '<div class="lab">' + (w.cards.length ? 'Recent' : '') + '</div><div class="list">' + w.list.map(function (r) { return '<div><span>' + r[0] + '</span><span>' + r[1] + '</span></div>'; }).join('') + '</div>'; }
+    if (w.btns.length) { html += '<div class="btns">' + w.btns.map(function (b, i) { return '<span class="' + (i ? 'o' : '') + '">' + b + '</span>'; }).join('') + '</div>'; }
+    dp.innerHTML = html;
+    pane.appendChild(dp); pane.appendChild(btn);
+  });
+
+  function fit(c) {
+    var r = c.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.max(1, Math.round(r.width * dpr));
+    c.height = Math.max(1, Math.round(r.height * dpr));
+    c.dpr = dpr;
+    return dpr;
+  }
+  function rng(seed) { var s = seed; return function () { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }; }
+  var canvases = ['globeC', 'shoalC', 'snowG', 'starsO', 'flowD'].map(function (id) { var c = document.getElementById(id); fit(c); c.ctx = c.getContext('2d'); return c; });
+  var cg = canvases[0], csh = canvases[1], csn = canvases[2], co = canvases[3], cd = canvases[4];
+  window.addEventListener('resize', function () { canvases.forEach(fit); });
+
+  // Globe
+  var places = [
+    { n: 'Home', lat: -34.9, lon: 138.6, home: true },
+    { n: 'Komodo', lat: -8.5, lon: 119.5, next: true },
+    { n: 'Bali', lat: -8.4, lon: 115.2 },
+    { n: 'Red Sea', lat: 27.9, lon: 34.3 },
+    { n: 'Cebu', lat: 10.3, lon: 123.9 },
+    { n: 'Maldives', lat: 4.2, lon: 73.5 },
+    { n: 'Fiji', lat: -17.7, lon: 178.0 }
+  ];
+  function proj(lat, lon, rot, R, cx, cy) {
+    var la = lat * Math.PI / 180, lo = lon * Math.PI / 180 + rot, tilt = -0.35;
+    var x = Math.cos(la) * Math.sin(lo), y = Math.sin(la), z = Math.cos(la) * Math.cos(lo);
+    var y2 = y * Math.cos(tilt) - z * Math.sin(tilt), z2 = y * Math.sin(tilt) + z * Math.cos(tilt);
+    return [cx + x * R, cy - y2 * R, z2];
+  }
+  function drawGlobe() {
+    var w = cg.width, h = cg.height, ctx = cg.ctx, R = Math.min(w, h) * 0.42, cx = w * 0.66, cy = h * 0.55, rot = t * 0.06;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = light() ? 'rgba(220,235,250,1)' : 'rgba(200,220,240,1)';
+    for (var lat = -75; lat <= 75; lat += 15) for (var lon = 0; lon < 360; lon += 12) {
+      var p = proj(lat, lon, rot, R, cx, cy); if (p[2] < 0) continue;
+      ctx.globalAlpha = 0.08 + 0.22 * p[2]; ctx.beginPath(); ctx.arc(p[0], p[1], 0.9 * cg.dpr, 0, 6.283); ctx.fill();
+    }
+    ctx.globalAlpha = 0.25; ctx.strokeStyle = light() ? 'rgba(220,235,250,0.6)' : 'rgba(180,210,240,0.5)'; ctx.lineWidth = 1 * cg.dpr;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.stroke();
+    var home = places[0];
+    for (var i = 1; i < places.length; i++) {
+      var q = places[i]; ctx.beginPath(); var started = false;
+      for (var k = 0; k <= 40; k++) {
+        var f = k / 40, lat = home.lat + (q.lat - home.lat) * f, lon = home.lon + (q.lon - home.lon) * f;
+        var lift = 1 + 0.08 * Math.sin(f * Math.PI);
+        var p2 = proj(lat, lon, rot, R * lift, cx, cy);
+        if (p2[2] < -0.05) { started = false; continue; }
+        if (!started) { ctx.moveTo(p2[0], p2[1]); started = true; } else ctx.lineTo(p2[0], p2[1]);
+      }
+      ctx.globalAlpha = 0.35; ctx.stroke();
+    }
+    ctx.font = (11 * cg.dpr) + 'px system-ui, sans-serif';
+    for (var j = 0; j < places.length; j++) {
+      var pl = places[j], pp = proj(pl.lat, pl.lon, rot, R, cx, cy); if (pp[2] < 0.02) continue;
+      ctx.globalAlpha = 0.55 + 0.45 * pp[2];
+      ctx.fillStyle = pl.next ? '#ffffff' : (light() ? '#bfe8f3' : '#9fd8ea');
+      if (pl.next) { ctx.shadowColor = 'rgba(200,230,255,0.95)'; ctx.shadowBlur = 14 * cg.dpr; }
+      ctx.beginPath(); ctx.arc(pp[0], pp[1], (pl.next ? 3.2 : 2.2) * cg.dpr, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0;
+      ctx.fillStyle = light() ? 'rgba(240,248,255,0.9)' : 'rgba(225,238,250,0.85)';
+      ctx.fillText(pl.n + (pl.next ? ' · in 23 days' : ''), pp[0] + 8 * cg.dpr, pp[1] + 4 * cg.dpr);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Shoal: slow boids, three stragglers
+  var fish = [], rf = rng(32);
+  for (var f = 0; f < 32; f++) { var a0 = rf() * 6.28; fish.push({ x: 0.45 + rf() * 0.3, y: 0.35 + rf() * 0.3, vx: Math.cos(a0) * 0.02, vy: Math.sin(a0) * 0.02, stray: f < 3, ph: rf() * 6.28 }); }
+  function drawShoal(dt) {
+    var w = csh.width, h = csh.height, ctx = csh.ctx, n = fish.length;
+    var cxm = 0, cym = 0, vxm = 0, vym = 0;
+    for (var i = 0; i < n; i++) { cxm += fish[i].x; cym += fish[i].y; vxm += fish[i].vx; vym += fish[i].vy; }
+    cxm /= n; cym /= n; vxm /= n; vym /= n;
+    var wander = [0.5 + 0.18 * Math.sin(t * 0.07), 0.58 + 0.12 * Math.cos(t * 0.05)];
+    for (var k = 0; k < n; k++) {
+      var b = fish[k], ax = 0, ay = 0;
+      ax += (cxm - b.x) * (b.stray ? -0.004 : 0.02); ay += (cym - b.y) * (b.stray ? -0.004 : 0.02);
+      ax += (vxm - b.vx) * 0.6; ay += (vym - b.vy) * 0.6;
+      for (var m = 0; m < n; m++) { if (m === k) continue; var dx = b.x - fish[m].x, dy = b.y - fish[m].y, d2 = dx * dx + dy * dy; if (d2 < 0.0025 && d2 > 0) { ax += dx / d2 * 0.00012; ay += dy / d2 * 0.00012; } }
+      ax += (wander[0] - b.x) * 0.006; ay += (wander[1] - b.y) * 0.006;
+      if (b.stray) { ax += Math.sin(t * 0.3 + b.ph) * 0.004; ay += Math.cos(t * 0.25 + b.ph) * 0.004; }
+      b.vx += ax * dt; b.vy += ay * dt;
+      var sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy), maxs = 0.035, mins = 0.012;
+      if (sp > maxs) { b.vx *= maxs / sp; b.vy *= maxs / sp; } else if (sp < mins && sp > 0) { b.vx *= mins / sp; b.vy *= mins / sp; }
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      if (b.x < 0.04) b.vx += 0.01 * dt; if (b.x > 0.96) b.vx -= 0.01 * dt; if (b.y < 0.1) b.vy += 0.01 * dt; if (b.y > 0.9) b.vy -= 0.01 * dt;
+    }
+    ctx.clearRect(0, 0, w, h);
+    for (var q = 0; q < n; q++) {
+      var fsh = fish[q], ang = Math.atan2(fsh.vy * h, fsh.vx * w), L = 11 * csh.dpr, W = 3.6 * csh.dpr;
+      ctx.save(); ctx.translate(fsh.x * w, fsh.y * h); ctx.rotate(ang);
+      ctx.fillStyle = fsh.stray ? '#f0b060' : (light() ? 'rgba(10,40,60,0.75)' : 'rgba(205,235,245,0.8)');
+      if (fsh.stray) { ctx.shadowColor = '#f0b060'; ctx.shadowBlur = 8 * csh.dpr; }
+      ctx.beginPath(); ctx.moveTo(L * 0.6, 0); ctx.quadraticCurveTo(0, W, -L * 0.4, 0); ctx.quadraticCurveTo(0, -W, L * 0.6, 0); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-L * 0.35, 0); ctx.lineTo(-L * 0.6, W * 0.9); ctx.lineTo(-L * 0.6, -W * 0.9); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Marine snow for the gas column
+  var snow = [];
+  for (var s0 = 0; s0 < 80; s0++) snow.push({ x: Math.random(), y: Math.random(), r: 0.5 + Math.random() * 1.3, s: 0.004 + Math.random() * 0.009, ph: Math.random() * 6.28, a: 0.18 + Math.random() * 0.4 });
+  function drawSnow(dt) {
+    var w = csn.width, h = csn.height, ctx = csn.ctx;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = light() ? 'rgba(255,255,255,0.85)' : 'rgba(210,235,245,0.75)';
+    for (var i = 0; i < snow.length; i++) {
+      var p = snow[i]; p.y += p.s * dt * 0.7; p.x += Math.sin(t * 0.4 + p.ph) * 0.00025;
+      if (p.y > 1.05) { p.y = -0.05; p.x = Math.random(); }
+      ctx.globalAlpha = p.a; ctx.beginPath(); ctx.arc(p.x * w, p.y * h, p.r * csn.dpr, 0, 6.283); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Constellation (insights)
+  var ro = rng(214), stars = [], clusters = [];
+  for (var c = 0; c < 9; c++) clusters.push([0.12 + ro() * 0.8, 0.18 + ro() * 0.72, 0.04 + ro() * 0.09]);
+  for (var s = 0; s < 214; s++) { var cl = clusters[Math.floor(ro() * clusters.length)]; var ang2 = ro() * 6.28, rad = Math.sqrt(ro()) * cl[2]; stars.push({ x: cl[0] + Math.cos(ang2) * rad * 1.3, y: cl[1] + Math.sin(ang2) * rad, m: ro(), ph: ro() * 6.28, far: ro() < 0.55 }); }
+  var hi = [[0.72, 0.62], [0.40, 0.74], [0.82, 0.38]];
+  var labelsO = document.getElementById('labelsO');
+  function drawStars() {
+    var w = co.width, h = co.height, ctx = co.ctx;
+    ctx.clearRect(0, 0, w, h);
+    var ox = Math.sin(t * 0.045) * 0.012, oy = Math.cos(t * 0.037) * 0.008;
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i], par = st.far ? 0.45 : 1, x = (st.x + ox * par) * w, y = (st.y + oy * par) * h;
+      var tw = 0.7 + 0.3 * Math.sin(t * 0.5 + st.ph), r = (st.far ? 0.7 + st.m * 0.9 : 1.1 + st.m * 1.8) * co.dpr;
+      ctx.globalAlpha = (st.far ? 0.35 : 0.75) * tw; ctx.fillStyle = light() ? '#eaf4fb' : '#d7e8f5';
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+    }
+    ctx.globalAlpha = 0.5; ctx.strokeStyle = light() ? 'rgba(220,235,250,0.5)' : 'rgba(180,210,235,0.45)'; ctx.lineWidth = 1 * co.dpr; ctx.beginPath();
+    for (var k = 0; k < hi.length; k++) { var hx = (hi[k][0] + ox) * w, hy = (hi[k][1] + oy) * h; if (k === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy); }
+    ctx.stroke();
+    for (var q = 0; q < hi.length; q++) { var qx = (hi[q][0] + ox) * w, qy = (hi[q][1] + oy) * h; ctx.globalAlpha = 0.95; ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(200,230,255,0.9)'; ctx.shadowBlur = 12 * co.dpr; ctx.beginPath(); ctx.arc(qx, qy, 2.6 * co.dpr, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0; }
+    ctx.globalAlpha = 1;
+    labelsO.style.transform = 'translate(' + (ox * 100) + '%, ' + (oy * 100) + '%)';
+  }
+
+  // Current (transfer)
+  var P = [];
+  for (var j = 0; j < 170; j++) P.push({ x: Math.random(), y: Math.random(), life: 300 + Math.random() * 700 });
+  function field(x, y, t) { return [0.35 + 0.18 * Math.sin(y * 6.0 + t * 0.25) + 0.08 * Math.sin(x * 4.0 - t * 0.17), 0.16 * Math.sin(x * 5.0 + t * 0.21) * Math.cos(y * 4.5 - t * 0.13) + 0.05 * Math.sin(t * 0.3 + x * 9.0)]; }
+  function drawFlow(dt) {
+    var w = cd.width, h = cd.height, ctx = cd.ctx;
+    ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = 'rgba(0,0,0,0.035)'; ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = light() ? 'rgba(22,90,110,0.28)' : 'rgba(150,215,235,0.22)'; ctx.lineWidth = 1 * cd.dpr; ctx.beginPath();
+    for (var i = 0; i < P.length; i++) {
+      var p = P[i], f = field(p.x, p.y, t), nx = p.x + f[0] * dt * 0.12, ny = p.y + f[1] * dt * 0.12;
+      ctx.moveTo(p.x * w, p.y * h); ctx.lineTo(nx * w, ny * h); p.x = nx; p.y = ny; p.life -= 1;
+      if (p.x > 1.02 || p.y < -0.02 || p.y > 1.02) { p.x = -0.01; p.y = Math.random(); p.life = 300 + Math.random() * 700; }
+      else if (p.life < 0) { p.x = Math.random(); p.y = Math.random(); p.life = 300 + Math.random() * 700; }
+    }
+    ctx.stroke();
+  }
+
+  var last = 0, t = 0;
+  function frame(now) {
+    if (now - last < 31) { requestAnimationFrame(frame); return; }
+    var dt = Math.min((now - last) / 1000, 0.1); last = now; t += dt;
+    drawGlobe(); drawShoal(dt); drawSnow(dt); drawStars(); drawFlow(dt);
+    requestAnimationFrame(frame);
+  }
+  if (reduce) { drawGlobe(); drawShoal(0); drawSnow(0); drawStars(); } else { requestAnimationFrame(frame); }
+})();
+</script>
+</body>
+</html>
