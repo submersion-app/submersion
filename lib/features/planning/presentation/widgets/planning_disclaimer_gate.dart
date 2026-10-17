@@ -90,6 +90,10 @@ class _PlanningDisclaimerGateState
         // confirming, same as tapping the barrier is not.
         canPop: false,
         child: AlertDialog(
+          // Without a cap the dialog sizes to its text, so on a wide window
+          // the body ran into very long lines (#3392). Phones are already
+          // narrower than this; 280 keeps the stock minimum.
+          constraints: const BoxConstraints(minWidth: 280, maxWidth: 480),
           title: Text(context.l10n.planning_disclaimer_dialog_title),
           content: Text(context.l10n.planning_disclaimer_dialog_body),
           actions: [
