@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/settings/presentation/widgets/data_health/da
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/import_preferences_group.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -94,7 +94,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       title: title,
       subtitle: subtitle,
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.push(route),
+      onTap: () => context.pushSettingsPage(route),
     );
 
     return SingleChildScrollView(

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -21,6 +20,7 @@ import 'package:submersion/features/media_store/presentation/widgets/media_trans
 import 'package:submersion/features/media_store/presentation/widgets/webdav_media_form.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
@@ -879,7 +879,9 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                 leading: const Icon(Icons.swap_vert),
                 title: Text(l10n.settings_mediaStorage_transfers_entry),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/settings/media-storage/transfers'),
+                onTap: () => context.pushSettingsPage(
+                  '/settings/media-storage/transfers',
+                ),
               ),
               TextButton(
                 key: const Key('media-s3-disconnect'),

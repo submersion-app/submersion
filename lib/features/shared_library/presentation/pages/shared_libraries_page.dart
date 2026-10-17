@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -26,7 +26,7 @@ class SharedLibrariesPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: l10n.sharedLibrary_connect_action,
-            onPressed: () => context.push(connectRoute),
+            onPressed: () => context.pushSettingsPage(connectRoute),
           ),
         ],
       ),
@@ -77,7 +77,7 @@ class SharedLibrariesPage extends ConsumerWidget {
               Text(l10n.sharedLibrary_list_empty, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => context.push(connectRoute),
+                onPressed: () => context.pushSettingsPage(connectRoute),
                 icon: const Icon(Icons.add),
                 label: Text(l10n.sharedLibrary_connect_action),
               ),
@@ -126,7 +126,8 @@ class _LibraryTile extends ConsumerWidget {
       title: Text(library.name),
       subtitle: Text(parts.join(' · ')),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.push('/settings/shared-libraries/${library.id}'),
+      onTap: () =>
+          context.pushSettingsPage('/settings/shared-libraries/${library.id}'),
     );
   }
 }
@@ -144,7 +145,7 @@ class _NotConnectedTile extends StatelessWidget {
     title: Text(membership.libraryName),
     subtitle: Text(context.l10n.sharedLibrary_list_notConnected),
     trailing: const Icon(Icons.chevron_right),
-    onTap: () => context.push(
+    onTap: () => context.pushSettingsPage(
       '/settings/shared-libraries/connect?prefix='
       '${Uri.encodeQueryComponent(membership.prefixHint)}',
     ),

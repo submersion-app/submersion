@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_transfers_suspended_notice.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Outstanding transfer work on the Media Storage page.
@@ -101,7 +101,8 @@ class MediaTransferSummaryRow extends ConsumerWidget {
             // Retry lives on the Transfers page, which offers it for a
             // still-pending row precisely so nobody has to wait out a
             // multi-hour backoff they are looking at right now.
-            onTap: () => context.push('/settings/media-storage/transfers'),
+            onTap: () =>
+                context.pushSettingsPage('/settings/media-storage/transfers'),
           ),
       ],
     );

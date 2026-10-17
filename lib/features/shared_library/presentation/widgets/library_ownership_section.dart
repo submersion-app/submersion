@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
@@ -179,7 +179,7 @@ class LibraryOwnershipSection extends ConsumerWidget {
             subtitle: Align(
               alignment: AlignmentDirectional.centerStart,
               child: TextButton(
-                onPressed: () => context.push(
+                onPressed: () => context.pushSettingsPage(
                   '/settings/shared-libraries/${library.id}/members',
                 ),
                 child: Text(l10n.sharedLibrary_owner_addOwner),
