@@ -111,6 +111,10 @@ class ZipCryptoWriter {
     await _out.close();
   }
 
+  /// Closes the file without finishing the archive, for a caller that is
+  /// about to delete it after a cancel or a failure.
+  Future<void> abort() => _out.close();
+
   static void _checkLimit(int offset) {
     if (offset > 0xffffffff) {
       throw StateError('Archive larger than 4 GB needs ZIP64');
