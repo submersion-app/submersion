@@ -58826,6 +58826,42 @@ abstract class AppLocalizations {
   /// **'Strict (18/24/48 h)'**
   String get safetySettings_noFlyPreset_strict;
 
+  /// Safety hub row subtitle: the safety review is on, with how many rules are enabled and the no-fly preset word
+  ///
+  /// In en, this message translates to:
+  /// **'On, {enabled} of {total} rules, no-fly {noFly}'**
+  String safetyHub_reviewOn(int enabled, int total, String noFly);
+
+  /// Safety hub row subtitle: the safety review is off; the no-fly preset still applies
+  ///
+  /// In en, this message translates to:
+  /// **'Off, no-fly {noFly}'**
+  String safetyHub_reviewOff(String noFly);
+
+  /// Short name of the standard no-fly preset, used inside safetyHub_reviewOn/Off
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get safetyHub_noFlyStandard;
+
+  /// Short name of the strict no-fly preset, used inside safetyHub_reviewOn/Off
+  ///
+  /// In en, this message translates to:
+  /// **'Strict'**
+  String get safetyHub_noFlyStrict;
+
+  /// Safety hub row subtitle: equipment condition checks are on, with how many rules are enabled
+  ///
+  /// In en, this message translates to:
+  /// **'On, {enabled} of {total} rules'**
+  String safetyHub_conditionOn(int enabled, int total);
+
+  /// Safety hub row subtitle: the feature is switched off
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get safetyHub_off;
+
   /// No description provided for @safetySettings_noFlyPreset_subtitle.
   ///
   /// In en, this message translates to:
@@ -59711,7 +59747,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_section_safety_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Review rules & flying after diving'**
+  /// **'Review rules, decompression & equipment'**
   String get settings_section_safety_subtitle;
 
   /// No description provided for @settings_section_equipmentCondition_title.

@@ -36203,6 +36203,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'מחמיר (18/24/48 ש\')';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'פעיל, $enabled מתוך $total כללים, איסור טיסה $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'כבוי, איסור טיסה $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'רגיל';
+
+  @override
+  String get safetyHub_noFlyStrict => 'מחמיר';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'פעיל, $enabled מתוך $total כללים';
+  }
+
+  @override
+  String get safetyHub_off => 'כבוי';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה';
 
@@ -36745,7 +36769,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_safety_title => 'בטיחות';
 
   @override
-  String get settings_section_safety_subtitle => 'כללי סקירה וטיסה אחרי צלילה';
+  String get settings_section_safety_subtitle => 'כללי סקירה, דקומפרסיה וציוד';
 
   @override
   String get settings_section_equipmentCondition_title => 'מצב הציוד';

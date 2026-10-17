@@ -34991,6 +34991,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => '严格(18/24/48 小时)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return '已开启，$enabled/$total 条规则，禁飞：$noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return '已关闭，禁飞：$noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => '标准';
+
+  @override
+  String get safetyHub_noFlyStrict => '严格';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return '已开启，$enabled/$total 条规则';
+  }
+
+  @override
+  String get safetyHub_off => '已关闭';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle => '单次免减压潜水、重复潜水和减压潜水后的指导间隔';
 
   @override
@@ -35514,7 +35538,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_safety_title => '安全';
 
   @override
-  String get settings_section_safety_subtitle => '回顾规则与潜水后飞行';
+  String get settings_section_safety_subtitle => '回顾规则、减压与装备';
 
   @override
   String get settings_section_equipmentCondition_title => '装备状况';

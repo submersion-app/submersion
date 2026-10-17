@@ -37586,6 +37586,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'صارم (18/24/48 س)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'مفعّل، $enabled من $total قاعدة، حظر الطيران $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'متوقف، حظر الطيران $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'قياسي';
+
+  @override
+  String get safetyHub_noFlyStrict => 'صارم';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'مفعّل، $enabled من $total قاعدة';
+  }
+
+  @override
+  String get safetyHub_off => 'متوقف';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط';
 
@@ -38139,7 +38163,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'قواعد المراجعة والطيران بعد الغوص';
+      'قواعد المراجعة وتخفيف الضغط والمعدات';
 
   @override
   String get settings_section_equipmentCondition_title => 'حالة المعدات';

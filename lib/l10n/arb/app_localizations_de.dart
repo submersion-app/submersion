@@ -37045,6 +37045,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Streng (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'An, $enabled von $total Regeln, Flugverbot $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Aus, Flugverbot $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Standard';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Streng';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'An, $enabled von $total Regeln';
+  }
+
+  @override
+  String get safetyHub_off => 'Aus';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Richtwerte nach einem einzelnen Nullzeit-Tauchgang, Wiederholungstauchgängen und Deko-Tauchgängen';
 
@@ -37603,7 +37627,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Überprüfungsregeln & Fliegen nach dem Tauchen';
+      'Überprüfungsregeln, Dekompression & Ausrüstung';
 
   @override
   String get settings_section_equipmentCondition_title => 'Ausrüstungszustand';

@@ -36906,6 +36906,30 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Szigorú (18/24/48 ó)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'Be, $enabled/$total szabály, repülési tilalom: $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Ki, repülési tilalom: $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Normál';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Szigorú';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'Be, $enabled/$total szabály';
+  }
+
+  @override
+  String get safetyHub_off => 'Ki';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Irányadó időközök egyetlen nullidős merülés, ismétlő merülések és dekós merülések után';
 
@@ -37461,7 +37485,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Áttekintési szabályok és repülés merülés után';
+      'Áttekintési szabályok, dekompresszió és felszerelés';
 
   @override
   String get settings_section_equipmentCondition_title =>

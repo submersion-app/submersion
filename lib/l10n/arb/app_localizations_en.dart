@@ -36496,6 +36496,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safetySettings_noFlyPreset_strict => 'Strict (18/24/48 h)';
 
   @override
+  String safetyHub_reviewOn(int enabled, int total, String noFly) {
+    return 'On, $enabled of $total rules, no-fly $noFly';
+  }
+
+  @override
+  String safetyHub_reviewOff(String noFly) {
+    return 'Off, no-fly $noFly';
+  }
+
+  @override
+  String get safetyHub_noFlyStandard => 'Standard';
+
+  @override
+  String get safetyHub_noFlyStrict => 'Strict';
+
+  @override
+  String safetyHub_conditionOn(int enabled, int total) {
+    return 'On, $enabled of $total rules';
+  }
+
+  @override
+  String get safetyHub_off => 'Off';
+
+  @override
   String get safetySettings_noFlyPreset_subtitle =>
       'Guideline intervals after a single no-deco dive, repetitive dives, and deco dives';
 
@@ -37045,7 +37069,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle =>
-      'Review rules & flying after diving';
+      'Review rules, decompression & equipment';
 
   @override
   String get settings_section_equipmentCondition_title => 'Equipment condition';

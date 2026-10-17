@@ -22533,6 +22533,54 @@
   "safetySettings_cnsOtuHeader": "Current dive load",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
+  "safetyHub_reviewOn": "On, {enabled} of {total} rules, no-fly {noFly}",
+  "@safetyHub_reviewOn": {
+    "description": "Safety hub row subtitle: the safety review is on, with how many rules are enabled and the no-fly preset word",
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "noFly": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_reviewOff": "Off, no-fly {noFly}",
+  "@safetyHub_reviewOff": {
+    "description": "Safety hub row subtitle: the safety review is off; the no-fly preset still applies",
+    "placeholders": {
+      "noFly": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFlyStandard": "Standard",
+  "@safetyHub_noFlyStandard": {
+    "description": "Short name of the standard no-fly preset, used inside safetyHub_reviewOn/Off"
+  },
+  "safetyHub_noFlyStrict": "Strict",
+  "@safetyHub_noFlyStrict": {
+    "description": "Short name of the strict no-fly preset, used inside safetyHub_reviewOn/Off"
+  },
+  "safetyHub_conditionOn": "On, {enabled} of {total} rules",
+  "@safetyHub_conditionOn": {
+    "description": "Safety hub row subtitle: equipment condition checks are on, with how many rules are enabled",
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_off": "Off",
+  "@safetyHub_off": {
+    "description": "Safety hub row subtitle: the feature is switched off"
+  },
   "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
   "flightWindow_closed": "No more diving before your flight",
   "flightWindow_conflict": "Your no-fly time extends past your flight departure",
@@ -22866,7 +22914,7 @@
   "planning_card_noFly_subtitle": "Guideline countdown from your last dives",
   "planning_card_cnsOtu_subtitle": "Live decay since your last dive",
   "settings_section_safety_title": "Safety",
-  "settings_section_safety_subtitle": "Review rules & flying after diving",
+  "settings_section_safety_subtitle": "Review rules, decompression & equipment",
   "settings_section_equipmentCondition_title": "Equipment condition",
   "settings_section_equipmentCondition_subtitle": "Exposure thresholds for service clocks",
   "equipmentConditionSettings_title": "Equipment condition",
