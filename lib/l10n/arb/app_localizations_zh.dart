@@ -34131,7 +34131,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_connectedAccounts_title => '已连接账户';
 
   @override
-  String get settings_connectedAccounts_subtitle => '云与服务登录';
+  String get settings_connectedAccounts_subtitle => '用于同步、媒体存储和共享库的登录';
 
   @override
   String get settings_connectedAccounts_empty => '尚未连接任何账户';
@@ -34195,6 +34195,48 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => '无法加载账户';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return '用于：$uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none => '此设备上未使用';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync => '数据库同步';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => '媒体存储';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return '共享潜点库：$name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle => '在此设备上退出登录？';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return '在此设备上，$account 用于以下功能。在你重新登录之前，这些功能将在此处停止工作。';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      '在此设备上，它用于以下功能，这些功能将在此处停止工作：';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      '其他设备可能也在使用此账户。';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      '无法确认此账户在此设备上的用途。此处使用它的功能可能会停止工作。';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';

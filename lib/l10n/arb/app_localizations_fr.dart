@@ -36345,7 +36345,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Connexions cloud et services';
+      'Connexions utilisées par la synchronisation, le stockage des médias et les bibliothèques partagées';
 
   @override
   String get settings_connectedAccounts_empty =>
@@ -36418,6 +36418,52 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Impossible de charger les comptes';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Utilisé pour : $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Non utilisé sur cet appareil';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Synchronisation de la base de données';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage =>
+      'Stockage des médias';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Bibliothèque de sites partagée : $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Se déconnecter sur cet appareil ?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Sur cet appareil, $account est utilisé pour les fonctions ci-dessous. Elles ne fonctionneront plus ici tant que vous ne vous serez pas reconnecté.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Sur cet appareil, il est utilisé pour les fonctions ci-dessous, qui ne fonctionneront plus ici :';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'D\'autres appareils peuvent aussi utiliser ce compte.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Impossible de vérifier à quoi sert ce compte sur cet appareil. Ce qui l\'utilise ici pourrait cesser de fonctionner.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume non monté';

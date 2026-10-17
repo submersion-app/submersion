@@ -2797,6 +2797,19 @@ class _DataSectionContent extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/photos-media'),
                 ),
+                const Divider(height: 1),
+                // The accounts behind sync, media storage and shared
+                // libraries; its own entry so it is not filed under one of
+                // them (issue #3388). Photos & Media keeps a link too.
+                ListTile(
+                  leading: const Icon(Icons.account_circle_outlined),
+                  title: Text(context.l10n.settings_connectedAccounts_title),
+                  subtitle: Text(
+                    context.l10n.settings_connectedAccounts_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/connected-accounts'),
+                ),
               ],
             ),
           ),

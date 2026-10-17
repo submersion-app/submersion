@@ -1,0 +1,336 @@
+// Issue #3388: each Connected Accounts row says what the account is used for
+// on this device, and Sign out / Remove warn about those features first.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/account_provider_registry.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
+import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/test_database.dart';
+
+class _RecordingAdapter extends AccountProviderAdapter {
+  _RecordingAdapter(this.kind);
+
+  @override
+  final AccountKind kind;
+  final disconnected = <String>[];
+
+  @override
+  Future<AccountStatus> status(domain.ConnectedAccount account) async =>
+      AccountStatus.signedIn;
+
+  @override
+  Future<void> disconnect(domain.ConnectedAccount account) async {
+    disconnected.add(account.id);
+  }
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late SharedPreferences prefs;
+  late ConnectedAccountsRepository accounts;
+  late _RecordingAdapter dropbox;
+
+  setUp(() async {
+    await setUpTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+    accounts = ConnectedAccountsRepository();
+    dropbox = _RecordingAdapter(AccountKind.dropbox);
+  });
+
+  tearDown(() => tearDownTestDatabase());
+
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    List<Override> overrides = const [],
+  }) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          accountProviderRegistryProvider.overrideWithValue(
+            AccountProviderRegistry([dropbox]),
+          ),
+          ...overrides,
+        ],
+        child: const MaterialApp(
+          // Pinned: the assertions match English strings.
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ConnectedAccountsPage(),
+        ),
+      ),
+    );
+    await settle(tester);
+  }
+
+  Future<domain.ConnectedAccount> addDropbox(WidgetTester tester) async {
+    late domain.ConnectedAccount account;
+    await tester.runAsync(() async {
+      account = await accounts.create(
+        kind: AccountKind.dropbox,
+        label: 'Dropbox',
+      );
+    });
+    return account;
+  }
+
+  Future<void> useForSync(WidgetTester tester, String accountId) =>
+      tester.runAsync(() async {
+        final sync = SyncRepository();
+        await sync.getOrCreateMetadata();
+        await sync.setSyncAccount(
+          accountId: accountId,
+          providerType: CloudProviderType.dropbox,
+        );
+      });
+
+  Future<void> openMenu(WidgetTester tester, String item) async {
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(item).last);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('a row lists what uses the account on this device', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await useForSync(tester, account.id);
+    await tester.runAsync(() async {
+      await MediaStoreAttachState(prefs: prefs).setAttached(
+        'store-1',
+        providerType: CloudProviderType.dropbox,
+        accountId: account.id,
+      );
+      await SharedLibraryStore().upsertLibrary(
+        SharedLibrary(
+          id: 'lib-1',
+          name: 'Club Sites',
+          connectedAccountId: account.id,
+          prefix: '',
+        ),
+      );
+    });
+
+    await pumpPage(tester);
+
+    expect(
+      find.text(
+        'Used for: Database sync, Media storage, '
+        'Shared site library: Club Sites',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an unused account says so', (tester) async {
+    await addDropbox(tester);
+
+    await pumpPage(tester);
+
+    expect(find.text('Not used on this device'), findsOneWidget);
+  });
+
+  // An unknown is not an unused: a failed read still asks before acting,
+  // and the action still works once confirmed.
+  testWidgets('a failed usage read asks before signing out', (tester) async {
+    final account = await addDropbox(tester);
+    await pumpPage(
+      tester,
+      overrides: [
+        connectedAccountUsageProvider.overrideWith(
+          (ref) => Future.error(StateError('usage read failed')),
+        ),
+      ],
+    );
+
+    await openMenu(tester, 'Sign out on this device');
+    await settle(tester);
+
+    expect(
+      find.textContaining('Could not check what this account is used for'),
+      findsOneWidget,
+    );
+    expect(dropbox.disconnected, isEmpty);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Sign out on this device'),
+      ),
+    );
+    await settle(tester);
+    expect(dropbox.disconnected, [account.id]);
+  });
+
+  testWidgets('a failed usage read is named in the remove warning', (
+    tester,
+  ) async {
+    await addDropbox(tester);
+    await pumpPage(
+      tester,
+      overrides: [
+        connectedAccountUsageProvider.overrideWith(
+          (ref) => Future.error(StateError('usage read failed')),
+        ),
+      ],
+    );
+
+    await openMenu(tester, 'Remove from library');
+    await settle(tester);
+
+    expect(
+      find.textContaining('Could not check what this account is used for'),
+      findsOneWidget,
+    );
+  });
+
+  // The page stays mounted under the Settings routes that change what an
+  // account is used for, so it refreshes on their change signals.
+  testWidgets('the row follows a sync selection made while it is open', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await pumpPage(tester);
+    expect(find.text('Not used on this device'), findsOneWidget);
+
+    await useForSync(tester, account.id);
+    await settle(tester);
+
+    expect(find.text('Used for: Database sync'), findsOneWidget);
+  });
+
+  testWidgets('the row follows a media store attach made while it is open', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await pumpPage(tester);
+    expect(find.text('Not used on this device'), findsOneWidget);
+
+    await tester.runAsync(
+      () => MediaStoreAttachState(prefs: prefs).setAttached(
+        'store-1',
+        providerType: CloudProviderType.dropbox,
+        accountId: account.id,
+      ),
+    );
+    await settle(tester);
+
+    expect(find.text('Used for: Media storage'), findsOneWidget);
+  });
+
+  testWidgets('signing out an unused account needs no confirmation', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await pumpPage(tester);
+
+    await openMenu(tester, 'Sign out on this device');
+    await settle(tester);
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(dropbox.disconnected, [account.id]);
+  });
+
+  testWidgets('signing out a used account names its features first', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await useForSync(tester, account.id);
+    await pumpPage(tester);
+
+    await openMenu(tester, 'Sign out on this device');
+
+    expect(find.text('Sign out on this device?'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Database sync'),
+      ),
+      findsOneWidget,
+    );
+    expect(dropbox.disconnected, isEmpty);
+
+    await tester.tap(find.text('Cancel'));
+    await settle(tester);
+    expect(dropbox.disconnected, isEmpty);
+
+    await openMenu(tester, 'Sign out on this device');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Sign out on this device'),
+      ),
+    );
+    await settle(tester);
+    expect(dropbox.disconnected, [account.id]);
+  });
+
+  testWidgets('removing a used account names its features and other devices', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await useForSync(tester, account.id);
+    await pumpPage(tester);
+
+    await openMenu(tester, 'Remove from library');
+
+    final dialog = find.byType(AlertDialog);
+    expect(
+      find.descendant(of: dialog, matching: find.text('Database sync')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text('Other devices may also use this account.'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('removing an unused account still mentions other devices', (
+    tester,
+  ) async {
+    await addDropbox(tester);
+    await pumpPage(tester);
+
+    await openMenu(tester, 'Remove from library');
+
+    expect(
+      find.text('Other devices may also use this account.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('On this device it is used for'), findsNothing);
+  });
+}
+
+/// The page's providers read the database and keychain probes off the fake
+/// clock; let them finish, then rebuild.
+Future<void> settle(WidgetTester tester) async {
+  for (var i = 0; i < 5; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump();
+  }
+}

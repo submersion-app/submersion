@@ -22254,7 +22254,7 @@
   "settings_photosMedia_networkSources_title": "Network sources",
   "settings_photosMedia_networkSources_subtitle": "URLs and manifest feeds (advanced)",
   "settings_connectedAccounts_title": "Connected Accounts",
-  "settings_connectedAccounts_subtitle": "Cloud and service sign-ins",
+  "settings_connectedAccounts_subtitle": "Sign-ins used by sync, media storage and shared libraries",
   "settings_connectedAccounts_empty": "No accounts connected yet",
   "settings_connectedAccounts_status_signedIn": "Signed in",
   "settings_connectedAccounts_status_needsSignIn": "Needs sign-in",
@@ -22275,6 +22275,41 @@
   "settings_setupGuide_statusTodo": "Not set up",
   "settings_setupGuide_open": "Open",
   "settings_connectedAccounts_loadError": "Could not load accounts",
+  "settings_connectedAccounts_usage_label": "Used for: {uses}",
+  "@settings_connectedAccounts_usage_label": {
+    "description": "Connected account row: what the account is used for on this device. uses is a comma-separated list of usage names.",
+    "placeholders": {
+      "uses": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_usage_none": "Not used on this device",
+  "settings_connectedAccounts_usage_databaseSync": "Database sync",
+  "settings_connectedAccounts_usage_mediaStorage": "Media storage",
+  "settings_connectedAccounts_usage_sharedLibrary": "Shared site library: {name}",
+  "@settings_connectedAccounts_usage_sharedLibrary": {
+    "description": "Connected account usage: a shared site library by name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_usage_lightroom": "Lightroom",
+  "settings_connectedAccounts_signOutConfirmTitle": "Sign out on this device?",
+  "settings_connectedAccounts_signOutConfirmBody": "On this device, {account} is used for the features below. They stop working here until you sign in again.",
+  "@settings_connectedAccounts_signOutConfirmBody": {
+    "description": "Sign-out confirmation body; account is the account's label.",
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_connectedAccounts_removeConfirmUsedHere": "On this device it is used for the features below, which stop working here:",
+  "settings_connectedAccounts_removeConfirmOtherDevices": "Other devices may also use this account.",
+  "settings_connectedAccounts_usage_unknown": "Could not check what this account is used for on this device. Anything that uses it here may stop working.",
   "media_unavailablePlaceholder_volumeOffline": "Volume not mounted",
   "media_unavailablePlaceholder_stillFetching": "Still loading. Tap to retry.",
   "media_unavailablePlaceholder_accessDenied": "No photo library access",

@@ -35623,7 +35623,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Cloud and service sign-ins';
+      'Sign-ins used by sync, media storage and shared libraries';
 
   @override
   String get settings_connectedAccounts_empty => 'No accounts connected yet';
@@ -35692,6 +35692,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'Could not load accounts';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Used for: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none => 'Not used on this device';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync => 'Database sync';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'Media storage';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Shared site library: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Sign out on this device?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'On this device, $account is used for the features below. They stop working here until you sign in again.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'On this device it is used for the features below, which stop working here:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Other devices may also use this account.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Could not check what this account is used for on this device. Anything that uses it here may stop working.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';

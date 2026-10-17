@@ -16,6 +16,8 @@ Future<void> _pumpPhoto(
   WidgetTester tester, {
   Widget? badge,
   List<String> infoLines = const [],
+  double radius = CertificationCardPhoto.borderRadius,
+  bool showShadow = true,
 }) async {
   await tester.pumpWidget(
     localizedMaterialApp(
@@ -29,6 +31,8 @@ Future<void> _pumpPhoto(
               bytes: _onePixelPng,
               badge: badge,
               infoLines: infoLines,
+              radius: radius,
+              showShadow: showShadow,
             ),
           ),
         ),
@@ -78,5 +82,64 @@ void main() {
 
       expect(find.byKey(const Key('test-badge')), findsOneWidget);
     });
+
+    testWidgets('keeps the last frame while reloaded bytes decode', (
+      tester,
+    ) async {
+      // A provider reload hands over a fresh buffer, a new image key; without
+      // gapless playback every card would blank out until it decodes (#3383).
+      await _pumpPhoto(tester);
+
+      final images = tester.widgetList<Image>(find.byType(Image));
+      expect(images.every((image) => image.gaplessPlayback), isTrue);
+    });
+
+    testWidgets('keeps the e-card corner radius and shadow by default', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: SizedBox(
+              width: 320,
+              height: 202,
+              child: CertificationCardPhoto(bytes: _onePixelPng),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final decoration = _frameDecoration(tester);
+      expect(
+        decoration.borderRadius,
+        BorderRadius.circular(CertificationCardPhoto.borderRadius),
+      );
+      expect(decoration.boxShadow, isNotEmpty);
+    });
+
+    testWidgets('takes a smaller radius and no shadow for a thumbnail', (
+      tester,
+    ) async {
+      await _pumpPhoto(tester, radius: 4, showShadow: false);
+
+      final decoration = _frameDecoration(tester);
+      expect(decoration.borderRadius, BorderRadius.circular(4));
+      expect(decoration.boxShadow, isNull);
+    });
   });
+}
+
+/// The decoration of the clipped frame around the photo.
+BoxDecoration _frameDecoration(WidgetTester tester) {
+  final container = tester.widget<Container>(
+    find
+        .descendant(
+          of: find.byType(CertificationCardPhoto),
+          matching: find.byType(Container),
+        )
+        .first,
+  );
+  return container.decoration! as BoxDecoration;
 }

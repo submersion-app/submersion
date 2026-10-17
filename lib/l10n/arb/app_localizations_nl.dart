@@ -35987,7 +35987,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_subtitle =>
-      'Cloud- en service-aanmeldingen';
+      'Aanmeldingen voor synchronisatie, mediaopslag en gedeelde bibliotheken';
 
   @override
   String get settings_connectedAccounts_empty => 'Nog geen accounts gekoppeld';
@@ -36059,6 +36059,51 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Accounts konden niet worden geladen';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'Gebruikt voor: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none =>
+      'Niet gebruikt op dit apparaat';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'Databasesynchronisatie';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'Mediaopslag';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'Gedeelde duikstekbibliotheek: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'Afmelden op dit apparaat?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'Op dit apparaat wordt $account gebruikt voor de onderstaande functies. Ze werken hier pas weer als je opnieuw aanmeldt.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'Op dit apparaat wordt het gebruikt voor de onderstaande functies, die hier dan niet meer werken:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'Andere apparaten gebruiken dit account mogelijk ook.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'Kon niet nagaan waarvoor dit account op dit apparaat wordt gebruikt. Wat het hier gebruikt, werkt mogelijk niet meer.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>

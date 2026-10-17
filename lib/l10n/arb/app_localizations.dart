@@ -57113,7 +57113,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_connectedAccounts_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Cloud and service sign-ins'**
+  /// **'Sign-ins used by sync, media storage and shared libraries'**
   String get settings_connectedAccounts_subtitle;
 
   /// No description provided for @settings_connectedAccounts_empty.
@@ -57235,6 +57235,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load accounts'**
   String get settings_connectedAccounts_loadError;
+
+  /// Connected account row: what the account is used for on this device. uses is a comma-separated list of usage names.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for: {uses}'**
+  String settings_connectedAccounts_usage_label(String uses);
+
+  /// No description provided for @settings_connectedAccounts_usage_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used on this device'**
+  String get settings_connectedAccounts_usage_none;
+
+  /// No description provided for @settings_connectedAccounts_usage_databaseSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Database sync'**
+  String get settings_connectedAccounts_usage_databaseSync;
+
+  /// No description provided for @settings_connectedAccounts_usage_mediaStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Media storage'**
+  String get settings_connectedAccounts_usage_mediaStorage;
+
+  /// Connected account usage: a shared site library by name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared site library: {name}'**
+  String settings_connectedAccounts_usage_sharedLibrary(String name);
+
+  /// No description provided for @settings_connectedAccounts_usage_lightroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightroom'**
+  String get settings_connectedAccounts_usage_lightroom;
+
+  /// No description provided for @settings_connectedAccounts_signOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out on this device?'**
+  String get settings_connectedAccounts_signOutConfirmTitle;
+
+  /// Sign-out confirmation body; account is the account's label.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device, {account} is used for the features below. They stop working here until you sign in again.'**
+  String settings_connectedAccounts_signOutConfirmBody(String account);
+
+  /// No description provided for @settings_connectedAccounts_removeConfirmUsedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device it is used for the features below, which stop working here:'**
+  String get settings_connectedAccounts_removeConfirmUsedHere;
+
+  /// No description provided for @settings_connectedAccounts_removeConfirmOtherDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices may also use this account.'**
+  String get settings_connectedAccounts_removeConfirmOtherDevices;
+
+  /// No description provided for @settings_connectedAccounts_usage_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check what this account is used for on this device. Anything that uses it here may stop working.'**
+  String get settings_connectedAccounts_usage_unknown;
 
   /// No description provided for @media_unavailablePlaceholder_volumeOffline.
   ///

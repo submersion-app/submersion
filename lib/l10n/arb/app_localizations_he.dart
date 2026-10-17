@@ -35332,7 +35332,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_connectedAccounts_title => 'חשבונות מחוברים';
 
   @override
-  String get settings_connectedAccounts_subtitle => 'כניסות לענן ולשירותים';
+  String get settings_connectedAccounts_subtitle =>
+      'כניסות המשמשות לסנכרון, לאחסון מדיה ולספריות משותפות';
 
   @override
   String get settings_connectedAccounts_empty => 'אין עדיין חשבונות מחוברים';
@@ -35400,6 +35401,50 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'לא ניתן לטעון חשבונות';
+
+  @override
+  String settings_connectedAccounts_usage_label(String uses) {
+    return 'משמש עבור: $uses';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_none => 'לא בשימוש במכשיר זה';
+
+  @override
+  String get settings_connectedAccounts_usage_databaseSync =>
+      'סנכרון מסד נתונים';
+
+  @override
+  String get settings_connectedAccounts_usage_mediaStorage => 'אחסון מדיה';
+
+  @override
+  String settings_connectedAccounts_usage_sharedLibrary(String name) {
+    return 'ספריית אתרים משותפת: $name';
+  }
+
+  @override
+  String get settings_connectedAccounts_usage_lightroom => 'Lightroom';
+
+  @override
+  String get settings_connectedAccounts_signOutConfirmTitle =>
+      'להתנתק במכשיר זה?';
+
+  @override
+  String settings_connectedAccounts_signOutConfirmBody(String account) {
+    return 'במכשיר זה, $account משמש עבור התכונות שלהלן. הן יפסיקו לפעול כאן עד שתתחבר שוב.';
+  }
+
+  @override
+  String get settings_connectedAccounts_removeConfirmUsedHere =>
+      'במכשיר זה הוא משמש עבור התכונות שלהלן, שיפסיקו לפעול כאן:';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmOtherDevices =>
+      'ייתכן שגם מכשירים אחרים משתמשים בחשבון זה.';
+
+  @override
+  String get settings_connectedAccounts_usage_unknown =>
+      'לא ניתן לבדוק למה משמש חשבון זה במכשיר זה. מה שמשתמש בו כאן עלול להפסיק לפעול.';
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
