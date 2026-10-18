@@ -13,7 +13,13 @@ extension _RemovalSync on SharedLibraryService {
       libraryId,
       roles,
     );
-    await _store.setRemovals(libraryId, removals);
+    // Written only on a change: the write reloads every library page.
+    if (!const ListEquality<MemberRemoval>().equals(
+      removals,
+      await _store.removals(libraryId),
+    )) {
+      await _store.setRemovals(libraryId, removals);
+    }
     return removals;
   }
 

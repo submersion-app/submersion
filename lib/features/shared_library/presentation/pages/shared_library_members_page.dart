@@ -70,7 +70,7 @@ class SharedLibraryMembersPage extends ConsumerWidget {
                   m,
                   roles.roleOf(m.memberId),
                   owner,
-                  removable: owner && m.memberId != me,
+                  removable: owner && me != null && m.memberId != me,
                 ),
                 const Divider(height: 1),
               ],
@@ -121,8 +121,8 @@ class SharedLibraryMembersPage extends ConsumerWidget {
       title: Text(name),
       subtitle: Text(libraryDateLabel(ref, m.joinedAt)),
       trailing: owner
-          // A role, or [_removeChoice]: one menu for everything an owner does to
-          // an approved member.
+          // A role, or [_removeChoice]: one menu for everything an owner
+          // does to an approved member.
           ? PopupMenuButton<Object>(
               tooltip: l10n.sharedLibrary_members_setRole,
               icon: LibraryRoleChip(role: role),

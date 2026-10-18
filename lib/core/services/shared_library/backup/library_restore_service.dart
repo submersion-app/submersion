@@ -168,7 +168,12 @@ class LibraryRestoreService {
       signer: me.memberId,
       key: key,
     );
-    await _keepRemovals(t, libraryId, removals, restored, me.memberId, key);
+    // writeSignedRoles signed again any removal whose owner the restored
+    // roles do not list; the cache follows the restored roles.
+    await _store.setRemovals(
+      libraryId,
+      await validRemovals(await t.listRemovals(), libraryId, restored),
+    );
     await _restoreOthers(t, opened);
     // The backup's card of someone removed since stays gone.
     for (final r in removals) {
@@ -185,37 +190,6 @@ class LibraryRestoreService {
     roles,
     (acc, r) => acc.removing(r.memberId, at: r.removedAt),
   );
-
-  /// Re-signs, as [memberId], each of [removals] whose signer is no owner
-  /// in [roles] (an owner made after the backup was taken), so it still
-  /// counts, then caches them.
-  Future<void> _keepRemovals(
-    SharedLibraryTransport t,
-    String libraryId,
-    List<MemberRemoval> removals,
-    SharedLibraryRoles roles,
-    String memberId,
-    LibrarySigningKey key,
-  ) async {
-    for (final r in removals) {
-      if (await r.verify(libraryId, roles)) continue;
-      await t.writeRemoval(
-        await MemberRemoval.signed(
-          libraryId: libraryId,
-          memberId: r.memberId,
-          displayName: r.displayName,
-          publicKey: r.publicKey,
-          removedAt: r.removedAt,
-          removedBy: memberId,
-          key: key,
-        ),
-      );
-    }
-    await _store.setRemovals(
-      libraryId,
-      await validRemovals(await t.listRemovals(), libraryId, roles),
-    );
-  }
 
   /// Writes the backup at [path] into the empty folder [prefix] of
   /// [account] and joins it there as [diverId]: the library keeps its id.

@@ -279,7 +279,8 @@ mixin _MembershipOwnership {
         libraryId: libraryId,
         memberId: memberId,
         displayName: card?.displayName ?? '',
-        publicKey: roles.approvedKeys[memberId] ?? card?.publicKey,
+        // The approved key only: a key no owner approved proves nothing.
+        publicKey: roles.approvedKeys[memberId],
         removedAt: at,
         removedBy: actingMemberId,
         key: await _keyOfMember(libraryId, actingMemberId),
@@ -315,6 +316,14 @@ mixin _MembershipOwnership {
     LibrarySigningKey key,
   ) async {
     if (!after.owners.contains(signer)) return;
+    // Most roles writes leave every owner signing as before: nothing can
+    // have stopped holding, so nothing is listed.
+    final unchanged = before.owners.every(
+      (o) =>
+          after.owners.contains(o) &&
+          after.approvedKeys[o] == before.approvedKeys[o],
+    );
+    if (unchanged) return;
     var carried = false;
     for (final r in await t.listRemovals()) {
       if (await r.verify(libraryId, after) ||
