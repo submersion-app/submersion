@@ -35,10 +35,14 @@ void main() {
 
   int count(String code, String call) => call.allMatches(code).length;
 
-  /// A map whose interaction options are a constant with every gesture off.
+  /// A map whose interaction options turn every gesture off unconditionally:
+  /// `InteractionOptions(...)` (const or not, other arguments allowed) with
+  /// `flags: InteractiveFlag.none`. A condition before `InteractionOptions`
+  /// or inside `flags:` does not match, so a sometimes-locked map still
+  /// counts as interactive. `[^()]` keeps the match inside one argument list.
   final alwaysLocked = RegExp(
-    r'interactionOptions:\s*const\s+InteractionOptions\(\s*'
-    r'flags:\s*InteractiveFlag\.none\s*,?\s*\)',
+    r'interactionOptions:\s*(?:const\s+)?InteractionOptions\([^()]*?'
+    r'\bflags:\s*InteractiveFlag\.none\s*[,)]',
   );
 
   bool buildsMap(String source) => count(codeOf(source), 'FlutterMap(') > 0;
