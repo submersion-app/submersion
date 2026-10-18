@@ -11,6 +11,7 @@ import 'package:submersion/core/services/shared_library/crypto/library_cipher.da
 import 'package:submersion/core/services/shared_library/crypto/library_recovery.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_errors.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -724,6 +725,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
 
   /// The signing key of the local profile that is [memberId] in
   /// [libraryId].
+  @override
   Future<LibrarySigningKey> _keyOfMember(
     String libraryId,
     String memberId,

@@ -1,8 +1,8 @@
 part of 'shared_library_membership_service.dart';
 
-/// The owner actions on a library's roles (issue #2567): approving and
-/// rejecting members, changing roles, the recovery code, recovering and
-/// resetting ownership.
+/// The owner actions on a library's roles (issue #2567): approving,
+/// rejecting and removing members (issue #3481), changing roles, the
+/// recovery code, recovering and resetting ownership.
 mixin _MembershipOwnership {
   SharedLibraryStore get _store;
   KdfParams get _recoveryKdf;
@@ -30,6 +30,8 @@ mixin _MembershipOwnership {
     required String signer,
     LibrarySigningKey? key,
   });
+
+  Future<LibrarySigningKey> _keyOfMember(String libraryId, String memberId);
 
   /// Makes the profile [diverId] an owner with the library's recovery code
   /// (issue #2567): roles signed with the key the code stands for, which
@@ -241,6 +243,77 @@ mixin _MembershipOwnership {
     );
     await _store.replaceMembers(libraryId, await t.listMembers());
   });
+
+  /// Owners only: removes [memberId], who may be approved (issue #3481).
+  /// Unlike [rejectMember], everything they contributed keeps counting:
+  /// an editor's or owner's key is retired as of now rather than dropped
+  /// ([MemberRemovalRoles.removing]). A signed removal record beside the
+  /// cards keeps their own device from listing them again. The roles are
+  /// written first, so a refused write leaves no record and the card in
+  /// place.
+  Future<void> removeMember({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) => SyncCoordinator.run(() async {
+    if (memberId == actingMemberId) {
+      throw StateError('an owner leaves rather than removing themselves');
+    }
+    final (library, t, roles) = await _asOwner(libraryId, actingMemberId);
+    if (roles.owners.contains(memberId) && roles.owners.length == 1) {
+      throw LastOwnerDemoteError(libraryId);
+    }
+    SharedLibraryMember? card;
+    for (final m in await t.listMembers()) {
+      if (m.memberId == memberId) card = m;
+    }
+    final at = DateTime.now();
+    await writeSignedRoles(
+      library,
+      t,
+      roles.removing(memberId, at: at),
+      signer: actingMemberId,
+    );
+    await t.writeRemoval(
+      await MemberRemoval.signed(
+        libraryId: libraryId,
+        memberId: memberId,
+        displayName: card?.displayName ?? '',
+        publicKey: roles.approvedKeys[memberId] ?? card?.publicKey,
+        removedAt: at,
+        removedBy: actingMemberId,
+        key: await _keyOfMember(libraryId, actingMemberId),
+      ),
+    );
+    await t.deleteMember(memberId);
+    await _refreshMembers(library, t);
+  });
+
+  /// Owners only: deletes [memberId]'s removal record. Their next sync
+  /// writes their card again and they wait for approval like anyone new;
+  /// the roles stay as the removal left them.
+  Future<void> allowBack({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) => SyncCoordinator.run(() async {
+    final (library, t, _) = await _asOwner(libraryId, actingMemberId);
+    await t.deleteRemoval(memberId);
+    await _refreshMembers(library, t);
+  });
+
+  /// The cards and the removals an owner signed, as the folder holds them.
+  Future<void> _refreshMembers(
+    SharedLibrary library,
+    SharedLibraryTransport t,
+  ) async {
+    final current = await _store.getLibrary(library.id) ?? library;
+    await _store.replaceMembers(library.id, await t.listMembers());
+    await _store.setRemovals(
+      library.id,
+      await validRemovals(await t.listRemovals(), library.id, current.roles),
+    );
+  }
 
   /// The library, its transport and its current roles, when
   /// [actingMemberId] is an owner in them ([ownerRoles]).
