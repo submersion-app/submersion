@@ -618,6 +618,13 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   String? _sectionId;
+
+  /// The selection the dropdown may show: [_sectionId] only when it still
+  /// names a section in the current draft -- the same dangling-value guard
+  /// as [_selectedSourceId] below, for the same DropdownButtonFormField
+  /// assert hazard.
+  String? get _selectedSectionId =>
+      widget.sections.any((s) => s.id == _sectionId) ? _sectionId : null;
   late final TextEditingController _notesController;
   late final TextEditingController _valueLabelController;
   late final TextEditingController _valueUnitController;
@@ -711,7 +718,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
     Navigator.of(context).pop(
       _EditablePreDiveItem(
         id: widget.item?.id ?? const Uuid().v4(),
-        sectionId: _sectionId,
+        sectionId: _selectedSectionId,
         title: _titleController.text.trim(),
         notes: _notesController.text.trim(),
         sortOrder: widget.item?.sortOrder ?? widget.defaultSortOrder,
@@ -750,7 +757,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                     : null,
               ),
               DropdownButtonFormField<String?>(
-                initialValue: _sectionId,
+                initialValue: _selectedSectionId,
                 decoration: InputDecoration(
                   labelText: l10n.preDive_item_section,
                 ),

@@ -398,6 +398,14 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
   late final TextEditingController _offsetController;
   String? _sectionId;
 
+  /// The selection the dropdown may show: [_sectionId] only when it still
+  /// names a section in the current draft. A dangling id (the section was
+  /// deleted from the list while this dialog's value carried over from a
+  /// stale item) would otherwise make DropdownButtonFormField assert, the
+  /// same hazard _PreDiveItemDialog's _selectedSourceId guards against.
+  String? get _selectedSectionId =>
+      widget.sections.any((s) => s.id == _sectionId) ? _sectionId : null;
+
   @override
   void initState() {
     super.initState();
@@ -426,7 +434,7 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
       _EditableTemplateItem(
         id: widget.item?.id ?? const Uuid().v4(),
         title: _titleController.text.trim(),
-        sectionId: _sectionId,
+        sectionId: _selectedSectionId,
         notes: _notesController.text.trim(),
         // Blank is "no due date"; validate() stopped unreadable text.
         dueOffsetDays: switch (readNumber(
@@ -469,7 +477,7 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String?>(
-                initialValue: _sectionId,
+                initialValue: _selectedSectionId,
                 decoration: InputDecoration(
                   labelText: context.l10n.checklists_item_categoryLabel,
                 ),
