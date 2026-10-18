@@ -41928,11 +41928,47 @@ abstract class AppLocalizations {
   /// **'Built-in and custom dive site types'**
   String get settings_manage_siteTypes_subtitle;
 
-  /// No description provided for @settings_manage_header_manageData.
+  /// No description provided for @settings_manage_header_equipment.
   ///
   /// In en, this message translates to:
-  /// **'Manage Data'**
-  String get settings_manage_header_manageData;
+  /// **'Equipment'**
+  String get settings_manage_header_equipment;
+
+  /// No description provided for @settings_manage_header_diveLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get settings_manage_header_diveLog;
+
+  /// No description provided for @settings_manage_header_planning.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get settings_manage_header_planning;
+
+  /// No description provided for @settings_manage_header_training.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get settings_manage_header_training;
+
+  /// No description provided for @settings_manage_header_checklists.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get settings_manage_header_checklists;
+
+  /// No description provided for @settings_manage_header_organization.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get settings_manage_header_organization;
+
+  /// No description provided for @settings_manage_header_setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get settings_manage_header_setup;
 
   /// No description provided for @settings_manage_species.
   ///

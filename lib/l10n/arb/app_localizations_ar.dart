@@ -26300,7 +26300,25 @@ class AppLocalizationsAr extends AppLocalizations {
       'أنواع مواقع الغوص المدمجة والمخصصة';
 
   @override
-  String get settings_manage_header_manageData => 'إدارة البيانات';
+  String get settings_manage_header_equipment => 'المعدات';
+
+  @override
+  String get settings_manage_header_diveLog => 'الغوصات';
+
+  @override
+  String get settings_manage_header_planning => 'التخطيط';
+
+  @override
+  String get settings_manage_header_training => 'التدريب';
+
+  @override
+  String get settings_manage_header_checklists => 'قوائم التحقق';
+
+  @override
+  String get settings_manage_header_organization => 'المنظمة';
+
+  @override
+  String get settings_manage_header_setup => 'الإعداد';
 
   @override
   String get settings_manage_species => 'الأنواع';

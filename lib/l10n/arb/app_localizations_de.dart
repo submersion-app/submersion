@@ -26039,7 +26039,25 @@ class AppLocalizationsDe extends AppLocalizations {
       'Integrierte und eigene Tauchplatztypen';
 
   @override
-  String get settings_manage_header_manageData => 'Daten verwalten';
+  String get settings_manage_header_equipment => 'Ausrüstung';
+
+  @override
+  String get settings_manage_header_diveLog => 'Tauchgänge';
+
+  @override
+  String get settings_manage_header_planning => 'Planung';
+
+  @override
+  String get settings_manage_header_training => 'Ausbildung';
+
+  @override
+  String get settings_manage_header_checklists => 'Checklisten';
+
+  @override
+  String get settings_manage_header_organization => 'Organisation';
+
+  @override
+  String get settings_manage_header_setup => 'Einrichtung';
 
   @override
   String get settings_manage_species => 'Arten';

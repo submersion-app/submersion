@@ -26077,7 +26077,25 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tipos de ponto de mergulho integrados e personalizados';
 
   @override
-  String get settings_manage_header_manageData => 'Gerenciar Dados';
+  String get settings_manage_header_equipment => 'Equipamentos';
+
+  @override
+  String get settings_manage_header_diveLog => 'Mergulhos';
+
+  @override
+  String get settings_manage_header_planning => 'Planejamento';
+
+  @override
+  String get settings_manage_header_training => 'Treinamento';
+
+  @override
+  String get settings_manage_header_checklists => 'Listas de verificação';
+
+  @override
+  String get settings_manage_header_organization => 'Organização';
+
+  @override
+  String get settings_manage_header_setup => 'Configuração';
 
   @override
   String get settings_manage_species => 'Espécies';

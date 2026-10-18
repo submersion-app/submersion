@@ -25638,7 +25638,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Built-in and custom dive site types';
 
   @override
-  String get settings_manage_header_manageData => 'Manage Data';
+  String get settings_manage_header_equipment => 'Equipment';
+
+  @override
+  String get settings_manage_header_diveLog => 'Dives';
+
+  @override
+  String get settings_manage_header_planning => 'Planning';
+
+  @override
+  String get settings_manage_header_training => 'Training';
+
+  @override
+  String get settings_manage_header_checklists => 'Checklists';
+
+  @override
+  String get settings_manage_header_organization => 'Organization';
+
+  @override
+  String get settings_manage_header_setup => 'Setup';
 
   @override
   String get settings_manage_species => 'Species';

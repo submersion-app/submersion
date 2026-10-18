@@ -26162,7 +26162,25 @@ class AppLocalizationsFr extends AppLocalizations {
       'Types de site intégrés et personnalisés';
 
   @override
-  String get settings_manage_header_manageData => 'Gestion des données';
+  String get settings_manage_header_equipment => 'Équipement';
+
+  @override
+  String get settings_manage_header_diveLog => 'Plongées';
+
+  @override
+  String get settings_manage_header_planning => 'Planification';
+
+  @override
+  String get settings_manage_header_training => 'Formation';
+
+  @override
+  String get settings_manage_header_checklists => 'Checklists';
+
+  @override
+  String get settings_manage_header_organization => 'Organisation';
+
+  @override
+  String get settings_manage_header_setup => 'Réglages';
 
   @override
   String get settings_manage_species => 'Espèces';

@@ -26103,7 +26103,25 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tipos de punto de buceo integrados y personalizados';
 
   @override
-  String get settings_manage_header_manageData => 'Administrar datos';
+  String get settings_manage_header_equipment => 'Equipo';
+
+  @override
+  String get settings_manage_header_diveLog => 'Inmersiones';
+
+  @override
+  String get settings_manage_header_planning => 'Planificación';
+
+  @override
+  String get settings_manage_header_training => 'Formación';
+
+  @override
+  String get settings_manage_header_checklists => 'Listas de verificación';
+
+  @override
+  String get settings_manage_header_organization => 'Organización';
+
+  @override
+  String get settings_manage_header_setup => 'Configuración';
 
   @override
   String get settings_manage_species => 'Especies';

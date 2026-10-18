@@ -25960,7 +25960,25 @@ class AppLocalizationsHu extends AppLocalizations {
       'Beépített és egyedi merülőhely-típusok';
 
   @override
-  String get settings_manage_header_manageData => 'Adatok kezelése';
+  String get settings_manage_header_equipment => 'Felszerelés';
+
+  @override
+  String get settings_manage_header_diveLog => 'Merülések';
+
+  @override
+  String get settings_manage_header_planning => 'Tervezés';
+
+  @override
+  String get settings_manage_header_training => 'Képzés';
+
+  @override
+  String get settings_manage_header_checklists => 'Ellenőrzőlisták';
+
+  @override
+  String get settings_manage_header_organization => 'Szervezet';
+
+  @override
+  String get settings_manage_header_setup => 'Beállítás';
 
   @override
   String get settings_manage_species => 'Fajok';

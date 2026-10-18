@@ -2074,6 +2074,40 @@ void main() {
       expect(find.text('Trimix Mixer Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    // Issue #3505: the flat 18-tile list is grouped into sections by where
+    // each setting is actually used, so a reader can scan by area instead
+    // of the whole list.
+    testWidgets('groups the manage tiles under section headers', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      for (final header in [
+        'Equipment',
+        'Dives',
+        'Planning',
+        'Training',
+        'Checklists',
+        'Organization',
+        'Setup',
+      ]) {
+        expect(find.text(header), findsOneWidget, reason: header);
+      }
+
+      // The old single "Manage Data" umbrella header is gone.
+      expect(find.text('Manage Data'), findsNothing);
+
+      // A tile stays under its section header, not just anywhere on the
+      // page: Tank Presets sits above Equipment's next tile and below the
+      // Equipment header.
+      final equipmentHeaderY = tester.getTopLeft(find.text('Equipment')).dy;
+      final tankPresetsY = tester.getTopLeft(find.text('Tank Presets')).dy;
+      final diveLogHeaderY = tester.getTopLeft(find.text('Dives')).dy;
+      expect(tankPresetsY, greaterThan(equipmentHeaderY));
+      expect(tankPresetsY, lessThan(diveLogHeaderY));
+    });
   });
 
   group('NotificationsSectionContent trip lead time', () {

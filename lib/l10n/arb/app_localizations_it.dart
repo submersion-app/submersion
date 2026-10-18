@@ -26100,7 +26100,25 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tipi di sito predefiniti e personalizzati';
 
   @override
-  String get settings_manage_header_manageData => 'Gestisci dati';
+  String get settings_manage_header_equipment => 'Attrezzatura';
+
+  @override
+  String get settings_manage_header_diveLog => 'Immersioni';
+
+  @override
+  String get settings_manage_header_planning => 'Pianificazione';
+
+  @override
+  String get settings_manage_header_training => 'Formazione';
+
+  @override
+  String get settings_manage_header_checklists => 'Checklist';
+
+  @override
+  String get settings_manage_header_organization => 'Organizzazione';
+
+  @override
+  String get settings_manage_header_setup => 'Configurazione';
 
   @override
   String get settings_manage_species => 'Specie';

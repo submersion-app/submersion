@@ -1603,7 +1603,71 @@ class _ManageSectionContent extends StatelessWidget {
         children: [
           buildSettingsSectionHeader(
             context,
-            context.l10n.settings_manage_header_manageData,
+            context.l10n.settings_manage_header_equipment,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(MdiIcons.divingScubaTank),
+                  title: Text(context.l10n.settings_manage_tankPresets),
+                  subtitle: Text(
+                    context.l10n.settings_manage_tankPresets_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/tank-presets'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.sensors),
+                  title: Text(context.l10n.settings_manage_transmitters),
+                  subtitle: Text(
+                    context.l10n.settings_manage_transmitters_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/transmitters'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.fitness_center),
+                  title: Text(context.l10n.settings_manage_weightPresets),
+                  subtitle: Text(
+                    context.l10n.settings_manage_weightPresets_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/weight-presets'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.build_circle_outlined),
+                  title: Text(context.l10n.settings_manage_serviceTypes),
+                  subtitle: Text(
+                    context.l10n.settings_manage_serviceTypes_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/equipment/service-types'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: const ValueKey('settings_manage_locations'),
+                  leading: const Icon(Icons.place_outlined),
+                  title: Text(context.l10n.settings_manage_locations),
+                  subtitle: Text(
+                    context.l10n.settings_manage_locations_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/equipment/locations'),
+                ),
+                const Divider(height: 1),
+                const EquipmentDefaultViewTile(),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_manage_header_diveLog,
           ),
           const SizedBox(height: 8),
           Card(
@@ -1640,6 +1704,42 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(MdiIcons.fish),
+                  title: Text(context.l10n.settings_manage_species),
+                  subtitle: Text(context.l10n.settings_manage_species_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/species/manage'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_manage_header_planning,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.gas_meter),
+              title: Text(context.l10n.settings_section_trimixMixer_title),
+              subtitle: Text(
+                context.l10n.settings_section_trimixMixer_subtitle,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(kTrimixMixerSettingsRoute),
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_manage_header_training,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
                   leading: const Icon(Icons.workspace_premium_outlined),
                   title: Text(
                     context.l10n.settings_manage_certificationAgencies,
@@ -1649,56 +1749,6 @@ class _ManageSectionContent extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/certification-agencies'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(MdiIcons.divingScubaTank),
-                  title: Text(context.l10n.settings_manage_tankPresets),
-                  subtitle: Text(
-                    context.l10n.settings_manage_tankPresets_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/tank-presets'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.sensors),
-                  title: Text(context.l10n.settings_manage_transmitters),
-                  subtitle: Text(
-                    context.l10n.settings_manage_transmitters_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/transmitters'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.fitness_center),
-                  title: Text(context.l10n.settings_manage_weightPresets),
-                  subtitle: Text(
-                    context.l10n.settings_manage_weightPresets_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/weight-presets'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.gas_meter),
-                  title: Text(context.l10n.settings_section_trimixMixer_title),
-                  subtitle: Text(
-                    context.l10n.settings_section_trimixMixer_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(kTrimixMixerSettingsRoute),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.build_circle_outlined),
-                  title: Text(context.l10n.settings_manage_serviceTypes),
-                  subtitle: Text(
-                    context.l10n.settings_manage_serviceTypes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/equipment/service-types'),
                 ),
                 const Divider(height: 1),
                 // Refresher and renewal rules (issue #2267)
@@ -1711,30 +1761,18 @@ class _ManageSectionContent extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/currency-rules'),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  key: const ValueKey('settings_manage_locations'),
-                  leading: const Icon(Icons.place_outlined),
-                  title: Text(context.l10n.settings_manage_locations),
-                  subtitle: Text(
-                    context.l10n.settings_manage_locations_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/equipment/locations'),
-                ),
-                const Divider(height: 1),
-                const EquipmentDefaultViewTile(),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.auto_fix_high),
-                  title: Text(context.l10n.settings_manage_setupAssistant),
-                  subtitle: Text(
-                    context.l10n.settings_manage_setupAssistant_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/setup-assistant'),
-                ),
-                const Divider(height: 1),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_manage_header_checklists,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
                 ListTile(
                   leading: const Icon(Icons.checklist),
                   title: Text(context.l10n.settings_manage_checklistTemplates),
@@ -1754,23 +1792,18 @@ class _ManageSectionContent extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/pre-dive-checklists'),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(MdiIcons.fish),
-                  title: Text(context.l10n.settings_manage_species),
-                  subtitle: Text(context.l10n.settings_manage_species_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/species/manage'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.sell),
-                  title: Text(context.l10n.settings_manage_tags),
-                  subtitle: Text(context.l10n.settings_manage_tags_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/tags'),
-                ),
-                const Divider(height: 1),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_manage_header_organization,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
                 ListTile(
                   leading: const Icon(Icons.bookmarks_outlined),
                   title: Text(context.l10n.settings_manage_savedQueries),
@@ -1780,7 +1813,32 @@ class _ManageSectionContent extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/saved-queries'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.sell),
+                  title: Text(context.l10n.settings_manage_tags),
+                  subtitle: Text(context.l10n.settings_manage_tags_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/tags'),
+                ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_manage_header_setup,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.auto_fix_high),
+              title: Text(context.l10n.settings_manage_setupAssistant),
+              subtitle: Text(
+                context.l10n.settings_manage_setupAssistant_subtitle,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/setup-assistant'),
             ),
           ),
         ],

@@ -25424,7 +25424,25 @@ class AppLocalizationsHe extends AppLocalizations {
       'סוגי אתרי צלילה מובנים ומותאמים';
 
   @override
-  String get settings_manage_header_manageData => 'ניהול נתונים';
+  String get settings_manage_header_equipment => 'ציוד';
+
+  @override
+  String get settings_manage_header_diveLog => 'צלילות';
+
+  @override
+  String get settings_manage_header_planning => 'תכנון';
+
+  @override
+  String get settings_manage_header_training => 'הכשרה';
+
+  @override
+  String get settings_manage_header_checklists => 'רשימות בדיקה';
+
+  @override
+  String get settings_manage_header_organization => 'ארגון';
+
+  @override
+  String get settings_manage_header_setup => 'הגדרה';
 
   @override
   String get settings_manage_species => 'מינים';
