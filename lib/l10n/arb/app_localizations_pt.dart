@@ -36008,6 +36008,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Nada foi excluído: as exclusões aguardam até que este dispositivo termine de sincronizar.';
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Enviar biblioteca existente';
 
@@ -50737,6 +50741,73 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Ficheiros de importação originais';
+
+  @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device neste dispositivo, $cloud na nuvem';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'Cerca de $size podem ser recuperados';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Nada a recuperar de momento';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Última recuperação: $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'Mais $size serão recuperáveis após a espera de segurança';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'Mais $size serão recuperáveis quando este dispositivo terminar de sincronizar';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Recuperar espaço';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '$size recuperados';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '$size recuperados. A limpeza na nuvem aguarda até que este dispositivo termine de sincronizar.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'Na nuvem';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Armazenamento de multimédia';
+
+  @override
+  String get settings_storageUsage_cloud_sync =>
+      'Sincronização da base de dados';
+
+  @override
+  String get settings_storageUsage_cloud_libraries =>
+      'Bibliotecas de locais partilhadas';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Analisado $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Ainda não analisado';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Analisar novamente';
 
   @override
   String get profilePhoto_sheet_title => 'Foto do perfil';

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -40,6 +41,10 @@ final backupPreferencesProvider = Provider<BackupPreferences>((ref) {
 
 /// Backup service with all dependencies injected
 final backupServiceProvider = Provider<BackupService>((ref) {
+  // Captured now, not read through ref inside the hook: a restore can run
+  // for minutes, and a rebuild of this provider meanwhile would leave the
+  // hook holding an unmounted Ref that throws, failing the restore.
+  final prefs = ref.watch(sharedPreferencesProvider);
   return BackupService(
     dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
     preferences: ref.watch(backupPreferencesProvider),
@@ -48,6 +53,7 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     postRestoreSyncStore: PostRestoreSyncStore(
       ref.watch(sharedPreferencesProvider),
     ),
+    onRestoring: (at) => StorageGcStore.markRestored(prefs, at),
     encryptionKeyStore: ref.watch(encryptionKeyStoreProvider),
     syncPreferences: ref.watch(syncPreferencesProvider),
     backupEncryptionKeyStore: ref.watch(backupEncryptionKeyStoreProvider),

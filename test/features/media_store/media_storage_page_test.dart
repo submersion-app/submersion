@@ -938,6 +938,56 @@ void main() {
     );
   });
 
+  testWidgets('a deferred verify says nothing was deleted yet', (tester) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    var runs = 0;
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        app(
+          statusHint: 'dive-media @ minio',
+          extraOverrides: [
+            mediaVerifyRunnerProvider.overrideWithValue(() async {
+              runs++;
+              return const VerifyLibraryReport(
+                objectsChecked: 12,
+                originalsChecked: 7,
+                thumbsChecked: 4,
+                renditionsChecked: 1,
+                orphansRemoved: 0,
+                bytesReclaimed: 0,
+                sessionsAborted: 1,
+                repairsQueued: 0,
+                deferred: true,
+              );
+            }),
+          ],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    await tester.ensureVisible(find.byKey(const Key('media-verify-library')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-verify-library')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(runs, 1);
+    // Removed 0 alone reads as "nothing to remove"; the deletes were held
+    // back until this device catches up with sync.
+    expect(
+      find.textContaining(
+        'Nothing was deleted: deletes wait until this device has finished '
+        'syncing.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   Widget throwingVerifyApp(Object error) => app(
     statusHint: 'dive-media @ minio',
     extraOverrides: [

@@ -44,6 +44,8 @@ class ChangesetReadResult {
     this.readFailedPeerNames = const {},
     this.retiredPeerIds = const {},
     this.retiredPeerHasFiles = false,
+    this.incompletePeerDeviceIds = const {},
+    this.unpublishedPeerDeviceIds = const {},
   });
   final int peersProcessed;
   final int payloadsApplied;
@@ -100,6 +102,19 @@ class ChangesetReadResult {
   /// True when a retired peer still has non-marker files in the bucket (a
   /// partial retirement) -- tells the sweeper to retry the deletion.
   final bool retiredPeerHasFiles;
+
+  /// Current-epoch peers this pull stopped short of: a missing or corrupt
+  /// base, a changeset gap, or a corrupt changeset. None of these is a read
+  /// failure (the cursor still advances through what applied), so without
+  /// this set the pull looks complete although the peer has published rows
+  /// this device has not applied. The storage cleanup must not trust such a
+  /// pull to know every media object a peer references.
+  final Set<String> incompletePeerDeviceIds;
+
+  /// Devices with files in the sync folder but no manifest yet (a first
+  /// publish still uploading). They are invisible to every manifest-based
+  /// check, yet may already be uploading media.
+  final Set<String> unpublishedPeerDeviceIds;
 }
 
 /// Consumes peers' changeset logs: discovers peers, decides per-peer what to
@@ -167,6 +182,8 @@ class ChangesetReader {
     final olderSchemaPeerNames = <String, String>{};
     final readFailedPeerDeviceIds = <String>{};
     final readFailedPeerNames = <String, String>{};
+    final incompletePeerDeviceIds = <String>{};
+    final unpublishedPeerDeviceIds = <String>{};
 
     var peersProcessed = 0;
     var payloadsApplied = 0;
@@ -180,7 +197,11 @@ class ChangesetReader {
         // never advance a cursor against them.
         if (retiredPeerIds.contains(peerId)) continue;
         final manifestFile = byName[ChangesetLogLayout.manifestName(peerId)];
-        if (manifestFile == null) continue; // files but no manifest yet
+        if (manifestFile == null) {
+          // Files but no manifest yet: a first publish still uploading.
+          unpublishedPeerDeviceIds.add(peerId);
+          continue;
+        }
         final manifest = SyncManifest.fromBytes(
           await provider.downloadFile(manifestFile.id),
         );
@@ -288,7 +309,9 @@ class ChangesetReader {
               'Base seq $baseSeq from peer $peerId is incomplete or corrupt; '
               'will retry next sync',
             );
-            continue; // missing or corrupt base -> transient, retry next sync
+            // Missing or corrupt base: transient, retry next sync.
+            incompletePeerDeviceIds.add(peerId);
+            continue;
           }
           _log.info(
             'Base seq $baseSeq from peer $peerId assembled in '
@@ -340,6 +363,11 @@ class ChangesetReader {
           appliedHlc = _maxHlc(appliedHlc, cs.toHlc);
         }
 
+        // A gap or a corrupt changeset stopped this peer before its head.
+        if (appliedThrough < manifest.headSeq) {
+          incompletePeerDeviceIds.add(peerId);
+        }
+
         // Advance only forward, after applying, so an interrupted apply
         // re-pulls next time rather than skipping a seq.
         if (appliedThrough > lastApplied) {
@@ -384,6 +412,8 @@ class ChangesetReader {
       readFailedPeerNames: readFailedPeerNames,
       retiredPeerIds: retiredPeerIds,
       retiredPeerHasFiles: retiredPeerHasFiles,
+      incompletePeerDeviceIds: incompletePeerDeviceIds,
+      unpublishedPeerDeviceIds: unpublishedPeerDeviceIds,
     );
   }
 

@@ -365,16 +365,21 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     try {
       final report = await ref.read(mediaVerifyRunnerProvider)();
       if (!mounted) return;
+      final summary = l10n.settings_mediaStorage_verify_summary(
+        report.objectsChecked,
+        report.originalsChecked,
+        report.thumbsChecked,
+        report.renditionsChecked,
+        report.orphansRemoved,
+        report.repairsQueued,
+        report.sessionsAborted,
+      );
+      // "Removed 0" alone would read as nothing to remove; deferred deletes
+      // wait on a sync.
       _showSnack(
-        l10n.settings_mediaStorage_verify_summary(
-          report.objectsChecked,
-          report.originalsChecked,
-          report.thumbsChecked,
-          report.renditionsChecked,
-          report.orphansRemoved,
-          report.repairsQueued,
-          report.sessionsAborted,
-        ),
+        report.deferred
+            ? '$summary\n${l10n.settings_mediaStorage_verify_deferred}'
+            : summary,
       );
     } on MediaStoreException catch (e) {
       if (mounted) _showSnack(e.message, isError: true);

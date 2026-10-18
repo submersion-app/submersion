@@ -35406,6 +35406,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Nothing was deleted: deletes wait until this device has finished syncing.';
+
+  @override
   String get settings_mediaStorage_backfill_action => 'Upload existing library';
 
   @override
@@ -49930,6 +49934,71 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Imported logbook files';
+
+  @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device on this device, $cloud in the cloud';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'About $size can be reclaimed';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Nothing to reclaim right now';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Last reclaimed $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return '$size more will be reclaimable after the safety wait';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return '$size more will be reclaimable once this device has finished syncing';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Reclaim storage';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return 'Reclaimed $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return 'Reclaimed $size. The cloud cleanup waits until this device has finished syncing.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'In the Cloud';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Media store';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'Database sync';
+
+  @override
+  String get settings_storageUsage_cloud_libraries => 'Shared site libraries';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Scanned $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Not scanned yet';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Rescan';
 
   @override
   String get profilePhoto_sheet_title => 'Profile Photo';

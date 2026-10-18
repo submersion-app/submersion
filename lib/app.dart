@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/display_zoom.dart';
 import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
@@ -157,6 +159,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();
       _republishOwnedMedia();
+      _runStorageCleanup(StorageGcTrigger.launch);
       _convertGearFiles();
       _fileShareHandler.initialize();
       _passportLinks.start();
@@ -213,6 +216,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ref.read(appLockNotifierProvider.notifier).noteResumed();
         _maybeSyncOnResume();
         _resumeMediaTransfers();
+        _runStorageCleanup(StorageGcTrigger.resume);
         // NFC may have been turned on in the system settings meanwhile, as
         // the passport screens tell the diver to do.
         ref.invalidate(nfcSupportProvider);
@@ -238,6 +242,15 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// callback later still.
   void _resumeMediaTransfers() {
     unawaited(ref.read(mediaTransferResumeProvider)());
+  }
+
+  /// Runs the storage cleanup coordinator (issue #3396): device sweeps at
+  /// most daily, the cloud cleanup on its own cadence, and a post-restore
+  /// pass when a restore left its marker. Same database timing argument as
+  /// [_resumeMediaTransfers]; the coordinator contains its own failures, so
+  /// it is safe to leave unawaited.
+  void _runStorageCleanup(StorageGcTrigger trigger) {
+    unawaited(ref.read(storageGcCoordinatorProvider).run(trigger));
   }
 
   /// One-time repair of media rows whose cloud stamps a peer dropped before

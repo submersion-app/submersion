@@ -110,7 +110,10 @@ class MediaStoreResolver {
           (at) => unstamped.copyWith(remoteUploadedAt: at),
         ),
         (
-          StoreKeys.renditionKey(hash, ext: isVideo ? 'mp4' : 'jpg'),
+          StoreKeys.renditionKey(
+            hash,
+            ext: StoreKeys.renditionExtension(isVideo: isVideo),
+          ),
           (at) => unstamped.copyWith(remoteCompressedUploadedAt: at),
         ),
       ],
@@ -310,7 +313,9 @@ class MediaStoreResolver {
     MediaItem item,
     String hash,
   ) async {
-    final ext = item.mediaType == MediaType.video ? 'mp4' : 'jpg';
+    final ext = StoreKeys.renditionExtension(
+      isVideo: item.mediaType == MediaType.video,
+    );
     File? staging;
     try {
       final cached = await _cache.get(

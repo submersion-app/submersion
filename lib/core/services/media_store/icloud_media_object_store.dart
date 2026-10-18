@@ -11,14 +11,20 @@ import 'package:submersion/core/services/media_store/media_object_store.dart';
 /// move in via native file coordination. Upload/download resume and
 /// progress are OS-managed: the adapter accepts the resume parameters and
 /// reports a single completion tick.
-class ICloudMediaObjectStore implements MediaObjectStore {
+class ICloudMediaObjectStore implements MediaObjectStore, LocalListingStore {
   ICloudMediaObjectStore({
     required ICloudMediaPlatform platform,
     this.rootFolder = 'submersion-media',
     this.smallFileThresholdBytes = 8 * 1024 * 1024,
-  }) : _platform = platform;
+    Future<void> Function(File file, DateTime at)? dateStagedCopy,
+  }) : _platform = platform,
+       _dateStagedCopy = dateStagedCopy ?? _setLastModified;
+
+  static Future<void> _setLastModified(File file, DateTime at) =>
+      file.setLastModified(at);
 
   final ICloudMediaPlatform _platform;
+  final Future<void> Function(File file, DateTime at) _dateStagedCopy;
   final String rootFolder;
   final int smallFileThresholdBytes;
 
@@ -87,6 +93,26 @@ class ICloudMediaObjectStore implements MediaObjectStore {
       // same-volume, then let the OS upload in the background.
       final staging = '$path.uploading';
       await source.copy(staging);
+      // File.copy keeps the source's modification time on Apple platforms,
+      // and list() reports that time: a fresh upload of an old video would
+      // look months old to the storage cleanup, whose grace window runs from
+      // lastModified. Date the object by the upload instead, or do not
+      // publish it: the retry dates it again.
+      try {
+        await _dateStagedCopy(File(staging), DateTime.now());
+      } on FileSystemException catch (e) {
+        try {
+          await File(staging).delete();
+        } on FileSystemException catch (_) {
+          // A leftover is hidden from list(), and the retry's copy
+          // replaces it.
+        }
+        throw MediaStoreException(
+          'Could not date the staged upload for $key',
+          kind: MediaStoreErrorKind.transient,
+          cause: e,
+        );
+      }
       final moved = await _platform.moveIntoContainer(staging, path);
       if (!moved) {
         throw MediaStoreException(
@@ -154,6 +180,23 @@ class ICloudMediaObjectStore implements MediaObjectStore {
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     final root = await _root();
     await _platform.refreshFolder(root);
+    yield* _walk(root, keyPrefix, placeholders: false);
+  }
+
+  /// The container as this device has it, without the refresh [list] runs:
+  /// that refresh starts downloading every evicted item. An evicted item
+  /// that left a `.<name>.icloud` placeholder is listed under its own key
+  /// with no size.
+  @override
+  Stream<StoreObjectInfo> listLocal(String keyPrefix) async* {
+    yield* _walk(await _root(), keyPrefix, placeholders: true);
+  }
+
+  Stream<StoreObjectInfo> _walk(
+    String root,
+    String keyPrefix, {
+    required bool placeholders,
+  }) async* {
     final directory = Directory(root);
     if (!await directory.exists()) return;
     await for (final entity in directory.list(
@@ -161,17 +204,29 @@ class ICloudMediaObjectStore implements MediaObjectStore {
       followLinks: false,
     )) {
       if (entity is! File) continue;
-      final key = p
+      var key = p
           .relative(entity.path, from: root)
           .replaceAll(p.separator, '/');
+      final placeholder = placeholders ? _placeholderKey(key) : null;
+      if (placeholder != null) key = placeholder;
       if (!key.startsWith(keyPrefix)) continue;
       if (key.endsWith('.uploading')) continue;
       final stat = await entity.stat();
       yield StoreObjectInfo(
         key: key,
-        sizeBytes: stat.size,
+        sizeBytes: placeholder == null ? stat.size : null,
         lastModified: stat.modified,
       );
     }
+  }
+
+  /// `dir/.name.icloud` -> `dir/name`, or null for any other key.
+  static String? _placeholderKey(String key) {
+    final slash = key.lastIndexOf('/');
+    final name = key.substring(slash + 1);
+    if (!name.startsWith('.') || !name.endsWith('.icloud')) return null;
+    final real = name.substring(1, name.length - '.icloud'.length);
+    if (real.isEmpty) return null;
+    return '${key.substring(0, slash + 1)}$real';
   }
 }

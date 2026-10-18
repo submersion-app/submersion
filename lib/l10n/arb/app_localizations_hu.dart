@@ -35802,6 +35802,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Semmi sem lett törölve: a törlések megvárják, amíg ez az eszköz befejezi a szinkronizálást.';
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Meglévő könyvtár feltöltése';
 
@@ -50453,6 +50457,72 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Eredeti importált fájlok';
+
+  @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device ezen az eszközön, $cloud a felhőben';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'Körülbelül $size felszabadítható';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Jelenleg nincs mit felszabadítani';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Legutóbb felszabadítva: $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'További $size a biztonsági várakozás után szabadítható fel';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'További $size szabadítható fel, amint ez az eszköz befejezi a szinkronizálást';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Tárhely felszabadítása';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '$size felszabadítva';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '$size felszabadítva. A felhőbeli takarítás megvárja, amíg ez az eszköz befejezi a szinkronizálást.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'A felhőben';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Médiatár';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'Adatbázis-szinkronizálás';
+
+  @override
+  String get settings_storageUsage_cloud_libraries =>
+      'Megosztott merülőhely-könyvtárak';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Átvizsgálva: $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Még nincs átvizsgálva';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Újbóli átvizsgálás';
 
   @override
   String get profilePhoto_sheet_title => 'Profilkép';

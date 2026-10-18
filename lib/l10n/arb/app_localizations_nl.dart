@@ -35767,6 +35767,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Er is niets verwijderd: verwijderingen wachten tot dit apparaat klaar is met synchroniseren.';
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Bestaande bibliotheek uploaden';
 
@@ -50406,6 +50410,72 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Originele importbestanden';
+
+  @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device op dit apparaat, $cloud in de cloud';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'Ongeveer $size is terug te winnen';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Er valt nu niets terug te winnen';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Laatst teruggewonnen: $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'Nog $size is terug te winnen na de veiligheidswachttijd';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'Nog $size is terug te winnen zodra dit apparaat klaar is met synchroniseren';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Opslag terugwinnen';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '$size teruggewonnen';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '$size teruggewonnen. De opschoning in de cloud wacht tot dit apparaat klaar is met synchroniseren.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'In de cloud';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Mediaopslag';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'Databasesynchronisatie';
+
+  @override
+  String get settings_storageUsage_cloud_libraries =>
+      'Gedeelde duikstekbibliotheken';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Gescand $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Nog niet gescand';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Opnieuw scannen';
 
   @override
   String get profilePhoto_sheet_title => 'Profielfoto';

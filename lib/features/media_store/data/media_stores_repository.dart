@@ -63,7 +63,19 @@ class MediaStoresRepository {
               ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
               ..limit(1))
             .getSingleOrNull();
-    if (row == null) return null;
+    return row == null ? null : _toDescriptor(row);
+  }
+
+  /// The descriptor of store [storeId], or null when this library has none
+  /// for it.
+  Future<MediaStoreDescriptor?> getById(String storeId) async {
+    final row = await (_db.select(
+      _db.mediaStores,
+    )..where((t) => t.id.equals(storeId))).getSingleOrNull();
+    return row == null ? null : _toDescriptor(row);
+  }
+
+  MediaStoreDescriptor _toDescriptor(MediaStore row) {
     return (
       id: row.id,
       providerType: row.providerType,
