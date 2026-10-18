@@ -26,7 +26,7 @@ void main() {
     expect(find.text('SETTLED'), findsOneWidget);
   });
 
-  testWidgets('a pushed page is entering until its slide completes', (
+  testWidgets('a pushed page is entering while its slide starts', (
     tester,
   ) async {
     final navigator = GlobalKey<NavigatorState>();
