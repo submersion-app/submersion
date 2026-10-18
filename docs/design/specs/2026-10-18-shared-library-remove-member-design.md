@@ -86,13 +86,14 @@ The lasting "this person was removed" fact lives in its own file, not in
 - Contents: `memberId`, `displayName` (from the card at removal time, so the
   Removed list can name the person after the card is gone), `publicKey` (the
   key the owners had approved for them, when there was one), `removedAt`
-  (ms), `removedBy` (member id or the recovery signer), `signature`.
+  (ms), `removedBy` (the acting owner's member id), `signature`.
 - Signature: over `ssl-removal:v1\n<libraryId>\n<canonical json of all but
   the signature>`, made with the acting owner's signing key, following the
   roles and suggestion signature pattern.
 - Valid when signed by a key that the current roles approve for a member who
-  is an **owner** now, or by the recovery key. An invalid or unreadable
-  record is ignored (the person is treated as not removed).
+  is an **owner** now. (Removal is always done by a signed-in owner, so the
+  recovery key never signs one.) An invalid or unreadable record is ignored
+  (the person is treated as not removed).
 
 Known limit (accepted): a removal signed by an owner who later stops being
 an owner no longer verifies, and the person can reappear as pending (still
@@ -203,8 +204,8 @@ word "club".
 
 ## Testing
 
-- Model: removal record sign/verify (valid owner, non-owner signer, recovery
-  signer, tampered field, wrong library id).
+- Model: removal record sign/verify (valid owner, non-owner signer,
+  tampered field, wrong library id).
 - Roles: removal retires the key with the right `until` for owner and
   editor, does not retire a reader's, drops the approval, and a field signed before `T` still passes
   `dropUnverified` while one signed after does not.
