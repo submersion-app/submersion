@@ -5,6 +5,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:flutter_riverpod/misc.dart' show Override, ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -205,4 +213,67 @@ void main() {
     final c = container([sharedLibrarySummaryProvider.overrideWithValue(null)]);
     expect(c.read(librariesRowStatusProvider).kind, DataRowStatusKind.checking);
   });
+
+  test('photos read as checking while the store state loads', () {
+    // Not "Copies are not kept" with a Set up button for a diver who has a
+    // store: the attach state has not arrived yet.
+    final c = container([
+      mediaStoreAttachedHereProvider.overrideWithValue(null),
+      attachedStoreHintProvider.overrideWith((ref) async => null),
+    ]);
+    expect(c.read(photosRowStatusProvider).kind, DataRowStatusKind.checking);
+  });
+
+  test('a failed library list does not read as checking forever', () {
+    final c = container([
+      sharedLibrariesProvider.overrideWith(
+        (ref) => Stream<List<SharedLibrary>>.error(StateError('boom')),
+      ),
+    ]);
+    keep(c, librariesRowStatusProvider);
+    return Future<void>.delayed(Duration.zero, () {
+      expect(
+        c.read(librariesRowStatusProvider).kind,
+        isNot(DataRowStatusKind.checking),
+      );
+    });
+  });
+
+  test('a failed sign-in check still lists the accounts', () async {
+    final c = container([
+      pendingSetupItemsProvider.overrideWith(
+        (ref) => Future<List<PendingSetupItem>>.error(StateError('keychain')),
+      ),
+      connectedAccountsRepositoryProvider.overrideWithValue(
+        _FakeAccounts(['Google Drive']),
+      ),
+    ]);
+    keep(c, accountsRowStatusProvider);
+    await c.read(accountsSummaryProvider.future);
+    final s = c.read(accountsRowStatusProvider);
+    expect(
+      (s.kind, s.name),
+      (DataRowStatusKind.accountsListed, 'Google Drive'),
+    );
+  });
+}
+
+class _FakeAccounts extends Fake implements ConnectedAccountsRepository {
+  _FakeAccounts(this.labels);
+  final List<String> labels;
+
+  @override
+  Stream<void> watchAccountsChanges() => const Stream.empty();
+
+  @override
+  Future<List<ConnectedAccount>> getAll() async => [
+    for (final (i, label) in labels.indexed)
+      ConnectedAccount(
+        id: 'a$i',
+        kind: AccountKind.googledrive,
+        label: label,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+  ];
 }

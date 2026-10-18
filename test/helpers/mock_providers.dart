@@ -808,7 +808,7 @@ Future<List<Override>> getBaseOverrides({
   List<String> syncPeerNames = const [],
   String? syncAccountLabel,
   String? attachedStoreHint,
-  bool mediaStoreAttachedHere = false,
+  bool? mediaStoreAttachedHere = false,
   List<String> accountLabels = const [],
   int accountsNeedingSignIn = 0,
   int sharedLibraryCount = 0,

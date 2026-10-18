@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -65,17 +66,22 @@ final backupCopyInputsProvider =
       );
     });
 
-/// Whether this device is attached to a media store (false while the
-/// health inputs load). Lightroom alone does not count: it keeps no copies.
-final mediaStoreAttachedHereProvider = Provider.autoDispose<bool>((ref) {
-  return ref.watch(mediaHealthInputsProvider).value?.storeAttachedHere ?? false;
+/// Whether this device is attached to a media store, or null while that is
+/// still loading. Lightroom alone does not count: it keeps no copies. A
+/// failed read counts as not attached, so the row never waits forever.
+final mediaStoreAttachedHereProvider = Provider.autoDispose<bool?>((ref) {
+  final inputs = ref.watch(mediaHealthInputsProvider);
+  if (inputs.hasError) return false;
+  return inputs.value?.storeAttachedHere;
 });
 
 /// How many libraries this device has joined and the latest sync among them,
 /// or null while the library list is still loading.
 final sharedLibrarySummaryProvider =
     Provider.autoDispose<({int count, DateTime? lastSync})?>((ref) {
-      final libraries = ref.watch(sharedLibrariesProvider).value;
+      final async = ref.watch(sharedLibrariesProvider);
+      // A failed read matches the strip, which reads it as none joined.
+      final libraries = async.hasError ? const <SharedLibrary>[] : async.value;
       if (libraries == null) return null;
       DateTime? latest;
       for (final library in libraries) {
@@ -97,7 +103,11 @@ final accountsSummaryProvider =
       final repository = ref.watch(connectedAccountsRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchAccountsChanges());
       final accounts = await repository.getAll();
-      final items = await ref.watch(pendingSetupItemsProvider.future);
+      // The roster still lists when the sign-in check fails (a keychain
+      // error); the count of sign-ins needed then reads as none.
+      final items = await ref
+          .watch(pendingSetupItemsProvider.future)
+          .catchError((Object _) => const <PendingSetupItem>[]);
       return (
         labels: [for (final account in accounts) account.label],
         needSignIn: items
@@ -133,10 +143,14 @@ final syncRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
 });
 
 final photosRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
+  final attached = ref.watch(mediaStoreAttachedHereProvider);
+  // Until the attach state arrives the health reads "not set up", which
+  // would offer Set up to a diver who already keeps copies.
+  if (attached == null) return const DataRowStatus(DataRowStatusKind.checking);
   return photosRowStatus(
     health: _healthOf(ref, DataFeature.media),
     storeHint: ref.watch(attachedStoreHintProvider).value,
-    storeAttachedHere: ref.watch(mediaStoreAttachedHereProvider),
+    storeAttachedHere: attached,
   );
 });
 
