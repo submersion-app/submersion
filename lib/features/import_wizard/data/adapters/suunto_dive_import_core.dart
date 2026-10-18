@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/import_wizard/data/adapters/import_connection_recorder.dart';
+import 'package:submersion/features/import_wizard/data/adapters/suunto_buddy_writer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
@@ -56,7 +57,8 @@ typedef _ConsolidateResult = ({_ConsolidateOutcome outcome, String? diveId});
 /// computers, so the owning [DiveComputer] is resolved per dive (by device
 /// model + serial number) instead of once per session. A dive's recorded
 /// route (DiveRoute, issue #1445) is linked to whichever dive each write
-/// path settles on, through [SuuntoRouteWriter].
+/// path settles on, through [SuuntoRouteWriter], and the people logged on
+/// the workout (issue #3266) through [SuuntoBuddyWriter].
 abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   static final _log = LoggerService.forClass(SuuntoDiveImportCore);
 
@@ -67,6 +69,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     required DiveConsolidationService consolidationService,
     required String diverId,
     SuuntoRouteWriter? routeWriter,
+    SuuntoBuddyWriter? buddyWriter,
     WidgetRef? ref,
     DiveComputerConnectionRepository? connectionRepository,
   }) : _importService = importService,
@@ -76,6 +79,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
        _consolidationService = consolidationService,
        _diverId = diverId,
        _routeWriter = routeWriter ?? SuuntoRouteWriter(),
+       _buddyWriter = buddyWriter ?? SuuntoBuddyWriter(),
        _ref = ref;
 
   final DiveImportService _importService;
@@ -84,6 +88,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   final DiveConsolidationService _consolidationService;
   final String _diverId;
   final SuuntoRouteWriter _routeWriter;
+  final SuuntoBuddyWriter _buddyWriter;
   final WidgetRef? _ref;
 
   /// Where each computer's connection is recorded (issue #3106); read from
@@ -315,9 +320,9 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
               consolidated++;
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
-              // The fold keeps the target's own header, so the notes go onto
-              // the target, not the folded-away download.
-              await _fillNotes(matchResult.diveId, parsed);
+              // The fold keeps the target's own header, so the notes and
+              // buddies go onto the target, not the folded-away download.
+              await _fillFromWorkout(matchResult.diveId, parsed);
               await _routeWriter.attach(matchResult.diveId, parsed);
             case _ConsolidateOutcome.keptStandalone:
               // The fold refused, but the download survived as its own dive,
@@ -326,7 +331,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
               final keptId = result.diveId;
               if (keptId != null) {
                 importedDiveIds.add(keptId);
-                await _fillNotes(keptId, parsed);
+                await _fillFromWorkout(keptId, parsed);
                 await _routeWriter.attach(keptId, parsed);
               }
               importedCountByComputerId[comp.id] =
@@ -362,7 +367,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
             descriptorProduct: parsed.deviceName,
           );
           updated++;
-          await _fillNotes(matchResult.diveId, parsed);
+          await _fillFromWorkout(matchResult.diveId, parsed);
           await _routeWriter.attach(matchResult.diveId, parsed);
         }
       } else {
@@ -376,7 +381,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
         );
         imported++;
         importedDiveIds.add(diveId);
-        await _fillNotes(diveId, parsed);
+        await _fillFromWorkout(diveId, parsed);
         await _routeWriter.attach(diveId, parsed);
         importedCountByComputerId[comp.id] =
             (importedCountByComputerId[comp.id] ?? 0) + 1;
@@ -432,6 +437,13 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
       importedDiveIds: importedDiveIds,
       notices: [?numberConflict],
     );
+  }
+
+  /// Brings what the diver logged on the Suunto workout, but the dive export
+  /// leaves out, onto [diveId]: the notes and the buddies.
+  Future<void> _fillFromWorkout(String diveId, SuuntoParsedDive parsed) async {
+    await _fillNotes(diveId, parsed);
+    await _buddyWriter.attach(diveId, parsed, _diverId);
   }
 
   /// Brings the notes the diver wrote in the Suunto app onto [diveId]

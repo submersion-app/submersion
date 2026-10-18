@@ -19,6 +19,7 @@ class SuuntoWorkoutSummary {
     this.diveTimeSeconds,
     this.totalTimeSeconds,
     this.notes,
+    this.buddies = const [],
   });
 
   /// Opaque workout identifier used to fetch the full SML export.
@@ -45,6 +46,11 @@ class SuuntoWorkoutSummary {
   /// null when there are none. The dive export never carries them
   /// (issue #2410).
   final String? notes;
+
+  /// The people the diver logged as dive buddies in the Suunto app
+  /// (`journal.diveBuddy`), trimmed and each named once. Like [notes], the
+  /// dive export never carries them (issue #3266).
+  final List<String> buddies;
 
   /// [diveTimeSeconds] when available, else [totalTimeSeconds].
   int? get durationSeconds => diveTimeSeconds ?? totalTimeSeconds;
@@ -272,7 +278,29 @@ class SuuntoCloudClient {
       diveTimeSeconds: (ext?['diveTime'] as num?)?.round(),
       totalTimeSeconds: (item['totalTime'] as num?)?.round(),
       notes: _notesOf(item['description']),
+      buddies: _buddiesOf(item['journal']),
     );
+  }
+
+  /// The names in the workout journal's `diveBuddy` list, each an
+  /// `{id, value}` entry. The journal is absent on a workout logged without
+  /// dive details, and anything that is not a non-blank name is passed over
+  /// rather than failing the whole listing page. A name repeated in another
+  /// case is kept once, since buddies are matched by name ignoring case.
+  static List<String> _buddiesOf(Object? journal) {
+    if (journal is! Map) return const [];
+    final entries = journal['diveBuddy'];
+    if (entries is! List) return const [];
+    final seen = <String>{};
+    final names = <String>[];
+    for (final entry in entries) {
+      final value = entry is Map ? entry['value'] : null;
+      if (value is! String) continue;
+      final name = value.trim();
+      if (name.isEmpty || !seen.add(name.toLowerCase())) continue;
+      names.add(name);
+    }
+    return List.unmodifiable(names);
   }
 
   /// "No notes" can arrive as an absent key, a null or an empty string.

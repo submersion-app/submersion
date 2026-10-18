@@ -315,7 +315,7 @@ class SuuntoCloudFetchStep extends StatelessWidget {
               SuuntoDiveParser.parse(
                 header: export.header,
                 samples: export.samples,
-              ).copyWith(notes: page[i].notes),
+              ).copyWith(notes: page[i].notes, buddies: page[i].buddies),
             );
           } catch (e, stackTrace) {
             // Skipped, not shown: the step lists it as failed to download.

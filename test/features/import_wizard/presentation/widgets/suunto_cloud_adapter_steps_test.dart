@@ -579,7 +579,7 @@ void main() {
       expect(fetched!.first.dive.startTime, DateTime.utc(2026, 5, 1, 10));
     });
 
-    testWidgets('carries the workout notes onto the parsed dive', (
+    testWidgets('carries the workout notes and buddies onto the parsed dive', (
       tester,
     ) async {
       final client = _FakeCloudClient(
@@ -589,6 +589,7 @@ void main() {
             startTime: DateTime.utc(2026, 5, 1, 10),
             activityId: 78,
             notes: 'Turtle at the mooring',
+            buddies: ['Buddy 1', 'Buddy 2'],
           ),
         ],
         smlByKey: {'w1': _diveJson()},
@@ -608,6 +609,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(fetched!.single.notes, 'Turtle at the mooring');
+      // Issue #3266: the people logged on the workout, never in the export.
+      expect(fetched!.single.buddies, ['Buddy 1', 'Buddy 2']);
     });
 
     testWidgets('skips a single unreadable dive rather than aborting', (

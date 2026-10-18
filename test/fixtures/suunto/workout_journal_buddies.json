@@ -1,0 +1,129 @@
+{
+  "error": null,
+  "payload": [
+    {
+      "feedType": "WORKOUT",
+      "activityId": 78,
+      "key": "fixture-workout-key",
+      "workoutName": "",
+      "description": "Night dive",
+      "startTime": 1791398357260,
+      "stopTime": 1791401306310,
+      "totalTime": 2949.062,
+      "extensions": [
+        {
+          "type": "DiveHeaderExtension",
+          "maxDepth": 7.28,
+          "pauseDuration": 0.0,
+          "diveTime": 2340.4,
+          "maxDepthTemperature": 291.26,
+          "avgDepth": 3.83,
+          "diveMode": null,
+          "diveNumberInSeries": 1,
+          "surfaceTime": 360000.0,
+          "gasesUsed": [
+            "Air",
+            "Nx 100"
+          ],
+          "gasQuantitites": {
+            "1": 23200.0,
+            "2": 0.232
+          },
+          "gasConsumption": null,
+          "algorithmLock": false,
+          "cns": 0.0,
+          "otu": 0.0,
+          "personalSetting": 0,
+          "altitudeSetting": null,
+          "algorithm": "Buhlmann",
+          "minGF": 0.75,
+          "maxGF": 0.75
+        }
+      ],
+      "journal": {
+        "version": 1,
+        "diveWeights": {
+          "value": 12.0,
+          "unit": "KG"
+        },
+        "diveSuit": [
+          {
+            "id": "5cafcee2-0c99-42f5-8517-3c71a740b8f1",
+            "value": "Drysuit"
+          }
+        ],
+        "diveBuddy": [
+          {
+            "id": "5ab18e9c-fbd4-4883-bd1f-4798ad57167e",
+            "value": "Buddy 1"
+          },
+          {
+            "id": "141b69ab-8a56-4923-a0a0-7ce81f2c1183",
+            "value": "Buddy 2"
+          },
+          {
+            "id": "c43f45ba-e66a-4224-8c18-b24348aae3ab",
+            "value": "Buddy 3"
+          }
+        ],
+        "diveCenter": {
+          "id": "c8758f6a-8d41-4c71-b97d-c20c2559ce13",
+          "value": "Dive Center"
+        },
+        "diveVisibility": {
+          "id": "good",
+          "value": "Gut"
+        },
+        "diveCurrent": {
+          "id": "none",
+          "value": "Keine"
+        },
+        "diveEnvironmentalFeatures": [
+          {
+            "id": "c0c07932-8c52-4fae-bb71-4f8d6e10cd01",
+            "value": "See"
+          }
+        ],
+        "diveMarineEncounters": [
+          {
+            "id": "8fcc3764-dc51-44d5-8ef0-6a1d3fe76c59",
+            "value": "Aal"
+          },
+          {
+            "id": "ab060b11-28c2-49a4-99a8-c43976d01d71",
+            "value": "Barsch"
+          },
+          {
+            "id": "1e9e3d63-f552-4889-b77c-e6221e2db725",
+            "value": "Krebse"
+          }
+        ],
+        "diveComfort": [
+          {
+            "id": "optimal",
+            "value": "Optimal"
+          }
+        ],
+        "diveBuoyancy": [
+          {
+            "id": "negative",
+            "value": "Negativ"
+          },
+          {
+            "id": "neutral",
+            "value": "Neutral"
+          }
+        ],
+        "diveStateOfMind": [
+          {
+            "id": "relaxed",
+            "value": "Entspannt"
+          }
+        ],
+        "privateNotes": null,
+        "shoes": null,
+        "bike": null
+      }
+    }
+  ]
+}

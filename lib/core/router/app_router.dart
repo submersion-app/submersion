@@ -28,6 +28,7 @@ import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
@@ -217,6 +218,7 @@ import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_ada
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/import_wizard/data/adapters/suunto_buddy_writer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -2261,6 +2263,9 @@ class _SuuntoCloudImportWizardRoute extends ConsumerWidget {
         diverId: diverId,
         routeWriter: SuuntoRouteWriter(
           repository: ref.watch(navTrackRepositoryProvider),
+        ),
+        buddyWriter: SuuntoBuddyWriter(
+          repository: ref.watch(buddyRepositoryProvider),
         ),
         ref: ref,
       ),

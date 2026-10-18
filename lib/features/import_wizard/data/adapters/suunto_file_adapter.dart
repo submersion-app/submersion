@@ -23,6 +23,7 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
     required super.consolidationService,
     required super.diverId,
     super.routeWriter,
+    super.buddyWriter,
     super.ref,
     super.connectionRepository,
     this.initialFiles = const [],
