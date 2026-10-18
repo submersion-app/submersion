@@ -216,7 +216,8 @@ mixin _MembershipOwnership {
   });
 
   /// Owners only: removes [memberId]'s card and any approval and role, so
-  /// nothing it wrote counts. Only new storage keys stop the member from
+  /// nothing its current key wrote counts (keys retired earlier keep their
+  /// edits). Only new storage keys stop the member from
   /// writing files at all.
   Future<void> rejectMember({
     required String libraryId,
@@ -232,13 +233,12 @@ mixin _MembershipOwnership {
     await writeSignedRoles(
       library,
       t,
-      // Rejected: nothing the member wrote counts, before or after.
+      // Rejected: nothing the key waiting for approval wrote counts. Keys
+      // retired before (a member removed, then allowed back, issue #3481)
+      // keep what they signed until then: contributions always stay.
       roles
           .withRole(memberId, SharedLibraryRole.reader)
-          .copyWith(
-            approvedKeys: keys,
-            retired: {...roles.retired}..remove(memberId),
-          ),
+          .copyWith(approvedKeys: keys),
       signer: actingMemberId,
     );
     await _store.replaceMembers(libraryId, await t.listMembers());
@@ -301,6 +301,46 @@ mixin _MembershipOwnership {
     await t.deleteRemoval(memberId);
     await _refreshMembers(library, t);
   });
+
+  /// Removals that held under [before] but not under [after] (their signer
+  /// was removed, demoted or re-keyed): signed again by [signer], an owner
+  /// in [after], so a removal outlives its owner's ownership (issue #3481).
+  /// The recovery key signs no removal; its roles leave them as they are.
+  Future<void> _carryRemovals(
+    String libraryId,
+    SharedLibraryTransport t,
+    SharedLibraryRoles before,
+    SharedLibraryRoles after,
+    String signer,
+    LibrarySigningKey key,
+  ) async {
+    if (!after.owners.contains(signer)) return;
+    var carried = false;
+    for (final r in await t.listRemovals()) {
+      if (await r.verify(libraryId, after) ||
+          !await r.verify(libraryId, before)) {
+        continue;
+      }
+      await t.writeRemoval(
+        await MemberRemoval.signed(
+          libraryId: libraryId,
+          memberId: r.memberId,
+          displayName: r.displayName,
+          publicKey: r.publicKey,
+          removedAt: r.removedAt,
+          removedBy: signer,
+          key: key,
+        ),
+      );
+      carried = true;
+    }
+    if (carried) {
+      await _store.setRemovals(
+        libraryId,
+        await validRemovals(await t.listRemovals(), libraryId, after),
+      );
+    }
+  }
 
   /// The cards and the removals an owner signed, as the folder holds them.
   Future<void> _refreshMembers(

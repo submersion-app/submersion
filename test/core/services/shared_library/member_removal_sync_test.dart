@@ -256,6 +256,36 @@ void main() {
       expect(await inbox(), {'sg1': SharedSiteSuggestion.pending});
     });
 
+    /// What a removed device on v1.8.2 does: writes its card again.
+    Future<void> cardBack(SharedLibraryMembership m) async => t.writeMember(
+      await SharedLibraryMember.signed(
+        memberId: m.memberId,
+        displayName: m.displayName,
+        joinedAt: DateTime.utc(2026, 10),
+        key: m.signingKey!,
+      ),
+      appVersion: '1.8.2',
+    );
+
+    test('with their card back, earlier ones are pending, later ones '
+        'are not held', () async {
+      final bo = await addMember('d2', 'Bo', SharedLibraryRole.reader);
+      await suggest(
+        bo,
+        'sg1',
+        DateTime.now().toUtc().subtract(const Duration(minutes: 5)),
+      );
+      await remove(bo);
+      await cardBack(bo);
+      await suggest(
+        bo,
+        'sg2',
+        DateTime.now().toUtc().add(const Duration(hours: 1)),
+      );
+      await syncer().sync(lib.id, diverId: 'd1');
+      expect(await inbox(), {'sg1': SharedSiteSuggestion.pending});
+    });
+
     test('one dated after the removal is not taken in', () async {
       final bo = await addMember('d2', 'Bo', SharedLibraryRole.reader);
       await remove(bo);

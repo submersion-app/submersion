@@ -714,6 +714,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
       roles: signed,
       rolesRejected: false,
     );
+    await _carryRemovals(library.id, t, trusted, signed, signer, signingKey);
     // As when a sync takes new roles: an approval makes held edits count,
     // a rejection makes them repair, so documents already read are read
     // again (the next sync finds these roles already trusted).

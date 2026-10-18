@@ -225,4 +225,91 @@ void main() {
       hasLength(1),
     );
   });
+
+  test('rejecting someone removed before keeps their past edits', () async {
+    final (lib, ann, bo) = await ownerAndEditor();
+    await service.removeMember(
+      libraryId: lib.id,
+      memberId: bo.memberId,
+      actingMemberId: ann.memberId,
+    );
+    final retired = (await t.readRoles()).retired[bo.memberId];
+    expect(retired, isNotNull);
+    await service.allowBack(
+      libraryId: lib.id,
+      memberId: bo.memberId,
+      actingMemberId: ann.memberId,
+    );
+    await service.rejectMember(
+      libraryId: lib.id,
+      memberId: bo.memberId,
+      actingMemberId: ann.memberId,
+    );
+    expect((await t.readRoles()).retired[bo.memberId], retired);
+  });
+
+  group("an owner's removals outlive their ownership", () {
+    /// Cy joins and is made an owner, then removes Bo.
+    Future<(SharedLibrary, SharedLibraryMembership, SharedLibraryMembership)>
+    cyRemovesBo() async {
+      final (lib, ann, bo) = await ownerAndEditor();
+      await _diver('d3');
+      await service.join(
+        account: account,
+        prefix: 'site-sync',
+        diverId: 'd3',
+        displayName: 'Cy',
+      );
+      final cy = (await SharedLibraryStore().membership(
+        diverId: 'd3',
+        libraryId: lib.id,
+      ))!;
+      await service.approveMember(
+        libraryId: lib.id,
+        memberId: cy.memberId,
+        actingMemberId: ann.memberId,
+        publicKey: cy.signingKey!.publicKey,
+      );
+      await service.setRole(
+        libraryId: lib.id,
+        actingMemberId: ann.memberId,
+        memberId: cy.memberId,
+        role: SharedLibraryRole.owner,
+      );
+      await service.removeMember(
+        libraryId: lib.id,
+        memberId: bo.memberId,
+        actingMemberId: cy.memberId,
+      );
+      return (lib, ann, cy);
+    }
+
+    Future<List<MemberRemoval>> valid(String libraryId) async =>
+        validRemovals(await t.listRemovals(), libraryId, await t.readRoles());
+
+    test('when that owner is removed', () async {
+      final (lib, ann, cy) = await cyRemovesBo();
+      await service.removeMember(
+        libraryId: lib.id,
+        memberId: cy.memberId,
+        actingMemberId: ann.memberId,
+      );
+      final kept = await valid(lib.id);
+      expect(kept.map((r) => r.memberId), hasLength(2));
+      expect(kept.every((r) => r.removedBy == ann.memberId), isTrue);
+      expect(await SharedLibraryStore().removals(lib.id), hasLength(2));
+    });
+
+    test('when that owner is made a reader', () async {
+      final (lib, ann, cy) = await cyRemovesBo();
+      await service.setRole(
+        libraryId: lib.id,
+        actingMemberId: ann.memberId,
+        memberId: cy.memberId,
+        role: SharedLibraryRole.reader,
+      );
+      expect(await valid(lib.id), hasLength(1));
+      expect(await SharedLibraryStore().removals(lib.id), hasLength(1));
+    });
+  });
 }
