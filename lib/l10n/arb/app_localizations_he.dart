@@ -16274,6 +16274,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_mod_checkTemperature =>
+      'בדוק את צפיפות הגז בטמפרטורה אחרת';
+
+  @override
   String get gasCalculators_mod_temperatureHint =>
       'גז קר יותר צפוף יותר, כך שבדיקת הצפיפות מתבססת על הטמפרטורה שנבחרה כאן, לא על טמפרטורת הגז בפועל בעומק.';
 

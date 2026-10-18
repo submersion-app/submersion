@@ -4680,6 +4680,7 @@
   "gasCalculators_mod_rowEnd": "END (N₂ + O₂ narcotici)",
   "gasCalculators_mod_rowEadd": "EADD (densità dell'aria)",
   "gasCalculators_mod_rowDensity": "Densità del gas a {temp}",
+  "gasCalculators_mod_checkTemperature": "Controlla la densità del gas a una temperatura diversa",
   "gasCalculators_mod_temperatureHint": "Un gas più freddo è più denso: il controllo della densità segue la temperatura scelta qui, non la temperatura reale del gas in profondità.",
   "gasCalculators_mod_openDensity": "Apri nel calcolatore di densità",
   "gasCalculators_mod_assessmentTitle": "Valutazione",

@@ -146,6 +146,9 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
   void setTemperature(GasDensityTemperature temperature) =>
       _update(state.copyWith(temperature: temperature));
 
+  void setCheckTemperature(bool check) =>
+      _update(state.copyWith(checkTemperature: check));
+
   /// Working and deco are never inverted, the rule the profile keeps:
   /// raising working pulls deco up with it, lowering deco pulls working
   /// down. A value equal to the profile's is stored as "follow the profile".

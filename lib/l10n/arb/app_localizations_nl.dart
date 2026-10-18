@@ -16524,6 +16524,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Gasdichtheid bij een andere temperatuur controleren';
+
+  @override
   String get gasCalculators_mod_temperatureHint =>
       'Kouder gas is dichter, dus de dichtheidscontrole volgt de hier gekozen temperatuur, niet de werkelijke gastemperatuur op diepte.';
 

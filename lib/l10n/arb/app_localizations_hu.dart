@@ -16578,6 +16578,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Gázsűrűség ellenőrzése más hőmérsékleten';
+
+  @override
   String get gasCalculators_mod_temperatureHint =>
       'A hidegebb gáz sűrűbb, ezért a sűrűségvizsgálat az itt kiválasztott hőmérsékletet veszi alapul, nem a gáz tényleges hőmérsékletét a mélységben.';
 

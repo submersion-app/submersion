@@ -26878,6 +26878,12 @@ abstract class AppLocalizations {
   /// **'Gas density at {temp}'**
   String gasCalculators_mod_rowDensity(String temp);
 
+  /// No description provided for @gasCalculators_mod_checkTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Check gas density at a different temperature'**
+  String get gasCalculators_mod_checkTemperature;
+
   /// No description provided for @gasCalculators_mod_temperatureHint.
   ///
   /// In en, this message translates to:

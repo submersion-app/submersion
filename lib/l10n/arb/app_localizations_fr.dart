@@ -16679,6 +16679,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Vérifier la densité du gaz à une autre température';
+
+  @override
   String get gasCalculators_mod_temperatureHint =>
       'Un gaz plus froid est plus dense : le contrôle de densité suit la température choisie ici, pas la température réelle du gaz à la profondeur.';
 

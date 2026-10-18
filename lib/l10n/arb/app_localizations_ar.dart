@@ -16841,6 +16841,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_mod_checkTemperature =>
+      'فحص كثافة الغاز عند درجة حرارة مختلفة';
+
+  @override
   String get gasCalculators_mod_temperatureHint =>
       'الغاز الأبرد أكثر كثافة، لذلك يعتمد فحص الكثافة على درجة الحرارة المختارة هنا، لا على درجة حرارة الغاز الفعلية في العمق.';
 

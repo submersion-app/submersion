@@ -187,23 +187,32 @@ class ModInputCard extends ConsumerWidget {
                           notifier.setMinPpO2(selection.first),
                     ),
                   ),
-                  _Labelled(
-                    label: l10n.gasCalculators_density_temperature,
-                    child: GasTemperatureSegmentedButton(
-                      units: units,
-                      selected: prefs.temperature,
-                      onChanged: notifier.setTemperature,
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
-                l10n.gasCalculators_mod_temperatureHint,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.gasCalculators_mod_checkTemperature),
+                value: prefs.checkTemperature,
+                onChanged: notifier.setCheckTemperature,
               ),
+              if (prefs.checkTemperature) ...[
+                _Labelled(
+                  label: l10n.gasCalculators_density_temperature,
+                  child: GasTemperatureSegmentedButton(
+                    units: units,
+                    selected: prefs.temperature,
+                    onChanged: notifier.setTemperature,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.gasCalculators_mod_temperatureHint,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ],
           ],
         ),

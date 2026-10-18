@@ -95,6 +95,10 @@ class ModCalculatorPreferences extends Equatable {
   /// modes like [waterType]. Defaults to the colder, conservative option.
   final GasDensityTemperature temperature;
 
+  /// Whether the gas temperature toggle is shown at all; collapsed by
+  /// default, like [ModModeInputs.checkTargetDepth].
+  final bool checkTemperature;
+
   /// The ppO2 limit overrides by diver id; [modNoDiverKey] without one.
   final Map<String, ModLimitOverrides> overridesByDiver;
 
@@ -106,6 +110,7 @@ class ModCalculatorPreferences extends Equatable {
     required this.waterType,
     required this.minPpO2,
     required this.temperature,
+    required this.checkTemperature,
     required this.overridesByDiver,
   });
 
@@ -132,6 +137,7 @@ class ModCalculatorPreferences extends Equatable {
     waterType: null,
     minPpO2: 0.18,
     temperature: GasDensityTemperature.zeroC,
+    checkTemperature: false,
     overridesByDiver: {},
   );
 
@@ -176,11 +182,13 @@ class ModCalculatorPreferences extends Equatable {
     WaterType? waterType,
     double? minPpO2,
     GasDensityTemperature? temperature,
+    bool? checkTemperature,
   }) => _with(
     mode: mode,
     waterType: waterType,
     minPpO2: minPpO2,
     temperature: temperature,
+    checkTemperature: checkTemperature,
   );
 
   ModCalculatorPreferences _with({
@@ -191,6 +199,7 @@ class ModCalculatorPreferences extends Equatable {
     WaterType? waterType,
     double? minPpO2,
     GasDensityTemperature? temperature,
+    bool? checkTemperature,
     Map<String, ModLimitOverrides>? overridesByDiver,
   }) => ModCalculatorPreferences(
     mode: mode ?? this.mode,
@@ -200,6 +209,7 @@ class ModCalculatorPreferences extends Equatable {
     waterType: waterType ?? this.waterType,
     minPpO2: minPpO2 ?? this.minPpO2,
     temperature: temperature ?? this.temperature,
+    checkTemperature: checkTemperature ?? this.checkTemperature,
     overridesByDiver: overridesByDiver ?? this.overridesByDiver,
   );
 
@@ -211,6 +221,7 @@ class ModCalculatorPreferences extends Equatable {
     'waterType': waterType?.name,
     'minPpO2': minPpO2,
     'temperature': temperature.name,
+    'checkTemperature': checkTemperature,
     'overrides': {
       for (final entry in overridesByDiver.entries)
         entry.key: entry.value.toJson(),
@@ -221,6 +232,7 @@ class ModCalculatorPreferences extends Equatable {
     const d = defaults;
     final minPpO2 = json['minPpO2'];
     final overrides = json['overrides'];
+    final checkTemperature = json['checkTemperature'];
     return ModCalculatorPreferences(
       mode: _enumByName(ModCalculatorMode.values, json['mode']) ?? d.mode,
       rec: ModModeInputs.fromJson(json['rec'], d.rec),
@@ -235,6 +247,9 @@ class ModCalculatorPreferences extends Equatable {
       temperature:
           _enumByName(GasDensityTemperature.values, json['temperature']) ??
           d.temperature,
+      checkTemperature: checkTemperature is bool
+          ? checkTemperature
+          : d.checkTemperature,
       overridesByDiver: {
         if (overrides is Map)
           for (final entry in overrides.entries)
@@ -255,6 +270,7 @@ class ModCalculatorPreferences extends Equatable {
     waterType,
     minPpO2,
     temperature,
+    checkTemperature,
     overridesByDiver,
   ];
 }

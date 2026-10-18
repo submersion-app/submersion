@@ -4680,6 +4680,7 @@
   "gasCalculators_mod_rowEnd": "END (N₂ + O₂ narkotikus)",
   "gasCalculators_mod_rowEadd": "EADD (levegősűrűség)",
   "gasCalculators_mod_rowDensity": "Gázsűrűség {temp}-on",
+  "gasCalculators_mod_checkTemperature": "Gázsűrűség ellenőrzése más hőmérsékleten",
   "gasCalculators_mod_temperatureHint": "A hidegebb gáz sűrűbb, ezért a sűrűségvizsgálat az itt kiválasztott hőmérsékletet veszi alapul, nem a gáz tényleges hőmérsékletét a mélységben.",
   "gasCalculators_mod_openDensity": "Megnyitás a gázsűrűség-kalkulátorban",
   "gasCalculators_mod_assessmentTitle": "Értékelés",

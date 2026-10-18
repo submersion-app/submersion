@@ -16618,6 +16618,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Gasdichte bei anderer Temperatur prüfen';
+
+  @override
   String get gasCalculators_mod_temperatureHint =>
       'Kälteres Gas ist dichter. Die Dichteprüfung folgt der hier gewählten Temperatur, nicht der tatsächlichen Gastemperatur in der Tiefe.';
 

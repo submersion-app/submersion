@@ -19,6 +19,7 @@ void main() {
       expect(p.ocTec.hePercent, 35);
       expect(p.minPpO2, 0.18);
       expect(p.temperature, GasDensityTemperature.zeroC);
+      expect(p.checkTemperature, isFalse);
       expect(p.waterType, isNull);
       expect(p.overridesByDiver, isEmpty);
       expect(p.overridesFor('diver-1'), ModLimitOverrides.none);
@@ -65,6 +66,7 @@ void main() {
             waterType: WaterType.fresh,
             minPpO2: 0.16,
             temperature: GasDensityTemperature.twentyC,
+            checkTemperature: true,
           )
           .withOverrides(
             'diver-a',
@@ -112,6 +114,7 @@ void main() {
       expect(decoded.waterType, isNull);
       expect(decoded.minPpO2, 0.18);
       expect(decoded.temperature, GasDensityTemperature.zeroC);
+      expect(decoded.checkTemperature, isFalse);
       expect(decoded.overridesFor('diver-a').workingPpO2, isNull);
       expect(decoded.overridesFor('diver-a').decoPpO2, 1.5);
       // Nothing valid left: no entry at all.
@@ -154,6 +157,22 @@ void main() {
           'temperature': 'boiling',
         }).temperature,
         GasDensityTemperature.zeroC,
+      );
+    });
+
+    test('checkTemperature defaults to false and restores only a bool', () {
+      expect(ModCalculatorPreferences.fromJson({}).checkTemperature, isFalse);
+      expect(
+        ModCalculatorPreferences.fromJson({
+          'checkTemperature': true,
+        }).checkTemperature,
+        isTrue,
+      );
+      expect(
+        ModCalculatorPreferences.fromJson({
+          'checkTemperature': 'yes',
+        }).checkTemperature,
+        isFalse,
       );
     });
 
