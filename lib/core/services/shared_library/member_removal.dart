@@ -86,6 +86,10 @@ class MemberRemoval extends Equatable {
     'signature': ?signature,
   };
 
+  /// The largest time a [DateTime] holds, in milliseconds either side of
+  /// the epoch.
+  static const _maxMs = 8640000000000000;
+
   /// Null for anything that is not a well-formed record.
   static MemberRemoval? fromJson(Object? raw) {
     if (raw case {
@@ -94,6 +98,9 @@ class MemberRemoval extends Equatable {
       'removedAt': final num removedAt,
       'removedBy': final String removedBy,
     }) {
+      // A time no DateTime holds (out of range, NaN, infinite) is no
+      // record: skipped like any other malformed one, never a failed sync.
+      if (!removedAt.isFinite || removedAt.abs() > _maxMs) return null;
       final key = raw['publicKey'];
       final signature = raw['signature'];
       return MemberRemoval(

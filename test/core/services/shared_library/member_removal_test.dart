@@ -57,6 +57,13 @@ void main() {
       expect(MemberRemoval.fromJson(r.toJson()), r);
       expect(MemberRemoval.fromJson(const {'memberId': 1}), isNull);
       expect(MemberRemoval.fromJson('not a map'), isNull);
+      // A time no DateTime can hold, or no number at all, is no record.
+      for (final at in [9e15, -9e15, double.nan, double.infinity]) {
+        expect(
+          MemberRemoval.fromJson({...r.toJson(), 'removedAt': at}),
+          isNull,
+        );
+      }
     });
 
     test('validRemovals keeps only the verified records', () async {
