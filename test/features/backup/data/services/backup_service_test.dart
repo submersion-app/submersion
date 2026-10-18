@@ -142,7 +142,7 @@ class _CaptureFailSyncRepository extends SyncRepository {
 /// Names the connected account driving sync, without a database.
 class _SyncAccountRepository extends Fake implements SyncRepository {
   _SyncAccountRepository(this.accountId);
-  final String? accountId;
+  String? accountId;
 
   @override
   Future<String?> getSyncAccountId() async => accountId;
@@ -162,6 +162,9 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
   bool shouldFailCreateFolder = false;
   String? createdFolder;
   int uploadCallCount = 0;
+
+  /// Runs while a file uploads, to change state mid-upload.
+  void Function()? duringUpload;
 
   @override
   String get providerName => 'Fake';
@@ -186,6 +189,7 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
     String? folderId,
   }) async {
     uploadCallCount++;
+    duringUpload?.call();
     if (shouldFailUpload) {
       throw const CloudStorageException('Upload failed');
     }
@@ -1426,6 +1430,24 @@ void main() {
           preferences.getSettings().lastBackupCloudAccountId,
           'acct-drive',
         );
+      });
+
+      // PR #3500 review: the provider uploads through the account it was
+      // built with, so a switch during the upload must not be recorded.
+      test('a sync account switch during the upload is not recorded', () async {
+        await preferences.setCloudBackupEnabled(true);
+        final sync = _SyncAccountRepository('acct-old');
+        fakeCloud.duringUpload = () => sync.accountId = 'acct-new';
+
+        await BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          cloudProvider: fakeCloud,
+          syncRepository: sync,
+        ).performBackup();
+
+        expect(fakeCloud.uploadedFiles, hasLength(1));
+        expect(preferences.getSettings().lastBackupCloudAccountId, 'acct-old');
       });
 
       test('a backup that stays local forgets the cloud account', () async {

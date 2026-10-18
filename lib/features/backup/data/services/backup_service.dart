@@ -266,7 +266,11 @@ class BackupService {
     var location = BackupLocation.local;
 
     final settings = _preferences.getSettings();
+    // The account the provider uploads through, read before the upload: a
+    // switch while it runs must not be recorded as this copy's account.
+    String? uploadAccountId;
     if (settings.cloudBackupEnabled && _cloudProvider != null) {
+      uploadAccountId = await _syncAccountIdOrNull();
       try {
         cloudFileId = await _uploadToCloud(ref, storedName);
         // Only a real file id means a cloud copy exists: the upload also
@@ -318,9 +322,7 @@ class BackupService {
           : toChosenFolder
           ? LastBackupDestination.folder
           : LastBackupDestination.device,
-      cloudAccountId: location == BackupLocation.both
-          ? await _syncAccountIdOrNull()
-          : null,
+      cloudAccountId: location == BackupLocation.both ? uploadAccountId : null,
     );
 
     // Prune old backups
