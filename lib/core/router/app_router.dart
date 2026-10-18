@@ -152,6 +152,8 @@ import 'package:submersion/features/settings/presentation/pages/safety_review_se
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
+import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
+import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
@@ -1355,6 +1357,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'storage',
                 name: 'storageSettings',
                 builder: (context, state) => const StorageSettingsPage(),
+              ),
+              GoRoute(
+                path: 'import-options',
+                name: 'importOptions',
+                builder: (context, state) => const ImportOptionsPage(),
+              ),
+              GoRoute(
+                path: 'data-tools',
+                name: 'dataTools',
+                builder: (context, state) => const DataToolsPage(),
               ),
               GoRoute(
                 path: 'storage-usage',
