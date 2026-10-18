@@ -200,6 +200,7 @@ class ChangesetWriter {
           newSeq,
           epochId,
           uploadNonce,
+          exportedAt: now,
         );
       }
 
@@ -237,7 +238,10 @@ class ChangesetWriter {
           // manifest out of step with the base it describes.
           uploadNonce: publish.uploadNonce,
           appliedPeerHlc: appliedPeerHlc,
-          updatedAt: now,
+          // Peers read updatedAt as "everything this device had by then is
+          // published" (early media delete), so it is the time the content
+          // was read: a resumed export was read on an earlier attempt.
+          updatedAt: resumed == null ? now : publish.createdAt,
           schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
@@ -467,6 +471,10 @@ class ChangesetWriter {
     // #358), mirroring publish()'s base path. The base still carries the full
     // deletion log (see above).
     final compSeq = afterSeq + 1;
+    // Taken before the export, not after the upload: peers read updatedAt as
+    // "everything this device had by then is published" (early media
+    // delete), and a row added while the base uploads is not in it.
+    final now = DateTime.now().millisecondsSinceEpoch;
     final base = await _serializer.exportBaseToTempFile(
       deviceId: deviceId,
       deletions: deletions,
@@ -489,7 +497,6 @@ class ChangesetWriter {
         await File(base.path).delete();
       } catch (_) {}
     }
-    final now = DateTime.now().millisecondsSinceEpoch;
     final manifest = SyncManifest(
       deviceId: deviceId,
       deviceName: deviceName,
@@ -542,8 +549,9 @@ class ChangesetWriter {
     String deviceId,
     int seq,
     String? epochId,
-    String? uploadNonce,
-  ) async {
+    String? uploadNonce, {
+    required int exportedAt,
+  }) async {
     final dir = await _resumable.directory;
     final target = basePublishTargetPath(dir.path, base.path);
     final source = File(base.path);
@@ -561,7 +569,8 @@ class ChangesetWriter {
       seq: seq,
       dataPath: target,
       byteLength: base.byteLength,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
+      // When the export started: a resumed publish dates its manifest by it.
+      createdAt: exportedAt,
       epochId: epochId,
       uploadNonce: uploadNonce,
       toHlc: base.toHlc,

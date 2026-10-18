@@ -60,9 +60,16 @@ class SafetyReviewSweep {
   /// each dive. [isCancelled] is polled before each dive; returning true stops
   /// the sweep and yields a result with `cancelled: true`. Cancelling is
   /// lossless -- unswept dives still compute lazily on first view.
+  ///
+  /// [recompute] grades every dive again, even one whose stored review is
+  /// current for this engine and these settings. The manual "Analyze all
+  /// dives" sets it: a user runs that after correcting dive data, which the
+  /// "is current" check cannot see (#1643). Without it the sweep only fills
+  /// in reviews that are missing or out of date, which is all a restore needs.
   Future<SafetyReviewSweepResult> run({
     String? diverId,
     List<String>? diveIds,
+    bool recompute = false,
     void Function(int done, int total)? onProgress,
     bool Function()? isCancelled,
   }) async {
@@ -99,8 +106,28 @@ class SafetyReviewSweep {
         // before its profile arrived. A bare read would return that cached
         // value and never run the compute-through-cache, leaving the review
         // missing until an app restart.
+        //
+        // Recompute invalidates before computing, too, so a build already
+        // under way for this dive (its detail page is open) stands down
+        // instead of saving its result over the recompute's. The invalidated
+        // provider then rebuilds from the saved review on its next read, or at
+        // once through its change tick for an open page, so it is not read
+        // here. The recompute provider is autoDispose: the listener holds it
+        // for this one read, and closing it disposes it.
         _ref.invalidate(safetyReviewProvider(diveId));
-        await _ref.read(safetyReviewProvider(diveId).future);
+        if (recompute) {
+          final sub = _ref.listen(
+            safetyReviewRecomputeProvider(diveId).future,
+            (_, _) {},
+          );
+          try {
+            await sub.read();
+          } finally {
+            sub.close();
+          }
+        } else {
+          await _ref.read(safetyReviewProvider(diveId).future);
+        }
       } catch (_) {
         // A dive that fails analysis (corrupt profile) must not abort the
         // sweep; it stays unanalyzed. Counted so callers can report honestly

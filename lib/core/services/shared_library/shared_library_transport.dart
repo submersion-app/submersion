@@ -8,6 +8,8 @@ import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 
+part 'shared_library_transport_measure.dart';
+
 /// File operations on one shared site library folder (issue #2567).
 ///
 /// Every kind of file lives in its own subfolder and also carries a kind

@@ -194,6 +194,57 @@ void main() {
     expect(keys, hasLength(5));
   });
 
+  test('deleteExtraCopies keeps one copy of a duplicated key', () async {
+    for (var i = 0; i < 3; i++) {
+      server.filesById['dup-$i'] = (
+        name: 'smv1/objects/aa/aabb.jpg',
+        bytes: Uint8List.fromList([1, 2]),
+      );
+    }
+    server.filesById['other'] = (
+      name: 'smv1/objects/aa/other.jpg',
+      bytes: Uint8List.fromList([3]),
+    );
+    final store = build();
+
+    expect(store, isA<DuplicateKeyStore>());
+    expect(await store.deleteExtraCopies('smv1/objects/aa/aabb.jpg'), 2);
+
+    final names = server.filesById.values.map((f) => f.name).toList();
+    expect(names.where((n) => n == 'smv1/objects/aa/aabb.jpg'), hasLength(1));
+    expect(names, contains('smv1/objects/aa/other.jpg'));
+  });
+
+  test('deleteExtraCopies stops once its guard says no', () async {
+    for (var i = 0; i < 3; i++) {
+      server.filesById['dup-$i'] = (
+        name: 'smv1/objects/aa/aabb.jpg',
+        bytes: Uint8List.fromList([1, 2]),
+      );
+    }
+    final store = build();
+    var asked = 0;
+
+    final removed = await store.deleteExtraCopies(
+      'smv1/objects/aa/aabb.jpg',
+      mayDelete: () => ++asked == 1,
+    );
+
+    expect(removed, 1);
+    expect(server.filesById, hasLength(2));
+  });
+
+  test('deleteExtraCopies deletes nothing when one copy exists', () async {
+    server.filesById['only'] = (
+      name: 'smv1/objects/aa/aabb.jpg',
+      bytes: Uint8List.fromList([1]),
+    );
+    final store = build();
+
+    expect(await store.deleteExtraCopies('smv1/objects/aa/aabb.jpg'), 0);
+    expect(server.filesById, hasLength(1));
+  });
+
   test('a 5xx from Drive surfaces as MediaStoreException on every '
       'verb', () async {
     final store = GoogleDriveMediaObjectStore.withClient(

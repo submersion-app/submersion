@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_style_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
@@ -1140,11 +1141,14 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(find.byType(FlutterMap), findsWidgets);
+      // The locked preview carries no map style switcher (issue #3473).
+      expect(find.byType(MapStyleButton), findsNothing);
       await tester.tap(_previewFullscreen);
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
-      // The fullscreen route also renders a FlutterMap.
+      // The fullscreen route also renders a FlutterMap, and its switcher.
       expect(find.byType(FlutterMap), findsWidgets);
+      expect(find.byType(MapStyleButton), findsOneWidget);
     });
 
     testWidgets('the inline preview carries no 2D/3D toggle', (tester) async {

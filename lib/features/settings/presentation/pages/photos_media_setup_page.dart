@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Live status for the guided setup steps. Invalidated after returning
@@ -144,7 +144,7 @@ class _StepCard extends ConsumerWidget {
               alignment: Alignment.centerRight,
               child: FilledButton.tonal(
                 onPressed: () async {
-                  await context.push(route);
+                  await context.pushSettingsPage(route);
                   ref.invalidate(setupGuideStatusProvider);
                 },
                 child: Text(l10n.settings_setupGuide_open),

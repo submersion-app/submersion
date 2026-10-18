@@ -203,53 +203,57 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
         builder: (context, selection, _) => Scaffold(
-          appBar: selection.isActive
-              ? _buildSelectionBar(visibleCourses, SelectionBarShell.appBar)
-              : _buildPhoneAppBar(
-                  context,
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.sort),
-                      tooltip: context.l10n.courses_action_sort,
-                      onPressed: () => _showSortSheet(context),
-                    ),
-                    QueryFilterButton(
-                      active: ref.watch(courseFilterProvider).query != null,
-                      onPressed: _openQueryFilter,
-                    ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      onSelected: (value) {
-                        if (value.startsWith('view_')) {
-                          final mode = ListViewMode.fromName(
-                            value.replaceFirst('view_', ''),
+          appBar: _pinAppBar(
+            selection.isActive
+                ? _buildSelectionBar(visibleCourses, SelectionBarShell.appBar)
+                : _buildPhoneAppBar(
+                    context,
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.sort),
+                        tooltip: context.l10n.courses_action_sort,
+                        onPressed: () => _showSortSheet(context),
+                      ),
+                      QueryFilterButton(
+                        active: ref.watch(courseFilterProvider).query != null,
+                        onPressed: _openQueryFilter,
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (value) {
+                          if (value.startsWith('view_')) {
+                            final mode = ListViewMode.fromName(
+                              value.replaceFirst('view_', ''),
+                            );
+                            ref
+                                    .read(courseListViewModeProvider.notifier)
+                                    .state =
+                                mode;
+                          }
+                        },
+                        itemBuilder: (context) {
+                          final currentMode = ref.read(
+                            courseListViewModeProvider,
                           );
-                          ref.read(courseListViewModeProvider.notifier).state =
-                              mode;
-                        }
-                      },
-                      itemBuilder: (context) {
-                        final currentMode = ref.read(
-                          courseListViewModeProvider,
-                        );
-                        return [
-                          ...selectItemsMenuEntries(
-                            context,
-                            onSelect: _selection.enterExplicit,
-                          ),
-                          ...ListViewModeToggle.menuItems(
-                            context,
-                            currentMode: currentMode,
-                            modes: const [
-                              ListViewMode.detailed,
-                              ListViewMode.table,
-                            ],
-                          ),
-                        ];
-                      },
-                    ),
-                  ],
-                ),
+                          return [
+                            ...selectItemsMenuEntries(
+                              context,
+                              onSelect: _selection.enterExplicit,
+                            ),
+                            ...ListViewModeToggle.menuItems(
+                              context,
+                              currentMode: currentMode,
+                              modes: const [
+                                ListViewMode.detailed,
+                                ListViewMode.table,
+                              ],
+                            ),
+                          ];
+                        },
+                      ),
+                    ],
+                  ),
+          ),
           body: Column(
             children: [
               _buildFilterChips(context),
@@ -471,6 +475,11 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       },
     );
   }
+
+  /// [bar], or [bar] held still by the header's host while Training's tabs
+  /// slide, so only the list under it moves (#3465).
+  PreferredSizeWidget _pinAppBar(PreferredSizeWidget bar) =>
+      widget.headerTitle?.pinAppBar(bar) ?? bar;
 
   /// The phone app bar: the plain title with its actions beside it, or a
   /// [SectionHeaderTitle] with the actions on a row under it.

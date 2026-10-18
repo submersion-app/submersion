@@ -1057,83 +1057,69 @@ class DiveListTile extends ConsumerWidget {
       );
     }
 
-    // Build the card with or without map background
-    if (shouldShowMap) {
+    // The map layer, when the card shows one: a cached static tile under a
+    // gradient that keeps the text readable.
+    Widget withMapBackground(Widget content) {
       final tileUrl = _tileUrl(
         siteLatitude!,
         siteLongitude!,
         13,
         ref.watch(settingsProvider.select((s) => s.mapStyle)),
       );
-      return Card(
-        margin:
-            margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        clipBehavior: Clip.antiAlias,
-        child: Semantics(
-          button: true,
-          label: isPlannedDive
-              ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
-                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
-                )
-              : context.l10n.diveLog_listPage_semanticsDiveAtSite(
-                  diveNumber,
-                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
-                ),
-          child: InkWell(
-            onTap: onTap,
-            onDoubleTap: onDoubleTap,
-            child: Stack(
-              children: [
-                // Static map tile background (cached)
-                Positioned.fill(
-                  child: CachedNetworkImage(
-                    imageUrl: tileUrl,
-                    httpHeaders: const {
-                      'User-Agent': 'Submersion Dive Log App (app.submersion)',
-                    },
-                    fit: BoxFit.cover,
-                    fadeInDuration: Duration.zero,
-                    placeholder: (_, _) =>
-                        Container(color: const Color(0xFF1A1A2E)),
-                    errorWidget: (_, _, _) =>
-                        Container(color: const Color(0xFF1A1A2E)),
-                  ),
-                ),
-                // Gradient overlay for text readability
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [0.0, 0.3, 0.7, 1.0],
-                        colors: [
-                          Colors.black.withValues(alpha: 0.4),
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.black.withValues(alpha: 0.7),
-                          Colors.black.withValues(alpha: 0.85),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                // Content layer
-                buildContent(),
-              ],
+      return Stack(
+        children: [
+          // Static map tile background (cached)
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: tileUrl,
+              httpHeaders: const {
+                'User-Agent': 'Submersion Dive Log App (app.submersion)',
+              },
+              fit: BoxFit.cover,
+              fadeInDuration: Duration.zero,
+              placeholder: (_, _) => Container(color: const Color(0xFF1A1A2E)),
+              errorWidget: (_, _, _) =>
+                  Container(color: const Color(0xFF1A1A2E)),
             ),
           ),
-        ),
+          // Gradient overlay for text readability
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.0, 0.3, 0.7, 1.0],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withValues(alpha: 0.5),
+                    Colors.black.withValues(alpha: 0.7),
+                    Colors.black.withValues(alpha: 0.85),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Content layer
+          content,
+        ],
       );
     }
 
-    // Standard card without map. The highlight is the fill above, not an edge
-    // stripe -- the key marks the row for tests without decorating it.
+    // One widget spine for every look the card takes (issue #3474). A tap
+    // highlights the dive in the same frame its ink splash starts, and the
+    // highlight drops the map for the selection fill. The splash lives in the
+    // InkWell's state, so everything from the root down to the InkWell keeps
+    // its type and key across that change; anything that differs between the
+    // looks sits below it. The highlight is the fill above, not an edge
+    // stripe; the key only marks the row for tests. It stays below the
+    // InkWell because a changed key rebuilds its whole subtree.
     return Container(
-      key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Card(
         margin: EdgeInsets.zero,
         color: cardColor,
+        clipBehavior: shouldShowMap ? Clip.antiAlias : null,
         child: Semantics(
           button: true,
           label: isPlannedDive
@@ -1147,8 +1133,20 @@ class DiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            borderRadius: BorderRadius.circular(12),
-            child: buildContent(),
+            // The card's own shape, in both layouts: a splash keeps the shape
+            // it started with, and a tap on a map card switches it to the
+            // plain layout, whose Card no longer clips, before the splash has
+            // finished. Card corners vary by theme, so the shape is the
+            // theme's, falling back to Material's default card corners.
+            customBorder:
+                Theme.of(context).cardTheme.shape ??
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Container(
+              key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
+              child: shouldShowMap
+                  ? withMapBackground(buildContent())
+                  : buildContent(),
+            ),
           ),
         ),
       ),

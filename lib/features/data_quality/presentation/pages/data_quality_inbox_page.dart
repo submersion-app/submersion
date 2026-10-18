@@ -22,6 +22,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/dive_ident
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_unit_formatters.dart';
+import 'package:submersion/features/data_quality/presentation/widgets/use_as_bailout_flow.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
@@ -143,16 +144,18 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     Future<void> withUndo(
       Future<RepairResult> Function() run, {
       Duration undoWindow = _defaultUndoWindow,
+      String? Function()? note,
     }) async {
       try {
         final result = await run();
         final undo = result.undo;
+        final extra = result.changed ? note?.call() : null;
         messenger.showSnackBar(
           SnackBar(
             duration: undoWindow,
             content: Text(
               result.changed
-                  ? l10n.dataQuality_repair_applied
+                  ? [l10n.dataQuality_repair_applied, ?extra].join(' ')
                   : l10n.dataQuality_repair_noChange,
             ),
             action: undo == null
@@ -399,6 +402,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         );
       case CompareSourcesRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
+      case UseAsBailoutRepair():
+        await runUseAsBailoutRepair(
+          context,
+          finding: f,
+          action: action,
+          executor: executor,
+          withUndo: withUndo,
+        );
       case AssignTransmitterRepair(:final serial):
         if (context.mounted) {
           context.push(

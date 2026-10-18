@@ -617,4 +617,20 @@ void main() {
       expect(remove.equipmentIds, ['light', 'battery']);
     });
   });
+
+  // #3307: the bailout repair comes first, with the tank and the OC cylinder
+  // the detector named.
+  test('transmitter_role maps to use-as-bailout, then go to dive', () {
+    final actions = repairOptionsFor(
+      f(
+        detectorId: 'transmitter_role',
+        params: {'tankId': 'tx', 'ocTankId': 'oc'},
+      ),
+    );
+    final use = actions.first as UseAsBailoutRepair;
+    expect(use.diveId, 'd1');
+    expect(use.tankId, 'tx');
+    expect(use.ocTankId, 'oc');
+    expect(actions.last, isA<GoToDiveRepair>());
+  });
 }

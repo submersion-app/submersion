@@ -35118,6 +35118,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'דבר לא נמחק: המחיקות ימתינו עד שהמכשיר הזה יסיים לסנכרן.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'דבר לא נמחק: חבר מחדש את אחסון המדיה כדי שיומן הצלילות הזה ידע אילו קבצים שייכים לו.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'דבר לא נמחק: המחיקות ימתינו עד שההעלאות יסתיימו.';
+
+  @override
   String get settings_mediaStorage_backfill_action => 'העלה ספריה קיימת';
 
   @override
@@ -35737,16 +35749,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_photosMedia_title => 'תמונות ומדיה';
 
   @override
-  String get settings_photosMedia_subtitle => 'מקורות, אחסון וחשבונות';
+  String get settings_photosMedia_subtitle => 'מקורות ואחסון';
 
   @override
   String get settings_photosMedia_sourcesHeader => 'מאיפה מגיעות התמונות';
 
   @override
   String get settings_photosMedia_storageHeader => 'איפה נשמרים העותקים';
-
-  @override
-  String get settings_photosMedia_accountsHeader => 'חשבונות';
 
   @override
   String get settings_photosMedia_displayHeader => 'תצוגה';
@@ -38397,6 +38406,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'בלון זה איבד $drop בעוד ציר הזמן של הגז מציין שהוא לא היה בשימוש';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_role => 'תפקיד המשדר';
+
+  @override
+  String dataQuality_msg_transmitterRoleBailout(
+    int tankNumber,
+    String role,
+    String ocDrop,
+  ) {
+    return 'בלון $tankNumber מסומן כ$role לפי שם המשדר, אבל הוא איבד $ocDrop אחרי המעבר למעגל פתוח וכמעט כלום בלולאה, כך שנראה שזה בלון החירום. בלון חירום שלא נשמו ממנו, או שנשמו ממנו בלי החלפת גז במחשב, אי אפשר לזהות כך.';
   }
 
   @override
@@ -49651,6 +49672,90 @@ class AppLocalizationsHe extends AppLocalizations {
       'קובצי הייבוא המקוריים';
 
   @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device במכשיר זה, $cloud בענן';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'ניתן לפנות כ-$size';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing => 'אין מה לפנות כרגע';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'פונו לאחרונה $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי אחרי תקופת ההמתנה הבטיחותית';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי לאחר שהמכשיר הזה יסיים לסנכרן';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי לאחר שתחבר מחדש את אחסון המדיה';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי לאחר שההעלאות יסתיימו';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'פינוי אחסון';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return 'פונו $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return 'פונו $size. הניקוי בענן ימתין עד שהמכשיר הזה יסיים לסנכרן.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return 'פונו $size. חבר מחדש את אחסון המדיה כדי לנקות את הענן.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return 'פונו $size. הניקוי בענן ימתין עד שההעלאות יסתיימו.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'בענן';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'מאגר המדיה';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'סנכרון מסד הנתונים';
+
+  @override
+  String get settings_storageUsage_cloud_libraries => 'ספריות אתרים משותפות';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'נסרק $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'עדיין לא נסרק';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'סריקה מחדש';
+
+  @override
   String get profilePhoto_sheet_title => 'תמונת פרופיל';
 
   @override
@@ -50138,6 +50243,39 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return 'משדר $serial אינו משויך למיכל';
+  }
+
+  @override
+  String get dataQuality_repairLabel_useAsBailout => 'שימוש כבלון חירום';
+
+  @override
+  String get dataQuality_useAsBailout_title =>
+      'להפוך את הבלון הזה לבלון החירום?';
+
+  @override
+  String dataQuality_useAsBailout_merge(int tankNumber) {
+    return 'מסיר את בלון החירום הכפול (החלפות הגז עוברות לבלון $tankNumber)';
+  }
+
+  @override
+  String dataQuality_useAsBailout_register(String role) {
+    return 'לרשום גם את המשדר הזה בתפקיד $role';
+  }
+
+  @override
+  String dataQuality_useAsBailout_mixesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות נוספות שמרו על תערובת הגז שלהן. כדאי לבדוק אותן.',
+      one: 'צלילה נוספת אחת שמרה על תערובת הגז שלה. כדאי לבדוק אותה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_useAsBailout_registered(String role) {
+    return 'המשדר נרשם בתפקיד $role. ביטול משנה רק את הצלילה הזו.';
   }
 
   @override

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One coherent entry point for everything photo/media related, grouped by
 /// the two-layer model (program spec section 7): link sources ("where
 /// photos come from") and the media store ("where copies are kept"), plus
-/// the account roster and the guided setup flow.
+/// the guided setup flow. Connected accounts are not listed here: they also
+/// serve sync and shared libraries, so Settings > Data reaches them.
 class PhotosMediaHubPage extends ConsumerWidget {
   const PhotosMediaHubPage({super.key});
 
@@ -25,7 +26,8 @@ class PhotosMediaHubPage extends ConsumerWidget {
           IconButton(
             tooltip: l10n.settings_photosMedia_guidedSetup,
             icon: const Icon(Icons.checklist_outlined),
-            onPressed: () => context.push('/settings/photos-media/setup'),
+            onPressed: () =>
+                context.pushSettingsPage('/settings/photos-media/setup'),
           ),
         ],
       ),
@@ -42,7 +44,7 @@ class PhotosMediaHubPage extends ConsumerWidget {
               title: Text(l10n.settings_photosMedia_photoSources_title),
               subtitle: Text(l10n.settings_photosMedia_photoSources_subtitle),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/media-sources'),
+              onTap: () => context.pushSettingsPage('/settings/media-sources'),
             ),
           ),
           const SizedBox(height: 16),
@@ -55,28 +57,19 @@ class PhotosMediaHubPage extends ConsumerWidget {
                   title: Text(l10n.settings_mediaStorage_entry_title),
                   subtitle: Text(l10n.settings_mediaStorage_entry_subtitle),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/media-storage'),
+                  onTap: () =>
+                      context.pushSettingsPage('/settings/media-storage'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.swap_vert_outlined),
                   title: Text(l10n.settings_mediaStorage_transfers_title),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () =>
-                      context.push('/settings/media-storage/transfers'),
+                  onTap: () => context.pushSettingsPage(
+                    '/settings/media-storage/transfers',
+                  ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _header(context, l10n.settings_photosMedia_accountsHeader),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.account_circle_outlined),
-              title: Text(l10n.settings_connectedAccounts_title),
-              subtitle: Text(l10n.settings_connectedAccounts_subtitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/connected-accounts'),
             ),
           ),
           const SizedBox(height: 16),

@@ -83,6 +83,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
             context,
             countLabel,
           ),
+          phoneAppBarPin: widget.headerTitle?.pinAppBar,
           tableContent: CourseListContent(
             showAppBar: false,
             selectionController: tableSelection,

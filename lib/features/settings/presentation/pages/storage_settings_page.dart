@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/constants/app_directories.dart';
@@ -18,6 +17,7 @@ import 'package:submersion/features/settings/presentation/widgets/existing_datab
 import 'package:submersion/features/settings/presentation/widgets/migration_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_progress_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/reset_database_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/storage_volume_chooser_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -155,7 +155,8 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                     context.l10n.settings_storageUsage_tile_subtitle,
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.pushNamed('storageUsage'),
+                  onTap: () =>
+                      context.pushSettingsPage('/settings/storage-usage'),
                 ),
 
                 // Danger Zone

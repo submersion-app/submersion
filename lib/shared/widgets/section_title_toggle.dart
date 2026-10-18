@@ -3,14 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
+import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// A choice between sections, rendered as the header's own title.
 ///
-/// The section names sit where the title would. The one showing sits in a
-/// pill, the same shape and colour the sidebar gives the active page, and the
-/// others are dimmer. That keeps the header titled like every other list pane
+/// The section names sit where the title would. The one showing is underlined
+/// in the selected colour and the others are dimmer, the same look and
+/// colours as the Media section's tabs (issue #3465). That keeps the header
+/// titled like every other list pane
 /// while letting the title switch sections, where a separate control beside it
 /// cost width the header does not have (issue #2256). Equipment | Sets and
 /// Certifications | Courses (issue #3437) both use it.
@@ -36,6 +37,7 @@ class SectionTitleToggle extends StatelessWidget {
     required this.featureId,
     required this.labels,
     this.tabHeight = defaultTabHeight,
+    this.onAppBar = false,
     this.tabBarKey,
   });
 
@@ -50,8 +52,13 @@ class SectionTitleToggle extends StatelessWidget {
 
   /// Height of each [Tab], not counting the [indicatorWeight] the [TabBar]
   /// pads under it; taller only where the names need it, see
-  /// [fittedTabHeight]. The pill keeps its size whatever this is.
+  /// [fittedTabHeight].
   final double tabHeight;
+
+  /// Whether the switch sits on an [AppBar], whose colour some themes set
+  /// apart from the page's (Tropical). The colours are judged against the
+  /// bar there, and against the scheme's surface in a desktop pane header.
+  final bool onAppBar;
 
   /// Key for the [TabBar] itself, for finding it in tests.
   final Key? tabBarKey;
@@ -65,13 +72,9 @@ class SectionTitleToggle extends StatelessWidget {
   /// (issue #2776).
   static const double compactTabHeight = 38;
 
-  /// [TabBar]'s default, set here because it pads the bottom of every tab
-  /// even with a custom [TabBar.indicator], so it counts toward the height.
+  /// [TabBar]'s default, set here because it pads the bottom of every tab,
+  /// so it counts toward the height.
   static const double indicatorWeight = 2;
-
-  /// The selected section's pill: [defaultTabHeight] and [indicatorWeight]
-  /// less the 7px inset it has always had above and below.
-  static const double pillHeight = 34;
 
   /// The text scale [AppBar] caps its title at (its private
   /// `_kMaxTitleTextScaleFactor`), which a switch in a toolbar and the count
@@ -88,7 +91,7 @@ class SectionTitleToggle extends StatelessWidget {
   /// The switcher's laid-out height with tabs of [tabHeight].
   static double heightFor(double tabHeight) => tabHeight + indicatorWeight;
 
-  /// Horizontal padding either side of each name, inside its pill.
+  /// Horizontal padding either side of each name, inside its tab.
   static const double labelPadding = 8;
 
   /// The icon and gap [FeatureAppBarTitle] puts in front of a title when the
@@ -96,10 +99,10 @@ class SectionTitleToggle extends StatelessWidget {
   static const double _accentLead = 24 + 8;
 
   /// How far in from the switcher's leading edge the first name's text
-  /// starts: its pill's padding, and the accent icon and gap ahead of it
+  /// starts: its tab's padding, and the accent icon and gap ahead of it
   /// when the icon shows. A line under the switcher, such as the entry
   /// count, indents by this to start under the text the way every other
-  /// list's does, rather than under the pill's edge.
+  /// list's does, rather than under the tab's edge.
   static double textInset({required bool withAccentIcon}) =>
       labelPadding + (withAccentIcon ? _accentLead : 0);
 
@@ -179,7 +182,14 @@ class SectionTitleToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = EquipmentSectionColors.of(Theme.of(context).colorScheme);
+    final theme = Theme.of(context);
+    final colors = onAppBar
+        ? AppBarTabColors.of(theme)
+        : AppBarTabColors.on(
+            theme,
+            background: theme.colorScheme.surface,
+            foreground: theme.colorScheme.onSurface,
+          );
     final style = DefaultTextStyle.of(context).style;
     final height = fittedTabHeight(
       context,
@@ -187,7 +197,6 @@ class SectionTitleToggle extends StatelessWidget {
       labels: labels,
       minHeight: tabHeight,
     );
-    const pillRadius = BorderRadius.all(Radius.circular(16));
 
     return FeatureAppBarTitle.custom(
       featureId: featureId,
@@ -197,21 +206,13 @@ class SectionTitleToggle extends StatelessWidget {
         isScrollable: true,
         tabAlignment: TabAlignment.start,
         padding: EdgeInsets.zero,
-        // Symmetric, so the pill and the hover highlight are both centred on
-        // the name. Padding on one side only put the highlight visibly off to
-        // that side.
+        // Symmetric, so the underline and the hover highlight are both
+        // centred on the name. Padding on one side only put the highlight
+        // visibly off to that side.
         labelPadding: const EdgeInsets.symmetric(horizontal: labelPadding),
-        indicatorSize: TabBarIndicatorSize.tab,
         indicatorWeight: indicatorWeight,
-        // Centred in whatever height the tabs have, so a compact switcher
-        // trims the space around the pill rather than the pill itself.
-        indicatorPadding: EdgeInsets.symmetric(
-          vertical: math.max(0, (heightFor(height) - pillHeight) / 2),
-        ),
-        indicator: BoxDecoration(color: colors.pill, borderRadius: pillRadius),
-        // Hover and focus take the pill's shape, so a highlight reads as a
-        // preview of selection rather than a stray rectangle.
-        splashBorderRadius: pillRadius,
+        indicatorColor: colors.selected,
+        overlayColor: colors.overlay,
         dividerHeight: 0,
         labelStyle: style,
         unselectedLabelStyle: style,

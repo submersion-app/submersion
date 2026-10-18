@@ -9,15 +9,27 @@ import 'package:flutter/foundation.dart';
 abstract final class SyncCoordinator {
   static Future<void> _tail = Future<void>.value();
   static int _depth = 0;
+  static int _started = 0;
 
   /// Whether a body is running or queued.
   static bool get busy => _depth > 0;
+
+  /// A check that stays true only while no sync has run or started since
+  /// this call, and is false from the start if one is running now. The
+  /// storage cleanup asks it before every cloud delete: its reference set is
+  /// read once, so a merge in the meantime may have added rows it lacks.
+  static bool Function() quietGuard() {
+    final startedAt = _started;
+    final quietNow = !busy;
+    return () => quietNow && !busy && _started == startedAt;
+  }
 
   static Future<T> run<T>(Future<T> Function() body) {
     final previous = _tail;
     final done = Completer<void>();
     _tail = done.future;
     _depth++;
+    _started++;
     return previous.then((_) async {
       try {
         return await body();
@@ -33,5 +45,6 @@ abstract final class SyncCoordinator {
   static void reset() {
     _tail = Future<void>.value();
     _depth = 0;
+    _started = 0;
   }
 }

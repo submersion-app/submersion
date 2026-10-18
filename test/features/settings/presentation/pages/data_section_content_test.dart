@@ -1,18 +1,25 @@
 // Issues #3390 and #3394: Settings > Data opens with a status strip and a
 // facts line, drops every card, and marks the four feature rows with the
-// same health symbol as the strip.
+// same health symbol as the strip. Issue #3467: on a master-detail window its
+// rows open in the detail pane.
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -42,23 +49,37 @@ void main() {
     ),
   ];
 
-  Future<void> pumpData(
+  Future<GoRouter> pumpData(
     WidgetTester tester, {
     List<FeatureHealth> dataHealth = health,
     DateTime? lastSync,
     int devices = 1,
+    Size size = const Size(400, 2400),
   }) async {
-    await tester.binding.setSurfaceSize(const Size(400, 2400));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    // MediaQuery follows the view, which the layout breakpoints read.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = size;
+    addTearDown(tester.view.reset);
     final router = GoRouter(
       initialLocation: '/settings?selected=data',
       routes: [
         GoRoute(
           path: '/settings',
           builder: (context, state) => const SettingsPage(),
+          routes: [
+            GoRoute(
+              path: 'data-quality',
+              builder: (context, state) => const DataQualitySettingsPage(),
+            ),
+          ],
         ),
       ],
     );
+    addTearDown(router.dispose);
+    // The master-detail section list reads debug mode, which needs a log
+    // service.
+    final logDir = Directory.systemTemp.createTempSync('data_pane_test');
+    addTearDown(() => logDir.deleteSync(recursive: true));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -66,6 +87,9 @@ void main() {
             dataHealth: dataHealth,
             lastSync: lastSync,
             syncedDevices: devices,
+          ),
+          logFileServiceProvider.overrideWithValue(
+            LogFileService(logDirectory: logDir.path),
           ),
         ],
         child: MaterialApp.router(
@@ -77,6 +101,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    return router;
   }
 
   Finder markBeside(String title) => find.descendant(
@@ -204,5 +229,44 @@ void main() {
       container.read(backupSettingsProvider).lastScheduledFailureMessage,
       'disk full',
     );
+  });
+
+  testWidgets('on a master-detail window a row opens in the pane (#3467)', (
+    tester,
+  ) async {
+    final router = await pumpData(tester, size: const Size(1400, 2400));
+    final dataQualityPage = find.widgetWithText(AppBar, 'Data quality');
+
+    await tester.tap(find.text('Data quality'));
+    await tester.pumpAndSettle();
+
+    expect(
+      router.routerDelegate.currentConfiguration.uri.toString(),
+      '/settings?selected=data&dataPage=data-quality',
+    );
+    expect(dataQualityPage, findsOneWidget);
+    // The section list is still beside it.
+    expect(find.byType(SettingsListContent), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(
+      router.routerDelegate.currentConfiguration.uri.toString(),
+      '/settings?selected=data',
+    );
+    expect(dataQualityPage, findsNothing);
+    expect(find.text('Backup & Sync'), findsOneWidget);
+  });
+
+  testWidgets('on a phone a row still pushes its page', (tester) async {
+    final router = await pumpData(tester);
+
+    await tester.tap(find.text('Data quality'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(AppBar, 'Data quality'), findsOneWidget);
+    expect(router.canPop(), isTrue);
+    expect(find.text('Backup & Sync'), findsNothing);
   });
 }

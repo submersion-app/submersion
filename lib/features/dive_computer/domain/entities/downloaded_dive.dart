@@ -377,6 +377,13 @@ class DownloadedTank {
   /// same transmitter logged the same cylinder.
   final String? transmitterSerial;
 
+  /// False when the computer gave this tank no gas of its own and the
+  /// resolver filled in a default (100% for an oxygen supply, air
+  /// otherwise), as on every Shearwater transmitter it cannot link to a
+  /// mix (issue #3307). A later step must never write that default over a
+  /// mix someone fixed.
+  final bool mixRecorded;
+
   const DownloadedTank({
     required this.index,
     required this.o2Percent,
@@ -387,6 +394,7 @@ class DownloadedTank {
     this.role,
     this.roleSource,
     this.transmitterSerial,
+    this.mixRecorded = true,
   });
 
   DownloadedTank copyWith({
@@ -399,6 +407,7 @@ class DownloadedTank {
     String? role,
     TankRoleSource? roleSource,
     String? transmitterSerial,
+    bool? mixRecorded,
   }) => DownloadedTank(
     index: index ?? this.index,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -409,6 +418,7 @@ class DownloadedTank {
     role: role ?? this.role,
     roleSource: roleSource ?? this.roleSource,
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
+    mixRecorded: mixRecorded ?? this.mixRecorded,
   );
 
   /// Whether this is air (21% O2)

@@ -35767,6 +35767,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Er is niets verwijderd: verwijderingen wachten tot dit apparaat klaar is met synchroniseren.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'Er is niets verwijderd: verbind de mediaopslag opnieuw zodat dit duiklogboek weet welke bestanden van hem zijn.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'Er is niets verwijderd: verwijderingen wachten tot de uploads klaar zijn.';
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Bestaande bibliotheek uploaden';
 
@@ -36397,7 +36409,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_photosMedia_title => 'Foto\'s en media';
 
   @override
-  String get settings_photosMedia_subtitle => 'Bronnen, opslag en accounts';
+  String get settings_photosMedia_subtitle => 'Bronnen en opslag';
 
   @override
   String get settings_photosMedia_sourcesHeader => 'Waar foto\'s vandaan komen';
@@ -36405,9 +36417,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_photosMedia_storageHeader =>
       'Waar kopieën worden bewaard';
-
-  @override
-  String get settings_photosMedia_accountsHeader => 'Accounts';
 
   @override
   String get settings_photosMedia_displayHeader => 'Weergave';
@@ -39095,6 +39104,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Deze fles verloor $drop terwijl de gastijdlijn aangeeft dat ze niet in gebruik was';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_role => 'Rol van de zender';
+
+  @override
+  String dataQuality_msg_transmitterRoleBailout(
+    int tankNumber,
+    String role,
+    String ocDrop,
+  ) {
+    return 'Fles $tankNumber staat op basis van de zendernaam als $role gemarkeerd, maar verloor $ocDrop na de overstap naar open circuit en vrijwel niets op de loop, dus het lijkt de bailout te zijn. Een bailout die nooit is geademd, of zonder gaswissel op de computer, is zo niet te herkennen.';
   }
 
   @override
@@ -50399,6 +50420,92 @@ class AppLocalizationsNl extends AppLocalizations {
       'Originele importbestanden';
 
   @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device op dit apparaat, $cloud in de cloud';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'Ongeveer $size is terug te winnen';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Er valt nu niets terug te winnen';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Laatst teruggewonnen: $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'Nog $size is terug te winnen na de veiligheidswachttijd';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'Nog $size is terug te winnen zodra dit apparaat klaar is met synchroniseren';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'Nog $size is terug te winnen nadat je de mediaopslag opnieuw verbindt';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'Nog $size is terug te winnen zodra de uploads klaar zijn';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Opslag terugwinnen';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '$size teruggewonnen';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '$size teruggewonnen. De opschoning in de cloud wacht tot dit apparaat klaar is met synchroniseren.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return '$size teruggewonnen. Verbind de mediaopslag opnieuw om de cloud op te schonen.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return '$size teruggewonnen. De opschoning in de cloud wacht tot de uploads klaar zijn.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'In de cloud';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Mediaopslag';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'Databasesynchronisatie';
+
+  @override
+  String get settings_storageUsage_cloud_libraries =>
+      'Gedeelde duikstekbibliotheken';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Gescand $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Nog niet gescand';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Opnieuw scannen';
+
+  @override
   String get profilePhoto_sheet_title => 'Profielfoto';
 
   @override
@@ -50898,6 +51005,39 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return 'Zender $serial is niet aan een fles toegewezen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_useAsBailout => 'Als bailout gebruiken';
+
+  @override
+  String get dataQuality_useAsBailout_title => 'Deze fles de bailout maken?';
+
+  @override
+  String dataQuality_useAsBailout_merge(int tankNumber) {
+    return 'Verwijdert de dubbele bailoutfles (gaswissels gaan naar fles $tankNumber)';
+  }
+
+  @override
+  String dataQuality_useAsBailout_register(String role) {
+    return 'Deze zender ook als $role registreren';
+  }
+
+  @override
+  String dataQuality_useAsBailout_mixesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count andere duiken hebben hun gasmengsel behouden. Controleer die.',
+      one: '$count andere duik heeft zijn gasmengsel behouden. Controleer die.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_useAsBailout_registered(String role) {
+    return 'Zender als $role geregistreerd. Ongedaan maken wijzigt alleen deze duik.';
   }
 
   @override

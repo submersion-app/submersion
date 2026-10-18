@@ -36517,6 +36517,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'لم يُحذف أي شيء: تنتظر عمليات الحذف حتى ينتهي هذا الجهاز من المزامنة.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'لم يُحذف أي شيء: أعد توصيل مخزن الوسائط ليعرف سجل الغوص هذا أي الملفات تخصه.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'لم يُحذف أي شيء: تنتظر عمليات الحذف حتى تنتهي عمليات الرفع.';
+
+  @override
   String get settings_mediaStorage_backfill_action => 'رفع المكتبة الحالية';
 
   @override
@@ -37139,16 +37151,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_photosMedia_title => 'الصور والوسائط';
 
   @override
-  String get settings_photosMedia_subtitle => 'المصادر والتخزين والحسابات';
+  String get settings_photosMedia_subtitle => 'المصادر والتخزين';
 
   @override
   String get settings_photosMedia_sourcesHeader => 'من أين تأتي الصور';
 
   @override
   String get settings_photosMedia_storageHeader => 'أين تُحفظ النسخ';
-
-  @override
-  String get settings_photosMedia_accountsHeader => 'الحسابات';
 
   @override
   String get settings_photosMedia_displayHeader => 'العرض';
@@ -39881,6 +39890,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'فقدت هذه الأسطوانة $drop بينما يشير الخط الزمني للغاز إلى أنها لم تكن قيد الاستخدام';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_role => 'دور جهاز الإرسال';
+
+  @override
+  String dataQuality_msg_transmitterRoleBailout(
+    int tankNumber,
+    String role,
+    String ocDrop,
+  ) {
+    return 'الأسطوانة $tankNumber معلَّمة على أنها $role بناءً على اسم جهاز الإرسال، لكنها فقدت $ocDrop بعد التحويل إلى الدائرة المفتوحة ولم تفقد شيئًا تقريبًا على الدائرة المغلقة، لذا يبدو أنها أسطوانة غاز الطوارئ. لا يمكن بهذه الطريقة اكتشاف غاز طوارئ لم يُتنفَّس منه، أو استُخدم دون تبديل الغاز على الكمبيوتر.';
   }
 
   @override
@@ -51372,6 +51393,91 @@ class AppLocalizationsAr extends AppLocalizations {
       'ملفات الاستيراد الأصلية';
 
   @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device على هذا الجهاز، $cloud في السحابة';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'يمكن استرداد نحو $size';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'لا يوجد ما يمكن استرداده الآن';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'آخر استرداد $size، $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد فترة الانتظار الآمنة';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد أن ينتهي هذا الجهاز من المزامنة';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد إعادة توصيل مخزن الوسائط';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد انتهاء عمليات الرفع';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'استرداد مساحة التخزين';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return 'تم استرداد $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return 'تم استرداد $size. ينتظر تنظيف السحابة حتى ينتهي هذا الجهاز من المزامنة.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return 'تم استرداد $size. أعد توصيل مخزن الوسائط لتنظيف السحابة.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return 'تم استرداد $size. ينتظر تنظيف السحابة حتى تنتهي عمليات الرفع.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'في السحابة';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'مخزن الوسائط';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'مزامنة قاعدة البيانات';
+
+  @override
+  String get settings_storageUsage_cloud_libraries => 'مكتبات المواقع المشتركة';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'تم الفحص $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'لم يتم الفحص بعد';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'إعادة الفحص';
+
+  @override
   String get profilePhoto_sheet_title => 'صورة الملف الشخصي';
 
   @override
@@ -51887,6 +51993,42 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return 'جهاز الإرسال $serial غير معيّن لأسطوانة';
+  }
+
+  @override
+  String get dataQuality_repairLabel_useAsBailout => 'استخدام كغاز طوارئ';
+
+  @override
+  String get dataQuality_useAsBailout_title => 'جعل هذه الأسطوانة غاز الطوارئ؟';
+
+  @override
+  String dataQuality_useAsBailout_merge(int tankNumber) {
+    return 'يزيل أسطوانة غاز الطوارئ المكررة (تنتقل تبديلات الغاز إلى الأسطوانة $tankNumber)';
+  }
+
+  @override
+  String dataQuality_useAsBailout_register(String role) {
+    return 'تسجيل جهاز الإرسال هذا أيضًا بدور $role';
+  }
+
+  @override
+  String dataQuality_useAsBailout_mixesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'احتفظت $count غطسة أخرى بمزيج الغاز الخاص بها. يُرجى التحقق منها.',
+      many: 'احتفظت $count غطسة أخرى بمزيج الغاز الخاص بها. يُرجى التحقق منها.',
+      few: 'احتفظت $count غطسات أخرى بمزيج الغاز الخاص بها. يُرجى التحقق منها.',
+      two: 'احتفظت غطستان أخريان بمزيج الغاز الخاص بهما. يُرجى التحقق منهما.',
+      one: 'احتفظت غطسة أخرى واحدة بمزيج الغاز الخاص بها. يُرجى التحقق منها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_useAsBailout_registered(String role) {
+    return 'تم تسجيل جهاز الإرسال بدور $role. التراجع يغيّر هذه الغطسة فقط.';
   }
 
   @override

@@ -16,7 +16,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_toggle.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -25,6 +24,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 
@@ -329,22 +329,18 @@ void main() {
       );
     });
 
-    testWidgets('the selected section sits in a pill; hover matches it', (
+    testWidgets('the selected section is underlined in the app bar colours', (
       tester,
     ) async {
       await _pump(tester, window: const Size(390, 844));
       final bar = tester.widget<TabBar>(_switcher);
-      final scheme = Theme.of(tester.element(_switcher)).colorScheme;
-      final colors = EquipmentSectionColors.of(scheme);
+      final colors = AppBarTabColors.of(Theme.of(tester.element(_switcher)));
 
+      // The Media tabs' look: the stock underline, no filled pill.
+      expect(bar.indicator, isNull);
+      expect(bar.indicatorColor, colors.selected);
       expect(bar.labelColor, colors.selected);
       expect(bar.unselectedLabelColor, colors.unselected);
-
-      final pill = bar.indicator! as BoxDecoration;
-      expect(pill.color, colors.pill);
-      // The hover and focus highlight takes the pill's own shape, so it reads
-      // as a preview of selection rather than a stray rectangle.
-      expect(bar.splashBorderRadius, pill.borderRadius);
     });
 
     for (final (label, window, pane) in <(String, Size, double?)>[
@@ -383,8 +379,8 @@ void main() {
         final l10n = await en();
 
         // 16px in from the header's leading edge, like every other titled
-        // pane; the pill reaches into that margin rather than pushing the
-        // text inward.
+        // pane; the tab's padding reaches into that margin rather than
+        // pushing the text inward.
         final edge = pane == null
             ? 0.0
             : tester.getTopLeft(find.byType(EquipmentListContent)).dx;
@@ -407,7 +403,7 @@ void main() {
               : find.byType(EquipmentHeaderBar);
 
           // Under the first name's text, as every other list's count sits
-          // under its title, not under the pill's edge 8px to the left.
+          // under its title, not under the tab's edge 8px to the left.
           final name = find.descendant(
             of: _switcher,
             matching: find.text(l10n.equipment_tab_equipment),
@@ -593,8 +589,8 @@ void main() {
         final countRect = tester.getRect(count);
         expect(countRect.top, greaterThanOrEqualTo(toolbar.top - 0.5));
         expect(countRect.bottom, lessThanOrEqualTo(toolbar.bottom + 0.5));
-        // The pill must stay whole too: shrinking the switcher to make room
-        // must not clip its top.
+        // The switcher must stay whole too: shrinking it to make room must
+        // not clip its top.
         expect(
           tester.getRect(_switcher).top,
           greaterThanOrEqualTo(toolbar.top - 0.5),
@@ -672,9 +668,7 @@ void main() {
       expect(tester.getSize(toolbar).height, kToolbarHeight);
     });
 
-    testWidgets('each name keeps a 40px tap area and the same pill', (
-      tester,
-    ) async {
+    testWidgets('each name keeps a 40px tap area', (tester) async {
       await _pump(tester, window: const Size(390, 844));
       final l10n = await en();
       final ink = find.ancestor(
@@ -685,13 +679,6 @@ void main() {
         matching: find.byType(InkWell),
       );
       expect(tester.getSize(ink.first).height, 40);
-
-      final bar = tester.widget<TabBar>(_switcher);
-      final inset = bar.indicatorPadding.resolve(TextDirection.ltr);
-      expect(
-        tester.getSize(ink.first).height - inset.vertical,
-        EquipmentSectionToggle.pillHeight,
-      );
     });
 
     // The phone page listens to the selection it hands the list, so the list

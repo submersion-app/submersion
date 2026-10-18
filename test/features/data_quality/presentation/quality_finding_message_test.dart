@@ -60,6 +60,7 @@ void main() {
         'gas_mod',
         'tank_assignment',
         'source_conflict',
+        'transmitter_role',
       ];
       for (final id in ids) {
         final title = detectorTitle(l10n, id);
@@ -106,6 +107,21 @@ void main() {
       );
       expect(ancient, isNot(contains('Z')));
     });
+  });
+
+  // #3307: the drop goes through the diver's pressure formatter, so an
+  // imperial diver reads psi.
+  test('transmitter_role names the tank, its role and the OC drop', () {
+    final detail = detailFor('transmitter_role', {
+      'tankId': 'tx',
+      'tankPosition': 1,
+      'ocTankId': 'oc',
+      'ocDropBar': 60.0,
+      'role': 'oxygenSupply',
+    });
+    expect(detail, contains('Tank 2'));
+    expect(detail, contains(l10n.enum_tankRole_oxygenSupply));
+    expect(detail, contains('P60.0'));
   });
 
   test('duplicate renders score and time delta', () {

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
@@ -187,6 +188,131 @@ void main() {
 
       expect(adapter.restoreCalls, 1);
       expect(spy.rebaselineCalls, 1);
+    },
+  );
+
+  test(
+    'restoreFromBackup deletes a downloaded copy once the restore finishes',
+    () async {
+      final source = _validDb(tmp.path, 'backup.db');
+      final service = BackupService(
+        dbAdapter: _FileWritingAdapter(_validDb(tmp.path, 'live.db')),
+        preferences: prefs,
+        safPort: _FakeSafPort(validSourcePath: source),
+        syncRepository: _SpySync(),
+      );
+      final record = BackupRecord(
+        id: 'r',
+        filename: 'downloaded_copy.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 1,
+        location: BackupLocation.local,
+        localPath: 'content://tree/doc/x',
+      );
+
+      // A share-sheet export of the same backup sits at the record's own
+      // name in the same folder; the restore must neither overwrite nor
+      // delete it.
+      final shared = File(p.join(_isolatedTempDir.path, 'downloaded_copy.db'))
+        ..writeAsStringSync('share sheet export');
+
+      await service.restoreFromBackup(record);
+
+      expect(shared.readAsStringSync(), 'share sheet export');
+      final leftovers = _isolatedTempDir
+          .listSync()
+          .whereType<File>()
+          .where((f) => p.basename(f.path).contains('downloaded_copy'))
+          .where((f) => f.path != shared.path);
+      expect(
+        leftovers,
+        isEmpty,
+        reason: 'the temp copy of a SAF backup is the app\'s own leftover',
+      );
+      shared.deleteSync();
+    },
+  );
+
+  test(
+    'restoreFromBackup never deletes the record\'s own local file',
+    () async {
+      final local = _validDb(tmp.path, 'kept_backup.db');
+      final service = BackupService(
+        dbAdapter: _FileWritingAdapter(_validDb(tmp.path, 'live.db')),
+        preferences: prefs,
+        safPort: _FakeSafPort(),
+        syncRepository: _SpySync(),
+      );
+      final record = BackupRecord(
+        id: 'r',
+        filename: 'kept_backup.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 1,
+        location: BackupLocation.local,
+        localPath: local,
+      );
+
+      await service.restoreFromBackup(record);
+
+      expect(File(local).existsSync(), isTrue);
+    },
+  );
+
+  test('a restore marks itself before the database is replaced', () async {
+    // The marker is what holds cloud deletes back after a restore, so it
+    // must exist even if the app dies between the replace and anything
+    // after it.
+    final restoredAt = <DateTime>[];
+    final adapter = _FileWritingAdapter(_validDb(tmp.path, 'live.db'));
+    var replacesBeforeMark = -1;
+    final service = BackupService(
+      dbAdapter: adapter,
+      preferences: prefs,
+      safPort: _FakeSafPort(),
+      syncRepository: _SpySync(),
+      onRestoring: (at) async {
+        replacesBeforeMark = adapter.restoreCalls;
+        restoredAt.add(at);
+      },
+    );
+    final record = BackupRecord(
+      id: 'r',
+      filename: 'b.db',
+      timestamp: DateTime(2026),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+      localPath: _validDb(tmp.path, 'b.db'),
+    );
+
+    await service.restoreFromBackup(record);
+
+    expect(restoredAt, hasLength(1));
+    expect(replacesBeforeMark, 0);
+    expect(adapter.restoreCalls, 1);
+  });
+
+  test(
+    'a restore whose marker cannot be recorded stops before the swap',
+    () async {
+      final adapter = _FileWritingAdapter(_validDb(tmp.path, 'live.db'));
+      final service = BackupService(
+        dbAdapter: adapter,
+        preferences: prefs,
+        safPort: _FakeSafPort(),
+        syncRepository: _SpySync(),
+        onRestoring: (_) async => throw StateError('prefs unavailable'),
+      );
+      final record = BackupRecord(
+        id: 'r',
+        filename: 'b.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 1,
+        location: BackupLocation.local,
+        localPath: _validDb(tmp.path, 'b.db'),
+      );
+
+      await expectLater(service.restoreFromBackup(record), throwsA(anything));
+      expect(adapter.restoreCalls, 0, reason: 'the live database is untouched');
     },
   );
 

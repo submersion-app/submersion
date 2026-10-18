@@ -319,6 +319,9 @@ class _SafetyReviewSettingsPageState
           .read(safetyReviewSweepProvider)
           .run(
             diverId: diverId,
+            // The user asked for a fresh analysis, typically after fixing a
+            // dive's data, so even current reviews are graded again (#1643).
+            recompute: true,
             // _analyzeDone tracks dives swept (the progress bar's position),
             // so it advances on failure too; the failure count is surfaced
             // separately when the sweep completes.

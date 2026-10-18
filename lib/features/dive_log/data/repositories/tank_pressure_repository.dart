@@ -317,8 +317,8 @@ class TankPressureRepository {
         await (_db.select(_db.diveTanks)
               ..where((t) => t.id.equals(tankIdB) & t.diveId.equals(diveId)))
             .getSingle();
-    final aHasSeries = await _hasSeries(diveId, tankIdA);
-    final bHasSeries = await _hasSeries(diveId, tankIdB);
+    final aHasSeries = await hasTankSeries(diveId, tankIdA);
+    final bHasSeries = await hasTankSeries(diveId, tankIdB);
     final aIndex = effectiveSourceTankIndex(
       sourceTankIndex: a.sourceTankIndex,
       tankOrder: a.tankOrder,
@@ -366,7 +366,9 @@ class TankPressureRepository {
     await _touchDive(diveId, now);
   }
 
-  Future<bool> _hasSeries(String diveId, String tankId) async {
+  /// Whether [tankId] on [diveId] carries any pressure series, without
+  /// decoding one.
+  Future<bool> hasTankSeries(String diveId, String tankId) async {
     final count = _db.tankPressureSeries.id.count();
     final row =
         await (_db.selectOnly(_db.tankPressureSeries)

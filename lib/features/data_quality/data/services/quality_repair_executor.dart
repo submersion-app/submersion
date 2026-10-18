@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart' show Value, Variable;
 
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -10,6 +12,10 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_role_repair_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -48,9 +54,13 @@ class QualityRepairExecutor {
     TankPressureRepository? tankPressureRepository,
     QualityFindingsRepository? findingsRepository,
     ProfileRepairService? profileRepairService,
+    TankRoleRepairRepository? tankRoleRepository,
+    TransmitterRepository? transmitterRepository,
     Future<void> Function(List<DocumentSnapshotEntry> snapshot)?
     restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
+       _tankRoles = tankRoleRepository ?? TankRoleRepairRepository(),
+       _transmitters = transmitterRepository ?? TransmitterRepository(),
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
        _findings = findingsRepository ?? QualityFindingsRepository(),
        _profiles = profileRepairService ?? ProfileRepairService(),
@@ -60,10 +70,13 @@ class QualityRepairExecutor {
   final Future<void> Function(List<DocumentSnapshotEntry> snapshot)
   _restoreDocuments;
   final DiveRepository _diveRepo;
+  final TankRoleRepairRepository _tankRoles;
+  final TransmitterRepository _transmitters;
   final TankPressureRepository _tankRepo;
   final QualityFindingsRepository _findings;
   final ProfileRepairService _profiles;
   AppDatabase get _db => DatabaseService.instance.database;
+  static const _log = LoggerService('QualityRepairExecutor');
 
   /// Queues the targeted quality rescan and a forced rebuild of the
   /// dives' sensor summaries, which the condition engine reads. Forced
@@ -283,6 +296,122 @@ class QualityRepairExecutor {
       SyncEventBus.notifyLocalChange();
       _rescan([diveId]);
     });
+  }
+
+  /// Makes a name-derived transmitter tank the bailout on [diveId] (issue
+  /// #3307), merging the computer's duplicate bailout cylinder when it is
+  /// still as imported. The tank takes that cylinder's open-circuit role
+  /// ([role]: bailout, or a deco or stage gas). With [registerTransmitter]
+  /// and a [serial], the transmitter is also registered with that role (an
+  /// existing entry for the serial has its role changed) and the entry is
+  /// applied to every other dive with it. Undo reverts this dive only: the
+  /// registry entry stays. [mixesKept] counts the other dives that found no
+  /// mix, and [registered] says whether the registry entry was written.
+  Future<
+    ({RepairResult result, int mixesKept, bool registered, TankRole? role})
+  >
+  useAsBailout({
+    required String diveId,
+    required String tankId,
+    required String ocTankId,
+    required String findingId,
+    required bool registerTransmitter,
+    String? serial,
+    String? label,
+    String? diverId,
+  }) async {
+    final outcome = await _db.transaction(
+      () => _tankRoles.useAsBailout(
+        diveId: diveId,
+        tankId: tankId,
+        ocTankId: ocTankId,
+      ),
+    );
+    if (outcome == null) {
+      return (
+        result: const RepairResult.noChange(),
+        mixesKept: 0,
+        registered: false,
+        role: null,
+      );
+    }
+    SyncEventBus.notifyLocalChange();
+
+    var mixesKept = 0;
+    var registered = false;
+    final normalized = normalizeTransmitterSerial(serial);
+    if (registerTransmitter && normalized != null) {
+      // This dive's repair is committed: a registry failure must not take
+      // its undo away or leave the finding open.
+      try {
+        final entry = await _registerRole(
+          normalized,
+          label,
+          diverId,
+          outcome.role,
+        );
+        if (entry != null) {
+          registered = true;
+          mixesKept = (await _transmitters.applyToExistingDives(
+            entry,
+          )).mixesKept;
+        }
+      } catch (e, stackTrace) {
+        _log.error(
+          'Registering bailout transmitter failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    await _finish(findingId, [diveId]);
+    return (
+      result: RepairResult.applied(() async {
+        await _db.transaction(() => _tankRoles.undoUseAsBailout(outcome.undo));
+        SyncEventBus.notifyLocalChange();
+        _rescan([diveId]);
+      }),
+      mixesKept: mixesKept,
+      registered: registered,
+      role: outcome.role,
+    );
+  }
+
+  /// The diver's registry entry for [serial], now with [role] (the one the
+  /// repair gave the tank): an existing one is updated, otherwise one is
+  /// created. Null when the registry refuses it (a conflicting entry).
+  Future<Transmitter?> _registerRole(
+    String serial,
+    String? label,
+    String? diverId,
+    TankRole role,
+  ) async {
+    final existing = (await _transmitters.getForDiver(diverId))
+        .where((t) => normalizeTransmitterSerial(t.transmitterSerial) == serial)
+        .firstOrNull;
+    try {
+      if (existing != null) {
+        final updated = existing.copyWith(role: role);
+        if (existing.role != role) {
+          await _transmitters.update(updated);
+        }
+        return updated;
+      }
+      final now = DateTime.now();
+      return await _transmitters.create(
+        Transmitter(
+          id: '',
+          diverId: diverId,
+          transmitterSerial: serial,
+          label: (label == null || label.isEmpty) ? serial : label,
+          role: role,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } on TransmitterConflictException {
+      return null;
+    }
   }
 
   Future<RepairResult> swapPressureSeries({

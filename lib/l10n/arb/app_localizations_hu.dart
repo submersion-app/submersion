@@ -35802,6 +35802,18 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Semmi sem lett törölve: a törlések megvárják, amíg ez az eszköz befejezi a szinkronizálást.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'Semmi sem lett törölve: csatlakoztasd újra a médiatárolót, hogy ez a merülésnapló tudja, mely fájlok az övéi.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'Semmi sem lett törölve: a törlések megvárják, amíg a feltöltések befejeződnek.';
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Meglévő könyvtár feltöltése';
 
@@ -36432,16 +36444,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_photosMedia_title => 'Fotók és média';
 
   @override
-  String get settings_photosMedia_subtitle => 'Források, tárolás és fiókok';
+  String get settings_photosMedia_subtitle => 'Források és tárolás';
 
   @override
   String get settings_photosMedia_sourcesHeader => 'Honnan érkeznek a fotók';
 
   @override
   String get settings_photosMedia_storageHeader => 'Hol tároljuk a másolatokat';
-
-  @override
-  String get settings_photosMedia_accountsHeader => 'Fiókok';
 
   @override
   String get settings_photosMedia_displayHeader => 'Megjelenítés';
@@ -39135,6 +39144,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Ez a palack $drop nyomást veszített, miközben a gáz-idővonal szerint nem volt használatban';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_role => 'Jeladó szerepe';
+
+  @override
+  String dataQuality_msg_transmitterRoleBailout(
+    int tankNumber,
+    String role,
+    String ocDrop,
+  ) {
+    return 'A(z) $tankNumber. palack a jeladó neve alapján $role szerepű, de a nyitott körre váltás után $ocDrop nyomást veszített, a hurkon szinte semmit, így valószínűleg ez a bailout. A soha be nem lélegzett, vagy a komputeren gázváltás nélkül használt bailout így nem ismerhető fel.';
   }
 
   @override
@@ -50446,6 +50467,92 @@ class AppLocalizationsHu extends AppLocalizations {
       'Eredeti importált fájlok';
 
   @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device ezen az eszközön, $cloud a felhőben';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'Körülbelül $size felszabadítható';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Jelenleg nincs mit felszabadítani';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Legutóbb felszabadítva: $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'További $size a biztonsági várakozás után szabadítható fel';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'További $size szabadítható fel, amint ez az eszköz befejezi a szinkronizálást';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'További $size szabadítható fel, miután újra csatlakoztatod a médiatárolót';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'További $size szabadítható fel, amint a feltöltések befejeződnek';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Tárhely felszabadítása';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '$size felszabadítva';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '$size felszabadítva. A felhőbeli takarítás megvárja, amíg ez az eszköz befejezi a szinkronizálást.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return '$size felszabadítva. Csatlakoztasd újra a médiatárolót a felhő takarításához.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return '$size felszabadítva. A felhőbeli takarítás megvárja, amíg a feltöltések befejeződnek.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'A felhőben';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Médiatár';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'Adatbázis-szinkronizálás';
+
+  @override
+  String get settings_storageUsage_cloud_libraries =>
+      'Megosztott merülőhely-könyvtárak';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Átvizsgálva: $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Még nincs átvizsgálva';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Újbóli átvizsgálás';
+
+  @override
   String get profilePhoto_sheet_title => 'Profilkép';
 
   @override
@@ -50945,6 +51052,38 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return 'A(z) $serial jeladó nincs palackhoz rendelve';
+  }
+
+  @override
+  String get dataQuality_repairLabel_useAsBailout => 'Használat bailoutként';
+
+  @override
+  String get dataQuality_useAsBailout_title => 'Legyen ez a palack a bailout?';
+
+  @override
+  String dataQuality_useAsBailout_merge(int tankNumber) {
+    return 'Eltávolítja a duplikált bailout palackot (a gázváltások a(z) $tankNumber. palackra kerülnek)';
+  }
+
+  @override
+  String dataQuality_useAsBailout_register(String role) {
+    return 'A jeladó regisztrálása $role szerepben is';
+  }
+
+  @override
+  String dataQuality_useAsBailout_mixesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count másik merülés megtartotta a gázkeverékét, érdemes ellenőrizni.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_useAsBailout_registered(String role) {
+    return 'Jeladó $role szerepben regisztrálva. A visszavonás csak ezt a merülést módosítja.';
   }
 
   @override

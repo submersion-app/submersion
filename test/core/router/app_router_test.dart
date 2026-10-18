@@ -36,6 +36,10 @@ import 'package:submersion/features/settings/presentation/pages/site_detail_sect
 import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/data_settings_pane.dart';
+import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
+import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
+import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
@@ -2076,6 +2080,116 @@ void main() {
 
       expect(pageAt('/dives/bulk-edit?return=pop').popOnSave, isTrue);
       expect(pageAt('/dives/bulk-edit').popOnSave, isFalse);
+    });
+  });
+
+  group('Settings > Data pane (#3467)', () {
+    // Every page reached from Settings > Data. The pane builds these from its
+    // own table, so each must build the same page the router does.
+    const locations = [
+      '/settings/backup',
+      '/settings/cloud-sync',
+      '/settings/cloud-sync/s3-config',
+      '/settings/cloud-sync/webdav-config',
+      '/settings/shared-libraries',
+      '/settings/shared-libraries/connect?prefix=club',
+      '/settings/shared-libraries/lib1',
+      '/settings/shared-libraries/lib1/members',
+      '/settings/shared-libraries/lib1/suggestions',
+      '/settings/shared-libraries/lib1/backups',
+      '/settings/shared-libraries/lib1/connection',
+      '/settings/photos-media',
+      '/settings/photos-media/setup',
+      '/settings/media-sources',
+      '/settings/media-sources/network-sources',
+      '/settings/media-storage',
+      '/settings/media-storage/transfers',
+      '/settings/connected-accounts',
+      '/settings/storage',
+      '/settings/storage-usage',
+      '/settings/storage-usage/unrecognized-backups',
+      '/settings/offline-maps',
+      '/settings/fix-dive-times',
+      '/settings/link-buddy-names',
+      '/settings/retype-other-gear',
+      '/settings/data-quality',
+    ];
+
+    testWidgets('each location builds the page its route builds', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      for (final location in locations) {
+        final uri = Uri.parse(location);
+        final match = router.configuration.findMatch(uri);
+        expect(match.isError, isFalse, reason: location);
+        final route = match.last.route;
+        final routed = route.builder!(
+          capturedContext,
+          GoRouterState(
+            router.configuration,
+            uri: uri,
+            matchedLocation: match.last.matchedLocation,
+            fullPath: match.fullPath,
+            pathParameters: match.pathParameters,
+            pageKey: ValueKey(location),
+          ),
+        );
+        final pane = dataPanePage(uri);
+        expect(pane, isNotNull, reason: location);
+        expect(pane.runtimeType, routed.runtimeType, reason: location);
+      }
+    });
+
+    test('Lightroom opens in the pane only while its UI is enabled', () {
+      addTearDown(() => lightroomUiEnabled = false);
+      final lightroom = Uri.parse('/settings/lightroom');
+
+      lightroomUiEnabled = false;
+      expect(dataPanePage(lightroom), isNull);
+
+      lightroomUiEnabled = true;
+      expect(dataPanePage(lightroom), isA<LightroomSettingsPage>());
+      expect(
+        router.configuration.findMatch(lightroom).fullPath,
+        '/settings/lightroom',
+      );
+    });
+
+    test('pages read their parameters from the location', () {
+      final library =
+          dataPanePage(Uri.parse('/settings/shared-libraries/lib1/members'))
+              as SharedLibraryMembersPage;
+      expect(library.libraryId, 'lib1');
+      final connect =
+          dataPanePage(
+                Uri.parse('/settings/shared-libraries/connect?prefix=club'),
+              )
+              as ConnectSharedLibraryPage;
+      expect(connect.initialPrefix, 'club');
+    });
+
+    test('pages outside Settings > Data are not in the pane', () {
+      for (final location in [
+        '/settings/appearance',
+        '/settings/safety/review',
+        '/settings/debug-logs',
+        '/settings',
+        '/dives/abc',
+      ]) {
+        expect(dataPanePage(Uri.parse(location)), isNull, reason: location);
+      }
     });
   });
 }

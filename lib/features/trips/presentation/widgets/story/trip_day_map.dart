@@ -210,33 +210,36 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
               ],
             ),
           ),
-          // The map style switcher, beside the expand button when there is
-          // one. Side by side rather than stacked: the story card's map is
-          // only 180px tall and its pins stay tappable.
-          PositionedDirectional(
-            top: 4,
-            end: 4,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const MapCornerControls(),
-                if (widget.onExpand != null) ...[
-                  const SizedBox(width: 8),
-                  Material(
-                    color: colorScheme.surface.withValues(alpha: 0.85),
-                    shape: const CircleBorder(),
-                    child: IconButton(
-                      key: const Key('day-map-expand'),
-                      tooltip: l10n.trips_story_dayMap_expand,
-                      icon: const Icon(Icons.fullscreen),
-                      onPressed: widget.onExpand,
+          // The map style switcher, only on an interactive map: the story
+          // card's locked map opens the fullscreen view, which carries one
+          // (issue #3473). Side by side with the expand button rather than
+          // stacked when a map has both, so a short map keeps its pins
+          // tappable.
+          if (widget.interactive || widget.onExpand != null)
+            PositionedDirectional(
+              top: 4,
+              end: 4,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.interactive) const MapCornerControls(),
+                  if (widget.interactive && widget.onExpand != null)
+                    const SizedBox(width: 8),
+                  if (widget.onExpand != null)
+                    Material(
+                      color: colorScheme.surface.withValues(alpha: 0.85),
+                      shape: const CircleBorder(),
+                      child: IconButton(
+                        key: const Key('day-map-expand'),
+                        tooltip: l10n.trips_story_dayMap_expand,
+                        icon: const Icon(Icons.fullscreen),
+                        onPressed: widget.onExpand,
+                      ),
                     ),
-                  ),
                 ],
-              ],
+              ),
             ),
-          ),
         ],
       ),
     );

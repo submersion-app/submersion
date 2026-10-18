@@ -33911,6 +33911,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred => '未删除任何内容：删除操作将等待此设备完成同步。';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      '未删除任何内容：请重新连接媒体存储，以便此潜水日志知道哪些文件属于它。';
+
+  @override
+  String get settings_mediaStorage_verify_uploads => '未删除任何内容：删除操作将等待上传完成。';
+
+  @override
   String get settings_mediaStorage_backfill_action => '上传现有媒体库';
 
   @override
@@ -34524,16 +34534,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photosMedia_title => '照片与媒体';
 
   @override
-  String get settings_photosMedia_subtitle => '来源、存储与账户';
+  String get settings_photosMedia_subtitle => '来源与存储';
 
   @override
   String get settings_photosMedia_sourcesHeader => '照片来源';
 
   @override
   String get settings_photosMedia_storageHeader => '副本保存位置';
-
-  @override
-  String get settings_photosMedia_accountsHeader => '账户';
 
   @override
   String get settings_photosMedia_displayHeader => '显示';
@@ -37118,6 +37125,18 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return '该气瓶损失了 $drop，而气体时间线显示它未在使用';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_role => '发射器角色';
+
+  @override
+  String dataQuality_msg_transmitterRoleBailout(
+    int tankNumber,
+    String role,
+    String ocDrop,
+  ) {
+    return '气瓶 $tankNumber 根据发射器名称被标记为$role，但切换到开路后损失了 $ocDrop，在回路上几乎没有消耗，因此看起来是应急气瓶。从未呼吸过的应急气瓶，或在电脑上未切换气体就使用的应急气瓶，无法用此方法检测。';
   }
 
   @override
@@ -47603,6 +47622,90 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_storageUsage_category_importedFiles => '原始导入文件';
 
   @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '此设备上 $device，云端 $cloud';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return '约 $size 可回收';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing => '目前没有可回收的空间';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return '上次回收 $size，$when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return '安全等待期过后还可回收 $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return '此设备完成同步后还可回收 $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return '重新连接媒体存储后还可回收 $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return '上传完成后还可回收 $size';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => '回收存储空间';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '已回收 $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '已回收 $size。云端清理将等待此设备完成同步。';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return '已回收 $size。请重新连接媒体存储以清理云端。';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return '已回收 $size。云端清理将等待上传完成。';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => '云端';
+
+  @override
+  String get settings_storageUsage_cloud_media => '媒体存储';
+
+  @override
+  String get settings_storageUsage_cloud_sync => '数据库同步';
+
+  @override
+  String get settings_storageUsage_cloud_libraries => '共享潜点库';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return '扫描于 $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => '尚未扫描';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => '重新扫描';
+
+  @override
   String get profilePhoto_sheet_title => '个人资料照片';
 
   @override
@@ -48067,6 +48170,37 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return '发射器 $serial 未分配到气瓶';
+  }
+
+  @override
+  String get dataQuality_repairLabel_useAsBailout => '用作应急气瓶';
+
+  @override
+  String get dataQuality_useAsBailout_title => '将此气瓶设为应急气瓶？';
+
+  @override
+  String dataQuality_useAsBailout_merge(int tankNumber) {
+    return '删除重复的应急气瓶（气体切换转到气瓶 $tankNumber）';
+  }
+
+  @override
+  String dataQuality_useAsBailout_register(String role) {
+    return '同时将此发射器登记为$role';
+  }
+
+  @override
+  String dataQuality_useAsBailout_mixesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另有 $count 次潜水保留了原气体混合，请检查。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_useAsBailout_registered(String role) {
+    return '发射器已登记为$role。撤销只会更改本次潜水。';
   }
 
   @override

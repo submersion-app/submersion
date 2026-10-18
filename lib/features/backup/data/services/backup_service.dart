@@ -98,6 +98,11 @@ class BackupService {
   /// Nullable so existing constructions keep working.
   final PostRestoreSyncStore? _postRestoreSyncStore;
 
+  /// Told when a restore is about to replace the database, so the storage
+  /// cleanup defers cloud deletes and runs its post-restore pass (storage GC
+  /// design, Coordinator).
+  final Future<void> Function(DateTime at)? _onRestoring;
+
   /// End-to-end encryption deps: when the sync-encryption flag is on and a
   /// key + keyslot mirror are available, cloud uploads become framed .sbe
   /// artifacts and encrypted restores can decrypt silently. Both nullable so
@@ -133,6 +138,7 @@ class BackupService {
     SyncRepository? syncRepository,
     LibraryEpochStore? epochStore,
     PostRestoreSyncStore? postRestoreSyncStore,
+    Future<void> Function(DateTime at)? onRestoring,
     BackupSafPort? safPort,
     EncryptionKeyStore? encryptionKeyStore,
     SyncPreferences? syncPreferences,
@@ -144,6 +150,7 @@ class BackupService {
        _syncRepository = syncRepository ?? SyncRepository(),
        _epochStore = epochStore,
        _postRestoreSyncStore = postRestoreSyncStore,
+       _onRestoring = onRestoring,
        _safPort = safPort ?? const MethodChannelBackupSafPort(),
        _encryptionKeyStore = encryptionKeyStore,
        _syncPreferences = syncPreferences,
@@ -752,6 +759,11 @@ class BackupService {
     // Determine backup source path. A SAF (content://) ref is streamed to a
     // temp file first; SQLite open + validation need a real filesystem path.
     String sourcePath;
+    // Set when sourcePath is a copy this restore made (a SAF stream or a
+    // cloud download). Nothing else ever deletes it, so every such restore
+    // would otherwise leave a full-size database in the temp folder
+    // (storage GC design, leak 1).
+    var madeCopy = false;
     final localRef = record.localPath;
     if (localRef != null && isSafRef(localRef)) {
       if (!await _safPort.exists(localRef)) {
@@ -760,21 +772,54 @@ class BackupService {
         );
       }
       final tempDir = await resolveSyncTempDir();
-      sourcePath = p.join(tempDir.path, record.filename);
-      await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
+      sourcePath = p.join(tempDir.path, _restoreCopyName(record.filename));
+      madeCopy = true;
+      try {
+        await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
+      } catch (_) {
+        // A stream that failed part way leaves a partial copy behind.
+        await _MaterializedBackup(sourcePath, isTemp: true).cleanUp();
+        rethrow;
+      }
     } else if (localRef != null && await File(localRef).exists()) {
       sourcePath = localRef;
     } else if (record.cloudFileId != null && _cloudProvider != null) {
       // Download from cloud to a temp location
       _log.info('Downloading backup from cloud');
+      madeCopy = true;
       sourcePath = await _downloadFromCloud(
         record.cloudFileId!,
-        record.filename,
+        _restoreCopyName(record.filename),
       );
     } else {
       throw const BackupException('Backup file not found locally or in cloud');
     }
+    try {
+      await _restoreFromSource(
+        record,
+        sourcePath,
+        mode: mode,
+        encryptionSecret: encryptionSecret,
+        onMigrationProgress: onMigrationProgress,
+      );
+    } finally {
+      await _MaterializedBackup(sourcePath, isTemp: madeCopy).cleanUp();
+    }
+  }
 
+  /// A temp name for the copy a restore makes, unique per restore. The
+  /// record's own name would collide with a share-sheet export of the same
+  /// backup, which [exportBackupToTemp] writes to the same folder; the
+  /// RestoreTempSweep matches this prefix for copies a killed restore left.
+  String _restoreCopyName(String filename) => 'restore-${_uuid.v4()}-$filename';
+
+  Future<void> _restoreFromSource(
+    BackupRecord record,
+    String sourcePath, {
+    required RestoreMode mode,
+    String? encryptionSecret,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     // An encrypted cloud artifact must be decrypted BEFORE validation (the
     // SQLite deep-check needs plaintext).
     final materialized = await _materializePlaintextBackup(
@@ -989,6 +1034,13 @@ class BackupService {
     String sourcePath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    // Marked BEFORE the replace: the marker is what holds the storage
+    // cleanup's cloud deletes back until a sync after the restore has run,
+    // so it must exist even if the app dies between the replace and the
+    // steps after it. A restore that then fails only defers cleanup until
+    // the next pull, which is the safe direction. A marker that cannot be
+    // recorded stops the restore here, before the live database is touched.
+    await _onRestoring?.call(DateTime.now());
     String liveDeviceId;
     try {
       liveDeviceId = await _syncRepository.getDeviceId();

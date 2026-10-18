@@ -35944,6 +35944,18 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Nichts wurde gelöscht: Löschvorgänge warten, bis dieses Gerät die Synchronisierung abgeschlossen hat.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'Nichts wurde gelöscht: Verbinde den Medienspeicher erneut, damit dieses Tauchlogbuch weiß, welche Dateien ihm gehören.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'Nichts wurde gelöscht: Löschvorgänge warten, bis die Uploads abgeschlossen sind.';
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Vorhandene Bibliothek hochladen';
 
@@ -36577,7 +36589,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_photosMedia_title => 'Fotos & Medien';
 
   @override
-  String get settings_photosMedia_subtitle => 'Quellen, Speicher & Konten';
+  String get settings_photosMedia_subtitle => 'Quellen & Speicher';
 
   @override
   String get settings_photosMedia_sourcesHeader => 'Woher Fotos kommen';
@@ -36585,9 +36597,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_photosMedia_storageHeader =>
       'Wo Kopien aufbewahrt werden';
-
-  @override
-  String get settings_photosMedia_accountsHeader => 'Konten';
 
   @override
   String get settings_photosMedia_displayHeader => 'Anzeige';
@@ -39289,6 +39298,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Diese Flasche verlor $drop, obwohl die Gas-Zeitleiste sie als nicht in Verwendung ausweist';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_role => 'Senderrolle';
+
+  @override
+  String dataQuality_msg_transmitterRoleBailout(
+    int tankNumber,
+    String role,
+    String ocDrop,
+  ) {
+    return 'Flasche $tankNumber ist nach dem Sendernamen als $role markiert, verlor aber $ocDrop nach dem Wechsel auf offenen Kreislauf und im Kreislauf fast nichts. Sie ist also wohl das Bailout. Ein nie geatmetes Bailout oder eines ohne Gaswechsel am Computer lässt sich so nicht erkennen.';
   }
 
   @override
@@ -50619,6 +50640,92 @@ class AppLocalizationsDe extends AppLocalizations {
       'Original-Importdateien';
 
   @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device auf diesem Gerät, $cloud in der Cloud';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'Etwa $size können freigegeben werden';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Derzeit nichts freizugeben';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Zuletzt freigegeben: $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'Weitere $size werden nach der Sicherheitswartezeit freigebbar';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'Weitere $size werden freigebbar, sobald dieses Gerät die Synchronisierung abgeschlossen hat';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'Weitere $size werden freigebbar, wenn du den Medienspeicher erneut verbindest';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'Weitere $size werden freigebbar, sobald die Uploads abgeschlossen sind';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Speicher freigeben';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '$size freigegeben';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '$size freigegeben. Die Cloud-Bereinigung wartet, bis dieses Gerät die Synchronisierung abgeschlossen hat.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return '$size freigegeben. Verbinde den Medienspeicher erneut, um die Cloud zu bereinigen.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return '$size freigegeben. Die Cloud-Bereinigung wartet, bis die Uploads abgeschlossen sind.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'In der Cloud';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Medienspeicher';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'Datenbank-Synchronisierung';
+
+  @override
+  String get settings_storageUsage_cloud_libraries =>
+      'Geteilte Tauchplatzbibliotheken';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Geprüft $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Noch nicht geprüft';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Erneut prüfen';
+
+  @override
   String get profilePhoto_sheet_title => 'Profilfoto';
 
   @override
@@ -51119,6 +51226,41 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return 'Sender $serial ist keiner Flasche zugewiesen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_useAsBailout => 'Als Bailout verwenden';
+
+  @override
+  String get dataQuality_useAsBailout_title =>
+      'Diese Flasche zum Bailout machen?';
+
+  @override
+  String dataQuality_useAsBailout_merge(int tankNumber) {
+    return 'Entfernt die doppelte Bailout-Flasche (Gaswechsel gehen auf Flasche $tankNumber über)';
+  }
+
+  @override
+  String dataQuality_useAsBailout_register(String role) {
+    return 'Diesen Sender auch als $role registrieren';
+  }
+
+  @override
+  String dataQuality_useAsBailout_mixesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count weitere Tauchgänge haben ihr Gasgemisch behalten. Bitte prüfen.',
+      one:
+          '$count weiterer Tauchgang hat sein Gasgemisch behalten. Bitte prüfen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_useAsBailout_registered(String role) {
+    return 'Sender als $role registriert. Rückgängig ändert nur diesen Tauchgang.';
   }
 
   @override

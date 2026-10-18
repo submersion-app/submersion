@@ -1,4 +1,6 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class QualityUnitFormatters {
@@ -63,6 +65,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'pressure_anomaly' => l10n.dataQuality_detector_pressure_anomaly,
       'gas_mod' => l10n.dataQuality_detector_gas_mod,
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
+      'transmitter_role' => l10n.dataQuality_detector_transmitter_role,
       'unknown_transmitter' => l10n.dataQuality_detector_unknown_transmitter,
       'source_conflict' => l10n.dataQuality_detector_source_conflict,
       'shared_gear_overlap' => l10n.dataQuality_detector_shared_gear_overlap,
@@ -199,6 +202,13 @@ QualityFindingMessage buildFindingMessage(
               fmt.pressure(d('inactiveDropBar')),
             )
           : l10n.dataQuality_msg_twinTanks;
+    case 'transmitter_role':
+      final role = TankRole.values.asNameMap()[p['role']];
+      detail = l10n.dataQuality_msg_transmitterRoleBailout(
+        i('tankPosition') + 1,
+        role?.localizedName(l10n) ?? '',
+        fmt.pressure(d('ocDropBar')),
+      );
     case 'source_conflict':
       if (p.containsKey('primaryMaxDepth')) {
         detail = l10n.dataQuality_msg_sourceDepth(

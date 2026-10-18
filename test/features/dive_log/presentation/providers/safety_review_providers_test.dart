@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,12 +24,16 @@ class _FakeRepo extends SafetyFindingsRepository {
 
   SafetyReview? stored;
   SafetyReview? saved;
+  int saves = 0;
 
   @override
   Future<SafetyReview?> getReview(String diveId) async => stored;
 
   @override
-  Future<SafetyReview> saveReview(SafetyReview review) async => saved = review;
+  Future<SafetyReview> saveReview(SafetyReview review) async {
+    saves++;
+    return saved = review;
+  }
 }
 
 /// A settings notifier whose latest load failed: [state] is not the active
@@ -439,4 +445,68 @@ void main() {
       expect(refreshed.findings.single.ruleId, SafetyRuleId.sawtoothProfile);
     },
   );
+
+  // PR #3445 review: invalidation does not cancel a build already past its
+  // awaits, so a superseded build could still save and overwrite the review
+  // its replacement (or the Analyze all dives recompute) just wrote.
+  group('a superseded build', () {
+    late _FakeRepo repo;
+    late Completer<void> gate;
+    late ProviderContainer container;
+
+    /// A container whose analysis waits on [gate], so a build can be
+    /// invalidated while it is parked there.
+    setUp(() {
+      repo = _FakeRepo();
+      gate = Completer<void>();
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async {
+            await gate.future;
+            return analysis;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+    });
+
+    test('does not save when its replacement does', () async {
+      final sub = container.listen(safetyReviewProvider('d1'), (_, _) {});
+      addTearDown(sub.close);
+
+      // The first build is now parked on the analysis.
+      await pumpEventQueue();
+      container.invalidate(safetyReviewProvider('d1'));
+      final replacement = container.read(safetyReviewProvider('d1').future);
+      gate.complete();
+      await replacement;
+      await pumpEventQueue();
+
+      expect(
+        repo.saves,
+        1,
+        reason: 'only the build that replaced the invalidated one may save',
+      );
+    });
+
+    test('does not save with nothing rebuilding it', () async {
+      // The sweep's case: the replacement build only starts once the
+      // recompute has written, so ref.mounted alone would still be true.
+      unawaited(container.read(safetyReviewProvider('d1').future));
+      await pumpEventQueue();
+      container.invalidate(safetyReviewProvider('d1'));
+      gate.complete();
+      await pumpEventQueue();
+
+      expect(repo.saves, 0, reason: 'the invalidated build stands down');
+    });
+  });
 }

@@ -88,12 +88,24 @@ class AppBarTabColors {
 
   factory AppBarTabColors.of(ThemeData theme) {
     final appBarTheme = theme.appBarTheme;
-    final foreground =
-        appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
-    final background = Color.alphaBlend(
-      appBarTheme.backgroundColor ?? theme.colorScheme.surface,
-      theme.scaffoldBackgroundColor,
+    return AppBarTabColors.on(
+      theme,
+      background: Color.alphaBlend(
+        appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+        theme.scaffoldBackgroundColor,
+      ),
+      foreground: appBarTheme.foregroundColor ?? theme.colorScheme.onSurface,
     );
+  }
+
+  /// The same colours for tabs on a bar of its own opaque [background], with
+  /// [foreground] its title colour: a desktop list pane's header, say, which
+  /// is drawn in the scheme's surface whatever colour the app bar takes.
+  factory AppBarTabColors.on(
+    ThemeData theme, {
+    required Color background,
+    required Color foreground,
+  }) {
     final primary = theme.colorScheme.primary;
     return AppBarTabColors(
       barMatchesPage: background == theme.scaffoldBackgroundColor,

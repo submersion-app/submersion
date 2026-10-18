@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -11,6 +10,7 @@ import 'package:submersion/core/services/shared_library/shared_library_membershi
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
@@ -376,7 +376,7 @@ class _ConnectSharedLibraryPageState
         .syncOne(library.id);
     container.invalidate(sitesProvider);
     if (!mounted) return;
-    context.pushReplacement('/settings/shared-libraries/${library.id}');
+    context.replaceSettingsPage('/settings/shared-libraries/${library.id}');
   }
 
   /// Restores a backup file into the empty folder just checked, keeping the

@@ -10,10 +10,12 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_computer/data/services/bailout_gas_claim.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_matching.dart';
@@ -257,10 +259,15 @@ class ReparseService {
       //    no cylinder at all (see [resolvedTanks] above).
       // ------------------------------------------------------------------
       if (rewritesTanks) {
+        // Resolved once: the bailout claim reads them, and so does the
+        // switch rewrite below.
+        final switches = resolveGasSwitches(parsed);
         final tankIdsByIndex = await _carryOverTanks(
           diveId: diveId,
           computerId: computerId,
           resolvedTanks: resolvedTanks,
+          parsed: parsed,
+          switches: switches,
         );
         // A tank this parse gained is new, with no source yet (v251, issue
         // #2716); a single-source dive's one source is it.
@@ -280,7 +287,7 @@ class ReparseService {
         await _insertGasSwitches(
           diveId: diveId,
           computerId: computerId,
-          parsed: parsed,
+          switches: switches,
           tankIdsByIndex: tankIdsByIndex,
           now: now,
         );
@@ -319,6 +326,19 @@ class ReparseService {
         await stage('gasSwitches', await _idsOf(db.gasSwitches, diveId));
       }
       if (sourceRow.isPrimary) await stage('dives', [diveId]);
+
+      // ------------------------------------------------------------------
+      // 8. Drop the stored safety review when this re-parse rewrote what it
+      //    graded, so it recomputes on next view (#1641): the dive row's
+      //    gradient factors and mode (primary only), or the profile strand
+      //    and, under it, the events, tanks and gas switches (ownsStrand).
+      //    A re-parse that rewrote neither leaves a valid review alone,
+      //    rather than tombstoning it on every peer. Both reparseDive and
+      //    reparseAllForComputer land here.
+      // ------------------------------------------------------------------
+      if (sourceRow.isPrimary || ownsStrand) {
+        await SafetyFindingsRepository.clearReviewForDive(db, _sync, diveId);
+      }
 
       return (profilePreserved: !ownsStrand);
     });
@@ -829,11 +849,10 @@ class ReparseService {
   Future<void> _insertGasSwitches({
     required String diveId,
     required String? computerId,
-    required pigeon.ParsedDive parsed,
+    required List<GasSwitchEvent> switches,
     required Map<int, String> tankIdsByIndex,
     required DateTime now,
   }) async {
-    final switches = resolveGasSwitches(parsed);
     if (switches.isEmpty) return;
 
     final nowMs = now.millisecondsSinceEpoch;
@@ -865,6 +884,8 @@ class ReparseService {
     required String diveId,
     required String? computerId,
     required List<DownloadedTank> resolvedTanks,
+    required pigeon.ParsedDive parsed,
+    required List<GasSwitchEvent> switches,
   }) async {
     final tankIdsByIndex = <int, String>{};
     // Get existing tanks
@@ -898,24 +919,63 @@ class ReparseService {
         if (t.roleSource != null) t.index: t.role ?? TankRole.backGas.name,
     };
 
+    // The role is the diver's once they set it, so a re-parse leaves it
+    // alone, unless it is still the computer's guess from the transmitter's
+    // name (issue #2595): then this parse, with the registry applied,
+    // decides it. A row from before v254 whose role is the one this parse
+    // read off the name is that same guess, whether or not the transmitter
+    // has been registered since.
+    bool roleIsComputers(DiveTank existing, int index) =>
+        TankRoleSource.fromName(existing.roleSource) ==
+            TankRoleSource.transmitterName ||
+        (existing.roleSource == null &&
+            existing.tankRole == nameDerivedRoles[index]);
+
+    // A bailout transmitter claims the computer's pressureless cylinder for
+    // its gas (#3307). Stored roles the diver set count, so a transmitter the
+    // diver made the bailout keeps the cylinder merged; a stored cylinder the
+    // diver edited is never claimed.
+    final claim = claimBailoutGasesInDive(
+      tanks: [
+        for (final tank in parsedTanks)
+          switch (matches[tank.index]) {
+            final existing? when !roleIsComputers(existing, tank.index) =>
+              tank.copyWith(role: existing.tankRole, clearRoleSource: true),
+            _ => tank,
+          },
+      ],
+      diveMode: mapLibdcDiveModeCode(parsed.diveMode),
+      switches: switches,
+      samples: [
+        for (final s in parsed.samples)
+          (
+            timeSeconds: s.timeSeconds,
+            pressureBar: s.pressureBar,
+            tankIndex: s.tankIndex,
+            tankPressuresBar: s.tankPressuresBar,
+          ),
+      ],
+      depths: [
+        for (final s in parsed.samples)
+          (t: s.timeSeconds, depth: s.depthMeters),
+      ],
+      keep: {
+        for (final tank in parsedTanks)
+          if (matches[tank.index] case final row?)
+            if (_isDiverEdited(row, tank)) tank.index,
+      },
+    );
+
+    // Claimed cylinders are gone from [claim.tanks]; a role overlaid above
+    // is only on rows whose role this loop leaves alone.
     final newTankOrders = <int>{};
-    for (final tank in parsedTanks) {
+    for (final tank in claim.tanks) {
       newTankOrders.add(tank.index);
       final existing = matches[tank.index];
       if (existing != null) {
         tankIdsByIndex[tank.index] = existing.id;
         final parsedRole = tank.role ?? TankRole.backGas.name;
-        // The role is the diver's once they set it, so a re-parse leaves it
-        // alone, unless it is still the computer's guess from the
-        // transmitter's name (issue #2595): then this parse, with the
-        // registry applied, decides it. A row from before v254 whose role is
-        // the one this parse read off the name is that same guess, whether
-        // or not the transmitter has been registered since.
-        final roleIsComputers =
-            TankRoleSource.fromName(existing.roleSource) ==
-                TankRoleSource.transmitterName ||
-            (existing.roleSource == null &&
-                existing.tankRole == nameDerivedRoles[tank.index]);
+        final isComputers = roleIsComputers(existing, tank.index);
         // Update existing tank: overwrite computer fields, preserve user fields
         await (db.update(
           db.diveTanks,
@@ -935,8 +995,15 @@ class ReparseService {
             // pressure would otherwise be nulled out by every re-parse.
             startPressure: Value.absentIfNull(tank.startPressure),
             endPressure: Value.absentIfNull(tank.endPressure),
-            o2Percent: Value(tank.o2Percent),
-            hePercent: Value(tank.hePercent),
+            // A mix the resolver invented (a transmitter the computer never
+            // linked to a gas) never replaces the stored one: that would put
+            // a bailout the diver fixed back on 100% O2 (#3307).
+            o2Percent: tank.mixRecorded
+                ? Value(tank.o2Percent)
+                : const Value.absent(),
+            hePercent: tank.mixRecorded
+                ? Value(tank.hePercent)
+                : const Value.absent(),
             // The transmitter serial is computer-owned and written
             // unconditionally, so a re-parse is how a tank downloaded
             // before the serial was stored gains it (and a parse that stops
@@ -950,10 +1017,8 @@ class ReparseService {
             sourceTankIndex: existing.sourceTankIndex == null
                 ? Value(tank.index)
                 : const Value.absent(),
-            tankRole: roleIsComputers
-                ? Value(parsedRole)
-                : const Value.absent(),
-            roleSource: roleIsComputers
+            tankRole: isComputers ? Value(parsedRole) : const Value.absent(),
+            roleSource: isComputers
                 ? Value(tank.roleSource)
                 : const Value.absent(),
             // tankName, presetName, equipmentId, tankMaterial and a role
@@ -995,9 +1060,18 @@ class ReparseService {
     // Delete tanks that exist in DB but were neither matched nor kept by
     // order (the pre-v200 rule, so manual rows on a re-parsed dive behave as
     // before).
+    // A stored cylinder a transmitter claimed is merged into it, so it goes
+    // even though this parse matched it. A row the parse did not match keeps
+    // the pre-v200 rule: its order still counts as taken.
+    newTankOrders.addAll(claim.remappedIndices.keys);
+    final claimedIds = {
+      for (final index in claim.remappedIndices.keys)
+        if (matches[index] != null) matches[index]!.id,
+    };
     for (final existing in existingTanks) {
-      if (matchedIds.contains(existing.id)) continue;
-      if (!newTankOrders.contains(existing.tankOrder)) {
+      final claimed = claimedIds.contains(existing.id);
+      if (matchedIds.contains(existing.id) && !claimed) continue;
+      if (claimed || !newTankOrders.contains(existing.tankOrder)) {
         await (db.delete(
           db.diveTanks,
         )..where((t) => t.id.equals(existing.id))).go();
@@ -1005,8 +1079,26 @@ class ReparseService {
       }
     }
 
+    // Switches to a claimed cylinder land on the transmitter that claimed it.
+    for (final entry in claim.remappedIndices.entries) {
+      final claimerId = tankIdsByIndex[entry.value];
+      if (claimerId != null) tankIdsByIndex[entry.key] = claimerId;
+    }
+
     return tankIdsByIndex;
   }
+
+  /// A stored cylinder that carries something only the diver adds, or a mix
+  /// or role that differs from what this parse reads for it (the diver
+  /// corrected the analysis or the role).
+  static bool _isDiverEdited(DiveTank row, TankData parsed) =>
+      (row.volume ?? 0) > 0 ||
+      row.tankName != null ||
+      row.equipmentId != null ||
+      row.presetName != null ||
+      (row.o2Percent - parsed.o2Percent).abs() > 0.5 ||
+      (row.hePercent - parsed.hePercent).abs() > 0.5 ||
+      row.tankRole != (parsed.role ?? TankRole.backGas.name);
 
   /// Re-inserts per-tank pressure time-series from parsed samples, and backfills
   /// each tank's start/end pressure from the profile when the parsed tank
