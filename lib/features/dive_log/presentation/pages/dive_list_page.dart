@@ -1133,7 +1133,10 @@ class DiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            borderRadius: shouldShowMap ? null : BorderRadius.circular(12),
+            // Fixed rather than map-only: a splash keeps the radius it started
+            // with, and a tap on a map card switches it to the plain layout,
+            // whose Card no longer clips, before the splash has finished.
+            borderRadius: BorderRadius.circular(12),
             child: Container(
               key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
               child: shouldShowMap

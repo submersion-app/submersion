@@ -120,8 +120,8 @@ void main() {
       reason: 'the tap highlighted the row',
     );
     expect(
-      identical(tester.element(inkWell), pressed),
-      isTrue,
+      tester.element(inkWell),
+      same(pressed),
       reason:
           'the highlight must not rebuild the card from scratch, or the '
           'splash the tap started is discarded with the old InkWell',
@@ -163,6 +163,13 @@ void main() {
         find.byType(CachedNetworkImage),
         findsOneWidget,
         reason: 'the card starts on its map layout',
+      );
+      expect(
+        tester.widget<InkWell>(find.byType(InkWell)).borderRadius,
+        BorderRadius.circular(12),
+        reason:
+            'the splash keeps the radius it started with, and the plain '
+            'layout the tap switches to does not clip it to the card',
       );
 
       await expectTapKeepsInkWell(tester, DiveListTile);
