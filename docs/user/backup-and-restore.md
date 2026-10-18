@@ -1,4 +1,4 @@
-# Backup and Restore
+# Backups
 
 A backup is a point-in-time snapshot of your whole dive logbook in a single
 file. Keep the file wherever you like, share it, or use it to roll back to an
