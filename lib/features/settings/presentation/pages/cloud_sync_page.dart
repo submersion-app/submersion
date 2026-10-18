@@ -116,7 +116,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
     final behaviorSettings = ref.watch(syncBehaviorProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.settings_cloudSync_appBar_title)),
+      appBar: AppBar(title: Text(context.l10n.settings_sync_title)),
       body: ListView(
         children: [
           // Show banner when custom folder mode is active

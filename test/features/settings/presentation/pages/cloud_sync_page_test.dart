@@ -686,7 +686,7 @@ void main() {
     ) async {
       await pumpPage(tester);
 
-      expect(find.text('Database Cloud Sync'), findsOneWidget);
+      expect(find.text('Sync between devices'), findsOneWidget);
       // Provider section header and provider tiles.
       expect(find.text('Cloud Provider'), findsOneWidget);
       expect(find.text('iCloud'), findsOneWidget);

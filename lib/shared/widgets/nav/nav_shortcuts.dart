@@ -369,7 +369,7 @@ final List<NavShortcut> kNavShortcuts = List.unmodifiable([
     id: 'backup',
     group: NavShortcutGroup.settingsAndTools,
     icon: Icons.backup_outlined,
-    label: (l10n) => l10n.backup_appBar_title,
+    label: (l10n) => l10n.settings_backups_title,
     navLabel: (l10n) => l10n.navShortcut_short_backup,
     parentLabel: (l10n) => l10n.nav_settings,
     canonicalPath: '/settings/backup',

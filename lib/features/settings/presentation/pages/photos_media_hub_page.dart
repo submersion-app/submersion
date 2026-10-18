@@ -21,7 +21,7 @@ class PhotosMediaHubPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.settings_photosMedia_title),
+        title: Text(l10n.settings_photosVideos_title),
         actions: [
           IconButton(
             tooltip: l10n.settings_photosMedia_guidedSetup,

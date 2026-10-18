@@ -97,6 +97,8 @@ void main() {
     // sources", not at the hub level.
     expect(find.text('Adobe Lightroom'), findsNothing);
     expect(find.text('Network sources'), findsNothing);
+    // Sentence-case page name from the vocabulary pass (#3482).
+    expect(find.text('Photos & videos'), findsOneWidget);
   });
 
   testWidgets('setup guide renders three steps with live status', (

@@ -947,7 +947,7 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Data'), findsOneWidget);
-      expect(find.text('Backup, restore & storage'), findsOneWidget);
+      expect(find.text('Backups, sync and photos'), findsOneWidget);
     });
 
     testWidgets('Data tools offers Retype gear marked Other (#1886)', (
