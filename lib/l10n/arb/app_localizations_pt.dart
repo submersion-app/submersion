@@ -25371,6 +25371,19 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String settings_data_backups_status_cloudUnknown(String when) {
+    return 'Backup $when, cópia na nuvem';
+  }
+
+  @override
+  String get settings_data_time_justNow => 'agora mesmo';
+
+  @override
+  String settings_data_accounts_status_list(String accounts) {
+    return '$accounts';
+  }
+
+  @override
   String settings_data_backups_status_folder(String when) {
     return 'Backup $when, cópia na sua pasta de backups';
   }
@@ -25439,11 +25452,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_data_accounts_status_none => 'Ainda nenhuma';
-
-  @override
-  String settings_data_accounts_status_signedIn(String accounts) {
-    return '$accounts, sessão iniciada';
-  }
 
   @override
   String settings_data_accounts_status_needSignIn(int count) {

@@ -25261,6 +25261,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_data_backups_status_cloudUnknown(String when) {
+    return 'Mentve $when, másolat a felhőben';
+  }
+
+  @override
+  String get settings_data_time_justNow => 'épp most';
+
+  @override
+  String settings_data_accounts_status_list(String accounts) {
+    return '$accounts';
+  }
+
+  @override
   String settings_data_backups_status_folder(String when) {
     return 'Mentve $when, másolat a mentési mappádban';
   }
@@ -25328,11 +25341,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_data_accounts_status_none => 'Még nincs';
-
-  @override
-  String settings_data_accounts_status_signedIn(String accounts) {
-    return '$accounts, bejelentkezve';
-  }
 
   @override
   String settings_data_accounts_status_needSignIn(int count) {

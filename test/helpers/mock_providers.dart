@@ -809,7 +809,8 @@ Future<List<Override>> getBaseOverrides({
   List<String> syncPeerNames = const [],
   String? syncAccountLabel,
   String? attachedStoreHint,
-  List<String> signedInAccounts = const [],
+  bool mediaStoreAttachedHere = false,
+  List<String> accountLabels = const [],
   int accountsNeedingSignIn = 0,
   int sharedLibraryCount = 0,
   DateTime? sharedLibraryLastSync,
@@ -863,9 +864,9 @@ Future<List<Override>> getBaseOverrides({
     syncPeerNamesProvider.overrideWithValue(syncPeerNames),
     syncAccountLabelProvider.overrideWith((ref) async => syncAccountLabel),
     attachedStoreHintProvider.overrideWith((ref) async => attachedStoreHint),
+    mediaStoreAttachedHereProvider.overrideWithValue(mediaStoreAttachedHere),
     accountsSummaryProvider.overrideWith(
-      (ref) async =>
-          (signedInLabels: signedInAccounts, needSignIn: accountsNeedingSignIn),
+      (ref) async => (labels: accountLabels, needSignIn: accountsNeedingSignIn),
     ),
     sharedLibrarySummaryProvider.overrideWithValue((
       count: sharedLibraryCount,

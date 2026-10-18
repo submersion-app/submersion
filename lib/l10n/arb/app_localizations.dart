@@ -40858,6 +40858,24 @@ abstract class AppLocalizations {
   /// **'Backed up {when}, copy in {account}'**
   String settings_data_backups_status_cloud(String when, String account);
 
+  /// No description provided for @settings_data_backups_status_cloudUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up {when}, copy in the cloud'**
+  String settings_data_backups_status_cloudUnknown(String when);
+
+  /// No description provided for @settings_data_time_justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get settings_data_time_justNow;
+
+  /// No description provided for @settings_data_accounts_status_list.
+  ///
+  /// In en, this message translates to:
+  /// **'{accounts}'**
+  String settings_data_accounts_status_list(String accounts);
+
   /// No description provided for @settings_data_backups_status_folder.
   ///
   /// In en, this message translates to:
@@ -40929,12 +40947,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None yet'**
   String get settings_data_accounts_status_none;
-
-  /// No description provided for @settings_data_accounts_status_signedIn.
-  ///
-  /// In en, this message translates to:
-  /// **'{accounts}, signed in'**
-  String settings_data_accounts_status_signedIn(String accounts);
 
   /// No description provided for @settings_data_accounts_status_needSignIn.
   ///

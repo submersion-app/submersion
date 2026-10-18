@@ -26,6 +26,7 @@ void main() {
         cloudCopyOn: true,
         cloudAccountLabel: 'Google Drive',
         customFolder: true,
+        cloudCopyMissing: false,
       );
       expect((s.kind, s.when), (DataRowStatusKind.backupsFailed, at));
     });
@@ -37,6 +38,7 @@ void main() {
         cloudCopyOn: false,
         cloudAccountLabel: null,
         customFolder: false,
+        cloudCopyMissing: false,
       );
       expect(s.kind, DataRowStatusKind.backupsNever);
     });
@@ -48,6 +50,7 @@ void main() {
         cloudCopyOn: true,
         cloudAccountLabel: 'Google Drive',
         customFolder: false,
+        cloudCopyMissing: false,
       );
       expect(
         (s.kind, s.when, s.name),
@@ -65,9 +68,30 @@ void main() {
         cloudCopyOn: true,
         cloudAccountLabel: 'Google Drive',
         customFolder: false,
+        cloudCopyMissing: true,
       );
       expect(s.kind, DataRowStatusKind.backupsLocal);
     });
+
+    // The health evaluator stops at the first gate, so a missing cloud copy
+    // hides behind "automatic backups off" and behind "overdue"; the row
+    // must read the flag itself, not the winning reason.
+    for (final reason in [
+      HealthReason.backupAutoOff,
+      HealthReason.backupOverdue,
+    ]) {
+      test('a missing cloud copy is not claimed behind $reason', () {
+        final s = backupsRowStatus(
+          health: backup(HealthLevel.attention, reason),
+          lastBackup: at,
+          cloudCopyOn: true,
+          cloudAccountLabel: 'Google Drive',
+          customFolder: false,
+          cloudCopyMissing: true,
+        );
+        expect(s.kind, DataRowStatusKind.backupsLocal);
+      });
+    }
 
     test('a custom folder counts as a copy', () {
       final s = backupsRowStatus(
@@ -76,6 +100,7 @@ void main() {
         cloudCopyOn: false,
         cloudAccountLabel: null,
         customFolder: true,
+        cloudCopyMissing: false,
       );
       expect((s.kind, s.when), (DataRowStatusKind.backupsFolder, at));
     });
@@ -90,6 +115,7 @@ void main() {
         cloudCopyOn: false,
         cloudAccountLabel: null,
         customFolder: false,
+        cloudCopyMissing: false,
       );
       expect((s.kind, s.when), (DataRowStatusKind.backupsLocal, at));
     });
@@ -101,6 +127,7 @@ void main() {
         cloudCopyOn: false,
         cloudAccountLabel: null,
         customFolder: false,
+        cloudCopyMissing: false,
       );
       final on = backupsRowStatus(
         health: backup(HealthLevel.healthy, HealthReason.ok),
@@ -108,6 +135,7 @@ void main() {
         cloudCopyOn: false,
         cloudAccountLabel: null,
         customFolder: false,
+        cloudCopyMissing: false,
       );
       expect((off.offersSetUp, on.offersSetUp), (true, false));
     });
@@ -129,7 +157,7 @@ void main() {
           lastSync: at,
           peerNames: const ['Eric\'s iPhone'],
         );
-        expect(s.kind, DataRowStatusKind.syncPaused, reason: '$reason');
+        expect(s.kind, DataRowStatusKind.syncAttention, reason: '$reason');
         expect(s.health?.reason, reason);
       }
     });
@@ -197,6 +225,25 @@ void main() {
       expect(s.kind, DataRowStatusKind.syncAlone);
     });
 
+    test(
+      'conflicts, held peers and a long offline spell show the strip line',
+      () {
+        for (final reason in [
+          HealthReason.syncConflicts,
+          HealthReason.syncPeersHeld,
+          HealthReason.syncOffline,
+        ]) {
+          final s = syncRowStatus(
+            health: sync(HealthLevel.attention, reason),
+            lastSync: at,
+            peerNames: const ['Eric\'s iPhone'],
+          );
+          expect(s.kind, DataRowStatusKind.syncAttention, reason: '$reason');
+          expect(s.health?.reason, reason);
+        }
+      },
+    );
+
     test('automatic sync off still reads as in step', () {
       final s = syncRowStatus(
         health: sync(HealthLevel.attention, HealthReason.syncAutoOff),
@@ -216,6 +263,7 @@ void main() {
           HealthReason.notSetUp,
         ),
         storeHint: null,
+        storeAttachedHere: false,
       );
       expect((s.kind, s.offersSetUp), (DataRowStatusKind.photosOff, true));
     });
@@ -226,14 +274,28 @@ void main() {
         HealthLevel.attention,
         HealthReason.mediaTransfersPaused,
       );
-      final s = photosRowStatus(health: h, storeHint: 'bucket @ host');
+      final s = photosRowStatus(
+        health: h,
+        storeHint: 'bucket @ host',
+        storeAttachedHere: true,
+      );
       expect((s.kind, s.health), (DataRowStatusKind.photosAttention, h));
+    });
+
+    test('Lightroom alone is a source, not a place copies are kept', () {
+      final s = photosRowStatus(
+        health: _h(DataFeature.media, HealthLevel.healthy, HealthReason.ok),
+        storeHint: null,
+        storeAttachedHere: false,
+      );
+      expect((s.kind, s.offersSetUp), (DataRowStatusKind.photosOff, true));
     });
 
     test('healthy names the store', () {
       final s = photosRowStatus(
         health: _h(DataFeature.media, HealthLevel.healthy, HealthReason.ok),
         storeHint: 'bucket @ host',
+        storeAttachedHere: true,
       );
       expect(
         (s.kind, s.name, s.offersSetUp),
@@ -299,25 +361,25 @@ void main() {
   group('accountsRowStatus', () {
     test('sign-ins needed win', () {
       final s = accountsRowStatus(
-        signedInLabels: const ['Google Drive'],
+        labels: const ['Google Drive'],
         needSignIn: 2,
       );
       expect((s.kind, s.count), (DataRowStatusKind.accountsNeedSignIn, 2));
     });
 
     test('none yet', () {
-      final s = accountsRowStatus(signedInLabels: const [], needSignIn: 0);
+      final s = accountsRowStatus(labels: const [], needSignIn: 0);
       expect(s.kind, DataRowStatusKind.accountsNone);
     });
 
-    test('signed in joins the labels', () {
+    test('the roster joins the labels', () {
       final s = accountsRowStatus(
-        signedInLabels: const ['Google Drive', 'nas.home'],
+        labels: const ['Google Drive', 'nas.home'],
         needSignIn: 0,
       );
       expect(
         (s.kind, s.name),
-        (DataRowStatusKind.accountsSignedIn, 'Google Drive, nas.home'),
+        (DataRowStatusKind.accountsListed, 'Google Drive, nas.home'),
       );
     });
   });

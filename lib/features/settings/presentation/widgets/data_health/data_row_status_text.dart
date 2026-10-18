@@ -12,9 +12,16 @@ String dataRowStatusText(
   DataRowStatus status,
   DateTime now,
 ) {
-  String ago() => status.when == null
-      ? l10n.backup_time_justNow
-      : relativeAgo(l10n, status.when!, now);
+  // Mid-sentence, so "just now" is lowercase, unlike the standalone label
+  // relativeAgo gives the strip after a colon.
+  String ago() {
+    final when = status.when;
+    if (when == null || now.difference(when).inMinutes < 1) {
+      return l10n.settings_data_time_justNow;
+    }
+    return relativeAgo(l10n, when, now);
+  }
+
   String reason() =>
       status.health == null ? '' : healthReasonText(l10n, status.health!, now);
   final name = status.name ?? '';
@@ -24,14 +31,19 @@ String dataRowStatusText(
     DataRowStatusKind.backupsLocal => l10n.settings_data_backups_status_local(
       ago(),
     ),
-    DataRowStatusKind.backupsCloud => l10n.settings_data_backups_status_cloud(
-      ago(),
-      name,
-    ),
+    DataRowStatusKind.backupsCloud =>
+      name.trim().isEmpty
+          ? l10n.settings_data_backups_status_cloudUnknown(ago())
+          : l10n.settings_data_backups_status_cloud(ago(), name),
     DataRowStatusKind.backupsFolder => l10n.settings_data_backups_status_folder(
       ago(),
     ),
-    DataRowStatusKind.backupsFailed => l10n.dataHealth_backup_failed(ago()),
+    // After a colon, like the strip's line, so the standalone form.
+    DataRowStatusKind.backupsFailed => l10n.dataHealth_backup_failed(
+      status.when == null
+          ? l10n.backup_time_justNow
+          : relativeAgo(l10n, status.when!, now),
+    ),
     DataRowStatusKind.syncOff => l10n.settings_data_sync_status_off,
     DataRowStatusKind.syncNever => l10n.dataHealth_sync_neverSynced,
     DataRowStatusKind.syncAlone => l10n.settings_data_sync_status_alone(ago()),
@@ -43,7 +55,7 @@ String dataRowStatusText(
       count,
       ago(),
     ),
-    DataRowStatusKind.syncPaused => reason(),
+    DataRowStatusKind.syncAttention => reason(),
     DataRowStatusKind.photosOff => l10n.settings_data_photos_status_off,
     DataRowStatusKind.photosOn =>
       name.isEmpty
@@ -59,8 +71,9 @@ String dataRowStatusText(
       l10n.settings_data_libraries_status_someNever(count),
     DataRowStatusKind.librariesAttention => reason(),
     DataRowStatusKind.accountsNone => l10n.settings_data_accounts_status_none,
-    DataRowStatusKind.accountsSignedIn =>
-      l10n.settings_data_accounts_status_signedIn(name),
+    DataRowStatusKind.accountsListed => l10n.settings_data_accounts_status_list(
+      name,
+    ),
     DataRowStatusKind.accountsNeedSignIn =>
       l10n.settings_data_accounts_status_needSignIn(count),
   };

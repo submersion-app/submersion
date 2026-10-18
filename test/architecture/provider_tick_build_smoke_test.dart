@@ -869,6 +869,10 @@ void main() {
       read: (c) => c.read(attachedStoreHintProvider.future),
     ),
     (
+      name: 'accountsSummaryProvider',
+      read: (c) => c.read(accountsSummaryProvider.future),
+    ),
+    (
       name: 'shareByDefaultProvider',
       read: (c) => c.read(shareByDefaultProvider.future),
     ),

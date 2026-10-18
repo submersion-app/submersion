@@ -18,7 +18,7 @@ enum DataRowStatusKind {
   syncAlone,
   syncWithOne,
   syncWithMany,
-  syncPaused,
+  syncAttention,
   photosOff,
   photosOn,
   photosAttention,
@@ -27,7 +27,7 @@ enum DataRowStatusKind {
   librariesSomeNever,
   librariesAttention,
   accountsNone,
-  accountsSignedIn,
+  accountsListed,
   accountsNeedSignIn,
 }
 
@@ -68,6 +68,7 @@ DataRowStatus backupsRowStatus({
   required bool cloudCopyOn,
   required String? cloudAccountLabel,
   required bool customFolder,
+  required bool cloudCopyMissing,
 }) {
   final offersSetUp = health.reason == HealthReason.backupAutoOff;
   if (health.reason == HealthReason.backupFailed) {
@@ -83,7 +84,9 @@ DataRowStatus backupsRowStatus({
       offersSetUp: offersSetUp,
     );
   }
-  if (cloudCopyOn && health.reason != HealthReason.backupCloudCopyMissing) {
+  // The flag, not the winning health reason: the evaluator stops at the
+  // first gate, so a missing copy hides behind "auto off" or "overdue".
+  if (cloudCopyOn && !cloudCopyMissing) {
     return DataRowStatus(
       DataRowStatusKind.backupsCloud,
       when: lastBackup,
@@ -105,11 +108,16 @@ DataRowStatus backupsRowStatus({
   );
 }
 
-const _syncPausedReasons = {
+/// Reasons whose strip line is the row's status: sync is paused, or "in
+/// step" would contradict what the strip says needs attention.
+const _syncAttentionReasons = {
   HealthReason.syncNeedsPassphrase,
   HealthReason.syncAwaitingAdoption,
   HealthReason.syncSignedOut,
   HealthReason.syncFailed,
+  HealthReason.syncConflicts,
+  HealthReason.syncPeersHeld,
+  HealthReason.syncOffline,
 };
 
 DataRowStatus syncRowStatus({
@@ -117,8 +125,8 @@ DataRowStatus syncRowStatus({
   required DateTime? lastSync,
   required List<String> peerNames,
 }) {
-  if (_syncPausedReasons.contains(health.reason)) {
-    return DataRowStatus(DataRowStatusKind.syncPaused, health: health);
+  if (_syncAttentionReasons.contains(health.reason)) {
+    return DataRowStatus(DataRowStatusKind.syncAttention, health: health);
   }
   if (health.level == HealthLevel.notSetUp ||
       health.reason == HealthReason.syncOff) {
@@ -151,12 +159,18 @@ DataRowStatus syncRowStatus({
 DataRowStatus photosRowStatus({
   required FeatureHealth health,
   required String? storeHint,
+  required bool storeAttachedHere,
 }) {
   if (health.level == HealthLevel.notSetUp) {
     return const DataRowStatus(DataRowStatusKind.photosOff, offersSetUp: true);
   }
   if (health.level == HealthLevel.attention) {
     return DataRowStatus(DataRowStatusKind.photosAttention, health: health);
+  }
+  // Healthy with no store here means a photo source (Lightroom) is
+  // connected, which keeps no copies.
+  if (!storeAttachedHere) {
+    return const DataRowStatus(DataRowStatusKind.photosOff, offersSetUp: true);
   }
   return DataRowStatus(DataRowStatusKind.photosOn, name: storeHint);
 }
@@ -188,7 +202,7 @@ DataRowStatus librariesRowStatus({
 }
 
 DataRowStatus accountsRowStatus({
-  required List<String> signedInLabels,
+  required List<String> labels,
   required int needSignIn,
 }) {
   if (needSignIn > 0) {
@@ -197,11 +211,11 @@ DataRowStatus accountsRowStatus({
       count: needSignIn,
     );
   }
-  if (signedInLabels.isEmpty) {
+  if (labels.isEmpty) {
     return const DataRowStatus(DataRowStatusKind.accountsNone);
   }
   return DataRowStatus(
-    DataRowStatusKind.accountsSignedIn,
-    name: signedInLabels.join(', '),
+    DataRowStatusKind.accountsListed,
+    name: labels.join(', '),
   );
 }

@@ -123,11 +123,38 @@ void main() {
     expect(
       text(
         const DataRowStatus(
-          DataRowStatusKind.accountsSignedIn,
+          DataRowStatusKind.accountsListed,
           name: 'Google Drive, nas.home',
         ),
       ),
-      'Google Drive, nas.home, signed in',
+      'Google Drive, nas.home',
+    );
+    // No account label (still loading, or no roster row for sync) never
+    // leaves a dangling "copy in ".
+    expect(
+      text(DataRowStatus(DataRowStatusKind.backupsCloud, when: when)),
+      'Backed up 12m ago, copy in the cloud',
+    );
+    expect(
+      text(
+        DataRowStatus(DataRowStatusKind.backupsCloud, when: when, name: ' '),
+      ),
+      'Backed up 12m ago, copy in the cloud',
+    );
+    // Mid-sentence times are lowercase, unlike the standalone label.
+    expect(
+      text(DataRowStatus(DataRowStatusKind.backupsLocal, when: now)),
+      'Backed up just now, on this device only',
+    );
+    expect(
+      text(
+        DataRowStatus(
+          DataRowStatusKind.syncWithOne,
+          when: now,
+          name: "Eric's iPhone",
+        ),
+      ),
+      "In step with Eric's iPhone, just now",
     );
     expect(
       text(const DataRowStatus(DataRowStatusKind.accountsNeedSignIn, count: 2)),
@@ -158,7 +185,7 @@ void main() {
     expect(
       dataRowStatusText(
         l,
-        const DataRowStatus(DataRowStatusKind.syncPaused, health: paused),
+        const DataRowStatus(DataRowStatusKind.syncAttention, health: paused),
         now,
       ),
       healthReasonText(l, paused, now),

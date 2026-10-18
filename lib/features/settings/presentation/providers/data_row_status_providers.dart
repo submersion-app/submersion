@@ -1,23 +1,23 @@
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
-import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
 /// The one-sentence statuses under the Settings > Data rows (issue #3482).
 ///
 /// Every status reads the feature's health from [dataHealthProvider], the
 /// list the strip draws, plus a small leaf input of its own. The leaves are
-/// providers so a widget test can override them without a database, and
-/// none of them builds the media store runtime: opening Settings must not
-/// read the keychain or drain the upload queue.
+/// providers so a widget test can override them without a database. None
+/// builds the media store runtime or probes an account: opening Settings
+/// must not drain the upload queue or add keychain and network calls.
 
 FeatureHealth _healthOf(Ref ref, DataFeature feature) =>
     ref.watch(dataHealthProvider).firstWhere((h) => h.feature == feature);
@@ -54,13 +54,22 @@ final attachedStoreHintProvider = FutureProvider.autoDispose<String?>((
 
 /// Whether backups also go to the cloud and whether a custom folder is set.
 final backupCopyInputsProvider =
-    Provider.autoDispose<({bool cloudCopyOn, bool customFolder})>((ref) {
+    Provider.autoDispose<
+      ({bool cloudCopyOn, bool customFolder, bool cloudCopyMissing})
+    >((ref) {
       final settings = ref.watch(backupSettingsProvider);
       return (
         cloudCopyOn: settings.cloudBackupEnabled,
         customFolder: settings.backupLocation != null,
+        cloudCopyMissing: settings.lastCloudCopyMissing,
       );
     });
+
+/// Whether this device is attached to a media store (false while the
+/// health inputs load). Lightroom alone does not count: it keeps no copies.
+final mediaStoreAttachedHereProvider = Provider.autoDispose<bool>((ref) {
+  return ref.watch(mediaHealthInputsProvider).value?.storeAttachedHere ?? false;
+});
 
 /// How many libraries this device has joined and the latest sync among them.
 final sharedLibrarySummaryProvider =
@@ -74,24 +83,26 @@ final sharedLibrarySummaryProvider =
       return (count: libraries.length, lastSync: latest);
     });
 
-/// Signed-in account labels and how many accounts need a sign-in here.
+/// The roster's account labels and how many accounts need a sign-in here.
+///
+/// The sign-in count comes from the pending setup items the page already
+/// computes for the Photos health, never from a status probe of its own:
+/// probes read the keychain and can refresh a Google token over the network.
 final accountsSummaryProvider =
-    FutureProvider.autoDispose<({List<String> signedInLabels, int needSignIn})>(
-      (ref) async {
-        final accounts = await ref.watch(
-          connectedAccountsWithStatusProvider.future,
-        );
-        return (
-          signedInLabels: [
-            for (final (account, status) in accounts)
-              if (status == AccountStatus.signedIn) account.label,
-          ],
-          needSignIn: accounts
-              .where((entry) => entry.$2 == AccountStatus.needsSignIn)
-              .length,
-        );
-      },
-    );
+    FutureProvider.autoDispose<({List<String> labels, int needSignIn})>((
+      ref,
+    ) async {
+      final repository = ref.watch(connectedAccountsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchAccountsChanges());
+      final accounts = await repository.getAll();
+      final items = await ref.watch(pendingSetupItemsProvider.future);
+      return (
+        labels: [for (final account in accounts) account.label],
+        needSignIn: items
+            .where((i) => i.kind == SetupItemKind.accountSignIn)
+            .length,
+      );
+    });
 
 final backupsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   final copy = ref.watch(backupCopyInputsProvider);
@@ -101,6 +112,7 @@ final backupsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
     cloudCopyOn: copy.cloudCopyOn,
     cloudAccountLabel: ref.watch(syncAccountLabelProvider).value,
     customFolder: copy.customFolder,
+    cloudCopyMissing: copy.cloudCopyMissing,
   );
 });
 
@@ -122,6 +134,7 @@ final photosRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   return photosRowStatus(
     health: _healthOf(ref, DataFeature.media),
     storeHint: ref.watch(attachedStoreHintProvider).value,
+    storeAttachedHere: ref.watch(mediaStoreAttachedHereProvider),
   );
 });
 
@@ -137,7 +150,7 @@ final librariesRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
 final accountsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   final summary = ref.watch(accountsSummaryProvider).value;
   return accountsRowStatus(
-    signedInLabels: summary?.signedInLabels ?? const [],
+    labels: summary?.labels ?? const [],
     needSignIn: summary?.needSignIn ?? 0,
   );
 });

@@ -25213,6 +25213,19 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_data_backups_status_cloudUnknown(String when) {
+    return 'Back-up $when, kopie in de cloud';
+  }
+
+  @override
+  String get settings_data_time_justNow => 'zojuist';
+
+  @override
+  String settings_data_accounts_status_list(String accounts) {
+    return '$accounts';
+  }
+
+  @override
   String settings_data_backups_status_folder(String when) {
     return 'Back-up $when, kopie in je back-upmap';
   }
@@ -25281,11 +25294,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_data_accounts_status_none => 'Nog geen';
-
-  @override
-  String settings_data_accounts_status_signedIn(String accounts) {
-    return '$accounts, aangemeld';
-  }
 
   @override
   String settings_data_accounts_status_needSignIn(int count) {

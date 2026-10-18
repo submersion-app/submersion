@@ -7,14 +7,10 @@ import 'dart:io';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_riverpod/misc.dart' show Override, ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/services/accounts/account_kind.dart';
-import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
-import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
-import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -41,14 +37,6 @@ const _healthy = [
     reason: HealthReason.notSetUp,
   ),
 ];
-
-ConnectedAccount _account(String id, String label) => ConnectedAccount(
-  id: id,
-  kind: AccountKind.googledrive,
-  label: label,
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-);
 
 void main() {
   final when = DateTime(2026, 10, 18, 9);
@@ -91,6 +79,7 @@ void main() {
       backupCopyInputsProvider.overrideWithValue((
         cloudCopyOn: true,
         customFolder: false,
+        cloudCopyMissing: false,
       )),
       syncAccountLabelProvider.overrideWith((ref) async => 'Google Drive'),
     ]);
@@ -111,6 +100,7 @@ void main() {
         return Future.value(null);
       }),
       attachedStoreHintProvider.overrideWith((ref) async => null),
+      mediaStoreAttachedHereProvider.overrideWithValue(false),
     ]);
     final s = c.read(photosRowStatusProvider);
     expect((s.kind, s.offersSetUp), (DataRowStatusKind.photosOff, true));
@@ -125,7 +115,10 @@ void main() {
 
   test('photos row names the attached store', () async {
     final c = container(
-      [attachedStoreHintProvider.overrideWith((ref) async => 'dive @ minio')],
+      [
+        attachedStoreHintProvider.overrideWith((ref) async => 'dive @ minio'),
+        mediaStoreAttachedHereProvider.overrideWithValue(true),
+      ],
       health: [
         for (final h in _healthy)
           h.feature == DataFeature.media
@@ -159,11 +152,9 @@ void main() {
 
   test('accounts row counts sign-ins needed', () async {
     final c = container([
-      connectedAccountsWithStatusProvider.overrideWith(
-        (ref) async => [
-          (_account('a', 'Google Drive'), AccountStatus.signedIn),
-          (_account('b', 'nas.home'), AccountStatus.needsSignIn),
-        ],
+      accountsSummaryProvider.overrideWith(
+        (ref) async =>
+            (labels: const ['Google Drive', 'nas.home'], needSignIn: 1),
       ),
     ]);
     keep(c, accountsRowStatusProvider);
@@ -172,22 +163,14 @@ void main() {
     expect((s.kind, s.count), (DataRowStatusKind.accountsNeedSignIn, 1));
   });
 
-  test('accounts row lists the signed-in labels', () async {
-    final c = container([
-      connectedAccountsWithStatusProvider.overrideWith(
-        (ref) async => [
-          (_account('a', 'Google Drive'), AccountStatus.signedIn),
-          (_account('b', 'iCloud'), AccountStatus.unavailable),
-        ],
-      ),
-    ]);
-    keep(c, accountsRowStatusProvider);
-    await c.read(accountsSummaryProvider.future);
-    final s = c.read(accountsRowStatusProvider);
-    expect(
-      (s.kind, s.name),
-      (DataRowStatusKind.accountsSignedIn, 'Google Drive'),
-    );
+  test('the accounts summary never probes an account', () {
+    // Status probes read the keychain and can refresh a Google token over
+    // the network; the Data page must not run them on every visit.
+    final source = File(
+      'lib/features/settings/presentation/providers/data_row_status_providers.dart',
+    ).readAsStringSync();
+    expect(source, isNot(contains('connectedAccountsWithStatusProvider')));
+    expect(source, isNot(contains('.status(')));
   });
 
   test('unloaded async inputs count as absent, not as an error', () {
@@ -198,12 +181,13 @@ void main() {
       attachedStoreHintProvider.overrideWith(
         (ref) => Completer<String?>().future,
       ),
-      connectedAccountsWithStatusProvider.overrideWith(
-        (ref) => Completer<List<(ConnectedAccount, AccountStatus)>>().future,
+      accountsSummaryProvider.overrideWith(
+        (ref) => Completer<({List<String> labels, int needSignIn})>().future,
       ),
       backupCopyInputsProvider.overrideWithValue((
         cloudCopyOn: true,
         customFolder: false,
+        cloudCopyMissing: false,
       )),
       lastBackupTimeProvider.overrideWithValue(when),
     ]);

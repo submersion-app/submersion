@@ -23983,6 +23983,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_data_backups_status_cloudUnknown(String when) {
+    return '已于$when备份，副本在云端';
+  }
+
+  @override
+  String get settings_data_time_justNow => '刚刚';
+
+  @override
+  String settings_data_accounts_status_list(String accounts) {
+    return '$accounts';
+  }
+
+  @override
   String settings_data_backups_status_folder(String when) {
     return '已于$when备份，副本在您的备份文件夹中';
   }
@@ -24046,11 +24059,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_data_accounts_status_none => '暂无';
-
-  @override
-  String settings_data_accounts_status_signedIn(String accounts) {
-    return '$accounts，已登录';
-  }
 
   @override
   String settings_data_accounts_status_needSignIn(int count) {
