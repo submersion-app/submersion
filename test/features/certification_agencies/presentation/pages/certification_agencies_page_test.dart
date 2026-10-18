@@ -194,6 +194,22 @@ void main() {
       expect(find.text('Trimix Diver'), findsOneWidget);
     });
 
+    testWidgets('IART shows its own five course categories, not Progression/'
+        'Specialties (issue #3357)', (tester) async {
+      await pump(tester, const CertificationAgencyEditPage(agencyId: 'iart'));
+
+      expect(find.text('Open Circuit'), findsOneWidget);
+      expect(find.text('Rebreather'), findsOneWidget);
+      expect(find.text('Service'), findsOneWidget);
+      expect(find.text('Overhead'), findsOneWidget);
+      expect(find.text('Professional'), findsOneWidget);
+      expect(find.text('Progression'), findsNothing);
+      expect(find.text('Specialties'), findsNothing);
+
+      expect(find.text('Open Water Nitrox Diver'), findsOneWidget);
+      expect(find.text('Recreational Trimix'), findsOneWidget);
+    });
+
     testWidgets('another diver\'s shared agency is read-only', (tester) async {
       final b = await repo.createAgency(
         diverId: 'b',
