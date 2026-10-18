@@ -2,13 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/constants/map_style.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 /// A tap on a dive card plays its ink splash through to the end (issue #3474).
@@ -20,18 +19,6 @@ import '../../../../helpers/test_app.dart';
 /// splash lives in the old InkWell's state, so it vanished with it: the press
 /// animation was cut short or only flashed. The Sites and Trips cards keep the
 /// same tree shape across a selection change, which is why they never did.
-class _TestSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
-
-  @override
-  Future<void> setMapStyle(MapStyle style) async =>
-      state = state.copyWith(mapStyle: style);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /// The detailed tile reads its slot config through a provider chain that
 /// reaches SharedPreferences, so the config is pinned to the default here.
 class _TestCardConfigNotifier extends CardViewConfigNotifier {
@@ -101,7 +88,7 @@ void main() {
     await tester.pumpWidget(
       testApp(
         overrides: [
-          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           detailedCardConfigProvider.overrideWith(
             (ref) => _TestCardConfigNotifier(),
           ),
@@ -128,8 +115,8 @@ void main() {
     await tester.pump();
 
     expect(
-      tester.element(find.byKey(const ValueKey('dive_row_highlight'))),
-      isNotNull,
+      find.byKey(const ValueKey('dive_row_highlight')),
+      findsOneWidget,
       reason: 'the tap highlighted the row',
     );
     expect(
