@@ -11,6 +11,8 @@ import 'package:submersion/features/checklists/domain/entities/checklist_templat
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
     as domain;
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 class TripChecklistRepository {
@@ -21,6 +23,265 @@ class TripChecklistRepository {
 
   Stream<void> watchTripChecklistChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.tripChecklistItems));
+
+  Stream<void> watchTripChecklistSectionChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.tripChecklistSections));
+
+  Future<List<domain.TripChecklistSection>> getSectionsForTrip(
+    String tripId,
+  ) async {
+    final rows =
+        await (_db.select(_db.tripChecklistSections)
+              ..where((s) => s.tripId.equals(tripId))
+              ..orderBy([(s) => OrderingTerm.asc(s.sortOrder)]))
+            .get();
+    return rows.map(_mapSectionRow).toList();
+  }
+
+  /// Creates an empty section at the end of the trip's section order.
+  Future<domain.TripChecklistSection> createSection({
+    required String tripId,
+    required String title,
+  }) async {
+    final id = _uuid.v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final sortOrder = await _nextSectionSortOrder(tripId);
+    await _db
+        .into(_db.tripChecklistSections)
+        .insert(
+          TripChecklistSectionsCompanion(
+            id: Value(id),
+            tripId: Value(tripId),
+            title: Value(title),
+            sortOrder: Value(sortOrder),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+    await _syncRepository.markRecordPending(
+      entityType: 'tripChecklistSections',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+    return domain.TripChecklistSection(
+      id: id,
+      tripId: tripId,
+      title: title,
+      sortOrder: sortOrder,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(now),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
+    );
+  }
+
+  Future<void> renameSection(String id, String title) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.tripChecklistSections,
+    )..where((s) => s.id.equals(id))).write(
+      TripChecklistSectionsCompanion(
+        title: Value(title),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'tripChecklistSections',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Persists a new section order. [orderedIds] must list every section of
+  /// the trip exactly once; sort order is the list position.
+  Future<void> reorderSections(String tripId, List<String> orderedIds) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      for (var i = 0; i < orderedIds.length; i++) {
+        await (_db.update(_db.tripChecklistSections)..where(
+              (s) => s.id.equals(orderedIds[i]) & s.tripId.equals(tripId),
+            ))
+            .write(
+              TripChecklistSectionsCompanion(
+                sortOrder: Value(i),
+                updatedAt: Value(now),
+              ),
+            );
+      }
+    });
+    for (final id in orderedIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'tripChecklistSections',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    }
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Moves [itemId] to [targetSectionId] (null = no section) and persists
+  /// the trip's full new item order in the same write. [orderedIds] must
+  /// list every item of the trip exactly once, in its new display order --
+  /// the same contract [reorderSections] has for sections. One call covers
+  /// both a same-section reorder (pass the item's current section again) and
+  /// a cross-section move.
+  Future<void> moveItem({
+    required String tripId,
+    required String itemId,
+    required String? targetSectionId,
+    required List<String> orderedIds,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.tripChecklistItems,
+      )..where((t) => t.id.equals(itemId))).write(
+        TripChecklistItemsCompanion(
+          sectionId: Value(targetSectionId),
+          updatedAt: Value(now),
+        ),
+      );
+      for (var i = 0; i < orderedIds.length; i++) {
+        await (_db.update(_db.tripChecklistItems)..where(
+              (t) => t.id.equals(orderedIds[i]) & t.tripId.equals(tripId),
+            ))
+            .write(
+              TripChecklistItemsCompanion(
+                sortOrder: Value(i),
+                updatedAt: Value(now),
+              ),
+            );
+      }
+    });
+    for (final id in {itemId, ...orderedIds}) {
+      await _syncRepository.markRecordPending(
+        entityType: 'tripChecklistItems',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    }
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Deletes a section. When [moveItemsToSectionId] is given, its items are
+  /// reassigned there first; otherwise they are deleted with it. There is no
+  /// third "leave items without a section" option here -- the diver already
+  /// chose between these two in the delete confirmation dialog.
+  Future<void> deleteSection(String id, {String? moveItemsToSectionId}) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final items = await (_db.select(
+      _db.tripChecklistItems,
+    )..where((t) => t.sectionId.equals(id))).get();
+    if (moveItemsToSectionId != null) {
+      await (_db.update(
+        _db.tripChecklistItems,
+      )..where((t) => t.sectionId.equals(id))).write(
+        TripChecklistItemsCompanion(
+          sectionId: Value(moveItemsToSectionId),
+          updatedAt: Value(now),
+        ),
+      );
+      for (final item in items) {
+        await _syncRepository.markRecordPending(
+          entityType: 'tripChecklistItems',
+          recordId: item.id,
+          localUpdatedAt: now,
+        );
+      }
+    } else if (items.isNotEmpty) {
+      await (_db.delete(
+        _db.tripChecklistItems,
+      )..where((t) => t.sectionId.equals(id))).go();
+      for (final item in items) {
+        await _syncRepository.logDeletion(
+          entityType: 'tripChecklistItems',
+          recordId: item.id,
+        );
+      }
+    }
+    await (_db.delete(
+      _db.tripChecklistSections,
+    )..where((s) => s.id.equals(id))).go();
+    await _syncRepository.logDeletion(
+      entityType: 'tripChecklistSections',
+      recordId: id,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Resolves [title] to an existing section of [tripId] (case-insensitive,
+  /// matching the grouping fold the UI has always used), or creates one.
+  /// Null or blank resolves to no section. Used by the item editor's
+  /// section picker and by [applyTemplate], so re-applying a template is
+  /// idempotent against sections exactly as it already is against items.
+  Future<String?> findOrCreateSectionId(String tripId, String? title) async {
+    final trimmed = title?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    final existing = await getSectionsForTrip(tripId);
+    for (final section in existing) {
+      if (section.title.toLowerCase() == trimmed.toLowerCase()) {
+        return section.id;
+      }
+    }
+    final created = await createSection(tripId: tripId, title: trimmed);
+    return created.id;
+  }
+
+  /// Transaction-safe variant of [findOrCreateSectionId] for [applyTemplate]:
+  /// inserts without the sync bookkeeping [createSection] does (that must
+  /// wait until the caller's outer transaction commits), and records the id
+  /// in [pendingSectionIds] so the caller can mark it pending afterwards.
+  Future<String?> _resolveTemplateSectionId(
+    String tripId,
+    String? title,
+    List<String> pendingSectionIds,
+  ) async {
+    final trimmed = title?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    final existing = await getSectionsForTrip(tripId);
+    for (final section in existing) {
+      if (section.title.toLowerCase() == trimmed.toLowerCase()) {
+        return section.id;
+      }
+    }
+    final id = _uuid.v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db
+        .into(_db.tripChecklistSections)
+        .insert(
+          TripChecklistSectionsCompanion(
+            id: Value(id),
+            tripId: Value(tripId),
+            title: Value(trimmed),
+            sortOrder: Value(existing.length),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+    pendingSectionIds.add(id);
+    return id;
+  }
+
+  Future<int> _nextSectionSortOrder(String tripId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next '
+          'FROM trip_checklist_sections WHERE trip_id = ?',
+          variables: [Variable.withString(tripId)],
+        )
+        .getSingle();
+    return row.read<int>('next');
+  }
+
+  domain.TripChecklistSection _mapSectionRow(TripChecklistSectionRow row) =>
+      domain.TripChecklistSection(
+        id: row.id,
+        tripId: row.tripId,
+        title: row.title,
+        sortOrder: row.sortOrder,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      );
 
   Future<List<domain.TripChecklistItem>> getByTripId(String tripId) async {
     try {
@@ -54,7 +315,7 @@ class TripChecklistRepository {
               id: Value(id),
               tripId: Value(item.tripId),
               title: Value(item.title),
-              category: Value(item.category),
+              sectionId: Value(item.sectionId),
               notes: Value(item.notes),
               dueDate: Value(item.dueDate?.millisecondsSinceEpoch),
               isDone: Value(item.isDone),
@@ -94,7 +355,7 @@ class TripChecklistRepository {
       )..where((t) => t.id.equals(item.id))).write(
         TripChecklistItemsCompanion(
           title: Value(item.title),
-          category: Value(item.category),
+          sectionId: Value(item.sectionId),
           notes: Value(item.notes),
           dueDate: Value(item.dueDate?.millisecondsSinceEpoch),
           isDone: Value(item.isDone),
@@ -167,8 +428,11 @@ class TripChecklistRepository {
     }
   }
 
-  /// Bulk cascade used by TripRepository.deleteTrip.
-  Future<void> deleteByTripId(String tripId) async {
+  /// Clears a trip's items but keeps its sections (the "Clear checklist"
+  /// overflow action -- its confirmation copy promises only items are
+  /// removed, and a diver who laid out empty sections in advance should not
+  /// lose that structure by clearing the checklist for a new trip).
+  Future<void> clearItems(String tripId) async {
     try {
       final existing = await getByTripId(tripId);
       if (existing.isEmpty) return;
@@ -184,6 +448,46 @@ class TripChecklistRepository {
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
+        'Failed to clear checklist items for trip $tripId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Bulk cascade used by TripRepository.deleteTrip: unlike [clearItems],
+  /// also deletes the trip's sections. trip_checklist_sections.trip_id has
+  /// no SQL cascade (children are deleted before the trip, matching this
+  /// schema's style), and a trip can carry sections with no items at all
+  /// (issue #3360's whole point) so this cannot be skipped just because the
+  /// item list is empty.
+  Future<void> deleteByTripId(String tripId) async {
+    try {
+      final existing = await getByTripId(tripId);
+      final sections = await getSectionsForTrip(tripId);
+      if (existing.isEmpty && sections.isEmpty) return;
+      await (_db.delete(
+        _db.tripChecklistItems,
+      )..where((t) => t.tripId.equals(tripId))).go();
+      await (_db.delete(
+        _db.tripChecklistSections,
+      )..where((s) => s.tripId.equals(tripId))).go();
+      for (final item in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'tripChecklistItems',
+          recordId: item.id,
+        );
+      }
+      for (final section in sections) {
+        await _syncRepository.logDeletion(
+          entityType: 'tripChecklistSections',
+          recordId: section.id,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
         'Failed to delete checklist for trip $tripId',
         error: e,
         stackTrace: stackTrace,
@@ -193,8 +497,9 @@ class TripChecklistRepository {
   }
 
   /// Copy-on-apply: copies template items into the trip, resolving due
-  /// offsets against the trip start date. Items whose title and category
-  /// match an existing trip item are skipped so re-apply is idempotent.
+  /// offsets against the trip start date. Items whose title and resolved
+  /// section match an existing trip item are skipped so re-apply is
+  /// idempotent.
   ///
   /// The transaction only covers the reads and writes; sync bookkeeping
   /// (markRecordPending/notifyLocalChange) runs after it commits so a
@@ -207,6 +512,7 @@ class TripChecklistRepository {
       final templateRepository = ChecklistTemplateRepository();
       final now = DateTime.now().millisecondsSinceEpoch;
       final pendingIds = <String>[];
+      final pendingSectionIds = <String>[];
 
       final result = await _db.transaction(() async {
         final template = await templateRepository.getTemplateById(templateId);
@@ -216,14 +522,32 @@ class TripChecklistRepository {
         final templateItems = await templateRepository.getItemsForTemplate(
           templateId,
         );
+        final templateSections = await templateRepository
+            .getSectionsForTemplate(templateId);
+        final templateSectionTitleById = {
+          for (final s in templateSections) s.id: s.title,
+        };
         final existing = await getByTripId(trip.id);
-        final existingKeys = existing.map((i) => (i.title, i.category)).toSet();
+        final existingKeys = existing
+            .map((i) => (i.title, i.sectionId))
+            .toSet();
         var sortOrder = await _nextSortOrder(trip.id);
         var added = 0;
         var skipped = 0;
 
         for (final item in templateItems) {
-          if (existingKeys.contains((item.title, item.category))) {
+          // Bridge the template's section (its own table now) to a trip
+          // section by title: find an existing one case-insensitively
+          // before creating one, the same resolution the item editor's
+          // picker uses.
+          final sectionId = await _resolveTemplateSectionId(
+            trip.id,
+            item.sectionId == null
+                ? null
+                : templateSectionTitleById[item.sectionId],
+            pendingSectionIds,
+          );
+          if (existingKeys.contains((item.title, sectionId))) {
             skipped++;
             continue;
           }
@@ -242,7 +566,7 @@ class TripChecklistRepository {
                   id: Value(id),
                   tripId: Value(trip.id),
                   title: Value(item.title),
-                  category: Value(item.category),
+                  sectionId: Value(sectionId),
                   notes: Value(item.notes),
                   dueDate: Value(dueDate),
                   isDone: const Value(false),
@@ -258,6 +582,17 @@ class TripChecklistRepository {
         return (added: added, skipped: skipped);
       });
 
+      // Sync bookkeeping for both the items and any section the loop above
+      // created runs after the transaction commits, matching the existing
+      // item-only comment above this method: a rolled-back transaction must
+      // never leave a stray pending-sync marker.
+      for (final id in pendingSectionIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'tripChecklistSections',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
       for (final id in pendingIds) {
         await _syncRepository.markRecordPending(
           entityType: 'tripChecklistItems',
@@ -265,7 +600,7 @@ class TripChecklistRepository {
           localUpdatedAt: now,
         );
       }
-      if (pendingIds.isNotEmpty) {
+      if (pendingIds.isNotEmpty || pendingSectionIds.isNotEmpty) {
         SyncEventBus.notifyLocalChange();
       }
       return result;
@@ -292,6 +627,7 @@ class TripChecklistRepository {
     try {
       final templateRepository = ChecklistTemplateRepository();
       final items = await getByTripId(tripId);
+      final sections = await getSectionsForTrip(tripId);
       final template = await templateRepository.createTemplate(
         domain.ChecklistTemplate(
           id: '',
@@ -301,6 +637,17 @@ class TripChecklistRepository {
           updatedAt: DateTime.now(),
         ),
       );
+      // Bridge the trip's sections to the new template's own sections by
+      // title, resolving each distinct one once (find-or-create is async,
+      // so this runs before the synchronous item-mapping pass below).
+      final newTemplateSectionIdByTripSectionId = <String, String?>{};
+      for (final section in sections) {
+        newTemplateSectionIdByTripSectionId[section.id] =
+            await templateRepository.findOrCreateSectionId(
+              template.id,
+              section.title,
+            );
+      }
       final templateItems = items.map((item) {
         int? offset;
         final due = item.dueDate;
@@ -321,7 +668,9 @@ class TripChecklistRepository {
           id: '',
           templateId: template.id,
           title: item.title,
-          category: item.category,
+          sectionId: item.sectionId == null
+              ? null
+              : newTemplateSectionIdByTripSectionId[item.sectionId],
           notes: item.notes,
           dueOffsetDays: offset,
           sortOrder: item.sortOrder,
@@ -424,7 +773,7 @@ class TripChecklistRepository {
         id: row.id,
         tripId: row.tripId,
         title: row.title,
-        category: row.category,
+        sectionId: row.sectionId,
         notes: row.notes,
         dueDate: row.dueDate == null
             ? null

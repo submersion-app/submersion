@@ -149,11 +149,50 @@ class PreDiveSession extends Equatable {
   ];
 }
 
+/// A frozen snapshot of a template section, taken at session start (issue
+/// #3360). Never managed: a session is an immutable audit record once
+/// started (repository-enforced), so this exists only to group items the
+/// same way the template did, not to be renamed, reordered or deleted.
+/// Deliberately its own table rather than a reference to the *template's*
+/// section: a later edit or deletion of that section must not alter a past
+/// session's shape.
+class PreDiveSessionSection extends Equatable {
+  final String id;
+  final String sessionId;
+  final String title;
+  final int sortOrder;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const PreDiveSessionSection({
+    required this.id,
+    required this.sessionId,
+    required this.title,
+    this.sortOrder = 0,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    sessionId,
+    title,
+    sortOrder,
+    createdAt,
+    updatedAt,
+  ];
+}
+
 /// Snapshot of one template item plus its run state.
 class PreDiveSessionItem extends Equatable {
   final String id;
   final String sessionId;
-  final String? section;
+
+  /// The session section this item is grouped under, if any (issue #3360).
+  /// Replaces the free-text `section` field. Remapped from the template's
+  /// section id by SessionItemComposer, same pattern as [sourceItemId].
+  final String? sectionId;
   final String title;
   final String notes;
   final int sortOrder;
@@ -197,7 +236,7 @@ class PreDiveSessionItem extends Equatable {
   const PreDiveSessionItem({
     required this.id,
     required this.sessionId,
-    this.section,
+    this.sectionId,
     required this.title,
     this.notes = '',
     this.sortOrder = 0,
@@ -257,7 +296,7 @@ class PreDiveSessionItem extends Equatable {
   PreDiveSessionItem copyWith({
     String? id,
     String? sessionId,
-    Object? section = _undefined,
+    Object? sectionId = _undefined,
     String? title,
     String? notes,
     int? sortOrder,
@@ -282,7 +321,9 @@ class PreDiveSessionItem extends Equatable {
     return PreDiveSessionItem(
       id: id ?? this.id,
       sessionId: sessionId ?? this.sessionId,
-      section: section == _undefined ? this.section : section as String?,
+      sectionId: sectionId == _undefined
+          ? this.sectionId
+          : sectionId as String?,
       title: title ?? this.title,
       notes: notes ?? this.notes,
       sortOrder: sortOrder ?? this.sortOrder,
@@ -328,7 +369,7 @@ class PreDiveSessionItem extends Equatable {
   List<Object?> get props => [
     id,
     sessionId,
-    section,
+    sectionId,
     title,
     notes,
     sortOrder,

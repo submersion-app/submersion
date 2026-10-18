@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
 
@@ -12,7 +13,7 @@ void main() {
   PreDiveChecklistTemplateItem tItem(
     int order, {
     PreDiveItemType type = PreDiveItemType.check,
-    String? section,
+    String? sectionId,
     bool required = false,
   }) => PreDiveChecklistTemplateItem(
     id: 't$order',
@@ -20,11 +21,20 @@ void main() {
     title: 'T$order',
     sortOrder: order,
     itemType: type,
-    section: section,
+    sectionId: sectionId,
     isRequired: required,
     createdAt: now,
     updatedAt: now,
   );
+
+  PreDiveChecklistTemplateSection tSection(String id, String title) =>
+      PreDiveChecklistTemplateSection(
+        id: id,
+        templateId: 'tpl',
+        title: title,
+        createdAt: now,
+        updatedAt: now,
+      );
 
   EquipmentItem gear(String id, String name) =>
       EquipmentItem(id: id, name: name, type: EquipmentType.values.first);
@@ -36,7 +46,7 @@ void main() {
         tItem(1, type: PreDiveItemType.value),
       ],
       now: now,
-    );
+    ).items;
     expect(out, hasLength(2));
     // The composer mints ids so it can link a linearity item to its source
     // in the same pass; startSession honours whatever it set (issue #986).
@@ -57,25 +67,35 @@ void main() {
       createdAt: now,
       updatedAt: now,
     );
-    final out = SessionItemComposer.compose(
+    final composed = SessionItemComposer.compose(
       templateItems: [
         tItem(0),
         tItem(
           1,
           type: PreDiveItemType.equipmentSet,
-          section: 'Gear',
+          sectionId: 'sec-gear',
           required: true,
         ),
         tItem(2),
       ],
+      templateSections: [tSection('sec-gear', 'Gear')],
       equipmentSet: set,
       equipmentItems: [gear('g1', 'Regulator'), gear('g2', 'BCD')],
       now: now,
     );
+    final out = composed.items;
     expect(out.map((i) => i.title).toList(), ['T0', 'Regulator', 'BCD', 'T2']);
     final reg = out[1];
     expect(reg.equipmentId, 'g1');
-    expect(reg.section, 'Gear');
+    expect(composed.sections.single.title, 'Gear');
+    expect(
+      reg.sectionId,
+      composed.sections.single.id,
+      reason:
+          'every row the equipmentSet placeholder expands to shares '
+          'its section',
+    );
+    expect(out[2].sectionId, composed.sections.single.id);
     expect(reg.isRequired, isTrue);
     expect(reg.itemType, PreDiveItemType.check);
     // sortOrder strictly increasing overall
@@ -97,7 +117,7 @@ void main() {
       equipmentSet: set,
       equipmentItems: [gear('g1', 'Old Reg')],
       now: now,
-    );
+    ).items;
     expect(out.single.state, PreDiveItemState.pending);
     expect(out.single.note, isEmpty);
     expect(out.single.completedAt, isNull);
@@ -108,7 +128,7 @@ void main() {
     final out = SessionItemComposer.compose(
       templateItems: [tItem(0, type: PreDiveItemType.equipmentSet)],
       now: now,
-    );
+    ).items;
     expect(out.single.itemType, PreDiveItemType.check);
     expect(out.single.equipmentId, isNull);
     expect(out.single.title, 'T0');
@@ -120,7 +140,7 @@ void main() {
       equipmentItems: [gear('g1', 'Primary computer')],
       equipmentByTemplateItemId: const {'t0': 'g1'},
       now: now,
-    );
+    ).items;
     expect(out.single.title, 'T0');
     expect(out.single.itemType, PreDiveItemType.check);
     expect(out.single.equipmentId, 'g1');
@@ -141,7 +161,7 @@ void main() {
       templateItems: [remembered],
       equipmentItems: [gear('g1', 'Primary computer')],
       now: now,
-    );
+    ).items;
     expect(out.single.equipmentId, 'g1');
   });
 
@@ -160,7 +180,7 @@ void main() {
       equipmentItems: [gear('g1', 'Primary computer'), gear('g2', 'Backup')],
       equipmentByTemplateItemId: const {'t0': 'g2'},
       now: now,
-    );
+    ).items;
     expect(out.single.equipmentId, 'g2');
   });
 
@@ -168,7 +188,7 @@ void main() {
     final out = SessionItemComposer.compose(
       templateItems: [tItem(0, type: PreDiveItemType.equipment)],
       now: now,
-    );
+    ).items;
     expect(out.single.equipmentId, isNull);
     expect(out.single.state, PreDiveItemState.pending);
   });
@@ -180,11 +200,60 @@ void main() {
       equipmentItems: [gear('g1', 'Old computer')],
       equipmentByTemplateItemId: const {'t0': 'g1'},
       now: now,
-    );
+    ).items;
     expect(out.single.state, PreDiveItemState.pending);
     expect(out.single.note, isEmpty);
     expect(out.single.completedAt, isNull);
     expect(out.single.equipmentId, 'g1');
+  });
+
+  group('section snapshot (#3360)', () {
+    test('each template section gets a frozen copy with a new id', () {
+      final composed = SessionItemComposer.compose(
+        templateItems: [
+          tItem(0, sectionId: 'sec-a'),
+          tItem(1, sectionId: 'sec-b'),
+        ],
+        templateSections: [
+          tSection('sec-a', 'Assembly'),
+          tSection('sec-b', 'Cells'),
+        ],
+        now: now,
+      );
+      expect(composed.sections, hasLength(2));
+      expect(composed.sections.map((s) => s.title).toList(), [
+        'Assembly',
+        'Cells',
+      ]);
+      expect(
+        composed.sections.every((s) => s.id != 'sec-a' && s.id != 'sec-b'),
+        isTrue,
+        reason:
+            'a session section is a copy, never a reference to the '
+            'template section (a later template edit must not alter a '
+            'past session)',
+      );
+      final byTitle = {for (final s in composed.sections) s.title: s.id};
+      expect(composed.items[0].sectionId, byTitle['Assembly']);
+      expect(composed.items[1].sectionId, byTitle['Cells']);
+    });
+
+    test('an item with no section stays unsectioned', () {
+      final composed = SessionItemComposer.compose(
+        templateItems: [tItem(0)],
+        templateSections: [tSection('sec-a', 'Assembly')],
+        now: now,
+      );
+      expect(composed.items.single.sectionId, isNull);
+      expect(
+        composed.sections,
+        hasLength(1),
+        reason:
+            'the section is copied regardless of whether this item '
+            'uses it -- issue #3360 is partly about laying out an empty '
+            'section in advance',
+      );
+    });
   });
 
   group('cell linearity link (#986)', () {
@@ -213,7 +282,7 @@ void main() {
           linearityTItem(1, sourceItemId: 't0'),
         ],
         now: now,
-      );
+      ).items;
       expect(out, hasLength(2));
       expect(out[1].itemType, PreDiveItemType.cellLinearity);
       expect(
@@ -233,7 +302,7 @@ void main() {
           tItem(1, type: PreDiveItemType.value),
         ],
         now: now,
-      );
+      ).items;
       expect(out[0].sourceItemId, out[1].id);
     });
 
@@ -241,7 +310,7 @@ void main() {
       final out = SessionItemComposer.compose(
         templateItems: [linearityTItem(0, sourceItemId: 'gone', min: 95)],
         now: now,
-      );
+      ).items;
       expect(out.single.itemType, PreDiveItemType.value);
       expect(out.single.sourceItemId, isNull);
     });
@@ -250,7 +319,7 @@ void main() {
       final out = SessionItemComposer.compose(
         templateItems: [linearityTItem(0, sourceItemId: null, min: 95)],
         now: now,
-      );
+      ).items;
       expect(out.single.itemType, PreDiveItemType.value);
     });
 
@@ -261,7 +330,7 @@ void main() {
       final out = SessionItemComposer.compose(
         templateItems: [linearityTItem(0, sourceItemId: 'gone', min: 95)],
         now: now,
-      );
+      ).items;
       expect(out.single.valueMin, isNull);
       expect(out.single.valueMax, isNull);
       expect(out.single.valueOutOfRange, isFalse);
@@ -282,7 +351,7 @@ void main() {
           linearityTItem(1, sourceItemId: 't0', min: 95),
         ],
         now: now,
-      );
+      ).items;
       expect(out[1].itemType, PreDiveItemType.value);
       expect(out[1].sourceItemId, isNull);
       expect(out[1].valueMin, isNull);
@@ -296,7 +365,7 @@ void main() {
           linearityTItem(1, sourceItemId: 't0', min: 95),
         ],
         now: now,
-      );
+      ).items;
       final linearity = out.firstWhere((i) => i.title == 'Cell mV in O2');
       expect(linearity.itemType, PreDiveItemType.value);
       expect(linearity.sourceItemId, isNull);
@@ -309,7 +378,7 @@ void main() {
           linearityTItem(1, sourceItemId: 't0', min: 95),
         ],
         now: now,
-      );
+      ).items;
       expect(out[1].valueMin, 95);
     });
   });
