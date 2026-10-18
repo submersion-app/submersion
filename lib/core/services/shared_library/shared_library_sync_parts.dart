@@ -146,12 +146,14 @@ extension _SuggestionSync on SharedLibraryService {
   }
 
   /// Takes in the suggestions their authors provably wrote, with a key an
-  /// owner approved. Others stay in the folder and are read again next
-  /// time (an approval may come).
+  /// owner approved, or before an owner removed them with the key they had
+  /// then ([removals], issue #3481). Others stay in the folder and are read
+  /// again next time (an approval may come).
   Future<void> _pullSuggestions(
     SharedLibraryTransport t,
     String libraryId, {
     required SharedLibraryRoles roles,
+    List<MemberRemoval> removals = const [],
   }) async {
     final files = await t.listSuggestions();
     final remoteIds = {
@@ -204,6 +206,13 @@ extension _SuggestionSync on SharedLibraryService {
           libraryId: libraryId,
         )) {
           status = SharedSiteSuggestion.held;
+        } else if (await _madeBeforeRemoval(
+          json,
+          author,
+          removals,
+          libraryId,
+        )) {
+          status = SharedSiteSuggestion.pending;
         } else {
           // Its author was rejected or left: nothing is waiting any more.
           await _store.deleteSuggestion(
