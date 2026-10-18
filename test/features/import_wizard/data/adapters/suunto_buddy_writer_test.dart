@@ -120,6 +120,34 @@ void main() {
     expect(kept.roleIds, [DiveRole.diveGuideId]);
   });
 
+  test('leaves a name already on the dive alone, whoever it is', () async {
+    // findOrCreateByName would pick or create a different person (another
+    // profile's namesake here), so an id-only check would list the name
+    // twice on the dive.
+    final namesake = await repo.createBuddy(
+      Buddy(
+        id: 'b-other',
+        diverId: 'diver-2',
+        name: 'Buddy 1',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await repo.addBuddyToDive('d1', namesake.id, DiveRole.buddyId);
+
+    await writer.attach('d1', _parsed(['buddy 1', 'Buddy 2']), diverId);
+
+    final linked = await onDive();
+    expect(
+      linked.map((b) => b.buddy.name),
+      unorderedEquals(['Buddy 1', 'Buddy 2']),
+    );
+    expect(
+      linked.firstWhere((b) => b.buddy.name == 'Buddy 1').buddy.id,
+      namesake.id,
+    );
+  });
+
   test('importing the same dive again adds nobody twice', () async {
     await writer.attach('d1', _parsed(['Buddy 1']), diverId);
     await writer.attach('d1', _parsed(['Buddy 1']), diverId);

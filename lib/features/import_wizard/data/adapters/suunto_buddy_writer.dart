@@ -8,7 +8,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 ///
 /// Each name is matched to the diver's own person of that name (ignoring
 /// case) or a new one is created for the diver, the same way the UDDF
-/// import handles a buddy known only by name. Only people not already on
+/// import handles a buddy known only by name. Only names not already on
 /// the dive are added, so a role set in Submersion (a guide, an instructor)
 /// survives a re-import and nobody is linked twice.
 class SuuntoBuddyWriter {
@@ -31,10 +31,14 @@ class SuuntoBuddyWriter {
   ) async {
     if (parsed.buddies.isEmpty) return;
     final Set<String> onDive;
+    final Set<String> namesOnDive;
     try {
-      // The lean batch read: only ids are needed, not certifications.
-      final linked = await _repository.getBuddiesForDives([diveId]);
-      onDive = {for (final b in linked[diveId] ?? const []) b.buddy.id};
+      // The lean batch read: only ids and names are needed, not
+      // certifications.
+      final linked =
+          (await _repository.getBuddiesForDives([diveId]))[diveId] ?? const [];
+      onDive = {for (final b in linked) b.buddy.id};
+      namesOnDive = {for (final b in linked) b.buddy.name.trim().toLowerCase()};
     } catch (e, st) {
       _log.error(
         'Could not read the buddies already on dive $diveId',
@@ -45,6 +49,11 @@ class SuuntoBuddyWriter {
     }
     // One person failing to save must not cost the dive the others.
     for (final name in parsed.buddies) {
+      // Someone of that name is already on the dive, possibly a person
+      // findOrCreateByName would not pick (another profile's namesake, or
+      // one of two people sharing the name): adding ours would list the
+      // name twice.
+      if (!namesOnDive.add(name.toLowerCase())) continue;
       try {
         final buddy = await _repository.findOrCreateByName(
           name,
