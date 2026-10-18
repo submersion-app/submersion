@@ -20920,6 +20920,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'ההרשאות שלך מאפשרות קריאה בלבד. אפשר להציע שינויים ואחראי יחיל אותם.';
 
   @override
+  String get sharedLibrary_library_removedBanner =>
+      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+
+  @override
   String sharedLibrary_library_errorBanner(String error) {
     return 'הסנכרון האחרון נכשל: $error';
   }

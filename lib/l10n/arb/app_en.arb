@@ -13247,6 +13247,7 @@
   "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
   "sharedLibrary_library_neverSynced": "Not synced yet",
   "sharedLibrary_library_readOnlyBanner": "Your credentials allow reading only. You can suggest changes; a referent applies them.",
+  "sharedLibrary_library_removedBanner": "An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.",
   "sharedLibrary_library_errorBanner": "Last sync failed: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_library_addMySites": "Add my sites",

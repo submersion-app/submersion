@@ -21670,6 +21670,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تسمح بيانات اعتمادك بالقراءة فقط. يمكنك اقتراح تغييرات ويقوم مرجع بتطبيقها.';
 
   @override
+  String get sharedLibrary_library_removedBanner =>
+      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+
+  @override
   String sharedLibrary_library_errorBanner(String error) {
     return 'فشلت آخر مزامنة: $error';
   }

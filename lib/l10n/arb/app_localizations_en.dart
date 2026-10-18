@@ -21080,6 +21080,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your credentials allow reading only. You can suggest changes; a referent applies them.';
 
   @override
+  String get sharedLibrary_library_removedBanner =>
+      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+
+  @override
   String sharedLibrary_library_errorBanner(String error) {
     return 'Last sync failed: $error';
   }

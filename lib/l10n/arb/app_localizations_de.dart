@@ -21376,6 +21376,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Deine Zugangsdaten erlauben nur Lesen. Du kannst Änderungen vorschlagen; ein Verantwortlicher übernimmt sie.';
 
   @override
+  String get sharedLibrary_library_removedBanner =>
+      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+
+  @override
   String sharedLibrary_library_errorBanner(String error) {
     return 'Letzte Synchronisierung fehlgeschlagen: $error';
   }

@@ -20329,6 +20329,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '您的凭据仅允许读取。您可以提出修改建议，由负责人应用。';
 
   @override
+  String get sharedLibrary_library_removedBanner =>
+      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+
+  @override
   String sharedLibrary_library_errorBanner(String error) {
     return '上次同步失败：$error';
   }

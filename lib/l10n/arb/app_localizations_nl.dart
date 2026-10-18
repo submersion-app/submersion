@@ -21264,6 +21264,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Je inloggegevens staan alleen lezen toe. Je kunt wijzigingen voorstellen; een beheerder past ze toe.';
 
   @override
+  String get sharedLibrary_library_removedBanner =>
+      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+
+  @override
   String sharedLibrary_library_errorBanner(String error) {
     return 'Laatste synchronisatie mislukt: $error';
   }

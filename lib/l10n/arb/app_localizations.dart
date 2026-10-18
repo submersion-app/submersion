@@ -34263,6 +34263,12 @@ abstract class AppLocalizations {
   /// **'Your credentials allow reading only. You can suggest changes; a referent applies them.'**
   String get sharedLibrary_library_readOnlyBanner;
 
+  /// No description provided for @sharedLibrary_library_removedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.'**
+  String get sharedLibrary_library_removedBanner;
+
   /// No description provided for @sharedLibrary_library_errorBanner.
   ///
   /// In en, this message translates to:
