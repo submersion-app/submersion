@@ -21329,31 +21329,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'إزالة الدور';
 
   @override
-  String get sharedLibrary_members_remove => 'Remove from library';
+  String get sharedLibrary_members_remove => 'إزالة من المكتبة';
 
   @override
   String sharedLibrary_members_removeTitle(String name) {
-    return 'Remove $name?';
+    return 'إزالة $name؟';
   }
 
   @override
   String sharedLibrary_members_removeBody(String name) {
-    return '$name will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.';
+    return 'لن يتمكن $name بعد الآن من تعديل المواقع أو اقتراح تغييرات. تبقى المواقع والتعديلات التي ساهم بها في المكتبة.\n\nيظل قادرًا على قراءة المكتبة حتى تغيّر مفاتيح التخزين الخاصة بها، وعبارة المرور إن كانت مشفّرة.';
   }
 
   @override
-  String get sharedLibrary_members_removeConfirm => 'Remove';
+  String get sharedLibrary_members_removeConfirm => 'إزالة';
 
   @override
-  String get sharedLibrary_members_removedHeader => 'Removed';
+  String get sharedLibrary_members_removedHeader => 'تمت إزالتهم';
 
   @override
   String sharedLibrary_members_removedOn(String date) {
-    return 'Removed $date';
+    return 'أُزيل في $date';
   }
 
   @override
-  String get sharedLibrary_members_allowBack => 'Allow back';
+  String get sharedLibrary_members_allowBack => 'السماح بالعودة';
 
   @override
   String get sharedLibrary_owner_onlyOne =>
@@ -21671,7 +21671,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_removedBanner =>
-      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+      'أزالك مرجع من هذه المكتبة. تبقى مواقعها على هذا الجهاز، لكن لم يعد بإمكانك تغييرها. عند مغادرة المكتبة تحتفظ بنسخ شخصية من المواقع التي غصت فيها.';
 
   @override
   String sharedLibrary_library_errorBanner(String error) {

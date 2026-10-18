@@ -21064,31 +21064,31 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Remover função';
 
   @override
-  String get sharedLibrary_members_remove => 'Remove from library';
+  String get sharedLibrary_members_remove => 'Remover da biblioteca';
 
   @override
   String sharedLibrary_members_removeTitle(String name) {
-    return 'Remove $name?';
+    return 'Remover $name?';
   }
 
   @override
   String sharedLibrary_members_removeBody(String name) {
-    return '$name will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.';
+    return '$name deixa de poder editar locais ou sugerir alterações. Os locais e alterações que já contribuiu ficam na biblioteca.\n\nAinda poderá ler a biblioteca até mudar as chaves de armazenamento, e a frase-passe se estiver cifrada.';
   }
 
   @override
-  String get sharedLibrary_members_removeConfirm => 'Remove';
+  String get sharedLibrary_members_removeConfirm => 'Remover';
 
   @override
-  String get sharedLibrary_members_removedHeader => 'Removed';
+  String get sharedLibrary_members_removedHeader => 'Removidos';
 
   @override
   String sharedLibrary_members_removedOn(String date) {
-    return 'Removed $date';
+    return 'Removido em $date';
   }
 
   @override
-  String get sharedLibrary_members_allowBack => 'Allow back';
+  String get sharedLibrary_members_allowBack => 'Readmitir';
 
   @override
   String get sharedLibrary_owner_onlyOne =>
@@ -21403,7 +21403,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_removedBanner =>
-      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+      'Um responsável removeu-o desta biblioteca. Os locais ficam neste dispositivo, mas já não os pode alterar. Ao sair da biblioteca, fica com cópias pessoais dos locais onde mergulhou.';
 
   @override
   String sharedLibrary_library_errorBanner(String error) {

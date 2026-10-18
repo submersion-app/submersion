@@ -20992,31 +20992,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Szerepkör eltávolítása';
 
   @override
-  String get sharedLibrary_members_remove => 'Remove from library';
+  String get sharedLibrary_members_remove => 'Eltávolítás a könyvtárból';
 
   @override
   String sharedLibrary_members_removeTitle(String name) {
-    return 'Remove $name?';
+    return 'Eltávolítod: $name?';
   }
 
   @override
   String sharedLibrary_members_removeBody(String name) {
-    return '$name will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.';
+    return '$name ezután nem szerkeszthet helyszíneket, és nem javasolhat módosításokat. Az általa már hozzáadott helyszínek és módosítások a könyvtárban maradnak.\n\nA könyvtárat továbbra is olvashatja, amíg meg nem változtatod a tárhelykulcsait, és a jelmondatát, ha titkosított.';
   }
 
   @override
-  String get sharedLibrary_members_removeConfirm => 'Remove';
+  String get sharedLibrary_members_removeConfirm => 'Eltávolítás';
 
   @override
-  String get sharedLibrary_members_removedHeader => 'Removed';
+  String get sharedLibrary_members_removedHeader => 'Eltávolítva';
 
   @override
   String sharedLibrary_members_removedOn(String date) {
-    return 'Removed $date';
+    return 'Eltávolítva: $date';
   }
 
   @override
-  String get sharedLibrary_members_allowBack => 'Allow back';
+  String get sharedLibrary_members_allowBack => 'Visszaengedés';
 
   @override
   String get sharedLibrary_owner_onlyOne =>
@@ -21327,7 +21327,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_removedBanner =>
-      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+      'Egy felelős eltávolított ebből a könyvtárból. A helyszínei ezen az eszközön maradnak, de már nem módosíthatod őket. Ha kilépsz a könyvtárból, megtartod azoknak a helyszíneknek a saját másolatát, ahol merültél.';
 
   @override
   String sharedLibrary_library_errorBanner(String error) {

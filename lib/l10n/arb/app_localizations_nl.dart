@@ -20926,31 +20926,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Rol verwijderen';
 
   @override
-  String get sharedLibrary_members_remove => 'Remove from library';
+  String get sharedLibrary_members_remove => 'Uit de bibliotheek verwijderen';
 
   @override
   String sharedLibrary_members_removeTitle(String name) {
-    return 'Remove $name?';
+    return '$name verwijderen?';
   }
 
   @override
   String sharedLibrary_members_removeBody(String name) {
-    return '$name will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.';
+    return '$name kan dan geen locaties meer bewerken of wijzigingen voorstellen. Locaties en wijzigingen die diegene al heeft bijgedragen, blijven in de bibliotheek.\n\nLezen kan diegene de bibliotheek nog tot je de opslagsleutels wijzigt, en de wachtwoordzin als ze versleuteld is.';
   }
 
   @override
-  String get sharedLibrary_members_removeConfirm => 'Remove';
+  String get sharedLibrary_members_removeConfirm => 'Verwijderen';
 
   @override
-  String get sharedLibrary_members_removedHeader => 'Removed';
+  String get sharedLibrary_members_removedHeader => 'Verwijderd';
 
   @override
   String sharedLibrary_members_removedOn(String date) {
-    return 'Removed $date';
+    return 'Verwijderd op $date';
   }
 
   @override
-  String get sharedLibrary_members_allowBack => 'Allow back';
+  String get sharedLibrary_members_allowBack => 'Weer toelaten';
 
   @override
   String get sharedLibrary_owner_onlyOne =>
@@ -21265,7 +21265,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_removedBanner =>
-      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+      'Een beheerder heeft je uit deze bibliotheek verwijderd. De locaties blijven op dit apparaat, maar je kunt ze niet meer wijzigen. Als je de bibliotheek verlaat, houd je eigen kopieën van de locaties waar je gedoken hebt.';
 
   @override
   String sharedLibrary_library_errorBanner(String error) {

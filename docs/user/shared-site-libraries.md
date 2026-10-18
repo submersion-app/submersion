@@ -99,6 +99,27 @@ their role removed, the edits they made until then keep counting for every
 member, including members who join later; anything they write afterwards does
 not.
 
+### Removing someone
+
+To remove an approved member, for example someone who has left your group, an
+owner opens the role menu beside them on the **Members** page and taps
+**Remove from library**. Everything they contributed stays in the library: the
+sites and edits they made before the removal keep counting, and suggestions
+they made before it stay in the Suggestions page for an owner to decide. From
+then on they can no longer edit sites or suggest changes, and their own app
+shows that an owner removed them. Their app keeps the library's sites but stops
+changing them; leaving the library there keeps personal copies of the sites
+they dived.
+
+Removing someone does not stop them reading the library: anyone who holds the
+storage keys can read its files. To cut off reading too, change the storage
+keys, and the passphrase if the library is encrypted.
+
+Removed people are listed under **Removed** on the **Members** page. **Allow
+back** lets them return: their app lists them again at its next sync, and they
+wait under **Waiting for approval** like anyone new. A removal outlives a
+restore from a backup taken before it.
+
 If a device finds the library's roles changed by someone it does not know as an
 owner, the library page warns, and the device only reads the library until the
 roles are put right. This also happens to a device that was away while

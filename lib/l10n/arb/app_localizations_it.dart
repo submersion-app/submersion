@@ -21062,31 +21062,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Rimuovi ruolo';
 
   @override
-  String get sharedLibrary_members_remove => 'Remove from library';
+  String get sharedLibrary_members_remove => 'Rimuovi dalla libreria';
 
   @override
   String sharedLibrary_members_removeTitle(String name) {
-    return 'Remove $name?';
+    return 'Rimuovere $name?';
   }
 
   @override
   String sharedLibrary_members_removeBody(String name) {
-    return '$name will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.';
+    return '$name non potrà più modificare siti né suggerire modifiche. I siti e le modifiche già apportati restano nella libreria.\n\nPotrà ancora leggere la libreria finché non cambi le sue chiavi di archiviazione, e la sua passphrase se è cifrata.';
   }
 
   @override
-  String get sharedLibrary_members_removeConfirm => 'Remove';
+  String get sharedLibrary_members_removeConfirm => 'Rimuovi';
 
   @override
-  String get sharedLibrary_members_removedHeader => 'Removed';
+  String get sharedLibrary_members_removedHeader => 'Rimossi';
 
   @override
   String sharedLibrary_members_removedOn(String date) {
-    return 'Removed $date';
+    return 'Rimosso il $date';
   }
 
   @override
-  String get sharedLibrary_members_allowBack => 'Allow back';
+  String get sharedLibrary_members_allowBack => 'Riammetti';
 
   @override
   String get sharedLibrary_owner_onlyOne =>
@@ -21400,7 +21400,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedLibrary_library_removedBanner =>
-      'An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.';
+      'Un referente ti ha rimosso da questa libreria. I suoi siti restano su questo dispositivo, ma non puoi più modificarli. Lasciando la libreria conservi copie personali dei siti in cui hai fatto immersioni.';
 
   @override
   String sharedLibrary_library_errorBanner(String error) {
