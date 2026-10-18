@@ -260,15 +260,12 @@ mixin _MembershipOwnership {
       throw StateError('an owner leaves rather than removing themselves');
     }
     final (library, t, roles) = await _asOwner(libraryId, actingMemberId);
-    if (roles.owners.contains(memberId) && roles.owners.length == 1) {
-      throw LastOwnerDemoteError(libraryId);
-    }
     SharedLibraryMember? card;
     for (final m in await t.listMembers()) {
       if (m.memberId == memberId) card = m;
     }
     final at = DateTime.now();
-    await writeSignedRoles(
+    final written = await writeSignedRoles(
       library,
       t,
       roles.removing(memberId, at: at),
@@ -287,7 +284,7 @@ mixin _MembershipOwnership {
       ),
     );
     await t.deleteMember(memberId);
-    await _refreshMembers(library, t);
+    await _refreshMembers(library.id, t, written);
   });
 
   /// Owners only: deletes [memberId]'s removal record. Their next sync
@@ -298,9 +295,9 @@ mixin _MembershipOwnership {
     required String memberId,
     required String actingMemberId,
   }) => SyncCoordinator.run(() async {
-    final (library, t, _) = await _asOwner(libraryId, actingMemberId);
+    final (_, t, roles) = await _asOwner(libraryId, actingMemberId);
     await t.deleteRemoval(memberId);
-    await _refreshMembers(library, t);
+    await _refreshMembers(libraryId, t, roles);
   });
 
   /// Removals that held under [before] but not under [after] (their signer
@@ -351,16 +348,17 @@ mixin _MembershipOwnership {
     }
   }
 
-  /// The cards and the removals an owner signed, as the folder holds them.
+  /// The cards, and the removals an owner in [roles] (the folder's, as the
+  /// owner action just read or wrote them) signed.
   Future<void> _refreshMembers(
-    SharedLibrary library,
+    String libraryId,
     SharedLibraryTransport t,
+    SharedLibraryRoles roles,
   ) async {
-    final current = await _store.getLibrary(library.id) ?? library;
-    await _store.replaceMembers(library.id, await t.listMembers());
+    await _store.replaceMembers(libraryId, await t.listMembers());
     await _store.setRemovals(
-      library.id,
-      await validRemovals(await t.listRemovals(), library.id, current.roles),
+      libraryId,
+      await validRemovals(await t.listRemovals(), libraryId, roles),
     );
   }
 
