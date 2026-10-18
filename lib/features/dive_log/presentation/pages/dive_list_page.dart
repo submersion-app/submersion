@@ -1133,10 +1133,14 @@ class DiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            // Fixed rather than map-only: a splash keeps the radius it started
-            // with, and a tap on a map card switches it to the plain layout,
-            // whose Card no longer clips, before the splash has finished.
-            borderRadius: BorderRadius.circular(12),
+            // The card's own shape, in both layouts: a splash keeps the shape
+            // it started with, and a tap on a map card switches it to the
+            // plain layout, whose Card no longer clips, before the splash has
+            // finished. Card corners vary by theme, so the shape is the
+            // theme's, falling back to Material's default card corners.
+            customBorder:
+                Theme.of(context).cardTheme.shape ??
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Container(
               key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
               child: shouldShowMap

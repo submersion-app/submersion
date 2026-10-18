@@ -145,16 +145,26 @@ void main() {
   testWidgets(
     'map-background card keeps its InkWell when a tap highlights it',
     (tester) async {
+      final themedCard = CardThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      );
       // A highlighted card drops its map for the selection fill, so this tap
       // also switches the card from its map layout to its plain one.
       await pumpHost(
         tester,
         _HighlightOnTapHost(
-          tileBuilder: ({required isHighlighted, required onTap}) => detailed(
-            isHighlighted: isHighlighted,
-            onTap: onTap,
-            siteLatitude: 24.46,
-            siteLongitude: -77.93,
+          // Card corners vary by theme (4 to 20); pin one that is not
+          // Material's default 12 so the splash is seen to follow the theme.
+          tileBuilder: ({required isHighlighted, required onTap}) => Builder(
+            builder: (context) => Theme(
+              data: Theme.of(context).copyWith(cardTheme: themedCard),
+              child: detailed(
+                isHighlighted: isHighlighted,
+                onTap: onTap,
+                siteLatitude: 24.46,
+                siteLongitude: -77.93,
+              ),
+            ),
           ),
         ),
         showMapBackground: true,
@@ -165,11 +175,12 @@ void main() {
         reason: 'the card starts on its map layout',
       );
       expect(
-        tester.widget<InkWell>(find.byType(InkWell)).borderRadius,
-        BorderRadius.circular(12),
+        tester.widget<InkWell>(find.byType(InkWell)).customBorder,
+        themedCard.shape,
         reason:
-            'the splash keeps the radius it started with, and the plain '
-            'layout the tap switches to does not clip it to the card',
+            'the splash keeps the shape it started with, and the plain '
+            'layout the tap switches to does not clip it to the card, so it '
+            'must carry the card shape itself',
       );
 
       await expectTapKeepsInkWell(tester, DiveListTile);
