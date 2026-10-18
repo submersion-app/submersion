@@ -59,17 +59,9 @@ class BackupPreferences {
         _lastScheduledFailureMessageKey,
       ),
       lastCloudCopyMissing: _prefs.getBool(_lastCloudCopyMissingKey) ?? false,
-      lastBackupDestination: _parseDestination(
-        _prefs.getString(_lastBackupDestinationKey),
-      ),
+      lastBackupDestination: LastBackupDestination.values
+          .asNameMap()[_prefs.getString(_lastBackupDestinationKey)],
     );
-  }
-
-  static LastBackupDestination? _parseDestination(String? value) {
-    for (final d in LastBackupDestination.values) {
-      if (d.name == value) return d;
-    }
-    return null;
   }
 
   Future<void> setEnabled(bool value) async {

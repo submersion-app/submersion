@@ -74,6 +74,11 @@ class DataRowStatus extends Equatable {
   /// The row offers a "Set up" action under its status.
   final bool offersSetUp;
 
+  /// Whether the row draws its feature's health mark beside the title.
+  /// Lightroom alone reads healthy, but a photos-off row says no copies are
+  /// kept and offers Set up; a healthy mark beside that would contradict it.
+  bool get showsHealthMark => kind != DataRowStatusKind.photosOff;
+
   @override
   List<Object?> get props => [kind, when, name, count, health, offersSetUp];
 }

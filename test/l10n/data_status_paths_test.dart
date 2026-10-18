@@ -9,23 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
-  const locales = [
-    'ar',
-    'de',
-    'en',
-    'es',
-    'fr',
-    'he',
-    'hu',
-    'it',
-    'nl',
-    'pt',
-    'zh',
-  ];
-
-  for (final locale in locales) {
+  for (final locale in AppLocalizations.supportedLocales) {
     test('$locale path hints start with the Settings and Data labels', () {
-      final l = lookupAppLocalizations(Locale(locale));
+      final l = lookupAppLocalizations(locale);
       final trail =
           '${l.settings_appBar_title} > ${l.settings_section_data_title}';
       final hints = <String, String>{

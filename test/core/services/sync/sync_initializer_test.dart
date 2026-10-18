@@ -509,5 +509,28 @@ void main() {
       await init.saveProvider(CloudProviderType.s3);
       expect(names.all(), isEmpty);
     });
+
+    test('turning sync off keeps the names for the same backend', () async {
+      final prefs = await SharedPreferences.getInstance();
+      final names = PeerDeviceNameStore(prefs);
+      addTearDown(names.dispose);
+      final init = SyncInitializer(
+        syncRepository: repository,
+        prefs: prefs,
+        peerNames: names,
+      );
+      await init.saveProvider(CloudProviderType.googledrive);
+      await names.record('dev-a', 'Old iPad');
+
+      // Media provenance labels read these names while sync is off.
+      await init.saveProvider(null);
+      expect(names.all(), {'dev-a': 'Old iPad'});
+      await init.saveProvider(CloudProviderType.googledrive);
+      expect(names.all(), {'dev-a': 'Old iPad'});
+
+      await init.saveProvider(null);
+      await init.saveProvider(CloudProviderType.s3);
+      expect(names.all(), isEmpty, reason: 'a new backend after off');
+    });
   });
 }

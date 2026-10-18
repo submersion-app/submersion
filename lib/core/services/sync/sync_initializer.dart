@@ -43,6 +43,11 @@ class SyncInitializer {
   /// the database was replaced by a restore. See [reconcileDeviceIdentity].
   static const _deviceIdSentinelKey = 'sync_device_id_sentinel';
 
+  /// The provider the stored peer names were learned on. Kept apart from the
+  /// selection, which turning sync off removes, so off and back on to the
+  /// same backend keeps the names that media provenance labels read.
+  static const _peerNamesProviderKey = 'sync_peer_names_provider';
+
   /// Mirrors the database instance token outside the database. The token is
   /// rotated each launch, so a restored backup carries a stale token that no
   /// longer matches this copy -- the primary restore signal, and the one that
@@ -95,7 +100,15 @@ class SyncInitializer {
   /// set of devices, so the peer names learned on the old one are dropped;
   /// the next pull records the new ones.
   Future<void> saveProvider(CloudProviderType? provider) async {
-    if (provider != getLastProvider()) await _peerNames?.clear();
+    final names = _peerNames;
+    if (provider != null && names != null) {
+      final learnedOn =
+          _prefs.getString(_peerNamesProviderKey) ?? getLastProvider()?.name;
+      if (learnedOn != null && learnedOn != provider.name) {
+        await names.clear();
+      }
+      await _prefs.setString(_peerNamesProviderKey, provider.name);
+    }
     if (provider == null) {
       await _prefs.remove(_lastProviderKey);
     } else {

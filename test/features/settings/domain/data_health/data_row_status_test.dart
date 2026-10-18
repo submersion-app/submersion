@@ -14,6 +14,23 @@ FeatureHealth _h(
 }) => FeatureHealth(feature: feature, level: level, reason: reason, when: when);
 
 void main() {
+  // Issue #3482 review: Lightroom alone reads healthy, but the row says no
+  // copies are kept; a healthy mark beside that would contradict it.
+  test('only a photos-off status hides the health mark', () {
+    expect(
+      const DataRowStatus(DataRowStatusKind.photosOff).showsHealthMark,
+      isFalse,
+    );
+    expect(
+      const DataRowStatus(DataRowStatusKind.photosOn).showsHealthMark,
+      isTrue,
+    );
+    expect(
+      const DataRowStatus(DataRowStatusKind.backupsLocal).showsHealthMark,
+      isTrue,
+    );
+  });
+
   final at = DateTime(2026, 10, 18, 9);
 
   group('backupsRowStatus', () {

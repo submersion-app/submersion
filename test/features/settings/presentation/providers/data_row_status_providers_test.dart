@@ -357,6 +357,12 @@ void main() {
     expect(retry!(0, PlatformException(code: 'keychain')), isNull);
   });
 
+  test('a membership exception does not hold the libraries row', () {
+    final retry = libraryHealthInputsProvider.retry;
+    expect(retry, isNotNull);
+    expect(retry!(0, PlatformException(code: 'keychain')), isNull);
+  });
+
   test('statuses compare by value', () {
     final a = DataRowStatus(
       DataRowStatusKind.syncWithOne,

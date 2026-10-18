@@ -86,6 +86,10 @@ final syncHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
 });
 
 /// Each joined library with this member's listed role resolved.
+///
+/// Not retried: Riverpod retries a thrown Exception for about 38 seconds,
+/// and the Settings > Data libraries row reads "Checking..." until this
+/// settles. The next visit reads it again anyway.
 final libraryHealthInputsProvider =
     FutureProvider.autoDispose<List<LibraryHealthInput>>((ref) async {
       final libraries = await ref.watch(sharedLibrariesProvider.future);
@@ -107,7 +111,7 @@ final libraryHealthInputsProvider =
             );
           }(),
       ]);
-    });
+    }, retry: (_, _) => null);
 
 final sharedLibrariesHealthProvider = Provider.autoDispose<FeatureHealth>((
   ref,
