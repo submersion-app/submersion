@@ -196,9 +196,13 @@ void main() {
       DataRowStatusKind.backupsCloud,
     );
     expect(c.read(backupsRowStatusProvider).name, '');
-    expect(
-      c.read(accountsRowStatusProvider).kind,
-      DataRowStatusKind.accountsNone,
-    );
+    // Not "None yet" for a diver who has accounts: the roster has not
+    // arrived, so the row says it is still checking.
+    expect(c.read(accountsRowStatusProvider).kind, DataRowStatusKind.checking);
+  });
+
+  test('libraries read as checking while they load, not as none joined', () {
+    final c = container([sharedLibrarySummaryProvider.overrideWithValue(null)]);
+    expect(c.read(librariesRowStatusProvider).kind, DataRowStatusKind.checking);
   });
 }

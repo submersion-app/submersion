@@ -71,10 +71,12 @@ final mediaStoreAttachedHereProvider = Provider.autoDispose<bool>((ref) {
   return ref.watch(mediaHealthInputsProvider).value?.storeAttachedHere ?? false;
 });
 
-/// How many libraries this device has joined and the latest sync among them.
+/// How many libraries this device has joined and the latest sync among them,
+/// or null while the library list is still loading.
 final sharedLibrarySummaryProvider =
-    Provider.autoDispose<({int count, DateTime? lastSync})>((ref) {
-      final libraries = ref.watch(sharedLibrariesProvider).value ?? const [];
+    Provider.autoDispose<({int count, DateTime? lastSync})?>((ref) {
+      final libraries = ref.watch(sharedLibrariesProvider).value;
+      if (libraries == null) return null;
       DateTime? latest;
       for (final library in libraries) {
         final at = library.lastSyncAt;
@@ -140,6 +142,7 @@ final photosRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
 
 final librariesRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   final summary = ref.watch(sharedLibrarySummaryProvider);
+  if (summary == null) return const DataRowStatus(DataRowStatusKind.checking);
   return librariesRowStatus(
     health: _healthOf(ref, DataFeature.sharedLibraries),
     count: summary.count,
@@ -149,8 +152,9 @@ final librariesRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
 
 final accountsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   final summary = ref.watch(accountsSummaryProvider).value;
+  if (summary == null) return const DataRowStatus(DataRowStatusKind.checking);
   return accountsRowStatus(
-    labels: summary?.labels ?? const [],
-    needSignIn: summary?.needSignIn ?? 0,
+    labels: summary.labels,
+    needSignIn: summary.needSignIn,
   );
 });

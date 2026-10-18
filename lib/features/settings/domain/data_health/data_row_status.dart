@@ -8,6 +8,8 @@ import 'package:submersion/features/settings/domain/data_health/feature_health.d
 /// row can never contradict the strip. Pure data: the widget layer turns a
 /// kind into localized text.
 enum DataRowStatusKind {
+  /// The row's inputs have not loaded yet; never read as "none".
+  checking,
   backupsNever,
   backupsLocal,
   backupsCloud,

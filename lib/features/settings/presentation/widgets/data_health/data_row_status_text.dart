@@ -27,6 +27,7 @@ String dataRowStatusText(
   final name = status.name ?? '';
   final count = status.count ?? 0;
   return switch (status.kind) {
+    DataRowStatusKind.checking => l10n.settings_data_status_checking,
     DataRowStatusKind.backupsNever => l10n.settings_data_backups_status_never,
     DataRowStatusKind.backupsLocal => l10n.settings_data_backups_status_local(
       ago(),

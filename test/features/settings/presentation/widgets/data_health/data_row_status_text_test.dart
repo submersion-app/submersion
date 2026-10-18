@@ -121,6 +121,10 @@ void main() {
       'None yet',
     );
     expect(
+      text(const DataRowStatus(DataRowStatusKind.checking)),
+      'Checking\u2026',
+    );
+    expect(
       text(
         const DataRowStatus(
           DataRowStatusKind.accountsListed,
