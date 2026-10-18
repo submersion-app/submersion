@@ -179,12 +179,6 @@ final dataHealthProvider = Provider.autoDispose<List<FeatureHealth>>((ref) {
   ];
 });
 
-/// This device plus every peer that has published a name.
-final syncedDeviceCountProvider = Provider.autoDispose<int>((ref) {
-  final peers = ref.watch(peerDeviceNamesProvider).value;
-  return 1 + (peers?.length ?? 0);
-});
-
 final dataFactsProvider = FutureProvider.autoDispose<DataFacts>((ref) async {
   final path = await ref.watch(currentDatabasePathProvider.future);
   return const DataFactsRepository().load(

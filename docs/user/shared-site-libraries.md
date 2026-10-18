@@ -1,4 +1,4 @@
-# Shared Site Libraries
+# Shared site libraries
 
 A **shared site library** is a set of dive sites kept together by a group of
 divers: a dive shop's house reefs, a survey team's transects, or the sites a

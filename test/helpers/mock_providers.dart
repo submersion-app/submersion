@@ -805,7 +805,6 @@ Future<List<Override>> getBaseOverrides({
   List<FeatureHealth>? dataHealth,
   DataFacts dataFacts = DataFacts.empty,
   DateTime? lastSync,
-  int syncedDevices = 1,
   List<String> syncPeerNames = const [],
   String? syncAccountLabel,
   String? attachedStoreHint,
@@ -857,7 +856,6 @@ Future<List<Override>> getBaseOverrides({
     ),
     dataFactsProvider.overrideWith((ref) async => dataFacts),
     lastSyncTimeProvider.overrideWithValue(lastSync),
-    syncedDeviceCountProvider.overrideWithValue(syncedDevices),
     // The Data page row subtitles (#3482) read the sync account, the
     // attached store, the account roster and the joined libraries; stub
     // their leaf inputs so pages under test never reach a database.

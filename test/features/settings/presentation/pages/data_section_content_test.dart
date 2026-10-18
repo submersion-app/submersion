@@ -286,12 +286,12 @@ void main() {
   });
 
   testWidgets(
-    'a long subtitle with a Set up button fits a 320 px phone at large text',
+    'a long subtitle with a Set up button fits a 320 px phone at 2x text',
     (tester) async {
       await pumpData(
         tester,
         size: const Size(320, 3200),
-        textScale: 1.6,
+        textScale: 2.0,
         dataHealth: [
           health[0],
           const FeatureHealth(
