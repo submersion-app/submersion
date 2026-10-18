@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings > Data: the pages underneath</title>
+<style>
+:root{--bg-primary:#f5f5f7;--bg-secondary:#ffffff;--bg-tertiary:#e5e5e7;--border:#d1d1d6;--text-primary:#1d1d1f;--text-secondary:#86868b;--text-tertiary:#aeaeb2;--accent:#0071e3;--success:#34c759;--warning:#ff9f0a;--error:#ff3b30;}
+@media (prefers-color-scheme: dark){:root{--bg-primary:#1d1d1f;--bg-secondary:#2d2d2f;--bg-tertiary:#3d3d3f;--border:#424245;--text-primary:#f5f5f7;--text-secondary:#86868b;--text-tertiary:#636366;--accent:#0a84ff;}}
+*{box-sizing:border-box;margin:0;padding:0} body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);padding:2rem;line-height:1.5}
+h2{font-size:1.5rem;font-weight:600;margin-bottom:.5rem} h3{font-size:1.1rem;font-weight:600;margin-bottom:.25rem} .subtitle{color:var(--text-secondary);margin-bottom:1.5rem}
+.label{font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+.mockup{background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem} .mockup-header{background:var(--bg-tertiary);padding:.5rem 1rem;font-size:.75rem;color:var(--text-secondary);border-bottom:1px solid var(--border)} .mockup-body{padding:1.5rem}
+.options{display:flex;flex-direction:column;gap:.75rem} .option{background:var(--bg-secondary);border:2px solid var(--border);border-radius:12px;padding:1rem 1.25rem;display:flex;gap:1rem;align-items:flex-start} .option .letter{background:var(--bg-tertiary);color:var(--text-secondary);width:1.75rem;height:1.75rem;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.85rem;flex-shrink:0} .option .content{flex:1} .option .content h3{font-size:.95rem} .option .content p{color:var(--text-secondary);font-size:.85rem;margin:0}
+</style>
+</head>
+<body>
+<p class="label">Brainstorming mockup, 2026-10-17. Companion to docs/design/specs/2026-10-17-settings-data-setup-and-accounts-design.md</p>
+<style>
+.ph { width: 330px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; font-size: 11.5px; line-height: 1.35; flex-shrink: 0; }
+.ph-bar { padding: 10px 14px; font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.ph-bar small { font-weight: 400; color: var(--text-secondary); font-size: 10px; }
+.ph-body { padding: 8px 14px 14px; }
+.ok { color: var(--success); } .warn { color: var(--warning); } .bad { color: var(--error); } .off { color: var(--text-tertiary); }
+.ph-h { font-size: 9.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin: 12px 0 2px; font-weight: 600; }
+.ph-h.adv { color: var(--text-secondary); }
+.ph-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--bg-tertiary); }
+.ph-row.dim { opacity: .6; }
+.ph-row.red b { color: var(--error); }
+.ph-row .ic { width: 18px; text-align: center; color: var(--text-secondary); flex-shrink: 0; }
+.ph-row .t { flex: 1; min-width: 0; }
+.ph-row .t b { font-weight: 500; display: block; }
+.ph-row .t span { color: var(--text-secondary); font-size: 10px; display: block; }
+.ph-row .tr { color: var(--text-tertiary); flex-shrink: 0; font-size: 12px; }
+.ph-btn { display: inline-block; border-radius: 999px; padding: 3px 11px; font-size: 10.5px; background: var(--accent); color: #fff; white-space: nowrap; }
+.ph-btn.ghost { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+.ph-sw { width: 24px; height: 13px; border-radius: 999px; background: var(--border); position: relative; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+.ph-sw.on { background: var(--success); }
+.ph-sw::after { content: ''; position: absolute; top: 1px; left: 1px; width: 11px; height: 11px; border-radius: 50%; background: #fff; }
+.ph-sw.on::after { left: 12px; }
+.using { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin: 6px 0 4px; background: var(--bg-primary); }
+.using .ic { font-size: 16px; color: var(--text-secondary); }
+.using .t { flex: 1; }
+.using .t small { display: block; color: var(--text-secondary); font-size: 10px; }
+.status { font-size: 11px; padding: 4px 0 2px; display: flex; gap: 6px; align-items: center; }
+.banner { border-radius: 8px; padding: 6px 9px; font-size: 10.5px; margin: 6px 0; background: rgba(255,159,10,.12); color: var(--text-primary); }
+.ph-acct { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; margin: 4px 0; }
+.ph-acct .t { flex: 1; }
+.ph-acct .t span { display: block; color: var(--text-secondary); font-size: 10px; }
+.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 20px; align-items: start; }
+.cap { font-size: 12px; color: var(--text-secondary); margin: 6px 0 0 4px; }
+.cap b { color: var(--text-primary); font-weight: 600; }
+.sheet { width: 330px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 14px 14px 18px 18px; overflow: hidden; font-size: 11.5px; }
+.sheet .ph-bar { border-top: 4px solid var(--border); }
+.rules { font-size: 12.5px; color: var(--text-secondary); margin-top: 1.5rem; }
+.rules li { margin-bottom: 4px; }
+</style>
+
+<h2>The pages underneath: one shape for all of them</h2>
+<p class="subtitle">Every feature page opens the same way: which account it uses, one status line, the switches that matter, then everything else under Advanced. Advanced is drawn expanded here so you can check that nothing you use today has gone missing. Is there a control you cannot find?</p>
+
+<div class="grid4">
+
+  <div>
+    <div class="ph">
+      <div class="ph-bar">Sync between devices</div>
+      <div class="ph-body">
+        <div class="using"><span class="ic">&#9729;</span><div class="t">Google Drive<small>eric@example.com, signed in</small></div><span class="ph-btn ghost">Change</span></div>
+        <div class="status ok">&#10003; In step with Eric's iPhone, 12 minutes ago</div>
+        <div class="banner">Eric's iPad runs an older version of Submersion and will not receive the latest changes until it updates.</div>
+        <div class="ph-row"><div class="t"><b>Keep devices in step automatically</b><span>A few seconds after each change</span></div><span class="ph-sw on"></span></div>
+        <div class="ph-row"><div class="t"><b>Sync now</b><span>3 changes waiting</span></div><span class="ph-btn ghost">Sync now</span></div>
+        <div class="ph-row"><div class="t"><b>Resolve conflicts</b><span>2 items changed on two devices</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-h adv">Advanced</div>
+        <div class="ph-row dim"><div class="t"><b>Also sync at launch</b></div><span class="ph-sw on"></span></div>
+        <div class="ph-row dim"><div class="t"><b>Also sync when the app returns</b></div><span class="ph-sw on"></span></div>
+        <div class="ph-row dim"><div class="t"><b>Encryption</b><span>Off. Protect the library with a passphrase.</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Devices using this library</b><span>3 devices, 48 MB</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Troubleshoot</b><span>Repair, rebuild, remove this device's files, wipe</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim red"><div class="t"><b>Replace the library with this phone's copy</b></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim red"><div class="t"><b>Stop syncing on this phone</b><span>The account stays signed in</span></div><span class="tr">&#8250;</span></div>
+      </div>
+    </div>
+    <p class="cap"><b>Gone from this page:</b> the five provider tiles, the S3 and WebDAV gear icons and the Dropbox account dialog. They live in Connected accounts now. The two "also sync" switches are today's Sync on Launch and Sync on Resume, greyed out unless automatic sync is on. Encryption opens today's section (turn on, change passphrase, new recovery code, turn off, enter passphrase). The banners stay, reworded.</p>
+  </div>
+
+  <div>
+    <div class="ph">
+      <div class="ph-bar">Backups</div>
+      <div class="ph-body">
+        <div class="status ok">&#10003; Backed up 3 hours ago, copy in Google Drive</div>
+        <div class="ph-row"><div class="t"><b>Back up automatically</b><span>Weekly</span></div><span class="ph-sw on"></span></div>
+        <div class="using"><span class="ic">&#9729;</span><div class="t">Copy to Google Drive<small>Same account as sync</small></div><span class="ph-btn ghost">Change</span></div>
+        <div class="ph-row"><div class="t"><b>Back up now</b><span>With an optional note</span></div><span class="ph-btn ghost">Back up</span></div>
+        <div class="ph-row"><div class="t"><b>Restore from a file</b></div><span class="tr">&#8250;</span></div>
+        <div class="ph-h">History</div>
+        <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Today 06:00</b><span>412 dives, 97 sites, 48 MB, automatic</span></div><span class="tr">&#8943;</span></div>
+        <div class="ph-row"><span class="ic">&#9636;</span><div class="t"><b>Last Tuesday, before the Cozumel trip</b><span>398 dives, 95 sites, 46 MB, pinned</span></div><span class="tr">&#8943;</span></div>
+        <div class="ph-h adv">Advanced</div>
+        <div class="ph-row dim"><div class="t"><b>Keep the last</b></div><span class="tr">10 backups &#9662;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Backup folder on this phone</b><span>Default location</span></div><span class="tr">Change &middot; Use default</span></div>
+        <div class="ph-row dim"><div class="t"><b>Save a backup file</b><span>Save to a folder or share it</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Password protection</b><span>Off. Encrypt backup files.</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Set-aside databases</b><span>1 copy from before a restore</span></div><span class="tr">&#8250;</span></div>
+      </div>
+    </div>
+    <p class="cap"><b>Same controls, new order.</b> The copy destination gets its own Change, defaulting to the sync account, so the backup copy no longer silently follows sync. "Use default" is new; today a custom folder cannot be undone from the UI. Export Backup becomes "Save a backup file" under Advanced, still with Save to a folder and Share. Each history row keeps restore, delete and pin in its menu.</p>
+  </div>
+
+  <div>
+    <div class="ph">
+      <div class="ph-bar">Photos &amp; videos</div>
+      <div class="ph-body">
+        <div class="ph-h" style="margin-top:4px">Copies in the cloud</div>
+        <div class="using"><span class="ic">&#9729;</span><div class="t">Google Drive<small>Same account as sync</small></div><span class="ph-btn ghost">Change</span></div>
+        <div class="status ok">&#10003; 1,228 of 1,240 copied, 12 uploading</div>
+        <div class="ph-row"><div class="t"><b>Upload new photos automatically</b></div><span class="ph-sw on"></span></div>
+        <div class="ph-row"><div class="t"><b>Use cellular data</b></div><span class="ph-sw"></span></div>
+        <div class="ph-row"><div class="t"><b>Uploads</b><span>12 waiting, none failed</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-h">Where photos come from</div>
+        <div class="ph-row"><div class="t"><b>Photo library and files</b><span>1,180 available, 60 unavailable</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-h adv">Advanced</div>
+        <div class="ph-row dim"><div class="t"><b>Upload quality</b><span>Photos: original. Video: original.</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Upload everything already attached</b></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Verify the copies</b><span>Last checked 3 days ago</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Network sources</b><span>Saved hosts, feeds, network cache</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Show source badges on thumbnails</b></div><span class="ph-sw on"></span></div>
+        <div class="ph-row dim"><div class="t"><b>Cache</b><span>Memory 128 MB, thumbnails 512 MB, empty cache</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim"><div class="t"><b>Export media report</b></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim red"><div class="t"><b>Stop keeping copies on this phone</b></div><span class="tr">&#8250;</span></div>
+      </div>
+    </div>
+    <p class="cap"><b>Hub and Media Storage become one page.</b> The checklist icon goes; the Data card does that job. "Uploads" is today's Transfers page, unchanged inside. "Photo library and files" is today's Media Sources page with its re-verify and check actions. The hidden Lightroom card stays hidden.</p>
+  </div>
+
+  <div>
+    <div class="ph">
+      <div class="ph-bar">Connected accounts <small>+ Add account</small></div>
+      <div class="ph-body">
+        <div class="ph-acct"><span class="ic">&#9729;</span><div class="t">Google Drive<span>eric@example.com &middot; Signed in</span><span>Used for sync, backups and photo copies</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-acct"><span class="ic">&#9636;</span><div class="t">nas.home<span>WebDAV &middot; Signed in</span><span>Used for the Cozumel Divers site library</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-acct"><span class="ic">&#9729;</span><div class="t">iCloud<span class="warn">Not signed in on this phone</span><span>Used for photo copies on Eric's iPad</span></div><span class="ph-btn ghost">Sign in</span></div>
+        <div class="ph-h" style="margin-top:14px">Google Drive <small style="font-weight:400;text-transform:none;letter-spacing:0">(what tapping a row opens)</small></div>
+        <div class="ph-row"><div class="t"><b>Signed in as eric@example.com</b><span>On this phone</span></div></div>
+        <div class="ph-row"><div class="t"><b>Used on this phone for</b><span>Sync between devices, backup copies, photo copies</span></div></div>
+        <div class="ph-row"><div class="t"><b>Sign in again</b><span>If Google asks for it, or after changing your password</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim red"><div class="t"><b>Sign out on this phone</b><span>Sync, backups and photo copies pause here until you sign in again</span></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row dim red"><div class="t"><b>Remove from all devices</b><span>The account is forgotten everywhere. Nothing in Google Drive is deleted.</span></div><span class="tr">&#8250;</span></div>
+      </div>
+    </div>
+    <p class="cap"><b>The only place to sign in.</b> "Sign in again" is new; today re-sign-in only happens through the pending card. For "My own server" accounts the row also holds the server details (edit, check connection, forget certificate) and shows the folders each feature uses. Add account offers iCloud, Google Drive, Dropbox and My own server, the same list as step 1.</p>
+  </div>
+
+</div>
+
+<div class="grid4" style="margin-top:1.5rem">
+  <div>
+    <div class="sheet">
+      <div class="ph-bar">Which account? <small>the Change sheet</small></div>
+      <div class="ph-body">
+        <div class="ph-acct"><span class="ic">&#9729;</span><div class="t">Google Drive<span>eric@example.com &middot; signed in</span></div><span class="ok">&#10003;</span></div>
+        <div class="ph-acct"><span class="ic">&#9636;</span><div class="t">nas.home<span>WebDAV &middot; signed in</span></div></div>
+        <div class="ph-acct"><span class="ic">&#9729;</span><div class="t">iCloud<span>Sign in to use it here</span></div></div>
+        <div class="ph-h">Add an account</div>
+        <div class="ph-row"><div class="t"><b>Dropbox</b></div><span class="tr">&#8250;</span></div>
+        <div class="ph-row"><div class="t"><b>My own server</b><span>S3-compatible storage or WebDAV</span></div><span class="tr">&#8250;</span></div>
+        <div class="banner" style="margin-top:10px">Switching sync to nas.home keeps everything in Google Drive. The next sync combines this phone's data with whatever nas.home already holds. Your other devices keep using Google Drive until you switch them too.</div>
+      </div>
+    </div>
+    <p class="cap"><b>One sheet, used by step 1, by every Change button and by shared libraries.</b> Accounts you already have come first. The warning is today's "Switch sync backend?" text, shown inline when it applies; for photo copies the equivalent is today's detach-then-attach, with the "which store does the cloud hold" check kept.</p>
+  </div>
+  <div>
+    <div class="label">Rules behind the shape</div>
+    <ul class="rules">
+      <li>An account is a sign-in: an Apple ID, a Google or Dropbox account, or one server and bucket. Dives, backups and photo copies each get their own folder inside it, with the default names used today (submersion-sync, Submersion Backups, submersion-media).</li>
+      <li>Existing S3 and WebDAV rows that only differ by folder merge into one account when they share a server, bucket and credentials. Rows from different servers stay separate.</li>
+      <li>"Stop" on a feature page turns that feature off on this device and keeps the account. Signing out or removing an account happens only in Connected accounts, with the list of affected features, as today.</li>
+      <li>Status lines are one sentence in plain words: what is true, and when. Red is reserved for data that may not be protected.</li>
+      <li>Everything that moved under Advanced keeps its current page and dialogs behind the row. Nothing is deleted; the pages are re-parented.</li>
+      <li>Database storage, Offline maps, Import options and Data tools are untouched apart from moving under Advanced on the Data page.</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

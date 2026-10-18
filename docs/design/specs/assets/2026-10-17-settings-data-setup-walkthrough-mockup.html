@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set up this device: walk-through</title>
+<style>
+:root{--bg-primary:#f5f5f7;--bg-secondary:#ffffff;--bg-tertiary:#e5e5e7;--border:#d1d1d6;--text-primary:#1d1d1f;--text-secondary:#86868b;--text-tertiary:#aeaeb2;--accent:#0071e3;--success:#34c759;--warning:#ff9f0a;--error:#ff3b30;}
+@media (prefers-color-scheme: dark){:root{--bg-primary:#1d1d1f;--bg-secondary:#2d2d2f;--bg-tertiary:#3d3d3f;--border:#424245;--text-primary:#f5f5f7;--text-secondary:#86868b;--text-tertiary:#636366;--accent:#0a84ff;}}
+*{box-sizing:border-box;margin:0;padding:0} body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);padding:2rem;line-height:1.5}
+h2{font-size:1.5rem;font-weight:600;margin-bottom:.5rem} h3{font-size:1.1rem;font-weight:600;margin-bottom:.25rem} .subtitle{color:var(--text-secondary);margin-bottom:1.5rem}
+.label{font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+.mockup{background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem} .mockup-header{background:var(--bg-tertiary);padding:.5rem 1rem;font-size:.75rem;color:var(--text-secondary);border-bottom:1px solid var(--border)} .mockup-body{padding:1.5rem}
+.options{display:flex;flex-direction:column;gap:.75rem} .option{background:var(--bg-secondary);border:2px solid var(--border);border-radius:12px;padding:1rem 1.25rem;display:flex;gap:1rem;align-items:flex-start} .option .letter{background:var(--bg-tertiary);color:var(--text-secondary);width:1.75rem;height:1.75rem;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.85rem;flex-shrink:0} .option .content{flex:1} .option .content h3{font-size:.95rem} .option .content p{color:var(--text-secondary);font-size:.85rem;margin:0}
+</style>
+</head>
+<body>
+<p class="label">Brainstorming mockup, 2026-10-17. Companion to docs/design/specs/2026-10-17-settings-data-setup-and-accounts-design.md</p>
+<style>
+.ph { width: 320px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; font-size: 11.5px; line-height: 1.35; flex-shrink: 0; min-height: 520px; display: flex; flex-direction: column; }
+.ph-bar { padding: 10px 14px; font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.ph-bar small { font-weight: 400; color: var(--text-secondary); font-size: 10px; }
+.ph-body { padding: 10px 14px 14px; flex: 1; display: flex; flex-direction: column; }
+.ph-body .grow { flex: 1; }
+.ph-strip { display: flex; justify-content: space-around; padding: 6px 0 6px; }
+.ph-strip div { text-align: center; font-size: 10px; color: var(--text-secondary); }
+.ph-strip .sym { display: block; font-size: 18px; line-height: 1.1; }
+.ok { color: var(--success); } .warn { color: var(--warning); } .bad { color: var(--error); } .off { color: var(--text-tertiary); }
+.ph-facts { font-size: 10px; color: var(--text-tertiary); padding: 4px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.ph-h { font-size: 9.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin: 10px 0 2px; font-weight: 600; }
+.ph-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--bg-tertiary); }
+.ph-row.dim { opacity: .55; }
+.ph-row .ic { width: 18px; text-align: center; color: var(--text-secondary); flex-shrink: 0; }
+.ph-row .t { flex: 1; min-width: 0; }
+.ph-row .t b { font-weight: 500; display: block; }
+.ph-row .t span { color: var(--text-secondary); font-size: 10px; display: block; }
+.ph-row .tr { color: var(--text-tertiary); flex-shrink: 0; font-size: 12px; }
+.ph-btn { display: inline-block; border-radius: 999px; padding: 4px 12px; font-size: 11px; background: var(--accent); color: #fff; white-space: nowrap; cursor: pointer; user-select: none; }
+.ph-btn.ghost { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+.ph-btn.quiet { background: transparent; color: var(--text-secondary); padding-left: 0; }
+.ph-card { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin: 6px 0 8px; background: var(--bg-primary); }
+.ph-card b { display: block; font-weight: 600; margin-bottom: 2px; }
+.ph-sw { width: 24px; height: 13px; border-radius: 999px; background: var(--border); position: relative; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+.ph-sw.on { background: var(--success); }
+.ph-sw::after { content: ''; position: absolute; top: 1px; left: 1px; width: 11px; height: 11px; border-radius: 50%; background: #fff; }
+.ph-sw.on::after { left: 12px; }
+.ph-step { display: flex; gap: 8px; align-items: flex-start; padding: 3px 0; font-size: 11px; }
+.ph-step .n { width: 14px; text-align: center; flex-shrink: 0; }
+.ph-acct { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; margin: 4px 0; cursor: pointer; }
+.ph-acct.sel { border-color: var(--success); }
+.ph-acct .t { flex: 1; }
+.ph-acct .t span { display: block; color: var(--text-secondary); font-size: 10px; }
+.ph-field { border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ph-field.sub { margin-left: 14px; }
+.ph-field.dim { opacity: .5; }
+.ph-field span { color: var(--text-secondary); font-size: 10px; display: block; }
+.ph-input { border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; margin: 5px 0; color: var(--text-tertiary); background: var(--bg-primary); }
+.ph-seg { display: flex; border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; margin: 6px 0; font-size: 10.5px; }
+.ph-seg span { flex: 1; text-align: center; padding: 4px; color: var(--accent); }
+.ph-seg span.on { background: var(--accent); color: #fff; }
+.ph-title { font-weight: 600; font-size: 13px; margin: 4px 0 2px; }
+.ph-sub { color: var(--text-secondary); font-size: 10.5px; margin-bottom: 8px; }
+.ph-note { color: var(--text-tertiary); font-size: 10px; margin-top: 6px; }
+.ph-ok { color: var(--success); font-size: 10.5px; margin-bottom: 6px; }
+.ph-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.ph-radio { display: flex; gap: 8px; align-items: flex-start; padding: 5px 0; font-size: 11px; }
+.ph-radio .dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--text-tertiary); flex-shrink: 0; margin-top: 2px; }
+.ph-radio .dot.on { border-color: var(--accent); background: radial-gradient(var(--accent) 45%, transparent 50%); }
+.ph-radio span { display: block; color: var(--text-secondary); font-size: 10px; }
+.walk { position: relative; }
+.walk input[type=radio] { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+.walk .p { display: none; }
+#f0:checked ~ .panels .p0, #f1:checked ~ .panels .p1, #f1s:checked ~ .panels .p1s, #f2:checked ~ .panels .p2, #f3:checked ~ .panels .p3, #f4:checked ~ .panels .p4, #f5:checked ~ .panels .p5, #f6:checked ~ .panels .p6 { display: flex; }
+#s0:checked ~ .panels .p0, #s1:checked ~ .panels .p1, #s2:checked ~ .panels .p2, #s2b:checked ~ .panels .p2b, #s3:checked ~ .panels .p3, #s4:checked ~ .panels .p4, #s5:checked ~ .panels .p5, #s6:checked ~ .panels .p6 { display: flex; }
+.scen { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+@media (max-width: 760px) { .scen { grid-template-columns: 1fr; } }
+.scen h3 { margin-bottom: 2px; }
+.scen .lead { color: var(--text-secondary); font-size: 12.5px; margin-bottom: 10px; min-height: 2.6em; }
+.later { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; margin-top: 1.5rem; }
+.later .ph { min-height: 0; }
+.calls { font-size: 12.5px; color: var(--text-secondary); }
+.calls li { margin-bottom: 3px; }
+</style>
+
+<h2>Set up this device: click through both journeys</h2>
+<p class="subtitle">Tap Continue and Next inside each phone. Left: a brand-new library on a first phone. Right: a laptop joining the library that phone made. Where does it ask too much, or too little?</p>
+
+<div class="scen">
+
+  <div>
+    <h3>New library, first device</h3>
+    <p class="lead">Nothing in the cloud yet. Four steps, the fourth optional.</p>
+    <div class="walk">
+      <input type="radio" name="f" id="f0" checked>
+      <input type="radio" name="f" id="f1">
+      <input type="radio" name="f" id="f1s">
+      <input type="radio" name="f" id="f2">
+      <input type="radio" name="f" id="f3">
+      <input type="radio" name="f" id="f4">
+      <input type="radio" name="f" id="f5">
+      <input type="radio" name="f" id="f6">
+      <div class="panels">
+
+        <div class="p p0 ph">
+          <div class="ph-bar">Data</div>
+          <div class="ph-body">
+            <div class="ph-strip">
+              <div><span class="sym warn">!</span>Backups</div>
+              <div><span class="sym warn">!</span>Sync</div>
+              <div><span class="sym off">&#9675;</span>Photos</div>
+              <div><span class="sym off">&#9675;</span>Libraries</div>
+            </div>
+            <div class="ph-card">
+              <b>Set up this phone <span style="float:right;font-weight:400;color:var(--text-secondary)">0 of 4</span></b>
+              <div class="ph-step"><span class="n off">1</span><span>Choose where your data lives</span></div>
+              <div class="ph-step"><span class="n off">2</span><span>Dives on every device</span></div>
+              <div class="ph-step"><span class="n off">3</span><span>A backup that survives a lost phone</span></div>
+              <div class="ph-step"><span class="n off">4</span><span>Photos on every device (optional)</span></div>
+              <div style="text-align:right;margin-top:6px"><label for="f1" class="ph-btn">Continue</label></div>
+            </div>
+            <div class="ph-facts">412 dives &middot; 97 sites &middot; 1,240 photos and videos &middot; 48 MB</div>
+            <div class="ph-h">Your data</div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Not backed up yet</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Sync between devices</b><span>Only on this phone</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; videos</b><span>Copies are not kept in the cloud</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared site libraries</b><span>None joined</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Connected accounts</b><span>None yet</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Advanced</div>
+            <div class="ph-row dim"><div class="t"><b>Database storage, Offline maps, Import options, Data tools</b></div><span class="tr">&#8250;</span></div>
+          </div>
+        </div>
+
+        <div class="p p1 ph">
+          <div class="ph-bar">Set up this phone <small>Step 1 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-title">Where should Submersion keep your data?</div>
+            <div class="ph-sub">One account is used for your dives, your backups and your photos. You can change any of them later.</div>
+            <label for="f2" class="ph-acct"><span class="ic">&#9729;</span><div class="t">iCloud<span>Uses your Apple ID. Nothing to sign in to.</span></div><span class="tr">&#8250;</span></label>
+            <label for="f2" class="ph-acct"><span class="ic">&#9729;</span><div class="t">Google Drive<span>Sign in with Google</span></div><span class="tr">&#8250;</span></label>
+            <label for="f2" class="ph-acct"><span class="ic">&#9729;</span><div class="t">Dropbox<span>Sign in with Dropbox</span></div><span class="tr">&#8250;</span></label>
+            <label for="f1s" class="ph-acct"><span class="ic">&#9636;</span><div class="t">My own server<span>S3-compatible storage or a WebDAV server</span></div><span class="tr">&#8250;</span></label>
+            <div class="ph-note">Your dives are stored only in the account you choose. Submersion has no server of its own.</div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="f0" class="ph-btn quiet">Not now</label></div>
+          </div>
+        </div>
+
+        <div class="p p1s ph">
+          <div class="ph-bar">Set up this phone <small>Step 1 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-title">My own server</div>
+            <div class="ph-seg"><span class="on">S3-compatible</span><span>WebDAV</span></div>
+            <div class="ph-input">Address, for example https://s3.example.com</div>
+            <div class="ph-input">Bucket</div>
+            <div class="ph-input">Access key ID</div>
+            <div class="ph-input">Secret access key</div>
+            <div class="ph-note">Dives, backups and photos each get their own folder inside this bucket. Advanced: region, folder names, path style.</div>
+            <div style="margin-top:8px"><span class="ph-btn ghost">Check connection</span> <span class="ok" style="margin-left:8px">&#10003; Reachable</span></div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="f1" class="ph-btn quiet">Back</label><label for="f2" class="ph-btn">Next</label></div>
+          </div>
+        </div>
+
+        <div class="p p2 ph">
+          <div class="ph-bar">Set up this phone <small>Step 2 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-ok">&#10003; Signed in to Google Drive as eric@example.com</div>
+            <div class="ph-title">Dives on every device</div>
+            <div class="ph-sub">Google Drive has no Submersion library yet. The 412 dives on this phone will become the library all your devices share.</div>
+            <div class="ph-field"><div>Keep devices in step automatically<span>A few seconds after each change, at launch and when the app returns</span></div><span class="ph-sw on"></span></div>
+            <div class="ph-note">Only this phone writes to the library until another device joins. Encryption and other options are under Sync between devices.</div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="f1" class="ph-btn quiet">Back</label><label for="f3" class="ph-btn">Turn on sync</label></div>
+          </div>
+        </div>
+
+        <div class="p p3 ph">
+          <div class="ph-bar">Set up this phone <small>Step 3 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-ok">&#10003; Library uploaded, 412 dives in Google Drive</div>
+            <div class="ph-title">A backup that survives a lost phone</div>
+            <div class="ph-sub">Sync keeps devices in step. A backup is a copy from a moment in time that you can go back to.</div>
+            <div class="ph-field"><div>Back up automatically<span>Weekly. The last 10 are kept on this phone.</span></div><span class="ph-sw on"></span></div>
+            <div class="ph-field"><div>Also keep a copy in Google Drive<span>Same account as sync</span></div><span class="ph-sw on"></span></div>
+            <div class="ph-note">Schedule, folder, password protection and old backups are under Backups.</div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="f2" class="ph-btn quiet">Back</label><label for="f4" class="ph-btn">Next</label></div>
+          </div>
+        </div>
+
+        <div class="p p4 ph">
+          <div class="ph-bar">Set up this phone <small>Step 4 of 4, optional</small></div>
+          <div class="ph-body">
+            <div class="ph-title">Photos on every device</div>
+            <div class="ph-sub">Keep copies of your photos and videos in Google Drive so your other devices can show them. Your originals stay where they are.</div>
+            <div class="ph-field"><div>Keep photo copies in Google Drive<span>1,240 photos and videos are attached to your dives today</span></div><span class="ph-sw"></span></div>
+            <div class="ph-field sub dim"><div>Upload new photos automatically</div><span class="ph-sw on"></span></div>
+            <div class="ph-field sub dim"><div>Use cellular data</div><span class="ph-sw"></span></div>
+            <div class="ph-note">Turn it on later under Photos &amp; videos. Nothing is uploaded until you do.</div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="f3" class="ph-btn quiet">Back</label><span><label for="f5" class="ph-btn ghost">Skip</label> <label for="f5" class="ph-btn">Next</label></span></div>
+          </div>
+        </div>
+
+        <div class="p p5 ph">
+          <div class="ph-bar">Set up this phone</div>
+          <div class="ph-body">
+            <div class="ph-title ok">&#10003; This phone is set up</div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Google Drive</b><span>eric@example.com</span></div></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Dives</b><span>412 in the library, kept in step automatically</span></div></div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Weekly, with a copy in Google Drive</span></div></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos</b><span>Copies not kept in the cloud</span></div></div>
+            <div class="ph-note" style="margin-top:10px">On your other devices, open Submersion, choose Google Drive, and the same library appears.</div>
+            <div class="grow"></div>
+            <div class="ph-nav"><span></span><label for="f6" class="ph-btn">Done</label></div>
+          </div>
+        </div>
+
+        <div class="p p6 ph">
+          <div class="ph-bar">Data <small>afterwards</small></div>
+          <div class="ph-body">
+            <div class="ph-strip">
+              <div><span class="sym ok">&#10003;</span>Backups</div>
+              <div><span class="sym ok">&#10003;</span>Sync</div>
+              <div><span class="sym off">&#9675;</span>Photos</div>
+              <div><span class="sym off">&#9675;</span>Libraries</div>
+            </div>
+            <div class="ph-facts">412 dives &middot; 97 sites &middot; 1,240 photos and videos &middot; 48 MB</div>
+            <div class="ph-h">Your data</div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Backed up just now, copy in Google Drive</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Sync between devices</b><span>In the library, automatic, only this phone so far</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; videos</b><span>Copies are not kept in the cloud</span></div><span class="ph-btn ghost">Set up</span></div>
+            <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared site libraries</b><span>None joined</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Connected accounts</b><span>Google Drive, signed in</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Advanced</div>
+            <div class="ph-row dim"><div class="t"><b>Database storage, Offline maps, Import options, Data tools</b></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row dim"><div class="t"><b>Set up this phone again</b></div><span class="tr">&#8250;</span></div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="f0" class="ph-btn quiet">Start over</label></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h3>Joining from a second device</h3>
+    <p class="lead">A laptop, fresh install. The phone's library is already in Google Drive and keeps photo copies there.</p>
+    <div class="walk">
+      <input type="radio" name="s" id="s0" checked>
+      <input type="radio" name="s" id="s1">
+      <input type="radio" name="s" id="s2">
+      <input type="radio" name="s" id="s2b">
+      <input type="radio" name="s" id="s3">
+      <input type="radio" name="s" id="s4">
+      <input type="radio" name="s" id="s5">
+      <input type="radio" name="s" id="s6">
+      <div class="panels">
+
+        <div class="p p0 ph">
+          <div class="ph-bar">Data</div>
+          <div class="ph-body">
+            <div class="ph-strip">
+              <div><span class="sym warn">!</span>Backups</div>
+              <div><span class="sym warn">!</span>Sync</div>
+              <div><span class="sym off">&#9675;</span>Photos</div>
+              <div><span class="sym off">&#9675;</span>Libraries</div>
+            </div>
+            <div class="ph-card">
+              <b>Set up this laptop <span style="float:right;font-weight:400;color:var(--text-secondary)">0 of 4</span></b>
+              <div class="ph-step"><span class="n off">1</span><span>Choose where your data lives</span></div>
+              <div class="ph-step"><span class="n off">2</span><span>Dives on every device</span></div>
+              <div class="ph-step"><span class="n off">3</span><span>A backup that survives a lost laptop</span></div>
+              <div class="ph-step"><span class="n off">4</span><span>Photos on every device (optional)</span></div>
+              <div style="text-align:right;margin-top:6px"><label for="s1" class="ph-btn">Continue</label></div>
+            </div>
+            <div class="ph-facts">0 dives &middot; 0 sites &middot; 0 photos and videos &middot; 1 MB</div>
+            <div class="ph-h">Your data</div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Not backed up yet</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Sync between devices</b><span>Only on this laptop</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; videos</b><span>Copies are not kept in the cloud</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared site libraries</b><span>None joined</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Connected accounts</b><span>None yet</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Advanced</div>
+            <div class="ph-row dim"><div class="t"><b>Database storage, Offline maps, Import options, Data tools</b></div><span class="tr">&#8250;</span></div>
+          </div>
+        </div>
+
+        <div class="p p1 ph">
+          <div class="ph-bar">Set up this laptop <small>Step 1 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-title">Where is your data?</div>
+            <div class="ph-sub">Choose the account you used on your other device. The same list as on a first device, because this laptop knows nothing until it signs in.</div>
+            <label for="s2" class="ph-acct"><span class="ic">&#9729;</span><div class="t">iCloud<span>Uses your Apple ID</span></div><span class="tr">&#8250;</span></label>
+            <label for="s2" class="ph-acct sel"><span class="ic">&#9729;</span><div class="t">Google Drive<span>Sign in with Google</span></div><span class="tr">&#8250;</span></label>
+            <label for="s2" class="ph-acct"><span class="ic">&#9729;</span><div class="t">Dropbox<span>Sign in with Dropbox</span></div><span class="tr">&#8250;</span></label>
+            <label for="s2" class="ph-acct"><span class="ic">&#9636;</span><div class="t">My own server<span>S3-compatible storage or a WebDAV server</span></div><span class="tr">&#8250;</span></label>
+            <div class="ph-note">Also here: "I have a backup file instead", which opens Restore.</div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="s0" class="ph-btn quiet">Not now</label></div>
+          </div>
+        </div>
+
+        <div class="p p2 ph">
+          <div class="ph-bar">Set up this laptop <small>Step 2 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-ok">&#10003; Signed in to Google Drive as eric@example.com</div>
+            <div class="ph-title">Dives on every device</div>
+            <div class="ph-sub">Found your library in Google Drive: 412 dives, last changed today on Eric's iPhone. This laptop has no dives of its own, so the library is simply downloaded.</div>
+            <div class="ph-field"><div>Keep devices in step automatically<span>A few seconds after each change, at launch and when the app returns</span></div><span class="ph-sw on"></span></div>
+            <div class="ph-note"><label for="s2b" style="color:var(--accent);cursor:pointer">Show the harder case: this laptop already had dives, and the library is encrypted</label></div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="s1" class="ph-btn quiet">Back</label><label for="s3" class="ph-btn">Download library</label></div>
+          </div>
+        </div>
+
+        <div class="p p2b ph">
+          <div class="ph-bar">Set up this laptop <small>Step 2 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-ok">&#10003; Signed in to Google Drive as eric@example.com</div>
+            <div class="ph-title">Dives on every device</div>
+            <div class="ph-sub">Found your library in Google Drive: 412 dives, last changed today on Eric's iPhone. This laptop also has 12 dives.</div>
+            <div class="ph-radio"><span class="dot on"></span><div>Combine them<span>The 12 dives join the library on every device. Dives logged separately on both devices will appear twice.</span></div></div>
+            <div class="ph-radio"><span class="dot"></span><div>Replace this laptop's dives with the library<span>A backup of the 12 dives is made first.</span></div></div>
+            <div class="ph-field" style="margin-top:8px"><div>This library is protected with a passphrase<span>Enter the passphrase or the recovery code</span></div></div>
+            <div class="ph-input">Passphrase</div>
+            <div class="ph-field"><div>Keep devices in step automatically</div><span class="ph-sw on"></span></div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="s2" class="ph-btn quiet">Back</label><label for="s3" class="ph-btn">Combine and download</label></div>
+          </div>
+        </div>
+
+        <div class="p p3 ph">
+          <div class="ph-bar">Set up this laptop <small>Step 3 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-ok">&#10003; Library downloaded, 412 dives</div>
+            <div class="ph-title">A backup that survives a lost laptop</div>
+            <div class="ph-sub">Each device keeps its own backups. Your phone's are already in Google Drive.</div>
+            <div class="ph-field"><div>Back up automatically<span>Weekly, while Submersion is open. The last 10 are kept on this laptop.</span></div><span class="ph-sw on"></span></div>
+            <div class="ph-field"><div>Also keep a copy in Google Drive<span>Same account as sync</span></div><span class="ph-sw on"></span></div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="s2" class="ph-btn quiet">Back</label><label for="s4" class="ph-btn">Next</label></div>
+          </div>
+        </div>
+
+        <div class="p p4 ph">
+          <div class="ph-bar">Set up this laptop <small>Step 4 of 4</small></div>
+          <div class="ph-body">
+            <div class="ph-title">Photos on every device</div>
+            <div class="ph-sub">Your iPhone keeps copies of 1,240 photos and videos in Google Drive. Show them on this laptop too?</div>
+            <div class="ph-field"><div>Use the photo copies in Google Drive<span>Same account. Nothing to type.</span></div><span class="ph-sw on"></span></div>
+            <div class="ph-field sub"><div>Upload photos added on this laptop automatically</div><span class="ph-sw on"></span></div>
+            <div class="ph-note">This replaces today's "Connect media storage" card, where the laptop had to re-pick the provider and retype the details.</div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="s3" class="ph-btn quiet">Back</label><span><label for="s5" class="ph-btn ghost">Skip</label> <label for="s5" class="ph-btn">Next</label></span></div>
+          </div>
+        </div>
+
+        <div class="p p5 ph">
+          <div class="ph-bar">Set up this laptop</div>
+          <div class="ph-body">
+            <div class="ph-title ok">&#10003; This laptop is set up</div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Google Drive</b><span>eric@example.com</span></div></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Dives</b><span>412 in the library, in step with Eric's iPhone, automatic</span></div></div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Weekly, with a copy in Google Drive</span></div></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos</b><span>Copies shared with Eric's iPhone</span></div></div>
+            <div class="grow"></div>
+            <div class="ph-nav"><span></span><label for="s6" class="ph-btn">Done</label></div>
+          </div>
+        </div>
+
+        <div class="p p6 ph">
+          <div class="ph-bar">Data <small>afterwards</small></div>
+          <div class="ph-body">
+            <div class="ph-strip">
+              <div><span class="sym ok">&#10003;</span>Backups</div>
+              <div><span class="sym ok">&#10003;</span>Sync</div>
+              <div><span class="sym ok">&#10003;</span>Photos</div>
+              <div><span class="sym off">&#9675;</span>Libraries</div>
+            </div>
+            <div class="ph-facts">412 dives &middot; 97 sites &middot; 1,240 photos and videos &middot; 48 MB</div>
+            <div class="ph-h">Your data</div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Backed up just now, copy in Google Drive</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Sync between devices</b><span>In step with Eric's iPhone, automatic</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; videos</b><span>1,240 copies in Google Drive</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared site libraries</b><span>None joined</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Connected accounts</b><span>Google Drive, signed in</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Advanced</div>
+            <div class="ph-row dim"><div class="t"><b>Database storage, Offline maps, Import options, Data tools</b></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row dim"><div class="t"><b>Set up this laptop again</b></div><span class="tr">&#8250;</span></div>
+            <div class="grow"></div>
+            <div class="ph-nav"><label for="s0" class="ph-btn quiet">Start over</label></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="later">
+  <div class="ph" style="width:300px">
+    <div class="ph-bar">Settings <small>months later</small></div>
+    <div class="ph-body">
+      <div class="ph-card">
+        <b>Finish setting up this phone <span style="float:right;font-weight:400;color:var(--text-secondary)">1 step</span></b>
+        <div class="ph-step"><span class="n warn">!</span><span>Sign in to Google Drive again. Sync and backups are paused until you do.</span></div>
+        <div style="text-align:right;margin-top:6px"><span class="ph-btn">Sign in</span></div>
+      </div>
+      <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Diver profile</b></div><span class="tr">&#8250;</span></div>
+      <div class="ph-row"><span class="ic">&#9636;</span><div class="t"><b>Data</b><span>Backups, sync and photos</span></div><span class="tr">&#8250;</span></div>
+      <div class="ph-row dim"><span class="ic"></span><div class="t"><b>Units, Appearance, Safety, &hellip;</b></div><span class="tr">&#8250;</span></div>
+    </div>
+  </div>
+  <div style="flex:1;min-width:260px">
+    <div class="label">Calls I made in this walk-through, each open to change</div>
+    <ul class="calls">
+      <li>The same card replaces today's "Finish setting up this device" card: when something breaks later, it comes back with only the step that needs you.</li>
+      <li>"Keep devices in step automatically" is on by default in the flow. Today nothing turns Auto Sync on.</li>
+      <li>The cloud copy of backups is on by default once an account exists, and the backup schedule is on by default. Today both are off.</li>
+      <li>Encryption is not in the flow, for dives or for backups. It stays on the feature pages, under Advanced.</li>
+      <li>Photos are the optional step: off by default on a first device, on by default when the library already keeps copies.</li>
+      <li>S3 and WebDAV are one entry, "My own server". An account is the server and bucket; dives, backups and photos each get a folder inside it with sensible default names.</li>
+      <li>Skipping is always allowed, and the card keeps count of what is left.</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>
