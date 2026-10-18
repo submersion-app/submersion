@@ -77,12 +77,12 @@ Same shape: a `_categories` map covering every ladder+specialties IART level,
 
 - `certification_enums.dart`: add `iart('IART')` to `CertificationAgency`
   (alphabetically placed next to other brand entries) with primary/secondary
-  colors, plus the 25 new `CertificationLevel` values and `fromId` needs no
+  colors, plus the 26 new `CertificationLevel` values and `fromId` needs no
   change (loop-based).
 - `certification_levels.dart`: `_iartLadder`, `_iartSpecialties`, and a
   `CertificationAgency.iart => ...` arm in both `ladderFor`/`specialtiesFor`.
 - `certification_level_display.dart`: the exhaustive switch needs an arm
-  for all 25 new values -> `displayName` (untranslated), same bucket as the
+  for all 26 new values -> `displayName` (untranslated), same bucket as the
   TDI/BSAC/GUE/ACUC/DAN proper nouns. This file was not in the original TDI
   file list and must not be missed, or the build fails to compile (good —
   the switch is exhaustive by design).
@@ -132,9 +132,25 @@ Same shape: a `_categories` map covering every ladder+specialties IART level,
 - `certification_agency_dropdown.dart` needs no change: it is driven by the
   catalog/provider layer generically, not a per-agency switch.
 
+## Scope change: currency/refresher rule added
+
+The issue does not ask for an IART refresher rule, and this plan originally
+left currency rules out of scope on that basis. That was wrong:
+`currency_seed_catalog_test.dart`'s `every agency with a diver ladder has a
+refresher` test enforces, as a standing invariant of the currency feature
+(issue #2267), that every agency with a diver ladder is deliberately
+assigned to a refresher rule or explicitly excepted (today only GUE and DAN,
+each for a stated reason) -- not an optional nice-to-have. Leaving IART out
+is exactly the silent gap that test exists to catch: a diver holding an
+IART certification would never be warned it had lapsed. An `iart_refresher`
+rule was added (`certification_currency_tables.dart`), activity-clock,
+scoped to `["iart"]`, covering exactly `_iartLadder` -- the same shape as
+`tdi_refresher`. It is a brand-new seeded row matched by `INSERT OR IGNORE`;
+no existing certification has agency `iart` (the agency did not exist before
+this PR), so it changes nothing for any current user -- there is nothing for
+it to match yet.
+
 ## Out of scope
 
-- Currency/refresher rules (TDI has `currencyRule_tdi_refresher_*`; nothing
-  in the issue asks for an IART equivalent).
 - PDF export templates (only PADI/NAUI/generic templates exist today; TDI
   has none either).
