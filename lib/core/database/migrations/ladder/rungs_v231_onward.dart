@@ -414,5 +414,41 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 292) await reportProgress();
+
+    // v293: trip_checklist_sections + trip_checklist_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 293 (see database.dart).
+    if (from < 293) {
+      await _assertAndBackfillTripChecklistSections();
+    }
+    if (from < 293) await reportProgress();
+
+    // v294: checklist_template_sections + checklist_template_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 294 (see database.dart).
+    if (from < 294) {
+      await _assertAndBackfillChecklistTemplateSections();
+    }
+    if (from < 294) await reportProgress();
+
+    // v295: pre_dive_checklist_template_sections +
+    // pre_dive_checklist_template_items.section_id, backfilled from
+    // section (non-built-in templates only; built-ins get stable ids via
+    // the seed, re-asserted in beforeOpen), which is then dropped (issue
+    // #3360). Raises minimumCompatibleSchemaVersion to 295 (see
+    // database.dart).
+    if (from < 295) {
+      await _assertAndBackfillPreDiveTemplateSections();
+    }
+    if (from < 295) await reportProgress();
+
+    // v296: pre_dive_session_sections + pre_dive_session_items.section_id,
+    // backfilled from section, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 296 (see database.dart) -- the
+    // last of the four checklist-sections table groups.
+    if (from < 296) {
+      await _assertAndBackfillPreDiveSessionSections();
+    }
+    if (from < 296) await reportProgress();
   }
 }

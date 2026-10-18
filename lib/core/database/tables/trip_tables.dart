@@ -274,13 +274,42 @@ class ChecklistTemplates extends Table {
   // coverage:ignore-end
 }
 
+/// A visual grouping header for a checklist template's items (issue #3360).
+/// Replaces the free-text `category` items used to carry; see
+/// `TripChecklistSections` for the rationale, shared across all four
+/// checklist section tables.
+@DataClassName('ChecklistTemplateSectionRow')
+class ChecklistTemplateSections extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get templateId => text().references(ChecklistTemplates, #id)();
+  TextColumn get title => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Items belonging to a checklist template
 class ChecklistTemplateItems extends Table {
   // coverage:ignore-start
   TextColumn get id => text()();
   TextColumn get templateId => text().references(ChecklistTemplates, #id)();
   TextColumn get title => text()();
-  TextColumn get category => text().nullable()();
+
+  /// The section this item is grouped under, if any (issue #3360). Replaces
+  /// the free-text `category` column.
+  TextColumn get sectionId => text().nullable().references(
+    ChecklistTemplateSections,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
   /// Days before trip start the item is due (14 = "two weeks out").
@@ -298,13 +327,43 @@ class ChecklistTemplateItems extends Table {
   // coverage:ignore-end
 }
 
+/// A visual grouping header for a trip's checklist items (issue #3360).
+/// Replaces the free-text `category` items used to carry: a section is now
+/// a row with its own identity, so it can be created empty, renamed once
+/// instead of per item, and reordered independently of its items.
+@DataClassName('TripChecklistSectionRow')
+class TripChecklistSections extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId => text().references(Trips, #id)();
+  TextColumn get title => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Per-trip checklist items (copied from templates or added ad hoc)
 class TripChecklistItems extends Table {
   // coverage:ignore-start
   TextColumn get id => text()();
   TextColumn get tripId => text().references(Trips, #id)();
   TextColumn get title => text()();
-  TextColumn get category => text().nullable()();
+
+  /// The section this item is grouped under, if any (issue #3360). Replaces
+  /// the free-text `category` column; deleting the section does not delete
+  /// or hide the item, it falls back to "no section".
+  TextColumn get sectionId => text().nullable().references(
+    TripChecklistSections,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
   /// Absolute due date, resolved from the template offset at apply time.

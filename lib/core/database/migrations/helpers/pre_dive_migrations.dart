@@ -40,8 +40,32 @@ extension PreDiveMigrations on AppDatabase {
     if (diversTable.isEmpty) return;
     await customStatement(kSeedBuiltInPreDiveTemplatesSql);
     await customStatement(kRetireLegacyGueEdgeItemsSql);
+    // kSeedBuiltInPreDiveTemplateItemsSql's column list names section_id
+    // (issue #3360). This function is also called from the v127 rung,
+    // mid-ladder, before the v294 rung that adds that column has run in the
+    // same upgrade -- so on that path section_id does not exist yet. Skip
+    // the items/sections seed entirely rather than fail; beforeOpen calls
+    // this function again once the whole ladder (including v294) has run,
+    // and seeds correctly then.
+    final hasSectionId = await _columnExists(
+      'pre_dive_checklist_template_items',
+      'section_id',
+    );
+    if (!hasSectionId) return;
+    if (await _tableExists('pre_dive_checklist_template_sections')) {
+      await customStatement(kSeedBuiltInPreDiveTemplateSectionsSql);
+    }
     await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
     await customStatement(kRenumberCcrTailItemsSql);
+    await customStatement(kAssignBuiltInPreDiveSectionIdsSql);
+  }
+
+  /// True when [table] has a column named [column] right now. Self-guards
+  /// when the table is absent (minimal migration-test fixtures), mirroring
+  /// [_tableExists].
+  Future<bool> _columnExists(String table, String column) async {
+    final cols = await customSelect("PRAGMA table_info('$table')").get();
+    return cols.any((c) => c.read<String>('name') == column);
   }
 
   /// Idempotent DDL for the v181 pre_dive_checklist_template_items

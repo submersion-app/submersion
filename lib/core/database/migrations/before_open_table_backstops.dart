@@ -48,6 +48,27 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();
 
+    // v292 backstop: trip_checklist_sections, trip_checklist_items.section_id
+    // and the category backfill+drop (idempotent; issue #3360).
+    await _assertAndBackfillTripChecklistSections();
+
+    // v293 backstop: checklist_template_sections,
+    // checklist_template_items.section_id and the category backfill+drop
+    // (idempotent; issue #3360).
+    await _assertAndBackfillChecklistTemplateSections();
+
+    // v294 backstop: pre_dive_checklist_template_sections,
+    // pre_dive_checklist_template_items.section_id and the section
+    // backfill+drop (idempotent; issue #3360). Built-in section
+    // assignment happens separately via _seedBuiltInPreDiveTemplates,
+    // called later in this same beforeOpen.
+    await _assertAndBackfillPreDiveTemplateSections();
+
+    // v295 backstop: pre_dive_session_sections,
+    // pre_dive_session_items.section_id and the section backfill+drop
+    // (idempotent; issue #3360).
+    await _assertAndBackfillPreDiveSessionSections();
+
     // v250 backstop: trip_hides and site_hides (idempotent).
     await _assertTripHidesSchema();
     await _assertSiteHidesSchema();

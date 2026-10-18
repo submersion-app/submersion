@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -44,6 +45,7 @@ part 'before_open_table_backstops.dart';
 part 'before_open_view_configs.dart';
 part 'helpers/buddy_migrations.dart';
 part 'helpers/certification_currency_migrations.dart';
+part 'helpers/checklist_section_migrations.dart';
 part 'helpers/connection_migrations.dart';
 part 'helpers/course_link_migrations.dart';
 part 'helpers/cylinder_migrations.dart';
