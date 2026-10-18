@@ -3,12 +3,14 @@ import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 
 part 'shared_library_transport_measure.dart';
+part 'shared_library_transport_removals.dart';
 
 /// File operations on one shared site library folder (issue #2567).
 ///
@@ -165,11 +167,14 @@ class SharedLibraryTransport {
 
   static const _sitePrefix = 'site-';
   static const _memberPrefix = 'member-';
+  static const _removalPrefix = 'removed-';
   static const _suggestionPrefix = 'suggestion-';
 
   static String siteFileName(String siteId) => '$_sitePrefix$siteId.json';
   static String memberFileName(String memberId) =>
       '$_memberPrefix$memberId.json';
+  static String removalFileName(String memberId) =>
+      '$_removalPrefix$memberId.json';
   static String suggestionFileName(String id) => '$_suggestionPrefix$id.json';
 
   /// Whether [id] can name a file in its folder: not empty, no separator,
@@ -423,6 +428,10 @@ class SharedLibraryTransport {
       (
         SharedLibraryLayout.membersDir,
         await _listKind(await _membersId(), _memberPrefix),
+      ),
+      (
+        SharedLibraryLayout.membersDir,
+        await _listKind(await _membersId(), _removalPrefix),
       ),
       (SharedLibraryLayout.sitesDir, await listSites()),
       (SharedLibraryLayout.suggestionsDir, await listSuggestions()),

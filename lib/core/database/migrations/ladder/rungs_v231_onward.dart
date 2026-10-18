@@ -407,5 +407,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 291) await reportProgress();
+    // v292: shared_libraries.removals_json (issue #3481). Column only, filled
+    // from the library's removal records at the next sync; re-asserted in
+    // beforeOpen through _assertSharedLibrarySchema.
+    if (from < 292) {
+      await _assertSharedLibrarySchema();
+    }
+    if (from < 292) await reportProgress();
   }
 }

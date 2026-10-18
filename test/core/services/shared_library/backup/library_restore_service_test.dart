@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
@@ -331,5 +332,47 @@ void main() {
       ),
     );
     expect(await backups.list(libraryId: lib.id), hasLength(1));
+  });
+
+  group('removal records (issue #3481)', () {
+    final record = MemberRemoval(
+      memberId: 'x',
+      displayName: 'Xan',
+      removedAt: DateTime.utc(2026, 10, 18),
+      removedBy: 'm1',
+      signature: 'sig',
+    );
+
+    test('a restore leaves them in place', () async {
+      final backup = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+      final t = await memberships.transportForLibrary(lib);
+      await t.writeRemoval(record);
+      await restorer().restore(
+        libraryId: lib.id,
+        diverId: 'd1',
+        backupId: backup.backupId,
+      );
+      expect(await t.listRemovals(), [record]);
+    });
+
+    test(
+      'a backup leaves them out, so older versions can restore it',
+      () async {
+        final t = await memberships.transportForLibrary(lib);
+        await t.writeRemoval(record);
+        final backup = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+        final contents = await LibraryBackupArchive.read(
+          await File(
+            (await backups.list(
+              libraryId: lib.id,
+            )).singleWhere((b) => b.backupId == backup.backupId).localPath!,
+          ).readAsBytes(),
+        );
+        expect(
+          contents.files.keys.where((k) => k.contains('removed-')),
+          isEmpty,
+        );
+      },
+    );
   });
 }
