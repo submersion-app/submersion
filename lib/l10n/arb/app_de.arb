@@ -5942,6 +5942,7 @@
   "settings_navCustomization_scopeDesktop": "Desktop",
   "settings_navCustomization_alwaysHideLabels_title": "Beschriftungen immer ausblenden",
   "settings_navCustomization_alwaysHideLabels_subtitle": "Nur Icons, auch wenn Platz für Beschriftungen wäre",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Startzustand der Seitenleiste; der Pfeil kann sie für diese Sitzung weiterhin ein- oder ausklappen",
   "settings_navCustomization_dividerLabel": "Elemente darunter kommen ins Menü „Mehr“, wenn sie nicht in die Leiste passen",
   "settings_navCustomization_resetButton": "Auf Standardwerte zurücksetzen",
   "settings_navCustomization_pinnedTooltip": "Immer sichtbar",

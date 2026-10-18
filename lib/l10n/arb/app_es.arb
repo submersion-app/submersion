@@ -5811,6 +5811,7 @@
   "settings_navCustomization_scopeDesktop": "Escritorio",
   "settings_navCustomization_alwaysHideLabels_title": "Ocultar siempre las etiquetas",
   "settings_navCustomization_alwaysHideLabels_subtitle": "Solo iconos, incluso cuando las etiquetas cabrían",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Estado inicial de la barra lateral; la flecha aún puede expandirla o contraerla durante esta sesión",
   "settings_navCustomization_dividerLabel": "Los elementos de abajo van al menú Más cuando no caben en la barra",
   "settings_navCustomization_resetButton": "Restablecer valores predeterminados",
   "settings_navCustomization_pinnedTooltip": "Siempre visible",

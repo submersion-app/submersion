@@ -562,7 +562,9 @@ void main() {
             findsOneWidget,
           );
 
-          await pumpPage(tester, wide: true);
+          await tester.tap(find.text('Desktop'));
+          await tester.pumpAndSettle();
+
           expect(
             find.text(
               'Starting state of the sidebar; the collapse arrow can still '

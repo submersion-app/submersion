@@ -5711,6 +5711,7 @@
   "settings_navCustomization_scopeDesktop": "Bureau",
   "settings_navCustomization_alwaysHideLabels_title": "Toujours masquer les libellés",
   "settings_navCustomization_alwaysHideLabels_subtitle": "Icônes uniquement, même si les libellés auraient de la place",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "État initial de la barre latérale ; la flèche peut toujours la développer ou la réduire pour cette session",
   "settings_navCustomization_dividerLabel": "Les éléments ci-dessous vont dans le menu Plus s'ils ne tiennent pas dans la barre",
   "settings_navCustomization_resetButton": "Réinitialiser aux valeurs par défaut",
   "settings_navCustomization_pinnedTooltip": "Toujours affiché",

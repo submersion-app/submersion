@@ -5811,6 +5811,7 @@
   "settings_navCustomization_scopeDesktop": "سطح المكتب",
   "settings_navCustomization_alwaysHideLabels_title": "إخفاء التسميات دائمًا",
   "settings_navCustomization_alwaysHideLabels_subtitle": "أيقونات فقط، حتى عند توفر مساحة للتسميات",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "الحالة الابتدائية للشريط الجانبي؛ لا يزال بإمكان السهم توسيعه أو طيّه لهذه الجلسة",
   "settings_navCustomization_dividerLabel": "تنتقل العناصر أدناه إلى قائمة المزيد عندما لا يتسع لها الشريط",
   "settings_navCustomization_resetButton": "إعادة تعيين إلى الإعدادات الافتراضية",
   "settings_navCustomization_pinnedTooltip": "يظهر دائمًا",

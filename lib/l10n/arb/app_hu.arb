@@ -5711,6 +5711,7 @@
   "settings_navCustomization_scopeDesktop": "Asztali",
   "settings_navCustomization_alwaysHideLabels_title": "Címkék mindig elrejtve",
   "settings_navCustomization_alwaysHideLabels_subtitle": "Csak ikonok, még akkor is, ha elférne a címke",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Az oldalsáv kezdőállapota; a nyíl ebben a munkamenetben továbbra is kinyithatja vagy összecsukhatja",
   "settings_navCustomization_dividerLabel": "Az alábbi elemek a Tovább menübe kerülnek, ha nem férnek el a sávban",
   "settings_navCustomization_resetButton": "Alapértelmezések visszaállítása",
   "settings_navCustomization_pinnedTooltip": "Mindig látható",

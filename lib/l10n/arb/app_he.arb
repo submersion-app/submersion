@@ -5815,6 +5815,7 @@
   "settings_navCustomization_scopeDesktop": "מחשב שולחני",
   "settings_navCustomization_alwaysHideLabels_title": "הסתר תוויות תמיד",
   "settings_navCustomization_alwaysHideLabels_subtitle": "סמלים בלבד, גם כשיש מקום לתוויות",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "מצב ההתחלה של סרגל הצד; החץ עדיין יכול להרחיב או לכווץ אותו עבור הפעלה זו",
   "settings_navCustomization_dividerLabel": "פריטים שמתחת עוברים לתפריט עוד כשאין להם מקום בסרגל",
   "settings_navCustomization_resetButton": "אפס לברירת מחדל",
   "settings_navCustomization_pinnedTooltip": "מוצג תמיד",

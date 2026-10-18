@@ -20302,7 +20302,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
-      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+      'מצב ההתחלה של סרגל הצד; החץ עדיין יכול להרחיב או לכווץ אותו עבור הפעלה זו';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

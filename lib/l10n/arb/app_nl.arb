@@ -5811,6 +5811,7 @@
   "settings_navCustomization_scopeDesktop": "Desktop",
   "settings_navCustomization_alwaysHideLabels_title": "Labels altijd verbergen",
   "settings_navCustomization_alwaysHideLabels_subtitle": "Alleen pictogrammen, ook als er ruimte is voor labels",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Beginstatus van de zijbalk; het pijltje kan deze voor deze sessie nog steeds in- of uitklappen",
   "settings_navCustomization_dividerLabel": "Items hieronder gaan naar het menu Meer als ze niet in de balk passen",
   "settings_navCustomization_resetButton": "Standaardwaarden herstellen",
   "settings_navCustomization_pinnedTooltip": "Altijd zichtbaar",

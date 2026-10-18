@@ -5963,6 +5963,7 @@
   "settings_navCustomization_scopeDesktop": "桌面",
   "settings_navCustomization_alwaysHideLabels_title": "始终隐藏标签",
   "settings_navCustomization_alwaysHideLabels_subtitle": "仅显示图标,即使有空间显示标签",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "侧边栏的初始状态,该箭头仍可在本次会话中将其展开或折叠。",
   "settings_navCustomization_dividerLabel": "下方的项目在导航栏放不下时会移入“更多”菜单",
   "settings_navCustomization_resetButton": "重置为默认值",
   "settings_navCustomization_pinnedTooltip": "始终显示",

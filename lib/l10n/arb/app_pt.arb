@@ -5811,6 +5811,7 @@
   "settings_navCustomization_scopeDesktop": "Computador",
   "settings_navCustomization_alwaysHideLabels_title": "Ocultar sempre os rótulos",
   "settings_navCustomization_alwaysHideLabels_subtitle": "Apenas ícones, mesmo quando os rótulos caberiam",
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Estado inicial da barra lateral; a seta ainda pode expandi-la ou recolhê-la durante esta sessão",
   "settings_navCustomization_dividerLabel": "Os itens abaixo vão para o menu Mais quando não cabem na barra",
   "settings_navCustomization_resetButton": "Restaurar padrões",
   "settings_navCustomization_pinnedTooltip": "Sempre visível",

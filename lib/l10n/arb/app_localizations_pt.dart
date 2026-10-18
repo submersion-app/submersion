@@ -20763,7 +20763,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
-      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+      'Estado inicial da barra lateral; a seta ainda pode expandi-la ou recolhê-la durante esta sessão';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
