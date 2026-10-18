@@ -2055,8 +2055,8 @@ void main() {
     });
 
     // Issue #1335 follow-up: the mixer's own settings gear moved off the
-    // top-level settings list and in here, next to Tank Presets -- the
-    // global preset list its cylinder dropdown now reads.
+    // top-level settings list and in here, under its own Planning section --
+    // the global preset list its cylinder dropdown now reads.
     testWidgets('renders the trimix mixer tile and navigates on tap', (
       tester,
     ) async {
@@ -2065,7 +2065,6 @@ void main() {
 
       expect(find.text('Trimix Mixer'), findsOneWidget);
 
-      // The Certification Agencies tile (issue #690) pushed this one down.
       await tester.ensureVisible(find.text('Trimix Mixer'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Trimix Mixer'));
