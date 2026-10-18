@@ -4,6 +4,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
@@ -124,6 +125,14 @@ final libraryMembersProvider =
     ) async {
       ref.watch(sharedLibrariesProvider);
       return ref.watch(sharedLibraryStoreProvider).getMembers(libraryId);
+    });
+
+/// The owner-signed removals of [libraryId] as the last sync verified them
+/// (issue #3481).
+final libraryRemovalsProvider =
+    FutureProvider.family<List<MemberRemoval>, String>((ref, libraryId) async {
+      ref.watch(sharedLibrariesProvider);
+      return ref.watch(sharedLibraryStoreProvider).removals(libraryId);
     });
 
 /// The per-site library state (clocks, last editor) of [siteId].

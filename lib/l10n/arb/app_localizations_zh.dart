@@ -20019,6 +20019,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_members_removeRole => '移除角色';
 
   @override
+  String get sharedLibrary_members_remove => 'Remove from library';
+
+  @override
+  String sharedLibrary_members_removeTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String sharedLibrary_members_removeBody(String name) {
+    return '$name will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.';
+  }
+
+  @override
+  String get sharedLibrary_members_removeConfirm => 'Remove';
+
+  @override
+  String get sharedLibrary_members_removedHeader => 'Removed';
+
+  @override
+  String sharedLibrary_members_removedOn(String date) {
+    return 'Removed $date';
+  }
+
+  @override
+  String get sharedLibrary_members_allowBack => 'Allow back';
+
+  @override
   String get sharedLibrary_owner_onlyOne => '只有一位所有者。若其失去访问权限，只有恢复码能够恢复。';
 
   @override

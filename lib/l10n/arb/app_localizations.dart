@@ -33731,6 +33731,48 @@ abstract class AppLocalizations {
   /// **'Remove role'**
   String get sharedLibrary_members_removeRole;
 
+  /// No description provided for @sharedLibrary_members_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from library'**
+  String get sharedLibrary_members_remove;
+
+  /// No description provided for @sharedLibrary_members_removeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String sharedLibrary_members_removeTitle(String name);
+
+  /// No description provided for @sharedLibrary_members_removeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.'**
+  String sharedLibrary_members_removeBody(String name);
+
+  /// No description provided for @sharedLibrary_members_removeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get sharedLibrary_members_removeConfirm;
+
+  /// No description provided for @sharedLibrary_members_removedHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get sharedLibrary_members_removedHeader;
+
+  /// No description provided for @sharedLibrary_members_removedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {date}'**
+  String sharedLibrary_members_removedOn(String date);
+
+  /// No description provided for @sharedLibrary_members_allowBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow back'**
+  String get sharedLibrary_members_allowBack;
+
   /// No description provided for @sharedLibrary_owner_onlyOne.
   ///
   /// In en, this message translates to:

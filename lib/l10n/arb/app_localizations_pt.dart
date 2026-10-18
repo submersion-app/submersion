@@ -21064,6 +21064,33 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedLibrary_members_removeRole => 'Remover função';
 
   @override
+  String get sharedLibrary_members_remove => 'Remove from library';
+
+  @override
+  String sharedLibrary_members_removeTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String sharedLibrary_members_removeBody(String name) {
+    return '$name will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.';
+  }
+
+  @override
+  String get sharedLibrary_members_removeConfirm => 'Remove';
+
+  @override
+  String get sharedLibrary_members_removedHeader => 'Removed';
+
+  @override
+  String sharedLibrary_members_removedOn(String date) {
+    return 'Removed $date';
+  }
+
+  @override
+  String get sharedLibrary_members_allowBack => 'Allow back';
+
+  @override
   String get sharedLibrary_owner_onlyOne =>
       'Só há um proprietário. Se perder o acesso, só o código de recuperação o pode repor.';
 
