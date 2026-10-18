@@ -95,9 +95,9 @@ The lasting "this person was removed" fact lives in its own file, not in
   recovery key never signs one.) An invalid or unreadable record is ignored
   (the person is treated as not removed).
 
-Known limit (accepted): a removal signed by an owner who later stops being
-an owner no longer verifies, and the person can reappear as pending (still
-unapproved, so nothing they sign counts). Any owner can remove them again.
+Known limit (accepted): a removal signed by an owner who later leaves the
+library no longer verifies, and the person can reappear as pending (still
+unapproved, so nothing they sign counts).
 
 ### Order of writes
 
@@ -151,12 +151,25 @@ suggestions from their own inbox; that is accepted for the release overlap.
 
 ### Backups and restore
 
-Removal records are library files like member cards: `sealableFiles()` lists
-them too, so backups include them and a passphrase change re-seals them.
-Restore keeps its "back to the backup exactly" rule (2026-10-12 decision):
-restoring a backup taken before a removal brings back that member's
-approval and card and drops the newer record; an owner can remove them
-again. (Builder's call.)
+Backups leave removal records out. A backup archive accepts only a fixed set
+of file names, and a v1.8.2 owner refuses any archive holding another, so a
+backup with `removed-*.json` in it could not be restored there. A restore
+instead keeps the folder's current records and applies each again to the
+roles it brings back, so a removal outlives a restore from a backup taken
+before it; the backup's card of someone removed since is deleted again. A
+restore into an empty folder starts from the backup alone and carries no
+removals. (Builder's call, revised during the build.)
+
+### Removals outlive their owner's ownership
+
+Every owner roles write re-signs, as the writing owner, each record that held
+under the roles it replaces but not under the new ones. Removing, demoting or
+re-keying the owner who removed someone therefore keeps that removal. An
+owner who leaves signs their own demotion and is no owner afterwards, so
+their removals lapse: the known limit below, now limited to that case.
+
+Reject keeps any keys the member had retired before (someone removed, then
+allowed back), so rejecting them never takes back what they contributed.
 
 When a member has both a valid removal record and an approved key (a
 restore race, or an old owner app approving them), **the record wins**: they
