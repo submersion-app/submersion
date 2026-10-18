@@ -11,7 +11,9 @@ across the switch.
 
 ## Domain layer
 
-New file `lib/features/certifications/domain/utils/certification_grouping.dart`:
+New file `lib/features/certifications/presentation/utils/certification_grouping.dart`
+(not `domain/utils` -- it depends on `AppLocalizations`, see the Presentation
+layer section below):
 
 - `enum CertificationGroupBy { status, agency, none }`
 - `class CertificationGroup`: `key`, `label`, `certifications`. No color field
@@ -136,12 +138,14 @@ New file `lib/features/certifications/domain/utils/certification_grouping.dart`:
 - `certifications_sortSheet_view_wallet` ("Certification Wallet")
 - `certifications_wallet_tooltip_sort` ("Sort")
 
-Other locales fall back to the English template at gen-l10n time; no
-translation work is in scope for this PR.
+`test/l10n/arb_parity_test.dart` requires every key translated in all ten
+non-English locales (not just present in the English template, as first
+assumed here) -- all seven keys were translated into all ten locales as
+part of this PR.
 
 ## Tests (written first, TDD)
 
-- `test/features/certifications/domain/utils/certification_grouping_test.dart`:
+- `test/features/certifications/presentation/utils/certification_grouping_test.dart`:
   status grouping (fixed order, empty groups hidden), agency grouping
   (alphabetical by localized name, primary-agency-only for multi-credential
   cards), none (empty list), flattening for all three modes.
