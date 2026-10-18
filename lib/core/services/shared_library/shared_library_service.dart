@@ -277,6 +277,7 @@ class SharedLibraryService {
         }
       }
       final pendingKeys = _pendingKeysOf(members, roles, removals);
+      final judged = _judgedRoles(roles, removals);
 
       // Notes an earlier build left only on the site rows become the
       // profile's own records, for personal sync to carry: once, before
@@ -332,8 +333,8 @@ class SharedLibraryService {
         final checked = await dropUnverifiedAll(
           [for (final p in batch) (p.remote, p.local)],
           libraryId: libraryId,
-          approvedKeys: roles.editingKeys,
-          retiredKeys: roles.retiredKeys,
+          approvedKeys: judged.editingKeys,
+          retiredKeys: judged.retiredKeys,
           pendingKeys: pendingKeys,
         );
         for (var k = 0; k < batch.length; k++) {
@@ -406,8 +407,8 @@ class SharedLibraryService {
               localKeys.keys.toSet(),
               libraryId: libraryId,
               // A held author's signature proves the value as well.
-              keys: {...pendingKeys, ...roles.editingKeys},
-              retiredKeys: roles.retiredKeys,
+              keys: {...pendingKeys, ...judged.editingKeys},
+              retiredKeys: judged.retiredKeys,
             );
             if (state.deleted) {
               // A tombstone keeps the document's fields, so an undelete
@@ -417,8 +418,8 @@ class SharedLibraryService {
                 remote,
                 local: doc,
                 libraryId: libraryId,
-                approvedKeys: roles.editingKeys,
-                retiredKeys: roles.retiredKeys,
+                approvedKeys: judged.editingKeys,
+                retiredKeys: judged.retiredKeys,
               );
               doc = mergeSiteDocuments(local: doc, remote: proven).merged;
             }

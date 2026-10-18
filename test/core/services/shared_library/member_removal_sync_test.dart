@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/core/services/shared_library/shared_library_service.d
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -156,6 +158,64 @@ void main() {
     await syncer().sync(lib.id, diverId: 'd9');
     expect((await SiteRepository().getSiteById('s1'))?.name, 'Blue Hole');
   });
+
+  test(
+    'a removal outweighs an editing approval the roles still hold',
+    () async {
+      final bo = await addMember('d2', 'Bo', SharedLibraryRole.editor);
+      await addSite('s1', 'Blue Hole');
+      await syncer().sync(lib.id, diverId: 'd2');
+      await remove(bo);
+      // An older owner app approves Bo again and makes him an editor, and
+      // Bo's older app uploads an edit made after the removal.
+      final ann = (await membershipOf('d1')).memberId;
+      await t.writeMember(
+        await SharedLibraryMember.signed(
+          memberId: bo.memberId,
+          displayName: 'Bo',
+          joinedAt: DateTime.utc(2026, 10),
+          key: bo.signingKey!,
+        ),
+        appVersion: '1.8.2',
+      );
+      await memberships().approveMember(
+        libraryId: lib.id,
+        memberId: bo.memberId,
+        actingMemberId: ann,
+        publicKey: bo.signingKey!.publicKey,
+      );
+      await memberships().setRole(
+        libraryId: lib.id,
+        actingMemberId: ann,
+        memberId: bo.memberId,
+        role: SharedLibraryRole.editor,
+      );
+      final file = (await t.listSites()).single;
+      final doc = await t.readSite(file.id);
+      final later = DateTime.now().add(const Duration(hours: 1));
+      await t.writeSite(
+        await signOwnFields(
+          doc.copyWith(
+            fields: {...doc.fields, 'name': 'Renamed later'},
+            clocks: {
+              ...doc.clocks,
+              'name': FieldClock(
+                hlc: Hlc(later.millisecondsSinceEpoch, 0, bo.memberId),
+                memberId: bo.memberId,
+              ),
+            },
+          ),
+          libraryId: lib.id,
+          memberId: bo.memberId,
+          key: bo.signingKey!,
+        ),
+      );
+
+      // An owner's device keeps its value and does not take the later edit.
+      await syncer().sync(lib.id, diverId: 'd1');
+      expect((await SiteRepository().getSiteById('s1'))?.name, 'Blue Hole');
+    },
+  );
 
   test('the removed device stops writing and keeps its card away', () async {
     final bo = await addMember('d2', 'Bo', SharedLibraryRole.editor);

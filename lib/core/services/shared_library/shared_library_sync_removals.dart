@@ -23,6 +23,18 @@ extension _RemovalSync on SharedLibraryService {
     return removals;
   }
 
+  /// [roles] as their removals leave them, for judging edits: a removal
+  /// outweighs an approval the roles may still hold (an older owner app, a
+  /// restore race), so a removed member's key counts only until their
+  /// removal.
+  SharedLibraryRoles _judgedRoles(
+    SharedLibraryRoles roles,
+    List<MemberRemoval> removals,
+  ) => removals.fold(
+    roles,
+    (acc, r) => acc.removing(r.memberId, at: r.removedAt),
+  );
+
   /// Editors and owners with a genuine card whose key no owner approved
   /// yet: their edits are held, neither applied nor overwritten. Someone
   /// removed is never waiting (a removal wins over a role or a card).
