@@ -30,12 +30,22 @@ class SuuntoBuddyWriter {
     String diverId,
   ) async {
     if (parsed.buddies.isEmpty) return;
+    final Set<String> onDive;
     try {
-      final onDive = {
-        for (final linked in await _repository.getBuddiesForDive(diveId))
-          linked.buddy.id,
-      };
-      for (final name in parsed.buddies) {
+      // The lean batch read: only ids are needed, not certifications.
+      final linked = await _repository.getBuddiesForDives([diveId]);
+      onDive = {for (final b in linked[diveId] ?? const []) b.buddy.id};
+    } catch (e, st) {
+      _log.error(
+        'Could not read the buddies already on dive $diveId',
+        error: e,
+        stackTrace: st,
+      );
+      return;
+    }
+    // One person failing to save must not cost the dive the others.
+    for (final name in parsed.buddies) {
+      try {
         final buddy = await _repository.findOrCreateByName(
           name,
           diverId: diverId,
@@ -45,13 +55,13 @@ class SuuntoBuddyWriter {
         }
         if (!onDive.add(buddy.id)) continue;
         await _repository.addBuddyToDive(diveId, buddy.id, DiveRole.buddyId);
+      } catch (e, st) {
+        _log.error(
+          'Could not bring Suunto buddy onto dive $diveId',
+          error: e,
+          stackTrace: st,
+        );
       }
-    } catch (e, st) {
-      _log.error(
-        'Could not bring Suunto buddies onto dive $diveId',
-        error: e,
-        stackTrace: st,
-      );
     }
   }
 }

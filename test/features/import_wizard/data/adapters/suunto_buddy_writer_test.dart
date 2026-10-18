@@ -135,20 +135,47 @@ void main() {
     expect(await repo.getAllBuddies(diverId: diverId), isEmpty);
   });
 
-  test('logs rather than throws when a person cannot be saved', () async {
+  test('logs rather than throws when the dive cannot be read', () async {
     // The dive is already saved by now, so losing its buddies must not fail
     // the import or stop the dives after this one.
-    final failing = SuuntoBuddyWriter(repository: _ThrowingBuddyRepository());
+    final failing = SuuntoBuddyWriter(repository: _UnreadableDiveRepository());
 
     await expectLater(
       failing.attach('d1', _parsed(['Buddy 1']), diverId),
       completes,
     );
   });
+
+  test('one person failing to save still links the others', () async {
+    final failing = SuuntoBuddyWriter(
+      repository: _FailingNameRepository('Buddy 1'),
+    );
+
+    await failing.attach('d1', _parsed(['Buddy 1', 'Buddy 2']), diverId);
+
+    expect((await onDive()).single.buddy.name, 'Buddy 2');
+  });
 }
 
-class _ThrowingBuddyRepository extends BuddyRepository {
+class _UnreadableDiveRepository extends BuddyRepository {
   @override
-  Future<List<BuddyWithRole>> getBuddiesForDive(String diveId) async =>
-      throw StateError('database closed');
+  Future<Map<String, List<BuddyWithRole>>> getBuddiesForDives(
+    List<String> diveIds,
+  ) async => throw StateError('database closed');
+}
+
+class _FailingNameRepository extends BuddyRepository {
+  _FailingNameRepository(this.failingName);
+
+  final String failingName;
+
+  @override
+  Future<Buddy> findOrCreateByName(
+    String name, {
+    String? notes,
+    String? diverId,
+  }) async {
+    if (name == failingName) throw StateError('disk full');
+    return super.findOrCreateByName(name, notes: notes, diverId: diverId);
+  }
 }
