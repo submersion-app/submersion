@@ -267,74 +267,78 @@ class _CertificationListContentState
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
         builder: (context, selection, _) => Scaffold(
-          appBar: selection.isActive
-              ? _buildSelectionBar(visibleCerts, SelectionBarShell.appBar)
-              : _buildPhoneAppBar(
-                  context,
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.wallet),
-                      tooltip:
-                          context.l10n.certifications_list_tooltip_walletView,
-                      onPressed: () => context.push('/certifications/wallet'),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      tooltip: context.l10n.certifications_list_tooltip_search,
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: CertificationSearchDelegate(),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.sort),
-                      tooltip: context.l10n.certifications_list_tooltip_sort,
-                      onPressed: () => _showSortSheet(context),
-                    ),
-                    QueryFilterAction(
-                      provider: certificationQueryProvider,
-                      subject: QuerySubject.certifications,
-                      root: certificationQueryEntity,
-                    ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      onSelected: (value) {
-                        if (value.startsWith('view_')) {
-                          final mode = ListViewMode.fromName(
-                            value.replaceFirst('view_', ''),
+          appBar: _pinAppBar(
+            selection.isActive
+                ? _buildSelectionBar(visibleCerts, SelectionBarShell.appBar)
+                : _buildPhoneAppBar(
+                    context,
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.wallet),
+                        tooltip:
+                            context.l10n.certifications_list_tooltip_walletView,
+                        onPressed: () => context.push('/certifications/wallet'),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.search),
+                        tooltip:
+                            context.l10n.certifications_list_tooltip_search,
+                        onPressed: () {
+                          showSearch(
+                            context: context,
+                            delegate: CertificationSearchDelegate(),
                           );
-                          ref
-                                  .read(
-                                    certificationListViewModeProvider.notifier,
-                                  )
-                                  .state =
-                              mode;
-                        }
-                      },
-                      itemBuilder: (context) {
-                        final currentMode = ref.read(
-                          certificationListViewModeProvider,
-                        );
-                        return [
-                          ...selectItemsMenuEntries(
-                            context,
-                            onSelect: _selection.enterExplicit,
-                          ),
-                          ...ListViewModeToggle.menuItems(
-                            context,
-                            currentMode: currentMode,
-                            modes: const [
-                              ListViewMode.detailed,
-                              ListViewMode.table,
-                            ],
-                          ),
-                        ];
-                      },
-                    ),
-                  ],
-                ),
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.sort),
+                        tooltip: context.l10n.certifications_list_tooltip_sort,
+                        onPressed: () => _showSortSheet(context),
+                      ),
+                      QueryFilterAction(
+                        provider: certificationQueryProvider,
+                        subject: QuerySubject.certifications,
+                        root: certificationQueryEntity,
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (value) {
+                          if (value.startsWith('view_')) {
+                            final mode = ListViewMode.fromName(
+                              value.replaceFirst('view_', ''),
+                            );
+                            ref
+                                    .read(
+                                      certificationListViewModeProvider
+                                          .notifier,
+                                    )
+                                    .state =
+                                mode;
+                          }
+                        },
+                        itemBuilder: (context) {
+                          final currentMode = ref.read(
+                            certificationListViewModeProvider,
+                          );
+                          return [
+                            ...selectItemsMenuEntries(
+                              context,
+                              onSelect: _selection.enterExplicit,
+                            ),
+                            ...ListViewModeToggle.menuItems(
+                              context,
+                              currentMode: currentMode,
+                              modes: const [
+                                ListViewMode.detailed,
+                                ListViewMode.table,
+                              ],
+                            ),
+                          ];
+                        },
+                      ),
+                    ],
+                  ),
+          ),
           body: buildContent(),
           floatingActionButton: selection.isActive
               ? null
@@ -512,6 +516,11 @@ class _CertificationListContentState
       },
     );
   }
+
+  /// [bar], or [bar] held still by the header's host while Training's tabs
+  /// slide, so only the list under it moves (#3465).
+  PreferredSizeWidget _pinAppBar(PreferredSizeWidget bar) =>
+      widget.headerTitle?.pinAppBar(bar) ?? bar;
 
   /// The phone app bar: the plain title with its actions beside it, or a
   /// [SectionHeaderTitle] with the actions on a row under it.

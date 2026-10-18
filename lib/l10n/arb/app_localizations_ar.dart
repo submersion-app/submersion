@@ -36617,6 +36617,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'لم يُحذف أي شيء: تنتظر عمليات الحذف حتى ينتهي هذا الجهاز من المزامنة.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'لم يُحذف أي شيء: أعد توصيل مخزن الوسائط ليعرف سجل الغوص هذا أي الملفات تخصه.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'لم يُحذف أي شيء: تنتظر عمليات الحذف حتى تنتهي عمليات الرفع.';
+
+  @override
   String get settings_mediaStorage_backfill_action => 'رفع المكتبة الحالية';
 
   @override
@@ -51466,6 +51478,91 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'ملفات الاستيراد الأصلية';
+
+  @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device على هذا الجهاز، $cloud في السحابة';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'يمكن استرداد نحو $size';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'لا يوجد ما يمكن استرداده الآن';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'آخر استرداد $size، $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد فترة الانتظار الآمنة';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد أن ينتهي هذا الجهاز من المزامنة';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد إعادة توصيل مخزن الوسائط';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'سيصبح $size إضافية قابلة للاسترداد بعد انتهاء عمليات الرفع';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'استرداد مساحة التخزين';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return 'تم استرداد $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return 'تم استرداد $size. ينتظر تنظيف السحابة حتى ينتهي هذا الجهاز من المزامنة.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return 'تم استرداد $size. أعد توصيل مخزن الوسائط لتنظيف السحابة.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return 'تم استرداد $size. ينتظر تنظيف السحابة حتى تنتهي عمليات الرفع.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'في السحابة';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'مخزن الوسائط';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'مزامنة قاعدة البيانات';
+
+  @override
+  String get settings_storageUsage_cloud_libraries => 'مكتبات المواقع المشتركة';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'تم الفحص $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'لم يتم الفحص بعد';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'إعادة الفحص';
 
   @override
   String get profilePhoto_sheet_title => 'صورة الملف الشخصي';

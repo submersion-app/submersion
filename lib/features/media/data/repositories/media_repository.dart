@@ -6,6 +6,8 @@ import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/media_store/media_key_reference.dart';
+import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -2550,25 +2552,54 @@ class MediaRepository {
     return rows.map((r) => r.read(id)!).toList();
   }
 
-  /// Every distinct non-null content hash - the verify sweep's referenced
-  /// set (orphan-prevention spec 6.1). Same conservative rule as
-  /// [countRowsWithHash]: a hash counts whether or not its rows uploaded.
-  Future<Set<String>> getAllContentHashes() async {
+  /// Every row with a content hash, grouped by hash, with the facts that
+  /// decide which media store keys it can resolve to (storage GC design,
+  /// leak 3). The verify sweep uses it to tell a sibling object some row
+  /// still needs from one nothing does.
+  ///
+  /// [contentHash] limits the read to that hash's rows: the sweep asks again
+  /// just before a delete, since a row can start using an object meanwhile.
+  Future<Map<String, List<MediaKeyReference>>> getContentReferences({
+    String? contentHash,
+  }) async {
+    // selectOnly projection, for the same reason as below: full rows would
+    // drag signature BLOBs into memory for every hashed row.
     final hash = _db.media.contentHash;
-    final query = _db.selectOnly(_db.media, distinct: true)
-      ..addColumns([hash])
-      ..where(hash.isNotNull());
-    final rows = await query.get();
-    return rows.map((r) => r.read(hash)!).toSet();
+    final filename = _db.media.originalFilename;
+    final fileType = _db.media.fileType;
+    final original = _db.media.remoteUploadedAt;
+    final rendition = _db.media.remoteCompressedUploadedAt;
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([hash, filename, fileType, original, rendition])
+      ..where(
+        contentHash == null ? hash.isNotNull() : hash.equals(contentHash),
+      );
+    final out = <String, List<MediaKeyReference>>{};
+    for (final row in await query.get()) {
+      out
+          .putIfAbsent(row.read(hash)!, () => [])
+          .add(
+            MediaKeyReference(
+              originalExtension: StoreKeys.extensionFor(row.read(filename)),
+              isVideo: row.read(fileType) == 'video',
+              hasOriginalStamp: row.read(original) != null,
+              hasRenditionStamp: row.read(rendition) != null,
+            ),
+          );
+    }
+    return out;
   }
 
   /// Rows with a content hash and at least one remote stamp, for the
-  /// verify sweep's reverse repair (orphan-prevention spec 6.2).
+  /// verify sweep's reverse repair (orphan-prevention spec 6.2). The
+  /// extension and media type say which exact keys the row resolves to.
   Future<
     List<
       ({
         String id,
         String contentHash,
+        String originalExtension,
+        bool isVideo,
         bool hasOriginal,
         bool hasThumb,
         bool hasRendition,
@@ -2578,14 +2609,16 @@ class MediaRepository {
   getRemoteStampedSummaries() async {
     // selectOnly projection: full rows would drag the imageData BLOB
     // (signature bytes) into memory for every stamped row, and the verify
-    // sweep only needs five scalars.
+    // sweep only needs a few scalars.
     final id = _db.media.id;
     final hash = _db.media.contentHash;
+    final filename = _db.media.originalFilename;
+    final fileType = _db.media.fileType;
     final original = _db.media.remoteUploadedAt;
     final thumb = _db.media.remoteThumbUploadedAt;
     final rendition = _db.media.remoteCompressedUploadedAt;
     final query = _db.selectOnly(_db.media)
-      ..addColumns([id, hash, original, thumb, rendition])
+      ..addColumns([id, hash, filename, fileType, original, thumb, rendition])
       ..where(
         hash.isNotNull() &
             (original.isNotNull() | thumb.isNotNull() | rendition.isNotNull()),
@@ -2596,6 +2629,8 @@ class MediaRepository {
         (
           id: row.read(id)!,
           contentHash: row.read(hash)!,
+          originalExtension: StoreKeys.extensionFor(row.read(filename)),
+          isVideo: row.read(fileType) == 'video',
           hasOriginal: row.read(original) != null,
           hasThumb: row.read(thumb) != null,
           hasRendition: row.read(rendition) != null,

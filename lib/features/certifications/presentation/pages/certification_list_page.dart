@@ -85,6 +85,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
             context,
             countLabel,
           ),
+          phoneAppBarPin: widget.headerTitle?.pinAppBar,
           tableContent: CertificationListContent(
             showAppBar: false,
             selectionController: tableSelection,

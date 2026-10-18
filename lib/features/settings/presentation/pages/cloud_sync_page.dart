@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
@@ -25,6 +24,7 @@ import 'package:submersion/features/settings/presentation/widgets/replace_cloud_
 import 'package:submersion/features/settings/presentation/widgets/newer_schema_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/older_schema_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/read_failed_peer_banner.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/skipped_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
@@ -199,7 +199,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => context.push('/settings/storage'),
+            onPressed: () => context.pushSettingsPage('/settings/storage'),
             icon: const Icon(Icons.settings),
             label: Text(context.l10n.settings_cloudSync_storageSettings),
             style: OutlinedButton.styleFrom(
@@ -553,7 +553,8 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
           isSelected: selectedProvider == CloudProviderType.webdav,
           onSelect: () =>
               _selectProvider(context, ref, CloudProviderType.webdav),
-          onEdit: () => context.push('/settings/cloud-sync/webdav-config'),
+          onEdit: () =>
+              context.pushSettingsPage('/settings/cloud-sync/webdav-config'),
         ),
         // The tile disappears in builds without a Dropbox app key
         // (dropboxAppKey empty) so users never see a connect dialog that
@@ -673,7 +674,8 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
             IconButton(
               icon: const Icon(Icons.settings_outlined),
               tooltip: l10n.settings_cloudSync_provider_s3_edit,
-              onPressed: () => context.push('/settings/cloud-sync/s3-config'),
+              onPressed: () =>
+                  context.pushSettingsPage('/settings/cloud-sync/s3-config'),
             ),
           ],
         ),
@@ -681,7 +683,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
           if (isConfigured) {
             _selectProvider(context, ref, CloudProviderType.s3);
           } else {
-            context.push('/settings/cloud-sync/s3-config');
+            context.pushSettingsPage('/settings/cloud-sync/s3-config');
           }
         },
       ),

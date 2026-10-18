@@ -482,6 +482,10 @@ class DatabaseMigrationService {
       // Create security-scoped bookmark for persistent access (macOS)
       await _locationService.createAndStoreBookmark(folderPath);
 
+      // Another dive log is about to open: the storage cleanup must not
+      // judge the cloud media store by sync knowledge about this one.
+      await _locationService.markDatabaseSwitched();
+
       // Open the new database
       await _dbService.reinitializeAtPath(newPath);
 

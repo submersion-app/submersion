@@ -13,7 +13,8 @@ import 'package:submersion/core/services/media_store/media_object_store.dart';
 /// '/'). ALL uploads go through resumable sessions - one code path for
 /// photos and videos - with resume via the `Content-Range: bytes */total`
 /// probe. [chunkSizeBytes] must be a multiple of 256 KiB (Drive rule).
-class GoogleDriveMediaObjectStore implements MediaObjectStore {
+class GoogleDriveMediaObjectStore
+    implements MediaObjectStore, DuplicateKeyStore {
   /// [clientSupplier] is asked for the authenticator's *current* client on
   /// every request. It must not be replaced by a captured client: the
   /// Google authenticators close and replace theirs on every re-auth
@@ -262,6 +263,34 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
   }
 
   @override
+  Future<int> deleteExtraCopies(
+    String key, {
+    bool Function()? mayDelete,
+  }) async {
+    final files = await _filesByKey(key);
+    // Distinct by id: only separate files count as copies.
+    final byId = {for (final f in files) f.id: f};
+    if (byId.length < 2) return 0;
+    // Keep the newest; the bytes are identical, so which one is moot, but a
+    // stable choice keeps two devices sweeping at once from each deleting a
+    // different survivor.
+    final ordered = byId.values.toList()
+      ..sort((a, b) {
+        final am = a.modified, bm = b.modified;
+        if (am == null || bm == null) return a.id.compareTo(b.id);
+        final byTime = bm.compareTo(am);
+        return byTime != 0 ? byTime : a.id.compareTo(b.id);
+      });
+    var removed = 0;
+    for (final extra in ordered.skip(1)) {
+      if (mayDelete != null && !mayDelete()) break;
+      await _deleteById(extra.id);
+      removed++;
+    }
+    return removed;
+  }
+
+  @override
   Future<void> abandonResume(String key, String? resumeStateJson) async {
     // Upload sessions expire server-side; nothing to abort.
   }
@@ -325,12 +354,17 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
   }
 
   Future<_DriveFile?> _findByKey(String key) async {
+    final files = await _filesByKey(key);
+    return files.isEmpty ? null : files.first;
+  }
+
+  /// Every file in the media folder named [key]. Drive allows several.
+  Future<List<_DriveFile>> _filesByKey(String key) async {
     final folderId = await _ensureFolder();
     final escaped = key.replaceAll("'", r"\'");
-    final files = await _query(
+    return _query(
       "name = '$escaped' and '$folderId' in parents and trashed = false",
     );
-    return files.isEmpty ? null : files.first;
   }
 
   /// Drive's documented per-page maximum, requested explicitly so a large

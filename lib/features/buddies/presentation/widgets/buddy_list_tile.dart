@@ -27,10 +27,10 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 /// Detailed list card for one buddy.
 ///
 /// Configurable slots come from [buddyDetailedCardConfigProvider]; the
-/// agency-tinted avatar ring, certification chip, usual-role chip and contact
-/// icons are fixed identity elements. Hand-rolled rather than a ListTile so
-/// the title keeps its font role under every theme preset and nothing
-/// text-bearing sits in the trailing slot (issue #935).
+/// avatar, certification chip, usual-role chip and contact icons are fixed
+/// identity elements. Hand-rolled rather than a ListTile so the title keeps
+/// its font role under every theme preset and nothing text-bearing sits in
+/// the trailing slot (issue #935).
 class BuddyListTile extends ConsumerWidget {
   final BuddyWithDiveCount entry;
   final bool isSelected;
@@ -187,7 +187,6 @@ class BuddyListTile extends ConsumerWidget {
                         child: Center(
                           child: _BuddyAvatar(
                             buddy: buddy,
-                            ringColor: agencyColor,
                             backgroundColor:
                                 accent?.withValues(alpha: 0.15) ??
                                 colorScheme.primaryContainer,
@@ -294,19 +293,17 @@ class BuddyListTile extends ConsumerWidget {
   }
 }
 
-/// Photo when the stored file exists, initials otherwise, inside an
-/// optional 2 px ring in the certification agency's brand colour. A buddy
-/// without a photo that is a local profile borrows that profile's photo
-/// (issue #2002).
+/// Photo when the stored file exists, initials otherwise. No ring, so it
+/// matches the leading badge in every other section (issue #3466); the
+/// agency colour shows on the certification chip. A buddy without a photo
+/// that is a local profile borrows that profile's photo (issue #2002).
 class _BuddyAvatar extends ConsumerWidget {
   final Buddy buddy;
-  final Color? ringColor;
   final Color backgroundColor;
   final Color foregroundColor;
 
   const _BuddyAvatar({
     required this.buddy,
-    required this.ringColor,
     required this.backgroundColor,
     required this.foregroundColor,
   });
@@ -323,7 +320,6 @@ class _BuddyAvatar extends ConsumerWidget {
       initials: buddy.initials,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
-      ringColor: ringColor,
     );
   }
 }

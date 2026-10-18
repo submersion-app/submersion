@@ -56720,6 +56720,24 @@ abstract class AppLocalizations {
     int aborted,
   );
 
+  /// No description provided for @settings_mediaStorage_verify_deferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was deleted: deletes wait until this device has finished syncing.'**
+  String get settings_mediaStorage_verify_deferred;
+
+  /// No description provided for @settings_mediaStorage_verify_unregistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was deleted: reconnect the media store so this dive log knows which files are its own.'**
+  String get settings_mediaStorage_verify_unregistered;
+
+  /// No description provided for @settings_mediaStorage_verify_uploads.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was deleted: deletes wait until uploads finish.'**
+  String get settings_mediaStorage_verify_uploads;
+
   /// No description provided for @settings_mediaStorage_backfill_action.
   ///
   /// In en, this message translates to:
@@ -80506,6 +80524,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Imported logbook files'**
   String get settings_storageUsage_category_importedFiles;
+
+  /// No description provided for @settings_storageUsage_totalSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'{device} on this device, {cloud} in the cloud'**
+  String settings_storageUsage_totalSplit(String device, String cloud);
+
+  /// No description provided for @settings_storageUsage_reclaimTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About {size} can be reclaimed'**
+  String settings_storageUsage_reclaimTitle(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to reclaim right now'**
+  String get settings_storageUsage_reclaimNothing;
+
+  /// No description provided for @settings_storageUsage_reclaimLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last reclaimed {size}, {when}'**
+  String settings_storageUsage_reclaimLast(String size, String when);
+
+  /// No description provided for @settings_storageUsage_reclaimWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} more will be reclaimable after the safety wait'**
+  String settings_storageUsage_reclaimWaiting(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimWaitingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} more will be reclaimable once this device has finished syncing'**
+  String settings_storageUsage_reclaimWaitingSync(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimWaitingUnregistered.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} more will be reclaimable after you reconnect the media store'**
+  String settings_storageUsage_reclaimWaitingUnregistered(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimWaitingUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} more will be reclaimable once uploads finish'**
+  String settings_storageUsage_reclaimWaitingUploads(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reclaim storage'**
+  String get settings_storageUsage_reclaimAction;
+
+  /// No description provided for @settings_storageUsage_reclaimDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Reclaimed {size}'**
+  String settings_storageUsage_reclaimDone(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimDoneDeferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Reclaimed {size}. The cloud cleanup waits until this device has finished syncing.'**
+  String settings_storageUsage_reclaimDoneDeferred(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimDoneUnregistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Reclaimed {size}. Reconnect the media store to clean up the cloud.'**
+  String settings_storageUsage_reclaimDoneUnregistered(String size);
+
+  /// No description provided for @settings_storageUsage_reclaimDoneUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'Reclaimed {size}. The cloud cleanup waits until uploads finish.'**
+  String settings_storageUsage_reclaimDoneUploads(String size);
+
+  /// No description provided for @settings_storageUsage_group_cloud.
+  ///
+  /// In en, this message translates to:
+  /// **'In the Cloud'**
+  String get settings_storageUsage_group_cloud;
+
+  /// No description provided for @settings_storageUsage_cloud_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media store'**
+  String get settings_storageUsage_cloud_media;
+
+  /// No description provided for @settings_storageUsage_cloud_sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Database sync'**
+  String get settings_storageUsage_cloud_sync;
+
+  /// No description provided for @settings_storageUsage_cloud_libraries.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared site libraries'**
+  String get settings_storageUsage_cloud_libraries;
+
+  /// No description provided for @settings_storageUsage_cloud_scanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned {when}'**
+  String settings_storageUsage_cloud_scanned(String when);
+
+  /// No description provided for @settings_storageUsage_cloud_notScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not scanned yet'**
+  String get settings_storageUsage_cloud_notScanned;
+
+  /// No description provided for @settings_storageUsage_cloud_rescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan'**
+  String get settings_storageUsage_cloud_rescan;
 
   /// No description provided for @profilePhoto_sheet_title.
   ///

@@ -7,7 +7,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -112,12 +111,9 @@ class RecentSitesMapCard extends ConsumerWidget {
                             ),
                         ],
                       ),
+                      // No map style switcher: the map is locked, and the
+                      // full map the expand icon opens carries one.
                       const MapAttribution(),
-                      const Positioned(
-                        top: 8,
-                        right: 8,
-                        child: MapCornerControls(),
-                      ),
                     ],
                   ),
                 ),

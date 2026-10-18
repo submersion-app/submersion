@@ -39,6 +39,7 @@ import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/library_replace_intent.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
+import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/library_moved_store.dart';
@@ -627,6 +628,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     encryptionService: ref.watch(syncEncryptionServiceProvider),
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
     peerNames: ref.watch(peerDeviceNameStoreProvider),
+    peerSnapshots: PeerSyncSnapshotStore(ref.watch(sharedPreferencesProvider)),
     // A synced cloud id or upload lifts a gallery search's backoff, and a
     // relink drops the old photo's mapping (spec 6.2).
     onMediaResolutionHints: (hints) =>

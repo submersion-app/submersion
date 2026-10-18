@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -65,13 +65,15 @@ class DataRowTile extends StatelessWidget {
                 Text(subtitle),
                 TileSubtitleAction(
                   label: l10n.settings_data_setUp,
-                  onPressed: () => context.push(setUpRoute ?? route),
+                  onPressed: () =>
+                      context.pushSettingsPage(setUpRoute ?? route),
                 ),
               ],
             )
           : Text(subtitle),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.push(route),
+      // In the desktop detail pane when it can show the page (#3467).
+      onTap: () => context.pushSettingsPage(route),
     );
   }
 }

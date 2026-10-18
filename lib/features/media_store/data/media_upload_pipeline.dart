@@ -77,6 +77,31 @@ class MediaUploadPipeline {
   /// poster frame from a playable original.
   bool _isThumbOnly(MediaItem item) => isThumbOnlyMedia(item);
 
+  /// Abandons the provider-side sessions of resumable uploads whose queue
+  /// rows were dropped (a re-upload override or a Transfers delete), so
+  /// their parts do not wait a week for the verify sweep's reap (storage GC
+  /// design, leak 4). Resumable sessions only exist for originals, so the
+  /// key is the row's original key. Best-effort: a row without a hash, or a
+  /// provider that refuses, is skipped.
+  Future<void> abandonDroppedSessions(List<DroppedResume> dropped) async {
+    for (final d in dropped) {
+      try {
+        final item = await _mediaRepository.getMediaById(d.mediaId);
+        final hash = item?.contentHash;
+        if (item == null || hash == null) continue;
+        await _store.abandonResume(
+          StoreKeys.objectKey(
+            hash,
+            extension: StoreKeys.extensionFor(item.originalFilename),
+          ),
+          d.resumeStateJson,
+        );
+      } on Exception catch (e) {
+        _log.warning('Abandoning dropped session failed', error: e);
+      }
+    }
+  }
+
   Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
     await _queue.markTransferring(entry.id);
     final item = await _mediaRepository.getMediaById(entry.mediaId);
@@ -281,7 +306,9 @@ class MediaUploadPipeline {
           await _bestEffortDelete(
             StoreKeys.renditionKey(
               digest.hash,
-              ext: item.mediaType == MediaType.video ? 'mp4' : 'jpg',
+              ext: StoreKeys.renditionExtension(
+                isVideo: item.mediaType == MediaType.video,
+              ),
             ),
             'abandoned rendition',
           );

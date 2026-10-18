@@ -12,6 +12,7 @@ import 'package:submersion/core/services/security/database_security_sidecar.dart
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/startup_recovery_service.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 
@@ -205,6 +206,9 @@ void main() {
       expect(config.mode, StorageLocationMode.customFolder);
       expect(config.customFolderPath, candidate.path);
       expect(await locationService.getDatabasePath(), found.path);
+      // Another dive log opens next launch: the storage cleanup must not
+      // trust what the last sync told it about the one it replaces.
+      expect(StorageGcStore(prefs).lastRestoreAt, isNotNull);
     });
 
     // Without a bookmark the adopted folder is unreachable on the next launch
@@ -335,6 +339,7 @@ void main() {
       final config = await locationService.getStorageConfig();
       expect(config.mode, StorageLocationMode.appDefault);
       expect(config.customFolderPath, isNull);
+      expect(StorageGcStore(prefs).lastRestoreAt, isNotNull);
       // A bookmark left behind would be resolved on the next launch and hold
       // open a folder the app no longer uses.
       expect(locationService.hasStoredBookmark(), isFalse);

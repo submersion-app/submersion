@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
@@ -31,5 +33,20 @@ void main() {
 
   test('the result of the body comes back', () async {
     expect(await SyncCoordinator.run(() async => 'ok'), 'ok');
+  });
+
+  test('quietGuard turns false for good once a sync starts', () async {
+    final guard = SyncCoordinator.quietGuard();
+    expect(guard(), isTrue);
+    await SyncCoordinator.run(() async {});
+    expect(guard(), isFalse, reason: 'a sync ran since the guard was taken');
+  });
+
+  test('quietGuard is false from the start while a sync is running', () async {
+    final hold = Completer<void>();
+    final running = SyncCoordinator.run(() => hold.future);
+    expect(SyncCoordinator.quietGuard()(), isFalse);
+    hold.complete();
+    await running;
   });
 }

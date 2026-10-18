@@ -3,18 +3,24 @@
 // same health symbol as the strip. Issue #3482: the rows read as outcomes
 // with one-sentence statuses under "Your data", and the rarely used rows
 // fold under "Advanced".
+// On a master-detail window its rows open in the detail pane (#3467).
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -44,7 +50,7 @@ void main() {
     ),
   ];
 
-  Future<void> pumpData(
+  Future<GoRouter> pumpData(
     WidgetTester tester, {
     List<FeatureHealth> dataHealth = health,
     DateTime? lastSync,
@@ -52,8 +58,10 @@ void main() {
     Size size = const Size(400, 2400),
     double textScale = 1,
   }) async {
-    await tester.binding.setSurfaceSize(size);
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    // MediaQuery follows the view, which the layout breakpoints read.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = size;
+    addTearDown(tester.view.reset);
     final router = GoRouter(
       initialLocation: '/settings?selected=data',
       routes: [
@@ -78,6 +86,11 @@ void main() {
           ),
       ],
     );
+    addTearDown(router.dispose);
+    // The master-detail section list reads debug mode, which needs a log
+    // service.
+    final logDir = Directory.systemTemp.createTempSync('data_pane_test');
+    addTearDown(() => logDir.deleteSync(recursive: true));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -85,6 +98,9 @@ void main() {
             dataHealth: dataHealth,
             lastSync: lastSync,
             syncPeerNames: peers,
+          ),
+          logFileServiceProvider.overrideWithValue(
+            LogFileService(logDirectory: logDir.path),
           ),
         ],
         child: MaterialApp.router(
@@ -96,6 +112,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    return router;
   }
 
   Finder markBeside(String title) => find.descendant(
@@ -328,5 +345,44 @@ void main() {
       container.read(backupSettingsProvider).lastScheduledFailureMessage,
       'disk full',
     );
+  });
+
+  testWidgets('on a master-detail window a row opens in the pane (#3467)', (
+    tester,
+  ) async {
+    final router = await pumpData(tester, size: const Size(1400, 2400));
+    final importPage = find.widgetWithText(AppBar, 'Import options');
+
+    await tester.tap(find.widgetWithText(ListTile, 'Import options'));
+    await tester.pumpAndSettle();
+
+    expect(
+      router.routerDelegate.currentConfiguration.uri.toString(),
+      '/settings?selected=data&dataPage=import-options',
+    );
+    expect(importPage, findsOneWidget);
+    // The section list is still beside it.
+    expect(find.byType(SettingsListContent), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(
+      router.routerDelegate.currentConfiguration.uri.toString(),
+      '/settings?selected=data',
+    );
+    expect(importPage, findsNothing);
+    expect(find.text('Your data'), findsOneWidget);
+  });
+
+  testWidgets('on a phone a row still pushes its page', (tester) async {
+    final router = await pumpData(tester);
+
+    await tester.tap(find.text('Import options'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('page /settings/import-options'), findsOneWidget);
+    expect(router.canPop(), isTrue);
+    expect(find.text('Your data'), findsNothing);
   });
 }

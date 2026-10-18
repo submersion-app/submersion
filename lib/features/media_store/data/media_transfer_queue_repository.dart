@@ -9,6 +9,8 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 
+part 'media_transfer_queue_resume.dart';
+
 /// Row type alias so callers do not depend on the Drift-generated name.
 typedef MediaTransferQueueEntry = MediaTransferQueueData;
 
@@ -589,6 +591,23 @@ class MediaTransferQueueRepository {
   Future<int> deleteDone() => (_db.delete(
     _db.mediaTransferQueue,
   )..where((t) => t.state.equals('done'))).go();
+
+  /// Whether an upload is transferring right now. The storage cleanup holds
+  /// its cloud deletes while one is (storage GC design, safety rules); a
+  /// pending row is not counted, since its hash already protects its objects
+  /// and a row stuck pending must not block the cleanup forever.
+  Future<bool> hasTransferringUploads() async {
+    final row =
+        await (_db.select(_db.mediaTransferQueue)
+              ..where(
+                (t) =>
+                    t.direction.equals('upload') &
+                    t.state.equals('transferring'),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
 
   /// Removes a single queue entry.
   ///

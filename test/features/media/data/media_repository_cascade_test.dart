@@ -160,15 +160,6 @@ void main() {
     expect(await repo.getSweepableOrphanIds(olderThan: past), isEmpty);
   });
 
-  test('getAllContentHashes collects distinct non-null hashes', () async {
-    await insertDive('d1');
-    await repo.createMedia(item('a.jpg', diveId: 'd1', hash: 'h1'));
-    await repo.createMedia(item('b.jpg', diveId: 'd1', hash: 'h1')); // dup
-    await repo.createMedia(item('c.jpg', diveId: 'd1', hash: 'h2'));
-    await repo.createMedia(item('d.jpg', diveId: 'd1')); // no hash
-    expect(await repo.getAllContentHashes(), {'h1', 'h2'});
-  });
-
   test('getRemoteStampedSummaries reports per-tier stamps', () async {
     await insertDive('d1');
     final orig = await repo.createMedia(

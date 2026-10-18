@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Data > Advanced > Data tools (issue #3482): the four one-off
@@ -20,7 +20,7 @@ class DataToolsPage extends StatelessWidget {
           title: Text(title),
           subtitle: Text(subtitle),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push(route),
+          onTap: () => context.pushSettingsPage(route),
         );
 
     return Scaffold(

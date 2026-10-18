@@ -35211,6 +35211,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'דבר לא נמחק: המחיקות ימתינו עד שהמכשיר הזה יסיים לסנכרן.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'דבר לא נמחק: חבר מחדש את אחסון המדיה כדי שיומן הצלילות הזה ידע אילו קבצים שייכים לו.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'דבר לא נמחק: המחיקות ימתינו עד שההעלאות יסתיימו.';
+
+  @override
   String get settings_mediaStorage_backfill_action => 'העלה ספריה קיימת';
 
   @override
@@ -49738,6 +49750,90 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'קובצי הייבוא המקוריים';
+
+  @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device במכשיר זה, $cloud בענן';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'ניתן לפנות כ-$size';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing => 'אין מה לפנות כרגע';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'פונו לאחרונה $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי אחרי תקופת ההמתנה הבטיחותית';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי לאחר שהמכשיר הזה יסיים לסנכרן';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי לאחר שתחבר מחדש את אחסון המדיה';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'עוד $size יהיו ניתנים לפינוי לאחר שההעלאות יסתיימו';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'פינוי אחסון';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return 'פונו $size';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return 'פונו $size. הניקוי בענן ימתין עד שהמכשיר הזה יסיים לסנכרן.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return 'פונו $size. חבר מחדש את אחסון המדיה כדי לנקות את הענן.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return 'פונו $size. הניקוי בענן ימתין עד שההעלאות יסתיימו.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'בענן';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'מאגר המדיה';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'סנכרון מסד הנתונים';
+
+  @override
+  String get settings_storageUsage_cloud_libraries => 'ספריות אתרים משותפות';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'נסרק $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'עדיין לא נסרק';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'סריקה מחדש';
 
   @override
   String get profilePhoto_sheet_title => 'תמונת פרופיל';

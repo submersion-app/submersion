@@ -70,8 +70,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   late int _shownTabIndex;
 
   void _onTabChanged() {
-    // A tapped name notifies twice: as the index changes, with the pill about
-    // to slide, and again when it lands. Act on the first, so the section
+    // A tapped name notifies twice: as the index changes, with the underline
+    // about to slide, and again when it lands. Act on the first, so the section
     // shows at once rather than after the slide (issue #3461).
     if (_tabController.index == _shownTabIndex) return;
     _shownTabIndex = _tabController.index;
@@ -208,7 +208,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         return Scaffold(
           appBar: AppBar(
             // The title is the section switcher: "Equipment" and "Sets" sit
-            // where the title would, the one showing in a pill. 8 here plus
+            // where the title would, the one showing underlined. 8 here plus
             // the switcher's own 8px label padding puts the text at the 16px
             // every other app bar title sits at.
             titleSpacing: _phoneTitleSpacing,
@@ -219,6 +219,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
                 child: EquipmentSectionToggle(
                   controller: _tabController,
                   tabHeight: EquipmentSectionToggle.compactTabHeight,
+                  onAppBar: true,
                 ),
               ),
               subtitle: _isEquipmentTab && !selection.isActive

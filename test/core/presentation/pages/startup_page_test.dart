@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
@@ -2228,6 +2229,10 @@ void main() {
       await tester.pump();
 
       expect(restoredFrom, backupFile.path);
+      // Recorded for the storage cleanup like any other restore: its cloud
+      // deletes wait for a sync after the restore.
+      expect(StorageGcStore(prefs).lastRestoreAt, isNotNull);
+      expect(StorageGcStore(prefs).postRestoreCloudPending, isTrue);
       expect(initializerCalls, 2, reason: 'startup must resume after restore');
       expect(find.text('Database upgrade failed'), findsNothing);
       expect(find.byKey(const ValueKey('splash')), findsOneWidget);
