@@ -31,6 +31,7 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   PreDiveChecklistTemplate? updatedTemplate;
   String? savedTemplateId;
   List<PreDiveChecklistTemplateItem>? savedItems;
+  List<PreDiveChecklistTemplateSection>? savedSections;
 
   @override
   Future<List<PreDiveChecklistTemplateSection>> getSectionsForTemplate(
@@ -84,6 +85,14 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   ) async {
     savedTemplateId = templateId;
     savedItems = items;
+  }
+
+  @override
+  Future<void> saveSections(
+    String templateId,
+    List<PreDiveChecklistTemplateSection> sections,
+  ) async {
+    savedSections = sections;
   }
 
   @override
@@ -263,23 +272,35 @@ void main() {
 
   testWidgets('adding an item appends it to the list', (tester) async {
     await pumpPage(tester);
-    await openAddItemDialog(tester);
 
+    // A section must exist before it can be picked in the item dialog --
+    // sections are managed via the editor's own "Add section", not typed
+    // free text in the item dialog.
+    await tester.tap(find.text('Add section'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'New section'),
+      'Gas',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    await openAddItemDialog(tester);
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Title'),
       'Check pressure',
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Section'),
-      'Gas',
-    );
+    await tester.tap(find.text('No section'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gas').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('Check pressure'), findsOneWidget);
-    // Subtitle joins section and type label.
-    expect(find.textContaining('Gas'), findsOneWidget);
+    // The item renders grouped under its section's header.
+    expect(find.text('Gas'), findsOneWidget);
   });
 
   testWidgets('toggling Required in the dialog marks the item required', (

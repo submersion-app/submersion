@@ -11,6 +11,7 @@ import 'package:submersion/features/checklists/presentation/widgets/checklist_it
 import 'package:submersion/features/checklists/presentation/widgets/save_as_template_dialog.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// Full checklist UI for a trip: items grouped by category, add-item
 /// affordance, and an overflow menu with apply-template, save-as-template
@@ -54,7 +55,7 @@ class TripChecklistSection extends ConsumerWidget {
         if (items.isEmpty)
           _buildEmptyState(context)
         else
-          ..._buildGroupedItems(context, ref, items, sections),
+          _buildGroupedItems(context, ref, items, sections),
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
@@ -198,70 +199,75 @@ class TripChecklistSection extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildGroupedItems(
+  Widget _buildGroupedItems(
     BuildContext context,
     WidgetRef ref,
     List<TripChecklistItem> items,
     List<domain.TripChecklistSection> sections,
   ) {
-    final theme = Theme.of(context);
     final repository = ref.read(tripChecklistRepositoryProvider);
     final sectionTitles = [for (final s in sections) s.title];
-
-    // Group by section, in the sections' own sort order; items with no
-    // section last. Unlike the free-text category this replaces, the group
-    // order is the section's own sort_order, not an accident of which item
-    // happened to come first.
-    final grouped = <String?, List<TripChecklistItem>>{
+    final itemsBySection = <String, List<TripChecklistItem>>{
       for (final s in sections) s.id: [],
     };
-    final uncategorized = <TripChecklistItem>[];
+    final unsectioned = <TripChecklistItem>[];
     for (final item in items) {
-      final bucket = item.sectionId == null ? null : grouped[item.sectionId];
+      final bucket = item.sectionId == null
+          ? null
+          : itemsBySection[item.sectionId];
       if (bucket == null) {
-        uncategorized.add(item);
+        unsectioned.add(item);
       } else {
         bucket.add(item);
       }
     }
-    if (uncategorized.isNotEmpty) grouped[null] = uncategorized;
 
-    final sectionById = {for (final s in sections) s.id: s};
-    final widgets = <Widget>[];
-    grouped.forEach((sectionId, groupItems) {
-      if (groupItems.isEmpty) return;
-      final section = sectionId == null ? null : sectionById[sectionId];
-      if (section != null) {
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 2),
-            child: Text(
-              section.title,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-        );
-      }
-      for (final item in groupItems) {
-        widgets.add(
-          ChecklistItemTile(
-            item: item,
-            showOverdue: trip.isUpcoming,
-            onToggle: (value) => repository.toggleDone(item.id, isDone: value),
-            onEdit: () => showChecklistItemEditSheet(
-              context: context,
-              tripId: trip.id,
-              item: item,
-              categorySuggestions: sectionTitles,
-              currentSectionTitle: section?.title,
-            ),
-            onDelete: () => repository.deleteItem(item.id),
-          ),
-        );
-      }
-    });
-    return widgets;
+    Widget buildItem(BuildContext context, TripChecklistItem item) {
+      final sectionTitle = item.sectionId == null
+          ? null
+          : sections.firstWhere((s) => s.id == item.sectionId).title;
+      return ChecklistItemTile(
+        item: item,
+        showOverdue: trip.isUpcoming,
+        onToggle: (value) => repository.toggleDone(item.id, isDone: value),
+        onEdit: () => showChecklistItemEditSheet(
+          context: context,
+          tripId: trip.id,
+          item: item,
+          categorySuggestions: sectionTitles,
+          currentSectionTitle: sectionTitle,
+        ),
+        onDelete: () => repository.deleteItem(item.id),
+      );
+    }
+
+    return SectionListEditor<TripChecklistItem>(
+      sections: [
+        for (final s in sections)
+          SectionGroup(id: s.id, title: s.title, items: itemsBySection[s.id]!),
+      ],
+      unsectionedItems: unsectioned,
+      itemId: (item) => item.id,
+      itemBuilder: buildItem,
+      addSectionLabel: context.l10n.sectionEditor_addSection,
+      newSectionTitle: context.l10n.sectionEditor_newSectionTitle,
+      noSectionLabel: context.l10n.sectionEditor_noSection,
+      onAddSection: (title) async {
+        await repository.createSection(tripId: trip.id, title: title);
+      },
+      onRenameSection: (id, title) => repository.renameSection(id, title),
+      onReorderSections: (orderedIds) =>
+          repository.reorderSections(trip.id, orderedIds),
+      onDeleteSection: (id, {moveItemsToSectionId}) => repository.deleteSection(
+        id,
+        moveItemsToSectionId: moveItemsToSectionId,
+      ),
+      onMoveItem: (itemId, targetSectionId, orderedIds) => repository.moveItem(
+        tripId: trip.id,
+        itemId: itemId,
+        targetSectionId: targetSectionId,
+        orderedIds: orderedIds,
+      ),
+    );
   }
 }

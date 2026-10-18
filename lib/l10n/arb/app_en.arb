@@ -2906,6 +2906,34 @@
   "checklists_template_descriptionLabel": "Description",
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Add item",
+  "sectionEditor_addSection": "Add section",
+  "sectionEditor_newSectionTitle": "New section",
+  "sectionEditor_noSection": "No section",
+  "sectionEditor_delete_title": "Delete \"{title}\"?",
+  "@sectionEditor_delete_title": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionEditor_delete_content": "{count, plural, =0{This section has no items.} =1{What should happen to its 1 item?} other{What should happen to its {count} items?}}",
+  "@sectionEditor_delete_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sectionEditor_delete_moveTo": "Move items to \"{title}\"",
+  "@sectionEditor_delete_moveTo": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionEditor_delete_deleteItems": "Delete items too",
   "preDive_templates_title": "Pre-Dive Checklists",
   "preDive_templates_empty": "No pre-dive checklists yet",
   "preDive_templates_builtInBadge": "Built-in",

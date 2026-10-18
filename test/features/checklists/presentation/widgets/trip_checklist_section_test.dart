@@ -423,6 +423,121 @@ void main() {
       );
       expect(clearItem.enabled, isFalse);
     });
+
+    testWidgets('renaming a section via its title field persists it', (
+      tester,
+    ) async {
+      await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await pumpSection(tester);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Assembly'),
+        'Prep',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      expect(sections.single.title, 'Prep');
+    });
+
+    testWidgets('the delete icon is disabled for the only remaining section', (
+      tester,
+    ) async {
+      await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await pumpSection(tester);
+
+      final deleteButton = tester.widget<IconButton>(
+        find.byIcon(Icons.delete_outline).first,
+      );
+      expect(deleteButton.onPressed, isNull);
+    });
+
+    testWidgets(
+      'deleting a section with a sibling offers moving its items there',
+      (tester) async {
+        final assembly = await checklistRepository.createSection(
+          tripId: trip.id,
+          title: 'Assembly',
+        );
+        final cells = await checklistRepository.createSection(
+          tripId: trip.id,
+          title: 'Cells',
+        );
+        final item = await checklistRepository.createItem(
+          TripChecklistItem(
+            id: '',
+            tripId: trip.id,
+            title: 'Check O-rings',
+            sectionId: assembly.id,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        await pumpSection(tester);
+
+        await tester.tap(find.byIcon(Icons.delete_outline).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Move items to "Cells"'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        final sections = await checklistRepository.getSectionsForTrip(trip.id);
+        expect(sections.map((s) => s.id), [cells.id]);
+        final items = await checklistRepository.getByTripId(trip.id);
+        expect(items.single.id, item.id);
+        expect(items.single.sectionId, cells.id);
+      },
+    );
+
+    testWidgets('deleting a section can delete its items instead', (
+      tester,
+    ) async {
+      final assembly = await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await checklistRepository.createSection(tripId: trip.id, title: 'Cells');
+      await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          tripId: trip.id,
+          title: 'Check O-rings',
+          sectionId: assembly.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await pumpSection(tester);
+
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete items too'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(await checklistRepository.getByTripId(trip.id), isEmpty);
+    });
+
+    testWidgets('the up arrow reorders sections', (tester) async {
+      await checklistRepository.createSection(tripId: trip.id, title: 'A');
+      await checklistRepository.createSection(tripId: trip.id, title: 'B');
+      await pumpSection(tester);
+
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_up).last);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      expect(sections.map((s) => s.title).toList(), ['B', 'A']);
+    });
   });
 
   // Case-insensitive folding of a typed category onto an existing section

@@ -4501,6 +4501,40 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checklists_template_addItem => 'Agregar elemento';
 
   @override
+  String get sectionEditor_addSection => 'Add section';
+
+  @override
+  String get sectionEditor_newSectionTitle => 'New section';
+
+  @override
+  String get sectionEditor_noSection => 'No section';
+
+  @override
+  String sectionEditor_delete_title(String title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String sectionEditor_delete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'What should happen to its $count items?',
+      one: 'What should happen to its 1 item?',
+      zero: 'This section has no items.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sectionEditor_delete_moveTo(String title) {
+    return 'Move items to \"$title\"';
+  }
+
+  @override
+  String get sectionEditor_delete_deleteItems => 'Delete items too';
+
+  @override
   String get preDive_templates_title => 'Listas previas a la inmersión';
 
   @override

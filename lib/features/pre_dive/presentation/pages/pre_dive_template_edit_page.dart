@@ -5,10 +5,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart'
+    as domain;
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// A bound once the form has validated: blank is "no bound", and unreadable
 /// text cannot reach here.
@@ -19,15 +22,14 @@ double? _validatedNumber(TextEditingController controller) =>
       NumberInvalid() => null, // unreachable: validate() ran first
     };
 
-/// An item mid-edit on this page, before its section title (free text, same
-/// UX as before issue #3360) has been resolved to a real section row. See
-/// checklist_template_edit_page.dart's `_EditableTemplateItem` for why this
-/// indirection exists: items here are edited in memory and only persisted
-/// as a whole on save, so resolving titles one at a time as each item
-/// dialog closes would create a section the diver then discards.
+/// An item mid-edit on this page. See checklist_template_edit_page.dart's
+/// `_EditableTemplateItem` for why sections and items are held in memory
+/// here instead of going through the repository directly: resolving a
+/// section one at a time as each item dialog closes would touch the
+/// database for a section the diver then discards by not saving the page.
 class _EditablePreDiveItem {
   final String id;
-  final String? sectionTitle;
+  final String? sectionId;
   final String title;
   final String notes;
   final int sortOrder;
@@ -44,7 +46,7 @@ class _EditablePreDiveItem {
 
   const _EditablePreDiveItem({
     required this.id,
-    this.sectionTitle,
+    this.sectionId,
     required this.title,
     this.notes = '',
     this.sortOrder = 0,
@@ -62,7 +64,7 @@ class _EditablePreDiveItem {
 
   _EditablePreDiveItem copyWith({
     String? id,
-    Object? sectionTitle = _undefined,
+    Object? sectionId = _undefined,
     String? title,
     String? notes,
     int? sortOrder,
@@ -79,9 +81,9 @@ class _EditablePreDiveItem {
   }) {
     return _EditablePreDiveItem(
       id: id ?? this.id,
-      sectionTitle: sectionTitle == _undefined
-          ? this.sectionTitle
-          : sectionTitle as String?,
+      sectionId: sectionId == _undefined
+          ? this.sectionId
+          : sectionId as String?,
       title: title ?? this.title,
       notes: notes ?? this.notes,
       sortOrder: sortOrder ?? this.sortOrder,
@@ -109,6 +111,17 @@ class _EditablePreDiveItem {
 
 const _undefined = Object();
 
+/// A section mid-edit on this page -- see [_EditablePreDiveItem] for why.
+class _EditablePreDiveSection {
+  final String id;
+  final String title;
+
+  const _EditablePreDiveSection({required this.id, required this.title});
+
+  _EditablePreDiveSection copyWith({String? title}) =>
+      _EditablePreDiveSection(id: id, title: title ?? this.title);
+}
+
 /// Create/edit page for a pre-dive checklist template and its items.
 class PreDiveTemplateEditPage extends ConsumerStatefulWidget {
   final String? templateId;
@@ -130,6 +143,7 @@ class _PreDiveTemplateEditPageState
   final _categoryController = TextEditingController();
   bool _strictOrder = false;
   List<_EditablePreDiveItem> _items = [];
+  List<_EditablePreDiveSection> _sections = [];
   PreDiveChecklistTemplate? _existing;
   bool _loading = false;
 
@@ -167,7 +181,6 @@ class _PreDiveTemplateEditPageState
     final sections = await repository.getSectionsForTemplate(
       widget.templateId!,
     );
-    final sectionTitleById = {for (final s in sections) s.id: s.title};
     if (!mounted) return;
     setState(() {
       _existing = template;
@@ -175,13 +188,15 @@ class _PreDiveTemplateEditPageState
       _descriptionController.text = template?.description ?? '';
       _categoryController.text = template?.category ?? '';
       _strictOrder = template?.strictOrder ?? false;
+      _sections = [
+        for (final section in sections)
+          _EditablePreDiveSection(id: section.id, title: section.title),
+      ];
       _items = [
         for (final item in items)
           _EditablePreDiveItem(
             id: item.id,
-            sectionTitle: item.sectionId == null
-                ? null
-                : sectionTitleById[item.sectionId],
+            sectionId: item.sectionId,
             title: item.title,
             notes: item.notes,
             sortOrder: item.sortOrder,
@@ -216,6 +231,7 @@ class _PreDiveTemplateEditPageState
         item: item,
         defaultSortOrder: _items.length,
         siblings: _items,
+        sections: _sections,
       ),
     );
     if (result == null) return;
@@ -231,8 +247,8 @@ class _PreDiveTemplateEditPageState
     });
   }
 
-  /// Whether the item at [index] is a linearity item whose source sorts
-  /// after it.
+  /// Whether [item] is a linearity item whose source sorts after it in
+  /// [_items], the same list order [_save] passes to the repository.
   ///
   /// Deliberately not gated on strict order. Strict order makes the trap
   /// unavoidable, because the runner will not let the diver reach the air
@@ -241,27 +257,26 @@ class _PreDiveTemplateEditPageState
   /// the oxygen value anyway, and ends up with an item that can only be
   /// completed properly by resetting it. The warning is worth showing in
   /// both modes, and its wording claims nothing about gating.
-  bool _readsLaterValue(int index) {
-    final item = _items[index];
+  bool _readsLaterValue(_EditablePreDiveItem item) {
     // Guarded on the type as well as on the link, so malformed data (a
     // sourceItemId arriving on some other type via sync) cannot raise a
     // warning that talks about a reading this item never makes.
     if (item.itemType != PreDiveItemType.cellLinearity) return false;
     final sourceId = item.sourceItemId;
     if (sourceId == null) return false;
+    final index = _items.indexOf(item);
     final sourceIndex = _items.indexWhere((i) => i.id == sourceId);
     return sourceIndex >= 0 && sourceIndex > index;
   }
 
-  /// Removes the item at [index], clearing the link on any item that sourced
-  /// it and naming each one in a snackbar.
+  /// Removes [removed], clearing the link on any item that sourced it and
+  /// naming each one in a snackbar.
   ///
   /// The link is cleared rather than the deletion blocked: the diver may be
   /// mid-restructure and about to add a replacement, and a modal refusal in
   /// the middle of reordering a checklist would be worse than a broken link
   /// the composer already degrades gracefully.
-  void _removeItem(int index) {
-    final removed = _items[index];
+  void _removeItem(_EditablePreDiveItem removed) {
     final dependants = [
       for (final i in _items)
         if (i.sourceItemId == removed.id) i,
@@ -318,20 +333,18 @@ class _PreDiveTemplateEditPageState
       templateId = _existing!.id;
     }
 
-    // Resolve each distinct typed section title to a real section row once
-    // (find-or-create is async; this must finish before building the final
-    // item list), folding titles that differ only in case onto the same
-    // section.
-    final sectionIdByTitle = <String, String?>{};
-    for (final item in _items) {
-      final title = item.sectionTitle;
-      if (title == null) continue;
-      final key = title.toLowerCase();
-      sectionIdByTitle[key] ??= await repository.findOrCreateSectionId(
-        templateId,
-        title,
-      );
-    }
+    // Sections must exist before the items referencing them are (re)inserted
+    // -- saveItems satisfies a foreign key, not a dangling draft id.
+    await repository.saveSections(templateId, [
+      for (final section in _sections)
+        domain.PreDiveChecklistTemplateSection(
+          id: section.id,
+          templateId: templateId,
+          title: section.title,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+    ]);
 
     // sortOrder reassigned from list position at save time.
     await repository.saveItems(templateId, [
@@ -339,9 +352,7 @@ class _PreDiveTemplateEditPageState
         PreDiveChecklistTemplateItem(
           id: _items[i].id,
           templateId: templateId,
-          sectionId: _items[i].sectionTitle == null
-              ? null
-              : sectionIdByTitle[_items[i].sectionTitle!.toLowerCase()],
+          sectionId: _items[i].sectionId,
           title: _items[i].title,
           notes: _items[i].notes,
           sortOrder: i,
@@ -447,77 +458,7 @@ class _PreDiveTemplateEditPageState
                     l10n.checklists_template_itemsHeader,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  ReorderableListView(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    buildDefaultDragHandles: !_readOnly,
-                    onReorderItem: (oldIndex, newIndex) {
-                      setState(() {
-                        final items = [..._items];
-                        final item = items.removeAt(oldIndex);
-                        items.insert(newIndex, item);
-                        _items = items;
-                      });
-                    },
-                    children: [
-                      for (var i = 0; i < _items.length; i++)
-                        ListTile(
-                          key: ValueKey(
-                            _items[i].id.isEmpty ? 'new-$i' : _items[i].id,
-                          ),
-                          title: Text(_items[i].title),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                [
-                                  if (_items[i].sectionTitle != null)
-                                    _items[i].sectionTitle!,
-                                  _typeLabel(context, _items[i].itemType),
-                                  if (_items[i].isRequired)
-                                    l10n.preDive_item_required,
-                                ].join(' - '),
-                              ),
-                              // A linearity row that sorts above its
-                              // source is worth flagging in either mode:
-                              // strict order makes it unavoidable, and
-                              // without it a diver working top to bottom
-                              // still meets the row before the air reading
-                              // exists. See _readsLaterValue. Warn, never
-                              // block.
-                              if (_readsLaterValue(i))
-                                Text(
-                                  l10n.preDive_item_sourceBelow,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                ),
-                            ],
-                          ),
-                          // No leading column at all in read-only mode. An
-                          // empty checkbox was standing in as a spacer, but
-                          // that glyph reads as "tap to toggle" on a row
-                          // whose onTap is null, and these template items
-                          // have no state to toggle. Nothing here needs
-                          // aligning either: every row in this mode lacks the
-                          // delete button, so reserving its column would hold
-                          // space for a control that never appears.
-                          leading: _readOnly
-                              ? null
-                              : IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => _removeItem(i),
-                                ),
-                          onTap: _readOnly
-                              ? null
-                              : () => _addOrEditItem(item: _items[i]),
-                        ),
-                    ],
-                  ),
+                  _buildSectionEditor(context),
                   if (!_readOnly)
                     TextButton.icon(
                       icon: const Icon(Icons.add),
@@ -527,6 +468,115 @@ class _PreDiveTemplateEditPageState
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildSectionEditor(BuildContext context) {
+    final l10n = context.l10n;
+
+    Widget buildItem(BuildContext context, _EditablePreDiveItem item) =>
+        ListTile(
+          title: Text(item.title),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                [
+                  _typeLabel(context, item.itemType),
+                  if (item.isRequired) l10n.preDive_item_required,
+                ].join(' - '),
+              ),
+              // A linearity row that sorts above its source is worth
+              // flagging in either mode: strict order makes it unavoidable,
+              // and without it a diver working top to bottom still meets
+              // the row before the air reading exists. See
+              // _readsLaterValue. Warn, never block.
+              if (_readsLaterValue(item))
+                Text(
+                  l10n.preDive_item_sourceBelow,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+            ],
+          ),
+          // No leading column at all in read-only mode -- see the removed
+          // comment above the old ReorderableListView for why.
+          leading: _readOnly
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _removeItem(item),
+                ),
+          onTap: _readOnly ? null : () => _addOrEditItem(item: item),
+        );
+
+    return SectionListEditor<_EditablePreDiveItem>(
+      sections: [
+        for (final section in _sections)
+          SectionGroup(
+            id: section.id,
+            title: section.title,
+            items: _items.where((i) => i.sectionId == section.id).toList(),
+          ),
+      ],
+      unsectionedItems: _items.where((i) => i.sectionId == null).toList(),
+      itemId: (item) => item.id,
+      itemBuilder: buildItem,
+      addSectionLabel: l10n.sectionEditor_addSection,
+      newSectionTitle: l10n.sectionEditor_newSectionTitle,
+      noSectionLabel: l10n.sectionEditor_noSection,
+      readOnly: _readOnly,
+      onAddSection: (title) async {
+        setState(() {
+          _sections = [
+            ..._sections,
+            _EditablePreDiveSection(id: const Uuid().v4(), title: title),
+          ];
+        });
+      },
+      onRenameSection: (id, title) async {
+        setState(() {
+          _sections = [
+            for (final s in _sections)
+              if (s.id == id) s.copyWith(title: title) else s,
+          ];
+        });
+      },
+      onReorderSections: (orderedIds) async {
+        setState(() {
+          final byId = {for (final s in _sections) s.id: s};
+          _sections = [for (final id in orderedIds) byId[id]!];
+        });
+      },
+      onDeleteSection: (id, {moveItemsToSectionId}) async {
+        setState(() {
+          if (moveItemsToSectionId != null) {
+            _items = [
+              for (final i in _items)
+                if (i.sectionId == id)
+                  i.copyWith(sectionId: moveItemsToSectionId)
+                else
+                  i,
+            ];
+          } else {
+            _items = _items.where((i) => i.sectionId != id).toList();
+          }
+          _sections = _sections.where((s) => s.id != id).toList();
+        });
+      },
+      onMoveItem: (itemId, targetSectionId, orderedIds) async {
+        setState(() {
+          final byId = {for (final i in _items) i.id: i};
+          _items = [
+            for (final id in orderedIds)
+              id == itemId
+                  ? byId[id]!.copyWith(sectionId: targetSectionId)
+                  : byId[id]!,
+          ];
+        });
+      },
     );
   }
 }
@@ -547,10 +597,17 @@ class _PreDiveItemDialog extends StatefulWidget {
   /// of them as the source of its air reading (issue #986).
   final List<_EditablePreDiveItem> siblings;
 
+  /// This template's sections, for the section picker -- see
+  /// _EditableTemplateItem's dialog in checklist_template_edit_page.dart for
+  /// why this is a picker over the draft's own sections rather than free
+  /// text.
+  final List<_EditablePreDiveSection> sections;
+
   const _PreDiveItemDialog({
     required this.item,
     required this.defaultSortOrder,
     this.siblings = const [],
+    this.sections = const [],
   });
 
   @override
@@ -560,7 +617,7 @@ class _PreDiveItemDialog extends StatefulWidget {
 class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
-  late final TextEditingController _sectionController;
+  String? _sectionId;
   late final TextEditingController _notesController;
   late final TextEditingController _valueLabelController;
   late final TextEditingController _valueUnitController;
@@ -597,9 +654,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.item?.title ?? '');
-    _sectionController = TextEditingController(
-      text: widget.item?.sectionTitle ?? '',
-    );
+    _sectionId = widget.item?.sectionId;
     _notesController = TextEditingController(text: widget.item?.notes ?? '');
     _valueLabelController = TextEditingController(
       text: widget.item?.valueLabel ?? '',
@@ -623,7 +678,6 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
   @override
   void dispose() {
     _titleController.dispose();
-    _sectionController.dispose();
     _notesController.dispose();
     _valueLabelController.dispose();
     _valueUnitController.dispose();
@@ -646,7 +700,6 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    final section = _sectionController.text.trim();
     final valueLabel = _valueLabelController.text.trim();
     final valueUnit = _valueUnitController.text.trim();
     // A cell linearity item records a number exactly as a value item does,
@@ -658,7 +711,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
     Navigator.of(context).pop(
       _EditablePreDiveItem(
         id: widget.item?.id ?? const Uuid().v4(),
-        sectionTitle: section.isEmpty ? null : section,
+        sectionId: _sectionId,
         title: _titleController.text.trim(),
         notes: _notesController.text.trim(),
         sortOrder: widget.item?.sortOrder ?? widget.defaultSortOrder,
@@ -696,11 +749,23 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                     ? l10n.checklists_item_titleRequired
                     : null,
               ),
-              TextFormField(
-                controller: _sectionController,
+              DropdownButtonFormField<String?>(
+                initialValue: _sectionId,
                 decoration: InputDecoration(
                   labelText: l10n.preDive_item_section,
                 ),
+                items: [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(l10n.sectionEditor_noSection),
+                  ),
+                  for (final section in widget.sections)
+                    DropdownMenuItem(
+                      value: section.id,
+                      child: Text(section.title),
+                    ),
+                ],
+                onChanged: (value) => setState(() => _sectionId = value),
               ),
               TextFormField(
                 controller: _notesController,

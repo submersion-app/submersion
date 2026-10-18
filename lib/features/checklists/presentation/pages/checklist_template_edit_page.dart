@@ -4,11 +4,14 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// Create/edit page for a checklist template and its items.
 class ChecklistTemplateEditPage extends ConsumerStatefulWidget {
@@ -23,17 +26,16 @@ class ChecklistTemplateEditPage extends ConsumerStatefulWidget {
       _ChecklistTemplateEditPageState();
 }
 
-/// An item mid-edit on this page, before its section title (free text, same
-/// UX as before issue #3360) has been resolved to a real section row. The
-/// page holds a list of these instead of [ChecklistTemplateItem] directly,
-/// since items here are edited in memory and only persisted as a whole on
-/// [_ChecklistTemplateEditPageState._save] -- resolving section titles to
-/// ids one at a time as the dialog closes would create a section the diver
-/// then discards by not saving the page.
+/// An item mid-edit on this page. The page holds a list of these instead of
+/// [ChecklistTemplateItem] directly, since items here are edited in memory
+/// and only persisted as a whole on [_ChecklistTemplateEditPageState._save]
+/// -- creating or renaming a section one at a time as a dialog closes would
+/// touch the database for a section the diver then discards by not saving
+/// the page.
 class _EditableTemplateItem {
   final String id;
   final String title;
-  final String? sectionTitle;
+  final String? sectionId;
   final String notes;
   final int? dueOffsetDays;
   final int sortOrder;
@@ -43,13 +45,43 @@ class _EditableTemplateItem {
   const _EditableTemplateItem({
     required this.id,
     required this.title,
-    this.sectionTitle,
+    this.sectionId,
     this.notes = '',
     this.dueOffsetDays,
     required this.sortOrder,
     required this.createdAt,
     required this.updatedAt,
   });
+
+  _EditableTemplateItem copyWith({Object? sectionId = _undefined}) =>
+      _EditableTemplateItem(
+        id: id,
+        title: title,
+        sectionId: sectionId == _undefined
+            ? this.sectionId
+            : sectionId as String?,
+        notes: notes,
+        dueOffsetDays: dueOffsetDays,
+        sortOrder: sortOrder,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+}
+
+const _undefined = Object();
+
+/// A section mid-edit on this page -- see [_EditableTemplateItem] for why
+/// sections are held in memory here instead of going through
+/// [ChecklistTemplateRepository]'s createSection/renameSection/deleteSection
+/// directly.
+class _EditableTemplateSection {
+  final String id;
+  final String title;
+
+  const _EditableTemplateSection({required this.id, required this.title});
+
+  _EditableTemplateSection copyWith({String? title}) =>
+      _EditableTemplateSection(id: id, title: title ?? this.title);
 }
 
 class _ChecklistTemplateEditPageState
@@ -58,6 +90,7 @@ class _ChecklistTemplateEditPageState
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   List<_EditableTemplateItem> _items = [];
+  List<_EditableTemplateSection> _sections = [];
   ChecklistTemplate? _existing;
   bool _loading = false;
 
@@ -75,20 +108,21 @@ class _ChecklistTemplateEditPageState
     final sections = await repository.getSectionsForTemplate(
       widget.templateId!,
     );
-    final sectionTitleById = {for (final s in sections) s.id: s.title};
     if (!mounted) return;
     setState(() {
       _existing = template;
       _nameController.text = template?.name ?? '';
       _descriptionController.text = template?.description ?? '';
+      _sections = [
+        for (final section in sections)
+          _EditableTemplateSection(id: section.id, title: section.title),
+      ];
       _items = [
         for (final item in items)
           _EditableTemplateItem(
             id: item.id,
             title: item.title,
-            sectionTitle: item.sectionId == null
-                ? null
-                : sectionTitleById[item.sectionId],
+            sectionId: item.sectionId,
             notes: item.notes,
             dueOffsetDays: item.dueOffsetDays,
             sortOrder: item.sortOrder,
@@ -127,8 +161,11 @@ class _ChecklistTemplateEditPageState
   }) {
     return showDialog<_EditableTemplateItem>(
       context: context,
-      builder: (context) =>
-          _ChecklistItemDialog(item: item, defaultSortOrder: _items.length),
+      builder: (context) => _ChecklistItemDialog(
+        item: item,
+        defaultSortOrder: _items.length,
+        sections: _sections,
+      ),
     );
   }
 
@@ -160,20 +197,18 @@ class _ChecklistTemplateEditPageState
       templateId = _existing!.id;
     }
 
-    // Resolve each distinct typed section title to a real section row once
-    // (find-or-create is async; this must finish before building the final
-    // item list), folding titles that differ only in case onto the same
-    // section, exactly like the trip checklist's picker.
-    final sectionIdByTitle = <String, String?>{};
-    for (final item in _items) {
-      final title = item.sectionTitle;
-      if (title == null) continue;
-      final key = title.toLowerCase();
-      sectionIdByTitle[key] ??= await repository.findOrCreateSectionId(
-        templateId,
-        title,
-      );
-    }
+    // Sections must exist before the items referencing them are (re)inserted
+    // -- saveItems satisfies a foreign key, not a dangling draft id.
+    await repository.saveSections(templateId, [
+      for (final section in _sections)
+        domain.ChecklistTemplateSection(
+          id: section.id,
+          templateId: templateId,
+          title: section.title,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+    ]);
 
     await repository.saveItems(templateId, [
       for (final item in _items)
@@ -181,9 +216,7 @@ class _ChecklistTemplateEditPageState
           id: item.id,
           templateId: templateId,
           title: item.title,
-          sectionId: item.sectionTitle == null
-              ? null
-              : sectionIdByTitle[item.sectionTitle!.toLowerCase()],
+          sectionId: item.sectionId,
           notes: item.notes,
           dueOffsetDays: item.dueOffsetDays,
           sortOrder: item.sortOrder,
@@ -240,36 +273,7 @@ class _ChecklistTemplateEditPageState
                     context.l10n.checklists_template_itemsHeader,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  ReorderableListView(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    buildDefaultDragHandles: true,
-                    onReorderItem: (oldIndex, newIndex) {
-                      setState(() {
-                        final items = [..._items];
-                        final item = items.removeAt(oldIndex);
-                        items.insert(newIndex, item);
-                        _items = items;
-                      });
-                    },
-                    children: [
-                      for (var i = 0; i < _items.length; i++)
-                        ListTile(
-                          key: ValueKey(_items[i].id),
-                          title: Text(_items[i].title),
-                          subtitle: _items[i].sectionTitle == null
-                              ? null
-                              : Text(_items[i].sectionTitle!),
-                          leading: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () => setState(
-                              () => _items = [..._items]..removeAt(i),
-                            ),
-                          ),
-                          onTap: () => _addOrEditItem(item: _items[i]),
-                        ),
-                    ],
-                  ),
+                  _buildSectionEditor(context),
                   TextButton.icon(
                     icon: const Icon(Icons.add),
                     label: Text(context.l10n.checklists_template_addItem),
@@ -278,6 +282,88 @@ class _ChecklistTemplateEditPageState
                 ],
               ),
             ),
+    );
+  }
+
+  void _removeItem(_EditableTemplateItem item) {
+    setState(() => _items = _items.where((i) => i.id != item.id).toList());
+  }
+
+  Widget _buildSectionEditor(BuildContext context) {
+    Widget buildItem(BuildContext context, _EditableTemplateItem item) =>
+        ListTile(
+          title: Text(item.title),
+          leading: IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _removeItem(item),
+          ),
+          onTap: () => _addOrEditItem(item: item),
+        );
+
+    return SectionListEditor<_EditableTemplateItem>(
+      sections: [
+        for (final section in _sections)
+          SectionGroup(
+            id: section.id,
+            title: section.title,
+            items: _items.where((i) => i.sectionId == section.id).toList(),
+          ),
+      ],
+      unsectionedItems: _items.where((i) => i.sectionId == null).toList(),
+      itemId: (item) => item.id,
+      itemBuilder: buildItem,
+      addSectionLabel: context.l10n.sectionEditor_addSection,
+      newSectionTitle: context.l10n.sectionEditor_newSectionTitle,
+      noSectionLabel: context.l10n.sectionEditor_noSection,
+      onAddSection: (title) async {
+        setState(() {
+          _sections = [
+            ..._sections,
+            _EditableTemplateSection(id: const Uuid().v4(), title: title),
+          ];
+        });
+      },
+      onRenameSection: (id, title) async {
+        setState(() {
+          _sections = [
+            for (final s in _sections)
+              if (s.id == id) s.copyWith(title: title) else s,
+          ];
+        });
+      },
+      onReorderSections: (orderedIds) async {
+        setState(() {
+          final byId = {for (final s in _sections) s.id: s};
+          _sections = [for (final id in orderedIds) byId[id]!];
+        });
+      },
+      onDeleteSection: (id, {moveItemsToSectionId}) async {
+        setState(() {
+          if (moveItemsToSectionId != null) {
+            _items = [
+              for (final i in _items)
+                if (i.sectionId == id)
+                  i.copyWith(sectionId: moveItemsToSectionId)
+                else
+                  i,
+            ];
+          } else {
+            _items = _items.where((i) => i.sectionId != id).toList();
+          }
+          _sections = _sections.where((s) => s.id != id).toList();
+        });
+      },
+      onMoveItem: (itemId, targetSectionId, orderedIds) async {
+        setState(() {
+          final byId = {for (final i in _items) i.id: i};
+          _items = [
+            for (final id in orderedIds)
+              id == itemId
+                  ? byId[id]!.copyWith(sectionId: targetSectionId)
+                  : byId[id]!,
+          ];
+        });
+      },
     );
   }
 }
@@ -293,10 +379,12 @@ class _ChecklistTemplateEditPageState
 class _ChecklistItemDialog extends StatefulWidget {
   final _EditableTemplateItem? item;
   final int defaultSortOrder;
+  final List<_EditableTemplateSection> sections;
 
   const _ChecklistItemDialog({
     required this.item,
     required this.defaultSortOrder,
+    this.sections = const [],
   });
 
   @override
@@ -306,17 +394,15 @@ class _ChecklistItemDialog extends StatefulWidget {
 class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
-  late final TextEditingController _categoryController;
   late final TextEditingController _notesController;
   late final TextEditingController _offsetController;
+  String? _sectionId;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.item?.title ?? '');
-    _categoryController = TextEditingController(
-      text: widget.item?.sectionTitle ?? '',
-    );
+    _sectionId = widget.item?.sectionId;
     _notesController = TextEditingController(text: widget.item?.notes ?? '');
     final offsetDays = widget.item?.dueOffsetDays;
     _offsetController = TextEditingController(
@@ -329,7 +415,6 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
   @override
   void dispose() {
     _titleController.dispose();
-    _categoryController.dispose();
     _notesController.dispose();
     _offsetController.dispose();
     super.dispose();
@@ -337,12 +422,11 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    final category = _categoryController.text.trim();
     Navigator.of(context).pop(
       _EditableTemplateItem(
         id: widget.item?.id ?? const Uuid().v4(),
         title: _titleController.text.trim(),
-        sectionTitle: category.isEmpty ? null : category,
+        sectionId: _sectionId,
         notes: _notesController.text.trim(),
         // Blank is "no due date"; validate() stopped unreadable text.
         dueOffsetDays: switch (readNumber(
@@ -384,11 +468,23 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
                     : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _categoryController,
+              DropdownButtonFormField<String?>(
+                initialValue: _sectionId,
                 decoration: InputDecoration(
                   labelText: context.l10n.checklists_item_categoryLabel,
                 ),
+                items: [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(context.l10n.sectionEditor_noSection),
+                  ),
+                  for (final section in widget.sections)
+                    DropdownMenuItem(
+                      value: section.id,
+                      child: Text(section.title),
+                    ),
+                ],
+                onChanged: (value) => setState(() => _sectionId = value),
               ),
               const SizedBox(height: 16),
               TextFormField(
