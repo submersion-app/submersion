@@ -400,4 +400,23 @@ void main() {
     await store.setRemovals('L', const []);
     expect(await store.removals('L'), isEmpty);
   });
+
+  test('a cache that does not parse reads as no removals', () async {
+    await store.upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'a',
+        prefix: 'site-sync',
+      ),
+    );
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE shared_libraries SET removals_json = 'not json' WHERE id = 'L'",
+    );
+    expect(await store.removals('L'), isEmpty);
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE shared_libraries SET removals_json = '{}' WHERE id = 'L'",
+    );
+    expect(await store.removals('L'), isEmpty);
+  });
 }
