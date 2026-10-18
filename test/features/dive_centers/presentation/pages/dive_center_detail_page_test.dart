@@ -370,7 +370,7 @@ void main() {
 
         // The pushed route's map is built from the detail page's ref, so its
         // tile layer must rebuild on its own when the style changes there.
-        await tester.tap(find.byType(MapStyleButton).last);
+        await tester.tap(find.byType(MapStyleButton));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 500));
         await tester.tap(find.text('Satellite'));
