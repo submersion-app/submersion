@@ -3393,6 +3393,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'Repaso TDI';
 
   @override
+  String get currencyRule_iart_refresher_name => 'Repaso IART';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Renovación de primeros auxilios y RCP';
 
@@ -3434,6 +3437,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'TDI sugiere un repaso tras seis a doce meses sin buceo técnico.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'IART sugiere un repaso tras seis a doce meses sin buceo técnico.';
 
   @override
   String get currencyRule_first_aid_advisory =>

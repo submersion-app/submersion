@@ -3232,6 +3232,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'TDI 复习课程';
 
   @override
+  String get currencyRule_iart_refresher_name => 'IART 复习课程';
+
+  @override
   String get currencyRule_first_aid_24mo_name => '急救与心肺复苏续证';
 
   @override
@@ -3270,6 +3273,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'TDI 建议在六到十二个月未进行技术潜水后参加复习课程。';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'IART 建议在六到十二个月未进行技术潜水后参加复习课程。';
 
   @override
   String get currencyRule_first_aid_advisory => '急救、心肺复苏和供氧员资质通常每两年更新一次。';

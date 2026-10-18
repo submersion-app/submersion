@@ -3342,6 +3342,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'ריענון TDI';
 
   @override
+  String get currencyRule_iart_refresher_name => 'ריענון IART';
+
+  @override
   String get currencyRule_first_aid_24mo_name => 'חידוש עזרה ראשונה והחייאה';
 
   @override
@@ -3382,6 +3385,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'TDI ממליצה על ריענון לאחר שישה עד שנים עשר חודשים ללא צלילה טכנית.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'IART ממליצה על ריענון לאחר שישה עד שנים עשר חודשים ללא צלילה טכנית.';
 
   @override
   String get currencyRule_first_aid_advisory =>

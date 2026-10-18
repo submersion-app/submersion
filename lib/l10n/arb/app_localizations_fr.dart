@@ -3402,6 +3402,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'Remise à niveau TDI';
 
   @override
+  String get currencyRule_iart_refresher_name => 'Remise à niveau IART';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Renouvellement premiers secours et RCP';
 
@@ -3443,6 +3446,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'TDI suggère une remise à niveau après six à douze mois sans plongée technique.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'IART suggère une remise à niveau après six à douze mois sans plongée technique.';
 
   @override
   String get currencyRule_first_aid_advisory =>

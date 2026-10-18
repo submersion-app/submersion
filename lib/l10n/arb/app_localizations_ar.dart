@@ -3483,6 +3483,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'دورة تنشيطية TDI';
 
   @override
+  String get currencyRule_iart_refresher_name => 'دورة تنشيطية IART';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'تجديد الإسعافات الأولية والإنعاش القلبي الرئوي';
 
@@ -3524,6 +3527,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'تقترح TDI دورة تنشيطية بعد ستة إلى اثني عشر شهرًا دون غوص تقني.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'تقترح IART دورة تنشيطية بعد ستة إلى اثني عشر شهرًا دون غوص تقني.';
 
   @override
   String get currencyRule_first_aid_advisory =>

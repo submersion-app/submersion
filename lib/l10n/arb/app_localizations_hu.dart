@@ -3384,6 +3384,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'TDI felfrissítés';
 
   @override
+  String get currencyRule_iart_refresher_name => 'IART felfrissítés';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Elsősegély és újraélesztés megújítása';
 
@@ -3425,6 +3428,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'A TDI hat-tizenkét hónap technikai merülés nélkül felfrissítést javasol.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'Az IART hat-tizenkét hónap technikai merülés nélkül felfrissítést javasol.';
 
   @override
   String get currencyRule_first_aid_advisory =>

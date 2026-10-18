@@ -114,7 +114,7 @@ void main() {
     });
   });
 
-  test('the upgrade seeds exactly the eleven built-in rules', () async {
+  test('the upgrade seeds exactly the twelve built-in rules', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
 
@@ -123,12 +123,14 @@ void main() {
           'SELECT id FROM certification_currency_rules WHERE is_built_in = 1',
         )
         .get();
-    // tdi_refresher joined at v273 (issue #3072); the other ten predate it.
+    // tdi_refresher joined at v273 (issue #3072); iart_refresher joined
+    // later still (issue #3357); the other ten predate both.
     expect(rows.map((r) => r.read<String>('id')).toSet(), {
       'padi_reactivate',
       'ssi_skills_update',
       'generic_refresher',
       'tdi_refresher',
+      'iart_refresher',
       'first_aid_24mo',
       'pro_membership_annual',
       'gue_revalidation',
@@ -216,7 +218,7 @@ void main() {
     expect(events, isEmpty);
   });
 
-  test('a fresh install seeds the same eleven built-ins', () async {
+  test('a fresh install seeds the same twelve built-ins', () async {
     final fresh = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
     );
@@ -228,7 +230,7 @@ void main() {
           'WHERE is_built_in = 1',
         )
         .getSingle();
-    expect(row.read<int>('n'), 11);
+    expect(row.read<int>('n'), 12);
   });
 
   test('a fresh database matches the upgraded one', () async {

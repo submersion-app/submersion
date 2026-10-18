@@ -3393,6 +3393,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'Reciclagem TDI';
 
   @override
+  String get currencyRule_iart_refresher_name => 'Reciclagem IART';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Renovação de primeiros socorros e RCP';
 
@@ -3434,6 +3437,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'A TDI sugere uma reciclagem após seis a doze meses sem mergulho técnico.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'A IART sugere uma reciclagem após seis a doze meses sem mergulho técnico.';
 
   @override
   String get currencyRule_first_aid_advisory =>

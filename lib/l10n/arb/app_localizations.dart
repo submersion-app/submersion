@@ -5243,6 +5243,12 @@ abstract class AppLocalizations {
   /// **'TDI refresher'**
   String get currencyRule_tdi_refresher_name;
 
+  /// No description provided for @currencyRule_iart_refresher_name.
+  ///
+  /// In en, this message translates to:
+  /// **'IART refresher'**
+  String get currencyRule_iart_refresher_name;
+
   /// Name of the built-in first aid and CPR renewal currency rule
   ///
   /// In en, this message translates to:
@@ -5314,6 +5320,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TDI suggests a refresher after six to twelve months without technical diving.'**
   String get currencyRule_tdi_refresher_advisory;
+
+  /// No description provided for @currencyRule_iart_refresher_advisory.
+  ///
+  /// In en, this message translates to:
+  /// **'IART suggests a refresher after six to twelve months without technical diving.'**
+  String get currencyRule_iart_refresher_advisory;
 
   /// Advisory sentence of the first aid renewal rule
   ///

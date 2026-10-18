@@ -3350,6 +3350,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'TDI refresher';
 
   @override
+  String get currencyRule_iart_refresher_name => 'IART refresher';
+
+  @override
   String get currencyRule_first_aid_24mo_name => 'First aid and CPR renewal';
 
   @override
@@ -3390,6 +3393,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'TDI suggests a refresher after six to twelve months without technical diving.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'IART suggests a refresher after six to twelve months without technical diving.';
 
   @override
   String get currencyRule_first_aid_advisory =>

@@ -2140,6 +2140,7 @@
     "description": "Name of the built-in generic refresher currency rule"
   },
   "currencyRule_tdi_refresher_name": "TDI refresher",
+  "currencyRule_iart_refresher_name": "IART refresher",
   "@currencyRule_tdi_refresher_name": {
     "description": "Name of the built-in TDI refresher currency rule"
   },
@@ -2188,6 +2189,7 @@
     "description": "Advisory sentence of the generic refresher rule"
   },
   "currencyRule_tdi_refresher_advisory": "TDI suggests a refresher after six to twelve months without technical diving.",
+  "currencyRule_iart_refresher_advisory": "IART suggests a refresher after six to twelve months without technical diving.",
   "@currencyRule_tdi_refresher_advisory": {
     "description": "Advisory sentence of the TDI refresher rule"
   },

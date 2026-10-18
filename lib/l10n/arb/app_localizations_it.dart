@@ -3392,6 +3392,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'Aggiornamento TDI';
 
   @override
+  String get currencyRule_iart_refresher_name => 'Aggiornamento IART';
+
+  @override
   String get currencyRule_first_aid_24mo_name => 'Rinnovo primo soccorso e RCP';
 
   @override
@@ -3432,6 +3435,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'TDI suggerisce un aggiornamento dopo sei-dodici mesi senza immersioni tecniche.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'IART suggerisce un aggiornamento dopo sei-dodici mesi senza immersioni tecniche.';
 
   @override
   String get currencyRule_first_aid_advisory =>
