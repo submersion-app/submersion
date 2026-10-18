@@ -3886,6 +3886,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_edit_group_tdiProfessional => 'Professionnel';
 
   @override
+  String get certifications_edit_group_iartOpenCircuit => 'Circuit ouvert';
+
+  @override
+  String get certifications_edit_group_iartRebreather => 'Recycleur';
+
+  @override
+  String get certifications_edit_group_iartOverhead => 'Sous plafond';
+
+  @override
+  String get certifications_edit_group_iartService => 'Service';
+
+  @override
+  String get certifications_edit_group_iartProfessional => 'Professionnel';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'Laisse vide pour les certifications sans expiration';
 
@@ -12374,6 +12389,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_tdi => 'TDI';
+
+  @override
+  String get enum_certificationAgency_iart => 'IART';
 
   @override
   String get enum_certificationLevel_advancedNitrox => 'Nitrox avancé';

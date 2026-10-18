@@ -3810,6 +3810,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_group_tdiProfessional => 'מקצועי';
 
   @override
+  String get certifications_edit_group_iartOpenCircuit => 'מעגל פתוח';
+
+  @override
+  String get certifications_edit_group_iartRebreather => 'ריברידר';
+
+  @override
+  String get certifications_edit_group_iartOverhead => 'סביבת תקרה';
+
+  @override
+  String get certifications_edit_group_iartService => 'שירות';
+
+  @override
+  String get certifications_edit_group_iartProfessional => 'מקצועי';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'השאר ריק להסמכות ללא תפוגה';
 
@@ -12071,6 +12086,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_tdi => 'TDI';
+
+  @override
+  String get enum_certificationAgency_iart => 'IART';
 
   @override
   String get enum_certificationLevel_advancedNitrox => 'ניטרוקס מתקדם';

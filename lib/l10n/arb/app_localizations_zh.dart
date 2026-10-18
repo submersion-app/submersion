@@ -3681,6 +3681,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_group_tdiProfessional => '专业';
 
   @override
+  String get certifications_edit_group_iartOpenCircuit => '开放式';
+
+  @override
+  String get certifications_edit_group_iartRebreather => '循环呼吸器';
+
+  @override
+  String get certifications_edit_group_iartOverhead => '顶板环境';
+
+  @override
+  String get certifications_edit_group_iartService => '服务';
+
+  @override
+  String get certifications_edit_group_iartProfessional => '专业';
+
+  @override
   String get certifications_edit_help_expiryDate => '不会过期的证书请留空';
 
   @override
@@ -11750,6 +11765,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_tdi => 'TDI';
+
+  @override
+  String get enum_certificationAgency_iart => 'IART';
 
   @override
   String get enum_certificationLevel_advancedNitrox => '高级高氧空气';

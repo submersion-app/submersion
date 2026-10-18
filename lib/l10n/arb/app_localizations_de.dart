@@ -3878,6 +3878,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_group_tdiProfessional => 'Berufsstufen';
 
   @override
+  String get certifications_edit_group_iartOpenCircuit => 'Offener Kreislauf';
+
+  @override
+  String get certifications_edit_group_iartRebreather => 'Kreislaufgerät';
+
+  @override
+  String get certifications_edit_group_iartOverhead => 'Überkopf-Umgebung';
+
+  @override
+  String get certifications_edit_group_iartService => 'Service';
+
+  @override
+  String get certifications_edit_group_iartProfessional => 'Berufsstufen';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'Leer lassen für Zertifizierungen ohne Ablaufdatum';
 
@@ -12342,6 +12357,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_tdi => 'TDI';
+
+  @override
+  String get enum_certificationAgency_iart => 'IART';
 
   @override
   String get enum_certificationLevel_advancedNitrox => 'Advanced Nitrox';

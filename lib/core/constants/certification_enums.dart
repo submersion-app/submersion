@@ -21,6 +21,8 @@ enum CertificationAgency {
   // (issue #690). Brand names, never translated.
   acuc('ACUC'),
   dan('DAN'),
+  // IART, International Association of Rebreather Trainers (issue #3357).
+  iart('IART'),
   other('Other');
 
   final String displayName;
@@ -52,6 +54,7 @@ enum CertificationAgency {
     CertificationAgency.ffessm => const Color(0xFF00529b),
     CertificationAgency.acuc => const Color(0xFF0D3B7A),
     CertificationAgency.dan => const Color(0xFF9E1B32),
+    CertificationAgency.iart => const Color(0xFF006064),
     CertificationAgency.other => const Color(0xFF00838f),
   };
 
@@ -71,6 +74,7 @@ enum CertificationAgency {
     CertificationAgency.ffessm => const Color(0xFF1e88e5),
     CertificationAgency.acuc => const Color(0xFF2E6BC4),
     CertificationAgency.dan => const Color(0xFFD23C52),
+    CertificationAgency.iart => const Color(0xFF00ACC1),
     CertificationAgency.other => const Color(0xFF26c6da),
   };
 }
@@ -276,6 +280,43 @@ enum CertificationLevel {
   tdiNonDivingSpecialtyInstructor('Non-Diving Specialty Instructor'),
   tdiInstructor('TDI Instructor'),
   tdiInstructorTrainer('TDI Instructor Trainer'),
+  // IART, International Association of Rebreather Trainers (issue #3357).
+  // Course names from the agency's own catalog (iart.de/kursfinder), kept
+  // untranslated like the TDI/BSAC/GUE/ACUC/DAN proper nouns above.
+  // Open Circuit
+  iartOpenWaterNitroxDiver('Open Water Nitrox Diver'),
+  iartAdvancedNitroxDiver('Advanced Nitrox Diver'),
+  iartRecreationalTrimix('Recreational Trimix'),
+  iartExtendedRangeNormoxicTrimix('Extended Range Normoxic Trimix'),
+  iartSidemount('Sidemount'),
+  iartDecompression('Decompression'),
+  iartDriftDiving('Drift Diving'),
+  iartNightDiving('Night Diving'),
+  iartDrysuitDiving('Drysuit Diving'),
+  // Rebreather. iartRebreatherRescue is a mandatory add-on to all rebreather
+  // beginner courses, distinct from the open-water-only generic `rescue`.
+  iartRebreatherLevel1('Rebreather Level 1'),
+  iartRebreatherLevel2('Rebreather Level 2'),
+  iartRebreatherLevel3('Rebreather Level 3'),
+  iartRebreatherRescue('Rescue'),
+  // Overhead (Caves - Mines)
+  iartCavern('Cavern'),
+  iartCaveIntroduce('Introduce'),
+  iartFullCave('Full Cave'),
+  iartTechCave('Tech Cave'),
+  iartCaveDpv('Cave/DPV'),
+  iartWreck('Wreck'),
+  iartDpvScooter('DPV/Scooter'),
+  // Service
+  iartGasBlender('Gas Blender'),
+  // Professional. The four instructor-track steps below are training-
+  // program stages, not a named terminal "IART Instructor" rating, so none
+  // is flagged on isInstructorLevel.
+  iartIoc('IOC'),
+  iartItp('ITP'),
+  iartIe('IE'),
+  iartIdc('IDC'),
+  iartDiveGuide('Dive Guide'),
   other('Other');
 
   final String displayName;

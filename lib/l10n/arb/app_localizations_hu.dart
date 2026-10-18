@@ -3861,6 +3861,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_group_tdiProfessional => 'Szakmai';
 
   @override
+  String get certifications_edit_group_iartOpenCircuit => 'Nyílt kör';
+
+  @override
+  String get certifications_edit_group_iartRebreather => 'Rebreather';
+
+  @override
+  String get certifications_edit_group_iartOverhead => 'Zárt terek';
+
+  @override
+  String get certifications_edit_group_iartService => 'Szerviz';
+
+  @override
+  String get certifications_edit_group_iartProfessional => 'Szakmai';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'Hagyja üresen a le nem járó képesítéseknél';
 
@@ -12308,6 +12323,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_tdi => 'TDI';
+
+  @override
+  String get enum_certificationAgency_iart => 'IART';
 
   @override
   String get enum_certificationLevel_advancedNitrox => 'Haladó Nitrox';

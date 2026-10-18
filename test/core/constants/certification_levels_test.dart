@@ -83,6 +83,15 @@ void main() {
       expect(levels.first, CertificationLevel.tdiNitroxDiver);
     });
 
+    test('IART ladder/specialty overlap has none, each level appears once '
+        '(issue #3357)', () {
+      final levels = CertificationLevelCatalog.levelsFor(
+        CertificationAgency.iart,
+      );
+      expect(levels.toSet().length, levels.length);
+      expect(levels.first, CertificationLevel.iartOpenWaterNitroxDiver);
+    });
+
     test('ensure appends an out-of-catalog level before other', () {
       final levels = CertificationLevelCatalog.levelsFor(
         CertificationAgency.cmas,
@@ -131,6 +140,18 @@ void main() {
       );
       expect(specialties, contains(CertificationLevel.tdiFullCaveDiver));
       expect(specialties, contains(CertificationLevel.tdiAirDiluentCcrDiver));
+      expect(specialties, isNot(contains(CertificationLevel.wreck)));
+      expect(specialties, isNot(contains(CertificationLevel.nitrox)));
+    });
+
+    test('IART specialties are its own Rebreather/Service/Overhead/'
+        'Professional courses, not the shared cross-agency pool '
+        '(issue #3357)', () {
+      final specialties = CertificationLevelCatalog.specialtiesFor(
+        CertificationAgency.iart,
+      );
+      expect(specialties, contains(CertificationLevel.iartFullCave));
+      expect(specialties, contains(CertificationLevel.iartRebreatherLevel1));
       expect(specialties, isNot(contains(CertificationLevel.wreck)));
       expect(specialties, isNot(contains(CertificationLevel.nitrox)));
     });
