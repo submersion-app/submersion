@@ -50,7 +50,7 @@ void main() {
   const nothingSyncsItNote =
       'App-managed cloud sync is disabled while the database sits on a device '
       'storage volume. No sync service can reach that folder on Android, so '
-      'use Backup & Restore to keep copies elsewhere.';
+      'use Backups to keep copies elsewhere.';
 
   setUp(() async {
     await setUpTestDatabase();

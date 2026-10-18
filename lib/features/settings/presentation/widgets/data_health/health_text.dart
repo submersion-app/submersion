@@ -14,7 +14,7 @@ String dataFeatureLabel(AppLocalizations l10n, DataFeature feature) =>
       DataFeature.backup => l10n.dataHealth_feature_backup,
       DataFeature.sync => l10n.dataHealth_feature_sync,
       DataFeature.sharedLibraries => l10n.dataHealth_feature_libraries,
-      DataFeature.media => l10n.dataHealth_feature_media,
+      DataFeature.media => l10n.dataHealth_feature_photos,
     };
 
 String healthLevelLabel(AppLocalizations l10n, HealthLevel level) =>

@@ -49,28 +49,26 @@ void main() {
   double topOf(WidgetTester tester, String text) =>
       tester.getTopLeft(find.text(text)).dy;
 
-  testWidgets('Connected Accounts sits in the Backup & Sync group', (
-    tester,
-  ) async {
+  testWidgets('Connected accounts sits in the Your data group', (tester) async {
     await pumpDataSection(tester);
 
     // The Data page is flat (issue #3390): the group is the rows between
-    // the Backup & Sync and Storage headers.
-    expect(find.text('Connected Accounts'), findsOneWidget);
+    // the Your data and Advanced headers (issue #3482).
+    expect(find.text('Connected accounts'), findsOneWidget);
     expect(
-      topOf(tester, 'Connected Accounts'),
-      greaterThan(topOf(tester, 'Photos & Media')),
+      topOf(tester, 'Connected accounts'),
+      greaterThan(topOf(tester, 'Photos & videos')),
     );
     expect(
-      topOf(tester, 'Connected Accounts'),
-      lessThan(topOf(tester, 'Storage')),
+      topOf(tester, 'Connected accounts'),
+      lessThan(topOf(tester, 'Advanced')),
     );
   });
 
-  testWidgets('tapping it opens the Connected Accounts page', (tester) async {
+  testWidgets('tapping it opens the Connected accounts page', (tester) async {
     await pumpDataSection(tester);
 
-    await tester.tap(find.text('Connected Accounts'));
+    await tester.tap(find.text('Connected accounts'));
     await tester.pumpAndSettle();
 
     expect(find.text('accounts page'), findsOneWidget);

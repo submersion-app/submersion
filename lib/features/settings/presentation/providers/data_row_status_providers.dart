@@ -104,12 +104,17 @@ final backupsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   );
 });
 
-final syncRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
+/// Names the other devices on the library have published.
+final syncPeerNamesProvider = Provider.autoDispose<List<String>>((ref) {
   final peers = ref.watch(peerDeviceNamesProvider).value ?? const {};
+  return peers.values.toList();
+});
+
+final syncRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   return syncRowStatus(
     health: _healthOf(ref, DataFeature.sync),
     lastSync: ref.watch(lastSyncTimeProvider),
-    peerNames: peers.values.toList(),
+    peerNames: ref.watch(syncPeerNamesProvider),
   );
 });
 

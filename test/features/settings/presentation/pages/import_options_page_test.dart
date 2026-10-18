@@ -1,7 +1,6 @@
 // Issue #3482: the import preferences moved off the Data page onto their own
 // Import options page under Advanced.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
