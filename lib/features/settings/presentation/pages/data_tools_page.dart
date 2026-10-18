@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Data > Advanced > Data tools (issue #3482): the four one-off
@@ -14,14 +14,7 @@ class DataToolsPage extends StatelessWidget {
     final l10n = context.l10n;
 
     Widget tool(IconData icon, String title, String subtitle, String route) =>
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(icon),
-          title: Text(title),
-          subtitle: Text(subtitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.pushSettingsPage(route),
-        );
+        DataRowTile(icon: icon, title: title, subtitle: subtitle, route: route);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_data_dataTools)),

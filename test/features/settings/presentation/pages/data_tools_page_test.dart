@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -49,8 +50,10 @@ void main() {
     await pumpPage(tester);
 
     expect(find.text('Data tools'), findsOneWidget);
+    // Same row widget as the Data page, so the tools look like its rows.
+    expect(find.byType(DataRowTile), findsNWidgets(4));
     for (final title in const [
-      'Fix Dive Times',
+      'Fix dive times',
       'Link buddy names',
       'Retype gear marked Other',
       'Data quality',
@@ -58,7 +61,7 @@ void main() {
       expect(find.text(title), findsOneWidget, reason: title);
     }
 
-    await tester.tap(find.text('Fix Dive Times'));
+    await tester.tap(find.text('Fix dive times'));
     await tester.pumpAndSettle();
     expect(find.text('page /settings/fix-dive-times'), findsOneWidget);
   });

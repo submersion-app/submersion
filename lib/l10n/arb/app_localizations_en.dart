@@ -46625,7 +46625,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Adjust times for imported dives';
 
   @override
-  String get settings_fixDiveTimes_title => 'Fix Dive Times';
+  String get settings_fixDiveTimes_title => 'Fix dive times';
 
   @override
   String get settings_fixDiveTimes_to => 'To';

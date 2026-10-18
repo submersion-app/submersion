@@ -27247,7 +27247,7 @@
   "settings_fixDiveTimes_selectAll": "Select All",
   "settings_fixDiveTimes_selectDivesHint": "Select dives to apply",
   "settings_fixDiveTimes_subtitle": "Adjust times for imported dives",
-  "settings_fixDiveTimes_title": "Fix Dive Times",
+  "settings_fixDiveTimes_title": "Fix dive times",
   "settings_fixDiveTimes_to": "To",
   "settings_fixDiveTimes_zeroOffset": "Hour offset is 0, nothing to change.",
   "settings_syncDevices_appBar_refreshTooltip": "Refresh",

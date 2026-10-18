@@ -249,7 +249,7 @@ A feature that is not set up shows a **Set up** action under its status.
 
 | Tool | What it does |
 |------|--------------|
-| **Fix Dive Times** | Shift the times of imported dives, for example a batch that came in an hour out because the computer's clock was wrong |
+| **Fix dive times** | Shift the times of imported dives, for example a batch that came in an hour out because the computer's clock was wrong |
 | **Link buddy names** | Turn buddy names on imported dives into buddy records |
 | **Retype gear marked Other** | Give imported gear the type its name states |
 | **Data quality** | Choose which checks the [Data Quality Assistant](data-quality-assistant.md) runs |

@@ -75362,7 +75362,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_fixDiveTimes_title.
   ///
   /// In en, this message translates to:
-  /// **'Fix Dive Times'**
+  /// **'Fix dive times'**
   String get settings_fixDiveTimes_title;
 
   /// No description provided for @settings_fixDiveTimes_to.

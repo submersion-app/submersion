@@ -247,7 +247,7 @@ void main() {
   testWidgets('tool rows and import controls left the page', (tester) async {
     await pumpData(tester);
 
-    expect(find.text('Fix Dive Times'), findsNothing);
+    expect(find.text('Fix dive times'), findsNothing);
     expect(find.text('Auto site matching'), findsNothing);
     expect(find.text('Tag imports automatically'), findsNothing);
   });
