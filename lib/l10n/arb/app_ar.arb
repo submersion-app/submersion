@@ -1604,7 +1604,7 @@
   "connections_kindOne_diveComputer": "كمبيوتر غوص",
   "connections_kindOne_course": "دورة",
   "connections_empty_noDives": "لا توجد غوصات بعد. تظهر الروابط عندما يحتوي السجل على غوصات.",
-  "connections_empty_buddies": "لا يوجد رفقاء مرتبطون بالغوصات بعد. أضف رفقاء إلى غوصاتك أو حوّل أسماء الرفقاء القديمة من الإعدادات > البيانات > متقدم > أدوات البيانات.",
+  "connections_empty_buddies": "لا يوجد رفقاء مرتبطون بالغوصات بعد. أضف رفقاء إلى غوصاتك أو حوّل أسماء الرفقاء القديمة من الإعدادات > البيانات > أدوات البيانات.",
   "connections_empty_sites": "لا توجد غوصة لها موقع بعد.",
   "connections_empty_filtered": "لا شيء يطابق التصفية الحالية.",
   "connections_focusMissing": "هذا العنصر لم يعد موجودًا في السجل.",

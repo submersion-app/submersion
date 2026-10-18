@@ -1604,7 +1604,7 @@
   "connections_kindOne_diveComputer": "Computador de mergulho",
   "connections_kindOne_course": "Curso",
   "connections_empty_noDives": "Ainda não há mergulhos. As ligações aparecem quando o diário tiver mergulhos.",
-  "connections_empty_buddies": "Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições > Dados > Avançado > Ferramentas de dados.",
+  "connections_empty_buddies": "Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições > Dados > Ferramentas de dados.",
   "connections_empty_sites": "Nenhum mergulho tem ainda um local.",
   "connections_empty_filtered": "Nada corresponde ao filtro atual.",
   "connections_focusMissing": "Esse item já não está no diário.",

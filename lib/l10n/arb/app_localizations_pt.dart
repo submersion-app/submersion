@@ -5061,7 +5061,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições > Dados > Avançado > Ferramentas de dados.';
+      'Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições > Dados > Ferramentas de dados.';
 
   @override
   String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';

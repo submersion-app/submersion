@@ -5066,7 +5066,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Noch keine Buddys mit Tauchgängen verknüpft. Füge Buddys zu deinen Tauchgängen hinzu oder wandle alte Buddy-Namen unter Einstellungen > Daten > Erweitert > Datenwerkzeuge um.';
+      'Noch keine Buddys mit Tauchgängen verknüpft. Füge Buddys zu deinen Tauchgängen hinzu oder wandle alte Buddy-Namen unter Einstellungen > Daten > Datenwerkzeuge um.';
 
   @override
   String get connections_empty_sites =>

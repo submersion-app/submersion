@@ -5062,7 +5062,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Aún no hay compañeros vinculados a inmersiones. Añade compañeros a tus inmersiones o convierte los nombres antiguos en Ajustes > Datos > Avanzado > Herramientas de datos.';
+      'Aún no hay compañeros vinculados a inmersiones. Añade compañeros a tus inmersiones o convierte los nombres antiguos en Ajustes > Datos > Herramientas de datos.';
 
   @override
   String get connections_empty_sites =>

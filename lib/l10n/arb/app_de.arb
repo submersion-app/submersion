@@ -1629,7 +1629,7 @@
   "connections_kindOne_diveComputer": "Tauchcomputer",
   "connections_kindOne_course": "Kurs",
   "connections_empty_noDives": "Noch keine Tauchgänge. Verbindungen erscheinen, sobald dein Logbuch Tauchgänge enthält.",
-  "connections_empty_buddies": "Noch keine Buddys mit Tauchgängen verknüpft. Füge Buddys zu deinen Tauchgängen hinzu oder wandle alte Buddy-Namen unter Einstellungen > Daten > Erweitert > Datenwerkzeuge um.",
+  "connections_empty_buddies": "Noch keine Buddys mit Tauchgängen verknüpft. Füge Buddys zu deinen Tauchgängen hinzu oder wandle alte Buddy-Namen unter Einstellungen > Daten > Datenwerkzeuge um.",
   "connections_empty_sites": "Noch kein Tauchgang hat einen Tauchplatz.",
   "connections_empty_filtered": "Nichts entspricht dem aktuellen Filter.",
   "connections_focusMissing": "Dieser Eintrag ist nicht mehr im Logbuch.",

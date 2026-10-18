@@ -4987,7 +4987,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Advanced > Data tools.';
+      'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Data tools.';
 
   @override
   String get connections_empty_sites => 'No dives have a site yet.';

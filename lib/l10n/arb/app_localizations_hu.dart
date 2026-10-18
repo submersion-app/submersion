@@ -5051,7 +5051,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Még nincs merüléshez kapcsolt búvártárs. Adj búvártársakat a merüléseidhez, vagy alakítsd át a régi neveket a Beállítások > Adatok > Speciális > Adateszközök menüben.';
+      'Még nincs merüléshez kapcsolt búvártárs. Adj búvártársakat a merüléseidhez, vagy alakítsd át a régi neveket a Beállítások > Adatok > Adateszközök menüben.';
 
   @override
   String get connections_empty_sites =>

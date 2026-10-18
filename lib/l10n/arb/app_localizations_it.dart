@@ -5059,7 +5059,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Nessun compagno è ancora collegato alle immersioni. Aggiungi compagni alle tue immersioni o converti i vecchi nomi in Impostazioni > Dati > Avanzate > Strumenti dati.';
+      'Nessun compagno è ancora collegato alle immersioni. Aggiungi compagni alle tue immersioni o converti i vecchi nomi in Impostazioni > Dati > Strumenti dati.';
 
   @override
   String get connections_empty_sites => 'Nessuna immersione ha ancora un sito.';

@@ -1604,7 +1604,7 @@
   "connections_kindOne_diveComputer": "מחשב צלילה",
   "connections_kindOne_course": "קורס",
   "connections_empty_noDives": "אין עדיין צלילות. הקשרים יופיעו כשביומן יהיו צלילות.",
-  "connections_empty_buddies": "אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות > נתונים > מתקדם > כלי נתונים.",
+  "connections_empty_buddies": "אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות > נתונים > כלי נתונים.",
   "connections_empty_sites": "לאף צלילה אין עדיין אתר.",
   "connections_empty_filtered": "אין פריטים שמתאימים לסינון הנוכחי.",
   "connections_focusMissing": "הפריט הזה כבר אינו ביומן.",

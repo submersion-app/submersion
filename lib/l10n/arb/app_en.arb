@@ -3231,7 +3231,7 @@
   "connections_kindOne_diveComputer": "Dive computer",
   "connections_kindOne_course": "Course",
   "connections_empty_noDives": "No dives yet. Connections appear once your log has dives in it.",
-  "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Advanced > Data tools.",
+  "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Data tools.",
   "connections_empty_sites": "No dives have a site yet.",
   "connections_empty_filtered": "Nothing matches the current filter.",
   "connections_focusMissing": "That item is no longer in the log.",

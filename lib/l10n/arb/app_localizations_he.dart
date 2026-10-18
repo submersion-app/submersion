@@ -4959,7 +4959,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות > נתונים > מתקדם > כלי נתונים.';
+      'אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות > נתונים > כלי נתונים.';
 
   @override
   String get connections_empty_sites => 'לאף צלילה אין עדיין אתר.';

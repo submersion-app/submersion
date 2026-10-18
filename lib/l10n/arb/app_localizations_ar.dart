@@ -5147,7 +5147,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'لا يوجد رفقاء مرتبطون بالغوصات بعد. أضف رفقاء إلى غوصاتك أو حوّل أسماء الرفقاء القديمة من الإعدادات > البيانات > متقدم > أدوات البيانات.';
+      'لا يوجد رفقاء مرتبطون بالغوصات بعد. أضف رفقاء إلى غوصاتك أو حوّل أسماء الرفقاء القديمة من الإعدادات > البيانات > أدوات البيانات.';
 
   @override
   String get connections_empty_sites => 'لا توجد غوصة لها موقع بعد.';

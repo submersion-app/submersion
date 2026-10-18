@@ -5033,7 +5033,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Nog geen buddy\'s gekoppeld aan duiken. Voeg buddy\'s toe aan je duiken of zet oude buddynamen om via Instellingen > Gegevens > Geavanceerd > Gegevenshulpmiddelen.';
+      'Nog geen buddy\'s gekoppeld aan duiken. Voeg buddy\'s toe aan je duiken of zet oude buddynamen om via Instellingen > Gegevens > Gegevenshulpmiddelen.';
 
   @override
   String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';

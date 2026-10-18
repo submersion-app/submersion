@@ -5073,7 +5073,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Aucun binôme n\'est encore lié à une plongée. Ajoutez des binômes à vos plongées ou convertissez les anciens noms dans Réglages > Données > Avancé > Outils de données.';
+      'Aucun binôme n\'est encore lié à une plongée. Ajoutez des binômes à vos plongées ou convertissez les anciens noms dans Réglages > Données > Outils de données.';
 
   @override
   String get connections_empty_sites => 'Aucune plongée n\'a encore de site.';

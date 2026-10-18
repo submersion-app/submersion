@@ -4802,7 +4802,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      '还没有潜伴与潜水关联。请为潜水添加潜伴，或在「设置 > 数据 > 高级 > 数据工具」中转换旧的潜伴名称。';
+      '还没有潜伴与潜水关联。请为潜水添加潜伴，或在「设置 > 数据 > 数据工具」中转换旧的潜伴名称。';
 
   @override
   String get connections_empty_sites => '还没有潜水记录了潜点。';

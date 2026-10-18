@@ -7959,7 +7959,7 @@ abstract class AppLocalizations {
   /// No description provided for @connections_empty_buddies.
   ///
   /// In en, this message translates to:
-  /// **'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Advanced > Data tools.'**
+  /// **'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Data tools.'**
   String get connections_empty_buddies;
 
   /// No description provided for @connections_empty_sites.
