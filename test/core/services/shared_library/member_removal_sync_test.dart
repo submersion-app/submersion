@@ -286,6 +286,31 @@ void main() {
       expect(await inbox(), {'sg1': SharedSiteSuggestion.pending});
     });
 
+    test('a removal outweighs an approval the roles still hold', () async {
+      final bo = await addMember('d2', 'Bo', SharedLibraryRole.reader);
+      await suggest(
+        bo,
+        'sg1',
+        DateTime.now().toUtc().subtract(const Duration(minutes: 5)),
+      );
+      await remove(bo);
+      // An older owner app approves the card Bo's older app wrote again.
+      await cardBack(bo);
+      await memberships().approveMember(
+        libraryId: lib.id,
+        memberId: bo.memberId,
+        actingMemberId: (await membershipOf('d1')).memberId,
+        publicKey: bo.signingKey!.publicKey,
+      );
+      await suggest(
+        bo,
+        'sg2',
+        DateTime.now().toUtc().add(const Duration(hours: 1)),
+      );
+      await syncer().sync(lib.id, diverId: 'd1');
+      expect(await inbox(), {'sg1': SharedSiteSuggestion.pending});
+    });
+
     test('one dated after the removal is not taken in', () async {
       final bo = await addMember('d2', 'Bo', SharedLibraryRole.reader);
       await remove(bo);

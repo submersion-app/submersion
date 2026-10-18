@@ -147,6 +147,16 @@ mixin _MembershipOwnership {
       rolesRejected: false,
       clearPendingRoles: true,
     );
+    // Written apart from writeSignedRoles, so the removals the former
+    // owners signed are carried here: a reset is no undoing of them.
+    await _carryRemovals(
+      libraryId,
+      t,
+      roles,
+      reset,
+      membership.memberId,
+      myKey,
+    );
     if (!reset.judgesFieldsAs(library.roles)) {
       await _store.clearRemoteStamps(libraryId);
     }

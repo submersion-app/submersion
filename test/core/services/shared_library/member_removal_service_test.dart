@@ -300,6 +300,25 @@ void main() {
       expect(await SharedLibraryStore().removals(lib.id), hasLength(2));
     });
 
+    test('when someone resets ownership', () async {
+      final (lib, _, _) = await cyRemovesBo();
+      await _diver('d4');
+      await service.join(
+        account: account,
+        prefix: 'site-sync',
+        diverId: 'd4',
+        displayName: 'Dee',
+      );
+      final dee = (await SharedLibraryStore().membership(
+        diverId: 'd4',
+        libraryId: lib.id,
+      ))!;
+      await service.resetOwnership(libraryId: lib.id, diverId: 'd4');
+      final kept = await valid(lib.id);
+      expect(kept.single.removedBy, dee.memberId);
+      expect(await SharedLibraryStore().removals(lib.id), hasLength(1));
+    });
+
     test('when that owner is made a reader', () async {
       final (lib, ann, cy) = await cyRemovesBo();
       await service.setRole(

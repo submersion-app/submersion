@@ -199,7 +199,11 @@ extension _SuggestionSync on SharedLibraryService {
         }
         final author = json['memberId'];
         if (author is! String) continue;
-        final approved = roles.approvedKeys[author];
+        // A removal outweighs an approval the roles may still hold (an
+        // older owner app, a restore race): only its cut-off decides.
+        final approved = removed.contains(author)
+            ? null
+            : roles.approvedKeys[author];
         final String status;
         if (approved != null) {
           if (!await verifySuggestion(json, approved, libraryId: libraryId)) {
