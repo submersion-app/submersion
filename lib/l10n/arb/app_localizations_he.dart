@@ -2416,9 +2416,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'גיבוי ושחזור';
-
-  @override
   String get backup_backingUp => 'מגבה...';
 
   @override
@@ -20449,9 +20446,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
 
   @override
-  String get settings_cloudSync_appBar_title => 'סנכרון ענן של מסד נתונים';
-
-  @override
   String get settings_cloudSync_autoSync => 'סנכרון אוטומטי';
 
   @override
@@ -20477,14 +20471,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => 'סנכרון ענן מושבת';
 
   @override
-  String get settings_cloudSync_entry_subtitle => 'סנכרון באמצעות אחסון ענן';
-
-  @override
   String get sharedLibrary_settings_title => 'ספריות אתרים משותפות';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'אתרי צלילה שמנוהלים יחד עם צוללים אחרים';
 
   @override
   String get sharedLibrary_list_empty => 'עדיין לא חוברה ספריית אתרים משותפת.';
@@ -24571,12 +24558,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'מיקום ברירת מחדל של האפליקציה';
 
   @override
-  String get settings_data_backup => 'גיבוי ושחזור';
-
-  @override
-  String get settings_data_backup_subtitle => 'צור גיבוי של הנתונים שלך';
-
-  @override
   String get settings_data_customFolder => 'תיקייה מותאמת אישית';
 
   @override
@@ -24586,15 +24567,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'הייצוא נכשל: $error';
   }
-
-  @override
-  String get settings_data_header_backupSync => 'גיבוי וסנכרון';
-
-  @override
-  String get settings_data_header_import => 'ייבוא';
-
-  @override
-  String get settings_data_header_storage => 'אחסון';
 
   @override
   String get settings_data_offlineMaps => 'מפות לא מקוונות';
@@ -24629,9 +24601,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataHealth_feature_libraries => 'ספריות';
-
-  @override
-  String get dataHealth_feature_media => 'מדיה';
 
   @override
   String get dataHealth_level_healthy => 'תקין';
@@ -24716,22 +24685,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataHealth_sync_neverSynced => 'עדיין לא סונכרן';
-
-  @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'סונכרן: $when';
-  }
-
-  @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'סונכרן: $when · $count מכשירים',
-      one: 'סונכרן: $when · $count מכשיר',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settings_data_header_yourData => 'הנתונים שלך';
@@ -26039,9 +25992,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_section_appearance_title => 'מראה';
-
-  @override
-  String get settings_section_data_subtitle => 'גיבוי, שחזור ואחסון';
 
   @override
   String get settings_section_data_title => 'נתונים';
@@ -35869,12 +35819,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_setup_dismiss => 'התעלם';
 
   @override
-  String get settings_photosMedia_title => 'תמונות ומדיה';
-
-  @override
-  String get settings_photosMedia_subtitle => 'מקורות ואחסון';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'מאיפה מגיעות התמונות';
 
   @override
@@ -35902,10 +35846,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => 'חשבונות מחוברים';
-
-  @override
-  String get settings_connectedAccounts_subtitle =>
-      'כניסות המשמשות לסנכרון, לאחסון מדיה ולספריות משותפות';
 
   @override
   String get settings_connectedAccounts_empty => 'אין עדיין חשבונות מחוברים';
@@ -46141,9 +46081,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_cloudSync_troubleshoot_tileSubtitle =>
       'תיקון סנכרון תקוע או פינוי שטח בענן';
-
-  @override
-  String get settings_data_header_dataTools => 'כלי נתונים';
 
   @override
   String get settings_decompression_ascentGasLabel => 'תכנון העלייה עם';

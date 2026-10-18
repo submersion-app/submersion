@@ -3823,12 +3823,6 @@ abstract class AppLocalizations {
   /// **'Sort by {displayName}'**
   String accessibility_sort_unselectedLabel(Object displayName);
 
-  /// No description provided for @backup_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup & Restore'**
-  String get backup_appBar_title;
-
   /// No description provided for @backup_backingUp.
   ///
   /// In en, this message translates to:
@@ -33497,12 +33491,6 @@ abstract class AppLocalizations {
   /// **'Back to settings'**
   String get settings_backToSettings_tooltip;
 
-  /// No description provided for @settings_cloudSync_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Database Cloud Sync'**
-  String get settings_cloudSync_appBar_title;
-
   /// No description provided for @settings_cloudSync_autoSync.
   ///
   /// In en, this message translates to:
@@ -33533,23 +33521,11 @@ abstract class AppLocalizations {
   /// **'Cloud Sync Disabled'**
   String get settings_cloudSync_disabledBanner_title;
 
-  /// No description provided for @settings_cloudSync_entry_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync via cloud storage'**
-  String get settings_cloudSync_entry_subtitle;
-
   /// No description provided for @sharedLibrary_settings_title.
   ///
   /// In en, this message translates to:
   /// **'Shared site libraries'**
   String get sharedLibrary_settings_title;
-
-  /// No description provided for @sharedLibrary_settings_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive sites kept together with other divers'**
-  String get sharedLibrary_settings_subtitle;
 
   /// No description provided for @sharedLibrary_list_empty.
   ///
@@ -40594,18 +40570,6 @@ abstract class AppLocalizations {
   /// **'App default location'**
   String get settings_data_appDefaultLocation;
 
-  /// No description provided for @settings_data_backup.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup & Restore'**
-  String get settings_data_backup;
-
-  /// No description provided for @settings_data_backup_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Create a backup of your data'**
-  String get settings_data_backup_subtitle;
-
   /// No description provided for @settings_data_customFolder.
   ///
   /// In en, this message translates to:
@@ -40623,24 +40587,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export failed: {error}'**
   String settings_data_export_failed(Object error);
-
-  /// No description provided for @settings_data_header_backupSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup & Sync'**
-  String get settings_data_header_backupSync;
-
-  /// No description provided for @settings_data_header_import.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get settings_data_header_import;
-
-  /// No description provided for @settings_data_header_storage.
-  ///
-  /// In en, this message translates to:
-  /// **'Storage'**
-  String get settings_data_header_storage;
 
   /// No description provided for @settings_data_offlineMaps.
   ///
@@ -40695,12 +40641,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Libraries'**
   String get dataHealth_feature_libraries;
-
-  /// No description provided for @dataHealth_feature_media.
-  ///
-  /// In en, this message translates to:
-  /// **'Media'**
-  String get dataHealth_feature_media;
 
   /// No description provided for @dataHealth_level_healthy.
   ///
@@ -40827,18 +40767,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not synced yet'**
   String get dataHealth_sync_neverSynced;
-
-  /// No description provided for @dataHealth_sync_rowSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Synced: {when}'**
-  String dataHealth_sync_rowSubtitle(String when);
-
-  /// No description provided for @dataHealth_sync_rowSubtitleDevices.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{Synced: {when} · {count} device} other{Synced: {when} · {count} devices}}'**
-  String dataHealth_sync_rowSubtitleDevices(String when, int count);
 
   /// No description provided for @settings_data_header_yourData.
   ///
@@ -42953,12 +42881,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Appearance'**
   String get settings_section_appearance_title;
-
-  /// No description provided for @settings_section_data_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup, restore & storage'**
-  String get settings_section_data_subtitle;
 
   /// No description provided for @settings_section_data_title.
   ///
@@ -57902,18 +57824,6 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get settings_setup_dismiss;
 
-  /// No description provided for @settings_photosMedia_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Photos & Media'**
-  String get settings_photosMedia_title;
-
-  /// No description provided for @settings_photosMedia_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sources & storage'**
-  String get settings_photosMedia_subtitle;
-
   /// No description provided for @settings_photosMedia_sourcesHeader.
   ///
   /// In en, this message translates to:
@@ -57967,12 +57877,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connected accounts'**
   String get settings_connectedAccounts_title;
-
-  /// No description provided for @settings_connectedAccounts_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign-ins used by sync, media storage and shared libraries'**
-  String get settings_connectedAccounts_subtitle;
 
   /// No description provided for @settings_connectedAccounts_empty.
   ///
@@ -75141,12 +75045,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fix a stuck sync or free cloud space'**
   String get settings_cloudSync_troubleshoot_tileSubtitle;
-
-  /// No description provided for @settings_data_header_dataTools.
-  ///
-  /// In en, this message translates to:
-  /// **'Data Tools'**
-  String get settings_data_header_dataTools;
 
   /// No description provided for @settings_decompression_ascentGasLabel.
   ///

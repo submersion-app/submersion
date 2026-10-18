@@ -2335,9 +2335,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => '备份与恢复';
-
-  @override
   String get backup_backingUp => '正在备份...';
 
   @override
@@ -19881,9 +19878,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override
-  String get settings_cloudSync_appBar_title => '数据库云同步';
-
-  @override
   String get settings_cloudSync_autoSync => '自动同步';
 
   @override
@@ -19908,13 +19902,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => '云同步已禁用';
 
   @override
-  String get settings_cloudSync_entry_subtitle => '通过云存储同步';
-
-  @override
   String get sharedLibrary_settings_title => '共享潜点库';
-
-  @override
-  String get sharedLibrary_settings_subtitle => '与其他潜水员共同维护的潜点';
 
   @override
   String get sharedLibrary_list_empty => '尚未连接共享潜点库。';
@@ -23822,12 +23810,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_appDefaultLocation => '应用默认位置';
 
   @override
-  String get settings_data_backup => '备份与恢复';
-
-  @override
-  String get settings_data_backup_subtitle => '创建数据备份';
-
-  @override
   String get settings_data_customFolder => '自定义文件夹';
 
   @override
@@ -23837,15 +23819,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return '导出失败：$error';
   }
-
-  @override
-  String get settings_data_header_backupSync => '备份与同步';
-
-  @override
-  String get settings_data_header_import => '导入';
-
-  @override
-  String get settings_data_header_storage => '存储';
 
   @override
   String get settings_data_offlineMaps => '离线地图';
@@ -23879,9 +23852,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataHealth_feature_libraries => '潜点库';
-
-  @override
-  String get dataHealth_feature_media => '媒体';
 
   @override
   String get dataHealth_level_healthy => '正常';
@@ -23962,21 +23932,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataHealth_sync_neverSynced => '尚未同步';
-
-  @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return '已同步：$when';
-  }
-
-  @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '已同步：$when · $count 台设备',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settings_data_header_yourData => '您的数据';
@@ -25222,9 +25177,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_section_appearance_title => '外观';
-
-  @override
-  String get settings_section_data_subtitle => '备份、恢复与存储';
 
   @override
   String get settings_section_data_title => '数据';
@@ -34650,12 +34602,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_setup_dismiss => '忽略';
 
   @override
-  String get settings_photosMedia_title => '照片与媒体';
-
-  @override
-  String get settings_photosMedia_subtitle => '来源与存储';
-
-  @override
   String get settings_photosMedia_sourcesHeader => '照片来源';
 
   @override
@@ -34681,9 +34627,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => '已连接账户';
-
-  @override
-  String get settings_connectedAccounts_subtitle => '用于同步、媒体存储和共享库的登录';
 
   @override
   String get settings_connectedAccounts_empty => '尚未连接任何账户';
@@ -44339,9 +44282,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_troubleshoot_tileSubtitle => '修复卡住的同步或释放云端空间';
-
-  @override
-  String get settings_data_header_dataTools => '数据工具';
 
   @override
   String get settings_decompression_ascentGasLabel => '上升计划使用';

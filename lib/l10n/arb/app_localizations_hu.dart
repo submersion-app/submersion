@@ -2442,9 +2442,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'Biztonsági Mentés és Visszaállítás';
-
-  @override
   String get backup_backingUp => 'Mentés folyamatban...';
 
   @override
@@ -20843,10 +20840,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Vissza a beállításokhoz';
 
   @override
-  String get settings_cloudSync_appBar_title =>
-      'Adatbázis felhő szinkronizálás';
-
-  @override
   String get settings_cloudSync_autoSync => 'Automatikus szinkronizálás';
 
   @override
@@ -20873,15 +20866,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felhő szinkronizálás letiltva';
 
   @override
-  String get settings_cloudSync_entry_subtitle =>
-      'Szinkronizálás felhőtárhelyen keresztül';
-
-  @override
   String get sharedLibrary_settings_title => 'Megosztott merülőhely-könyvtárak';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'Más búvárokkal közösen vezetett merülőhelyek';
 
   @override
   String get sharedLibrary_list_empty =>
@@ -25089,13 +25074,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alkalmazás alapértelmezett helye';
 
   @override
-  String get settings_data_backup => 'Biztonsági mentés és visszaállítás';
-
-  @override
-  String get settings_data_backup_subtitle =>
-      'Biztonsági mentés készítése az adatokról';
-
-  @override
   String get settings_data_customFolder => 'Egyedi mappa';
 
   @override
@@ -25105,16 +25083,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'Exportálás sikertelen: $error';
   }
-
-  @override
-  String get settings_data_header_backupSync =>
-      'Biztonsági mentés és szinkronizálás';
-
-  @override
-  String get settings_data_header_import => 'Importálás';
-
-  @override
-  String get settings_data_header_storage => 'Tárolás';
 
   @override
   String get settings_data_offlineMaps => 'Offline térképek';
@@ -25149,9 +25117,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataHealth_feature_libraries => 'Könyvtárak';
-
-  @override
-  String get dataHealth_feature_media => 'Média';
 
   @override
   String get dataHealth_level_healthy => 'Rendben';
@@ -25241,21 +25206,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataHealth_sync_neverSynced => 'Még nincs szinkronizálva';
-
-  @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'Szinkronizálva: $when';
-  }
-
-  @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Szinkronizálva: $when · $count eszköz',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settings_data_header_yourData => 'Az adataid';
@@ -26591,10 +26541,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_section_appearance_title => 'Megjelenés';
-
-  @override
-  String get settings_section_data_subtitle =>
-      'Biztonsági mentés, visszaállítás és tárolás';
 
   @override
   String get settings_section_data_title => 'Adatok';
@@ -36567,12 +36513,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_setup_dismiss => 'Elvetés';
 
   @override
-  String get settings_photosMedia_title => 'Fotók és média';
-
-  @override
-  String get settings_photosMedia_subtitle => 'Források és tárolás';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'Honnan érkeznek a fotók';
 
   @override
@@ -36600,10 +36540,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => 'Csatlakoztatott fiókok';
-
-  @override
-  String get settings_connectedAccounts_subtitle =>
-      'A szinkronizálás, a médiatárhely és a megosztott könyvtárak által használt fiókok';
 
   @override
   String get settings_connectedAccounts_empty =>
@@ -46896,9 +46832,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_cloudSync_troubleshoot_tileSubtitle =>
       'Elakadt szinkronizálás javítása vagy felhőtárhely felszabadítása';
-
-  @override
-  String get settings_data_header_dataTools => 'Adateszközök';
 
   @override
   String get settings_decompression_ascentGasLabel =>

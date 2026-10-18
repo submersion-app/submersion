@@ -2438,9 +2438,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'Back-up en Herstel';
-
-  @override
   String get backup_backingUp => 'Back-up maken...';
 
   @override
@@ -20779,9 +20776,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Terug naar instellingen';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Database-cloudsynchronisatie';
-
-  @override
   String get settings_cloudSync_autoSync => 'Automatische synchronisatie';
 
   @override
@@ -20808,15 +20802,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Cloudsynchronisatie uitgeschakeld';
 
   @override
-  String get settings_cloudSync_entry_subtitle =>
-      'Synchroniseren via cloudopslag';
-
-  @override
   String get sharedLibrary_settings_title => 'Gedeelde duikstekbibliotheken';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'Duikstekken die je met andere duikers bijhoudt';
 
   @override
   String get sharedLibrary_list_empty =>
@@ -25041,13 +25027,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'Standaard app-locatie';
 
   @override
-  String get settings_data_backup => 'Back-up en herstel';
-
-  @override
-  String get settings_data_backup_subtitle =>
-      'Maak een back-up van je gegevens';
-
-  @override
   String get settings_data_customFolder => 'Aangepaste map';
 
   @override
@@ -25057,15 +25036,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'Export mislukt: $error';
   }
-
-  @override
-  String get settings_data_header_backupSync => 'Back-up & synchronisatie';
-
-  @override
-  String get settings_data_header_import => 'Importeren';
-
-  @override
-  String get settings_data_header_storage => 'Opslag';
 
   @override
   String get settings_data_offlineMaps => 'Offline kaarten';
@@ -25100,9 +25070,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataHealth_feature_libraries => 'Bibliotheken';
-
-  @override
-  String get dataHealth_feature_media => 'Media';
 
   @override
   String get dataHealth_level_healthy => 'In orde';
@@ -25192,22 +25159,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataHealth_sync_neverSynced => 'Nog niet gesynchroniseerd';
-
-  @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'Gesynchroniseerd: $when';
-  }
-
-  @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Gesynchroniseerd: $when · $count apparaten',
-      one: 'Gesynchroniseerd: $when · $count apparaat',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settings_data_header_yourData => 'Je gegevens';
@@ -26537,9 +26488,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_section_appearance_title => 'Uiterlijk';
-
-  @override
-  String get settings_section_data_subtitle => 'Back-up, herstel & opslag';
 
   @override
   String get settings_section_data_title => 'Gegevens';
@@ -36532,12 +36480,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_setup_dismiss => 'Negeren';
 
   @override
-  String get settings_photosMedia_title => 'Foto\'s en media';
-
-  @override
-  String get settings_photosMedia_subtitle => 'Bronnen en opslag';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'Waar foto\'s vandaan komen';
 
   @override
@@ -36567,10 +36509,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => 'Gekoppelde accounts';
-
-  @override
-  String get settings_connectedAccounts_subtitle =>
-      'Aanmeldingen voor synchronisatie, mediaopslag en gedeelde bibliotheken';
 
   @override
   String get settings_connectedAccounts_empty => 'Nog geen accounts gekoppeld';
@@ -46855,9 +46793,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_cloudSync_troubleshoot_tileSubtitle =>
       'Een vastgelopen synchronisatie herstellen of cloudruimte vrijmaken';
-
-  @override
-  String get settings_data_header_dataTools => 'Gegevenshulpmiddelen';
 
   @override
   String get settings_decompression_ascentGasLabel => 'Opstijging plannen met';

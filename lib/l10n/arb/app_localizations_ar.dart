@@ -2505,9 +2505,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'النسخ الاحتياطي والاستعادة';
-
-  @override
   String get backup_backingUp => 'جاري النسخ الاحتياطي...';
 
   @override
@@ -21179,10 +21176,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
 
   @override
-  String get settings_cloudSync_appBar_title =>
-      'المزامنة السحابية لقاعدة البيانات';
-
-  @override
   String get settings_cloudSync_autoSync => 'المزامنة التلقائية';
 
   @override
@@ -21212,15 +21205,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'المزامنة السحابية معطلة';
 
   @override
-  String get settings_cloudSync_entry_subtitle =>
-      'المزامنة عبر التخزين السحابي';
-
-  @override
   String get sharedLibrary_settings_title => 'مكتبات المواقع المشتركة';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'مواقع غوص تُدار مع غواصين آخرين';
 
   @override
   String get sharedLibrary_list_empty =>
@@ -25404,12 +25389,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'موقع التطبيق الافتراضي';
 
   @override
-  String get settings_data_backup => 'نسخ احتياطي واستعادة';
-
-  @override
-  String get settings_data_backup_subtitle => 'إنشاء نسخة احتياطية من بياناتك';
-
-  @override
   String get settings_data_customFolder => 'مجلد مخصص';
 
   @override
@@ -25419,15 +25398,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'فشل التصدير: $error';
   }
-
-  @override
-  String get settings_data_header_backupSync => 'النسخ الاحتياطي والمزامنة';
-
-  @override
-  String get settings_data_header_import => 'الاستيراد';
-
-  @override
-  String get settings_data_header_storage => 'التخزين';
 
   @override
   String get settings_data_offlineMaps => 'الخرائط غير المتصلة';
@@ -25462,9 +25432,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataHealth_feature_libraries => 'المكتبات';
-
-  @override
-  String get dataHealth_feature_media => 'الوسائط';
 
   @override
   String get dataHealth_level_healthy => 'سليم';
@@ -25556,25 +25523,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataHealth_sync_neverSynced => 'لم تتم المزامنة بعد';
-
-  @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'تمت المزامنة: $when';
-  }
-
-  @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'تمت المزامنة: $when · $count جهاز',
-      many: 'تمت المزامنة: $when · $count جهازًا',
-      few: 'تمت المزامنة: $when · $count أجهزة',
-      two: 'تمت المزامنة: $when · جهازان',
-      one: 'تمت المزامنة: $when · $count جهاز',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settings_data_header_yourData => 'بياناتك';
@@ -26935,10 +26883,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_section_appearance_title => 'المظهر';
-
-  @override
-  String get settings_section_data_subtitle =>
-      'النسخ الاحتياطي والاستعادة والتخزين';
 
   @override
   String get settings_section_data_title => 'البيانات';
@@ -37284,12 +37228,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_setup_dismiss => 'تجاهل';
 
   @override
-  String get settings_photosMedia_title => 'الصور والوسائط';
-
-  @override
-  String get settings_photosMedia_subtitle => 'المصادر والتخزين';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'من أين تأتي الصور';
 
   @override
@@ -37317,10 +37255,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => 'الحسابات المتصلة';
-
-  @override
-  String get settings_connectedAccounts_subtitle =>
-      'تسجيلات الدخول المستخدمة للمزامنة وتخزين الوسائط والمكتبات المشتركة';
 
   @override
   String get settings_connectedAccounts_empty => 'لا توجد حسابات متصلة بعد';
@@ -47737,9 +47671,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_cloudSync_troubleshoot_tileSubtitle =>
       'أصلح مزامنة متوقفة أو حرّر مساحة سحابية';
-
-  @override
-  String get settings_data_header_dataTools => 'أدوات البيانات';
 
   @override
   String get settings_decompression_ascentGasLabel => 'خطّط الصعود باستخدام';

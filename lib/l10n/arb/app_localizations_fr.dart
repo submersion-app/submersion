@@ -2456,9 +2456,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'Sauvegarde et Restauration';
-
-  @override
   String get backup_backingUp => 'Sauvegarde en cours...';
 
   @override
@@ -20973,10 +20970,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Retour aux réglages';
 
   @override
-  String get settings_cloudSync_appBar_title =>
-      'Synchronisation cloud de la base de données';
-
-  @override
   String get settings_cloudSync_autoSync => 'Synchronisation automatique';
 
   @override
@@ -21003,15 +20996,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Synchronisation cloud désactivée';
 
   @override
-  String get settings_cloudSync_entry_subtitle =>
-      'Synchronisation via le stockage cloud';
-
-  @override
   String get sharedLibrary_settings_title => 'Bibliothèques de sites partagées';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'Des sites de plongée tenus avec d\'autres plongeurs';
 
   @override
   String get sharedLibrary_list_empty =>
@@ -25279,13 +25264,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Emplacement par défaut de l\'application';
 
   @override
-  String get settings_data_backup => 'Sauvegarde et restauration';
-
-  @override
-  String get settings_data_backup_subtitle =>
-      'Créer une sauvegarde de vos données';
-
-  @override
   String get settings_data_customFolder => 'Dossier personnalisé';
 
   @override
@@ -25295,15 +25273,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'Échec de l\'export : $error';
   }
-
-  @override
-  String get settings_data_header_backupSync => 'Sauvegarde et synchronisation';
-
-  @override
-  String get settings_data_header_import => 'Importation';
-
-  @override
-  String get settings_data_header_storage => 'Stockage';
 
   @override
   String get settings_data_offlineMaps => 'Cartes hors ligne';
@@ -25338,9 +25307,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataHealth_feature_libraries => 'Bibliothèques';
-
-  @override
-  String get dataHealth_feature_media => 'Médias';
 
   @override
   String get dataHealth_level_healthy => 'En bon état';
@@ -25431,22 +25397,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataHealth_sync_neverSynced => 'Pas encore synchronisé';
-
-  @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'Synchronisé : $when';
-  }
-
-  @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Synchronisé : $when · $count appareils',
-      one: 'Synchronisé : $when · $count appareil',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settings_data_header_yourData => 'Vos données';
@@ -26799,10 +26749,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_section_appearance_title => 'Apparence';
-
-  @override
-  String get settings_section_data_subtitle =>
-      'Sauvegarde, restauration et stockage';
 
   @override
   String get settings_section_data_title => 'Données';
@@ -36894,12 +36840,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_setup_dismiss => 'Ignorer';
 
   @override
-  String get settings_photosMedia_title => 'Photos et médias';
-
-  @override
-  String get settings_photosMedia_subtitle => 'Sources et stockage';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'D\'où viennent les photos';
 
   @override
@@ -36929,10 +36869,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => 'Comptes connectés';
-
-  @override
-  String get settings_connectedAccounts_subtitle =>
-      'Connexions utilisées par la synchronisation, le stockage des médias et les bibliothèques partagées';
 
   @override
   String get settings_connectedAccounts_empty =>
@@ -47271,9 +47207,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_cloudSync_troubleshoot_tileSubtitle =>
       'Réparer une synchronisation bloquée ou libérer de l’espace dans le cloud';
-
-  @override
-  String get settings_data_header_dataTools => 'Outils de données';
 
   @override
   String get settings_decompression_ascentGasLabel =>

@@ -2424,9 +2424,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'Backup & Restore';
-
-  @override
   String get backup_backingUp => 'Backing up...';
 
   @override
@@ -20603,9 +20600,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Back to settings';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Database Cloud Sync';
-
-  @override
   String get settings_cloudSync_autoSync => 'Auto Sync';
 
   @override
@@ -20631,14 +20625,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_cloudSync_disabledBanner_title => 'Cloud Sync Disabled';
 
   @override
-  String get settings_cloudSync_entry_subtitle => 'Sync via cloud storage';
-
-  @override
   String get sharedLibrary_settings_title => 'Shared site libraries';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'Dive sites kept together with other divers';
 
   @override
   String get sharedLibrary_list_empty =>
@@ -24777,12 +24764,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'App default location';
 
   @override
-  String get settings_data_backup => 'Backup & Restore';
-
-  @override
-  String get settings_data_backup_subtitle => 'Create a backup of your data';
-
-  @override
   String get settings_data_customFolder => 'Custom folder';
 
   @override
@@ -24792,15 +24773,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'Export failed: $error';
   }
-
-  @override
-  String get settings_data_header_backupSync => 'Backup & Sync';
-
-  @override
-  String get settings_data_header_import => 'Import';
-
-  @override
-  String get settings_data_header_storage => 'Storage';
 
   @override
   String get settings_data_offlineMaps => 'Offline maps';
@@ -24835,9 +24807,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataHealth_feature_libraries => 'Libraries';
-
-  @override
-  String get dataHealth_feature_media => 'Media';
 
   @override
   String get dataHealth_level_healthy => 'Healthy';
@@ -24924,22 +24893,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataHealth_sync_neverSynced => 'Not synced yet';
-
-  @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'Synced: $when';
-  }
-
-  @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Synced: $when · $count devices',
-      one: 'Synced: $when · $count device',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settings_data_header_yourData => 'Your data';
@@ -26261,9 +26214,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_section_appearance_title => 'Appearance';
-
-  @override
-  String get settings_section_data_subtitle => 'Backup, restore & storage';
 
   @override
   String get settings_section_data_title => 'Data';
@@ -36163,12 +36113,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_setup_dismiss => 'Dismiss';
 
   @override
-  String get settings_photosMedia_title => 'Photos & Media';
-
-  @override
-  String get settings_photosMedia_subtitle => 'Sources & storage';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'Where photos come from';
 
   @override
@@ -36197,10 +36141,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => 'Connected accounts';
-
-  @override
-  String get settings_connectedAccounts_subtitle =>
-      'Sign-ins used by sync, media storage and shared libraries';
 
   @override
   String get settings_connectedAccounts_empty => 'No accounts connected yet';
@@ -46451,9 +46391,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_cloudSync_troubleshoot_tileSubtitle =>
       'Fix a stuck sync or free cloud space';
-
-  @override
-  String get settings_data_header_dataTools => 'Data Tools';
 
   @override
   String get settings_decompression_ascentGasLabel => 'Plan ascent with';
