@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -132,6 +133,11 @@ void main() {
           started.add('gas switches');
           return false;
         }),
+        // Read by a section widget of its own, not by the page.
+        incidentsForDiveProvider('b').overrideWith((ref) async {
+          started.add('incidents');
+          return const [];
+        }),
       ],
     );
 
@@ -143,13 +149,18 @@ void main() {
     expect(find.text(notes, skipOffstage: false), findsNothing);
     expect(
       started,
-      unorderedEquals(['weekly OTU', 'surface interval', 'gas switches']),
+      unorderedEquals([
+        'weekly OTU',
+        'surface interval',
+        'gas switches',
+        'incidents',
+      ]),
       reason: 'loading started while the page was still sliding in',
     );
 
     await tester.pumpAndSettle();
     expect(find.text(notes), findsOneWidget);
-    expect(started, hasLength(3), reason: 'the sections reuse what loaded');
+    expect(started, hasLength(4), reason: 'the sections reuse what loaded');
 
     router.pop();
     await tester.pumpAndSettle();
