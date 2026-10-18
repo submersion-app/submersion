@@ -4118,6 +4118,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tanúsítvány hozzáadása';
 
   @override
+  String get certifications_list_groupBy => 'Group by';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Agency';
+
+  @override
+  String get certifications_list_groupBy_none => 'None';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Lejárt';
 
   @override
@@ -4218,6 +4230,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_share_title => 'Tanúsítvány megosztása';
 
   @override
+  String get certifications_sortSheet_view_list => 'List';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Certification Wallet';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Válasszon egy tanúsítványt a listából a részletek megtekintéséhez';
 
@@ -4277,6 +4295,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Tanúsítvány megosztása';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Sort';
 
   @override
   String get checklists_section_title => 'Ellenőrzőlista';

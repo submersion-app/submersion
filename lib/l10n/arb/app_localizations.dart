@@ -6428,6 +6428,30 @@ abstract class AppLocalizations {
   /// **'Add Certification'**
   String get certifications_list_fab_addCertification;
 
+  /// No description provided for @certifications_list_groupBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get certifications_list_groupBy;
+
+  /// No description provided for @certifications_list_groupBy_agency.
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get certifications_list_groupBy_agency;
+
+  /// No description provided for @certifications_list_groupBy_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get certifications_list_groupBy_none;
+
+  /// No description provided for @certifications_list_groupBy_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get certifications_list_groupBy_status;
+
   /// No description provided for @certifications_list_section_expired.
   ///
   /// In en, this message translates to:
@@ -6596,6 +6620,18 @@ abstract class AppLocalizations {
   /// **'Share Certification'**
   String get certifications_share_title;
 
+  /// No description provided for @certifications_sortSheet_view_list.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get certifications_sortSheet_view_list;
+
+  /// No description provided for @certifications_sortSheet_view_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification Wallet'**
+  String get certifications_sortSheet_view_wallet;
+
   /// No description provided for @certifications_summary_header_subtitle.
   ///
   /// In en, this message translates to:
@@ -6709,6 +6745,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share certification'**
   String get certifications_wallet_tooltip_share;
+
+  /// No description provided for @certifications_wallet_tooltip_sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get certifications_wallet_tooltip_sort;
 
   /// No description provided for @checklists_section_title.
   ///

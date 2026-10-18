@@ -2590,6 +2590,10 @@
   "certifications_list_empty_title": "No certifications added yet",
   "certifications_list_error_loading": "Error loading certifications: {error}",
   "certifications_list_fab_addCertification": "Add Certification",
+  "certifications_list_groupBy": "Group by",
+  "certifications_list_groupBy_agency": "Agency",
+  "certifications_list_groupBy_none": "None",
+  "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Expired",
   "certifications_list_section_expiringSoon": "Expiring Soon",
   "certifications_list_section_valid": "Valid",
@@ -2621,6 +2625,8 @@
   "certifications_share_option_certificate_subtitle": "Formal certificate document",
   "certifications_share_option_certificate_title": "Share as Certificate",
   "certifications_share_title": "Share Certification",
+  "certifications_sortSheet_view_list": "List",
+  "certifications_sortSheet_view_wallet": "Certification Wallet",
   "certifications_summary_header_subtitle": "Select a certification from the list to view details",
   "certifications_summary_header_title": "Certifications",
   "certifications_summary_overview_title": "Overview",
@@ -2640,6 +2646,7 @@
   "certifications_wallet_tooltip_add": "Add certification",
   "certifications_wallet_tooltip_moreOptions": "More options",
   "certifications_wallet_tooltip_share": "Share certification",
+  "certifications_wallet_tooltip_sort": "Sort",
   "@certifications_detail_dialog_deleteContent": {
     "placeholders": {
       "name": {

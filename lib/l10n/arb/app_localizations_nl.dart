@@ -4113,6 +4113,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Certificering toevoegen';
 
   @override
+  String get certifications_list_groupBy => 'Group by';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Agency';
+
+  @override
+  String get certifications_list_groupBy_none => 'None';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Verlopen';
 
   @override
@@ -4213,6 +4225,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_share_title => 'Certificering delen';
 
   @override
+  String get certifications_sortSheet_view_list => 'List';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Certification Wallet';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Selecteer een certificering uit de lijst om details te bekijken';
 
@@ -4271,6 +4289,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Certificering delen';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Sort';
 
   @override
   String get checklists_section_title => 'Checklist';
