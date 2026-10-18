@@ -15,9 +15,11 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
@@ -95,7 +97,15 @@ class _FakeAccounts extends Fake implements ConnectedAccountsRepository {
   @override
   Future<domain.ConnectedAccount?> getById(String id) async {
     final label = labels[id];
-    if (label == null) return null;
+    return label == null ? null : _account(id, label);
+  }
+
+  @override
+  Future<List<domain.ConnectedAccount>> getAll() async => [
+    for (final e in labels.entries) _account(e.key, e.value),
+  ];
+
+  domain.ConnectedAccount _account(String id, String label) {
     final at = DateTime(2026);
     return domain.ConnectedAccount(
       id: id,
@@ -106,6 +116,15 @@ class _FakeAccounts extends Fake implements ConnectedAccountsRepository {
     );
   }
 }
+
+PendingSetupItem _signIn(String key, {bool dismissed = false}) =>
+    PendingSetupItem(
+      kind: SetupItemKind.accountSignIn,
+      key: key,
+      label: key,
+      route: '/settings/cloud-sync',
+      dismissed: dismissed,
+    );
 
 MediaHealthInputs _inputs({required bool attached}) => MediaHealthInputs(
   storeAttachedHere: attached,
@@ -218,6 +237,20 @@ void main() {
       ]);
       keep(c, lastBackupCloudAccountLabelProvider);
       expect(await c.read(lastBackupCloudAccountLabelProvider.future), isNull);
+    });
+
+    test('reads the recorded cloud account from the backup settings', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final backupPrefs = BackupPreferences(prefs);
+      await backupPrefs.setLastBackupDestination(
+        LastBackupDestination.cloud,
+        cloudAccountId: 'acct-drive',
+      );
+      final c = container([
+        backupPreferencesProvider.overrideWithValue(backupPrefs),
+      ]);
+      expect(c.read(lastBackupCloudAccountIdProvider), 'acct-drive');
     });
 
     test('never reads the account label for a local backup', () {
@@ -368,6 +401,40 @@ void main() {
       await c.read(accountLabelsProvider.future);
       final s = c.read(accountsRowStatusProvider);
       expect((s.kind, s.count), (DataRowStatusKind.accountsNeedSignIn, 1));
+    });
+
+    test('labels come from the roster', () async {
+      final c = container([
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts({'a': 'Google Drive', 'b': 'nas.home'}),
+        ),
+      ]);
+      keep(c, accountLabelsProvider);
+      expect(await c.read(accountLabelsProvider.future), [
+        'Google Drive',
+        'nas.home',
+      ]);
+    });
+
+    // A dismissed prompt hides the card entry, not the need to sign in.
+    test('counts every sign-in needed, dismissed prompts included', () async {
+      final c = container([
+        pendingSetupItemsProvider.overrideWith(
+          (ref) async => [
+            _signIn('account_1'),
+            _signIn('account_2', dismissed: true),
+            const PendingSetupItem(
+              kind: SetupItemKind.mediaStoreAttach,
+              key: 'store_1',
+              label: 'photos @ nas',
+              route: '/settings/media-storage',
+            ),
+          ],
+        ),
+      ]);
+      keep(c, accountSignInsNeededProvider);
+      await c.read(pendingSetupItemsProvider.future);
+      expect(c.read(accountSignInsNeededProvider), 2);
     });
 
     test('reads as checking while the roster loads', () {
