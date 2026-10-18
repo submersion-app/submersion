@@ -74,6 +74,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_section_preload.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segments_availability.dart';
@@ -1128,6 +1129,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
     final layout = settings.diveDetailLayout;
 
+    // The sections below wait out the slide; their data need not (#3489).
+    if (!isRouteEntranceSettled) preloadDiveDetailSections(ref, dive.id);
+
     final builders = _sectionBuilders(
       context: context,
       ref: ref,
@@ -1189,7 +1193,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             // when the pane is wide enough. Gauge dives hide
             // gas/deco sections (deco status, tissue loading, SAC segments,
             // cylinders). The list layout folds each section to a header row.
-            // They wait for the page to finish sliding in: built in the
+            // They wait until the page has all but slid in: built in the
             // slide's opening frames they made it stutter on a phone, while
             // the header alone slides in smoothly (#3489).
             if (isRouteEntranceSettled)
