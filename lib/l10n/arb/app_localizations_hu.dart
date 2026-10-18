@@ -16573,7 +16573,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (levegősűrűség)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Gázsűrűség 0 °C-on';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Gázsűrűség $temp-on';
+  }
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'A hidegebb gáz sűrűbb, ezért a sűrűségvizsgálat az itt kiválasztott hőmérsékletet veszi alapul, nem a gáz tényleges hőmérsékletét a mélységben.';
 
   @override
   String get gasCalculators_mod_openDensity =>

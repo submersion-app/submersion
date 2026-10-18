@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_assessment_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -15,6 +16,7 @@ GasLimitsInputs _inputs({
   double minPpO2 = 0.16,
   double? target,
   WaterType waterType = WaterType.fresh,
+  GasDensityTemperature temperature = GasDensityTemperature.zeroC,
 }) => GasLimitsInputs(
   mode: mode,
   o2Percent: o2,
@@ -28,6 +30,7 @@ GasLimitsInputs _inputs({
   o2Narcotic: true,
   targetDepthMeters: target,
   waterType: waterType,
+  temperature: temperature,
 );
 
 void main() {

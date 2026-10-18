@@ -16613,7 +16613,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (Luftdichte)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Gasdichte bei 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Gasdichte bei $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'Kälteres Gas ist dichter. Die Dichteprüfung folgt der hier gewählten Temperatur, nicht der tatsächlichen Gastemperatur in der Tiefe.';
 
   @override
   String get gasCalculators_mod_openDensity => 'Im Gasdichte-Rechner öffnen';

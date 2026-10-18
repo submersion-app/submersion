@@ -86,6 +86,10 @@ class GasLimitsInputs {
   /// Water type of the Tec modes. Rec always uses the flat model.
   final WaterType waterType;
 
+  /// Gas temperature the density check assumes. Ignored in Rec, which has no
+  /// density check.
+  final GasDensityTemperature temperature;
+
   const GasLimitsInputs({
     required this.mode,
     required this.o2Percent,
@@ -99,6 +103,7 @@ class GasLimitsInputs {
     required this.o2Narcotic,
     required this.targetDepthMeters,
     required this.waterType,
+    required this.temperature,
   });
 
   /// [clearTargetDepth] drops the target, which a null argument cannot.
@@ -116,6 +121,7 @@ class GasLimitsInputs {
     double? targetDepthMeters,
     bool clearTargetDepth = false,
     WaterType? waterType,
+    GasDensityTemperature? temperature,
   }) => GasLimitsInputs(
     mode: mode ?? this.mode,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -131,6 +137,7 @@ class GasLimitsInputs {
         ? null
         : targetDepthMeters ?? this.targetDepthMeters,
     waterType: waterType ?? this.waterType,
+    temperature: temperature ?? this.temperature,
   );
 }
 
@@ -370,7 +377,7 @@ DepthAssessment _assess({
         hePercent: he,
         depthMeters: depth,
         setpointBar: onLoop ? inputs.setpointBar : null,
-        temperature: GasDensityTemperature.zeroC,
+        temperature: inputs.temperature,
         waterType: inputs.waterType,
       ),
     );

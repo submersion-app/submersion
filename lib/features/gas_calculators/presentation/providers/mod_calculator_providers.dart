@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
@@ -141,6 +142,9 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
   void setWaterType(WaterType type) => _update(state.copyWith(waterType: type));
 
   void setMinPpO2(double ppO2) => _update(state.copyWith(minPpO2: ppO2));
+
+  void setTemperature(GasDensityTemperature temperature) =>
+      _update(state.copyWith(temperature: temperature));
 
   /// Working and deco are never inverted, the rule the profile keeps:
   /// raising working pulls deco up with it, lowering deco pulls working
@@ -279,6 +283,7 @@ final modCalculatorInputsProvider = Provider<GasLimitsInputs>((ref) {
     o2Narcotic: settings.o2Narcotic,
     targetDepthMeters: mode.checkTargetDepth ? mode.targetDepthMeters : null,
     waterType: modCalculatorWaterType(prefs, settings),
+    temperature: prefs.temperature,
   );
 });
 

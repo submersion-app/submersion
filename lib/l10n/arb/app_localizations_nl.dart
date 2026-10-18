@@ -16519,7 +16519,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (luchtdichtheid)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Gasdichtheid bij 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Gasdichtheid bij $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'Kouder gas is dichter, dus de dichtheidscontrole volgt de hier gekozen temperatuur, niet de werkelijke gastemperatuur op diepte.';
 
   @override
   String get gasCalculators_mod_openDensity =>

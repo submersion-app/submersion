@@ -16269,7 +16269,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (צפיפות אוויר)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'צפיפות גז ב-0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'צפיפות גז ב-$temp';
+  }
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'גז קר יותר צפוף יותר, כך שבדיקת הצפיפות מתבססת על הטמפרטורה שנבחרה כאן, לא על טמפרטורת הגז בפועל בעומק.';
 
   @override
   String get gasCalculators_mod_openDensity => 'פתח במחשבון צפיפות הגז';

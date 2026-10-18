@@ -9922,7 +9922,15 @@
   "gasCalculators_mod_rowEad": "EAD (N₂ narcotic)",
   "gasCalculators_mod_rowEnd": "END (N₂ + O₂ narcotic)",
   "gasCalculators_mod_rowEadd": "EADD (air density)",
-  "gasCalculators_mod_rowDensity": "Gas density at 0 °C",
+  "gasCalculators_mod_rowDensity": "Gas density at {temp}",
+  "@gasCalculators_mod_rowDensity": {
+    "placeholders": {
+      "temp": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_temperatureHint": "Colder gas is denser, so the density check follows the temperature chosen here, not the actual gas temperature at depth.",
   "gasCalculators_mod_openDensity": "Open in the gas density calculator",
   "gasCalculators_mod_assessmentTitle": "Assessment",
   "gasCalculators_mod_recBeyondLimit": "The MOD lies deeper than the recreational limit of {limit}. Down there narcosis and gas density, not oxygen, set the limit.",

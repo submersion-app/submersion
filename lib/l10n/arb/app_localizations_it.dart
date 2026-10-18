@@ -16632,7 +16632,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (densità dell\'aria)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Densità del gas a 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Densità del gas a $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'Un gas più freddo è più denso: il controllo della densità segue la temperatura scelta qui, non la temperatura reale del gas in profondità.';
 
   @override
   String get gasCalculators_mod_openDensity =>

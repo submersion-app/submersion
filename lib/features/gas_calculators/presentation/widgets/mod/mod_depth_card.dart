@@ -32,6 +32,7 @@ class ModDepthCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final result = ref.watch(modCalculatorResultProvider);
+    final temperature = ref.watch(modCalculatorInputsProvider).temperature;
     final isTec = result.mode != ModCalculatorMode.rec;
     final columns = [
       result.atMod,
@@ -134,9 +135,12 @@ class ModDepthCard extends ConsumerWidget {
                   row(l10n.gasCalculators_mod_rowEadd, [
                     for (final a in columns) value(depth(a.eaddMeters!)),
                   ]),
-                  row(l10n.gasCalculators_mod_rowDensity, [
-                    for (final a in columns) density(a),
-                  ]),
+                  row(
+                    l10n.gasCalculators_mod_rowDensity(
+                      units.formatTemperature(temperature.celsius, decimals: 0),
+                    ),
+                    [for (final a in columns) density(a)],
+                  ),
                 ],
               ],
             ),
@@ -179,6 +183,7 @@ class ModDepthCard extends ConsumerWidget {
       ref.read(densitySetpointProvider.notifier).state = inputs.setpointBar;
     }
     ref.read(densityWaterTypeProvider.notifier).state = inputs.waterType;
+    ref.read(densityTemperatureProvider.notifier).state = inputs.temperature;
     context.go('$kGasCalculatorsRoutePrefix/density');
   }
 }

@@ -115,8 +115,23 @@ void main() {
     expect(find.text('from the surface'), findsOneWidget);
     expect(find.textContaining('MND (END limit'), findsOneWidget);
     expect(find.text('END (N₂ + O₂ narcotic)'), findsOneWidget);
-    expect(find.text('Gas density at 0 °C'), findsOneWidget);
+    expect(find.text('Gas density at 0°C'), findsOneWidget);
     expect(find.text('Open in the gas density calculator'), findsOneWidget);
+  });
+
+  testWidgets('the gas temperature toggle is Tec-only and updates the '
+      'density row', (tester) async {
+    await _pump(tester);
+    expect(find.text('Gas temperature'), findsNothing);
+
+    await tester.tap(find.text('OC Tec'));
+    await _settle(tester);
+    expect(find.text('Gas temperature'), findsOneWidget);
+    expect(find.text('Gas density at 0°C'), findsOneWidget);
+
+    await tester.tap(find.text('20°C'));
+    await _settle(tester);
+    expect(find.text('Gas density at 20°C'), findsOneWidget);
   });
 
   testWidgets('CCR Tec names the diluent MOD; the setpoint comes with the '
