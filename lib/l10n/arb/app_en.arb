@@ -12893,11 +12893,15 @@
   },
   "settings_navCustomization_alwaysHideLabels_title": "Always hide labels",
   "@settings_navCustomization_alwaysHideLabels_title": {
-    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
+    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424). Shared by the phone and desktop tabs; only the value and the subtitle below it differ by scope (#3222)."
   },
   "settings_navCustomization_alwaysHideLabels_subtitle": "Icons only, even where labels would normally fit",
   "@settings_navCustomization_alwaysHideLabels_subtitle": {
-    "description": "Subtitle under the always-hide-labels switch."
+    "description": "Subtitle under the always-hide-labels switch on the phone tab: a hard setting with no override."
+  },
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session",
+  "@settings_navCustomization_alwaysHideLabels_subtitleDesktop": {
+    "description": "Subtitle under the always-hide-labels switch on the desktop tab: unlike the phone switch, this only sets the rail's initial state and can be overridden for the session by the rail's own collapse arrow."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {

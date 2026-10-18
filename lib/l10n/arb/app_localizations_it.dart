@@ -20760,6 +20760,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Solo icone, anche quando ci sarebbe spazio per le etichette';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Trascina gli elementi per riordinare la barra laterale. Home resta sempre in alto.';
 

@@ -20735,6 +20735,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nur Icons, auch wenn Platz für Beschriftungen wäre';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Elemente ziehen, um die Seitenleiste neu zu ordnen. Startseite bleibt immer oben.';
 

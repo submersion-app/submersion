@@ -20627,6 +20627,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alleen pictogrammen, ook als er ruimte is voor labels';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.';
 

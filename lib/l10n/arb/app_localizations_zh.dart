@@ -19736,6 +19736,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '仅显示图标,即使有空间显示标签';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       '拖动项目以重新排列侧边栏。主页始终位于顶部。';
 

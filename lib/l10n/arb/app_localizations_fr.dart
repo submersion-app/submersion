@@ -20820,6 +20820,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Icônes uniquement, même si les libellés auraient de la place';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Faites glisser les éléments pour réorganiser la barre latérale. Accueil reste toujours en haut.';
 

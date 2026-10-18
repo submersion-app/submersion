@@ -44,7 +44,11 @@ const Set<String> deviceLocalSettingsKeys = {
   // The nav layout depends on the screen it is shown on (issue #2947).
   'nav_primary_ids',
   'nav_rail_ids',
+  // Pre-#3222 shared key; no longer written, kept local-only because
+  // AppSettingsRepository still reads it as a migration fallback.
   'nav_always_hide_labels',
+  'nav_always_hide_labels_phone',
+  'nav_always_hide_labels_desktop',
 };
 
 /// Whether the synced record [recordId] of [entityType] is a device-local

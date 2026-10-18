@@ -1214,13 +1214,25 @@ final shareByDefaultProvider = FutureProvider<bool>((ref) async {
   return repo.getShareByDefault();
 });
 
-/// Whether nav destinations are forced to icon-only, hiding their text label
-/// even where the layout would otherwise show one (#1424). Global (not
-/// per-diver), matching the nav-order settings this pairs with.
-final navAlwaysHideLabelsProvider = FutureProvider<bool>((ref) async {
+/// Whether the phone bottom bar is forced to icon-only, hiding its text
+/// labels even where it would otherwise show one (#1424). Global (not
+/// per-diver), matching the nav-order settings this pairs with. Independent
+/// of [navAlwaysHideLabelsDesktopProvider] (#3222): a phone and a desktop
+/// syncing to the same account each keep their own choice.
+final navAlwaysHideLabelsPhoneProvider = FutureProvider<bool>((ref) async {
   final repo = ref.watch(appSettingsRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchSettingsChanges());
-  return repo.getNavAlwaysHideLabels();
+  return repo.getNavAlwaysHideLabelsPhone();
+});
+
+/// Whether the desktop navigation rail starts collapsed to icon-only
+/// (#1424). Only the starting state: the rail's collapse arrow can still
+/// override it for the rest of the session without persisting that
+/// override. Independent of [navAlwaysHideLabelsPhoneProvider] (#3222).
+final navAlwaysHideLabelsDesktopProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(appSettingsRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchSettingsChanges());
+  return repo.getNavAlwaysHideLabelsDesktop();
 });
 
 /// Settings notifier that persists to database per-diver

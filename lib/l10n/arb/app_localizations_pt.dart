@@ -20762,6 +20762,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Apenas ícones, mesmo quando os rótulos caberiam';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Arraste os itens para reordenar a barra lateral. O Início fica sempre no topo.';
 
