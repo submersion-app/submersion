@@ -25341,8 +25341,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_data_sync_status_off => 'Csak ezen az eszközön';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Szinkronizálva $when, eddig csak ez az eszköz';
+  String settings_data_sync_status_synced(String when) {
+    return 'Szinkronizálva $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'A mappád szinkronizálási szolgáltatása tartja naprakészen';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Mentve $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '$feature beállítása';
   }
 
   @override

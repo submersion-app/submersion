@@ -40990,11 +40990,29 @@ abstract class AppLocalizations {
   /// **'Only on this device'**
   String get settings_data_sync_status_off;
 
-  /// No description provided for @settings_data_sync_status_alone.
+  /// No description provided for @settings_data_sync_status_synced.
   ///
   /// In en, this message translates to:
-  /// **'Synced {when}, only this device so far'**
-  String settings_data_sync_status_alone(String when);
+  /// **'Synced {when}'**
+  String settings_data_sync_status_synced(String when);
+
+  /// No description provided for @settings_data_sync_status_folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept in step by your folder\'s sync service'**
+  String get settings_data_sync_status_folder;
+
+  /// No description provided for @settings_data_backups_status_plain.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up {when}'**
+  String settings_data_backups_status_plain(String when);
+
+  /// Screen-reader label of the Set up action under a Settings > Data row, naming the row.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up {feature}'**
+  String settings_data_setUpFeature(String feature);
 
   /// No description provided for @settings_data_sync_status_one.
   ///

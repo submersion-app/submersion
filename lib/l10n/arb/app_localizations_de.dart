@@ -25412,8 +25412,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_data_sync_status_off => 'Nur auf diesem Gerät';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Synchronisiert $when, bisher nur dieses Gerät';
+  String settings_data_sync_status_synced(String when) {
+    return 'Synchronisiert $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Wird vom Sync-Dienst deines Ordners abgeglichen';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Gesichert $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '$feature einrichten';
   }
 
   @override

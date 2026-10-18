@@ -65,6 +65,8 @@ class DataRowTile extends StatelessWidget {
                 Text(subtitle),
                 TileSubtitleAction(
                   label: l10n.settings_data_setUp,
+                  // Several rows offer Set up; name the one this acts on.
+                  semanticsLabel: l10n.settings_data_setUpFeature(title),
                   onPressed: () =>
                       context.pushSettingsPage(setUpRoute ?? route),
                 ),

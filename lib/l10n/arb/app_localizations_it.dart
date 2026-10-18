@@ -25474,8 +25474,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_data_sync_status_off => 'Solo su questo dispositivo';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Sincronizzato $when, finora solo questo dispositivo';
+  String settings_data_sync_status_synced(String when) {
+    return 'Sincronizzato $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Mantenuto allineato dal servizio di sincronizzazione della tua cartella';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Backup $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'Configura $feature';
   }
 
   @override

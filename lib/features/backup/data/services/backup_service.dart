@@ -36,6 +36,7 @@ import 'package:submersion/features/backup/data/services/backup_database_adapter
 import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
@@ -305,6 +306,13 @@ class BackupService {
     await _preferences.setLastCloudCopyMissing(
       settings.cloudBackupEnabled && location == BackupLocation.local,
     );
+    await _preferences.setLastBackupDestination(
+      location == BackupLocation.both
+          ? LastBackupDestination.cloud
+          : settings.backupLocation != null
+          ? LastBackupDestination.folder
+          : LastBackupDestination.device,
+    );
 
     // Prune old backups
     await pruneOldBackups(settings.retentionCount);
@@ -375,6 +383,7 @@ class BackupService {
 
     await _preferences.addRecord(record);
     await _preferences.setLastBackupTime(record.timestamp);
+    await _preferences.setLastBackupDestination(LastBackupDestination.file);
 
     _log.info('Export completed: $filename');
     return record;

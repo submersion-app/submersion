@@ -25293,8 +25293,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_data_sync_status_off => 'Alleen op dit apparaat';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Gesynchroniseerd $when, tot nu toe alleen dit apparaat';
+  String settings_data_sync_status_synced(String when) {
+    return 'Gesynchroniseerd $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Bijgehouden door de synchronisatiedienst van je map';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Back-up $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '$feature instellen';
   }
 
   @override

@@ -1160,6 +1160,12 @@ void main() {
           expect(fakeDb.backupCallCount, 1);
           expect(record.localPath, destPath);
           expect(record.filename, 'my_backup.db');
+          // A saved file is a copy the app does not track, so Settings >
+          // Data claims no cloud or folder copy for it.
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.file,
+          );
         } finally {
           await tempDir.delete(recursive: true);
         }
@@ -1315,6 +1321,11 @@ void main() {
           await service.performBackup();
 
           expect(fakeDb.lastBackupPath, startsWith(tempDir.path));
+          // Settings > Data says where the last backup went (issue #3482).
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.folder,
+          );
         } finally {
           await tempDir.delete(recursive: true);
         }
@@ -1331,6 +1342,10 @@ void main() {
         // Default location uses the _localBackupFolder path
         expect(fakeDb.lastBackupPath, contains('Submersion'));
         expect(fakeDb.lastBackupPath, contains('Backups'));
+        expect(
+          preferences.getSettings().lastBackupDestination,
+          LastBackupDestination.device,
+        );
       });
     });
 
@@ -1349,6 +1364,10 @@ void main() {
         expect(fakeCloud.uploadedFiles, hasLength(1));
         expect(record.location, BackupLocation.both);
         expect(record.cloudFileId, isNotNull);
+        expect(
+          preferences.getSettings().lastBackupDestination,
+          LastBackupDestination.cloud,
+        );
       });
 
       test(
@@ -1369,6 +1388,10 @@ void main() {
           expect(fakeCloud.uploadedFiles, isEmpty);
           expect(record.cloudFileId, isNull);
           expect(record.location, BackupLocation.local);
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.device,
+          );
         },
       );
     });

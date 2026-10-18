@@ -28,6 +28,7 @@ class BackupPreferences {
       'backup_last_scheduled_failure_message';
   static const String _lastCloudCopyMissingKey =
       'backup_last_cloud_copy_missing';
+  static const String _lastBackupDestinationKey = 'backup_last_destination';
 
   final SharedPreferences _prefs;
 
@@ -58,7 +59,17 @@ class BackupPreferences {
         _lastScheduledFailureMessageKey,
       ),
       lastCloudCopyMissing: _prefs.getBool(_lastCloudCopyMissingKey) ?? false,
+      lastBackupDestination: _parseDestination(
+        _prefs.getString(_lastBackupDestinationKey),
+      ),
     );
+  }
+
+  static LastBackupDestination? _parseDestination(String? value) {
+    for (final d in LastBackupDestination.values) {
+      if (d.name == value) return d;
+    }
+    return null;
   }
 
   Future<void> setEnabled(bool value) async {
@@ -93,6 +104,11 @@ class BackupPreferences {
   /// Whether the most recent backup's requested cloud copy is missing.
   Future<void> setLastCloudCopyMissing(bool value) async {
     await _prefs.setBool(_lastCloudCopyMissingKey, value);
+  }
+
+  /// Where the most recent backup went (Settings > Data, #3482).
+  Future<void> setLastBackupDestination(LastBackupDestination value) async {
+    await _prefs.setString(_lastBackupDestinationKey, value.name);
   }
 
   Future<void> setCloudBackupEnabled(bool value) async {

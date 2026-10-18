@@ -120,16 +120,19 @@ final sharedLibrariesHealthProvider = Provider.autoDispose<FeatureHealth>((
 /// Pending setup items that belong to photos and media: attaching or
 /// reconnecting the store, and sign-ins for the store's account or
 /// Lightroom. The setup service already routes each sign-in to the page that
-/// owns its account, so the route says which feature it belongs to.
+/// owns its account, so the route says which feature it belongs to. A
+/// dismissed prompt does not count: the diver chose not to be told.
 int countMediaSetupItems(List<PendingSetupItem> items) => items
     .where(
-      (i) => switch (i.kind) {
-        SetupItemKind.mediaStoreAttach => true,
-        SetupItemKind.mediaStoreReconnect => true,
-        SetupItemKind.accountSignIn =>
-          i.route == '/settings/media-storage' ||
-              i.route == '/settings/lightroom',
-      },
+      (i) =>
+          !i.dismissed &&
+          switch (i.kind) {
+            SetupItemKind.mediaStoreAttach => true,
+            SetupItemKind.mediaStoreReconnect => true,
+            SetupItemKind.accountSignIn =>
+              i.route == '/settings/media-storage' ||
+                  i.route == '/settings/lightroom',
+          },
     )
     .length;
 

@@ -863,9 +863,9 @@ Future<List<Override>> getBaseOverrides({
     syncAccountLabelProvider.overrideWith((ref) async => syncAccountLabel),
     attachedStoreHintProvider.overrideWith((ref) async => attachedStoreHint),
     mediaStoreAttachedHereProvider.overrideWithValue(mediaStoreAttachedHere),
-    accountsSummaryProvider.overrideWith(
-      (ref) async => (labels: accountLabels, needSignIn: accountsNeedingSignIn),
-    ),
+    accountLabelsProvider.overrideWith((ref) async => accountLabels),
+    accountSignInsNeededProvider.overrideWithValue(accountsNeedingSignIn),
+    libraryHealthSettledProvider.overrideWithValue(true),
     sharedLibrarySummaryProvider.overrideWithValue((
       count: sharedLibraryCount,
       lastSync: sharedLibraryLastSync,

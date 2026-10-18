@@ -24030,17 +24030,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_data_backups_status_local(String when) {
-    return '已于$when备份，仅在此设备上';
+    return '$when备份，仅在此设备上';
   }
 
   @override
   String settings_data_backups_status_cloud(String when, String account) {
-    return '已于$when备份，副本在$account';
+    return '$when备份，副本在$account';
   }
 
   @override
   String settings_data_backups_status_cloudUnknown(String when) {
-    return '已于$when备份，副本在云端';
+    return '$when备份，副本在云端';
   }
 
   @override
@@ -24056,15 +24056,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_data_backups_status_folder(String when) {
-    return '已于$when备份，副本在您的备份文件夹中';
+    return '$when备份，副本在您的备份文件夹中';
   }
 
   @override
   String get settings_data_sync_status_off => '仅在此设备上';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return '已于$when同步，目前仅此设备';
+  String settings_data_sync_status_synced(String when) {
+    return '$when同步';
+  }
+
+  @override
+  String get settings_data_sync_status_folder => '由您文件夹的同步服务保持同步';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return '$when备份';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '设置$feature';
   }
 
   @override

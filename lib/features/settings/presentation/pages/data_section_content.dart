@@ -78,7 +78,11 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       title: title,
       subtitle: dataRowStatusText(l10n, status, now),
       route: route,
-      health: healthOf == null ? null : health[healthOf],
+      // Lightroom alone reads healthy, but the row says no copies are kept
+      // and offers Set up; a healthy mark beside that would contradict it.
+      health: healthOf == null || status.kind == DataRowStatusKind.photosOff
+          ? null
+          : health[healthOf],
       offersSetUp: status.offersSetUp,
     );
 

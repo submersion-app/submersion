@@ -24818,8 +24818,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_sync_status_off => 'במכשיר זה בלבד';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'סונכרן $when, בינתיים רק מכשיר זה';
+  String settings_data_sync_status_synced(String when) {
+    return 'סונכרן $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'שירות הסנכרון של התיקייה שלך שומר עליה מעודכנת';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'גובה $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'הגדרת $feature';
   }
 
   @override

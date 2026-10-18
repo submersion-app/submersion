@@ -25657,8 +25657,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_sync_status_off => 'على هذا الجهاز فقط';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'تمت المزامنة $when، هذا الجهاز فقط حتى الآن';
+  String settings_data_sync_status_synced(String when) {
+    return 'تمت المزامنة $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'تُبقيها خدمة المزامنة الخاصة بمجلدك محدّثة';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'تم النسخ الاحتياطي $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'إعداد $feature';
   }
 
   @override

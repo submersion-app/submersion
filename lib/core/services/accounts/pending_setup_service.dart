@@ -34,12 +34,18 @@ class PendingSetupItem {
   /// store descriptor, connector) - the card just navigates.
   final String route;
 
+  /// The diver dismissed this prompt on this device. Only sign-ins are kept
+  /// once dismissed: the card hides them, but the account still needs a
+  /// sign-in, and the Settings > Data accounts row must keep saying so.
+  final bool dismissed;
+
   const PendingSetupItem({
     required this.kind,
     required this.key,
     required this.label,
     required this.route,
     this.accountKind,
+    this.dismissed = false,
   });
 }
 
@@ -141,7 +147,6 @@ class PendingSetupService {
         continue;
       }
       final key = 'account_${account.id}';
-      if (_isDismissed(key)) continue;
       items.add(
         PendingSetupItem(
           kind: SetupItemKind.accountSignIn,
@@ -149,6 +154,7 @@ class PendingSetupService {
           label: account.label,
           accountKind: account.kind,
           route: _routeFor(account, usage: usage, store: store),
+          dismissed: _isDismissed(key),
         ),
       );
     }
