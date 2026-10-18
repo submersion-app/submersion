@@ -25221,6 +25221,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_data_time_justNow => 'zojuist';
 
   @override
+  String get settings_data_status_checking => 'Bezig met controleren…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -48454,7 +48457,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'Die back-up is versleuteld. Submersion kan een versleutelde back-up pas ontgrendelen als de app open is, dus gebruik hier eerst een van de andere routes en herstel hem daarna via Instellingen, bij Back-up en herstel.';
+      'Die back-up is versleuteld. Submersion kan een versleutelde back-up pas ontgrendelen als de app open is, dus gebruik hier eerst een van de andere routes en herstel hem daarna via Instellingen > Gegevens > Back-ups.';
 
   @override
   String get startup_recovery_useDefault_title =>

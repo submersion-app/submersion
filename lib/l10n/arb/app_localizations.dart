@@ -40870,6 +40870,12 @@ abstract class AppLocalizations {
   /// **'just now'**
   String get settings_data_time_justNow;
 
+  /// No description provided for @settings_data_status_checking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get settings_data_status_checking;
+
   /// No description provided for @settings_data_accounts_status_list.
   ///
   /// In en, this message translates to:
@@ -77306,7 +77312,7 @@ abstract class AppLocalizations {
   /// Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable.
   ///
   /// In en, this message translates to:
-  /// **'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.'**
+  /// **'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings > Data > Backups.'**
   String get startup_recovery_encryptedBackup_body;
 
   /// Title of the dialog confirming the return to the app default location.

@@ -25585,6 +25585,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_time_justNow => 'الآن';
 
   @override
+  String get settings_data_status_checking => 'جارٍ التحقق…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -25616,7 +25619,7 @@ class AppLocalizationsAr extends AppLocalizations {
       many: 'متزامن مع $count جهازًا، $when',
       few: 'متزامن مع $count أجهزة، $when',
       two: 'متزامن مع جهازين، $when',
-      one: 'متزامن مع $count جهاز، $when',
+      one: 'متزامن مع جهاز واحد، $when',
     );
     return '$_temp0';
   }
@@ -49428,7 +49431,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.';
+      'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات > البيانات > النسخ الاحتياطية.';
 
   @override
   String get startup_recovery_useDefault_title =>

@@ -25379,6 +25379,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_data_time_justNow => 'agora mesmo';
 
   @override
+  String get settings_data_status_checking => 'A verificar…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -48770,7 +48773,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois nas Definições, em Cópia de segurança e restauro.';
+      'Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois em Configurações > Dados > Backups.';
 
   @override
   String get startup_recovery_useDefault_title =>

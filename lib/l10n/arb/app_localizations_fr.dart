@@ -25459,6 +25459,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_data_time_justNow => 'à l\'instant';
 
   @override
+  String get settings_data_status_checking => 'Vérification…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -25538,8 +25541,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count comptes doivent se reconnecter',
-      one: '$count compte doit se reconnecter',
+      other: '$count comptes : connexion requise',
+      one: '$count compte : connexion requise',
     );
     return '$_temp0';
   }
@@ -48875,7 +48878,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'Cette sauvegarde est chiffrée. Submersion ne peut déverrouiller une sauvegarde chiffrée qu\'une fois l\'application ouverte : utilisez d\'abord l\'un des autres moyens proposés ici, puis restaurez-la depuis les Réglages, dans Sauvegarde et restauration.';
+      'Cette sauvegarde est chiffrée. Submersion ne peut déverrouiller une sauvegarde chiffrée qu\'une fois l\'application ouverte : utilisez d\'abord l\'un des autres moyens proposés ici, puis restaurez-la depuis Réglages > Données > Sauvegardes.';
 
   @override
   String get startup_recovery_useDefault_title =>

@@ -24746,6 +24746,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_time_justNow => 'זה עתה';
 
   @override
+  String get settings_data_status_checking => 'בודק…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -47755,7 +47758,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
+      'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו דרך הגדרות > נתונים > גיבויים.';
 
   @override
   String get startup_recovery_useDefault_title =>

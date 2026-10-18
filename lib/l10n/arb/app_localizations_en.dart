@@ -24954,6 +24954,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_time_justNow => 'just now';
 
   @override
+  String get settings_data_status_checking => 'Checking…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -48017,7 +48020,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.';
+      'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings > Data > Backups.';
 
   @override
   String get startup_recovery_useDefault_title =>

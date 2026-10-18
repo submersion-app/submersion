@@ -54,6 +54,16 @@ void main() {
         );
       });
 
+      test('$locale encrypted-backup recovery names the Backups page', () {
+        final l10n = l10nFor(locale);
+        expect(
+          l10n.startup_recovery_encryptedBackup_body,
+          contains(
+            '${l10n.settings_appBar_title} > ${l10n.settings_section_data_title} > ${l10n.settings_backups_title}',
+          ),
+        );
+      });
+
       test('$locale weight presets empty state mentions the + button', () {
         expect(l10nFor(locale).weightPresets_page_empty, contains('+'));
       });

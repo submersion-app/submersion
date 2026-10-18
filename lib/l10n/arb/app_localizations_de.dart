@@ -25340,6 +25340,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_data_time_justNow => 'gerade eben';
 
   @override
+  String get settings_data_status_checking => 'Wird geprüft…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -25386,7 +25389,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_data_photos_status_onUnknown => 'Kopien in der Cloud';
 
   @override
-  String get settings_data_libraries_status_none => 'Keiner beigetreten';
+  String get settings_data_libraries_status_none =>
+      'Keiner Bibliothek beigetreten';
 
   @override
   String settings_data_libraries_status_some(int count, String when) {
@@ -48654,7 +48658,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.';
+      'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach unter Einstellungen > Daten > Sicherungen wieder her.';
 
   @override
   String get startup_recovery_useDefault_title =>

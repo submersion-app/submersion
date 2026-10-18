@@ -23991,6 +23991,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_time_justNow => '刚刚';
 
   @override
+  String get settings_data_status_checking => '正在检查…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -45805,7 +45808,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
+      '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在「设置 > 数据 > 备份」中恢复它。';
 
   @override
   String get startup_recovery_useDefault_title => '返回应用默认位置？';

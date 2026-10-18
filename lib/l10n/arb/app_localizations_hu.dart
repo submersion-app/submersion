@@ -25269,6 +25269,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_data_time_justNow => 'épp most';
 
   @override
+  String get settings_data_status_checking => 'Ellenőrzés…';
+
+  @override
   String settings_data_accounts_status_list(String accounts) {
     return '$accounts';
   }
@@ -48486,7 +48489,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállításokban, a Biztonsági mentés és visszaállítás résznél.';
+      'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállítások > Adatok > Biztonsági mentések résznél.';
 
   @override
   String get startup_recovery_useDefault_title =>
