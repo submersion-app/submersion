@@ -42,10 +42,10 @@ extension PreDiveMigrations on AppDatabase {
     await customStatement(kRetireLegacyGueEdgeItemsSql);
     // kSeedBuiltInPreDiveTemplateItemsSql's column list names section_id
     // (issue #3360). This function is also called from the v127 rung,
-    // mid-ladder, before the v294 rung that adds that column has run in the
+    // mid-ladder, before the v295 rung that adds that column has run in the
     // same upgrade -- so on that path section_id does not exist yet. Skip
     // the items/sections seed entirely rather than fail; beforeOpen calls
-    // this function again once the whole ladder (including v294) has run,
+    // this function again once the whole ladder (including v295) has run,
     // and seeds correctly then.
     final hasSectionId = await _columnExists(
       'pre_dive_checklist_template_items',

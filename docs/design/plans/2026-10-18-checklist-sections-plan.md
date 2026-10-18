@@ -6,6 +6,12 @@ Issue: #3360
 Spec: [docs/design/specs/2026-10-14-checklist-sections-design.md](../specs/2026-10-14-checklist-sections-design.md)
 Branch: `github-issue-3360-checklist-sections`
 
+> Note (rebase onto upstream/main): upstream shipped its own v292
+> (`shared_libraries.removals_json`, #3481) while this branch was in
+> progress. Every version number below (v292-v295) is shifted by one in
+> the implementation: v293-v296. The plan's shape and reasoning are
+> otherwise unchanged.
+
 Single PR, full scope: all four table groups (trip checklists, checklist
 templates, pre-dive templates, pre-dive sessions), schema, backfill, sync
 registration, and UI.

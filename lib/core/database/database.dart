@@ -196,14 +196,14 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripItineraryDays,
     TripDayWeather,
     ChecklistTemplates,
-    // Checklist sections (v292-293, issue #3360)
+    // Checklist sections (v293-294, issue #3360)
     TripChecklistSections,
     TripChecklistItems,
     ChecklistTemplateSections,
     ChecklistTemplateItems,
     // Pre-dive checklists (spec 2026-07-16-pre-dive-checklist)
     PreDiveChecklistTemplates,
-    // Checklist sections (v294, issue #3360)
+    // Checklist sections (v295, issue #3360)
     PreDiveChecklistTemplateSections,
     PreDiveChecklistTemplateItems,
     PreDiveSessions,

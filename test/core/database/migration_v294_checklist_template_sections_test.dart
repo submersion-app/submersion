@@ -7,9 +7,9 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
-/// Schema v293: checklist_template_sections, replacing the free-text
+/// Schema v294: checklist_template_sections, replacing the free-text
 /// checklist_template_items.category column with a section_id reference
-/// (issue #3360). Same shape as v292's trip_checklist_sections rung; see
+/// (issue #3360). Same shape as v293's trip_checklist_sections rung; see
 /// that migration test for the full crash/collision-resilience rationale,
 /// not repeated here in full.
 void main() {
@@ -63,7 +63,7 @@ void main() {
   }
 
   NativeDatabase setupDb({
-    int userVersion = 292,
+    int userVersion = 293,
     void Function(Database rawDb)? seed,
   }) {
     return NativeDatabase.memory(
@@ -79,12 +79,12 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v293 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(293));
-    expect(AppDatabase.migrationVersions, contains(293));
+  test('v294 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(294));
+    expect(AppDatabase.migrationVersions, contains(294));
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
-      greaterThanOrEqualTo(293),
+      greaterThanOrEqualTo(294),
     );
   });
 
@@ -225,7 +225,7 @@ void main() {
       NativeDatabase(
         File(path),
         setup: (raw) {
-          createBaseSchema(raw, 292);
+          createBaseSchema(raw, 293);
           insertItem(
             raw,
             id: 'i1',
@@ -263,11 +263,11 @@ void main() {
     expect(item.data['section_id'], before.single.data['id']);
   });
 
-  test('a database stamped v293 without the migration ever having run heals '
+  test('a database stamped v294 without the migration ever having run heals '
       'in beforeOpen (parallel-branch version collision)', () async {
     final db = AppDatabase(
       setupDb(
-        userVersion: 293,
+        userVersion: 294,
         seed: (raw) => insertItem(
           raw,
           id: 'i1',
@@ -298,7 +298,7 @@ void main() {
   test('a fixture without templates skips the table and the column', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
-        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 292'),
+        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 293'),
       ),
     );
     addTearDown(db.close);

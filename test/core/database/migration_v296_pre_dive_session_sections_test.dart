@@ -7,7 +7,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
-/// Schema v295: pre_dive_session_sections, replacing the free-text
+/// Schema v296: pre_dive_session_sections, replacing the free-text
 /// pre_dive_session_items.section column with a section_id reference
 /// (issue #3360). The last of the four checklist-sections table groups;
 /// no built-in exclusion needed (sessions are always diver-owned
@@ -81,7 +81,7 @@ void main() {
   }
 
   NativeDatabase setupDb({
-    int userVersion = 294,
+    int userVersion = 295,
     void Function(Database rawDb)? seed,
   }) {
     return NativeDatabase.memory(
@@ -97,10 +97,10 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v295 is the current schema version and the floor', () {
-    expect(AppDatabase.currentSchemaVersion, 295);
-    expect(AppDatabase.migrationVersions, contains(295));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 295);
+  test('v296 is the current schema version and the floor', () {
+    expect(AppDatabase.currentSchemaVersion, 296);
+    expect(AppDatabase.migrationVersions, contains(296));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 296);
   });
 
   test(
@@ -229,7 +229,7 @@ void main() {
       NativeDatabase(
         File(path),
         setup: (raw) {
-          createBaseSchema(raw, 294);
+          createBaseSchema(raw, 295);
           insertItem(
             raw,
             id: 'i1',
@@ -260,11 +260,11 @@ void main() {
     expect(after.single.data['id'], before.single.data['id']);
   });
 
-  test('a database stamped v295 without the migration ever having run heals '
+  test('a database stamped v296 without the migration ever having run heals '
       'in beforeOpen (parallel-branch version collision)', () async {
     final db = AppDatabase(
       setupDb(
-        userVersion: 295,
+        userVersion: 296,
         seed: (raw) => insertItem(
           raw,
           id: 'i1',
@@ -291,7 +291,7 @@ void main() {
   test('a fixture without sessions skips the table and the column', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
-        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 294'),
+        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 295'),
       ),
     );
     addTearDown(db.close);

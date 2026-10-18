@@ -62,7 +62,7 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
-    // Section tables for checklists/pre-dive (v292-295, issue #3360), fully
+    // Section tables for checklists/pre-dive (v293-296, issue #3360), fully
     // wired for sync (SyncData, mergeOrder, parentRefs, conflict_reference
     // labels) alongside their item tables.
     'tripChecklistSections': (table: 'trip_checklist_sections', pk: 'id'),
