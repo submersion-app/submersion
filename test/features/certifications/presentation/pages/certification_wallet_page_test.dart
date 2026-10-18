@@ -254,7 +254,9 @@ void main() {
 
       expect(find.text('Group by'), findsOneWidget);
       expect(find.text('List'), findsOneWidget);
-      expect(find.text('Certification Wallet'), findsOneWidget);
+      // Appears twice: the AppBar title and the view switch's own radio
+      // label share the same English string.
+      expect(find.text('Certification Wallet'), findsNWidgets(2));
     });
 
     // #3359: today the wallet ignores sort/grouping entirely; this is the

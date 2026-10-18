@@ -10,9 +10,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 enum CertificationView { list, wallet }
 
 /// The certification sort sheet's List/Certification Wallet switch (#3359).
-/// Picking the view already showing closes the sheet without navigating;
-/// picking the other one navigates the same way the existing wallet icon
-/// does (those icons stay as an additional entry point, per the issue).
+/// Picking the other view navigates the same way the existing wallet icon
+/// does (those icons stay as an additional entry point, per the issue) and
+/// closes the sheet. [RadioGroup] (non-toggleable) never calls [onChanged]
+/// for a tap on the view already selected, so that tap does nothing at all
+/// -- the sheet stays open, like tapping the already-selected option on any
+/// other radio list in the app.
 class CertificationViewSwitchSelector extends ConsumerWidget {
   const CertificationViewSwitchSelector({super.key, required this.currentView});
 
@@ -20,7 +23,6 @@ class CertificationViewSwitchSelector extends ConsumerWidget {
 
   void _navigateTo(BuildContext context, CertificationView target) {
     Navigator.of(context).pop();
-    if (target == currentView) return;
     switch (target) {
       case CertificationView.wallet:
         context.push('/certifications/wallet');

@@ -104,9 +104,11 @@ void main() {
       expect(find.text('wallet'), findsNothing);
     });
 
-    testWidgets('selecting the view already shown just closes the sheet', (
-      tester,
-    ) async {
+    // RadioGroup (non-toggleable) never calls onChanged for a tap on the
+    // value already selected, so nothing happens -- not even closing the
+    // sheet -- the same as tapping the active option on any other radio
+    // list in the app.
+    testWidgets('tapping the view already shown does nothing', (tester) async {
       await tester.pumpWidget(
         _buildTestWidget(
           initialLocation: '/certifications',
@@ -119,8 +121,7 @@ void main() {
       await tester.tap(find.text('List'));
       await tester.pumpAndSettle();
 
-      expect(find.text('list'), findsOneWidget);
-      expect(find.byType(CertificationViewSwitchSelector), findsNothing);
+      expect(find.byType(CertificationViewSwitchSelector), findsOneWidget);
     });
   });
 }

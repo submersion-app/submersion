@@ -1183,8 +1183,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('PADI'), findsOneWidget);
-      expect(find.text('SSI'), findsOneWidget);
+      // Each agency name appears three times: its tile's leading badge and
+      // credentials subtitle (pre-existing), plus the new group header.
+      expect(find.text('PADI'), findsNWidgets(3));
+      expect(find.text('SSI'), findsNWidgets(3));
       expect(find.text('Expired'), findsNothing);
     });
 

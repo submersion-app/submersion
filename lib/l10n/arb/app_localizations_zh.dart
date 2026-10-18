@@ -3913,16 +3913,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_fab_addCertification => '添加证书';
 
   @override
-  String get certifications_list_groupBy => 'Group by';
+  String get certifications_list_groupBy => '分组方式';
 
   @override
-  String get certifications_list_groupBy_agency => 'Agency';
+  String get certifications_list_groupBy_agency => '机构';
 
   @override
-  String get certifications_list_groupBy_none => 'None';
+  String get certifications_list_groupBy_none => '无';
 
   @override
-  String get certifications_list_groupBy_status => 'Status';
+  String get certifications_list_groupBy_status => '状态';
 
   @override
   String get certifications_list_section_expired => '已过期';
@@ -4019,10 +4019,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_share_title => '分享证书';
 
   @override
-  String get certifications_sortSheet_view_list => 'List';
+  String get certifications_sortSheet_view_list => '列表';
 
   @override
-  String get certifications_sortSheet_view_wallet => 'Certification Wallet';
+  String get certifications_sortSheet_view_wallet => '证书卡包';
 
   @override
   String get certifications_summary_header_subtitle => '从列表中选择证书以查看详情';
@@ -4082,7 +4082,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_wallet_tooltip_share => '分享证书';
 
   @override
-  String get certifications_wallet_tooltip_sort => 'Sort';
+  String get certifications_wallet_tooltip_sort => '排序';
 
   @override
   String get checklists_section_title => '清单';

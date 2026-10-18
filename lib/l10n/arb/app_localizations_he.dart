@@ -4051,16 +4051,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_list_fab_addCertification => 'הוסף הסמכה';
 
   @override
-  String get certifications_list_groupBy => 'Group by';
+  String get certifications_list_groupBy => 'קיבוץ לפי';
 
   @override
-  String get certifications_list_groupBy_agency => 'Agency';
+  String get certifications_list_groupBy_agency => 'ארגון';
 
   @override
-  String get certifications_list_groupBy_none => 'None';
+  String get certifications_list_groupBy_none => 'ללא';
 
   @override
-  String get certifications_list_groupBy_status => 'Status';
+  String get certifications_list_groupBy_status => 'סטטוס';
 
   @override
   String get certifications_list_section_expired => 'פג תוקף';
@@ -4160,10 +4160,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_share_title => 'שיתוף הסמכה';
 
   @override
-  String get certifications_sortSheet_view_list => 'List';
+  String get certifications_sortSheet_view_list => 'רשימה';
 
   @override
-  String get certifications_sortSheet_view_wallet => 'Certification Wallet';
+  String get certifications_sortSheet_view_wallet => 'ארנק הסמכות';
 
   @override
   String get certifications_summary_header_subtitle =>
@@ -4224,7 +4224,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'שתף הסמכה';
 
   @override
-  String get certifications_wallet_tooltip_sort => 'Sort';
+  String get certifications_wallet_tooltip_sort => 'מיון';
 
   @override
   String get checklists_section_title => 'רשימת משימות';
