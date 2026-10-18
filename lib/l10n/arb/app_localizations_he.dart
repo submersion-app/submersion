@@ -4962,7 +4962,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות, כלי נתונים.';
+      'אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות > נתונים > מתקדם > כלי נתונים.';
 
   @override
   String get connections_empty_sites => 'לאף צלילה אין עדיין אתר.';
@@ -21261,7 +21261,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_replaceHint =>
-      'אם במקום זאת הספרייה של מכשיר זה אמורה להחליף את מה שנמצא בענן, בטל והשתמש בהגדרות > סנכרון ענן > החלפת ספריית הענן.';
+      'אם במקום זאת הספרייה של מכשיר זה אמורה להחליף את מה שנמצא בענן, בטל והשתמש בהגדרות > נתונים > סנכרון בין מכשירים > החלפת ספריית הענן.';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
@@ -24622,7 +24622,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'גיבוי';
+  String get dataHealth_feature_backup => 'גיבויים';
 
   @override
   String get dataHealth_feature_sync => 'סנכרון';
@@ -24729,6 +24729,141 @@ class AppLocalizationsHe extends AppLocalizations {
       locale: localeName,
       other: 'סונכרן: $when · $count מכשירים',
       one: 'סונכרן: $when · $count מכשיר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_header_yourData => 'הנתונים שלך';
+
+  @override
+  String get settings_data_header_advanced => 'מתקדם';
+
+  @override
+  String get settings_data_setUp => 'הגדרה';
+
+  @override
+  String get settings_data_importOptions => 'אפשרויות ייבוא';
+
+  @override
+  String get settings_data_importOptions_subtitle =>
+      'התאמת אתרים, לחץ בעלייה, תגיות אוטומטיות';
+
+  @override
+  String get settings_data_dataTools => 'כלי נתונים';
+
+  @override
+  String get settings_data_dataTools_subtitle =>
+      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים';
+
+  @override
+  String get settings_sync_title => 'סנכרון בין מכשירים';
+
+  @override
+  String get settings_backups_title => 'גיבויים';
+
+  @override
+  String get settings_photosVideos_title => 'תמונות וסרטונים';
+
+  @override
+  String get settings_section_data_tagline => 'גיבויים, סנכרון ותמונות';
+
+  @override
+  String get dataHealth_feature_photos => 'תמונות';
+
+  @override
+  String get settings_data_backups_status_never => 'עדיין לא גובה';
+
+  @override
+  String settings_data_backups_status_local(String when) {
+    return 'גובה $when, במכשיר זה בלבד';
+  }
+
+  @override
+  String settings_data_backups_status_cloud(String when, String account) {
+    return 'גובה $when, עותק ב-$account';
+  }
+
+  @override
+  String settings_data_backups_status_folder(String when) {
+    return 'גובה $when, עותק בתיקיית הגיבוי שלך';
+  }
+
+  @override
+  String get settings_data_sync_status_off => 'במכשיר זה בלבד';
+
+  @override
+  String settings_data_sync_status_alone(String when) {
+    return 'סונכרן $when, בינתיים רק מכשיר זה';
+  }
+
+  @override
+  String settings_data_sync_status_one(String device, String when) {
+    return 'מסונכרן עם $device, $when';
+  }
+
+  @override
+  String settings_data_sync_status_many(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מסונכרן עם $count מכשירים, $when',
+      one: 'מסונכרן עם $count מכשיר, $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_photos_status_off => 'לא נשמרים עותקים בענן';
+
+  @override
+  String settings_data_photos_status_on(String store) {
+    return 'עותקים נשמרים ב-$store';
+  }
+
+  @override
+  String get settings_data_photos_status_onUnknown => 'עותקים נשמרים בענן';
+
+  @override
+  String get settings_data_libraries_status_none => 'לא הצטרפת לאף ספרייה';
+
+  @override
+  String settings_data_libraries_status_some(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ספריות, סנכרון אחרון $when',
+      one: '$count ספרייה, סנכרון אחרון $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_data_libraries_status_someNever(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ספריות, עדיין לא סונכרנו',
+      one: '$count ספרייה, עדיין לא סונכרנה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_accounts_status_none => 'אין עדיין';
+
+  @override
+  String settings_data_accounts_status_signedIn(String accounts) {
+    return '$accounts, מחובר';
+  }
+
+  @override
+  String settings_data_accounts_status_needSignIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חשבונות דורשים התחברות',
+      one: '$count חשבון דורש התחברות',
     );
     return '$_temp0';
   }
@@ -26153,7 +26288,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_storage_customFolder_deviceOnly_noCloudSync =>
-      'סנכרון הענן המנוהל על ידי האפליקציה מושבת כל עוד מסד הנתונים נמצא באחסון המכשיר. ב-Android אף שירות סנכרון אינו יכול להגיע לתיקייה הזו, לכן השתמשו בגיבוי ושחזור כדי לשמור עותקים במקום אחר.';
+      'סנכרון הענן המנוהל על ידי האפליקציה מושבת כל עוד מסד הנתונים נמצא באחסון המכשיר. ב-Android אף שירות סנכרון אינו יכול להגיע לתיקייה הזו, לכן השתמשו בגיבויים כדי לשמור עותקים במקום אחר.';
 
   @override
   String get settings_storage_dismissError_tooltip => 'סגור שגיאה';
@@ -26216,7 +26351,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_body =>
-      'פעולה זו מוחקת לצמיתות את כל הנתונים במכשיר הזה, כולל צלילות, אתרים, ציוד והגדרות. גיבוי נוצר אוטומטית לפני האיפוס.\n\nספריית הענן שלך לא נמחקת, ומכשירים אחרים שומרים על הנתונים שלהם. סנכרון הענן ינותק כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > סנכרון ענן.';
+      'פעולה זו מוחקת לצמיתות את כל הנתונים במכשיר הזה, כולל צלילות, אתרים, ציוד והגדרות. גיבוי נוצר אוטומטית לפני האיפוס.\n\nספריית הענן שלך לא נמחקת, ומכשירים אחרים שומרים על הנתונים שלהם. סנכרון הענן ינותק כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > נתונים > סנכרון בין מכשירים.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'מחיקה';
@@ -26238,7 +26373,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_storage_resetComplete_description =>
-      'הנתונים במכשיר זה נמחקו וגיבוי נשמר. סנכרון הענן מנותק כעת כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > סנכרון ענן. הקש על המשך כדי לטעון מחדש את האפליקציה.';
+      'הנתונים במכשיר זה נמחקו וגיבוי נשמר. סנכרון הענן מנותק כעת כדי שהאיפוס לא יבוטל; ניתן לחבר אותו מחדש בהגדרות > נתונים > סנכרון בין מכשירים. הקש על המשך כדי לטעון מחדש את האפליקציה.';
 
   @override
   String get settings_summary_activeDiver => 'צולל פעיל';
@@ -29758,10 +29893,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ו-Excel ביישומי גיליונות אלקטרוניים. ניתן גם לגבות את כל מסד הנתונים שלך דרך הגדרות > גיבוי ושחזור.';
+      'ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ו-Excel ביישומי גיליונות אלקטרוניים. ניתן גם לגבות את כל מסד הנתונים שלך דרך הגדרות > נתונים > גיבויים.';
 
   @override
-  String get transfer_export_backupLink => 'עבור לגיבוי ושחזור';
+  String get transfer_export_backupLink => 'עבור לגיבויים';
 
   @override
   String get transfer_export_aboutTitle => 'אודות ייצוא';
@@ -34942,7 +35077,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get db_location_backup_note =>
-      'Android אינו יכול להריץ את מסד הנתונים מתיקייה המסונכרנת בענן. כדי לשמור עותק ב-Dropbox, ב-Nextcloud או ב-Google Drive, הגדירו את מיקום הגיבוי תחת גיבוי ושחזור.';
+      'Android אינו יכול להריץ את מסד הנתונים מתיקייה המסונכרנת בענן. כדי לשמור עותק ב-Dropbox, ב-Nextcloud או ב-Google Drive, הגדירו תיקיית גיבוי תחת גיבויים.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -35144,7 +35279,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>
-      'משתמש בחיבור Dropbox מסנכרון הענן. המדיה נשמרת בתיקיית האפליקציה ב-Dropbox.';
+      'משתמש בחיבור Dropbox מסנכרון בין מכשירים. המדיה נשמרת בתיקיית האפליקציה ב-Dropbox.';
 
   @override
   String get settings_mediaStorage_connect_gdrive_hint =>
@@ -49814,14 +49949,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'הקובץ שנמצא עכשיו במקומו נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
+      'הקובץ שנמצא עכשיו במקומו נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך הגדרות > נתונים > גיבויים.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'להשאיר את מה שיש עכשיו';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'יומן הצלילה הקודם שלך נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך גיבוי ושחזור בהגדרות.';
+      'יומן הצלילה הקודם שלך נשמר ואינו נמחק. אפשר לשחזר או למחוק אותו מאוחר יותר דרך הגדרות > נתונים > גיבויים.';
 
   @override
   String get startup_interruptedRestore_failed =>

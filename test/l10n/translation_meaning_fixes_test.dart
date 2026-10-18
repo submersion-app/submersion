@@ -49,7 +49,7 @@ void main() {
         expect(
           l10n.transfer_export_aboutContent,
           contains(
-            '${l10n.settings_appBar_title} > ${l10n.settings_data_backup}',
+            '${l10n.settings_appBar_title} > ${l10n.settings_section_data_title} > ${l10n.settings_backups_title}',
           ),
         );
       });

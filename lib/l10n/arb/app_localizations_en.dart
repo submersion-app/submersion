@@ -4990,7 +4990,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.';
+      'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Advanced > Data tools.';
 
   @override
   String get connections_empty_sites => 'No dives have a site yet.';
@@ -20634,7 +20634,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_cloudSync_entry_subtitle => 'Sync via cloud storage';
 
   @override
-  String get sharedLibrary_settings_title => 'Shared Site Libraries';
+  String get sharedLibrary_settings_title => 'Shared site libraries';
 
   @override
   String get sharedLibrary_settings_subtitle =>
@@ -21425,7 +21425,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_replaceHint =>
-      'If instead this device\'s library should replace what is in the cloud, cancel and use Settings > Cloud Sync > Replace cloud library.';
+      'If instead this device\'s library should replace what is in the cloud, cancel and use Settings > Data > Sync between devices > Replace cloud library.';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
@@ -24786,7 +24786,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_customFolder => 'Custom folder';
 
   @override
-  String get settings_data_databaseStorage => 'Database Storage';
+  String get settings_data_databaseStorage => 'Database storage';
 
   @override
   String settings_data_export_failed(Object error) {
@@ -24803,7 +24803,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_header_storage => 'Storage';
 
   @override
-  String get settings_data_offlineMaps => 'Offline Maps';
+  String get settings_data_offlineMaps => 'Offline maps';
 
   @override
   String get settings_data_offlineMaps_subtitle =>
@@ -24828,7 +24828,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Backup';
+  String get dataHealth_feature_backup => 'Backups';
 
   @override
   String get dataHealth_feature_sync => 'Sync';
@@ -24937,6 +24937,143 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: 'Synced: $when · $count devices',
       one: 'Synced: $when · $count device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_header_yourData => 'Your data';
+
+  @override
+  String get settings_data_header_advanced => 'Advanced';
+
+  @override
+  String get settings_data_setUp => 'Set up';
+
+  @override
+  String get settings_data_importOptions => 'Import options';
+
+  @override
+  String get settings_data_importOptions_subtitle =>
+      'Site matching, surfacing pressure, auto tags';
+
+  @override
+  String get settings_data_dataTools => 'Data tools';
+
+  @override
+  String get settings_data_dataTools_subtitle =>
+      'Fix dive times, link buddies, retype gear, data quality';
+
+  @override
+  String get settings_sync_title => 'Sync between devices';
+
+  @override
+  String get settings_backups_title => 'Backups';
+
+  @override
+  String get settings_photosVideos_title => 'Photos & videos';
+
+  @override
+  String get settings_section_data_tagline => 'Backups, sync and photos';
+
+  @override
+  String get dataHealth_feature_photos => 'Photos';
+
+  @override
+  String get settings_data_backups_status_never => 'Not backed up yet';
+
+  @override
+  String settings_data_backups_status_local(String when) {
+    return 'Backed up $when, on this device only';
+  }
+
+  @override
+  String settings_data_backups_status_cloud(String when, String account) {
+    return 'Backed up $when, copy in $account';
+  }
+
+  @override
+  String settings_data_backups_status_folder(String when) {
+    return 'Backed up $when, copy in your backup folder';
+  }
+
+  @override
+  String get settings_data_sync_status_off => 'Only on this device';
+
+  @override
+  String settings_data_sync_status_alone(String when) {
+    return 'Synced $when, only this device so far';
+  }
+
+  @override
+  String settings_data_sync_status_one(String device, String when) {
+    return 'In step with $device, $when';
+  }
+
+  @override
+  String settings_data_sync_status_many(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'In step with $count devices, $when',
+      one: 'In step with $count device, $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_photos_status_off =>
+      'Copies are not kept in the cloud';
+
+  @override
+  String settings_data_photos_status_on(String store) {
+    return 'Copies kept in $store';
+  }
+
+  @override
+  String get settings_data_photos_status_onUnknown =>
+      'Copies kept in the cloud';
+
+  @override
+  String get settings_data_libraries_status_none => 'None joined';
+
+  @override
+  String settings_data_libraries_status_some(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count libraries, last sync $when',
+      one: '$count library, last sync $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_data_libraries_status_someNever(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count libraries, not synced yet',
+      one: '$count library, not synced yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_accounts_status_none => 'None yet';
+
+  @override
+  String settings_data_accounts_status_signedIn(String accounts) {
+    return '$accounts, signed in';
+  }
+
+  @override
+  String settings_data_accounts_status_needSignIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count accounts need sign-in',
+      one: '$count account needs sign-in',
     );
     return '$_temp0';
   }
@@ -26375,7 +26512,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_storage_customFolder_deviceOnly_noCloudSync =>
-      'App-managed cloud sync is disabled while the database sits on a device storage volume. No sync service can reach that folder on Android, so use Backup & Restore to keep copies elsewhere.';
+      'App-managed cloud sync is disabled while the database sits on a device storage volume. No sync service can reach that folder on Android, so use Backups to keep copies elsewhere.';
 
   @override
   String get settings_storage_dismissError_tooltip => 'Dismiss error';
@@ -26439,7 +26576,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_body =>
-      'This permanently deletes all data on THIS device, including dives, sites, gear, and settings. A backup is created automatically before resetting.\n\nYour cloud library is not deleted, and other devices keep their data. Cloud sync will be disconnected so the reset is not undone; you can reconnect it in Settings > Cloud Sync.';
+      'This permanently deletes all data on THIS device, including dives, sites, gear, and settings. A backup is created automatically before resetting.\n\nYour cloud library is not deleted, and other devices keep their data. Cloud sync will be disconnected so the reset is not undone; you can reconnect it under Settings > Data > Sync between devices.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'Delete';
@@ -26461,7 +26598,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_storage_resetComplete_description =>
-      'This device\'s data has been cleared and a backup was saved. Cloud sync is now disconnected so the reset is not undone; you can reconnect it in Settings > Cloud Sync. Tap continue to reload the app.';
+      'This device\'s data has been cleared and a backup was saved. Cloud sync is now disconnected so the reset is not undone; you can reconnect it under Settings > Data > Sync between devices. Tap continue to reload the app.';
 
   @override
   String get settings_summary_activeDiver => 'Active Diver';
@@ -30006,10 +30143,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Backup & Restore.';
+      'Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Data > Backups.';
 
   @override
-  String get transfer_export_backupLink => 'Go to Backup & Restore';
+  String get transfer_export_backupLink => 'Go to Backups';
 
   @override
   String get transfer_export_aboutTitle => 'About Export';
@@ -35226,7 +35363,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get db_location_backup_note =>
-      'Android cannot run the database from a cloud-synced folder. To keep a copy in Dropbox, Nextcloud, or Google Drive, set a Backup Location under Backup & Restore.';
+      'Android cannot run the database from a cloud-synced folder. To keep a copy in Dropbox, Nextcloud, or Google Drive, set a backup folder under Backups.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -35432,7 +35569,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>
-      'Uses your Dropbox connection from Cloud Sync. Media is stored in your Dropbox app folder.';
+      'Uses your Dropbox connection from Sync between devices. Media is stored in your Dropbox app folder.';
 
   @override
   String get settings_mediaStorage_connect_gdrive_hint =>
@@ -36059,7 +36196,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'URLs and manifest feeds (advanced)';
 
   @override
-  String get settings_connectedAccounts_title => 'Connected Accounts';
+  String get settings_connectedAccounts_title => 'Connected accounts';
 
   @override
   String get settings_connectedAccounts_subtitle =>
@@ -50088,14 +50225,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'The file in its place now is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.';
+      'The file in its place now is kept, not deleted. You can restore or delete it later under Settings > Data > Backups.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Keep what is there now';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.';
+      'Your previous dive log is kept, not deleted. You can restore or delete it later under Settings > Data > Backups.';
 
   @override
   String get startup_interruptedRestore_failed =>

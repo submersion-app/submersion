@@ -5064,7 +5064,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições, Ferramentas de dados.';
+      'Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições > Dados > Avançado > Ferramentas de dados.';
 
   @override
   String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';
@@ -21754,7 +21754,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_replaceHint =>
-      'Se, em vez disso, a biblioteca deste dispositivo deve substituir a que está na nuvem, cancele e use Definições > Sincronização na nuvem > Substituir biblioteca na nuvem.';
+      'Se, em vez disso, a biblioteca deste dispositivo deve substituir a que está na nuvem, cancele e use Definições > Dados > Sincronização entre dispositivos > Substituir biblioteca na nuvem.';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
@@ -25209,7 +25209,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_data_customFolder => 'Pasta personalizada';
 
   @override
-  String get settings_data_databaseStorage => 'Armazenamento do Banco de Dados';
+  String get settings_data_databaseStorage => 'Armazenamento do banco de dados';
 
   @override
   String settings_data_export_failed(Object error) {
@@ -25226,7 +25226,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_data_header_storage => 'Armazenamento';
 
   @override
-  String get settings_data_offlineMaps => 'Mapas Offline';
+  String get settings_data_offlineMaps => 'Mapas offline';
 
   @override
   String get settings_data_offlineMaps_subtitle =>
@@ -25251,7 +25251,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Backup';
+  String get dataHealth_feature_backup => 'Backups';
 
   @override
   String get dataHealth_feature_sync => 'Sincronização';
@@ -25364,6 +25364,143 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'Sincronizado: $when · $count dispositivos',
       one: 'Sincronizado: $when · $count dispositivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_header_yourData => 'Os seus dados';
+
+  @override
+  String get settings_data_header_advanced => 'Avançado';
+
+  @override
+  String get settings_data_setUp => 'Configurar';
+
+  @override
+  String get settings_data_importOptions => 'Opções de importação';
+
+  @override
+  String get settings_data_importOptions_subtitle =>
+      'Correspondência de locais, pressão ao emergir, etiquetas automáticas';
+
+  @override
+  String get settings_data_dataTools => 'Ferramentas de dados';
+
+  @override
+  String get settings_data_dataTools_subtitle =>
+      'Corrigir horas dos mergulhos, ligar parceiros, reclassificar equipamento, qualidade dos dados';
+
+  @override
+  String get settings_sync_title => 'Sincronização entre dispositivos';
+
+  @override
+  String get settings_backups_title => 'Backups';
+
+  @override
+  String get settings_photosVideos_title => 'Fotos e vídeos';
+
+  @override
+  String get settings_section_data_tagline => 'Backups, sincronização e fotos';
+
+  @override
+  String get dataHealth_feature_photos => 'Fotos';
+
+  @override
+  String get settings_data_backups_status_never => 'Ainda sem backup';
+
+  @override
+  String settings_data_backups_status_local(String when) {
+    return 'Backup $when, apenas neste dispositivo';
+  }
+
+  @override
+  String settings_data_backups_status_cloud(String when, String account) {
+    return 'Backup $when, cópia em $account';
+  }
+
+  @override
+  String settings_data_backups_status_folder(String when) {
+    return 'Backup $when, cópia na sua pasta de backups';
+  }
+
+  @override
+  String get settings_data_sync_status_off => 'Apenas neste dispositivo';
+
+  @override
+  String settings_data_sync_status_alone(String when) {
+    return 'Sincronizado $when, por enquanto só este dispositivo';
+  }
+
+  @override
+  String settings_data_sync_status_one(String device, String when) {
+    return 'Em sintonia com $device, $when';
+  }
+
+  @override
+  String settings_data_sync_status_many(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Em sintonia com $count dispositivos, $when',
+      one: 'Em sintonia com $count dispositivo, $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_photos_status_off =>
+      'Não são guardadas cópias na nuvem';
+
+  @override
+  String settings_data_photos_status_on(String store) {
+    return 'Cópias guardadas em $store';
+  }
+
+  @override
+  String get settings_data_photos_status_onUnknown =>
+      'Cópias guardadas na nuvem';
+
+  @override
+  String get settings_data_libraries_status_none => 'Nenhuma';
+
+  @override
+  String settings_data_libraries_status_some(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bibliotecas, última sincronização $when',
+      one: '$count biblioteca, última sincronização $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_data_libraries_status_someNever(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bibliotecas, ainda não sincronizadas',
+      one: '$count biblioteca, ainda não sincronizada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_accounts_status_none => 'Ainda nenhuma';
+
+  @override
+  String settings_data_accounts_status_signedIn(String accounts) {
+    return '$accounts, sessão iniciada';
+  }
+
+  @override
+  String settings_data_accounts_status_needSignIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count contas precisam de iniciar sessão',
+      one: '$count conta precisa de iniciar sessão',
     );
     return '$_temp0';
   }
@@ -26829,7 +26966,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_storage_customFolder_deviceOnly_noCloudSync =>
-      'A sincronização na nuvem gerenciada pelo app fica desativada enquanto o banco de dados está em um volume de armazenamento do dispositivo. Nenhum serviço de sincronização consegue acessar essa pasta no Android, então use Backup e Restauração para manter cópias em outro lugar.';
+      'A sincronização na nuvem gerenciada pelo app fica desativada enquanto o banco de dados está em um volume de armazenamento do dispositivo. Nenhum serviço de sincronização consegue acessar essa pasta no Android, então use Backups para manter cópias em outro lugar.';
 
   @override
   String get settings_storage_dismissError_tooltip => 'Dispensar erro';
@@ -26896,7 +27033,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_body =>
-      'Isso exclui permanentemente todos os dados DESTE dispositivo, incluindo mergulhos, pontos, equipamentos e configurações. Um backup é criado automaticamente antes da redefinição.\n\nA sua biblioteca na nuvem não é excluída e os outros dispositivos mantêm os seus dados. A sincronização na nuvem será desconectada para que a redefinição não seja desfeita; pode reconectá-la em Definições > Sincronização na nuvem.';
+      'Isso exclui permanentemente todos os dados DESTE dispositivo, incluindo mergulhos, pontos, equipamentos e configurações. Um backup é criado automaticamente antes da redefinição.\n\nA sua biblioteca na nuvem não é excluída e os outros dispositivos mantêm os seus dados. A sincronização na nuvem será desconectada para que a redefinição não seja desfeita; pode reconectá-la em Definições > Dados > Sincronização entre dispositivos.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'Excluir';
@@ -26919,7 +27056,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_storage_resetComplete_description =>
-      'Os dados deste dispositivo foram apagados e um backup foi salvo. A sincronização na nuvem está agora desconectada para que a redefinição não seja desfeita; pode reconectá-la em Definições > Sincronização na nuvem. Toque em continuar para recarregar o app.';
+      'Os dados deste dispositivo foram apagados e um backup foi salvo. A sincronização na nuvem está agora desconectada para que a redefinição não seja desfeita; pode reconectá-la em Definições > Dados > Sincronização entre dispositivos. Toque em continuar para recarregar o app.';
 
   @override
   String get settings_summary_activeDiver => 'Mergulhador Ativo';
@@ -30525,10 +30662,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV e Excel podem ser abertos em aplicativos de planilha. Você também pode fazer backup de todo o seu banco de dados em Configurações > Backup e restauração.';
+      'Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV e Excel podem ser abertos em aplicativos de planilha. Você também pode fazer backup de todo o seu banco de dados em Configurações > Dados > Backups.';
 
   @override
-  String get transfer_export_backupLink => 'Ir para Backup e restauração';
+  String get transfer_export_backupLink => 'Ir para Backups';
 
   @override
   String get transfer_export_aboutTitle => 'Sobre Exportação';
@@ -35826,7 +35963,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get db_location_backup_note =>
-      'O Android não consegue executar o banco de dados a partir de uma pasta sincronizada na nuvem. Para manter uma cópia no Dropbox, Nextcloud ou Google Drive, defina o Local do Backup em Backup e Restauração.';
+      'O Android não consegue executar o banco de dados a partir de uma pasta sincronizada na nuvem. Para manter uma cópia no Dropbox, Nextcloud ou Google Drive, defina uma pasta de backups em Backups.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -36036,7 +36173,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>
-      'Usa sua conexão do Dropbox da sincronização na nuvem. As mídias ficam na pasta do app no Dropbox.';
+      'Usa sua conexão do Dropbox de Sincronização entre dispositivos. As mídias ficam na pasta do app no Dropbox.';
 
   @override
   String get settings_mediaStorage_connect_gdrive_hint =>
@@ -50896,14 +51033,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'O ficheiro que está agora no seu lugar é guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
+      'O ficheiro que está agora no seu lugar é guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Definições > Dados > Backups.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Manter o que está agora';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'O seu diário de mergulho anterior fica guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Backup e restauração, nas Definições.';
+      'O seu diário de mergulho anterior fica guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Definições > Dados > Backups.';
 
   @override
   String get startup_interruptedRestore_failed =>

@@ -5062,7 +5062,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Nessun compagno è ancora collegato alle immersioni. Aggiungi compagni alle tue immersioni o converti i vecchi nomi in Impostazioni, Strumenti dati.';
+      'Nessun compagno è ancora collegato alle immersioni. Aggiungi compagni alle tue immersioni o converti i vecchi nomi in Impostazioni > Dati > Avanzate > Strumenti dati.';
 
   @override
   String get connections_empty_sites => 'Nessuna immersione ha ancora un sito.';
@@ -21754,7 +21754,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_replaceHint =>
-      'Se invece la libreria di questo dispositivo deve sostituire quella nel cloud, annulla e usa Impostazioni > Sincronizzazione cloud > Sostituisci la libreria cloud.';
+      'Se invece la libreria di questo dispositivo deve sostituire quella nel cloud, annulla e usa Impostazioni > Dati > Sincronizzazione tra dispositivi > Sostituisci la libreria cloud.';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
@@ -25392,6 +25392,143 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get settings_data_header_yourData => 'I tuoi dati';
+
+  @override
+  String get settings_data_header_advanced => 'Avanzate';
+
+  @override
+  String get settings_data_setUp => 'Configura';
+
+  @override
+  String get settings_data_importOptions => 'Opzioni di importazione';
+
+  @override
+  String get settings_data_importOptions_subtitle =>
+      'Abbinamento siti, pressione in emersione, tag automatici';
+
+  @override
+  String get settings_data_dataTools => 'Strumenti dati';
+
+  @override
+  String get settings_data_dataTools_subtitle =>
+      'Correggi gli orari, collega i compagni, riclassifica l\'attrezzatura, qualità dei dati';
+
+  @override
+  String get settings_sync_title => 'Sincronizzazione tra dispositivi';
+
+  @override
+  String get settings_backups_title => 'Backup';
+
+  @override
+  String get settings_photosVideos_title => 'Foto e video';
+
+  @override
+  String get settings_section_data_tagline => 'Backup, sincronizzazione e foto';
+
+  @override
+  String get dataHealth_feature_photos => 'Foto';
+
+  @override
+  String get settings_data_backups_status_never => 'Nessun backup ancora';
+
+  @override
+  String settings_data_backups_status_local(String when) {
+    return 'Backup $when, solo su questo dispositivo';
+  }
+
+  @override
+  String settings_data_backups_status_cloud(String when, String account) {
+    return 'Backup $when, copia in $account';
+  }
+
+  @override
+  String settings_data_backups_status_folder(String when) {
+    return 'Backup $when, copia nella tua cartella di backup';
+  }
+
+  @override
+  String get settings_data_sync_status_off => 'Solo su questo dispositivo';
+
+  @override
+  String settings_data_sync_status_alone(String when) {
+    return 'Sincronizzato $when, finora solo questo dispositivo';
+  }
+
+  @override
+  String settings_data_sync_status_one(String device, String when) {
+    return 'Allineato con $device, $when';
+  }
+
+  @override
+  String settings_data_sync_status_many(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Allineato con $count dispositivi, $when',
+      one: 'Allineato con $count dispositivo, $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_photos_status_off =>
+      'Nessuna copia conservata nel cloud';
+
+  @override
+  String settings_data_photos_status_on(String store) {
+    return 'Copie conservate in $store';
+  }
+
+  @override
+  String get settings_data_photos_status_onUnknown =>
+      'Copie conservate nel cloud';
+
+  @override
+  String get settings_data_libraries_status_none => 'Nessuna';
+
+  @override
+  String settings_data_libraries_status_some(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count librerie, ultima sincronizzazione $when',
+      one: '$count libreria, ultima sincronizzazione $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_data_libraries_status_someNever(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count librerie, non ancora sincronizzate',
+      one: '$count libreria, non ancora sincronizzata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_accounts_status_none => 'Nessuno finora';
+
+  @override
+  String settings_data_accounts_status_signedIn(String accounts) {
+    return '$accounts, accesso effettuato';
+  }
+
+  @override
+  String settings_data_accounts_status_needSignIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count account richiedono l\'accesso',
+      one: '$count account richiede l\'accesso',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataHealth_libraries_failed(String name) {
     return '$name: sincronizzazione non riuscita';
   }
@@ -26847,7 +26984,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_storage_customFolder_deviceOnly_noCloudSync =>
-      'La sincronizzazione cloud gestita dall\'app è disattivata finché il database si trova su un volume di archiviazione del dispositivo. Su Android nessun servizio di sincronizzazione può raggiungere quella cartella: usa Backup e Ripristino per conservare copie altrove.';
+      'La sincronizzazione cloud gestita dall\'app è disattivata finché il database si trova su un volume di archiviazione del dispositivo. Su Android nessun servizio di sincronizzazione può raggiungere quella cartella: usa Backup per conservare copie altrove.';
 
   @override
   String get settings_storage_dismissError_tooltip => 'Ignora errore';
@@ -26913,7 +27050,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_body =>
-      'Questo elimina permanentemente tutti i dati su QUESTO dispositivo, incluse immersioni, siti, attrezzatura e impostazioni. Un backup viene creato automaticamente prima del reset.\n\nLa tua libreria cloud non viene eliminata e gli altri dispositivi conservano i loro dati. La sincronizzazione cloud verrà disconnessa affinché il reset non venga annullato; puoi riconnetterla in Impostazioni > Sincronizzazione cloud.';
+      'Questo elimina permanentemente tutti i dati su QUESTO dispositivo, incluse immersioni, siti, attrezzatura e impostazioni. Un backup viene creato automaticamente prima del reset.\n\nLa tua libreria cloud non viene eliminata e gli altri dispositivi conservano i loro dati. La sincronizzazione cloud verrà disconnessa affinché il reset non venga annullato; puoi riconnetterla in Impostazioni > Dati > Sincronizzazione tra dispositivi.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'Elimina';
@@ -26935,7 +27072,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_storage_resetComplete_description =>
-      'I dati di questo dispositivo sono stati cancellati ed è stato salvato un backup. La sincronizzazione cloud ora è disconnessa affinché il ripristino non venga annullato; puoi riconnetterla in Impostazioni > Sincronizzazione cloud. Tocca continua per ricaricare l\'app.';
+      'I dati di questo dispositivo sono stati cancellati ed è stato salvato un backup. La sincronizzazione cloud ora è disconnessa affinché il ripristino non venga annullato; puoi riconnetterla in Impostazioni > Dati > Sincronizzazione tra dispositivi. Tocca continua per ricaricare l\'app.';
 
   @override
   String get settings_summary_activeDiver => 'Subacqueo attivo';
@@ -30539,10 +30676,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L\'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV ed Excel possono essere aperti nelle applicazioni di fogli di calcolo. Puoi anche eseguire il backup dell\'intero database da Impostazioni > Backup e ripristino.';
+      'Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L\'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV ed Excel possono essere aperti nelle applicazioni di fogli di calcolo. Puoi anche eseguire il backup dell\'intero database da Impostazioni > Dati > Backup.';
 
   @override
-  String get transfer_export_backupLink => 'Vai a Backup e ripristino';
+  String get transfer_export_backupLink => 'Vai a Backup';
 
   @override
   String get transfer_export_aboutTitle => 'Informazioni sull\'esportazione';
@@ -35842,7 +35979,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get db_location_backup_note =>
-      'Android non può eseguire il database da una cartella sincronizzata nel cloud. Per conservarne una copia in Dropbox, Nextcloud o Google Drive, imposta la Posizione di backup in Backup e Ripristino.';
+      'Android non può eseguire il database da una cartella sincronizzata nel cloud. Per conservarne una copia in Dropbox, Nextcloud o Google Drive, imposta una cartella di backup in Backup.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -36051,7 +36188,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>
-      'Usa la tua connessione Dropbox della sincronizzazione cloud. I media sono archiviati nella cartella app di Dropbox.';
+      'Usa la tua connessione Dropbox di Sincronizzazione tra dispositivi. I media sono archiviati nella cartella app di Dropbox.';
 
   @override
   String get settings_mediaStorage_connect_gdrive_hint =>
@@ -50893,7 +51030,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'Il file che ora si trova al suo posto viene conservato, non eliminato. Potrai ripristinarlo o eliminarlo in seguito da Backup e ripristino nelle Impostazioni.';
+      'Il file che ora si trova al suo posto viene conservato, non eliminato. Potrai ripristinarlo o eliminarlo in seguito da Impostazioni > Dati > Backup.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -50901,7 +51038,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Il tuo diario di immersione precedente viene conservato, non eliminato. Potrai ripristinarlo o eliminarlo in seguito da Backup e ripristino nelle Impostazioni.';
+      'Il tuo diario di immersione precedente viene conservato, non eliminato. Potrai ripristinarlo o eliminarlo in seguito da Impostazioni > Dati > Backup.';
 
   @override
   String get startup_interruptedRestore_failed =>
