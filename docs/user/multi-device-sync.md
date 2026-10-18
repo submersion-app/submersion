@@ -38,7 +38,7 @@ automatically:
 
 ## Choosing a Cloud Provider
 
-Open **Settings > Data > Database Cloud Sync** and choose under
+Open **Settings > Data > Sync between devices** and choose under
 **Cloud Provider**:
 
 | Provider | Best for | Notes |
@@ -54,7 +54,7 @@ this page shows a complete setup that works on every platform.
 
 ## Enabling Sync
 
-1. Open **Settings > Data > Database Cloud Sync**.
+1. Open **Settings > Data > Sync between devices**.
 2. Choose a provider. For iCloud, Google Drive or Dropbox, sign in when asked.
    For S3-compatible storage, enter the endpoint, bucket and keys (see the
    [Cloudflare R2 example](#example-cloudflare-r2-s3-compatible)).
@@ -81,7 +81,7 @@ want when adding a new device to an existing library.
 
 1. Install Submersion on the new device. In the first-run setup you can choose
    to bring in your existing data and connect cloud sync straight away.
-2. Otherwise, open **Settings > Data > Database Cloud Sync** and choose the
+2. Otherwise, open **Settings > Data > Sync between devices** and choose the
    **same provider** as your other devices: the same iCloud, Google or Dropbox
    account, or the same bucket and access keys.
 3. Run **Sync Now**, and at **Combine Libraries?** choose **Merge and Sync**.
@@ -234,7 +234,7 @@ walkthrough sets it up end to end.
 
 ### 4. Configure Submersion (First Device)
 
-1. In Submersion, open **Settings > Data > Database Cloud Sync** and choose
+1. In Submersion, open **Settings > Data > Sync between devices** and choose
    **S3-Compatible Storage**.
 2. Fill in the four main fields:
 
