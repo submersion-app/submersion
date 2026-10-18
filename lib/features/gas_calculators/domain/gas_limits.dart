@@ -159,7 +159,8 @@ class DepthAssessment {
 
   final bool exceedsEndLimit;
 
-  /// Gas density at 0 C and its level; Tec modes only.
+  /// Gas density at [GasLimitsInputs.temperature] and its level; Tec modes
+  /// only.
   final double? densityGPerL;
   final GasDensityLevel? densityLevel;
 

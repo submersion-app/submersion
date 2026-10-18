@@ -42,6 +42,7 @@ void main() {
     l10n: l10n,
     units: units,
     endLimitMeters: 30,
+    temperature: inputs.temperature,
   );
 
   test('the hypoxic minimum depth is rounded up, never down', () {
@@ -100,6 +101,27 @@ void main() {
     );
     expect(danger.severity, ModAssessmentSeverity.danger);
     expect(danger.text, contains('a flush there gives ppO₂'));
+  });
+
+  test('the density warning names the chosen gas temperature', () {
+    // Air at 120 m is well past the hard density limit at either
+    // temperature; only the stated temperature should differ.
+    final cold = assess(
+      _inputs(o2: 21, he: 0, target: 120, waterType: WaterType.salt),
+    ).firstWhere((a) => a.text.contains('gas density'));
+    expect(cold.severity, ModAssessmentSeverity.danger);
+    expect(cold.text, contains('0°C'));
+
+    final warm = assess(
+      _inputs(
+        o2: 21,
+        he: 0,
+        target: 120,
+        waterType: WaterType.salt,
+        temperature: GasDensityTemperature.twentyC,
+      ),
+    ).firstWhere((a) => a.text.contains('gas density'));
+    expect(warm.text, contains('20°C'));
   });
 
   test('Rec: air is flagged beyond the recreational limit', () {

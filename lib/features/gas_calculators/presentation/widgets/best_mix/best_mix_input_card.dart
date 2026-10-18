@@ -7,12 +7,12 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix_calculator_preferences.dart';
-import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart'
     show modFlushPpO2Max, modFlushPpO2Min, tecTargetMaxMeters;
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_end_limit_slider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_formatting.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_ppo2_limit_slider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/profile_override_caption.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -118,23 +118,10 @@ class BestMixInputCard extends ConsumerWidget {
                     ),
                   BestMixLabelled(
                     label: l10n.gasCalculators_density_temperature,
-                    child: SegmentedButton<GasDensityTemperature>(
-                      segments: [
-                        for (final option in GasDensityTemperature.values)
-                          ButtonSegment(
-                            value: option,
-                            label: Text(
-                              units.formatTemperature(
-                                option.celsius,
-                                decimals: 0,
-                              ),
-                            ),
-                          ),
-                      ],
-                      selected: {prefs.temperature},
-                      showSelectedIcon: false,
-                      onSelectionChanged: (selection) =>
-                          notifier.setTemperature(selection.first),
+                    child: GasTemperatureSegmentedButton(
+                      units: units,
+                      selected: prefs.temperature,
+                      onChanged: notifier.setTemperature,
                     ),
                   ),
                   BestMixLabelled(

@@ -16680,18 +16680,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a densidade do gás $density g/L está acima dos $limit g/L recomendados.';
+    return '$where: a densidade do gás $density g/L a $temp está acima dos $limit g/L recomendados.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a densidade do gás $density g/L está acima do limite máximo de $limit g/L.';
+    return '$where: a densidade do gás $density g/L a $temp está acima do limite máximo de $limit g/L.';
   }
 
   @override

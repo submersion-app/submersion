@@ -16625,18 +16625,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a gázsűrűség ($density g/L) meghaladja az ajánlott $limit g/L-t.';
+    return '$where: a gázsűrűség ($density g/L, $temp) meghaladja az ajánlott $limit g/L-t.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a gázsűrűség ($density g/L) meghaladja a $limit g/L kemény határt.';
+    return '$where: a gázsűrűség ($density g/L, $temp) meghaladja a $limit g/L kemény határt.';
   }
 
   @override

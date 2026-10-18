@@ -25,6 +25,7 @@ List<ModAssessment> modAssessments(
   required AppLocalizations l10n,
   required UnitFormatter units,
   required double endLimitMeters,
+  required GasDensityTemperature temperature,
 }) {
   final items = <ModAssessment>[];
   void add(ModAssessmentSeverity severity, String text) =>
@@ -87,6 +88,7 @@ List<ModAssessment> modAssessments(
       );
     }
     final density = formatFixedForDisplay(a.densityGPerL ?? 0, 2);
+    final temp = units.formatTemperature(temperature.celsius, decimals: 0);
     switch (a.densityLevel) {
       case GasDensityLevel.warn:
         add(
@@ -94,6 +96,7 @@ List<ModAssessment> modAssessments(
           l10n.gasCalculators_mod_densityWarn(
             where,
             density,
+            temp,
             formatFixedForDisplay(gasDensityWarnGPerL, 1),
           ),
         );
@@ -103,6 +106,7 @@ List<ModAssessment> modAssessments(
           l10n.gasCalculators_mod_densityCritical(
             where,
             density,
+            temp,
             formatFixedForDisplay(gasDensityCriticalGPerL, 1),
           ),
         );
@@ -150,6 +154,7 @@ class ModAssessmentCard extends ConsumerWidget {
       l10n: l10n,
       units: UnitFormatter(settings),
       endLimitMeters: settings.endLimit,
+      temperature: ref.watch(modCalculatorInputsProvider).temperature,
     );
 
     return Card(

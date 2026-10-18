@@ -127,6 +127,7 @@ void main() {
     await tester.tap(find.text('OC Tec'));
     await _settle(tester);
     expect(find.text('Gas temperature'), findsOneWidget);
+    expect(find.textContaining('Colder gas is denser'), findsOneWidget);
     expect(find.text('Gas density at 0°C'), findsOneWidget);
 
     await tester.tap(find.text('20°C'));

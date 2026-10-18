@@ -9980,7 +9980,7 @@
       }
     }
   },
-  "gasCalculators_mod_densityWarn": "{where}: gas density {density} g/L is above the recommended {limit} g/L.",
+  "gasCalculators_mod_densityWarn": "{where}: gas density {density} g/L at {temp} is above the recommended {limit} g/L.",
   "@gasCalculators_mod_densityWarn": {
     "placeholders": {
       "where": {
@@ -9989,18 +9989,24 @@
       "density": {
         "type": "String"
       },
+      "temp": {
+        "type": "String"
+      },
       "limit": {
         "type": "String"
       }
     }
   },
-  "gasCalculators_mod_densityCritical": "{where}: gas density {density} g/L is above the hard limit of {limit} g/L.",
+  "gasCalculators_mod_densityCritical": "{where}: gas density {density} g/L at {temp} is above the hard limit of {limit} g/L.",
   "@gasCalculators_mod_densityCritical": {
     "placeholders": {
       "where": {
         "type": "String"
       },
       "density": {
+        "type": "String"
+      },
+      "temp": {
         "type": "String"
       },
       "limit": {

@@ -26939,20 +26939,22 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_mod_densityWarn.
   ///
   /// In en, this message translates to:
-  /// **'{where}: gas density {density} g/L is above the recommended {limit} g/L.'**
+  /// **'{where}: gas density {density} g/L at {temp} is above the recommended {limit} g/L.'**
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   );
 
   /// No description provided for @gasCalculators_mod_densityCritical.
   ///
   /// In en, this message translates to:
-  /// **'{where}: gas density {density} g/L is above the hard limit of {limit} g/L.'**
+  /// **'{where}: gas density {density} g/L at {temp} is above the hard limit of {limit} g/L.'**
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   );
 

@@ -15899,18 +15899,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where：气体密度 $density g/L 高于建议的 $limit g/L。';
+    return '$where：气体密度 $density g/L（$temp）高于建议的 $limit g/L。';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where：气体密度 $density g/L 高于 $limit g/L 的硬性限值。';
+    return '$where：气体密度 $density g/L（$temp）高于 $limit g/L 的硬性限值。';
   }
 
   @override

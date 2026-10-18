@@ -16320,18 +16320,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: צפיפות הגז $density ג/ל מעל $limit ג/ל המומלצים.';
+    return '$where: צפיפות הגז $density ג/ל ב-$temp מעל $limit ג/ל המומלצים.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: צפיפות הגז $density ג/ל מעל הגבול המוחלט של $limit ג/ל.';
+    return '$where: צפיפות הגז $density ג/ל ב-$temp מעל הגבול המוחלט של $limit ג/ל.';
   }
 
   @override

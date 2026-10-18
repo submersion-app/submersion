@@ -16664,18 +16664,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: Gasdichte $density g/L liegt über den empfohlenen $limit g/L.';
+    return '$where: Gasdichte $density g/L bei $temp liegt über den empfohlenen $limit g/L.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: Gasdichte $density g/L liegt über der harten Grenze von $limit g/L.';
+    return '$where: Gasdichte $density g/L bei $temp liegt über der harten Grenze von $limit g/L.';
   }
 
   @override
