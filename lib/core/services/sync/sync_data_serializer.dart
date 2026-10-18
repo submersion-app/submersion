@@ -304,11 +304,15 @@ class SyncData {
   final List<Map<String, dynamic>> tripCylinders;
   final List<Map<String, dynamic>> tripCylinderEvents;
   final List<Map<String, dynamic>> checklistTemplates;
+  final List<Map<String, dynamic>> checklistTemplateSections;
   final List<Map<String, dynamic>> checklistTemplateItems;
+  final List<Map<String, dynamic>> tripChecklistSections;
   final List<Map<String, dynamic>> tripChecklistItems;
   final List<Map<String, dynamic>> preDiveChecklistTemplates;
+  final List<Map<String, dynamic>> preDiveChecklistTemplateSections;
   final List<Map<String, dynamic>> preDiveChecklistTemplateItems;
   final List<Map<String, dynamic>> preDiveSessions;
+  final List<Map<String, dynamic>> preDiveSessionSections;
   final List<Map<String, dynamic>> preDiveSessionItems;
   final List<Map<String, dynamic>> gpsTracks;
   final List<Map<String, dynamic>> navTracks;
@@ -435,11 +439,15 @@ class SyncData {
     this.tripCylinders = const [],
     this.tripCylinderEvents = const [],
     this.checklistTemplates = const [],
+    this.checklistTemplateSections = const [],
     this.checklistTemplateItems = const [],
+    this.tripChecklistSections = const [],
     this.tripChecklistItems = const [],
     this.preDiveChecklistTemplates = const [],
+    this.preDiveChecklistTemplateSections = const [],
     this.preDiveChecklistTemplateItems = const [],
     this.preDiveSessions = const [],
+    this.preDiveSessionSections = const [],
     this.preDiveSessionItems = const [],
     this.gpsTracks = const [],
     this.navTracks = const [],
@@ -556,11 +564,15 @@ class SyncData {
     'tripCylinders': tripCylinders,
     'tripCylinderEvents': tripCylinderEvents,
     'checklistTemplates': checklistTemplates,
+    'checklistTemplateSections': checklistTemplateSections,
     'checklistTemplateItems': checklistTemplateItems,
+    'tripChecklistSections': tripChecklistSections,
     'tripChecklistItems': tripChecklistItems,
     'preDiveChecklistTemplates': preDiveChecklistTemplates,
+    'preDiveChecklistTemplateSections': preDiveChecklistTemplateSections,
     'preDiveChecklistTemplateItems': preDiveChecklistTemplateItems,
     'preDiveSessions': preDiveSessions,
+    'preDiveSessionSections': preDiveSessionSections,
     'preDiveSessionItems': preDiveSessionItems,
     'gpsTracks': gpsTracks,
     'navTracks': navTracks,
@@ -684,13 +696,19 @@ class SyncData {
       tripCylinders: _parseList(json['tripCylinders']),
       tripCylinderEvents: _parseList(json['tripCylinderEvents']),
       checklistTemplates: _parseList(json['checklistTemplates']),
+      checklistTemplateSections: _parseList(json['checklistTemplateSections']),
       checklistTemplateItems: _parseList(json['checklistTemplateItems']),
+      tripChecklistSections: _parseList(json['tripChecklistSections']),
       tripChecklistItems: _parseList(json['tripChecklistItems']),
       preDiveChecklistTemplates: _parseList(json['preDiveChecklistTemplates']),
+      preDiveChecklistTemplateSections: _parseList(
+        json['preDiveChecklistTemplateSections'],
+      ),
       preDiveChecklistTemplateItems: _parseList(
         json['preDiveChecklistTemplateItems'],
       ),
       preDiveSessions: _parseList(json['preDiveSessions']),
+      preDiveSessionSections: _parseList(json['preDiveSessionSections']),
       preDiveSessionItems: _parseList(json['preDiveSessionItems']),
       gpsTracks: _parseList(json['gpsTracks']),
       navTracks: _parseList(json['navTracks']),
@@ -1104,8 +1122,20 @@ class SyncDataSerializer {
       full: null,
     ),
     (
+      key: 'checklistTemplateSections',
+      table: _db.checklistTemplateSections,
+      blob: false,
+      full: null,
+    ),
+    (
       key: 'checklistTemplateItems',
       table: _db.checklistTemplateItems,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'tripChecklistSections',
+      table: _db.tripChecklistSections,
       blob: false,
       full: null,
     ),
@@ -1115,16 +1145,23 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
-    // Built-in pre-dive templates (and the items of built-in templates) are
-    // re-seeded identically on every device, so both must be excluded from the
-    // base exactly as the incremental changeset excludes them. Paging the raw
-    // table would ship the seeds and diverge from exportChangeset (parity),
-    // so reuse the filtered exporters (mirrors serviceKinds).
+    // Built-in pre-dive templates (and the sections/items of built-in
+    // templates) are re-seeded identically on every device, so all three
+    // must be excluded from the base exactly as the incremental changeset
+    // excludes them. Paging the raw table would ship the seeds and diverge
+    // from exportChangeset (parity), so reuse the filtered exporters
+    // (mirrors serviceKinds).
     (
       key: 'preDiveChecklistTemplates',
       table: null,
       blob: false,
       full: () => _exportPreDiveChecklistTemplates(null),
+    ),
+    (
+      key: 'preDiveChecklistTemplateSections',
+      table: null,
+      blob: false,
+      full: () => _exportPreDiveChecklistTemplateSections(null),
     ),
     (
       key: 'preDiveChecklistTemplateItems',
@@ -1135,6 +1172,12 @@ class SyncDataSerializer {
     (
       key: 'preDiveSessions',
       table: _db.preDiveSessions,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'preDiveSessionSections',
+      table: _db.preDiveSessionSections,
       blob: false,
       full: null,
     ),
@@ -2337,9 +2380,17 @@ class SyncDataSerializer {
         'checklistTemplates',
         () => _exportChecklistTemplates(hlcSince),
       ),
+      checklistTemplateSections: await _safeExport(
+        'checklistTemplateSections',
+        () => _exportChecklistTemplateSections(hlcSince),
+      ),
       checklistTemplateItems: await _safeExport(
         'checklistTemplateItems',
         () => _exportChecklistTemplateItems(hlcSince),
+      ),
+      tripChecklistSections: await _safeExport(
+        'tripChecklistSections',
+        () => _exportTripChecklistSections(hlcSince),
       ),
       tripChecklistItems: await _safeExport(
         'tripChecklistItems',
@@ -2349,6 +2400,10 @@ class SyncDataSerializer {
         'preDiveChecklistTemplates',
         () => _exportPreDiveChecklistTemplates(hlcSince),
       ),
+      preDiveChecklistTemplateSections: await _safeExport(
+        'preDiveChecklistTemplateSections',
+        () => _exportPreDiveChecklistTemplateSections(hlcSince),
+      ),
       preDiveChecklistTemplateItems: await _safeExport(
         'preDiveChecklistTemplateItems',
         () => _exportPreDiveChecklistTemplateItems(hlcSince),
@@ -2356,6 +2411,10 @@ class SyncDataSerializer {
       preDiveSessions: await _safeExport(
         'preDiveSessions',
         () => _exportPreDiveSessions(hlcSince),
+      ),
+      preDiveSessionSections: await _safeExport(
+        'preDiveSessionSections',
+        () => _exportPreDiveSessionSections(hlcSince),
       ),
       preDiveSessionItems: await _safeExport(
         'preDiveSessionItems',
@@ -3146,9 +3205,19 @@ class SyncDataSerializer {
           _db.checklistTemplates,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'checklistTemplateSections':
+        final row = await (_db.select(
+          _db.checklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'checklistTemplateItems':
         final row = await (_db.select(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripChecklistSections':
+        final row = await (_db.select(
+          _db.tripChecklistSections,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'tripChecklistItems':
@@ -3161,6 +3230,11 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplates,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'preDiveChecklistTemplateSections':
+        final row = await (_db.select(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'preDiveChecklistTemplateItems':
         final row = await (_db.select(
           _db.preDiveChecklistTemplateItems,
@@ -3169,6 +3243,11 @@ class SyncDataSerializer {
       case 'preDiveSessions':
         final row = await (_db.select(
           _db.preDiveSessions,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'preDiveSessionSections':
+        final row = await (_db.select(
+          _db.preDiveSessionSections,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'preDiveSessionItems':
@@ -3721,9 +3800,19 @@ class SyncDataSerializer {
           _db.checklistTemplates,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'checklistTemplateSections':
+        final rows = await (_db.select(
+          _db.checklistTemplateSections,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'checklistTemplateItems':
         final rows = await (_db.select(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tripChecklistSections':
+        final rows = await (_db.select(
+          _db.tripChecklistSections,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tripChecklistItems':
@@ -3736,6 +3825,11 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplates,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveChecklistTemplateSections':
+        final rows = await (_db.select(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'preDiveChecklistTemplateItems':
         final rows = await (_db.select(
           _db.preDiveChecklistTemplateItems,
@@ -3744,6 +3838,11 @@ class SyncDataSerializer {
       case 'preDiveSessions':
         final rows = await (_db.select(
           _db.preDiveSessions,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveSessionSections':
+        final rows = await (_db.select(
+          _db.preDiveSessionSections,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'preDiveSessionItems':
@@ -4965,11 +5064,25 @@ class SyncDataSerializer {
               ChecklistTemplate.fromJson(data).toCompanion(false),
             );
         return;
+      case 'checklistTemplateSections':
+        await _db
+            .into(_db.checklistTemplateSections)
+            .insertOnConflictUpdate(
+              ChecklistTemplateSectionRow.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'checklistTemplateItems':
         await _db
             .into(_db.checklistTemplateItems)
             .insertOnConflictUpdate(
               ChecklistTemplateItem.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'tripChecklistSections':
+        await _db
+            .into(_db.tripChecklistSections)
+            .insertOnConflictUpdate(
+              TripChecklistSectionRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'tripChecklistItems':
@@ -4986,6 +5099,15 @@ class SyncDataSerializer {
               PreDiveChecklistTemplate.fromJson(data).toCompanion(false),
             );
         return;
+      case 'preDiveChecklistTemplateSections':
+        await _db
+            .into(_db.preDiveChecklistTemplateSections)
+            .insertOnConflictUpdate(
+              PreDiveChecklistTemplateSectionRow.fromJson(
+                data,
+              ).toCompanion(false),
+            );
+        return;
       case 'preDiveChecklistTemplateItems':
         await _db
             .into(_db.preDiveChecklistTemplateItems)
@@ -4998,6 +5120,13 @@ class SyncDataSerializer {
             .into(_db.preDiveSessions)
             .insertOnConflictUpdate(
               PreDiveSession.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'preDiveSessionSections':
+        await _db
+            .into(_db.preDiveSessionSections)
+            .insertOnConflictUpdate(
+              PreDiveSessionSectionRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'preDiveSessionItems':
@@ -6083,6 +6212,20 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'checklistTemplateSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.checklistTemplateSections,
+            records
+                .map(
+                  (r) => ChecklistTemplateSectionRow.fromJson(
+                    r,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'checklistTemplateItems':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6090,6 +6233,18 @@ class SyncDataSerializer {
             records
                 .map(
                   (r) => ChecklistTemplateItem.fromJson(r).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'tripChecklistSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripChecklistSections,
+            records
+                .map(
+                  (r) => TripChecklistSectionRow.fromJson(r).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -6118,6 +6273,20 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'preDiveChecklistTemplateSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveChecklistTemplateSections,
+            records
+                .map(
+                  (r) => PreDiveChecklistTemplateSectionRow.fromJson(
+                    r,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'preDiveChecklistTemplateItems':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6138,6 +6307,19 @@ class SyncDataSerializer {
             _db.preDiveSessions,
             records
                 .map((r) => PreDiveSession.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'preDiveSessionSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveSessionSections,
+            records
+                .map(
+                  (r) =>
+                      PreDiveSessionSectionRow.fromJson(r).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -7132,14 +7314,26 @@ class SyncDataSerializer {
         return plain(_db.tripCylinderEvents, _db.tripCylinderEvents.id);
       case 'checklistTemplates':
         return plain(_db.checklistTemplates, _db.checklistTemplates.id);
+      case 'checklistTemplateSections':
+        return plain(
+          _db.checklistTemplateSections,
+          _db.checklistTemplateSections.id,
+        );
       case 'checklistTemplateItems':
         return plain(_db.checklistTemplateItems, _db.checklistTemplateItems.id);
+      case 'tripChecklistSections':
+        return plain(_db.tripChecklistSections, _db.tripChecklistSections.id);
       case 'tripChecklistItems':
         return plain(_db.tripChecklistItems, _db.tripChecklistItems.id);
       case 'preDiveChecklistTemplates':
         return plain(
           _db.preDiveChecklistTemplates,
           _db.preDiveChecklistTemplates.id,
+        );
+      case 'preDiveChecklistTemplateSections':
+        return plain(
+          _db.preDiveChecklistTemplateSections,
+          _db.preDiveChecklistTemplateSections.id,
         );
       case 'preDiveChecklistTemplateItems':
         return plain(
@@ -7148,6 +7342,8 @@ class SyncDataSerializer {
         );
       case 'preDiveSessions':
         return plain(_db.preDiveSessions, _db.preDiveSessions.id);
+      case 'preDiveSessionSections':
+        return plain(_db.preDiveSessionSections, _db.preDiveSessionSections.id);
       case 'preDiveSessionItems':
         return plain(_db.preDiveSessionItems, _db.preDiveSessionItems.id);
       case 'gpsTracks':
@@ -7429,6 +7625,17 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplates,
         )..where((t) => t.isBuiltIn.equals(false))).go();
         return;
+      case 'preDiveChecklistTemplateSections':
+        // Sections of built-in templates are seeded reference data too
+        // (issue #3360); same reasoning as preDiveChecklistTemplateItems
+        // just below.
+        final builtinSectionIds = _db.selectOnly(_db.preDiveChecklistTemplates)
+          ..addColumns([_db.preDiveChecklistTemplates.id])
+          ..where(_db.preDiveChecklistTemplates.isBuiltIn.equals(true));
+        await (_db.delete(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.templateId.isNotInQuery(builtinSectionIds))).go();
+        return;
       case 'preDiveChecklistTemplateItems':
         // Items of built-in templates are seeded reference data; clearing
         // them would also trip the FK on the preserved built-in parents.
@@ -7617,16 +7824,24 @@ class SyncDataSerializer {
         return _db.tripCylinderEvents;
       case 'checklistTemplates':
         return _db.checklistTemplates;
+      case 'checklistTemplateSections':
+        return _db.checklistTemplateSections;
       case 'checklistTemplateItems':
         return _db.checklistTemplateItems;
+      case 'tripChecklistSections':
+        return _db.tripChecklistSections;
       case 'tripChecklistItems':
         return _db.tripChecklistItems;
       case 'preDiveChecklistTemplates':
         return _db.preDiveChecklistTemplates;
+      case 'preDiveChecklistTemplateSections':
+        return _db.preDiveChecklistTemplateSections;
       case 'preDiveChecklistTemplateItems':
         return _db.preDiveChecklistTemplateItems;
       case 'preDiveSessions':
         return _db.preDiveSessions;
+      case 'preDiveSessionSections':
+        return _db.preDiveSessionSections;
       case 'preDiveSessionItems':
         return _db.preDiveSessionItems;
       case 'gpsTracks':
@@ -8074,9 +8289,19 @@ class SyncDataSerializer {
           _db.checklistTemplates,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'checklistTemplateSections':
+        await (_db.delete(
+          _db.checklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'checklistTemplateItems':
         await (_db.delete(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripChecklistSections':
+        await (_db.delete(
+          _db.tripChecklistSections,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tripChecklistItems':
@@ -8089,6 +8314,11 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplates,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'preDiveChecklistTemplateSections':
+        await (_db.delete(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'preDiveChecklistTemplateItems':
         await (_db.delete(
           _db.preDiveChecklistTemplateItems,
@@ -8097,6 +8327,11 @@ class SyncDataSerializer {
       case 'preDiveSessions':
         await (_db.delete(
           _db.preDiveSessions,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'preDiveSessionSections':
+        await (_db.delete(
+          _db.preDiveSessionSections,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'preDiveSessionItems':
@@ -9142,10 +9377,32 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportChecklistTemplateSections(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.checklistTemplateSections);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportChecklistTemplateItems(
     String? hlcSince,
   ) async {
     final query = _db.select(_db.checklistTemplateItems);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportTripChecklistSections(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.tripChecklistSections);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -9178,6 +9435,23 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportPreDiveChecklistTemplateSections(
+    String? hlcSince,
+  ) async {
+    // Sections of built-in templates are seeded reference data too (issue
+    // #3360), same exclusion as _exportPreDiveChecklistTemplateItems.
+    final builtinIds = _db.selectOnly(_db.preDiveChecklistTemplates)
+      ..addColumns([_db.preDiveChecklistTemplates.id])
+      ..where(_db.preDiveChecklistTemplates.isBuiltIn.equals(true));
+    final query = _db.select(_db.preDiveChecklistTemplateSections)
+      ..where((t) => t.templateId.isNotInQuery(builtinIds));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportPreDiveChecklistTemplateItems(
     String? hlcSince,
   ) async {
@@ -9199,6 +9473,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.preDiveSessions);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportPreDiveSessionSections(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.preDiveSessionSections);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

@@ -1422,8 +1422,18 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (
+            type: 'checklistTemplateSections',
+            records: data.checklistTemplateSections,
+            hasUpdatedAt: true,
+          ),
+          (
             type: 'checklistTemplateItems',
             records: data.checklistTemplateItems,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'tripChecklistSections',
+            records: data.tripChecklistSections,
             hasUpdatedAt: true,
           ),
           (
@@ -1437,6 +1447,11 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (
+            type: 'preDiveChecklistTemplateSections',
+            records: data.preDiveChecklistTemplateSections,
+            hasUpdatedAt: true,
+          ),
+          (
             type: 'preDiveChecklistTemplateItems',
             records: data.preDiveChecklistTemplateItems,
             hasUpdatedAt: true,
@@ -1444,6 +1459,11 @@ class SyncService {
           (
             type: 'preDiveSessions',
             records: data.preDiveSessions,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'preDiveSessionSections',
+            records: data.preDiveSessionSections,
             hasUpdatedAt: true,
           ),
           (
@@ -2682,11 +2702,15 @@ class SyncService {
     'tripCylinders': true,
     'tripCylinderEvents': true,
     'checklistTemplates': true,
+    'checklistTemplateSections': true,
     'checklistTemplateItems': true,
+    'tripChecklistSections': true,
     'tripChecklistItems': true,
     'preDiveChecklistTemplates': true,
+    'preDiveChecklistTemplateSections': true,
     'preDiveChecklistTemplateItems': true,
     'preDiveSessions': true,
+    'preDiveSessionSections': true,
     'preDiveSessionItems': true,
     'gpsTracks': true,
     'navTracks': true,
@@ -3230,15 +3254,45 @@ class SyncService {
       (field: 'tripCylinderId', parent: 'tripCylinders', nullable: false),
       (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
     ],
-    'checklistTemplateItems': [
+    // Checklist sections (issue #3360). A section table's own parent ref is
+    // its trip/template/session; an item table's existing entry gains a
+    // sectionId ref to its section table, nullable (deleting a section sets
+    // the item's link to null, never the item). preDiveSessionItems.sectionId
+    // is deliberately absent here: unlike the other three, it is not a SQL
+    // FK (same reasoning as its existing sourceItemId), so there is no FK
+    // for sync_parent_refs_completeness_test's pragma_foreign_key_list scan
+    // to find.
+    'checklistTemplateSections': [
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
     ],
-    'tripChecklistItems': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'checklistTemplateItems': [
+      (field: 'templateId', parent: 'checklistTemplates', nullable: false),
+      (field: 'sectionId', parent: 'checklistTemplateSections', nullable: true),
+    ],
+    'tripChecklistSections': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+    ],
+    'tripChecklistItems': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'sectionId', parent: 'tripChecklistSections', nullable: true),
+    ],
+    'preDiveChecklistTemplateSections': [
+      (
+        field: 'templateId',
+        parent: 'preDiveChecklistTemplates',
+        nullable: false,
+      ),
+    ],
     'preDiveChecklistTemplateItems': [
       (
         field: 'templateId',
         parent: 'preDiveChecklistTemplates',
         nullable: false,
+      ),
+      (
+        field: 'sectionId',
+        parent: 'preDiveChecklistTemplateSections',
+        nullable: true,
       ),
     ],
     'preDiveSessions': [
@@ -3250,6 +3304,9 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: true),
       (field: 'tripId', parent: 'trips', nullable: true),
       (field: 'equipmentSetId', parent: 'equipmentSets', nullable: true),
+    ],
+    'preDiveSessionSections': [
+      (field: 'sessionId', parent: 'preDiveSessions', nullable: false),
     ],
     'preDiveSessionItems': [
       (field: 'sessionId', parent: 'preDiveSessions', nullable: false),

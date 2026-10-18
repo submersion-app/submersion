@@ -153,6 +153,22 @@ class ConflictReferenceResolver {
     'preDiveSessions': {'templateId': 'preDiveChecklistTemplates'},
     'preDiveChecklistTemplateItems': {
       'templateId': 'preDiveChecklistTemplates',
+      'sectionId': 'preDiveChecklistTemplateSections',
+    },
+    // Checklist sections (issue #3360): sectionId points at a different
+    // table per owning item table, so -- like templateId above -- it needs
+    // a per-table override rather than one default. preDiveSessionItems is
+    // included even though its sectionId is not a SQL-level FK (same
+    // reasoning as the rest of this concept's pre-dive session side): the
+    // conflict dialog can still resolve and name it.
+    'checklistTemplateItems': {'sectionId': 'checklistTemplateSections'},
+    'tripChecklistItems': {'sectionId': 'tripChecklistSections'},
+    'preDiveSessionItems': {'sectionId': 'preDiveSessionSections'},
+    // preDiveChecklistTemplateSections.templateId would otherwise resolve
+    // to the generic 'templateId' default (checklistTemplates), the same
+    // override preDiveChecklistTemplateItems already needs.
+    'preDiveChecklistTemplateSections': {
+      'templateId': 'preDiveChecklistTemplates',
     },
   };
 

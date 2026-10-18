@@ -35,7 +35,9 @@ void main() {
     'trip_cylinders': 'tripCylinders',
     'trip_cylinder_events': 'tripCylinderEvents',
     'checklist_templates': 'checklistTemplates',
+    'checklist_template_sections': 'checklistTemplateSections',
     'checklist_template_items': 'checklistTemplateItems',
+    'trip_checklist_sections': 'tripChecklistSections',
     'trip_checklist_items': 'tripChecklistItems',
     'equipment': 'equipment',
     'equipment_sets': 'equipmentSets',
@@ -134,8 +136,10 @@ void main() {
     'dive_plan_mission_members': 'divePlanMissionMembers',
     'dive_plan_equipment': 'divePlanEquipment',
     'pre_dive_checklist_templates': 'preDiveChecklistTemplates',
+    'pre_dive_checklist_template_sections': 'preDiveChecklistTemplateSections',
     'pre_dive_checklist_template_items': 'preDiveChecklistTemplateItems',
     'pre_dive_sessions': 'preDiveSessions',
+    'pre_dive_session_sections': 'preDiveSessionSections',
     'pre_dive_session_items': 'preDiveSessionItems',
     'dive_profile_series': 'diveProfileSeries',
     'tank_pressure_series': 'tankPressureSeries',
@@ -170,6 +174,16 @@ void main() {
     'dive_computers': 'diveComputers',
     'checklist_templates': 'checklistTemplates',
     'media': 'media',
+    // Checklist sections (issue #3360): a section is deletable (its items
+    // fall back to no section, ON DELETE SET NULL), so this FK direction
+    // needs checking too. Deliberately not also adding
+    // pre_dive_checklist_templates or pre_dive_sessions here: they were not
+    // in this map before this change, and adding them is a broader,
+    // unrelated completeness fix this plan does not cover.
+    'trip_checklist_sections': 'tripChecklistSections',
+    'checklist_template_sections': 'checklistTemplateSections',
+    'pre_dive_checklist_template_sections': 'preDiveChecklistTemplateSections',
+    'pre_dive_session_sections': 'preDiveSessionSections',
   };
 
   String camel(String snake) {

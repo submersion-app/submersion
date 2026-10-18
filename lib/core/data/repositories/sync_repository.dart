@@ -62,6 +62,22 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
+    // Checklist sections (v292, issue #3360). Full SyncData/export wiring
+    // (mergeOrder, parentRefs, conflict_reference labels) lands with the
+    // other three tables' sections in one pass; this entry alone is
+    // required now so sync_hlc_target_registration_test's schema-driven
+    // completeness check (every hlc column needs a stamper, issue #1144)
+    // stays green as soon as the column exists.
+    'tripChecklistSections': (table: 'trip_checklist_sections', pk: 'id'),
+    'checklistTemplateSections': (
+      table: 'checklist_template_sections',
+      pk: 'id',
+    ),
+    'preDiveChecklistTemplateSections': (
+      table: 'pre_dive_checklist_template_sections',
+      pk: 'id',
+    ),
+    'preDiveSessionSections': (table: 'pre_dive_session_sections', pk: 'id'),
     'preDiveChecklistTemplates': (
       table: 'pre_dive_checklist_templates',
       pk: 'id',
