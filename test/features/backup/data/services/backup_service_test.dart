@@ -43,8 +43,12 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   /// materialization and the swap, issue #1344).
   Object? restoreError;
 
+  /// Runs while the backup is being written, to change settings mid-write.
+  Future<void> Function()? duringBackup;
+
   @override
   Future<void> backup(String destinationPath, {String? note}) async {
+    await duringBackup?.call();
     backupCallCount++;
     lastBackupPath = destinationPath;
     lastBackupNote = note;
@@ -135,6 +139,15 @@ class _CaptureFailSyncRepository extends SyncRepository {
 }
 
 /// Fake cloud storage provider for testing
+/// Names the connected account driving sync, without a database.
+class _SyncAccountRepository extends Fake implements SyncRepository {
+  _SyncAccountRepository(this.accountId);
+  final String? accountId;
+
+  @override
+  Future<String?> getSyncAccountId() async => accountId;
+}
+
 class FakeCloudStorageProvider implements CloudStorageProvider {
   final List<String> uploadedFiles = [];
   final List<String> deletedFiles = [];
@@ -1331,6 +1344,33 @@ void main() {
         }
       });
 
+      // PR #3500 review: the destination is the target the write went to,
+      // not whatever the settings say once the write finishes.
+      test(
+        'a folder cleared during the write still reads as the folder',
+        () async {
+          BackupBookmarkService.debugSupportedOverride = false;
+          addTearDown(
+            () => BackupBookmarkService.debugSupportedOverride = null,
+          );
+          final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+          addTearDown(() => tempDir.delete(recursive: true));
+          await preferences.setBackupLocation(tempDir.path);
+          fakeDb.duringBackup = () => preferences.setBackupLocation(null);
+
+          await BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          ).performBackup();
+
+          expect(fakeDb.lastBackupPath, startsWith(tempDir.path));
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.folder,
+          );
+        },
+      );
+
       test('falls back to default location when no custom location', () async {
         final service = BackupService(
           dbAdapter: fakeDb,
@@ -1368,6 +1408,39 @@ void main() {
           preferences.getSettings().lastBackupDestination,
           LastBackupDestination.cloud,
         );
+      });
+
+      // PR #3500 review: the Data row names the account the copy went to,
+      // so the backup remembers it rather than reading today's sync account.
+      test('remembers the sync account the cloud copy went to', () async {
+        await preferences.setCloudBackupEnabled(true);
+
+        await BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          cloudProvider: fakeCloud,
+          syncRepository: _SyncAccountRepository('acct-drive'),
+        ).performBackup();
+
+        expect(
+          preferences.getSettings().lastBackupCloudAccountId,
+          'acct-drive',
+        );
+      });
+
+      test('a backup that stays local forgets the cloud account', () async {
+        await preferences.setLastBackupDestination(
+          LastBackupDestination.cloud,
+          cloudAccountId: 'acct-drive',
+        );
+
+        await BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          syncRepository: _SyncAccountRepository('acct-drive'),
+        ).performBackup();
+
+        expect(preferences.getSettings().lastBackupCloudAccountId, isNull);
       });
 
       test(

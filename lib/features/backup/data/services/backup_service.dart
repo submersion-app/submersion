@@ -182,11 +182,16 @@ class BackupService {
       _preferences,
       saf: _safPort,
     );
+    // Read right after resolving, so a dead folder grant the resolver just
+    // reset counts as the default, and a folder change during the write
+    // cannot relabel the copy this target receives.
+    final toChosenFolder = _preferences.getSettings().backupLocation != null;
     try {
       return await _performBackupInto(
         lease.target,
         isAutomatic: isAutomatic,
         note: isAutomatic ? null : normalizeBackupNote(note),
+        toChosenFolder: toChosenFolder,
       );
     } finally {
       await lease.release();
@@ -196,6 +201,7 @@ class BackupService {
   Future<BackupRecord> _performBackupInto(
     BackupTarget target, {
     required bool isAutomatic,
+    required bool toChosenFolder,
     String? note,
   }) async {
     final filename = await _generateFilename();
@@ -309,9 +315,12 @@ class BackupService {
     await _preferences.setLastBackupDestination(
       location == BackupLocation.both
           ? LastBackupDestination.cloud
-          : settings.backupLocation != null
+          : toChosenFolder
           ? LastBackupDestination.folder
           : LastBackupDestination.device,
+      cloudAccountId: location == BackupLocation.both
+          ? await _syncAccountIdOrNull()
+          : null,
     );
 
     // Prune old backups
@@ -1553,6 +1562,21 @@ class BackupService {
   // ===========================================================================
   // Private Helpers
   // ===========================================================================
+
+  /// The connected account driving sync, or null when it cannot be read: a
+  /// missing name only makes Settings > Data say "the cloud".
+  Future<String?> _syncAccountIdOrNull() async {
+    try {
+      return await _syncRepository.getSyncAccountId();
+    } catch (e, stack) {
+      _log.warning(
+        'Could not read the sync account for the backup record',
+        error: e,
+        stackTrace: stack,
+      );
+      return null;
+    }
+  }
 
   /// Names a new backup, tagging it with the device that wrote it.
   ///

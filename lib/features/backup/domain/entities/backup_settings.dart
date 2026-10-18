@@ -41,6 +41,11 @@ class BackupSettings extends Equatable {
   /// made by a version that records it.
   final LastBackupDestination? lastBackupDestination;
 
+  /// The connected account driving sync when the last backup reached the
+  /// cloud, so Settings > Data names the account the copy is in, not the
+  /// one that syncs today. Null for any other destination.
+  final String? lastBackupCloudAccountId;
+
   const BackupSettings({
     this.enabled = false,
     this.frequency = BackupFrequency.weekly,
@@ -53,6 +58,7 @@ class BackupSettings extends Equatable {
     this.lastScheduledFailureMessage,
     this.lastCloudCopyMissing = false,
     this.lastBackupDestination,
+    this.lastBackupCloudAccountId,
   });
 
   BackupSettings copyWith({
@@ -67,6 +73,7 @@ class BackupSettings extends Equatable {
     String? lastScheduledFailureMessage,
     bool? lastCloudCopyMissing,
     LastBackupDestination? lastBackupDestination,
+    String? lastBackupCloudAccountId,
   }) {
     return BackupSettings(
       enabled: enabled ?? this.enabled,
@@ -84,6 +91,8 @@ class BackupSettings extends Equatable {
       lastCloudCopyMissing: lastCloudCopyMissing ?? this.lastCloudCopyMissing,
       lastBackupDestination:
           lastBackupDestination ?? this.lastBackupDestination,
+      lastBackupCloudAccountId:
+          lastBackupCloudAccountId ?? this.lastBackupCloudAccountId,
     );
   }
 
@@ -119,5 +128,6 @@ class BackupSettings extends Equatable {
     lastScheduledFailureMessage,
     lastCloudCopyMissing,
     lastBackupDestination,
+    lastBackupCloudAccountId,
   ];
 }

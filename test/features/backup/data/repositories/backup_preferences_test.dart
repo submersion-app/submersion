@@ -64,6 +64,22 @@ void main() {
       );
     });
 
+    test('a cloud destination keeps its account, any other drops it', () async {
+      await backupPreferences.setLastBackupDestination(
+        LastBackupDestination.cloud,
+        cloudAccountId: 'acct-drive',
+      );
+      expect(
+        backupPreferences.getSettings().lastBackupCloudAccountId,
+        'acct-drive',
+      );
+
+      await backupPreferences.setLastBackupDestination(
+        LastBackupDestination.device,
+      );
+      expect(backupPreferences.getSettings().lastBackupCloudAccountId, isNull);
+    });
+
     test('an unknown stored destination reads as null', () async {
       SharedPreferences.setMockInitialValues({
         'backup_last_destination': 'moon',

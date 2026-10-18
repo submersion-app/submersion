@@ -1,7 +1,6 @@
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
-import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -29,22 +28,28 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 FeatureHealth _healthOf(Ref ref, DataFeature feature) =>
     ref.watch(dataHealthProvider).firstWhere((h) => h.feature == feature);
 
-/// Label of the roster row that drives sync, or null when sync has no
-/// account. A pure read: nothing here creates or re-stamps the row.
-final syncAccountLabelProvider = FutureProvider.autoDispose<String?>((
-  ref,
-) async {
-  final accounts = ref.watch(connectedAccountsRepositoryProvider);
-  // setSyncAccount notifies the sync event bus; a relabel or removal of the
-  // row ticks the roster.
-  ref
-    ..invalidateSelfWhen(SyncEventBus.changes)
-    ..invalidateSelfWhen(accounts.watchAccountsChanges());
-  final id = await ref.watch(syncRepositoryProvider).getSyncAccountId();
-  if (id == null) return null;
-  final account = await accounts.getById(id);
-  return account?.label;
-});
+/// The connected account the last cloud backup went to, as recorded when it
+/// ran, or null for any other destination.
+final lastBackupCloudAccountIdProvider = Provider.autoDispose<String?>(
+  (ref) => ref.watch(
+    backupSettingsProvider.select((s) => s.lastBackupCloudAccountId),
+  ),
+);
+
+/// Label of the account the last cloud backup went to, not of the account
+/// that syncs today: after a switch, the older copy is still in the old
+/// one. Null when the account has since been removed, which reads as "the
+/// cloud". A pure read: nothing here creates or re-stamps the row.
+final lastBackupCloudAccountLabelProvider = FutureProvider.autoDispose<String?>(
+  (ref) async {
+    final accounts = ref.watch(connectedAccountsRepositoryProvider);
+    // A relabel or removal of the row ticks the roster.
+    ref.invalidateSelfWhen(accounts.watchAccountsChanges());
+    final id = ref.watch(lastBackupCloudAccountIdProvider);
+    if (id == null) return null;
+    return (await accounts.getById(id))?.label;
+  },
+);
 
 /// Display hint of the store this device is attached to ("bucket @ host"),
 /// or null when none is attached. The attached store, not the one the
@@ -157,7 +162,7 @@ final backupsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
     destination: destination,
     // Only a cloud copy names the account, so only then build the label.
     cloudAccountLabel: destination == LastBackupDestination.cloud
-        ? ref.watch(syncAccountLabelProvider).value
+        ? ref.watch(lastBackupCloudAccountLabelProvider).value
         : null,
   );
 });

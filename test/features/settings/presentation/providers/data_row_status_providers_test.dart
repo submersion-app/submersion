@@ -11,7 +11,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -78,6 +83,28 @@ class _FakeStores extends Fake implements MediaStoresRepository {
 
   MediaStoreDescriptor _descriptor(String id, String hint) =>
       (id: id, providerType: 's3', displayHint: hint, lastSweepAt: null);
+}
+
+class _FakeAccounts extends Fake implements ConnectedAccountsRepository {
+  _FakeAccounts(this.labels);
+  final Map<String, String> labels;
+
+  @override
+  Stream<void> watchAccountsChanges() => const Stream.empty();
+
+  @override
+  Future<domain.ConnectedAccount?> getById(String id) async {
+    final label = labels[id];
+    if (label == null) return null;
+    final at = DateTime(2026);
+    return domain.ConnectedAccount(
+      id: id,
+      kind: AccountKind.googledrive,
+      label: label,
+      createdAt: at,
+      updatedAt: at,
+    );
+  }
 }
 
 MediaHealthInputs _inputs({required bool attached}) => MediaHealthInputs(
@@ -149,10 +176,12 @@ void main() {
           lastBackupDestinationProvider.overrideWithValue(
             LastBackupDestination.cloud,
           ),
-          syncAccountLabelProvider.overrideWith((ref) async => 'Google Drive'),
+          lastBackupCloudAccountLabelProvider.overrideWith(
+            (ref) async => 'Google Drive',
+          ),
         ]);
         keep(c, backupsRowStatusProvider);
-        await c.read(syncAccountLabelProvider.future);
+        await c.read(lastBackupCloudAccountLabelProvider.future);
         final s = c.read(backupsRowStatusProvider);
         expect(
           (s.kind, s.name, s.when),
@@ -161,6 +190,36 @@ void main() {
       },
     );
 
+    // PR #3500 review: after switching sync accounts, an older cloud backup
+    // is still in the account it went to, not the one that syncs now.
+    test(
+      'names the account the backup went to, not the sync account',
+      () async {
+        final c = container([
+          lastBackupCloudAccountIdProvider.overrideWithValue('acct-old'),
+          connectedAccountsRepositoryProvider.overrideWithValue(
+            _FakeAccounts({'acct-old': 'Old Drive', 'acct-new': 'New Drive'}),
+          ),
+        ]);
+        keep(c, lastBackupCloudAccountLabelProvider);
+        expect(
+          await c.read(lastBackupCloudAccountLabelProvider.future),
+          'Old Drive',
+        );
+      },
+    );
+
+    test('a removed account falls back to the generic cloud wording', () async {
+      final c = container([
+        lastBackupCloudAccountIdProvider.overrideWithValue('acct-gone'),
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts({}),
+        ),
+      ]);
+      keep(c, lastBackupCloudAccountLabelProvider);
+      expect(await c.read(lastBackupCloudAccountLabelProvider.future), isNull);
+    });
+
     test('never reads the account label for a local backup', () {
       var built = false;
       final c = container([
@@ -168,7 +227,7 @@ void main() {
         lastBackupDestinationProvider.overrideWithValue(
           LastBackupDestination.device,
         ),
-        syncAccountLabelProvider.overrideWith((ref) async {
+        lastBackupCloudAccountLabelProvider.overrideWith((ref) async {
           built = true;
           return 'Google Drive';
         }),
