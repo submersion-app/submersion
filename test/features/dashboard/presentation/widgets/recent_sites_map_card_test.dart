@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_style_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -97,6 +98,16 @@ void main() {
 
     expect(find.byType(FlutterMap), findsOneWidget);
     expect(find.byIcon(Icons.place), findsOneWidget);
+  });
+
+  testWidgets('the locked card map has no map style switcher', (tester) async {
+    await pumpMapCard(tester, const [
+      RecentSitePin(siteName: 'Site A', latitude: 36.0, longitude: 25.0),
+    ]);
+
+    // The card's map takes no gestures; the switcher lives on the full map
+    // that the expand button opens (issue #3473).
+    expect(find.byType(MapStyleButton), findsNothing);
   });
 
   testWidgets('expand button opens the sites tab', (tester) async {
