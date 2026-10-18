@@ -174,7 +174,12 @@ void main() {
     // real workout shared on the issue, trimmed, with the names replaced.
     test('reads the dive buddies from a real workout journal', () async {
       final body = File(
-        p.join('test', 'fixtures', 'suunto', 'workout_journal_buddies.json'),
+        p.join(
+          'test',
+          'fixtures',
+          'suunto_cloud',
+          'workout_journal_buddies.json',
+        ),
       ).readAsStringSync();
       final client = SuuntoCloudClient(
         httpClient: MockClient((request) async => http.Response(body, 200)),
