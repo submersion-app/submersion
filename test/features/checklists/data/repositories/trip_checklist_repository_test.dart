@@ -251,6 +251,53 @@ void main() {
       },
     );
 
+    test('two new template items sharing a new section resolve to the same '
+        'section, not one each', () async {
+      final sharedSectionTemplate = await templateRepository.createTemplate(
+        ChecklistTemplate(
+          id: '',
+          name: 'Shared section test',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final sectionId = await templateRepository.findOrCreateSectionId(
+        sharedSectionTemplate.id,
+        'Documents',
+      );
+      await templateRepository.saveItems(sharedSectionTemplate.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: sharedSectionTemplate.id,
+          title: 'Passport',
+          sectionId: sectionId,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        ChecklistTemplateItem(
+          id: '',
+          templateId: sharedSectionTemplate.id,
+          title: 'Visa',
+          sectionId: sectionId,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      final result = await repository.applyTemplate(
+        templateId: sharedSectionTemplate.id,
+        trip: testTrip,
+      );
+
+      expect(result.added, 2);
+      final sections = await repository.getSectionsForTrip(testTrip.id);
+      expect(sections.where((s) => s.title == 'Documents'), hasLength(1));
+      final items = await repository.getByTripId(testTrip.id);
+      final passport = items.firstWhere((i) => i.title == 'Passport');
+      final visa = items.firstWhere((i) => i.title == 'Visa');
+      expect(passport.sectionId, visa.sectionId);
+    });
+
     test(
       'skips a genuine duplicate with matching title and category',
       () async {

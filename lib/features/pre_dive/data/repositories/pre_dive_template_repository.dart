@@ -78,6 +78,7 @@ class PreDiveTemplateRepository {
   }
 
   Future<void> renameSection(String id, String title) async {
+    await _assertNotBuiltInSection(id);
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.preDiveChecklistTemplateSections,
@@ -211,6 +212,7 @@ class PreDiveTemplateRepository {
   /// Deletes a section. Its items are not deleted; `section_id` falls back
   /// to null (ON DELETE SET NULL on pre_dive_checklist_template_items).
   Future<void> deleteSection(String id) async {
+    await _assertNotBuiltInSection(id);
     await (_db.delete(
       _db.preDiveChecklistTemplateSections,
     )..where((s) => s.id.equals(id))).go();
@@ -627,6 +629,17 @@ class PreDiveTemplateRepository {
     if (row != null && row.isBuiltIn) {
       throw StateError('Built-in pre-dive templates are read-only');
     }
+  }
+
+  /// Same guard as [_assertNotBuiltIn], for the section mutators that take
+  /// only a section id: resolves the owning template first. A section that
+  /// no longer exists has nothing to protect, so this is a no-op rather
+  /// than an error -- the delete/rename below will simply affect no rows.
+  Future<void> _assertNotBuiltInSection(String sectionId) async {
+    final section = await (_db.select(
+      _db.preDiveChecklistTemplateSections,
+    )..where((s) => s.id.equals(sectionId))).getSingleOrNull();
+    if (section != null) await _assertNotBuiltIn(section.templateId);
   }
 
   domain.PreDiveChecklistTemplate _mapTemplate(PreDiveChecklistTemplate row) =>

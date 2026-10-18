@@ -94,6 +94,37 @@ void main() {
     expect(find.byType(Checkbox), findsNWidgets(3));
   });
 
+  testWidgets(
+    'an item whose sectionId is not in the loaded sections renders without '
+    'throwing (#3360)',
+    (tester) async {
+      // Reachable under sync: a section's delete can apply before this
+      // item's own sectionId update does, since the two sync as
+      // independent HLC records with no guaranteed arrival order.
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            tripChecklistProvider('t1').overrideWith(
+              (ref) async => [
+                _item(id: 'i1', title: 'Service regulator', sectionId: 'gone'),
+              ],
+            ),
+            tripChecklistSectionsProvider('t1').overrideWith(
+              (ref) async => [_section(id: 'gear', title: 'Gear')],
+            ),
+          ],
+          child: SingleChildScrollView(
+            child: TripChecklistSection(trip: _trip(upcoming: true)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Service regulator'), findsOneWidget);
+    },
+  );
+
   testWidgets('shows overdue chip only for upcoming trips', (tester) async {
     final overdue = _item(
       dueDate: DateTime.now().subtract(const Duration(days: 3)),

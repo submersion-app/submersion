@@ -222,10 +222,16 @@ class TripChecklistSection extends ConsumerWidget {
       }
     }
 
+    final sectionById = {for (final s in sections) s.id: s};
+
     Widget buildItem(BuildContext context, TripChecklistItem item) {
+      // sectionId is a cross-table reference with no guaranteed arrival
+      // order under sync (a section's delete can apply before this item's
+      // own update does), so a dangling id must degrade to "no section"
+      // rather than throw.
       final sectionTitle = item.sectionId == null
           ? null
-          : sections.firstWhere((s) => s.id == item.sectionId).title;
+          : sectionById[item.sectionId]?.title;
       return ChecklistItemTile(
         item: item,
         showOverdue: trip.isUpcoming,

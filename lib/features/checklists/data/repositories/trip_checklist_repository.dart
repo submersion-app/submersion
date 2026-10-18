@@ -229,23 +229,29 @@ class TripChecklistRepository {
 
   /// Transaction-safe variant of [findOrCreateSectionId] for [applyTemplate]:
   /// inserts without the sync bookkeeping [createSection] does (that must
-  /// wait until the caller's outer transaction commits), and records the id
-  /// in [pendingSectionIds] so the caller can mark it pending afterwards.
-  Future<String?> _resolveTemplateSectionId(
+  /// wait until the caller's outer transaction commits). Resolves against
+  /// [knownSections] -- the caller's running list, so applying a
+  /// many-item template does not re-query every section on every item --
+  /// rather than mutating a shared collection, the newly created section (if
+  /// any) comes back in the result for the caller to fold in immutably.
+  Future<({String? sectionId, domain.TripChecklistSection? created})>
+  _resolveTemplateSectionId(
     String tripId,
     String? title,
-    List<String> pendingSectionIds,
+    List<domain.TripChecklistSection> knownSections,
   ) async {
     final trimmed = title?.trim();
-    if (trimmed == null || trimmed.isEmpty) return null;
-    final existing = await getSectionsForTrip(tripId);
-    for (final section in existing) {
+    if (trimmed == null || trimmed.isEmpty) {
+      return (sectionId: null, created: null);
+    }
+    for (final section in knownSections) {
       if (section.title.toLowerCase() == trimmed.toLowerCase()) {
-        return section.id;
+        return (sectionId: section.id, created: null);
       }
     }
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
+    final sortOrder = knownSections.length;
     await _db
         .into(_db.tripChecklistSections)
         .insert(
@@ -253,13 +259,20 @@ class TripChecklistRepository {
             id: Value(id),
             tripId: Value(tripId),
             title: Value(trimmed),
-            sortOrder: Value(existing.length),
+            sortOrder: Value(sortOrder),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
         );
-    pendingSectionIds.add(id);
-    return id;
+    final created = domain.TripChecklistSection(
+      id: id,
+      tripId: tripId,
+      title: trimmed,
+      sortOrder: sortOrder,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(now),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
+    );
+    return (sectionId: id, created: created);
   }
 
   Future<int> _nextSectionSortOrder(String tripId) async {
@@ -534,19 +547,28 @@ class TripChecklistRepository {
         var sortOrder = await _nextSortOrder(trip.id);
         var added = 0;
         var skipped = 0;
+        // Fetched once and grown immutably below as sections are created
+        // mid-loop, rather than re-querying every trip section on every
+        // template item.
+        var knownSections = await getSectionsForTrip(trip.id);
 
         for (final item in templateItems) {
           // Bridge the template's section (its own table now) to a trip
           // section by title: find an existing one case-insensitively
           // before creating one, the same resolution the item editor's
           // picker uses.
-          final sectionId = await _resolveTemplateSectionId(
+          final resolved = await _resolveTemplateSectionId(
             trip.id,
             item.sectionId == null
                 ? null
                 : templateSectionTitleById[item.sectionId],
-            pendingSectionIds,
+            knownSections,
           );
+          final sectionId = resolved.sectionId;
+          if (resolved.created != null) {
+            knownSections = [...knownSections, resolved.created!];
+            pendingSectionIds.add(resolved.created!.id);
+          }
           if (existingKeys.contains((item.title, sectionId))) {
             skipped++;
             continue;

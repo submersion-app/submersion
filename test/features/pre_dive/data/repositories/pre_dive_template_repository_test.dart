@@ -463,18 +463,33 @@ void main() {
       },
     );
 
-    test(
-      'createSection, renameSection etc. reject built-in templates',
-      () async {
-        final builtIn = await repository.createTemplate(
-          template(name: 'Built-in').copyWith(isBuiltIn: true, builtinKey: 'k'),
-        );
-        expect(
-          () => repository.createSection(templateId: builtIn.id, title: 'X'),
-          throwsStateError,
-        );
-      },
-    );
+    test('createSection, renameSection and deleteSection reject built-in '
+        'templates', () async {
+      final builtIn = await repository.createTemplate(
+        template(name: 'Built-in').copyWith(isBuiltIn: true, builtinKey: 'k'),
+      );
+      expect(
+        () => repository.createSection(templateId: builtIn.id, title: 'X'),
+        throwsStateError,
+      );
+
+      // createSection itself rejects built-ins, so seed the section with a
+      // direct write to isolate renameSection/deleteSection's own guards --
+      // the same technique the updateItemEquipment test above uses.
+      final db = DatabaseService.instance.database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_template_sections '
+        '(id, template_id, title, sort_order, created_at, updated_at) '
+        "VALUES ('bs1', '${builtIn.id}', 'Assembly', 0, $now, $now)",
+      );
+
+      expect(
+        () => repository.renameSection('bs1', 'Renamed'),
+        throwsStateError,
+      );
+      expect(() => repository.deleteSection('bs1'), throwsStateError);
+    });
 
     test(
       'cloneTemplate copies sections as new rows, remapping items',
