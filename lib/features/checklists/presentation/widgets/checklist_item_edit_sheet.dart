@@ -10,11 +10,20 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
 /// Bottom sheet for creating or editing a trip checklist item.
+///
+/// [categorySuggestions] lists the trip's existing section titles.
+/// [currentSectionTitle] is the title of [item]'s current section when
+/// editing (resolved by the caller, which already holds the sections list);
+/// the entity itself only carries a `sectionId`. Saving resolves the typed
+/// title back to a section id through
+/// [TripChecklistRepository.findOrCreateSectionId] -- the same picker UX as
+/// today's free-text category field, but backed by real section rows.
 Future<void> showChecklistItemEditSheet({
   required BuildContext context,
   required String tripId,
   TripChecklistItem? item,
   List<String> categorySuggestions = const [],
+  String? currentSectionTitle,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -23,6 +32,7 @@ Future<void> showChecklistItemEditSheet({
       tripId: tripId,
       item: item,
       categorySuggestions: categorySuggestions,
+      currentSectionTitle: currentSectionTitle,
     ),
   );
 }
@@ -31,11 +41,13 @@ class _ChecklistItemEditSheet extends ConsumerStatefulWidget {
   final String tripId;
   final TripChecklistItem? item;
   final List<String> categorySuggestions;
+  final String? currentSectionTitle;
 
   const _ChecklistItemEditSheet({
     required this.tripId,
     this.item,
     this.categorySuggestions = const [],
+    this.currentSectionTitle,
   });
 
   @override
@@ -57,7 +69,7 @@ class _ChecklistItemEditSheetState
     super.initState();
     _titleController = TextEditingController(text: widget.item?.title ?? '');
     _categoryController = TextEditingController(
-      text: widget.item?.category ?? '',
+      text: widget.currentSectionTitle ?? '',
     );
     _notesController = TextEditingController(text: widget.item?.notes ?? '');
     _dueDate = widget.item?.dueDate;
@@ -98,6 +110,10 @@ class _ChecklistItemEditSheetState
     if (!_formKey.currentState!.validate()) return;
     final repository = ref.read(tripChecklistRepositoryProvider);
     final category = _canonicalCategory(_categoryController.text.trim());
+    final sectionId = await repository.findOrCreateSectionId(
+      widget.tripId,
+      category,
+    );
     final existing = widget.item;
     if (existing == null) {
       await repository.createItem(
@@ -105,7 +121,7 @@ class _ChecklistItemEditSheetState
           id: '',
           tripId: widget.tripId,
           title: _titleController.text.trim(),
-          category: category.isEmpty ? null : category,
+          sectionId: sectionId,
           notes: _notesController.text.trim(),
           dueDate: _dueDate,
           createdAt: DateTime.now(),
@@ -116,7 +132,7 @@ class _ChecklistItemEditSheetState
       await repository.updateItem(
         existing.copyWith(
           title: _titleController.text.trim(),
-          category: category.isEmpty ? null : category,
+          sectionId: sectionId,
           notes: _notesController.text.trim(),
           dueDate: _dueDate,
         ),

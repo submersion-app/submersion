@@ -23,12 +23,41 @@ class ChecklistTemplateEditPage extends ConsumerStatefulWidget {
       _ChecklistTemplateEditPageState();
 }
 
+/// An item mid-edit on this page, before its section title (free text, same
+/// UX as before issue #3360) has been resolved to a real section row. The
+/// page holds a list of these instead of [ChecklistTemplateItem] directly,
+/// since items here are edited in memory and only persisted as a whole on
+/// [_ChecklistTemplateEditPageState._save] -- resolving section titles to
+/// ids one at a time as the dialog closes would create a section the diver
+/// then discards by not saving the page.
+class _EditableTemplateItem {
+  final String id;
+  final String title;
+  final String? sectionTitle;
+  final String notes;
+  final int? dueOffsetDays;
+  final int sortOrder;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const _EditableTemplateItem({
+    required this.id,
+    required this.title,
+    this.sectionTitle,
+    this.notes = '',
+    this.dueOffsetDays,
+    required this.sortOrder,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+}
+
 class _ChecklistTemplateEditPageState
     extends ConsumerState<ChecklistTemplateEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  List<ChecklistTemplateItem> _items = [];
+  List<_EditableTemplateItem> _items = [];
   ChecklistTemplate? _existing;
   bool _loading = false;
 
@@ -43,12 +72,30 @@ class _ChecklistTemplateEditPageState
     final repository = ref.read(checklistTemplateRepositoryProvider);
     final template = await repository.getTemplateById(widget.templateId!);
     final items = await repository.getItemsForTemplate(widget.templateId!);
+    final sections = await repository.getSectionsForTemplate(
+      widget.templateId!,
+    );
+    final sectionTitleById = {for (final s in sections) s.id: s.title};
     if (!mounted) return;
     setState(() {
       _existing = template;
       _nameController.text = template?.name ?? '';
       _descriptionController.text = template?.description ?? '';
-      _items = items;
+      _items = [
+        for (final item in items)
+          _EditableTemplateItem(
+            id: item.id,
+            title: item.title,
+            sectionTitle: item.sectionId == null
+                ? null
+                : sectionTitleById[item.sectionId],
+            notes: item.notes,
+            dueOffsetDays: item.dueOffsetDays,
+            sortOrder: item.sortOrder,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          ),
+      ];
       _loading = false;
     });
   }
@@ -60,7 +107,7 @@ class _ChecklistTemplateEditPageState
     super.dispose();
   }
 
-  Future<void> _addOrEditItem({ChecklistTemplateItem? item}) async {
+  Future<void> _addOrEditItem({_EditableTemplateItem? item}) async {
     final result = await _showItemDialog(item: item);
     if (result == null) return;
     setState(() {
@@ -75,16 +122,13 @@ class _ChecklistTemplateEditPageState
     });
   }
 
-  Future<ChecklistTemplateItem?> _showItemDialog({
-    ChecklistTemplateItem? item,
+  Future<_EditableTemplateItem?> _showItemDialog({
+    _EditableTemplateItem? item,
   }) {
-    return showDialog<ChecklistTemplateItem>(
+    return showDialog<_EditableTemplateItem>(
       context: context,
-      builder: (context) => _ChecklistItemDialog(
-        item: item,
-        templateId: widget.templateId ?? '',
-        defaultSortOrder: _items.length,
-      ),
+      builder: (context) =>
+          _ChecklistItemDialog(item: item, defaultSortOrder: _items.length),
     );
   }
 
@@ -115,8 +159,37 @@ class _ChecklistTemplateEditPageState
       );
       templateId = _existing!.id;
     }
+
+    // Resolve each distinct typed section title to a real section row once
+    // (find-or-create is async; this must finish before building the final
+    // item list), folding titles that differ only in case onto the same
+    // section, exactly like the trip checklist's picker.
+    final sectionIdByTitle = <String, String?>{};
+    for (final item in _items) {
+      final title = item.sectionTitle;
+      if (title == null) continue;
+      final key = title.toLowerCase();
+      sectionIdByTitle[key] ??= await repository.findOrCreateSectionId(
+        templateId,
+        title,
+      );
+    }
+
     await repository.saveItems(templateId, [
-      for (final item in _items) item.copyWith(templateId: templateId),
+      for (final item in _items)
+        ChecklistTemplateItem(
+          id: item.id,
+          templateId: templateId,
+          title: item.title,
+          sectionId: item.sectionTitle == null
+              ? null
+              : sectionIdByTitle[item.sectionTitle!.toLowerCase()],
+          notes: item.notes,
+          dueOffsetDays: item.dueOffsetDays,
+          sortOrder: item.sortOrder,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        ),
     ]);
     if (mounted) navigator.pop();
   }
@@ -184,9 +257,9 @@ class _ChecklistTemplateEditPageState
                         ListTile(
                           key: ValueKey(_items[i].id),
                           title: Text(_items[i].title),
-                          subtitle: _items[i].category == null
+                          subtitle: _items[i].sectionTitle == null
                               ? null
-                              : Text(_items[i].category!),
+                              : Text(_items[i].sectionTitle!),
                           leading: IconButton(
                             icon: const Icon(Icons.delete_outline),
                             onPressed: () => setState(
@@ -218,13 +291,11 @@ class _ChecklistTemplateEditPageState
 /// "TextEditingController used after being disposed" (and, on release builds,
 /// trips the InheritedElement `_dependents` assertion) mid-animation.
 class _ChecklistItemDialog extends StatefulWidget {
-  final ChecklistTemplateItem? item;
-  final String templateId;
+  final _EditableTemplateItem? item;
   final int defaultSortOrder;
 
   const _ChecklistItemDialog({
     required this.item,
-    required this.templateId,
     required this.defaultSortOrder,
   });
 
@@ -244,7 +315,7 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
     super.initState();
     _titleController = TextEditingController(text: widget.item?.title ?? '');
     _categoryController = TextEditingController(
-      text: widget.item?.category ?? '',
+      text: widget.item?.sectionTitle ?? '',
     );
     _notesController = TextEditingController(text: widget.item?.notes ?? '');
     final offsetDays = widget.item?.dueOffsetDays;
@@ -268,11 +339,10 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
     if (!_formKey.currentState!.validate()) return;
     final category = _categoryController.text.trim();
     Navigator.of(context).pop(
-      ChecklistTemplateItem(
+      _EditableTemplateItem(
         id: widget.item?.id ?? const Uuid().v4(),
-        templateId: widget.templateId,
         title: _titleController.text.trim(),
-        category: category.isEmpty ? null : category,
+        sectionTitle: category.isEmpty ? null : category,
         notes: _notesController.text.trim(),
         // Blank is "no due date"; validate() stopped unreadable text.
         dueOffsetDays: switch (readNumber(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_edit_sheet.dart';
@@ -22,11 +24,13 @@ class TripChecklistSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(tripChecklistProvider(trip.id));
+    final sectionsAsync = ref.watch(tripChecklistSectionsProvider(trip.id));
 
     // Render from AsyncValue.value so reloads do not flash a spinner
     // (established pattern - see project memory on AsyncValue flicker).
     final items = itemsAsync.value;
-    if (items == null) {
+    final sections = sectionsAsync.value;
+    if (items == null || sections == null) {
       if (itemsAsync.hasError) {
         return Padding(
           padding: const EdgeInsets.all(16),
@@ -41,7 +45,7 @@ class TripChecklistSection extends ConsumerWidget {
       );
     }
 
-    final categorySuggestions = _distinctCategories(items);
+    final sectionTitles = [for (final s in sections) s.title];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +54,7 @@ class TripChecklistSection extends ConsumerWidget {
         if (items.isEmpty)
           _buildEmptyState(context)
         else
-          ..._buildGroupedItems(context, ref, items, categorySuggestions),
+          ..._buildGroupedItems(context, ref, items, sections),
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
@@ -59,7 +63,7 @@ class TripChecklistSection extends ConsumerWidget {
             onPressed: () => showChecklistItemEditSheet(
               context: context,
               tripId: trip.id,
-              categorySuggestions: categorySuggestions,
+              categorySuggestions: sectionTitles,
             ),
           ),
         ),
@@ -166,7 +170,7 @@ class TripChecklistSection extends ConsumerWidget {
     );
     if (confirmed != true) return;
 
-    await repository.deleteByTripId(trip.id);
+    await repository.clearItems(trip.id);
     // The wipe stands either way, being the user's confirmed intent, but its
     // confirmation belongs to a page that may be gone: the route can be
     // popped while the dialog is open or while the delete is in flight.
@@ -198,31 +202,41 @@ class TripChecklistSection extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     List<TripChecklistItem> items,
-    List<String> categorySuggestions,
+    List<domain.TripChecklistSection> sections,
   ) {
     final theme = Theme.of(context);
     final repository = ref.read(tripChecklistRepositoryProvider);
-    // Group by category preserving first-seen order; null category last.
-    // Keyed case-insensitively so 'diving' and 'Diving' are one group,
-    // labelled with the casing that appeared first.
-    final labels = <String, String>{};
-    final grouped = <String?, List<TripChecklistItem>>{};
-    for (final item in items.where((i) => i.category != null)) {
-      final key = item.category!.toLowerCase();
-      final label = labels.putIfAbsent(key, () => item.category!);
-      grouped.putIfAbsent(label, () => []).add(item);
+    final sectionTitles = [for (final s in sections) s.title];
+
+    // Group by section, in the sections' own sort order; items with no
+    // section last. Unlike the free-text category this replaces, the group
+    // order is the section's own sort_order, not an accident of which item
+    // happened to come first.
+    final grouped = <String?, List<TripChecklistItem>>{
+      for (final s in sections) s.id: [],
+    };
+    final uncategorized = <TripChecklistItem>[];
+    for (final item in items) {
+      final bucket = item.sectionId == null ? null : grouped[item.sectionId];
+      if (bucket == null) {
+        uncategorized.add(item);
+      } else {
+        bucket.add(item);
+      }
     }
-    final uncategorized = items.where((i) => i.category == null).toList();
     if (uncategorized.isNotEmpty) grouped[null] = uncategorized;
 
+    final sectionById = {for (final s in sections) s.id: s};
     final widgets = <Widget>[];
-    grouped.forEach((category, groupItems) {
-      if (category != null) {
+    grouped.forEach((sectionId, groupItems) {
+      if (groupItems.isEmpty) return;
+      final section = sectionId == null ? null : sectionById[sectionId];
+      if (section != null) {
         widgets.add(
           Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 2),
             child: Text(
-              category,
+              section.title,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.primary,
               ),
@@ -240,7 +254,8 @@ class TripChecklistSection extends ConsumerWidget {
               context: context,
               tripId: trip.id,
               item: item,
-              categorySuggestions: categorySuggestions,
+              categorySuggestions: sectionTitles,
+              currentSectionTitle: section?.title,
             ),
             onDelete: () => repository.deleteItem(item.id),
           ),
@@ -249,16 +264,4 @@ class TripChecklistSection extends ConsumerWidget {
     });
     return widgets;
   }
-}
-
-/// Distinct categories in first-seen order, folding entries that differ only
-/// in case so the suggestion list offers 'Diving' once rather than once per
-/// casing a diver has typed.
-List<String> _distinctCategories(List<TripChecklistItem> items) {
-  final seen = <String>{};
-  final categories = <String>[];
-  for (final category in items.map((i) => i.category).whereType<String>()) {
-    if (seen.add(category.toLowerCase())) categories.add(category);
-  }
-  return categories;
 }

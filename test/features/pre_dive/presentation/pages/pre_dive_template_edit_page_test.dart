@@ -9,6 +9,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 
@@ -30,6 +31,24 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   PreDiveChecklistTemplate? updatedTemplate;
   String? savedTemplateId;
   List<PreDiveChecklistTemplateItem>? savedItems;
+
+  @override
+  Future<List<PreDiveChecklistTemplateSection>> getSectionsForTemplate(
+    String templateId,
+  ) async => const [];
+
+  /// Fake find-or-create: deterministic by title, no real persistence.
+  /// None of this file's save-path tests type a section title, so this is
+  /// never exercised for its return value, only kept so _save does not hit
+  /// noSuchMethod for a method it genuinely calls.
+  @override
+  Future<String?> findOrCreateSectionId(
+    String templateId,
+    String? title,
+  ) async {
+    final trimmed = title?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : 'sec-$trimmed';
+  }
 
   @override
   Future<PreDiveChecklistTemplate?> getTemplateById(String id) async {
@@ -84,7 +103,10 @@ void main() {
   }) => PreDiveChecklistTemplateItem(
     id: id.isEmpty ? title : id,
     templateId: 'tpl-1',
-    section: section,
+    // Not resolved to a real section title in these fixtures (the fake
+    // repository's getSectionsForTemplate returns none); no test here
+    // asserts the rendered section subtitle for a pre-loaded item.
+    sectionId: section,
     title: title,
     sortOrder: sortOrder,
     itemType: type,

@@ -266,15 +266,25 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final sessionAsync = ref.watch(preDiveSessionProvider(sessionId));
     final itemsAsync = ref.watch(preDiveSessionItemsProvider(sessionId));
+    final sectionsAsync = ref.watch(preDiveSessionSectionsProvider(sessionId));
     final session = sessionAsync.value;
     final items = itemsAsync.value;
+    final sessionSections = sectionsAsync.value;
 
-    if (session == null || items == null) {
+    if (session == null || items == null || sessionSections == null) {
       return Scaffold(
         appBar: AppBar(),
         body: Center(
-          child: sessionAsync.hasError || itemsAsync.hasError
-              ? Text((sessionAsync.error ?? itemsAsync.error).toString())
+          child:
+              sessionAsync.hasError ||
+                  itemsAsync.hasError ||
+                  sectionsAsync.hasError
+              ? Text(
+                  (sessionAsync.error ??
+                          itemsAsync.error ??
+                          sectionsAsync.error)
+                      .toString(),
+                )
               : const CircularProgressIndicator(),
         ),
       );
@@ -284,11 +294,22 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     final flagged = ChecklistSessionEngine.flaggedCount(items);
     final canComplete = ChecklistSessionEngine.canComplete(items);
 
-    // Group by section, null-section items first, preserving sort order.
-    final sections = <String?, List<PreDiveSessionItem>>{};
+    // Group by section, in the sections' own sort order (a frozen snapshot
+    // of the template's order at session start); unsectioned items last.
+    final grouped = <String?, List<PreDiveSessionItem>>{
+      for (final s in sessionSections) s.id: [],
+    };
+    final unsectioned = <PreDiveSessionItem>[];
     for (final item in items) {
-      sections.putIfAbsent(item.section, () => []).add(item);
+      final bucket = item.sectionId == null ? null : grouped[item.sectionId];
+      if (bucket == null) {
+        unsectioned.add(item);
+      } else {
+        bucket.add(item);
+      }
     }
+    if (unsectioned.isNotEmpty) grouped[null] = unsectioned;
+    final sectionTitleById = {for (final s in sessionSections) s.id: s.title};
 
     return Scaffold(
       appBar: AppBar(
@@ -358,12 +379,12 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
           Expanded(
             child: ListView(
               children: [
-                for (final entry in sections.entries) ...[
-                  if (entry.key != null)
+                for (final entry in grouped.entries) ...[
+                  if (entry.key != null && entry.value.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
                       child: Text(
-                        entry.key!,
+                        sectionTitleById[entry.key]!,
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: theme.colorScheme.primary,
                         ),

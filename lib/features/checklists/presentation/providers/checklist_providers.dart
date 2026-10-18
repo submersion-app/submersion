@@ -5,6 +5,8 @@ import 'package:submersion/features/checklists/domain/entities/checklist_templat
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
     as domain;
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -57,6 +59,18 @@ final tripChecklistProvider =
       final repository = ref.watch(tripChecklistRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
       return repository.getByTripId(tripId);
+    });
+
+/// A trip's checklist sections, ordered by sortOrder. Self-invalidates on
+/// table changes so sync-applied edits render live.
+final tripChecklistSectionsProvider =
+    FutureProvider.family<List<domain.TripChecklistSection>, String>((
+      ref,
+      tripId,
+    ) async {
+      final repository = ref.watch(tripChecklistRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTripChecklistSectionChanges());
+      return repository.getSectionsForTrip(tripId);
     });
 
 /// Done/total progress for a trip's checklist.

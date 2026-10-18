@@ -19,6 +19,96 @@ double? _validatedNumber(TextEditingController controller) =>
       NumberInvalid() => null, // unreachable: validate() ran first
     };
 
+/// An item mid-edit on this page, before its section title (free text, same
+/// UX as before issue #3360) has been resolved to a real section row. See
+/// checklist_template_edit_page.dart's `_EditableTemplateItem` for why this
+/// indirection exists: items here are edited in memory and only persisted
+/// as a whole on save, so resolving titles one at a time as each item
+/// dialog closes would create a section the diver then discards.
+class _EditablePreDiveItem {
+  final String id;
+  final String? sectionTitle;
+  final String title;
+  final String notes;
+  final int sortOrder;
+  final PreDiveItemType itemType;
+  final String? valueLabel;
+  final String? valueUnit;
+  final double? valueMin;
+  final double? valueMax;
+  final bool isRequired;
+  final String? equipmentId;
+  final String? sourceItemId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const _EditablePreDiveItem({
+    required this.id,
+    this.sectionTitle,
+    required this.title,
+    this.notes = '',
+    this.sortOrder = 0,
+    this.itemType = PreDiveItemType.check,
+    this.valueLabel,
+    this.valueUnit,
+    this.valueMin,
+    this.valueMax,
+    this.isRequired = false,
+    this.equipmentId,
+    this.sourceItemId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  _EditablePreDiveItem copyWith({
+    String? id,
+    Object? sectionTitle = _undefined,
+    String? title,
+    String? notes,
+    int? sortOrder,
+    PreDiveItemType? itemType,
+    Object? valueLabel = _undefined,
+    Object? valueUnit = _undefined,
+    Object? valueMin = _undefined,
+    Object? valueMax = _undefined,
+    bool? isRequired,
+    Object? equipmentId = _undefined,
+    Object? sourceItemId = _undefined,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return _EditablePreDiveItem(
+      id: id ?? this.id,
+      sectionTitle: sectionTitle == _undefined
+          ? this.sectionTitle
+          : sectionTitle as String?,
+      title: title ?? this.title,
+      notes: notes ?? this.notes,
+      sortOrder: sortOrder ?? this.sortOrder,
+      itemType: itemType ?? this.itemType,
+      valueLabel: valueLabel == _undefined
+          ? this.valueLabel
+          : valueLabel as String?,
+      valueUnit: valueUnit == _undefined
+          ? this.valueUnit
+          : valueUnit as String?,
+      valueMin: valueMin == _undefined ? this.valueMin : valueMin as double?,
+      valueMax: valueMax == _undefined ? this.valueMax : valueMax as double?,
+      isRequired: isRequired ?? this.isRequired,
+      equipmentId: equipmentId == _undefined
+          ? this.equipmentId
+          : equipmentId as String?,
+      sourceItemId: sourceItemId == _undefined
+          ? this.sourceItemId
+          : sourceItemId as String?,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+const _undefined = Object();
+
 /// Create/edit page for a pre-dive checklist template and its items.
 class PreDiveTemplateEditPage extends ConsumerStatefulWidget {
   final String? templateId;
@@ -39,7 +129,7 @@ class _PreDiveTemplateEditPageState
   final _descriptionController = TextEditingController();
   final _categoryController = TextEditingController();
   bool _strictOrder = false;
-  List<PreDiveChecklistTemplateItem> _items = [];
+  List<_EditablePreDiveItem> _items = [];
   PreDiveChecklistTemplate? _existing;
   bool _loading = false;
 
@@ -74,6 +164,10 @@ class _PreDiveTemplateEditPageState
     final repository = ref.read(preDiveTemplateRepositoryProvider);
     final template = await repository.getTemplateById(widget.templateId!);
     final items = await repository.getItemsForTemplate(widget.templateId!);
+    final sections = await repository.getSectionsForTemplate(
+      widget.templateId!,
+    );
+    final sectionTitleById = {for (final s in sections) s.id: s.title};
     if (!mounted) return;
     setState(() {
       _existing = template;
@@ -81,7 +175,28 @@ class _PreDiveTemplateEditPageState
       _descriptionController.text = template?.description ?? '';
       _categoryController.text = template?.category ?? '';
       _strictOrder = template?.strictOrder ?? false;
-      _items = items;
+      _items = [
+        for (final item in items)
+          _EditablePreDiveItem(
+            id: item.id,
+            sectionTitle: item.sectionId == null
+                ? null
+                : sectionTitleById[item.sectionId],
+            title: item.title,
+            notes: item.notes,
+            sortOrder: item.sortOrder,
+            itemType: item.itemType,
+            valueLabel: item.valueLabel,
+            valueUnit: item.valueUnit,
+            valueMin: item.valueMin,
+            valueMax: item.valueMax,
+            isRequired: item.isRequired,
+            equipmentId: item.equipmentId,
+            sourceItemId: item.sourceItemId,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          ),
+      ];
       _loading = false;
     });
   }
@@ -94,12 +209,11 @@ class _PreDiveTemplateEditPageState
     super.dispose();
   }
 
-  Future<void> _addOrEditItem({PreDiveChecklistTemplateItem? item}) async {
-    final result = await showDialog<PreDiveChecklistTemplateItem>(
+  Future<void> _addOrEditItem({_EditablePreDiveItem? item}) async {
+    final result = await showDialog<_EditablePreDiveItem>(
       context: context,
       builder: (context) => _PreDiveItemDialog(
         item: item,
-        templateId: widget.templateId ?? '',
         defaultSortOrder: _items.length,
         siblings: _items,
       ),
@@ -203,10 +317,45 @@ class _PreDiveTemplateEditPageState
       );
       templateId = _existing!.id;
     }
+
+    // Resolve each distinct typed section title to a real section row once
+    // (find-or-create is async; this must finish before building the final
+    // item list), folding titles that differ only in case onto the same
+    // section.
+    final sectionIdByTitle = <String, String?>{};
+    for (final item in _items) {
+      final title = item.sectionTitle;
+      if (title == null) continue;
+      final key = title.toLowerCase();
+      sectionIdByTitle[key] ??= await repository.findOrCreateSectionId(
+        templateId,
+        title,
+      );
+    }
+
     // sortOrder reassigned from list position at save time.
     await repository.saveItems(templateId, [
       for (var i = 0; i < _items.length; i++)
-        _items[i].copyWith(templateId: templateId, sortOrder: i),
+        PreDiveChecklistTemplateItem(
+          id: _items[i].id,
+          templateId: templateId,
+          sectionId: _items[i].sectionTitle == null
+              ? null
+              : sectionIdByTitle[_items[i].sectionTitle!.toLowerCase()],
+          title: _items[i].title,
+          notes: _items[i].notes,
+          sortOrder: i,
+          itemType: _items[i].itemType,
+          valueLabel: _items[i].valueLabel,
+          valueUnit: _items[i].valueUnit,
+          valueMin: _items[i].valueMin,
+          valueMax: _items[i].valueMax,
+          isRequired: _items[i].isRequired,
+          equipmentId: _items[i].equipmentId,
+          sourceItemId: _items[i].sourceItemId,
+          createdAt: _items[i].createdAt,
+          updatedAt: _items[i].updatedAt,
+        ),
     ]);
     if (mounted) navigator.pop();
   }
@@ -323,8 +472,8 @@ class _PreDiveTemplateEditPageState
                             children: [
                               Text(
                                 [
-                                  if (_items[i].section != null)
-                                    _items[i].section!,
+                                  if (_items[i].sectionTitle != null)
+                                    _items[i].sectionTitle!,
                                   _typeLabel(context, _items[i].itemType),
                                   if (_items[i].isRequired)
                                     l10n.preDive_item_required,
@@ -391,17 +540,15 @@ class _PreDiveTemplateEditPageState
 /// "TextEditingController used after being disposed" (and, on release builds,
 /// trips the InheritedElement `_dependents` assertion) mid-animation.
 class _PreDiveItemDialog extends StatefulWidget {
-  final PreDiveChecklistTemplateItem? item;
-  final String templateId;
+  final _EditablePreDiveItem? item;
   final int defaultSortOrder;
 
   /// The other items in this template, so a cell linearity item can name one
   /// of them as the source of its air reading (issue #986).
-  final List<PreDiveChecklistTemplateItem> siblings;
+  final List<_EditablePreDiveItem> siblings;
 
   const _PreDiveItemDialog({
     required this.item,
-    required this.templateId,
     required this.defaultSortOrder,
     this.siblings = const [],
   });
@@ -438,7 +585,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
 
   /// Items this one may take its air reading from: the plain value items in
   /// the same template, minus itself (nothing may source itself).
-  List<PreDiveChecklistTemplateItem> get _sourceCandidates => [
+  List<_EditablePreDiveItem> get _sourceCandidates => [
     for (final sibling in widget.siblings)
       if (sibling.itemType == PreDiveItemType.value &&
           sibling.id != widget.item?.id)
@@ -451,7 +598,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
     super.initState();
     _titleController = TextEditingController(text: widget.item?.title ?? '');
     _sectionController = TextEditingController(
-      text: widget.item?.section ?? '',
+      text: widget.item?.sectionTitle ?? '',
     );
     _notesController = TextEditingController(text: widget.item?.notes ?? '');
     _valueLabelController = TextEditingController(
@@ -509,10 +656,9 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
         _itemType == PreDiveItemType.value ||
         _itemType == PreDiveItemType.cellLinearity;
     Navigator.of(context).pop(
-      PreDiveChecklistTemplateItem(
+      _EditablePreDiveItem(
         id: widget.item?.id ?? const Uuid().v4(),
-        templateId: widget.templateId,
-        section: section.isEmpty ? null : section,
+        sectionTitle: section.isEmpty ? null : section,
         title: _titleController.text.trim(),
         notes: _notesController.text.trim(),
         sortOrder: widget.item?.sortOrder ?? widget.defaultSortOrder,

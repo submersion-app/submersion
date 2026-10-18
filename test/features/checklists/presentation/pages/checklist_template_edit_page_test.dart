@@ -370,12 +370,16 @@ void main() {
         updatedAt: DateTime.now(),
       ),
     );
+    final section = await repo.createSection(
+      templateId: created.id,
+      title: 'Gear',
+    );
     await repo.saveItems(created.id, [
       ChecklistTemplateItem(
         id: '',
         templateId: created.id,
         title: 'Wetsuit',
-        category: 'Gear',
+        sectionId: section.id,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),
@@ -386,7 +390,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The category subtitle renders for items with a category.
+    // The section subtitle renders for items with a section.
     expect(find.text('Gear'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.delete_outline));

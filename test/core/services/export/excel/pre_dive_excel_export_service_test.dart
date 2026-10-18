@@ -37,7 +37,7 @@ void main() {
     String id = 'i1',
     String sessionId = 's1',
     String title = 'Check cells',
-    String? section,
+    String? sectionId,
     PreDiveItemState state = PreDiveItemState.done,
     PreDiveItemType type = PreDiveItemType.check,
     double? valueNumber,
@@ -52,7 +52,7 @@ void main() {
     id: id,
     sessionId: sessionId,
     title: title,
-    section: section,
+    sectionId: sectionId,
     state: state,
     itemType: type,
     valueNumber: valueNumber,
@@ -86,6 +86,7 @@ void main() {
       itemsBySession: {
         's1': [item()],
       },
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -104,6 +105,7 @@ void main() {
         session(id: 's2', name: 'BWRAF', status: PreDiveSessionStatus.aborted),
       ],
       itemsBySession: const {},
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -125,6 +127,7 @@ void main() {
           item(id: 'i3', state: PreDiveItemState.pending),
         ],
       },
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -147,8 +150,27 @@ void main() {
       sessions: [session(id: 's1', name: 'CCR Build')],
       itemsBySession: {
         's1': [
-          item(id: 'i1', title: 'Check cells', section: 'Electronics'),
-          item(id: 'i2', title: 'Check scrubber', section: 'Scrubber'),
+          item(id: 'i1', title: 'Check cells', sectionId: 'sec-electronics'),
+          item(id: 'i2', title: 'Check scrubber', sectionId: 'sec-scrubber'),
+        ],
+      },
+      sectionsBySession: {
+        's1': [
+          PreDiveSessionSection(
+            id: 'sec-electronics',
+            sessionId: 's1',
+            title: 'Electronics',
+            createdAt: started,
+            updatedAt: started,
+          ),
+          PreDiveSessionSection(
+            id: 'sec-scrubber',
+            sessionId: 's1',
+            title: 'Scrubber',
+            sortOrder: 1,
+            createdAt: started,
+            updatedAt: started,
+          ),
         ],
       },
       dateFormat: DateFormatPreference.yyyymmdd,
@@ -182,6 +204,7 @@ void main() {
           ),
         ],
       },
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -202,6 +225,7 @@ void main() {
     final bytes = service.generateBytes(
       sessions: [session()],
       itemsBySession: const {},
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -219,6 +243,7 @@ void main() {
     final bytes = service.generateBytes(
       sessions: [session(status: PreDiveSessionStatus.inProgress)],
       itemsBySession: const {},
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -232,6 +257,7 @@ void main() {
     final bytes = service.generateBytes(
       sessions: const [],
       itemsBySession: const {},
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -264,6 +290,7 @@ void main() {
           ),
         ],
       },
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -302,6 +329,7 @@ void main() {
           ),
         ],
       },
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 
@@ -329,6 +357,7 @@ void main() {
           ),
         ],
       },
+      sectionsBySession: const {},
       dateFormat: DateFormatPreference.yyyymmdd,
     );
 

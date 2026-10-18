@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -32,30 +34,49 @@ Trip _trip({required bool upcoming}) {
 TripChecklistItem _item({
   String id = 'i1',
   String title = 'Service regulator',
-  String? category,
+  String? sectionId,
   bool isDone = false,
   DateTime? dueDate,
 }) => TripChecklistItem(
   id: id,
   tripId: 't1',
   title: title,
-  category: category,
+  sectionId: sectionId,
   isDone: isDone,
   dueDate: dueDate,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );
 
+domain.TripChecklistSection _section({
+  required String id,
+  required String title,
+  int sortOrder = 0,
+}) => domain.TripChecklistSection(
+  id: id,
+  tripId: 't1',
+  title: title,
+  sortOrder: sortOrder,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
 void main() {
-  testWidgets('groups items by category and shows checkboxes', (tester) async {
+  testWidgets('groups items by section and shows checkboxes', (tester) async {
     await tester.pumpWidget(
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith(
             (ref) async => [
-              _item(id: 'i1', title: 'Service regulator', category: 'Gear'),
-              _item(id: 'i2', title: 'Book flights', category: 'Bookings'),
+              _item(id: 'i1', title: 'Service regulator', sectionId: 'gear'),
+              _item(id: 'i2', title: 'Book flights', sectionId: 'bookings'),
               _item(id: 'i3', title: 'Passport check'),
+            ],
+          ),
+          tripChecklistSectionsProvider('t1').overrideWith(
+            (ref) async => [
+              _section(id: 'gear', title: 'Gear'),
+              _section(id: 'bookings', title: 'Bookings', sortOrder: 1),
             ],
           ),
         ],
@@ -81,6 +102,7 @@ void main() {
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith((ref) async => [overdue]),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
         ],
         child: SingleChildScrollView(
           child: TripChecklistSection(trip: _trip(upcoming: true)),
@@ -94,6 +116,7 @@ void main() {
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith((ref) async => [overdue]),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
         ],
         child: SingleChildScrollView(
           child: TripChecklistSection(trip: _trip(upcoming: false)),
@@ -109,6 +132,7 @@ void main() {
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith((ref) async => []),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
         ],
         child: SingleChildScrollView(
           child: TripChecklistSection(trip: _trip(upcoming: true)),
@@ -401,7 +425,13 @@ void main() {
     });
   });
 
-  testWidgets('categories differing only in case form one group', (
+  // Case-insensitive folding of a typed category onto an existing section
+  // now happens once, at write time, in
+  // TripChecklistRepository.findOrCreateSectionId -- covered by
+  // trip_checklist_repository_test.dart's "sections" group. Rendering here
+  // only ever groups by sectionId, so this widget's own thing to prove is
+  // that groups render in the sections' own sort order.
+  testWidgets('sections render in their own sort order, not item order', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -409,9 +439,16 @@ void main() {
         overrides: [
           tripChecklistProvider('t1').overrideWith(
             (ref) async => [
-              _item(id: 'i1', title: 'Service regulator', category: 'Diving'),
-              _item(id: 'i2', title: 'Pack fins', category: 'diving'),
-              _item(id: 'i3', title: 'Book flights', category: 'Bookings'),
+              // The first item in the list belongs to the section sorted
+              // second, so a correct render still shows Bookings first.
+              _item(id: 'i1', title: 'Pack fins', sectionId: 'diving'),
+              _item(id: 'i2', title: 'Book flights', sectionId: 'bookings'),
+            ],
+          ),
+          tripChecklistSectionsProvider('t1').overrideWith(
+            (ref) async => [
+              _section(id: 'bookings', title: 'Bookings'),
+              _section(id: 'diving', title: 'Diving', sortOrder: 1),
             ],
           ),
         ],
@@ -422,11 +459,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // One heading, labelled with the casing that appeared first.
-    expect(find.text('Diving'), findsOneWidget);
-    expect(find.text('diving'), findsNothing);
-    expect(find.text('Service regulator'), findsOneWidget);
-    expect(find.text('Pack fins'), findsOneWidget);
-    expect(find.text('Bookings'), findsOneWidget);
+    final bookingsHeader = tester.getTopLeft(find.text('Bookings'));
+    final divingHeader = tester.getTopLeft(find.text('Diving'));
+    expect(bookingsHeader.dy, lessThan(divingHeader.dy));
   });
 }
