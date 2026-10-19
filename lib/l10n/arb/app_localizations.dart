@@ -84213,6 +84213,636 @@ abstract class AppLocalizations {
   /// **'Deleted \"{name}\"'**
   String savedQueries_snackbar_deleted(String name);
 
+  /// Settings > Manage entry for logbook rules
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get settings_manage_rules;
+
+  /// Subtitle of the Rules entry in Settings > Manage
+  ///
+  /// In en, this message translates to:
+  /// **'Classify and fill in dives and sites automatically'**
+  String get settings_manage_rules_subtitle;
+
+  /// App bar title of the logbook rules page
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get rules_page_title;
+
+  /// Section header for rules that apply to dives
+  ///
+  /// In en, this message translates to:
+  /// **'Dive rules'**
+  String get rules_section_dives;
+
+  /// Section header for rules that apply to dive sites
+  ///
+  /// In en, this message translates to:
+  /// **'Site rules'**
+  String get rules_section_sites;
+
+  /// Empty state of the rules page
+  ///
+  /// In en, this message translates to:
+  /// **'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.'**
+  String get rules_empty;
+
+  /// Button that creates a logbook rule
+  ///
+  /// In en, this message translates to:
+  /// **'New rule'**
+  String get rules_action_new;
+
+  /// Opens the history of rule runs
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get rules_action_history;
+
+  /// Menu that runs every enabled rule on demand
+  ///
+  /// In en, this message translates to:
+  /// **'Run rules'**
+  String get rules_action_runAll;
+
+  /// Menu entry that runs every enabled dive rule over the whole logbook
+  ///
+  /// In en, this message translates to:
+  /// **'Run dive rules on all dives'**
+  String get rules_action_runAllDives;
+
+  /// Menu entry that runs every enabled site rule over all sites
+  ///
+  /// In en, this message translates to:
+  /// **'Run site rules on all sites'**
+  String get rules_action_runAllSites;
+
+  /// Rule row menu entry that runs this one rule over every dive
+  ///
+  /// In en, this message translates to:
+  /// **'Run on all dives'**
+  String get rules_row_runOnAllDives;
+
+  /// Rule row menu entry that runs this one rule over every site
+  ///
+  /// In en, this message translates to:
+  /// **'Run on all sites'**
+  String get rules_row_runOnAllSites;
+
+  /// Rule row menu entry that copies the rule
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get rules_row_duplicate;
+
+  /// Rule row menu entry that deletes the rule
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get rules_row_delete;
+
+  /// Tooltip of a rule row's menu button
+  ///
+  /// In en, this message translates to:
+  /// **'Rule actions'**
+  String get rules_row_menuTooltip;
+
+  /// Accessibility label of a rule's on/off switch
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get rules_row_enabled;
+
+  /// Tooltip of a rule's drag handle
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to change the order rules run in'**
+  String get rules_reorderTooltip;
+
+  /// Title of the delete rule confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Delete rule?'**
+  String get rules_deleteDialog_title;
+
+  /// Body of the delete rule confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? What it already changed stays in the history and can still be undone.'**
+  String rules_deleteDialog_content(String name);
+
+  /// Snackbar after deleting a rule
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted \"{name}\"'**
+  String rules_snackbar_deleted(String name);
+
+  /// Suffix added to the name of a duplicated rule
+  ///
+  /// In en, this message translates to:
+  /// **' (copy)'**
+  String get rules_copySuffix;
+
+  /// Rule trigger: runs after an import
+  ///
+  /// In en, this message translates to:
+  /// **'After import'**
+  String get rules_trigger_afterImport;
+
+  /// Rule trigger: runs when a hand-logged dive is first saved
+  ///
+  /// In en, this message translates to:
+  /// **'After logging a dive by hand'**
+  String get rules_trigger_afterManualDive;
+
+  /// Rule trigger: runs when a site created by hand is first saved
+  ///
+  /// In en, this message translates to:
+  /// **'After creating a site by hand'**
+  String get rules_trigger_afterManualSite;
+
+  /// Shown for a rule with no automatic trigger
+  ///
+  /// In en, this message translates to:
+  /// **'Only when you run it'**
+  String get rules_trigger_onDemandOnly;
+
+  /// Shown for a disabled rule
+  ///
+  /// In en, this message translates to:
+  /// **'Off: runs only when you run it'**
+  String get rules_trigger_off;
+
+  /// Shown for a dive rule with an empty condition
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive'**
+  String get rules_condition_everyDive;
+
+  /// Shown for a site rule with an empty condition
+  ///
+  /// In en, this message translates to:
+  /// **'Every site'**
+  String get rules_condition_everySite;
+
+  /// Problem shown on a rule whose condition is corrupt
+  ///
+  /// In en, this message translates to:
+  /// **'This rule\'s condition can\'t be read. Edit or delete it.'**
+  String get rules_problem_unreadable;
+
+  /// Problem shown on a rule whose condition fails validation
+  ///
+  /// In en, this message translates to:
+  /// **'This rule\'s condition is no longer valid. Edit or delete it.'**
+  String get rules_problem_invalid;
+
+  /// Problem shown on a rule for an unknown subject
+  ///
+  /// In en, this message translates to:
+  /// **'This rule is for something this version doesn\'t have.'**
+  String get rules_problem_unknownSubject;
+
+  /// Problem shown on a rule whose condition references a deleted item
+  ///
+  /// In en, this message translates to:
+  /// **'The condition names something that was deleted. Edit the rule to run it.'**
+  String get rules_problem_unresolvedRef;
+
+  /// Problem shown on a rule saved by a newer app version
+  ///
+  /// In en, this message translates to:
+  /// **'Made by a newer version of Submersion. Update the app to run or edit it.'**
+  String get rules_problem_newerVersion;
+
+  /// Problem shown on a rule without actions
+  ///
+  /// In en, this message translates to:
+  /// **'This rule has no actions.'**
+  String get rules_problem_noActions;
+
+  /// Warning shown on a rule with an action naming a deleted item
+  ///
+  /// In en, this message translates to:
+  /// **'An action names something that was deleted; that action is skipped.'**
+  String get rules_problem_brokenAction;
+
+  /// One-line summary of a set-field action
+  ///
+  /// In en, this message translates to:
+  /// **'Set {field} to {value}'**
+  String rules_actionSummary_set(String field, String value);
+
+  /// One-line summary of an add action
+  ///
+  /// In en, this message translates to:
+  /// **'Add {collection}: {items}'**
+  String rules_actionSummary_add(String collection, String items);
+
+  /// One-line summary of a remove action
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {collection}: {items}'**
+  String rules_actionSummary_remove(String collection, String items);
+
+  /// One-line summary of an append-to-notes action
+  ///
+  /// In en, this message translates to:
+  /// **'Append to notes: {text}'**
+  String rules_actionSummary_appendNotes(String text);
+
+  /// One-line summary of an append-to-description action
+  ///
+  /// In en, this message translates to:
+  /// **'Append to description: {text}'**
+  String rules_actionSummary_appendDescription(String text);
+
+  /// Summary of an action this version cannot read
+  ///
+  /// In en, this message translates to:
+  /// **'An action from a newer version'**
+  String get rules_actionSummary_unknown;
+
+  /// Stands in for an item a rule names that no longer exists
+  ///
+  /// In en, this message translates to:
+  /// **'(deleted)'**
+  String get rules_actionSummary_missing;
+
+  /// Boolean value shown in a rule
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get rules_value_yes;
+
+  /// Boolean value shown in a rule
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get rules_value_no;
+
+  /// An empty field value in a change list
+  ///
+  /// In en, this message translates to:
+  /// **'(empty)'**
+  String get rules_value_empty;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'dive types'**
+  String get rules_collection_diveTypes;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'tags'**
+  String get rules_collection_tags;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'equipment'**
+  String get rules_collection_equipment;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'buddies'**
+  String get rules_collection_buddies;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'courses'**
+  String get rules_collection_courses;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'site tags'**
+  String get rules_collection_siteTags;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'site types'**
+  String get rules_collection_siteTypes;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'dive center'**
+  String get rules_field_diveCenter;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'dive operator'**
+  String get rules_field_diveOperator;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'boat name'**
+  String get rules_field_boatName;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'boat captain'**
+  String get rules_field_boatCaptain;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'trip'**
+  String get rules_field_trip;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'rating'**
+  String get rules_field_rating;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'favorite'**
+  String get rules_field_isFavorite;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'excluded from statistics'**
+  String get rules_field_excludedFromStats;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'excluded from gas statistics'**
+  String get rules_field_excludedFromGasStats;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'water type'**
+  String get rules_field_waterType;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'visibility'**
+  String get rules_field_visibility;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'current direction'**
+  String get rules_field_currentDirection;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'current strength'**
+  String get rules_field_currentStrength;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'swell height'**
+  String get rules_field_swellHeight;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'surface conditions'**
+  String get rules_field_surfaceConditions;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'entry method'**
+  String get rules_field_entryMethod;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'exit method'**
+  String get rules_field_exitMethod;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'altitude'**
+  String get rules_field_altitude;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'surface pressure'**
+  String get rules_field_surfacePressure;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'surface interval'**
+  String get rules_field_surfaceInterval;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'GF low'**
+  String get rules_field_gradientFactorLow;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'GF high'**
+  String get rules_field_gradientFactorHigh;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'deco algorithm'**
+  String get rules_field_decoAlgorithm;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'conservatism'**
+  String get rules_field_decoConservatism;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'dive computer model'**
+  String get rules_field_diveComputerModel;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'wind speed'**
+  String get rules_field_windSpeed;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'wind direction'**
+  String get rules_field_windDirection;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'cloud cover'**
+  String get rules_field_cloudCover;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'precipitation'**
+  String get rules_field_precipitation;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'humidity'**
+  String get rules_field_humidity;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'weather description'**
+  String get rules_field_weatherDescription;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'dive mode'**
+  String get rules_field_diveMode;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'low setpoint'**
+  String get rules_field_setpointLow;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'high setpoint'**
+  String get rules_field_setpointHigh;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'deco setpoint'**
+  String get rules_field_setpointDeco;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'diluent (O2/He)'**
+  String get rules_field_diluentGas;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'scrubber type'**
+  String get rules_field_scrubberType;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'scrubber duration'**
+  String get rules_field_scrubberDuration;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'my role'**
+  String get rules_field_diverRole;
+
+  /// Lower-case dive field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'notes'**
+  String get rules_field_notes;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'difficulty'**
+  String get rules_siteField_difficulty;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'country'**
+  String get rules_siteField_country;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'region'**
+  String get rules_siteField_region;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'city'**
+  String get rules_siteField_city;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'island'**
+  String get rules_siteField_island;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'body of water'**
+  String get rules_siteField_bodyOfWater;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'minimum depth'**
+  String get rules_siteField_minDepth;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'maximum depth'**
+  String get rules_siteField_maxDepth;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'hazards'**
+  String get rules_siteField_hazards;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'access notes'**
+  String get rules_siteField_accessNotes;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'mooring number'**
+  String get rules_siteField_mooringNumber;
+
+  /// Lower-case dive site field name used in rule actions and change lists
+  ///
+  /// In en, this message translates to:
+  /// **'parking information'**
+  String get rules_siteField_parkingInfo;
+
   /// Settings > Manage entry
   ///
   /// In en, this message translates to:

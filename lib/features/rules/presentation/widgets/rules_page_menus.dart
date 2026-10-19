@@ -1,0 +1,99 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/rules/domain/entities/rule.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(RuleRowMenu);
+
+/// The plain "try again" snackbar every rules write failure shows; the
+/// detail goes to the log.
+void showRulesError(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(context.l10n.common_error_tryAgain),
+      backgroundColor: Theme.of(context).colorScheme.error,
+    ),
+  );
+}
+
+enum _RowAction { duplicate, delete }
+
+/// A rule row's menu: duplicate or delete it.
+class RuleRowMenu extends ConsumerWidget {
+  const RuleRowMenu({super.key, required this.rule});
+
+  final Rule rule;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return PopupMenuButton<_RowAction>(
+      tooltip: l10n.rules_row_menuTooltip,
+      onSelected: (action) => switch (action) {
+        _RowAction.duplicate => _duplicate(context, ref),
+        _RowAction.delete => _delete(context, ref),
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: _RowAction.duplicate,
+          child: Text(l10n.rules_row_duplicate),
+        ),
+        PopupMenuItem(
+          value: _RowAction.delete,
+          child: Text(l10n.rules_row_delete),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _duplicate(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref
+          .read(ruleRepositoryProvider)
+          .duplicate(rule.id, nameSuffix: context.l10n.rules_copySuffix);
+    } catch (e, st) {
+      _log.error('Failed to duplicate rule', error: e, stackTrace: st);
+      if (context.mounted) showRulesError(context);
+    }
+  }
+
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.rules_deleteDialog_title),
+        content: Text(l10n.rules_deleteDialog_content(rule.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(ruleRepositoryProvider).delete(rule.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.rules_snackbar_deleted(rule.name))),
+        );
+      }
+    } catch (e, st) {
+      _log.error('Failed to delete rule', error: e, stackTrace: st);
+      if (context.mounted) showRulesError(context);
+    }
+  }
+}

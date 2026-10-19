@@ -52186,6 +52186,343 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_rules => 'Rules';
+
+  @override
+  String get settings_manage_rules_subtitle =>
+      'Classify and fill in dives and sites automatically';
+
+  @override
+  String get rules_page_title => 'Rules';
+
+  @override
+  String get rules_section_dives => 'Dive rules';
+
+  @override
+  String get rules_section_sites => 'Site rules';
+
+  @override
+  String get rules_empty =>
+      'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.';
+
+  @override
+  String get rules_action_new => 'New rule';
+
+  @override
+  String get rules_action_history => 'History';
+
+  @override
+  String get rules_action_runAll => 'Run rules';
+
+  @override
+  String get rules_action_runAllDives => 'Run dive rules on all dives';
+
+  @override
+  String get rules_action_runAllSites => 'Run site rules on all sites';
+
+  @override
+  String get rules_row_runOnAllDives => 'Run on all dives';
+
+  @override
+  String get rules_row_runOnAllSites => 'Run on all sites';
+
+  @override
+  String get rules_row_duplicate => 'Duplicate';
+
+  @override
+  String get rules_row_delete => 'Delete';
+
+  @override
+  String get rules_row_menuTooltip => 'Rule actions';
+
+  @override
+  String get rules_row_enabled => 'Enabled';
+
+  @override
+  String get rules_reorderTooltip => 'Drag to change the order rules run in';
+
+  @override
+  String get rules_deleteDialog_title => 'Delete rule?';
+
+  @override
+  String rules_deleteDialog_content(String name) {
+    return 'Delete \"$name\"? What it already changed stays in the history and can still be undone.';
+  }
+
+  @override
+  String rules_snackbar_deleted(String name) {
+    return 'Deleted \"$name\"';
+  }
+
+  @override
+  String get rules_copySuffix => ' (copy)';
+
+  @override
+  String get rules_trigger_afterImport => 'After import';
+
+  @override
+  String get rules_trigger_afterManualDive => 'After logging a dive by hand';
+
+  @override
+  String get rules_trigger_afterManualSite => 'After creating a site by hand';
+
+  @override
+  String get rules_trigger_onDemandOnly => 'Only when you run it';
+
+  @override
+  String get rules_trigger_off => 'Off: runs only when you run it';
+
+  @override
+  String get rules_condition_everyDive => 'Every dive';
+
+  @override
+  String get rules_condition_everySite => 'Every site';
+
+  @override
+  String get rules_problem_unreadable =>
+      'This rule\'s condition can\'t be read. Edit or delete it.';
+
+  @override
+  String get rules_problem_invalid =>
+      'This rule\'s condition is no longer valid. Edit or delete it.';
+
+  @override
+  String get rules_problem_unknownSubject =>
+      'This rule is for something this version doesn\'t have.';
+
+  @override
+  String get rules_problem_unresolvedRef =>
+      'The condition names something that was deleted. Edit the rule to run it.';
+
+  @override
+  String get rules_problem_newerVersion =>
+      'Made by a newer version of Submersion. Update the app to run or edit it.';
+
+  @override
+  String get rules_problem_noActions => 'This rule has no actions.';
+
+  @override
+  String get rules_problem_brokenAction =>
+      'An action names something that was deleted; that action is skipped.';
+
+  @override
+  String rules_actionSummary_set(String field, String value) {
+    return 'Set $field to $value';
+  }
+
+  @override
+  String rules_actionSummary_add(String collection, String items) {
+    return 'Add $collection: $items';
+  }
+
+  @override
+  String rules_actionSummary_remove(String collection, String items) {
+    return 'Remove $collection: $items';
+  }
+
+  @override
+  String rules_actionSummary_appendNotes(String text) {
+    return 'Append to notes: $text';
+  }
+
+  @override
+  String rules_actionSummary_appendDescription(String text) {
+    return 'Append to description: $text';
+  }
+
+  @override
+  String get rules_actionSummary_unknown => 'An action from a newer version';
+
+  @override
+  String get rules_actionSummary_missing => '(deleted)';
+
+  @override
+  String get rules_value_yes => 'Yes';
+
+  @override
+  String get rules_value_no => 'No';
+
+  @override
+  String get rules_value_empty => '(empty)';
+
+  @override
+  String get rules_collection_diveTypes => 'dive types';
+
+  @override
+  String get rules_collection_tags => 'tags';
+
+  @override
+  String get rules_collection_equipment => 'equipment';
+
+  @override
+  String get rules_collection_buddies => 'buddies';
+
+  @override
+  String get rules_collection_courses => 'courses';
+
+  @override
+  String get rules_collection_siteTags => 'site tags';
+
+  @override
+  String get rules_collection_siteTypes => 'site types';
+
+  @override
+  String get rules_field_diveCenter => 'dive center';
+
+  @override
+  String get rules_field_diveOperator => 'dive operator';
+
+  @override
+  String get rules_field_boatName => 'boat name';
+
+  @override
+  String get rules_field_boatCaptain => 'boat captain';
+
+  @override
+  String get rules_field_trip => 'trip';
+
+  @override
+  String get rules_field_rating => 'rating';
+
+  @override
+  String get rules_field_isFavorite => 'favorite';
+
+  @override
+  String get rules_field_excludedFromStats => 'excluded from statistics';
+
+  @override
+  String get rules_field_excludedFromGasStats => 'excluded from gas statistics';
+
+  @override
+  String get rules_field_waterType => 'water type';
+
+  @override
+  String get rules_field_visibility => 'visibility';
+
+  @override
+  String get rules_field_currentDirection => 'current direction';
+
+  @override
+  String get rules_field_currentStrength => 'current strength';
+
+  @override
+  String get rules_field_swellHeight => 'swell height';
+
+  @override
+  String get rules_field_surfaceConditions => 'surface conditions';
+
+  @override
+  String get rules_field_entryMethod => 'entry method';
+
+  @override
+  String get rules_field_exitMethod => 'exit method';
+
+  @override
+  String get rules_field_altitude => 'altitude';
+
+  @override
+  String get rules_field_surfacePressure => 'surface pressure';
+
+  @override
+  String get rules_field_surfaceInterval => 'surface interval';
+
+  @override
+  String get rules_field_gradientFactorLow => 'GF low';
+
+  @override
+  String get rules_field_gradientFactorHigh => 'GF high';
+
+  @override
+  String get rules_field_decoAlgorithm => 'deco algorithm';
+
+  @override
+  String get rules_field_decoConservatism => 'conservatism';
+
+  @override
+  String get rules_field_diveComputerModel => 'dive computer model';
+
+  @override
+  String get rules_field_windSpeed => 'wind speed';
+
+  @override
+  String get rules_field_windDirection => 'wind direction';
+
+  @override
+  String get rules_field_cloudCover => 'cloud cover';
+
+  @override
+  String get rules_field_precipitation => 'precipitation';
+
+  @override
+  String get rules_field_humidity => 'humidity';
+
+  @override
+  String get rules_field_weatherDescription => 'weather description';
+
+  @override
+  String get rules_field_diveMode => 'dive mode';
+
+  @override
+  String get rules_field_setpointLow => 'low setpoint';
+
+  @override
+  String get rules_field_setpointHigh => 'high setpoint';
+
+  @override
+  String get rules_field_setpointDeco => 'deco setpoint';
+
+  @override
+  String get rules_field_diluentGas => 'diluent (O2/He)';
+
+  @override
+  String get rules_field_scrubberType => 'scrubber type';
+
+  @override
+  String get rules_field_scrubberDuration => 'scrubber duration';
+
+  @override
+  String get rules_field_diverRole => 'my role';
+
+  @override
+  String get rules_field_notes => 'notes';
+
+  @override
+  String get rules_siteField_difficulty => 'difficulty';
+
+  @override
+  String get rules_siteField_country => 'country';
+
+  @override
+  String get rules_siteField_region => 'region';
+
+  @override
+  String get rules_siteField_city => 'city';
+
+  @override
+  String get rules_siteField_island => 'island';
+
+  @override
+  String get rules_siteField_bodyOfWater => 'body of water';
+
+  @override
+  String get rules_siteField_minDepth => 'minimum depth';
+
+  @override
+  String get rules_siteField_maxDepth => 'maximum depth';
+
+  @override
+  String get rules_siteField_hazards => 'hazards';
+
+  @override
+  String get rules_siteField_accessNotes => 'access notes';
+
+  @override
+  String get rules_siteField_mooringNumber => 'mooring number';
+
+  @override
+  String get rules_siteField_parkingInfo => 'parking information';
+
+  @override
   String get settings_manage_savedQueries => 'Saved Queries';
 
   @override

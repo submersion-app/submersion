@@ -171,6 +171,7 @@ import 'package:submersion/features/dive_types/presentation/pages/dive_types_pag
 import 'package:submersion/features/site_types/presentation/pages/site_types_page.dart';
 import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_page.dart';
 import 'package:submersion/features/query/presentation/pages/saved_queries_page.dart';
+import 'package:submersion/features/rules/presentation/pages/rules_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
@@ -1805,6 +1806,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/saved-queries',
             name: 'savedQueries',
             builder: (context, state) => const SavedQueriesPage(),
+          ),
+
+          // Logbook rules (#3513)
+          GoRoute(
+            path: '/rules',
+            name: 'rules',
+            builder: (context, state) => const RulesPage(),
           ),
 
           // Transmitter registry (issue #1365)
