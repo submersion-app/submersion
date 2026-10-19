@@ -4,9 +4,10 @@ import 'package:submersion/features/rules/domain/rule_subject.dart';
 /// `BulkField.name`, a `DiveCollection.name`, `notes`, a
 /// `SiteRuleField.name`, a `SiteCollection.name` or `description`; [subject]
 /// tells the dive and site meanings apart. [before] and [after] are
-/// JSON-encodable: a map of column values for a set field, a sorted id list
-/// (buddies: `{id, role}` maps) for a membership, the full text for an
-/// append.
+/// JSON-encodable: a map of column values for a set field, an id list for
+/// a membership (dive types in their order, the representative first;
+/// buddies as `{id, roles}`; gear as `{id, via?, set?}`; the rest sorted),
+/// the full text for an append.
 class RuleChange {
   const RuleChange({
     required this.subject,
@@ -27,6 +28,24 @@ class RuleChange {
   final String field;
   final Object? before;
   final Object? after;
+
+  RuleChange copyWith({
+    RuleSubject? subject,
+    String? targetId,
+    String? ruleId,
+    String? ruleName,
+    String? field,
+    Object? before,
+    Object? after,
+  }) => RuleChange(
+    subject: subject ?? this.subject,
+    targetId: targetId ?? this.targetId,
+    ruleId: ruleId ?? this.ruleId,
+    ruleName: ruleName ?? this.ruleName,
+    field: field ?? this.field,
+    before: before ?? this.before,
+    after: after ?? this.after,
+  );
 }
 
 /// One history entry: a run of the rules that changed something.
@@ -59,6 +78,24 @@ class RuleRun {
   final DateTime? undoneAt;
 
   bool get isUndone => undoneAt != null;
+
+  RuleRun copyWith({
+    String? sourceLabel,
+    String? deviceLabel,
+    int? changedCount,
+    DateTime? undoneAt,
+    List<String>? ruleNames,
+  }) => RuleRun(
+    id: id,
+    diverId: diverId,
+    trigger: trigger,
+    sourceLabel: sourceLabel ?? this.sourceLabel,
+    deviceLabel: deviceLabel ?? this.deviceLabel,
+    ranAt: ranAt,
+    changedCount: changedCount ?? this.changedCount,
+    undoneAt: undoneAt ?? this.undoneAt,
+    ruleNames: ruleNames ?? this.ruleNames,
+  );
 }
 
 /// What to run the rules on (#3513). A null target set for a subject means
@@ -80,6 +117,19 @@ class RuleRunRequest {
   final Map<RuleSubject, Set<String>?> targets;
   final String? sourceLabel;
   final List<String>? onlyRuleIds;
+
+  RuleRunRequest copyWith({
+    RuleRunTrigger? trigger,
+    Map<RuleSubject, Set<String>?>? targets,
+    String? sourceLabel,
+    List<String>? onlyRuleIds,
+  }) => RuleRunRequest(
+    diverId: diverId,
+    trigger: trigger ?? this.trigger,
+    targets: targets ?? this.targets,
+    sourceLabel: sourceLabel ?? this.sourceLabel,
+    onlyRuleIds: onlyRuleIds ?? this.onlyRuleIds,
+  );
 }
 
 /// What a run (or its preview) did.
@@ -93,10 +143,12 @@ class RuleRunResult {
     required this.skippedActionRuleNames,
     required this.targetCount,
     required this.outOfScopeCount,
-    required this.ruleCount,
+    this.noRuleSelected = false,
   });
 
-  static const empty = RuleRunResult(
+  /// No rule of the diver's would run for the request (none on for it, or
+  /// none with its trigger): nothing was looked at.
+  static const noRules = RuleRunResult(
     runId: null,
     changes: [],
     changedTargetCount: 0,
@@ -105,7 +157,7 @@ class RuleRunResult {
     skippedActionRuleNames: [],
     targetCount: 0,
     outOfScopeCount: 0,
-    ruleCount: 0,
+    noRuleSelected: true,
   );
 
   /// The history entry, or null for a preview or a run that changed
@@ -133,8 +185,21 @@ class RuleRunResult {
   /// library site, another profile's site, an unlogged plan).
   final int outOfScopeCount;
 
-  /// Rules that ran.
-  final int ruleCount;
+  /// See [noRules].
+  final bool noRuleSelected;
 
   bool get changedAnything => changes.isNotEmpty;
+
+  /// This result as recorded in the history under [runId].
+  RuleRunResult copyWith({String? runId}) => RuleRunResult(
+    runId: runId ?? this.runId,
+    changes: changes,
+    changedTargetCount: changedTargetCount,
+    changedCountByRule: changedCountByRule,
+    skippedRuleNames: skippedRuleNames,
+    skippedActionRuleNames: skippedActionRuleNames,
+    targetCount: targetCount,
+    outOfScopeCount: outOfScopeCount,
+    noRuleSelected: noRuleSelected,
+  );
 }

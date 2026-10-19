@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -14,18 +13,6 @@ import 'rules_test_app.dart';
 
 void main() {
   late AppDatabase db;
-
-  Future<List<String>> typesOf(String id) async => [
-    for (final r
-        in await db
-            .customSelect(
-              'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ? '
-              'ORDER BY dive_type_id',
-              variables: [Variable.withString(id)],
-            )
-            .get())
-      r.read<String>('dive_type_id'),
-  ];
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -72,20 +59,72 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 5; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 60)),
-      );
-      await tester.pump();
-    }
-    await tester.pumpAndSettle();
-  }
-
   Future<void> openPreview(WidgetTester tester) async {
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await settleRuleWork(tester);
   }
+
+  testWidgets('with every dive rule off, a run says so', (tester) async {
+    await tester.runAsync(() async {
+      final repo = RuleRepository();
+      for (final r in await repo.getAll(
+        subject: RuleSubject.dives,
+        diverId: 'me',
+        names: kRuleTestNames,
+      )) {
+        await repo.setEnabled(r.id, false);
+      }
+    });
+    await pumpHost(tester);
+    await openPreview(tester);
+    expect(
+      find.text(
+        'No dive rules are on. Turn one on, or run it from its own menu.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a selection of items not yours says so, not "no changes"', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await seedRuleDivers(db, ['other']);
+      await seedRuleDive(db, 'theirs', diver: 'other', maxDepth: 40);
+    });
+    await pumpHost(tester, targets: {'theirs'});
+    await openPreview(tester);
+    expect(
+      find.text('1 selected item is not yours to change and was left out.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('already match'), findsNothing);
+  });
+
+  testWidgets('a skipped action is reported, not passed off as no changes', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => RuleRepository().create(
+        diverId: 'me',
+        subject: RuleSubject.dives,
+        name: 'Gone tag',
+        triggers: const {RuleTrigger.afterImport},
+        condition: null,
+        actions: const [
+          DiveMembershipAction(DiveCollection.tags, MembershipMode.add, [
+            'deleted',
+          ]),
+        ],
+      ),
+    );
+    await pumpHost(tester, targets: {'d20'});
+    await openPreview(tester);
+    expect(
+      find.text('Some actions name deleted items and were skipped: Gone tag'),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('the preview shows each change and the count', (tester) async {
     await pumpHost(tester);
@@ -94,7 +133,7 @@ void main() {
     expect(find.text('1 dive will change.'), findsOneWidget);
     expect(find.textContaining('#411'), findsOneWidget);
     expect(
-      find.text('Deep: dive types Recreational → Deep, Recreational'),
+      find.text('Deep: dive types Recreational → Recreational, Deep'),
       findsOneWidget,
     );
   });
@@ -103,23 +142,25 @@ void main() {
     await pumpHost(tester);
     await openPreview(tester);
     await tester.tap(find.text('Cancel'));
-    await settle(tester);
-    expect(await tester.runAsync(() => typesOf('d35')), isEmpty);
+    await settleRuleWork(tester);
+    expect(await tester.runAsync(() => ruleDiveTypes(db, 'd35')), isEmpty);
   });
 
   testWidgets('Apply writes and Undo reverts', (tester) async {
     await pumpHost(tester);
     await openPreview(tester);
     await tester.tap(find.text('Apply to 1 dive'));
-    await settle(tester);
-    expect(await tester.runAsync(() => typesOf('d35')), [
+    await settleRuleWork(tester);
+    expect(await tester.runAsync(() => ruleDiveTypes(db, 'd35')), [
       'deep',
       'recreational',
     ]);
     expect(find.text('Rules changed 1 dive'), findsOneWidget);
     await tester.tap(find.text('Undo'));
-    await settle(tester);
-    expect(await tester.runAsync(() => typesOf('d35')), ['recreational']);
+    await settleRuleWork(tester);
+    expect(await tester.runAsync(() => ruleDiveTypes(db, 'd35')), [
+      'recreational',
+    ]);
   });
 
   testWidgets('Undo still works after the page that ran the rules is gone', (
@@ -155,14 +196,16 @@ void main() {
     await tester.pumpAndSettle();
     await openPreview(tester);
     await tester.tap(find.text('Apply to 1 dive'));
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(find.text('Rules changed 1 dive'), findsOneWidget);
     // The widget whose ref started the run is disposed before Undo.
     show.value = false;
     await tester.pump();
     await tester.tap(find.text('Undo'));
-    await settle(tester);
-    expect(await tester.runAsync(() => typesOf('d35')), ['recreational']);
+    await settleRuleWork(tester);
+    expect(await tester.runAsync(() => ruleDiveTypes(db, 'd35')), [
+      'recreational',
+    ]);
   });
 
   testWidgets('Apply recomputes when data moved after the preview', (
@@ -172,7 +215,7 @@ void main() {
     await openPreview(tester);
     await tester.runAsync(() => seedRuleDive(db, 'd50', maxDepth: 50));
     await tester.tap(find.text('Apply to 1 dive'));
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(find.text('Rules changed 2 dives'), findsOneWidget);
   });
 
@@ -207,7 +250,7 @@ void main() {
       ),
     );
     await tester.tap(find.text('Apply to 1 dive'));
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(
       find.text('No changes: these dives already match your rules.'),
       findsOneWidget,

@@ -84709,11 +84709,11 @@ abstract class AppLocalizations {
   /// **'Site rules'**
   String get rules_section_sites;
 
-  /// Empty state of the rules page
+  /// Empty state of the rules page; {depth} is an example depth in the diver's units
   ///
   /// In en, this message translates to:
-  /// **'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.'**
-  String get rules_empty;
+  /// **'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than {depth}. Nothing runs until you create a rule.'**
+  String rules_empty(String depth);
 
   /// Button that creates a logbook rule
   ///
@@ -84838,7 +84838,7 @@ abstract class AppLocalizations {
   /// Shown for a disabled rule
   ///
   /// In en, this message translates to:
-  /// **'Off: runs only when you run it'**
+  /// **'Off: runs only from its own menu'**
   String get rules_trigger_off;
 
   /// Shown for a dive rule with an empty condition
@@ -85561,6 +85561,18 @@ abstract class AppLocalizations {
   /// **'No changes: these sites already match your rules.'**
   String get rules_run_noChangesSites;
 
+  /// Snackbar when an on-demand dive run has no rule switched on
+  ///
+  /// In en, this message translates to:
+  /// **'No dive rules are on. Turn one on, or run it from its own menu.'**
+  String get rules_run_noRulesOnDives;
+
+  /// Snackbar when an on-demand site run has no rule switched on
+  ///
+  /// In en, this message translates to:
+  /// **'No site rules are on. Turn one on, or run it from its own menu.'**
+  String get rules_run_noRulesOnSites;
+
   /// Snackbar after rules changed dives
   ///
   /// In en, this message translates to:
@@ -85787,6 +85799,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Details'**
   String get rules_create_details;
+
+  /// Snackbar when a dive or site saved but the rules after it could not run
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but your rules could not run.'**
+  String get rules_create_failed;
 
   /// Selection bar action that runs logbook rules on the selected dives or sites
   ///

@@ -59,11 +59,15 @@ describeRuleChange(
       );
     }
     final field = BulkField.values.asNameMap()[c.field];
-    if (field != null) {
+    final column = field == null ? null : diveFieldColumn(field);
+    if (field != null && column != null) {
       String value(Object? cols) {
         final map = (cols as Map?) ?? const {};
         if (field == BulkField.diluentGas) {
-          return '${map['diluent_o2'] ?? '-'}/${map['diluent_he'] ?? '-'}';
+          return ruleDiluentLabel(
+            map['diluent_o2'] as num?,
+            map['diluent_he'] as num?,
+          );
         }
         return ruleValueLabel(
           l,
@@ -71,7 +75,7 @@ describeRuleChange(
           kind: diveFieldKind(field),
           unit: diveFieldUnit(field),
           fieldName: field.name,
-          value: map[diveFieldColumn(field)],
+          value: map[column],
           refSubject: diveFieldRefSubject(field),
           nameOf: nameOf,
         );
@@ -149,7 +153,6 @@ class RuleChangeList extends StatelessWidget {
     required this.units,
     required this.nameOf,
     this.grouping = RuleChangeGrouping.target,
-    this.shrinkWrap = false,
   });
 
   final List<RuleChange> changes;
@@ -157,12 +160,14 @@ class RuleChangeList extends StatelessWidget {
   final UnitFormatter units;
   final RuleNameOf nameOf;
   final RuleChangeGrouping grouping;
-  final bool shrinkWrap;
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final rows = <(String text, bool header)>[];
+    // Grouping is cheap; a row's text is made only when the row is built,
+    // so a run over a whole logbook formats what is on screen, not all of
+    // it on every rebuild.
+    final rows = <(RuleChange change, bool header)>[];
     final groups = <String, List<RuleChange>>{};
     for (final c in changes) {
       final key = grouping == RuleChangeGrouping.target
@@ -170,32 +175,33 @@ class RuleChangeList extends StatelessWidget {
           : c.ruleName;
       groups.putIfAbsent(key, () => []).add(c);
     }
-    for (final entry in groups.entries) {
-      final first = entry.value.first;
-      final heading = grouping == RuleChangeGrouping.target
-          ? ruleTargetHeading(l, units, first.subject, targets[first.targetId])
-          : first.ruleName;
-      rows.add((heading, true));
-      for (final c in entry.value) {
-        final d = describeRuleChange(l, units, c, nameOf);
-        final who = grouping == RuleChangeGrouping.target
-            ? c.ruleName
-            : ruleTargetHeading(l, units, c.subject, targets[c.targetId]);
-        rows.add((
-          d.appended != null
-              ? '$who: ${l.rules_change_appended(d.field, d.appended!)}'
-              : l.rules_change_line(who, d.field, d.before, d.after),
-          false,
-        ));
+    for (final group in groups.values) {
+      rows.add((group.first, true));
+      for (final c in group) {
+        rows.add((c, false));
       }
     }
+    String textOf(RuleChange c, bool header) {
+      if (header) {
+        return grouping == RuleChangeGrouping.target
+            ? ruleTargetHeading(l, units, c.subject, targets[c.targetId])
+            : c.ruleName;
+      }
+      final d = describeRuleChange(l, units, c, nameOf);
+      final who = grouping == RuleChangeGrouping.target
+          ? c.ruleName
+          : ruleTargetHeading(l, units, c.subject, targets[c.targetId]);
+      return d.appended != null
+          ? '$who: ${l.rules_change_appended(d.field, d.appended!)}'
+          : l.rules_change_line(who, d.field, d.before, d.after);
+    }
+
     final theme = Theme.of(context);
     return ListView.builder(
-      shrinkWrap: shrinkWrap,
-      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: rows.length,
       itemBuilder: (context, i) {
-        final (text, header) = rows[i];
+        final (change, header) = rows[i];
+        final text = textOf(change, header);
         return Padding(
           padding: EdgeInsets.fromLTRB(
             header ? 16 : 32,
@@ -211,6 +217,37 @@ class RuleChangeList extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// By item or by rule, for a change list.
+class RuleChangeGroupingToggle extends StatelessWidget {
+  const RuleChangeGroupingToggle({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final RuleChangeGrouping value;
+  final ValueChanged<RuleChangeGrouping> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return SegmentedButton<RuleChangeGrouping>(
+      segments: [
+        ButtonSegment(
+          value: RuleChangeGrouping.target,
+          label: Text(l.rules_preview_groupByTarget),
+        ),
+        ButtonSegment(
+          value: RuleChangeGrouping.rule,
+          label: Text(l.rules_preview_groupByRule),
+        ),
+      ],
+      selected: {value},
+      onSelectionChanged: (s) => onChanged(s.single),
     );
   }
 }

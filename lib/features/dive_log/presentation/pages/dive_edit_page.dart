@@ -4,8 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
-import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -168,6 +166,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_en
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -6141,6 +6141,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
+    // Read now: the diver can leave while the save runs, and a dive logged
+    // by hand gets its rules either way (#3513).
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
 
     try {
       // Build entry DateTime from date and time
@@ -6556,17 +6559,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Logbook rules for a dive logged by hand (#3513): its first save, or
       // a plan just turned into a dive, once its children are saved so the
       // rules see the whole dive. Later edits never run them.
-      if (mounted &&
-          savedDiveId != null &&
+      if (savedDiveId != null &&
           !_isPlanned &&
           !widget.isBulk &&
           (!widget.isEditing || promotedPlan)) {
-        await runRulesAfterCreate(
-          context,
-          ref,
-          subject: RuleSubject.dives,
-          ids: [savedDiveId],
-        );
+        await rulesAfterCreate(subject: RuleSubject.dives, ids: [savedDiveId]);
       }
 
       // Offer to log the dive for linked buddies (issue #2002). Runs before

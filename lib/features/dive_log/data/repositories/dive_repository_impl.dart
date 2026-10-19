@@ -6652,6 +6652,11 @@ class DiveRepository {
   Future<Map<String, List<String>>> courseIdsForDives(List<String> diveIds) =>
       _courseLinks.courseIdsForDives(diveIds);
 
+  /// Each dive's dive types in order, the representative first; a dive with
+  /// no junction rows (a legacy dive) is absent.
+  Future<Map<String, List<String>>> diveTypeIdsForDives(List<String> diveIds) =>
+      _diveTypesForDives(diveIds);
+
   /// {courseId: how many of [diveIds] are in it}, for the bulk editor.
   Future<Map<String, int>> courseCountsForDives(List<String> diveIds) =>
       _courseLinks.courseCountsForDives(diveIds);

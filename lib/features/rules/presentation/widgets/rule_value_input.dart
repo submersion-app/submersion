@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/rules/domain/rule_field_value.dart';
 import 'package:submersion/features/rules/domain/rule_value_kind.dart';
@@ -81,13 +82,12 @@ class _RuleValueInputState extends State<RuleValueInput> {
     },
   );
 
-  String _seed(num n) {
-    final shown = ruleToDisplay(widget.units, widget.unit, n.toDouble());
-    final fixed = shown.toStringAsFixed(widget.integer ? 0 : 2);
-    return fixed.contains('.')
-        ? fixed.replaceFirst(RegExp(r'\.?0+$'), '')
-        : fixed;
-  }
+  /// Seeded as the other number fields are, in the locale's digits, so
+  /// the field and what the diver types back agree on the separator.
+  String _seed(num n) => formatRoundedForInput(
+    ruleToDisplay(widget.units, widget.unit, n.toDouble()),
+    widget.integer ? 0 : 2,
+  );
 
   @override
   void dispose() {

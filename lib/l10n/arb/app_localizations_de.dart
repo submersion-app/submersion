@@ -53253,8 +53253,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rules_section_sites => 'Tauchplatzregeln';
 
   @override
-  String get rules_empty =>
-      'Regeln wenden deine eigenen Bedingungen auf dein Logbuch an, zum Beispiel den Tauchgangstyp Tief für jeden Tauchgang tiefer als 30 m. Nichts läuft, bevor du eine Regel anlegst.';
+  String rules_empty(String depth) {
+    return 'Regeln wenden deine eigenen Bedingungen auf dein Logbuch an, zum Beispiel den Tauchgangstyp Tief für jeden Tauchgang tiefer als $depth. Nichts läuft, bevor du eine Regel anlegst.';
+  }
 
   @override
   String get rules_action_new => 'Neue Regel';
@@ -53326,7 +53327,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rules_trigger_onDemandOnly => 'Nur wenn du sie ausführst';
 
   @override
-  String get rules_trigger_off => 'Aus: läuft nur, wenn du sie ausführst';
+  String get rules_trigger_off => 'Aus: läuft nur über ihr eigenes Menü';
 
   @override
   String get rules_condition_everyDive => 'Jeder Tauchgang';
@@ -53786,6 +53787,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Änderungen: Diese Tauchplätze entsprechen deinen Regeln bereits.';
 
   @override
+  String get rules_run_noRulesOnDives =>
+      'Keine Tauchgangsregel ist an. Schalte eine ein oder führe sie über ihr eigenes Menü aus.';
+
+  @override
+  String get rules_run_noRulesOnSites =>
+      'Keine Tauchplatzregel ist an. Schalte eine ein oder führe sie über ihr eigenes Menü aus.';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -53972,6 +53981,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get rules_create_details => 'Details';
+
+  @override
+  String get rules_create_failed =>
+      'Gespeichert, aber deine Regeln konnten nicht ausgeführt werden.';
 
   @override
   String get rules_action_applyRules => 'Regeln anwenden';

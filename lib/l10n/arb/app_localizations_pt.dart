@@ -53367,8 +53367,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get rules_section_sites => 'Regras de locais';
 
   @override
-  String get rules_empty =>
-      'As regras aplicam as suas próprias condições ao seu registo, por exemplo adicionar o tipo Profundo a cada mergulho com mais de 30 m. Nada é executado até criar uma regra.';
+  String rules_empty(String depth) {
+    return 'As regras aplicam as suas próprias condições ao seu registo, por exemplo adicionar o tipo Profundo a cada mergulho com mais de $depth. Nada é executado até criar uma regra.';
+  }
 
   @override
   String get rules_action_new => 'Nova regra';
@@ -53440,7 +53441,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get rules_trigger_off =>
-      'Desativada: só é executada quando a executar';
+      'Desativada: só é executada a partir do seu próprio menu';
 
   @override
   String get rules_condition_everyDive => 'Todos os mergulhos';
@@ -53901,6 +53902,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem alterações: estes locais já cumprem as suas regras.';
 
   @override
+  String get rules_run_noRulesOnDives =>
+      'Nenhuma regra de mergulhos está ativa. Ative uma, ou execute-a a partir do seu próprio menu.';
+
+  @override
+  String get rules_run_noRulesOnSites =>
+      'Nenhuma regra de locais está ativa. Ative uma, ou execute-a a partir do seu próprio menu.';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -54087,6 +54096,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get rules_create_details => 'Detalhes';
+
+  @override
+  String get rules_create_failed =>
+      'Guardado, mas não foi possível executar as suas regras.';
 
   @override
   String get rules_action_applyRules => 'Aplicar regras';

@@ -1,46 +1,16 @@
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/rules/data/services/dive_rule_applier.dart';
-import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
 import '../../../helpers/test_database.dart';
 import '../rules_fixture.dart';
 
-Rule _rule(RuleAction a) => Rule(
-  id: 'r1',
-  diverId: 'me',
-  subject: RuleSubject.dives,
-  name: 'Rule one',
-  enabled: true,
-  triggers: const {RuleTrigger.afterImport},
-  condition: null,
-  conditionJson: '',
-  actions: [a],
-  actionsJson: '',
-  sortOrder: 0,
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-);
-
 void main() {
   late AppDatabase db;
   final applier = DiveRuleApplier();
-
-  Future<List<String>> typesOf(String diveId) async => [
-    for (final r
-        in await db
-            .customSelect(
-              'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ? '
-              'ORDER BY dive_type_id',
-              variables: [Variable.withString(diveId)],
-            )
-            .get())
-      r.read<String>('dive_type_id'),
-  ];
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -69,7 +39,10 @@ void main() {
 
   test('set water type overwrites and records before and after', () async {
     const a = SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'});
-    final r = await applier.apply(_rule(a), a, ['d20', 'd35']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, [
+      'd20',
+      'd35',
+    ]);
     expect(r.changes.map((c) => c.targetId), ['d20', 'd35']);
     final first = r.changes.first;
     expect(first.field, 'waterType');
@@ -85,7 +58,7 @@ void main() {
 
   test('setting the value a dive already holds records nothing', () async {
     const a = SetDiveFieldAction(BulkField.waterType, {'waterType': 'fresh'});
-    final r = await applier.apply(_rule(a), a, ['d20']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d20']);
     expect(r.changes, isEmpty);
   });
 
@@ -95,19 +68,26 @@ void main() {
       MembershipMode.add,
       ['deep'],
     );
-    final r = await applier.apply(_rule(a), a, ['d35', 'd45']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, [
+      'd35',
+      'd45',
+    ]);
     expect(r.changes.single.targetId, 'd35');
-    // A dive with no type rows holds its representative type.
+    // A dive with no type rows holds its representative type; types are
+    // recorded in order, the representative first, so undo can keep it.
     expect(r.changes.single.before, ['recreational']);
-    expect(r.changes.single.after, ['deep', 'recreational']);
-    expect(await typesOf('d35'), ['deep', 'recreational']);
+    expect(r.changes.single.after, ['recreational', 'deep']);
+    expect(await ruleDiveTypes(db, 'd35'), ['deep', 'recreational']);
   });
 
   test('remove a tag records the list without it', () async {
     const a = DiveMembershipAction(DiveCollection.tags, MembershipMode.remove, [
       'cold',
     ]);
-    final r = await applier.apply(_rule(a), a, ['d20', 'd45']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, [
+      'd20',
+      'd45',
+    ]);
     expect(r.changes.single.targetId, 'd20');
     expect(r.changes.single.before, ['cold']);
     expect(r.changes.single.after, <String>[]);
@@ -115,7 +95,10 @@ void main() {
 
   test('append notes uses a newline only after existing text', () async {
     const a = AppendDiveNotesAction('Boat dive');
-    final r = await applier.apply(_rule(a), a, ['d20', 'd35']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, [
+      'd20',
+      'd35',
+    ]);
     final byDive = {for (final c in r.changes) c.targetId: c};
     expect(byDive['d20']!.after, 'Boat dive');
     expect(byDive['d35']!.before, 'Wall');
@@ -126,11 +109,27 @@ void main() {
     expect(notes.read<String>('notes'), 'Wall\nBoat dive');
   });
 
+  test('a site-only tag added to dives widens to dives first', () async {
+    // A link implies its scope (#1765); see the site applier's twin.
+    await db.customStatement(
+      'INSERT INTO tags (id, name, created_at, updated_at, '
+      "applies_to_dives, applies_to_sites) VALUES ('reefy', 'Reefy', 0, 0, 0, 1)",
+    );
+    const a = DiveMembershipAction(DiveCollection.tags, MembershipMode.add, [
+      'reefy',
+    ]);
+    await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d20']);
+    final tag = await db
+        .customSelect("SELECT applies_to_dives FROM tags WHERE id = 'reefy'")
+        .getSingle();
+    expect(tag.read<int>('applies_to_dives'), 1);
+  });
+
   test('adding a deleted tag is skipped and flagged', () async {
     const a = DiveMembershipAction(DiveCollection.tags, MembershipMode.add, [
       'gone',
     ]);
-    final r = await applier.apply(_rule(a), a, ['d45']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d45']);
     expect(r.changes, isEmpty);
     expect(r.skippedMissingRef, isTrue);
   });
@@ -139,7 +138,7 @@ void main() {
     const a = SetDiveFieldAction(BulkField.diveCenter, {
       'diveCenterId': 'nowhere',
     });
-    final r = await applier.apply(_rule(a), a, ['d20']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d20']);
     expect(r.changes, isEmpty);
     expect(r.skippedMissingRef, isTrue);
   });
@@ -148,9 +147,13 @@ void main() {
     const a = DiveMembershipAction(DiveCollection.buddies, MembershipMode.add, [
       'ann',
     ], buddyRoleId: 'instructor');
-    final r = await applier.apply(_rule(a), a, ['d20']);
+    final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d20']);
+    // Every role the buddy holds, so undo can put them all back.
     expect(r.changes.single.after, [
-      {'id': 'ann', 'role': 'instructor'},
+      {
+        'id': 'ann',
+        'roles': ['instructor'],
+      },
     ]);
     final link = await db
         .customSelect("SELECT role FROM dive_buddies WHERE dive_id = 'd20'")

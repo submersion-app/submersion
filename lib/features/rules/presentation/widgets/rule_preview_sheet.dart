@@ -59,13 +59,12 @@ class _PreviewSheetState extends State<_PreviewSheet> {
     final p = widget.preview;
     final dives = widget.subject == RuleSubject.dives;
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
-    final notes = [
-      if (p.outOfScopeCount > 0) l.rules_preview_outOfScope(p.outOfScopeCount),
-      if (p.skippedRuleNames.isNotEmpty)
-        l.rules_preview_skippedRules(p.skippedRuleNames.join(', ')),
-      if (p.skippedActionRuleNames.isNotEmpty)
-        l.rules_preview_skippedActions(p.skippedActionRuleNames.join(', ')),
-    ];
+    final notes = ruleRunNotes(
+      l,
+      outOfScope: p.outOfScopeCount,
+      skippedRules: p.skippedRuleNames,
+      skippedActions: p.skippedActionRuleNames,
+    );
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -100,19 +99,9 @@ class _PreviewSheetState extends State<_PreviewSheet> {
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: SegmentedButton<RuleChangeGrouping>(
-                segments: [
-                  ButtonSegment(
-                    value: RuleChangeGrouping.target,
-                    label: Text(l.rules_preview_groupByTarget),
-                  ),
-                  ButtonSegment(
-                    value: RuleChangeGrouping.rule,
-                    label: Text(l.rules_preview_groupByRule),
-                  ),
-                ],
-                selected: {_grouping},
-                onSelectionChanged: (s) => setState(() => _grouping = s.single),
+              child: RuleChangeGroupingToggle(
+                value: _grouping,
+                onChanged: (g) => setState(() => _grouping = g),
               ),
             ),
             Flexible(

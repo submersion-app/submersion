@@ -43,7 +43,15 @@ class WeatherRepository {
 
       if (weatherData == null) return;
 
-      final updatedDive = dive.copyWith(
+      // Re-read rather than writing [dive] back: updateDive rewrites every
+      // column and child collection from the entity it is handed, and the
+      // dive changed while the request was out (a new dive's logbook rules
+      // run in that window, #3513). Writing the earlier read back would
+      // undo them, as it once deleted freshly defaulted gear (#1720).
+      final stored = await _diveRepository.getDiveById(diveId);
+      if (stored == null) return;
+
+      final updatedDive = stored.copyWith(
         windSpeed: weatherData.windSpeed,
         windDirection: weatherData.windDirection,
         cloudCover: weatherData.cloudCover,
@@ -54,8 +62,8 @@ class WeatherRepository {
         weatherSource: WeatherSource.openMeteo,
         weatherFetchedAt: DateTime.now(),
         // Only populate airTemp/surfacePressure if currently null
-        airTemp: dive.airTemp ?? weatherData.airTemp,
-        surfacePressure: dive.surfacePressure ?? weatherData.surfacePressure,
+        airTemp: stored.airTemp ?? weatherData.airTemp,
+        surfacePressure: stored.surfacePressure ?? weatherData.surfacePressure,
       );
 
       await _diveRepository.updateDive(updatedDive);

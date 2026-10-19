@@ -1842,7 +1842,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/rules/history',
             name: 'ruleHistory',
-            builder: (context, state) => const RuleHistoryPage(),
+            builder: (context, state) {
+              // ?runs= lists just those runs (one import's, any profile).
+              final runs = state.uri.queryParameters['runs'];
+              return RuleHistoryPage(
+                runIds: runs == null || runs.isEmpty ? null : runs.split(','),
+              );
+            },
           ),
           GoRoute(
             path: '/rules/history/:runId',

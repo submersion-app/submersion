@@ -513,7 +513,9 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON saved_queries(diver_id, subject, sort_order)',
   ),
   // Logbook rules (v296, issue #3513): a diver's rules in run order, the
-  // history newest first, a run's changes, and a target's changes.
+  // history newest first, and a run's changes in order. The run index
+  // carries rule_name so the history's rule names are read from it alone,
+  // not from rows holding before and after JSON.
   (
     name: 'idx_rules_diver',
     ddl:
@@ -530,13 +532,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     name: 'idx_rule_run_changes_run',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_rule_run_changes_run '
-        'ON rule_run_changes(run_id, sort_order)',
-  ),
-  (
-    name: 'idx_rule_run_changes_target',
-    ddl:
-        'CREATE INDEX IF NOT EXISTS idx_rule_run_changes_target '
-        'ON rule_run_changes(subject, target_id)',
+        'ON rule_run_changes(run_id, sort_order, rule_name)',
   ),
   // A passport's trips: packed links by item (v248, issue #2338).
   (

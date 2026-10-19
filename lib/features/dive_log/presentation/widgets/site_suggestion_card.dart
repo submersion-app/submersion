@@ -94,10 +94,18 @@ class SiteSuggestionCard extends ConsumerWidget {
       onAssign: recommended == null
           ? null
           : () async {
-              var createdIds = const <String>[];
+              // Read now: the card may be gone by the time the site exists.
+              final rulesAfterCreate = captureRulesAfterCreate(context, ref);
               await _run(context, ref, (l10n) async {
                 final applied = await actions.assign(recommended.id);
-                createdIds = applied.createdSiteIds;
+                // A bundled candidate materialises a site the diver chose:
+                // created by hand for the logbook rules (#3513), run before
+                // the site is re-read below, so the form takes it as they
+                // left it.
+                await rulesAfterCreate(
+                  subject: RuleSubject.sites,
+                  ids: applied.createdSiteIds,
+                );
                 // The candidate id is NOT necessarily the id the dive ends up
                 // with: a bundled candidate materialises a new row, and the
                 // coincidence guard can link an existing site nearby instead.
@@ -111,17 +119,6 @@ class SiteSuggestionCard extends ConsumerWidget {
                   ),
                 );
               });
-              // A bundled candidate materialises a site the diver chose:
-              // created by hand for the logbook rules (#3513), run once the
-              // assignment has been reported.
-              if (createdIds.isNotEmpty && context.mounted) {
-                await runRulesAfterCreate(
-                  context,
-                  ref,
-                  subject: RuleSubject.sites,
-                  ids: createdIds,
-                );
-              }
             },
       onChooseNearby: () => context.push('/dives/match-sites', extra: [diveId]),
       onCreate: () => _create(context, ref, actions, suggestion),
@@ -159,23 +156,15 @@ class SiteSuggestionCard extends ConsumerWidget {
       longitude: suggestion.point.longitude,
     );
     if (draft == null || !context.mounted) return;
-    String? createdId;
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     await _run(context, ref, (l10n) async {
       final created = await actions.create(draft);
-      createdId = created.id;
-      return (created, l10n.diveLog_edit_createdSite(created.name));
+      // Logbook rules for the site created by hand (#3513), before the form
+      // takes the site, so it gets it as they left it.
+      await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
+      final site = await actions.linkedSite() ?? created;
+      return (site, l10n.diveLog_edit_createdSite(created.name));
     });
-    // Logbook rules for the site created by hand (#3513), after the
-    // creation was reported.
-    final id = createdId;
-    if (id != null && context.mounted) {
-      await runRulesAfterCreate(
-        context,
-        ref,
-        subject: RuleSubject.sites,
-        ids: [id],
-      );
-    }
   }
 
   /// Runs a write, then refreshes what depends on it and reports the result:

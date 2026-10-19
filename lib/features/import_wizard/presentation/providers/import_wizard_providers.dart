@@ -64,6 +64,8 @@ class ImportWizardState {
     this.error,
     this.ruleRuns = const [],
     this.rulesFailed = false,
+    this.ruleSkippedRules = const [],
+    this.ruleSkippedActions = const [],
   });
 
   /// The current wizard step index.
@@ -140,6 +142,11 @@ class ImportWizardState {
   /// The rules could not run after the import; the import stands.
   final bool rulesFailed;
 
+  /// Rules the import skipped, and rules with an action naming a deleted
+  /// item, for the summary to report.
+  final List<String> ruleSkippedRules;
+  final List<String> ruleSkippedActions;
+
   ImportWizardState copyWith({
     int? currentStep,
     ImportBundle? bundle,
@@ -164,6 +171,8 @@ class ImportWizardState {
     bool clearError = false,
     List<RuleRunResult>? ruleRuns,
     bool? rulesFailed,
+    List<String>? ruleSkippedRules,
+    List<String>? ruleSkippedActions,
   }) {
     return ImportWizardState(
       currentStep: currentStep ?? this.currentStep,
@@ -190,6 +199,8 @@ class ImportWizardState {
       error: clearError ? null : (error ?? this.error),
       ruleRuns: ruleRuns ?? this.ruleRuns,
       rulesFailed: rulesFailed ?? this.rulesFailed,
+      ruleSkippedRules: ruleSkippedRules ?? this.ruleSkippedRules,
+      ruleSkippedActions: ruleSkippedActions ?? this.ruleSkippedActions,
     );
   }
 
@@ -1036,6 +1047,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
               result,
               activeDiverId: _diverId,
               sourceLabel: _adapter.displayName,
+              isCancelled: () => token.isCancelled,
             );
 
       state = state.copyWith(
@@ -1045,6 +1057,8 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         error: tagWarning,
         ruleRuns: rules.runs,
         rulesFailed: rules.failed,
+        ruleSkippedRules: rules.skippedRules,
+        ruleSkippedActions: rules.skippedActions,
       );
     } catch (e, stackTrace) {
       // The summary shows only the message; the trace is what finds the

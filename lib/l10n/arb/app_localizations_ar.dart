@@ -54042,8 +54042,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rules_section_sites => 'قواعد المواقع';
 
   @override
-  String get rules_empty =>
-      'تطبّق القواعد شروطك الخاصة على سجلك، مثل إضافة نوع الغطسة «عميقة» إلى كل غطسة أعمق من 30 م. لا يُشغَّل شيء حتى تنشئ قاعدة.';
+  String rules_empty(String depth) {
+    return 'تطبّق القواعد شروطك الخاصة على سجلك، مثل إضافة نوع الغطسة «عميقة» إلى كل غطسة أعمق من $depth. لا يُشغَّل شيء حتى تنشئ قاعدة.';
+  }
 
   @override
   String get rules_action_new => 'قاعدة جديدة';
@@ -54110,7 +54111,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rules_trigger_onDemandOnly => 'فقط عندما تشغّلها';
 
   @override
-  String get rules_trigger_off => 'متوقفة: تعمل فقط عندما تشغّلها';
+  String get rules_trigger_off => 'متوقفة: تعمل فقط من قائمتها';
 
   @override
   String get rules_condition_everyDive => 'كل غطسة';
@@ -54585,6 +54586,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا تغييرات: هذه المواقع تطابق قواعدك بالفعل.';
 
   @override
+  String get rules_run_noRulesOnDives =>
+      'لا توجد قواعد غطسات مفعّلة. فعّل واحدة، أو شغّلها من قائمتها.';
+
+  @override
+  String get rules_run_noRulesOnSites =>
+      'لا توجد قواعد مواقع مفعّلة. فعّل واحدة، أو شغّلها من قائمتها.';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -54790,6 +54799,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rules_create_details => 'التفاصيل';
+
+  @override
+  String get rules_create_failed => 'تم الحفظ، لكن تعذّر تشغيل قواعدك.';
 
   @override
   String get rules_action_applyRules => 'تطبيق القواعد';

@@ -31,12 +31,11 @@ class _RuleRunPageState extends ConsumerState<RuleRunPage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final detail = ref.watch(ruleRunDetailProvider(widget.runId));
-    final nameOf = ref.watch(ruleNameOfProvider).value;
     final units = UnitFormatter(ref.watch(settingsProvider));
     return Scaffold(
       appBar: AppBar(title: Text(l.rules_run_title)),
       body: switch (detail) {
-        AsyncData(:final value) when nameOf != null => Column(
+        AsyncData(:final value) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (value.run != null)
@@ -49,19 +48,9 @@ class _RuleRunPageState extends ConsumerState<RuleRunPage> {
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: SegmentedButton<RuleChangeGrouping>(
-                segments: [
-                  ButtonSegment(
-                    value: RuleChangeGrouping.target,
-                    label: Text(l.rules_preview_groupByTarget),
-                  ),
-                  ButtonSegment(
-                    value: RuleChangeGrouping.rule,
-                    label: Text(l.rules_preview_groupByRule),
-                  ),
-                ],
-                selected: {_grouping},
-                onSelectionChanged: (s) => setState(() => _grouping = s.single),
+              child: RuleChangeGroupingToggle(
+                value: _grouping,
+                onChanged: (g) => setState(() => _grouping = g),
               ),
             ),
             Expanded(
@@ -69,7 +58,7 @@ class _RuleRunPageState extends ConsumerState<RuleRunPage> {
                 changes: value.changes,
                 targets: value.targets,
                 units: units,
-                nameOf: nameOf,
+                nameOf: value.nameOf,
                 grouping: _grouping,
               ),
             ),

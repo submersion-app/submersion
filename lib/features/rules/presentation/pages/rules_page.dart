@@ -58,14 +58,6 @@ class RulesPage extends ConsumerWidget {
             )
           : null,
       body: switch ((dives, sites, nameOf)) {
-        (
-          AsyncData(value: final d),
-          AsyncData(value: final s),
-          AsyncData(value: final n),
-        ) =>
-          d.isEmpty && s.isEmpty
-              ? const _EmptyRules()
-              : _RuleLists(dives: d, sites: s, nameOf: n),
         (AsyncError(:final error, :final stackTrace), _, _) ||
         (_, AsyncError(:final error, :final stackTrace), _) ||
         (_, _, AsyncError(:final error, :final stackTrace)) => () {
@@ -76,18 +68,33 @@ class RulesPage extends ConsumerWidget {
           );
           return Center(child: Text(l10n.common_error_tryAgain));
         }(),
+        // A reload (a synced tag or site refreshing the names) keeps its
+        // previous value, so the lists stay up and their rows mounted
+        // rather than flashing to a spinner.
+        (
+          AsyncValue(value: final d?),
+          AsyncValue(value: final s?),
+          AsyncValue(value: final n?),
+        ) =>
+          d.isEmpty && s.isEmpty
+              ? const _EmptyRules()
+              : _RuleLists(dives: d, sites: s, nameOf: n),
         _ => const Center(child: CircularProgressIndicator()),
       },
     );
   }
 }
 
-class _EmptyRules extends StatelessWidget {
+class _EmptyRules extends ConsumerWidget {
   const _EmptyRules();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // 30.48 m is 100 ft: a round example in either unit.
+    final example = UnitFormatter(
+      ref.watch(settingsProvider),
+    ).formatDepth(30.48, decimals: 0);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -100,7 +107,7 @@ class _EmptyRules extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
-            Text(l10n.rules_empty, textAlign: TextAlign.center),
+            Text(l10n.rules_empty(example), textAlign: TextAlign.center),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () => context.push('/rules/new'),
@@ -228,15 +235,19 @@ class _RuleTile extends ConsumerWidget {
     final prefs = ref.watch(queryUnitPrefsProvider);
     final problem = ruleProblemText(l10n, rule);
     final broken = rule.actions.any((a) => ruleActionIsBroken(a, nameOf));
-    final condition = rule.condition == null
-        ? (rule.subject == RuleSubject.dives
-              ? l10n.rules_condition_everyDive
-              : l10n.rules_condition_everySite)
-        : QueryPrinter(
+    // A condition that did not load is not "every dive": the problem line
+    // below says what is wrong, as the saved-queries page does.
+    final condition = rule.condition != null
+        ? QueryPrinter(
             appQueryRegistry,
             appQueryRegistry.entityFor(rule.subject.querySubject),
             prefs,
-          ).print(rule.condition!);
+          ).print(rule.condition!)
+        : rule.conditionJson.isNotEmpty
+        ? null
+        : rule.subject == RuleSubject.dives
+        ? l10n.rules_condition_everyDive
+        : l10n.rules_condition_everySite;
     final muted = theme.colorScheme.onSurfaceVariant;
     return Material(
       child: ListTile(
@@ -254,7 +265,8 @@ class _RuleTile extends ConsumerWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(condition, style: const TextStyle(fontFamily: 'monospace')),
+            if (condition != null)
+              Text(condition, style: const TextStyle(fontFamily: 'monospace')),
             for (final a in rule.actions)
               Text(describeRuleAction(l10n, units, a, nameOf)),
             Text(

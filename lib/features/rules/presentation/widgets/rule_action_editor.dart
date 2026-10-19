@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/domain/query_value.dart';
@@ -7,6 +9,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_ref_picker_sheet.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
@@ -18,6 +21,7 @@ import 'package:submersion/features/rules/domain/rule_value_kind.dart';
 import 'package:submersion/features/rules/presentation/rule_labels.dart';
 import 'package:submersion/features/rules/presentation/widgets/rule_action_picker_sheet.dart';
 import 'package:submersion/features/rules/presentation/widgets/rule_value_input.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -112,7 +116,16 @@ Future<String?> _pickRole(
   WidgetRef ref,
   String? current,
 ) async {
-  final roles = await ref.read(allDiveRolesProvider.future);
+  // Built-in roles the diver hid stay out, as in every role picker (#401),
+  // unless the action already uses one.
+  final hidden = ref.read(hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles));
+  final roles = visibleBuiltIns(
+    await ref.read(allDiveRolesProvider.future),
+    hidden,
+    isBuiltIn: (r) => r.isBuiltIn,
+    idOf: (r) => r.id,
+    keep: [current],
+  );
   if (!context.mounted) return null;
   final l10n = context.l10n;
   return showDialog<String>(
@@ -125,7 +138,7 @@ Future<String?> _pickRole(
             onPressed: () => Navigator.of(dialogContext).pop(r.id),
             child: Text(
               r.localizedName(l10n),
-              style: r.id == (current ?? 'buddy')
+              style: r.id == (current ?? DiveRole.buddyId)
                   ? const TextStyle(fontWeight: FontWeight.bold)
                   : null,
             ),
@@ -159,36 +172,60 @@ Future<RuleAction?> _editRefField(
 Future<String?> _editText(BuildContext context, String title, String text) =>
     showDialog<String>(
       context: context,
-      builder: (dialogContext) {
-        final controller = TextEditingController(text: text);
-        return AlertDialog(
-          title: Text(title),
-          content: TextField(
-            key: const ValueKey('rule_value_append'),
-            controller: controller,
-            autofocus: true,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: dialogContext.l10n.rules_actionEditor_text,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(dialogContext.l10n.common_action_cancel),
-            ),
-            FilledButton(
-              key: const ValueKey('rule_action_ok'),
-              onPressed: () {
-                final value = controller.text.trim();
-                Navigator.of(dialogContext).pop(value.isEmpty ? null : value);
-              },
-              child: Text(dialogContext.l10n.common_action_ok),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _TextDialog(title: title, text: text),
     );
+
+/// The append text, its controller owned (and disposed) by the dialog so a
+/// rebuild while it is open keeps what the diver typed.
+class _TextDialog extends StatefulWidget {
+  const _TextDialog({required this.title, required this.text});
+
+  final String title;
+  final String text;
+
+  @override
+  State<_TextDialog> createState() => _TextDialogState();
+}
+
+class _TextDialogState extends State<_TextDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.text,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.title),
+    content: TextField(
+      key: const ValueKey('rule_value_append'),
+      controller: _controller,
+      autofocus: true,
+      maxLines: 3,
+      decoration: InputDecoration(
+        labelText: context.l10n.rules_actionEditor_text,
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text(context.l10n.common_action_cancel),
+      ),
+      FilledButton(
+        key: const ValueKey('rule_action_ok'),
+        onPressed: () {
+          final value = _controller.text.trim();
+          Navigator.of(context).pop(value.isEmpty ? null : value);
+        },
+        child: Text(context.l10n.common_action_ok),
+      ),
+    ],
+  );
+}
 
 /// The value of a set-field action: one input, or two for the diluent.
 class _ValueDialog extends ConsumerStatefulWidget {
@@ -202,7 +239,7 @@ class _ValueDialog extends ConsumerStatefulWidget {
 }
 
 class _ValueDialogState extends ConsumerState<_ValueDialog> {
-  late final Map<String, Object?> _values = switch (widget.initial) {
+  late Map<String, Object?> _values = switch (widget.initial) {
     SetDiveFieldAction(:final values) => {...values},
     SetSiteFieldAction(:final field, :final value) => {field.name: value},
     _ => {
@@ -246,7 +283,7 @@ class _ValueDialogState extends ConsumerState<_ValueDialog> {
       enumValues: dive != null ? diveFieldEnumValues(dive) : site!.enumValues,
       integer: dive != null && diveFieldIsInteger(dive),
       label: label,
-      onChanged: (v) => setState(() => _values[key] = v),
+      onChanged: (v) => setState(() => _values = {..._values, key: v}),
     );
     return AlertDialog(
       title: Text(widget.template.label(l10n)),

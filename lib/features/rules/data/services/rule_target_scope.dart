@@ -71,18 +71,28 @@ class RuleTargetScope {
     return out;
   }
 
+  /// Whether [condition] reads [table].
+  bool reads(
+    QueryNode? condition,
+    RuleSubject s,
+    String diverId,
+    String table,
+  ) =>
+      condition != null &&
+      _compile(condition, s, diverId).tablesTouched.contains(table);
+
   /// Every dive or site the diver's rules may change.
   Future<Set<String>> allEligibleIds(RuleSubject s, String diverId) =>
       _runner.ids(_compile(null, s, diverId), scope: scopeFor(s, diverId));
 
   /// How many eligible targets [condition] matches, for the editor's live
-  /// count.
+  /// count: counted by the database, not fetched.
   Future<int> countMatches(
     QueryNode? condition,
     RuleSubject s,
     String diverId,
-  ) async => (await _runner.ids(
+  ) => _runner.count(
     _compile(condition, s, diverId),
     scope: scopeFor(s, diverId),
-  )).length;
+  );
 }

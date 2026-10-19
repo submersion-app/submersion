@@ -53,11 +53,45 @@ void main() {
       () => ruleActionsFromJson({
         'version': 1,
         'actions': [
-          {'kind': 'setDiveField', 'field': 'notAField', 'values': {}},
+          {'kind': 'setDiveField', 'field': 42, 'values': {}},
         ],
       }),
       throwsA(isA<RuleJsonException>()),
     );
+  });
+
+  test('keeps an action naming a value a newer version added', () {
+    // A field, collection or mode this version lacks: the action is kept
+    // as it was stored (never run, saved back unchanged), and the rest of
+    // the list still reads.
+    final raws = [
+      {
+        'kind': 'setDiveField',
+        'field': 'futureField',
+        'values': {'futureField': 1},
+      },
+      {
+        'kind': 'diveMembership',
+        'collection': 'sightings',
+        'mode': 'add',
+        'ids': ['s1'],
+      },
+      {
+        'kind': 'siteMembership',
+        'collection': 'tags',
+        'mode': 'replace',
+        'ids': ['t1'],
+      },
+      {'kind': 'setSiteField', 'field': 'visibility', 'value': 10},
+    ];
+    final known = (ruleActionsToJson(all)['actions']! as List).first;
+    final back = ruleActionsFromJson({
+      'version': 1,
+      'actions': [...raws, known],
+    });
+    expect(back.take(4), everyElement(isA<UnknownRuleAction>()));
+    expect(back.last, all.first);
+    expect((ruleActionsToJson(back)['actions']! as List).take(4), raws);
   });
 
   test('keeps an unknown kind', () {
@@ -68,10 +102,5 @@ void main() {
     });
     expect(back.single, isA<UnknownRuleAction>());
     expect((back.single as UnknownRuleAction).raw, raw);
-  });
-
-  test('actions know their subject', () {
-    expect(all.first.appliesToDives, isTrue);
-    expect(const AppendSiteDescriptionAction('x').appliesToDives, isFalse);
   });
 }

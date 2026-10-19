@@ -18,9 +18,7 @@ extension RuleMigrations on AppDatabase {
       'CREATE INDEX IF NOT EXISTS idx_rule_runs_diver '
           'ON rule_runs(diver_id, ran_at)',
       'CREATE INDEX IF NOT EXISTS idx_rule_run_changes_run '
-          'ON rule_run_changes(run_id, sort_order)',
-      'CREATE INDEX IF NOT EXISTS idx_rule_run_changes_target '
-          'ON rule_run_changes(subject, target_id)',
+          'ON rule_run_changes(run_id, sort_order, rule_name)',
     ]) {
       await customStatement(ddl);
     }

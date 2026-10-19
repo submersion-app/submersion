@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/names/name_index.dart';
@@ -11,7 +10,9 @@ import 'package:submersion/features/import_wizard/domain/models/import_phase.dar
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
+import 'package:submersion/features/rules/data/services/import_rules_pass.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
+import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
@@ -55,6 +56,20 @@ class _Adapter implements ImportSourceAdapter {
   }) async => result;
 }
 
+/// Counts the runs it makes.
+class _CountingEngine extends RuleEngine {
+  _CountingEngine(this.onRun) : super(names: (_) async => NameIndex(const []));
+
+  final void Function() onRun;
+
+  @override
+  Future<RuleRunResult> run(RuleRunRequest request) async {
+    final result = await super.run(request);
+    onRun();
+    return result;
+  }
+}
+
 const _bundle = ImportBundle(
   source: ImportSourceInfo(type: ImportSourceType.uddf, displayName: 'x.uddf'),
   groups: {},
@@ -63,18 +78,6 @@ const _bundle = ImportBundle(
 void main() {
   late AppDatabase db;
   late RuleEngine engine;
-
-  Future<List<String>> typesOf(String id) async => [
-    for (final r
-        in await db
-            .customSelect(
-              'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ? '
-              'ORDER BY dive_type_id',
-              variables: [Variable.withString(id)],
-            )
-            .get())
-      r.read<String>('dive_type_id'),
-  ];
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -117,8 +120,8 @@ void main() {
     await deepRule('me');
     final n = notifier(imported);
     await n.performImport();
-    expect(await typesOf('d35'), ['deep', 'recreational']);
-    expect(await typesOf('d20'), isEmpty);
+    expect(await ruleDiveTypes(db, 'd35'), ['deep', 'recreational']);
+    expect(await ruleDiveTypes(db, 'd20'), isEmpty);
     expect(n.state.ruleRuns.single.changedTargetCount, 1);
     expect(n.state.ruleRuns.single.runId, isNotNull);
     expect(n.state.rulesFailed, isFalse);
@@ -128,7 +131,7 @@ void main() {
     final n = notifier(imported);
     await n.performImport();
     expect(n.state.ruleRuns, isEmpty);
-    expect(await typesOf('d35'), isEmpty);
+    expect(await ruleDiveTypes(db, 'd35'), isEmpty);
   });
 
   test('a cancelled import runs no rules', () async {
@@ -137,8 +140,48 @@ void main() {
     final run = n.performImport();
     n.cancelImport();
     await run;
-    expect(await typesOf('d35'), isEmpty);
+    expect(await ruleDiveTypes(db, 'd35'), isEmpty);
   });
+
+  test(
+    'a cancel during the rules pass stops before the next profile',
+    () async {
+      await deepRule('me');
+      await deepRule('other');
+      var ran = 0;
+      final outcome = await runImportRules(
+        _CountingEngine(() => ran++),
+        const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ['d20', 'd35'],
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'me',
+              name: 'me',
+              isNew: false,
+              isActive: true,
+              diveIds: ['d20', 'd35'],
+            ),
+            DiverImportOutcome(
+              diverId: 'other',
+              name: 'other',
+              isNew: false,
+              isActive: false,
+              diveIds: ['o40'],
+            ),
+          ],
+        ),
+        activeDiverId: 'me',
+        sourceLabel: 'Perdix 2',
+        // The diver taps Cancel while the first profile's rules run.
+        isCancelled: () => ran >= 1,
+      );
+      expect(outcome.runs, hasLength(1));
+      expect(await ruleDiveTypes(db, 'o40'), isEmpty);
+    },
+  );
 
   test('a rules failure keeps the import and flags it', () async {
     await deepRule('me');
@@ -179,8 +222,8 @@ void main() {
         ),
       );
       await n.performImport();
-      expect(await typesOf('d35'), ['deep', 'recreational']);
-      expect(await typesOf('o40'), ['deep', 'recreational']);
+      expect(await ruleDiveTypes(db, 'd35'), ['deep', 'recreational']);
+      expect(await ruleDiveTypes(db, 'o40'), ['deep', 'recreational']);
       expect(n.state.ruleRuns, hasLength(2));
     },
   );

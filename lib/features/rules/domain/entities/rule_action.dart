@@ -19,10 +19,6 @@ const _mapEq = DeepCollectionEquality();
 /// Values are canonical: metric units, enum `.name`, entity ids.
 sealed class RuleAction {
   const RuleAction();
-
-  /// True for dive actions, false for site actions. An unknown action
-  /// (from a newer app version) answers false and never runs.
-  bool get appliesToDives;
 }
 
 /// Set one bulk-editable dive field. [values] holds the [BulkScalarInputs]
@@ -32,9 +28,6 @@ class SetDiveFieldAction extends RuleAction {
 
   final BulkField field;
   final Map<String, Object?> values;
-
-  @override
-  bool get appliesToDives => true;
 
   @override
   bool operator ==(Object other) =>
@@ -62,9 +55,6 @@ class DiveMembershipAction extends RuleAction {
   final String? buddyRoleId;
 
   @override
-  bool get appliesToDives => true;
-
-  @override
   bool operator ==(Object other) =>
       other is DiveMembershipAction &&
       other.collection == collection &&
@@ -84,9 +74,6 @@ class AppendDiveNotesAction extends RuleAction {
   final String text;
 
   @override
-  bool get appliesToDives => true;
-
-  @override
   bool operator ==(Object other) =>
       other is AppendDiveNotesAction && other.text == text;
 
@@ -100,9 +87,6 @@ class SetSiteFieldAction extends RuleAction {
 
   final SiteRuleField field;
   final Object value;
-
-  @override
-  bool get appliesToDives => false;
 
   @override
   bool operator ==(Object other) =>
@@ -123,9 +107,6 @@ class SiteMembershipAction extends RuleAction {
   final List<String> ids;
 
   @override
-  bool get appliesToDives => false;
-
-  @override
   bool operator ==(Object other) =>
       other is SiteMembershipAction &&
       other.collection == collection &&
@@ -143,9 +124,6 @@ class AppendSiteDescriptionAction extends RuleAction {
   final String text;
 
   @override
-  bool get appliesToDives => false;
-
-  @override
   bool operator ==(Object other) =>
       other is AppendSiteDescriptionAction && other.text == text;
 
@@ -159,9 +137,6 @@ class UnknownRuleAction extends RuleAction {
   const UnknownRuleAction(this.raw);
 
   final Map<String, Object?> raw;
-
-  @override
-  bool get appliesToDives => false;
 
   @override
   bool operator ==(Object other) =>

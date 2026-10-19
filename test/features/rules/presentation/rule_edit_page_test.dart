@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
@@ -35,6 +38,7 @@ void main() {
     WidgetTester tester, {
     String? ruleId,
     MockSettingsNotifier? settings,
+    NameIndex? names,
   }) async {
     await tester.runAsync(
       () => pumpRulesApp(
@@ -42,6 +46,7 @@ void main() {
         path: '/rules/edit',
         home: (_) => RuleEditPage(ruleId: ruleId),
         settings: settings,
+        names: names == null ? null : (_) async => names,
       ),
     );
     await tester.pumpAndSettle();
@@ -121,6 +126,55 @@ void main() {
     expect(action.values['swellHeight'] as double, closeTo(0.9144, 1e-6));
   });
 
+  testWidgets('the role choice leaves out roles the diver hid', (tester) async {
+    // As every other role picker does (#401).
+    await pumpEditor(
+      tester,
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'diveRoles': {'instructor'},
+          },
+        ),
+      ),
+      names: NameIndex.fromRefs({
+        QuerySubject.diveTypes: const [],
+        QuerySubject.tags: const [],
+        QuerySubject.sites: const [],
+        QuerySubject.buddies: const [RefValue('ann', 'Ann')],
+        QuerySubject.equipment: const [],
+      }),
+    );
+    await addAction(tester, 'Add buddies');
+    await tester.tap(find.text('Ann'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Role'), findsOneWidget);
+    expect(find.text('Buddy'), findsOneWidget);
+    expect(find.text('Instructor'), findsNothing);
+  });
+
+  testWidgets('text typed into the append dialog survives a rebuild', (
+    tester,
+  ) async {
+    // A router refresh rebuilds every open route's page; a controller made
+    // in the dialog's builder came back with the starting text.
+    await pumpEditor(tester);
+    await addAction(tester, 'Append to notes');
+    await tester.enterText(
+      find.byKey(const ValueKey('rule_value_append')),
+      'Boat dive',
+    );
+    await tester.pump();
+    GoRouter.of(tester.element(find.byType(RuleEditPage))).refresh();
+    await tester.pumpAndSettle();
+    expect(find.text('Boat dive'), findsOneWidget);
+  });
+
   testWidgets('Save stays disabled with no actions', (tester) async {
     await pumpEditor(tester);
     await tester.enterText(find.byKey(const ValueKey('rule_name')), 'Empty');
@@ -188,6 +242,39 @@ void main() {
     await pumpEditor(tester, ruleId: id);
     expect(find.textContaining('Made by a newer version'), findsOneWidget);
     expect(find.byKey(const ValueKey('rule_save')), findsNothing);
+  });
+
+  testWidgets('Save waits while the condition text does not parse', (
+    tester,
+  ) async {
+    // The text field keeps the last tree that parsed; saving then would
+    // store a condition other than the one on screen.
+    late String id;
+    await tester.runAsync(() async {
+      id = await repo.create(
+        diverId: 'me',
+        subject: RuleSubject.dives,
+        name: 'Deep',
+        triggers: const {RuleTrigger.afterImport},
+        condition: depthOver(30) as QueryNode,
+        actions: const [AppendDiveNotesAction('deep')],
+      );
+    });
+    await pumpEditor(tester, ruleId: id);
+    final field = find.descendant(
+      of: find.byKey(const ValueKey('rule_condition_dives')),
+      matching: find.byType(TextField),
+    );
+    AppBarTextAction save() =>
+        tester.widget(find.byKey(const ValueKey('rule_save')));
+
+    await tester.enterText(field, 'depth > 30 and site = "Nowhere"');
+    await tester.pumpAndSettle();
+    expect(save().onPressed, isNull);
+
+    await tester.enterText(field, 'depth > 40');
+    await tester.pumpAndSettle();
+    expect(save().onPressed, isNotNull);
   });
 
   testWidgets('the condition shows a live match count', (tester) async {

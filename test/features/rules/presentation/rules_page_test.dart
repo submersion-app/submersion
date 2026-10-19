@@ -1,11 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/pages/rules_page.dart';
+import 'package:submersion/features/rules/presentation/widgets/rules_page_menus.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import '../../../helpers/mock_providers.dart';
 
 import '../../../helpers/test_database.dart';
 import '../rules_fixture.dart';
@@ -50,6 +59,34 @@ void main() {
       findsOneWidget,
     );
     expect(find.widgetWithText(FilledButton, 'New rule'), findsOneWidget);
+  });
+
+  testWidgets('the empty state\'s example follows the diver\'s units', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await pumpRulesApp(
+        tester,
+        home: (_) => const RulesPage(),
+        settings: MockSettingsNotifier(
+          const AppSettings(depthUnit: DepthUnit.feet),
+        ),
+      );
+    });
+    await tester.pumpAndSettle();
+    expect(find.textContaining('deeper than 100ft'), findsOneWidget);
+  });
+
+  testWidgets('a switched-off rule says how it can still run', (tester) async {
+    // Run rules and Apply rules leave an off rule out; only its own menu
+    // runs it.
+    await tester.runAsync(() async {
+      final id = await make('Deep');
+      await repo.setEnabled(id, false);
+      await pumpRulesApp(tester, home: (_) => const RulesPage());
+    });
+    await tester.pumpAndSettle();
+    expect(find.text('Off: runs only from its own menu'), findsOneWidget);
   });
 
   testWidgets('lists dive and site rules in their sections', (tester) async {
@@ -118,6 +155,106 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('that action is skipped'), findsOneWidget);
     expect(find.textContaining('Made by a newer version'), findsOneWidget);
+  });
+
+  testWidgets('a condition naming a deleted site says which', (tester) async {
+    // As the saved-queries page does with the same load (one loader, one
+    // wording of what it found).
+    await tester.runAsync(() async {
+      await make(
+        'Ghost site',
+        condition: ConditionNode(
+          FieldPath(['site']),
+          QueryOp.eq,
+          const RefValue('gone', 'Gone Reef'),
+        ),
+      );
+      await pumpRulesApp(tester, home: (_) => const RulesPage());
+    });
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Gone Reef'), findsWidgets);
+  });
+
+  testWidgets('a condition that will not load is not shown as every dive', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final id = await make('Unreadable', condition: depthOver(18));
+      await db.customStatement(
+        "UPDATE rules SET condition_json = 'not json' WHERE id = '$id'",
+      );
+      await pumpRulesApp(tester, home: (_) => const RulesPage());
+    });
+    await tester.pumpAndSettle();
+    expect(find.text('Unreadable'), findsOneWidget);
+    expect(find.text('Every dive'), findsNothing);
+  });
+
+  testWidgets('the list stays up while the names reload', (tester) async {
+    final tick = StateProvider<int>((ref) => 0);
+    final reload = Completer<NameIndex>();
+    await tester.runAsync(() async {
+      await make('Deep');
+      await pumpRulesApp(
+        tester,
+        home: (_) => const RulesPage(),
+        names: (ref) =>
+            ref.watch(tick) == 0 ? Future.value(kRuleTestNames) : reload.future,
+      );
+    });
+    await tester.pumpAndSettle();
+    expect(find.text('Deep'), findsOneWidget);
+
+    // A synced tag or site refreshes the names every rule resolves against.
+    ProviderScope.containerOf(
+      tester.element(find.byType(RulesPage)),
+    ).read(tick.notifier).state++;
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Deep'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    reload.complete(kRuleTestNames);
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a confirmed delete lands though the row went away', (
+    tester,
+  ) async {
+    final tick = StateProvider<int>((ref) => 0);
+    late String id;
+    await tester.runAsync(() async {
+      id = await make('Deep');
+      await pumpRulesApp(
+        tester,
+        home: (_) => const RulesPage(),
+        names: (ref) => ref.watch(tick) == 0
+            ? Future.value(kRuleTestNames)
+            : Future.error(StateError('names failed')),
+      );
+    });
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Rule actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // While the dialog is up, a reload fails and the rows are rebuilt away.
+    ProviderScope.containerOf(
+      tester.element(find.byType(RulesPage)),
+    ).read(tick.notifier).state++;
+    await tester.pumpAndSettle();
+    expect(find.byType(RuleRowMenu), findsNothing);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    final left = await tester.runAsync(
+      () => repo.getById(id, names: kRuleTestNames),
+    );
+    expect(left, isNull);
   });
 
   testWidgets('Run on all from a row opens the preview', (tester) async {

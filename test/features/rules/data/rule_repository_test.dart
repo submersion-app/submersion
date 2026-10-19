@@ -16,11 +16,6 @@ void main() {
   late AppDatabase db;
   late RuleRepository repo;
   final names = NameIndex(const []);
-  const addDeep = DiveMembershipAction(
-    DiveCollection.diveTypes,
-    MembershipMode.add,
-    ['deep'],
-  );
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -40,7 +35,7 @@ void main() {
     name: name,
     triggers: const {RuleTrigger.afterImport},
     condition: condition,
-    actions: const [addDeep],
+    actions: const [kAddDeepType],
   );
 
   test('create lists in order with the condition and actions', () async {
@@ -53,7 +48,7 @@ void main() {
     );
     expect(all.map((r) => r.name), ['Deep', 'Boat']);
     expect(all.first.condition, isA<ConditionNode>());
-    expect(all.first.actions, const [addDeep]);
+    expect(all.first.actions, const [kAddDeepType]);
     expect(all.first.problem, isNull);
     expect(all.first.isRunnable, isTrue);
     expect(all.last.condition, isNull);
@@ -131,6 +126,33 @@ void main() {
     );
     final r = await repo.getById(id, names: names);
     expect(r!.problem, RuleLoadProblem.newerVersion);
+  });
+
+  test('saving keeps what a newer version added', () async {
+    // A field this version lacks, inside an action kind it knows, and a
+    // trigger it lacks: the rule must not run, and saving it here (say a
+    // rename) must not erase them for the device that wrote them.
+    final id = await make('Future');
+    const future =
+        '{"kind":"setDiveField","field":"futureField","values":{"x":1}}';
+    await db.customStatement(
+      "UPDATE rules SET actions_json = '{\"version\":1,\"actions\":[$future]}', "
+      "triggers = 'afterImport,afterSync' WHERE id = '$id'",
+    );
+    final r = (await repo.getById(id, names: names))!;
+    expect(r.isRunnable, isFalse);
+    expect(r.actions.single, isA<UnknownRuleAction>());
+
+    await repo.update(r.copyWith(name: 'Renamed'));
+
+    final row = await db
+        .customSelect(
+          'SELECT actions_json, triggers FROM rules WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingle();
+    expect(row.read<String>('actions_json'), contains('futureField'));
+    expect(row.read<String>('triggers'), 'afterImport,afterSync');
   });
 
   test('update rewrites name, triggers, condition and actions', () async {

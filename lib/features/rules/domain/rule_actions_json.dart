@@ -4,8 +4,9 @@ import 'package:submersion/features/rules/domain/site_rule_field.dart';
 
 /// The stored shape of a rule's action list (#3513). Bump when an action's
 /// shape changes; [ruleActionsFromJson] refuses newer versions rather than
-/// guessing. A new action KIND does not need a bump: older versions keep it
-/// as an [UnknownRuleAction] and refuse to run the rule.
+/// guessing. A new action KIND, or a new field, collection or mode inside a
+/// known kind, does not need a bump: older versions keep that action as an
+/// [UnknownRuleAction] and refuse to run the rule.
 const int kRuleActionsJsonVersion = 1;
 
 /// A stored action list that cannot be read.
@@ -111,6 +112,10 @@ RuleAction _fromJson(Map<String, Object?> j) {
       ),
       _ => UnknownRuleAction(j),
     };
+  } on _NewerValue {
+    // Kept as stored: never run, and saved back unchanged, so editing the
+    // rule here cannot erase what the newer version wrote.
+    return UnknownRuleAction(j);
   } on RuleJsonException {
     rethrow;
   } on Object catch (e) {
@@ -118,11 +123,18 @@ RuleAction _fromJson(Map<String, Object?> j) {
   }
 }
 
+/// A name this version's enum lacks: a field, collection or mode a newer
+/// version added.
+class _NewerValue implements Exception {
+  const _NewerValue();
+}
+
 T _enum<T extends Enum>(List<T> values, Object? name) {
+  if (name is! String) throw RuleJsonException('unknown value $name');
   for (final v in values) {
     if (v.name == name) return v;
   }
-  throw RuleJsonException('unknown value $name');
+  throw const _NewerValue();
 }
 
 List<String> _ids(Object? raw) => [for (final id in raw! as List) id as String];

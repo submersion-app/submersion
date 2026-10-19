@@ -228,6 +228,7 @@ void main() {
 
   test('names are resolved for the request\'s diver', () async {
     final seen = <String>[];
+    await rule('Cold when deep', depthOver(30), tagCold);
     await RuleEngine(
       names: (diverId) async {
         seen.add(diverId);
@@ -236,6 +237,85 @@ void main() {
       deviceLabel: () async => 'x',
     ).preview(request());
     expect(seen, ['me']);
+  });
+
+  test('a run that changed dives queues their derived-data refresh', () async {
+    // What bulk edit queues after its writes: quality findings, sensor
+    // summaries and derived metrics all read fields a rule can set.
+    final refreshed = <String>[];
+    await rule('Cold when deep', depthOver(30), tagCold);
+    await RuleEngine(
+      names: (_) async => NameIndex(const []),
+      deviceLabel: () async => 'Test device',
+      afterDiveWrites: refreshed.addAll,
+    ).run(request());
+    expect(refreshed, ['d35']);
+  });
+
+  test('with no rule to run, a save costs no names or transaction', () async {
+    // A logbook without rules for the trigger must behave as before rules
+    // existed: no name index, no device lookup, no write transaction.
+    await rule('Imports only', depthOver(30), tagCold);
+    var asked = 0;
+    final quiet = RuleEngine(
+      names: (_) async {
+        asked++;
+        return NameIndex(const []);
+      },
+      deviceLabel: () async {
+        asked++;
+        return 'Test device';
+      },
+    );
+    final result = await quiet.run(
+      request(trigger: RuleRunTrigger.createdByHand, dives: {'d35'}),
+    );
+    expect(result.changedAnything, isFalse);
+    expect(asked, 0);
+  });
+
+  test('a preview queues no refresh', () async {
+    final refreshed = <String>[];
+    await rule('Cold when deep', depthOver(30), tagCold);
+    await RuleEngine(
+      names: (_) async => NameIndex(const []),
+      afterDiveWrites: refreshed.addAll,
+    ).preview(request());
+    expect(refreshed, isEmpty);
+  });
+
+  group('derived dive fields', () {
+    // Filled after a dive is written by a scheduler a run can outpace
+    // (an import's dives are judged moments after they land).
+    final sacUp = ConditionNode(
+      FieldPath(['sacChange']),
+      QueryOp.gt,
+      const NumberValue(20, null),
+    );
+
+    RuleEngine engineNoting(List<String> ensured) => RuleEngine(
+      names: (_) async => NameIndex(const []),
+      deviceLabel: () async => 'Test device',
+      ensureDerived: (ids) async => ensured.addAll(ids),
+    );
+
+    test('are brought up to date for the dives a rule judges', () async {
+      final ensured = <String>[];
+      await rule('SAC up', sacUp, tagCold);
+      await engineNoting(
+        ensured,
+      ).run(request(trigger: RuleRunTrigger.imported, dives: {'d20', 'd35'}));
+      expect(ensured.toSet(), {'d20', 'd35'});
+    });
+
+    test('are left alone when no rule reads them', () async {
+      final ensured = <String>[];
+      await rule('Cold when deep', depthOver(30), tagCold);
+      await engineNoting(
+        ensured,
+      ).run(request(trigger: RuleRunTrigger.imported, dives: {'d20', 'd35'}));
+      expect(ensured, isEmpty);
+    });
   });
 
   test('a preview notifies nothing', () async {

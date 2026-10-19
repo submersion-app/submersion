@@ -342,6 +342,8 @@ class _SuccessView extends StatelessWidget {
                 return ImportRulesBox(
                   runs: state.ruleRuns,
                   failed: state.rulesFailed,
+                  skippedRules: state.ruleSkippedRules,
+                  skippedActions: state.ruleSkippedActions,
                 );
               },
             ),

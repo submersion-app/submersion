@@ -9,7 +9,8 @@ import 'package:submersion/features/rules/data/services/rule_applier_support.dar
 import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
-import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// Applies one site action of a logbook rule (#3513), writing only the
 /// sites it changes and recording each change. The engine scopes targets
@@ -25,6 +26,7 @@ class SiteRuleApplier {
   final SiteClassificationRepository _classification;
   final SiteRepository _sites;
   final SyncRepository _sync = SyncRepository();
+  final TagRepository _tags = TagRepository();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -41,22 +43,6 @@ class SiteRuleApplier {
       _ => Future.value(AppliedAction.none),
     };
   }
-
-  RuleChange _change(
-    Rule rule,
-    String siteId,
-    String field,
-    Object? before,
-    Object? after,
-  ) => RuleChange(
-    subject: RuleSubject.sites,
-    targetId: siteId,
-    ruleId: rule.id,
-    ruleName: rule.name,
-    field: field,
-    before: before,
-    after: after,
-  );
 
   Future<AppliedAction> _setField(
     Rule rule,
@@ -81,7 +67,7 @@ class SiteRuleApplier {
       // The column name comes from SiteRuleField, never from stored data.
       await _db.customUpdate(
         'UPDATE dive_sites SET $column = ?, updated_at = ? '
-        'WHERE id IN (${placeholders(chunk.length)})',
+        'WHERE id IN (${ruleIdPlaceholders(chunk.length)})',
         variables: [
           Variable(after[column]),
           Variable.withInt(now),
@@ -99,22 +85,27 @@ class SiteRuleApplier {
     }
     return AppliedAction([
       for (final id in changed)
-        _change(rule, id, a.field.name, before[id], after),
+        ruleChange(rule, id, a.field.name, before[id], after),
     ]);
   }
+
+  /// The table the ids of [c] name.
+  static TableInfo<Table, dynamic> refTable(AppDatabase db, SiteCollection c) =>
+      switch (c) {
+        SiteCollection.tags => db.tags,
+        SiteCollection.siteTypes => db.siteTypes,
+      };
 
   Future<AppliedAction> _membership(
     Rule rule,
     SiteMembershipAction a,
     List<String> ids,
   ) async {
-    final tags = a.collection == SiteCollection.tags;
-    final present = await existingIds(_db, tags ? 'tags' : 'site_types', a.ids);
-    final wanted = [
-      for (final id in a.ids)
-        if (present.contains(id)) id,
-    ];
-    final missing = wanted.length < a.ids.toSet().length;
+    final (present: wanted, :missing) = await presentRefs(
+      _db,
+      refTable(_db, a.collection),
+      a.ids,
+    );
     if (wanted.isEmpty) {
       return AppliedAction(const [], skippedMissingRef: missing);
     }
@@ -138,21 +129,26 @@ class SiteRuleApplier {
     return AppliedAction([
       for (final id in changed)
         if (!sameList(before[id]!, after[id]!))
-          _change(rule, id, a.collection.name, before[id], after[id]),
+          ruleChange(rule, id, a.collection.name, before[id], after[id]),
     ], skippedMissingRef: missing);
   }
 
-  /// Each site's members of [c], sorted.
+  /// Each site's members of [c], sorted, through the repository's readers.
   Future<Map<String, List<String>>> members(
     SiteCollection c,
     List<String> siteIds,
-  ) => linkedIds(
-    _db,
-    table: c == SiteCollection.tags ? 'site_tags' : 'site_site_types',
-    ownerColumn: 'site_id',
-    linkColumn: c == SiteCollection.tags ? 'tag_id' : 'site_type_id',
-    ownerIds: siteIds,
-  );
+  ) async {
+    final out = {for (final id in siteIds) id: <String>[]};
+    for (final chunk in ruleIdChunks(siteIds)) {
+      final linked = c == SiteCollection.tags
+          ? await _classification.getTagIdsBySite(chunk)
+          : await _classification.getTypeIdsBySite(chunk);
+      for (final e in linked.entries) {
+        out[e.key] = [...e.value.toSet()]..sort();
+      }
+    }
+    return out;
+  }
 
   /// Adds [ids] to, or removes them from, [c] on one site, without
   /// notifying.
@@ -164,6 +160,8 @@ class SiteRuleApplier {
   }) async {
     switch ((c, add)) {
       case (SiteCollection.tags, true):
+        // A link implies its scope: a dive-only tag becomes a site tag too.
+        await _tags.widenScope(ids, TagScope.sites, notify: false);
         await _classification.addTags(siteId, ids, notify: false);
       case (SiteCollection.tags, false):
         await _classification.removeTags(siteId, ids, notify: false);
@@ -192,7 +190,7 @@ class SiteRuleApplier {
       final old = (before[id]!['description'] as String?) ?? '';
       await _sites.appendDescription(id, text);
       changes.add(
-        _change(
+        ruleChange(
           rule,
           id,
           'description',

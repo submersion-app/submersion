@@ -100,18 +100,14 @@ void main() {
 
   /// A new dive form keeps an indicator spinning, so frames are pumped a
   /// fixed number of times with real time between them for the database.
-  Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 8; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 60)),
-      );
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-  }
-
   Future<void> save(WidgetTester tester) async {
     await tester.tap(find.text('Save').first);
-    await settle(tester);
+    await settleRuleWork(
+      tester,
+      rounds: 8,
+      step: const Duration(milliseconds: 100),
+      andSettle: false,
+    );
   }
 
   testWidgets('a new dive saved by hand gets the rule\'s tag', (tester) async {
@@ -121,7 +117,12 @@ void main() {
     await ProviderScope.containerOf(
       tester.element(find.byType(DiveEditPage)),
     ).read(currentDiverIdProvider.notifier).setCurrentDiver('me');
-    await settle(tester);
+    await settleRuleWork(
+      tester,
+      rounds: 8,
+      step: const Duration(milliseconds: 100),
+      andSettle: false,
+    );
     await save(tester);
     expect(savedId, isNotNull);
     expect(await tester.runAsync(() => tagsOf(savedId!)), ['logged']);
@@ -136,7 +137,12 @@ void main() {
     });
     String? savedId;
     await pumpEditor(tester, diveId: id, onSaved: (s) => savedId = s);
-    await settle(tester);
+    await settleRuleWork(
+      tester,
+      rounds: 8,
+      step: const Duration(milliseconds: 100),
+      andSettle: false,
+    );
     await save(tester);
     expect(savedId, id);
     expect(await tester.runAsync(() => tagsOf(id)), isEmpty);

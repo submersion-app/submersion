@@ -4,6 +4,8 @@ import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
+import '../rules_fixture.dart';
+
 Rule _rule({List<RuleAction> actions = const [], RuleLoadProblem? problem}) =>
     Rule(
       id: 'r1',
@@ -23,20 +25,14 @@ Rule _rule({List<RuleAction> actions = const [], RuleLoadProblem? problem}) =>
     );
 
 void main() {
-  const addDeep = DiveMembershipAction(
-    DiveCollection.diveTypes,
-    MembershipMode.add,
-    ['deep'],
-  );
-
   test('a rule with an action and no problem is runnable', () {
-    expect(_rule(actions: const [addDeep]).isRunnable, isTrue);
+    expect(_rule(actions: const [kAddDeepType]).isRunnable, isTrue);
   });
 
   test('a rule with an unknown action is not runnable', () {
     final r = _rule(
       actions: const [
-        addDeep,
+        kAddDeepType,
         UnknownRuleAction({'kind': 'addTank'}),
       ],
     );
@@ -49,7 +45,7 @@ void main() {
 
   test('a rule with a load problem is not runnable', () {
     final r = _rule(
-      actions: const [addDeep],
+      actions: const [kAddDeepType],
       problem: RuleLoadProblem.unresolvedRef,
     );
     expect(r.isRunnable, isFalse);
@@ -73,7 +69,7 @@ void main() {
   });
 
   test('copyWith changes only what it names', () {
-    final r = _rule(actions: const [addDeep]);
+    final r = _rule(actions: const [kAddDeepType]);
     final c = r.copyWith(name: 'Deeper', enabled: false);
     expect(c.name, 'Deeper');
     expect(c.enabled, isFalse);

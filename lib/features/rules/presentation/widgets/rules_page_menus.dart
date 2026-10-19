@@ -79,6 +79,11 @@ class RuleRowMenu extends ConsumerWidget {
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
     final l10n = context.l10n;
+    // Read before the dialog: the row can be rebuilt away while it is up,
+    // and a confirmed delete must still land and be reported.
+    final repository = ref.read(ruleRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -102,15 +107,18 @@ class RuleRowMenu extends ConsumerWidget {
     );
     if (ok != true) return;
     try {
-      await ref.read(ruleRepositoryProvider).delete(rule.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.rules_snackbar_deleted(rule.name))),
-        );
-      }
+      await repository.delete(rule.id);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.rules_snackbar_deleted(rule.name))),
+      );
     } catch (e, st) {
       _log.error('Failed to delete rule', error: e, stackTrace: st);
-      if (context.mounted) showRulesError(context);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.common_error_tryAgain),
+          backgroundColor: errorColor,
+        ),
+      );
     }
   }
 }

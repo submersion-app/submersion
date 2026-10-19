@@ -169,25 +169,31 @@ DivesCompanion diveCompanionFor(SetDiveFieldAction a) =>
     buildScalarCompanion({a.field}, bulkInputsFor(a.field, a.values));
 
 /// The stored column [field]'s first value lands in, read off the write a
-/// set-field action makes rather than guessed from the value's name.
-String diveFieldColumn(BulkField field) {
-  final key = diveFieldValueKeys(field).first;
-  final probe = switch (diveFieldKind(field)) {
+/// set-field action makes rather than guessed from the value's name. Null
+/// for a field whose write sets no column (one not settable by a rule,
+/// which a newer version's change row may still name).
+String? diveFieldColumn(BulkField field) {
+  final keys = diveFieldValueKeys(field);
+  final enumValues = diveFieldEnumValues(field);
+  final kind = diveFieldKind(field);
+  if (keys.isEmpty || (kind == RuleValueKind.enumName && enumValues.isEmpty)) {
+    return null;
+  }
+  final probe = switch (kind) {
     RuleValueKind.text || RuleValueKind.entityRef => 'x',
-    RuleValueKind.enumName => diveFieldEnumValues(field).first,
+    RuleValueKind.enumName => enumValues.first,
     RuleValueKind.boolean => true,
     RuleValueKind.rating => 1,
     RuleValueKind.number => diveFieldIsInteger(field) ? 1 : 1.0,
   };
   final written = diveCompanionFor(
-    SetDiveFieldAction(field, {key: probe}),
+    SetDiveFieldAction(field, {keys.first: probe}),
   ).toColumns(false);
-  return written.entries
-      .firstWhere(
-        (e) => switch (e.value) {
-          Variable(:final value) || Constant(:final value) => value != null,
-          _ => false,
-        },
-      )
-      .key;
+  for (final e in written.entries) {
+    if (e.value case Variable(:final value) || Constant(:final value)
+        when value != null) {
+      return e.key;
+    }
+  }
+  return null;
 }

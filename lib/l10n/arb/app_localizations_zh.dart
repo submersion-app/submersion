@@ -50136,8 +50136,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_section_sites => '潜点规则';
 
   @override
-  String get rules_empty =>
-      '规则会把你自己的条件应用到日志上，例如为每次深于 30 米的潜水添加“深潜”类型。在你创建规则之前不会运行任何内容。';
+  String rules_empty(String depth) {
+    return '规则会把你自己的条件应用到日志上，例如为每次深于 $depth的潜水添加“深潜”类型。在你创建规则之前不会运行任何内容。';
+  }
 
   @override
   String get rules_action_new => '新建规则';
@@ -50204,7 +50205,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_trigger_onDemandOnly => '仅在你手动运行时';
 
   @override
-  String get rules_trigger_off => '已关闭：仅在你手动运行时运行';
+  String get rules_trigger_off => '已关闭：仅可从其自身菜单运行';
 
   @override
   String get rules_condition_everyDive => '所有潜水';
@@ -50642,6 +50643,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_run_noChangesSites => '无更改：这些潜点已符合你的规则。';
 
   @override
+  String get rules_run_noRulesOnDives => '没有已开启的潜水规则。请开启一条，或从其自身菜单运行。';
+
+  @override
+  String get rules_run_noRulesOnSites => '没有已开启的潜点规则。请开启一条，或从其自身菜单运行。';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -50815,6 +50822,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get rules_create_details => '详情';
+
+  @override
+  String get rules_create_failed => '已保存，但你的规则无法运行。';
 
   @override
   String get rules_action_applyRules => '应用规则';

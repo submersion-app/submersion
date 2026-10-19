@@ -1,11 +1,12 @@
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
+import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 
 import '../../../helpers/test_database.dart';
@@ -14,18 +15,6 @@ import 'rules_test_app.dart';
 
 void main() {
   late AppDatabase db;
-
-  Future<List<String>> typesOf(String id) async => [
-    for (final r
-        in await db
-            .customSelect(
-              'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ? '
-              'ORDER BY dive_type_id',
-              variables: [Variable.withString(id)],
-            )
-            .get())
-      r.read<String>('dive_type_id'),
-  ];
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -52,20 +41,16 @@ void main() {
     actions: [action],
   );
 
-  const addDeep = DiveMembershipAction(
-    DiveCollection.diveTypes,
-    MembershipMode.add,
-    ['deep'],
-  );
-
   Future<List<String>> pumpAndRun(
     WidgetTester tester,
     RuleSubject subject,
-    List<String> ids,
-  ) async {
+    List<String> ids, {
+    List<dynamic> extra = const [],
+  }) async {
     final pushed = await tester.runAsync(
       () => pumpRulesApp(
         tester,
+        extra: extra,
         path: '/host',
         home: (_) => Scaffold(
           body: Consumer(
@@ -99,10 +84,12 @@ void main() {
     tester,
   ) async {
     await tester.runAsync(
-      () => rule(RuleSubject.dives, {RuleTrigger.afterManualCreate}, addDeep),
+      () => rule(RuleSubject.dives, {
+        RuleTrigger.afterManualCreate,
+      }, kAddDeepType),
     );
     final pushed = await pumpAndRun(tester, RuleSubject.dives, ['d35']);
-    expect(await tester.runAsync(() => typesOf('d35')), [
+    expect(await tester.runAsync(() => ruleDiveTypes(db, 'd35')), [
       'deep',
       'recreational',
     ]);
@@ -112,12 +99,50 @@ void main() {
     expect(pushed.single, startsWith('/rules/history/'));
   });
 
-  testWidgets('an after-import-only rule does not run', (tester) async {
+  testWidgets('a skipped action is reported though nothing changed', (
+    tester,
+  ) async {
     await tester.runAsync(
-      () => rule(RuleSubject.dives, {RuleTrigger.afterImport}, addDeep),
+      () => rule(
+        RuleSubject.dives,
+        {RuleTrigger.afterManualCreate},
+        const DiveMembershipAction(DiveCollection.tags, MembershipMode.add, [
+          'deleted',
+        ]),
+      ),
     );
     await pumpAndRun(tester, RuleSubject.dives, ['d35']);
-    expect(await tester.runAsync(() => typesOf('d35')), isEmpty);
+    expect(
+      find.text('Some actions name deleted items and were skipped: Deep'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('rules failing after a save say the save stands', (tester) async {
+    await tester.runAsync(
+      () => rule(RuleSubject.dives, {
+        RuleTrigger.afterManualCreate,
+      }, kAddDeepType),
+    );
+    await pumpAndRun(
+      tester,
+      RuleSubject.dives,
+      ['d35'],
+      extra: [
+        ruleEngineProvider.overrideWithValue(
+          RuleEngine(names: (_) => throw StateError('names failed')),
+        ),
+      ],
+    );
+    expect(find.text('Saved, but your rules could not run.'), findsOneWidget);
+  });
+
+  testWidgets('an after-import-only rule does not run', (tester) async {
+    await tester.runAsync(
+      () => rule(RuleSubject.dives, {RuleTrigger.afterImport}, kAddDeepType),
+    );
+    await pumpAndRun(tester, RuleSubject.dives, ['d35']);
+    expect(await tester.runAsync(() => ruleDiveTypes(db, 'd35')), isEmpty);
     expect(find.byType(SnackBar), findsNothing);
   });
 

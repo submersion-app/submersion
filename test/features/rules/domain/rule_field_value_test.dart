@@ -46,6 +46,12 @@ void main() {
     }
   });
 
+  test('a field that writes no column has no display column', () {
+    // diverRole is not settable here, but a newer version's change row
+    // can name it; reading it must not throw inside the change list.
+    expect(diveFieldColumn(BulkField.diverRole), isNull);
+  });
+
   test('visibility writes the three columns and clears the legacy bucket', () {
     final cols = diveCompanionFor(
       const SetDiveFieldAction(BulkField.visibility, {

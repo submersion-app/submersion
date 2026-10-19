@@ -79,16 +79,6 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 6; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 60)),
-      );
-      await tester.pump();
-    }
-    await tester.pumpAndSettle();
-  }
-
   Future<void> tapAction(WidgetTester tester) async {
     final inline = find.byKey(const ValueKey('selection_action_apply_rules'));
     if (inline.evaluate().isEmpty) {
@@ -100,7 +90,7 @@ void main() {
     } else {
       await tester.tap(inline);
     }
-    await settle(tester);
+    await settleRuleWork(tester);
   }
 
   testWidgets('dive selection previews the selected dives only', (
@@ -190,7 +180,7 @@ void main() {
         ),
       );
     });
-    await settle(tester);
+    await settleRuleWork(tester);
     await enterSelectionViaMenu(tester);
     for (final name in ['Alpha', 'Library']) {
       if (find.text(name).evaluate().isEmpty) continue;

@@ -34,6 +34,11 @@ class RuleRepository {
   Stream<void> watchRulesChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.rules));
 
+  /// [diverId]'s rules as stored, conditions and actions unread: enough to
+  /// tell which would run.
+  Future<List<RuleRow>> rowsFor(String diverId) =>
+      (_db.select(_db.rules)..where((t) => t.diverId.equals(diverId))).get();
+
   /// [diverId]'s rules for [subject], in run order. [names] resolves the
   /// condition's references so a rule naming a deleted site or buddy loads
   /// with [RuleLoadProblem.unresolvedRef].
@@ -101,13 +106,24 @@ class RuleRepository {
 
   /// Writes [rule]'s name, triggers, enabled flag, condition and actions.
   /// A rule that loaded with a problem keeps its stored JSON unless the
-  /// caller replaced the parsed value.
-  Future<void> update(Rule rule) => _update(
+  /// caller replaced the parsed value, and keeps any trigger a newer
+  /// version added.
+  Future<void> update(Rule rule) async => _update(
     rule.id,
     RulesCompanion(
       name: Value(rule.name.trim()),
       enabled: Value(rule.enabled),
-      triggers: Value(formatRuleTriggers(rule.triggers)),
+      triggers: Value(
+        formatRuleTriggers(
+          rule.triggers,
+          keeping:
+              (await (_db.select(
+                    _db.rules,
+                  )..where((t) => t.id.equals(rule.id))).getSingleOrNull())
+                  ?.triggers ??
+              '',
+        ),
+      ),
       conditionJson: Value(
         rule.problem == null
             ? encodeRuleCondition(rule.condition)

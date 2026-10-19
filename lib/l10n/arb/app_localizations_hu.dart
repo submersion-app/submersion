@@ -53078,8 +53078,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get rules_section_sites => 'Helyszínszabályok';
 
   @override
-  String get rules_empty =>
-      'A szabályok a saját feltételeidet alkalmazzák a naplódra, például minden 30 m-nél mélyebb merüléshez hozzáadják a Mély típust. Semmi sem fut, amíg nem hozol létre szabályt.';
+  String rules_empty(String depth) {
+    return 'A szabályok a saját feltételeidet alkalmazzák a naplódra, például minden $depth-nél mélyebb merüléshez hozzáadják a Mély típust. Semmi sem fut, amíg nem hozol létre szabályt.';
+  }
 
   @override
   String get rules_action_new => 'Új szabály';
@@ -53149,7 +53150,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get rules_trigger_onDemandOnly => 'Csak ha te futtatod';
 
   @override
-  String get rules_trigger_off => 'Kikapcsolva: csak akkor fut, ha te futtatod';
+  String get rules_trigger_off => 'Kikapcsolva: csak a saját menüjéből fut';
 
   @override
   String get rules_condition_everyDive => 'Minden merülés';
@@ -53606,6 +53607,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs változás: ezek a helyszínek már megfelelnek a szabályaidnak.';
 
   @override
+  String get rules_run_noRulesOnDives =>
+      'Nincs bekapcsolt merülési szabály. Kapcsolj be egyet, vagy futtasd a saját menüjéből.';
+
+  @override
+  String get rules_run_noRulesOnSites =>
+      'Nincs bekapcsolt helyszínszabály. Kapcsolj be egyet, vagy futtasd a saját menüjéből.';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -53791,6 +53800,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get rules_create_details => 'Részletek';
+
+  @override
+  String get rules_create_failed => 'Mentve, de a szabályaid nem futhattak le.';
 
   @override
   String get rules_action_applyRules => 'Szabályok alkalmazása';

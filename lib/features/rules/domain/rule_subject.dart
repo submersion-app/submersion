@@ -28,8 +28,15 @@ Set<RuleTrigger> parseRuleTriggers(String stored) => {
 };
 
 /// The stored form of [triggers], in declaration order so equal sets store
-/// equal strings.
-String formatRuleTriggers(Set<RuleTrigger> triggers) => [
-  for (final t in RuleTrigger.values)
-    if (triggers.contains(t)) t.name,
-].join(',');
+/// equal strings. Names in [keeping] (the stored form being replaced) that
+/// this version does not know stay, after them: a newer app's trigger must
+/// survive an edit made here.
+String formatRuleTriggers(Set<RuleTrigger> triggers, {String keeping = ''}) {
+  final known = {for (final t in RuleTrigger.values) t.name};
+  return [
+    for (final t in RuleTrigger.values)
+      if (triggers.contains(t)) t.name,
+    for (final name in keeping.split(','))
+      if (name.trim().isNotEmpty && !known.contains(name.trim())) name.trim(),
+  ].join(',');
+}

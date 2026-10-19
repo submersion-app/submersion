@@ -33,6 +33,7 @@ Future<List<String>> pumpRulesApp(
   List<dynamic> extra = const [],
   Size size = const Size(800, 1000),
   MockSettingsNotifier? settings,
+  Future<NameIndex> Function(Ref ref)? names,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -56,7 +57,9 @@ Future<List<String>> pumpRulesApp(
       overrides: [
         ...await getBaseOverrides(settingsNotifier: settings),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
-        queryNameIndexProvider.overrideWith((ref) async => kRuleTestNames),
+        queryNameIndexProvider.overrideWith(
+          names ?? (ref) async => kRuleTestNames,
+        ),
         ...extra,
       ].cast(),
       child: MaterialApp.router(

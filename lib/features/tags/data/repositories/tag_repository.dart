@@ -350,7 +350,12 @@ class TagRepository {
   }
 
   /// Adds [scope] to [tag] if it lacks it, returning the stored result.
-  Future<domain.Tag> _widen(domain.Tag tag, domain.TagScope scope) async {
+  /// [notify] false for a caller that notifies once itself.
+  Future<domain.Tag> _widen(
+    domain.Tag tag,
+    domain.TagScope scope, {
+    bool notify = true,
+  }) async {
     if (tag.appliesTo(scope)) return tag;
     final widened = tag.copyWith(scopes: {...tag.scopes, scope});
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -365,9 +370,24 @@ class TagRepository {
       recordId: tag.id,
       localUpdatedAt: now,
     );
-    SyncEventBus.notifyLocalChange();
+    if (notify) SyncEventBus.notifyLocalChange();
     _log.info('Widened tag ${tag.id} to ${scope.name}');
     return widened;
+  }
+
+  /// Adds [scope] to each of [tagIds] that lacks it, before they are linked
+  /// there, so a link keeps implying its scope (#1765). A logbook rule
+  /// (#3513) passes [notify] false: its run notifies once, its preview never.
+  Future<void> widenScope(
+    Iterable<String> tagIds,
+    domain.TagScope scope, {
+    bool notify = true,
+  }) async {
+    for (final id in tagIds.toSet()) {
+      if (await getTagById(id) case final tag?) {
+        await _widen(tag, scope, notify: notify);
+      }
+    }
   }
 
   /// The Drift table called [name], so a registry-driven write tells Drift

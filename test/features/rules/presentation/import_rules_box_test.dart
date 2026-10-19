@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -21,17 +20,6 @@ void main() {
   Future<int> diveCount() async =>
       (await db.customSelect('SELECT COUNT(*) AS n FROM dives').getSingle())
           .read<int>('n');
-
-  Future<List<String>> typesOf(String id) async => [
-    for (final r
-        in await db
-            .customSelect(
-              'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ?',
-              variables: [Variable.withString(id)],
-            )
-            .get())
-      r.read<String>('dive_type_id'),
-  ];
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -66,13 +54,20 @@ void main() {
     WidgetTester tester, {
     List<RuleRunResult>? runs,
     bool failed = false,
+    List<String> skippedRules = const [],
+    List<String> skippedActions = const [],
   }) async {
     final pushed = await tester.runAsync(
       () => pumpRulesApp(
         tester,
         path: '/summary',
         home: (_) => Scaffold(
-          body: ImportRulesBox(runs: runs ?? [run], failed: failed),
+          body: ImportRulesBox(
+            runs: runs ?? [run],
+            failed: failed,
+            skippedRules: skippedRules,
+            skippedActions: skippedActions,
+          ),
         ),
       ),
     );
@@ -105,12 +100,12 @@ void main() {
       skippedActionRuleNames: [],
       targetCount: 1,
       outOfScopeCount: 0,
-      ruleCount: 1,
     );
     final pushed = await pump(tester, runs: [run, other]);
     await tester.tap(find.text('See changes'));
     await tester.pumpAndSettle();
-    expect(pushed, ['/rules/history']);
+    // Just this import's runs, each profile's included.
+    expect(pushed, ['/rules/history?runs=${run.runId},other-run']);
   });
 
   testWidgets('Undo reverts the rules and keeps the dives', (tester) async {
@@ -123,7 +118,9 @@ void main() {
       await tester.pump();
     }
     await tester.pumpAndSettle();
-    expect(await tester.runAsync(() => typesOf('d35')), ['recreational']);
+    expect(await tester.runAsync(() => ruleDiveTypes(db, 'd35')), [
+      'recreational',
+    ]);
     expect(await tester.runAsync(diveCount), 2);
     expect(find.text('Undo rule changes'), findsNothing);
   });
@@ -132,6 +129,25 @@ void main() {
     await pump(tester, runs: const [], failed: true);
     expect(
       find.text('Dives imported, but your rules could not run.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a skipped action is reported though nothing changed', (
+    tester,
+  ) async {
+    await pump(tester, runs: const [], skippedActions: const ['Gone tag']);
+    expect(
+      find.text('Some actions name deleted items and were skipped: Gone tag'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('skipped rules are reported beside the changes', (tester) async {
+    await pump(tester, skippedRules: const ['Broken']);
+    expect(find.text('Rules changed 2 of these dives'), findsOneWidget);
+    expect(
+      find.text("These rules can't run and were skipped: Broken"),
       findsOneWidget,
     );
   });

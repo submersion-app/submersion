@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
-import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -171,6 +169,8 @@ import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -1747,6 +1747,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
     final failureMessage = context.l10n.diveLog_planned_markLoggedFailed;
+    final loggedMessage = context.l10n.diveLog_planned_markedLogged;
+    // Read now: a plan marked as logged gets its rules (#3513) even if the
+    // diver leaves the page while it is converted.
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     try {
       await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
     } catch (_) {
@@ -1762,18 +1766,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     container.invalidate(divesProvider);
     container.invalidate(diveStatisticsProvider);
     container.invalidate(diveNumberingInfoProvider);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.diveLog_planned_markedLogged)),
-    );
+    messenger.showSnackBar(SnackBar(content: Text(loggedMessage)));
     // A plan marked as logged is a dive logged by hand for the logbook
     // rules (#3513).
-    await runRulesAfterCreate(
-      context,
-      ref,
-      subject: RuleSubject.dives,
-      ids: [dive.id],
-    );
+    await rulesAfterCreate(subject: RuleSubject.dives, ids: [dive.id]);
   }
 
   Widget _buildHeaderSection(

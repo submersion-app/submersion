@@ -53028,8 +53028,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get rules_section_sites => 'Duikstekregels';
 
   @override
-  String get rules_empty =>
-      'Regels passen je eigen voorwaarden toe op je logboek, bijvoorbeeld het duiktype Diep toevoegen aan elke duik dieper dan 30 m. Er gebeurt niets tot je een regel maakt.';
+  String rules_empty(String depth) {
+    return 'Regels passen je eigen voorwaarden toe op je logboek, bijvoorbeeld het duiktype Diep toevoegen aan elke duik dieper dan $depth. Er gebeurt niets tot je een regel maakt.';
+  }
 
   @override
   String get rules_action_new => 'Nieuwe regel';
@@ -53101,7 +53102,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get rules_trigger_off =>
-      'Uit: wordt alleen uitgevoerd als jij dat doet';
+      'Uit: wordt alleen uitgevoerd vanuit het eigen menu';
 
   @override
   String get rules_condition_everyDive => 'Elke duik';
@@ -53560,6 +53561,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen wijzigingen: deze duikstekken voldoen al aan je regels.';
 
   @override
+  String get rules_run_noRulesOnDives =>
+      'Er staat geen duikregel aan. Zet er een aan, of voer hem uit vanuit het eigen menu.';
+
+  @override
+  String get rules_run_noRulesOnSites =>
+      'Er staat geen stekregel aan. Zet er een aan, of voer hem uit vanuit het eigen menu.';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -53747,6 +53756,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get rules_create_details => 'Details';
+
+  @override
+  String get rules_create_failed =>
+      'Opgeslagen, maar je regels konden niet worden uitgevoerd.';
 
   @override
   String get rules_action_applyRules => 'Regels toepassen';

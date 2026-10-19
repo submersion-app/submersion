@@ -65,16 +65,6 @@ void main() {
     return r.runId!;
   }
 
-  Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 5; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 60)),
-      );
-      await tester.pump();
-    }
-    await tester.pumpAndSettle();
-  }
-
   Future<List<String>> pumpHistory(WidgetTester tester) async {
     final pushed = await tester.runAsync(
       () => pumpRulesApp(
@@ -83,7 +73,7 @@ void main() {
         home: (_) => const RuleHistoryPage(),
       ),
     );
-    await settle(tester);
+    await settleRuleWork(tester);
     return pushed!;
   }
 
@@ -116,7 +106,7 @@ void main() {
     });
     await pumpHistory(tester);
     await tester.tap(find.byTooltip('Undo this run'));
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(
       find.textContaining('1 item was edited after this run'),
       findsOneWidget,
@@ -133,7 +123,7 @@ void main() {
     });
     await pumpHistory(tester);
     await tester.tap(find.byTooltip('Undo this run'));
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(
       find.textContaining('Nothing to undo on this device yet'),
       findsOneWidget,
@@ -164,14 +154,85 @@ void main() {
         home: (_) => RuleRunPage(runId: run),
       ),
     );
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(
       find.text('Salty: water type Fresh Water → Salt Water'),
       findsNWidgets(2),
     );
     await tester.tap(find.text('Undo this run'));
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(find.text('Undone.'), findsOneWidget);
+  });
+
+  /// A run of profile 'other', not the active one, adding its own tag.
+  Future<String> runOtherProfile() async {
+    await seedRuleDivers(db, ['other']);
+    await seedRuleDive(db, 'd50', diver: 'other', maxDepth: 50);
+    await db.customStatement(
+      'INSERT INTO tags (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('wrecky', 'other', 'Wrecky', 0, 0)",
+    );
+    await RuleRepository().create(
+      diverId: 'other',
+      subject: RuleSubject.dives,
+      name: 'Wreck',
+      triggers: const {RuleTrigger.afterImport},
+      condition: depthOver(30),
+      actions: const [
+        DiveMembershipAction(DiveCollection.tags, MembershipMode.add, [
+          'wrecky',
+        ]),
+      ],
+    );
+    final r = await RuleEngine(names: (_) async => NameIndex(const [])).run(
+      const RuleRunRequest(
+        diverId: 'other',
+        trigger: RuleRunTrigger.imported,
+        targets: {
+          RuleSubject.dives: {'d50'},
+        },
+      ),
+    );
+    return r.runId!;
+  }
+
+  testWidgets('a history of given runs lists them whatever their profile', (
+    tester,
+  ) async {
+    // A multi-profile import's See changes: each profile's run, though the
+    // full history shows only the active profile's.
+    late String mine;
+    late String theirs;
+    await tester.runAsync(() async {
+      mine = await runSalt(RuleRunTrigger.imported);
+      theirs = await runOtherProfile();
+    });
+    await tester.runAsync(
+      () => pumpRulesApp(
+        tester,
+        path: '/rules/history',
+        home: (_) => RuleHistoryPage(runIds: [mine, theirs]),
+      ),
+    );
+    await settleRuleWork(tester);
+    expect(find.text('After import'), findsNWidgets(2));
+  });
+
+  testWidgets('another profile\'s run names its own items', (tester) async {
+    late String theirs;
+    await tester.runAsync(() async {
+      theirs = await runOtherProfile();
+    });
+    await tester.runAsync(
+      () => pumpRulesApp(
+        tester,
+        path: '/rules/history/x',
+        home: (_) => RuleRunPage(runId: theirs),
+      ),
+    );
+    await settleRuleWork(tester);
+    expect(find.textContaining('Wrecky'), findsWidgets);
+    expect(find.textContaining('(deleted)'), findsNothing);
   });
 
   testWidgets('Clear history removes every run after confirming', (
@@ -184,7 +245,7 @@ void main() {
     await tester.tap(find.text('Clear history'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Clear history'));
-    await settle(tester);
+    await settleRuleWork(tester);
     expect(find.textContaining('Each time your rules change'), findsOneWidget);
   });
 }

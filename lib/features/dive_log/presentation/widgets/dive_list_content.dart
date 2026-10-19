@@ -1715,19 +1715,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       ),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.
-      BulkAction(
-        id: 'apply_rules',
-        icon: Icons.rule,
-        label: context.l10n.rules_action_applyRules,
-        onInvoke: () async =>
-            await runRulesOnDemand(
-              context,
-              ref,
-              subject: RuleSubject.dives,
-              targetIds: _selectedIds.toSet(),
-            )
-            ? BulkActionOutcome.completed
-            : BulkActionOutcome.cancelled,
+      rulesBulkAction(
+        context,
+        ref,
+        subject: RuleSubject.dives,
+        selected: () => _selectedIds.toSet(),
       ),
     ];
   }

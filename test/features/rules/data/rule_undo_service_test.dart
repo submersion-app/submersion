@@ -11,6 +11,7 @@ import 'package:submersion/features/rules/data/services/rule_undo_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/features/rules/domain/site_rule_field.dart';
 
 import '../../../helpers/test_database.dart';
 import '../rules_fixture.dart';
@@ -20,18 +21,6 @@ void main() {
   late RuleRepository rules;
   late RuleEngine engine;
   final undo = RuleUndoService();
-
-  Future<List<String>> typesOf(String diveId) async => [
-    for (final r
-        in await db
-            .customSelect(
-              'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ? '
-              'ORDER BY dive_type_id',
-              variables: [Variable.withString(diveId)],
-            )
-            .get())
-      r.read<String>('dive_type_id'),
-  ];
 
   Future<Object?> column(String diveId, String col) async =>
       (await db
@@ -111,8 +100,8 @@ void main() {
       "VALUES ('later', 'd35', 'wreck', 0)",
     );
     await undo.undo(run);
-    expect(await typesOf('d35'), ['recreational', 'wreck']);
-    expect(await typesOf('d40'), ['recreational']);
+    expect(await ruleDiveTypes(db, 'd35'), ['recreational', 'wreck']);
+    expect(await ruleDiveTypes(db, 'd40'), ['recreational']);
   });
 
   test('re-adds a removed tag only if still absent', () async {
@@ -149,6 +138,70 @@ void main() {
     expect(await column('d35', 'notes'), '');
     expect(await column('d40', 'notes'), 'Wall\nDeep dive and more');
     expect(result.skippedEditedTargets, 1);
+  });
+
+  test('appended notes come off only at a line boundary', () async {
+    final run = await runRule(const AppendDiveNotesAction('Deep dive'));
+    // d35's notes were empty, so the rule wrote just the text. The diver
+    // then rewrote them into a sentence that happens to end the same way.
+    await db.customStatement(
+      "UPDATE dives SET notes = 'Not a Deep dive' WHERE id = 'd35'",
+    );
+    final result = await undo.undo(run);
+    expect(await column('d35', 'notes'), 'Not a Deep dive');
+    expect(await column('d40', 'notes'), 'Wall');
+    expect(result.skippedEditedTargets, 1);
+  });
+
+  test('an appended line under a line added since comes off', () async {
+    final run = await runRule(const AppendDiveNotesAction('Deep dive'));
+    await db.customStatement(
+      "UPDATE dives SET notes = 'Calm' || char(10) || notes WHERE id = 'd35'",
+    );
+    await undo.undo(run);
+    expect(await column('d35', 'notes'), 'Calm');
+  });
+
+  test('a site added to a club library since is left alone', () async {
+    await seedRuleSite(db, 's1');
+    await rules.create(
+      diverId: 'me',
+      subject: RuleSubject.sites,
+      name: 'Salt',
+      triggers: const {RuleTrigger.afterImport},
+      condition: null,
+      actions: const [SetSiteFieldAction(SiteRuleField.waterType, 'salt')],
+    );
+    final ran = await engine.run(
+      const RuleRunRequest(
+        diverId: 'me',
+        trigger: RuleRunTrigger.onDemandAll,
+        targets: {RuleSubject.sites: null},
+      ),
+    );
+    // Adding a site to a library converts the same row in place.
+    await db.customStatement(
+      "UPDATE dive_sites SET shared_library_id = 'lib', diver_id = NULL "
+      "WHERE id = 's1'",
+    );
+    final result = await undo.undo(ran.runId!);
+    final water = await db
+        .customSelect("SELECT water_type AS v FROM dive_sites WHERE id = 's1'")
+        .getSingle();
+    expect(water.data['v'], 'salt');
+    expect(result.restoredTargets, 0);
+    expect(result.skippedEditedTargets, 1);
+  });
+
+  test('a run whose dives were all deleted since is marked undone', () async {
+    final run = await runRule(
+      const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),
+    );
+    await db.customStatement('DELETE FROM dives');
+    final result = await undo.undo(run);
+    expect(result.nothingYet, isFalse);
+    expect(result.skippedDeletedTargets, 2);
+    expect((await RuleRunRepository().getRun(run))!.isUndone, isTrue);
   });
 
   test('two rules appending to the same notes both undo', () async {
@@ -210,6 +263,34 @@ void main() {
     expect((await RuleRunRepository().getRun(run))!.isUndone, isFalse);
   });
 
+  test(
+    'undo queues the derived-data refresh of the dives it restored',
+    () async {
+      final run = await runRule(
+        const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),
+      );
+      await db.customStatement(
+        "UPDATE dives SET water_type = 'brackish' WHERE id = 'd35'",
+      );
+      final refreshed = <String>[];
+      await RuleUndoService(afterDiveWrites: refreshed.addAll).undo(run);
+      expect(refreshed, ['d40']);
+    },
+  );
+
+  test('two undos at once undo the run once', () async {
+    // The diver's own last line is the text the rule appends: a second
+    // undo racing the first would take that line too.
+    await db.customStatement(
+      "UPDATE dives SET notes = 'Shore' || char(10) || 'Nitrox' "
+      "WHERE id = 'd40'",
+    );
+    final run = await runRule(const AppendDiveNotesAction('Nitrox'));
+    final results = await Future.wait([undo.undo(run), undo.undo(run)]);
+    expect(await column('d40', 'notes'), 'Shore\nNitrox');
+    expect(results.where((r) => r.alreadyUndone), hasLength(1));
+  });
+
   test('a second undo is refused', () async {
     final run = await runRule(
       const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),
@@ -264,6 +345,23 @@ void main() {
     final result = await undo.undo(run);
     expect(result.skippedEditedTargets, 2);
     expect(await column('d35', 'trip_id'), 't2');
+    // No sync can bring the old trip back: the run is done, not waiting.
+    expect(result.nothingYet, isFalse);
+    expect((await RuleRunRepository().getRun(run))!.isUndone, isTrue);
+  });
+
+  test('a failure other than a refused reference fails the undo', () async {
+    final run = await runRule(
+      const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),
+    );
+    // A "before" the database cannot hold (dive_type is NOT NULL).
+    await db.customStatement(
+      'UPDATE rule_run_changes SET '
+      "before_json = '{\"dive_type\":null}', "
+      "after_json = '{\"dive_type\":\"recreational\"}'",
+    );
+    await expectLater(undo.undo(run), throwsA(anything));
+    expect((await RuleRunRepository().getRun(run))!.isUndone, isFalse);
   });
 
   test('undoing several runs reports their combined outcome', () {

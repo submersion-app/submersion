@@ -31,7 +31,6 @@ const _ruleIndexes = {
   'idx_rules_diver',
   'idx_rule_runs_diver',
   'idx_rule_run_changes_run',
-  'idx_rule_run_changes_target',
 };
 
 void main() {

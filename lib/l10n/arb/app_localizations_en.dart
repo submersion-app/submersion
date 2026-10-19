@@ -52537,8 +52537,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_section_sites => 'Site rules';
 
   @override
-  String get rules_empty =>
-      'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.';
+  String rules_empty(String depth) {
+    return 'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than $depth. Nothing runs until you create a rule.';
+  }
 
   @override
   String get rules_action_new => 'New rule';
@@ -52605,7 +52606,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_trigger_onDemandOnly => 'Only when you run it';
 
   @override
-  String get rules_trigger_off => 'Off: runs only when you run it';
+  String get rules_trigger_off => 'Off: runs only from its own menu';
 
   @override
   String get rules_condition_everyDive => 'Every dive';
@@ -53061,6 +53062,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'No changes: these sites already match your rules.';
 
   @override
+  String get rules_run_noRulesOnDives =>
+      'No dive rules are on. Turn one on, or run it from its own menu.';
+
+  @override
+  String get rules_run_noRulesOnSites =>
+      'No site rules are on. Turn one on, or run it from its own menu.';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -53245,6 +53254,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rules_create_details => 'Details';
+
+  @override
+  String get rules_create_failed => 'Saved, but your rules could not run.';
 
   @override
   String get rules_action_applyRules => 'Apply rules';

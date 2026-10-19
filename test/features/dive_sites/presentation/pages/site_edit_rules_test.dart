@@ -91,21 +91,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 8; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 60)),
-      );
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-  }
-
   testWidgets('a new site saved by hand gets the rule\'s tag', (tester) async {
     String? savedId;
     await pumpEdit(tester, onSaved: (id) => savedId = id);
     await tester.enterText(find.byType(TextFormField).first, 'Blue Hole');
     await tester.tap(find.text('Save').first);
-    await settle(tester);
+    await settleRuleWork(
+      tester,
+      rounds: 8,
+      step: const Duration(milliseconds: 100),
+      andSettle: false,
+    );
     expect(savedId, isNotNull);
     expect(await tester.runAsync(() => tagsOf(savedId!)), ['new']);
   });
@@ -114,7 +110,12 @@ void main() {
     String? savedId;
     await pumpEdit(tester, siteId: 'old', onSaved: (id) => savedId = id);
     await tester.tap(find.text('Save').first);
-    await settle(tester);
+    await settleRuleWork(
+      tester,
+      rounds: 8,
+      step: const Duration(milliseconds: 100),
+      andSettle: false,
+    );
     expect(savedId, 'old');
     expect(await tester.runAsync(() => tagsOf('old')), isEmpty);
   });

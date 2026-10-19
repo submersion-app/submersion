@@ -337,92 +337,47 @@ class SiteClassificationRepository {
     }
   }
 
-  /// Removes [tagIds] from [siteId]'s tags, tombstoning each removed row;
-  /// never adds one. A tag the site does not carry is ignored.
+  /// Removes [tagIds] from [siteId]'s tags; never adds one. [replaceTags]
+  /// with the rest, so the library rule, the tombstones and the stamp are
+  /// that one write's. A tag the site does not carry is ignored.
   Future<void> removeTags(
     String siteId,
     List<String> tagIds, {
     bool notify = true,
     String? actingDiverId,
-  }) => _removeLinks(
-    siteId,
-    tagIds,
-    kind: 'tags',
-    notify: notify,
-    actingDiverId: actingDiverId,
-  );
+  }) async {
+    if (tagIds.isEmpty) return;
+    final unwanted = tagIds.toSet();
+    await replaceTags(
+      siteId,
+      [
+        for (final id in (await getTagIdsBySite([siteId]))[siteId] ?? const [])
+          if (!unwanted.contains(id)) id,
+      ],
+      notify: notify,
+      actingDiverId: actingDiverId,
+    );
+  }
 
-  /// Removes [typeIds] from [siteId]'s types, tombstoning each removed row;
-  /// never adds one. A type the site does not carry is ignored.
+  /// Removes [typeIds] from [siteId]'s types; never adds one. [replaceTypes]
+  /// with the rest, as [removeTags] does.
   Future<void> removeTypes(
     String siteId,
     List<String> typeIds, {
     bool notify = true,
     String? actingDiverId,
-  }) => _removeLinks(
-    siteId,
-    typeIds,
-    kind: 'siteTypes',
-    notify: notify,
-    actingDiverId: actingDiverId,
-  );
-
-  /// The shared body of [removeTags] and [removeTypes]; [kind] is the
-  /// library stamp key, `tags` or `siteTypes`.
-  Future<void> _removeLinks(
-    String siteId,
-    List<String> ids, {
-    required String kind,
-    required bool notify,
-    String? actingDiverId,
   }) async {
-    // A library site [actingDiverId] may not edit (a reader's): never
-    // changed here, as for the add and replace writes (issue #2567).
-    if (notify &&
-        !await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
-      return;
-    }
-    if (ids.isEmpty) return;
-    final unwanted = ids.toSet();
-    final changed = await _db.transaction(() async {
-      final removed = <String>[];
-      if (kind == 'tags') {
-        final rows = await (_db.select(
-          _db.siteTags,
-        )..where((t) => t.siteId.equals(siteId))).get();
-        for (final row in rows) {
-          if (!unwanted.contains(row.tagId)) continue;
-          await (_db.delete(
-            _db.siteTags,
-          )..where((t) => t.id.equals(row.id))).go();
-          removed.add(row.id);
-        }
-      } else {
-        final rows = await (_db.select(
-          _db.siteSiteTypes,
-        )..where((t) => t.siteId.equals(siteId))).get();
-        for (final row in rows) {
-          if (!unwanted.contains(row.siteTypeId)) continue;
-          await (_db.delete(
-            _db.siteSiteTypes,
-          )..where((t) => t.id.equals(row.id))).go();
-          removed.add(row.id);
-        }
-      }
-      await _syncRepository.logDeletions(
-        entityType: kind == 'tags' ? 'siteTags' : 'siteSiteTypes',
-        recordIds: removed,
-      );
-      return removed.isNotEmpty;
-    });
-    if (notify) {
-      if (changed) {
-        await _libraryStamper.stamp(siteId, {
-          kind,
-        }, actingDiverId: actingDiverId);
-      }
-      SyncEventBus.notifyLocalChange();
-    }
+    if (typeIds.isEmpty) return;
+    final unwanted = typeIds.toSet();
+    await replaceTypes(
+      siteId,
+      [
+        for (final id in (await getTypeIdsBySite([siteId]))[siteId] ?? const [])
+          if (!unwanted.contains(id)) id,
+      ],
+      notify: notify,
+      actingDiverId: actingDiverId,
+    );
   }
 
   /// Moves the duplicates' links onto [survivorId] during a site merge.

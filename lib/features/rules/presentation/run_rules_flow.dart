@@ -5,18 +5,28 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/data/services/rule_target_labels.dart';
 import 'package:submersion/features/rules/data/services/rule_undo_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
+import 'package:submersion/features/rules/presentation/rule_labels.dart';
 import 'package:submersion/features/rules/presentation/widgets/rule_preview_sheet.dart';
 import 'package:submersion/features/rules/presentation/widgets/rules_page_menus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 
 final _log = LoggerService.forClass(RuleRunRequest);
+
+List<String> _notesOf(AppLocalizations l, RuleRunResult r) => ruleRunNotes(
+  l,
+  outOfScope: r.outOfScopeCount,
+  skippedRules: r.skippedRuleNames,
+  skippedActions: r.skippedActionRuleNames,
+);
 
 /// The message an undo shows.
 String ruleUndoMessage(AppLocalizations l, RuleUndoResult r) {
@@ -80,15 +90,29 @@ Future<bool> runRulesOnDemand(
     );
     final preview = await engine.preview(request);
     final dives = subject == RuleSubject.dives;
-    void noChanges() => messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          dives ? l.rules_run_noChangesDives : l.rules_run_noChangesSites,
+    // Nothing to apply: say why when it was not simply that everything
+    // already matched (items left out, rules or actions skipped).
+    void noChanges(RuleRunResult r) {
+      final notes = _notesOf(l, r);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            r.noRuleSelected
+                ? (dives
+                      ? l.rules_run_noRulesOnDives
+                      : l.rules_run_noRulesOnSites)
+                : notes.isNotEmpty
+                ? notes.join('\n')
+                : dives
+                ? l.rules_run_noChangesDives
+                : l.rules_run_noChangesSites,
+          ),
         ),
-      ),
-    );
+      );
+    }
+
     if (!preview.changedAnything) {
-      noChanges();
+      noChanges(preview);
       return false;
     }
     final targets = await RuleTargetLabels().infoFor(subject, {
@@ -107,7 +131,7 @@ Future<bool> runRulesOnDemand(
     final result = await engine.run(request);
     // Apply recomputes; the data may have moved since the preview.
     if (!result.changedAnything) {
-      noChanges();
+      noChanges(result);
       return false;
     }
     final runId = result.runId!;
@@ -132,6 +156,36 @@ Future<bool> runRulesOnDemand(
   }
 }
 
+/// Runs the diver's "after creating by hand" rules on the dives or sites
+/// [ids] of [subject], for a host that captured them with
+/// [captureRulesAfterCreate].
+typedef RulesAfterCreate =
+    Future<void> Function({
+      required RuleSubject subject,
+      required List<String> ids,
+    });
+
+/// Everything the "after creating by hand" rules (#3513) need from the
+/// page, read now while it is mounted: a page that saves first can then
+/// run them on what it created even if the diver has left it meanwhile
+/// (the dive or site exists either way).
+RulesAfterCreate captureRulesAfterCreate(BuildContext context, WidgetRef ref) {
+  final l = context.l10n;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final router = GoRouter.maybeOf(context);
+  final engine = ref.read(ruleEngineProvider);
+  final diverIdFuture = ref.read(validatedCurrentDiverIdProvider.future);
+  return ({required subject, required ids}) => _runAfterCreate(
+    l,
+    messenger,
+    router,
+    engine,
+    diverIdFuture,
+    subject: subject,
+    ids: ids,
+  );
+}
+
 /// Runs the diver's "after creating by hand" rules on a dive or site just
 /// saved for the first time (#3513). Silent when nothing changes; otherwise
 /// a snackbar names the rules, with Details opening the run (undo lives
@@ -143,12 +197,19 @@ Future<void> runRulesAfterCreate(
   required List<String> ids,
 }) async {
   if (ids.isEmpty) return;
-  final l = context.l10n;
-  final messenger = ScaffoldMessenger.maybeOf(context);
-  final router = GoRouter.maybeOf(context);
-  // Read before the first await: the saving page may be gone by then.
-  final engine = ref.read(ruleEngineProvider);
-  final diverIdFuture = ref.read(validatedCurrentDiverIdProvider.future);
+  await captureRulesAfterCreate(context, ref)(subject: subject, ids: ids);
+}
+
+Future<void> _runAfterCreate(
+  AppLocalizations l,
+  ScaffoldMessengerState? messenger,
+  GoRouter? router,
+  RuleEngine engine,
+  Future<String?> diverIdFuture, {
+  required RuleSubject subject,
+  required List<String> ids,
+}) async {
+  if (ids.isEmpty) return;
   try {
     final diverId = await diverIdFuture;
     if (diverId == null) return;
@@ -159,17 +220,27 @@ Future<void> runRulesAfterCreate(
         targets: {subject: ids.toSet()},
       ),
     );
-    if (!result.changedAnything) return;
+    final notes = _notesOf(l, result);
+    if (!result.changedAnything) {
+      // Silent when there was nothing to do, never when a rule was skipped.
+      if (notes.isNotEmpty) {
+        messenger?.showSnackBar(SnackBar(content: Text(notes.join('\n'))));
+      }
+      return;
+    }
     final rules = result.changedCountByRule.keys.join(', ');
     final runId = result.runId!;
     messenger?.showSnackBar(
       SnackBar(
         content: Text(
-          subject == RuleSubject.dives
-              ? l.rules_create_changedDive(rules)
-              : ids.length == 1
-              ? l.rules_create_changedSite(rules)
-              : l.rules_create_changedSites(rules),
+          [
+            subject == RuleSubject.dives
+                ? l.rules_create_changedDive(rules)
+                : ids.length == 1
+                ? l.rules_create_changedSite(rules)
+                : l.rules_create_changedSites(rules),
+            ...notes,
+          ].join('\n'),
         ),
         action: router == null
             ? null
@@ -181,6 +252,29 @@ Future<void> runRulesAfterCreate(
     );
   } catch (e, st) {
     _log.error('Rules could not run after a save', error: e, stackTrace: st);
-    messenger?.showSnackBar(SnackBar(content: Text(l.common_error_tryAgain)));
+    // The save itself stands: say so, so no one saves the dive again.
+    messenger?.showSnackBar(SnackBar(content: Text(l.rules_create_failed)));
   }
 }
+
+/// "Apply rules" in a list's selection bar (#3513): the enabled rules of
+/// [subject] over the [selected] items, previewed first.
+BulkAction rulesBulkAction(
+  BuildContext context,
+  WidgetRef ref, {
+  required RuleSubject subject,
+  required Set<String> Function() selected,
+}) => BulkAction(
+  id: 'apply_rules',
+  icon: Icons.rule,
+  label: context.l10n.rules_action_applyRules,
+  onInvoke: () async =>
+      await runRulesOnDemand(
+        context,
+        ref,
+        subject: subject,
+        targetIds: selected(),
+      )
+      ? BulkActionOutcome.completed
+      : BulkActionOutcome.cancelled,
+);

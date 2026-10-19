@@ -120,6 +120,31 @@ class RuleRunRepository {
     return [for (final r in rows) ?_runFromRow(r, names[r.id] ?? const [])];
   }
 
+  /// [ids]'s runs, newest first, whichever diver each belongs to: one
+  /// multi-profile import's runs (#3513).
+  Future<List<RuleRun>> getRunsByIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final rows =
+        await (_db.select(_db.ruleRuns)
+              ..where((t) => t.id.isIn(ids))
+              ..orderBy([(t) => OrderingTerm.desc(t.ranAt)]))
+            .get();
+    final names = <String, List<String>>{};
+    final nameRows =
+        await (_db.select(_db.ruleRunChanges)
+              ..where((t) => t.runId.isIn(ids))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.runId),
+                (t) => OrderingTerm.asc(t.sortOrder),
+              ]))
+            .get();
+    for (final r in nameRows) {
+      final list = names.putIfAbsent(r.runId, () => []);
+      if (!list.contains(r.ruleName)) list.add(r.ruleName);
+    }
+    return [for (final r in rows) ?_runFromRow(r, names[r.id] ?? const [])];
+  }
+
   Future<RuleRun?> getRun(String id) async {
     final row = await (_db.select(
       _db.ruleRuns,

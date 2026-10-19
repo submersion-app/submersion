@@ -1294,19 +1294,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       ),
       // Logbook rules on the checked sites, previewed first (#3513). Library
       // sites and other profiles' sites are left out by the rules' scope.
-      BulkAction(
-        id: 'apply_rules',
-        icon: Icons.rule,
-        label: context.l10n.rules_action_applyRules,
-        onInvoke: () async =>
-            await runRulesOnDemand(
-              context,
-              ref,
-              subject: RuleSubject.sites,
-              targetIds: _selectedIds.toSet(),
-            )
-            ? BulkActionOutcome.completed
-            : BulkActionOutcome.cancelled,
+      rulesBulkAction(
+        context,
+        ref,
+        subject: RuleSubject.sites,
+        selected: () => _selectedIds.toSet(),
       ),
     ];
   }

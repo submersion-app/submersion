@@ -50,6 +50,11 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
   /// Whether the diver edited the condition. A rule whose stored condition
   /// did not load keeps that JSON on save unless they did.
   bool _conditionTouched = false;
+
+  /// False while the condition's text does not parse: the editor then
+  /// still holds the last tree that did, which is not what the diver sees,
+  /// so Save waits.
+  bool _conditionValid = true;
   List<RuleAction> _actions = [];
 
   bool get _isNew => widget.ruleId == null;
@@ -61,6 +66,7 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
   bool get _canSave =>
       !_saving &&
       !_readOnly &&
+      _conditionValid &&
       _name.text.trim().isNotEmpty &&
       _actions.isNotEmpty;
 
@@ -185,6 +191,8 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
                 _condition = n;
                 _conditionTouched = true;
               }),
+              onValidityChanged: (valid) =>
+                  setState(() => _conditionValid = valid),
             ),
           ),
           const SizedBox(height: 8),

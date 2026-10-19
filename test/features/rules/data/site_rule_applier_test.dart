@@ -1,29 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/rules/data/services/site_rule_applier.dart';
-import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/domain/site_rule_field.dart';
 
 import '../../../helpers/test_database.dart';
 import '../rules_fixture.dart';
-
-Rule _rule(RuleAction a) => Rule(
-  id: 'r1',
-  diverId: 'me',
-  subject: RuleSubject.sites,
-  name: 'Red Sea',
-  enabled: true,
-  triggers: const {RuleTrigger.afterImport},
-  condition: null,
-  conditionJson: '',
-  actions: [a],
-  actionsJson: '',
-  sortOrder: 0,
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-);
 
 void main() {
   late AppDatabase db;
@@ -47,7 +30,11 @@ void main() {
 
   test('set country records before and after per site', () async {
     const a = SetSiteFieldAction(SiteRuleField.country, 'Egypt');
-    final r = await applier.apply(_rule(a), a, ['a', 'b']);
+    final r = await applier.apply(
+      ruleOf(RuleSubject.sites, a, name: 'Red Sea'),
+      a,
+      ['a', 'b'],
+    );
     expect(r.changes.single.targetId, 'b');
     expect(r.changes.single.subject, RuleSubject.sites);
     expect(r.changes.single.field, 'country');
@@ -63,9 +50,36 @@ void main() {
     const a = SiteMembershipAction(SiteCollection.tags, MembershipMode.add, [
       'red',
     ]);
-    final r = await applier.apply(_rule(a), a, ['a']);
+    final r = await applier.apply(
+      ruleOf(RuleSubject.sites, a, name: 'Red Sea'),
+      a,
+      ['a'],
+    );
     expect(r.changes.single.before, <String>[]);
     expect(r.changes.single.after, ['red']);
+  });
+
+  test('a dive-only tag added to sites widens to sites first', () async {
+    // A link implies its scope (#1765): an out-of-scope link is filtered
+    // out of the Sites filter, refused by peers on sync, and swept away
+    // the next time the tag row syncs.
+    await db.customStatement(
+      "INSERT INTO tags (id, name, created_at, updated_at) "
+      "VALUES ('deep', 'Deep', 0, 0)",
+    );
+    const a = SiteMembershipAction(SiteCollection.tags, MembershipMode.add, [
+      'deep',
+    ]);
+    await applier.apply(ruleOf(RuleSubject.sites, a, name: 'Red Sea'), a, [
+      'a',
+    ]);
+    final tag = await db
+        .customSelect(
+          "SELECT applies_to_sites, applies_to_dives FROM tags WHERE id = 'deep'",
+        )
+        .getSingle();
+    expect(tag.read<int>('applies_to_sites'), 1);
+    expect(tag.read<int>('applies_to_dives'), 1);
   });
 
   test('remove a site type', () async {
@@ -74,14 +88,22 @@ void main() {
       MembershipMode.remove,
       ['reef'],
     );
-    final r = await applier.apply(_rule(a), a, ['a', 'b']);
+    final r = await applier.apply(
+      ruleOf(RuleSubject.sites, a, name: 'Red Sea'),
+      a,
+      ['a', 'b'],
+    );
     expect(r.changes.single.targetId, 'b');
     expect(r.changes.single.after, <String>[]);
   });
 
   test('append to the description', () async {
     const a = AppendSiteDescriptionAction('Strong currents');
-    final r = await applier.apply(_rule(a), a, ['a', 'b']);
+    final r = await applier.apply(
+      ruleOf(RuleSubject.sites, a, name: 'Red Sea'),
+      a,
+      ['a', 'b'],
+    );
     final byId = {for (final c in r.changes) c.targetId: c};
     expect(byId['a']!.after, 'Strong currents');
     expect(byId['b']!.after, 'Wall\nStrong currents');
@@ -91,7 +113,11 @@ void main() {
     const a = SiteMembershipAction(SiteCollection.tags, MembershipMode.add, [
       'gone',
     ]);
-    final r = await applier.apply(_rule(a), a, ['a']);
+    final r = await applier.apply(
+      ruleOf(RuleSubject.sites, a, name: 'Red Sea'),
+      a,
+      ['a'],
+    );
     expect(r.changes, isEmpty);
     expect(r.skippedMissingRef, isTrue);
   });

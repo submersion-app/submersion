@@ -1,6 +1,12 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/existing_row_ids.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/data/services/rule_target_scope.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 
@@ -18,37 +24,55 @@ class AppliedAction {
   final bool skippedMissingRef;
 }
 
-/// [ids] in slices of [kRuleIdChunk], so no `IN (...)` list grows past
-/// SQLite's variable limit.
-Iterable<List<String>> ruleIdChunks(List<String> ids) sync* {
-  for (var i = 0; i < ids.length; i += kRuleIdChunk) {
-    yield ids.sublist(
-      i,
-      i + kRuleIdChunk > ids.length ? ids.length : i + kRuleIdChunk,
-    );
-  }
+/// Queues what bulk edit queues after writing dives (quality findings,
+/// sensor summaries, derived metrics, each read from fields a rule can
+/// set) for the dives a run or an undo changed.
+void refreshAfterRuleWrites(Iterable<String> diveIds) {
+  final ids = diveIds.toSet();
+  if (ids.isEmpty) return;
+  scheduleQualityScan(ids);
+  scheduleSensorSummaryRefresh(ids);
+  scheduleDerivedMetricsRefresh(ids);
 }
 
-String placeholders(int n) => List.filled(n, '?').join(', ');
+/// [ids] in slices of [kRuleIdChunk], so no `IN (...)` list grows past
+/// SQLite's variable limit.
+Iterable<List<String>> ruleIdChunks(List<String> ids) =>
+    seriesIdChunks(ids, size: kRuleIdChunk);
 
-/// The ids among [ids] that still exist in [table].
-Future<Set<String>> existingIds(
+/// `?, ?, ...` for [n] bound ids.
+String ruleIdPlaceholders(int n) => List.filled(n, '?').join(', ');
+
+/// One change [rule] made to [targetId]'s [field].
+RuleChange ruleChange(
+  Rule rule,
+  String targetId,
+  String field,
+  Object? before,
+  Object? after,
+) => RuleChange(
+  subject: rule.subject,
+  targetId: targetId,
+  ruleId: rule.id,
+  ruleName: rule.name,
+  field: field,
+  before: before,
+  after: after,
+);
+
+/// [ids] that still exist in [table], in order, and whether any did not:
+/// an action naming a deleted item skips it and says so.
+Future<({List<String> present, bool missing})> presentRefs(
   AppDatabase db,
-  String table,
-  Iterable<String> ids,
+  TableInfo<Table, dynamic> table,
+  List<String> ids,
 ) async {
-  final list = ids.toSet().toList();
-  final out = <String>{};
-  for (final chunk in ruleIdChunks(list)) {
-    final rows = await db
-        .customSelect(
-          'SELECT id FROM $table WHERE id IN (${placeholders(chunk.length)})',
-          variables: [for (final id in chunk) Variable.withString(id)],
-        )
-        .get();
-    out.addAll(rows.map((r) => r.read<String>('id')));
-  }
-  return out;
+  final exists = await existingRowIds(db, table, ids);
+  final present = [
+    for (final id in ids)
+      if (exists.contains(id)) id,
+  ];
+  return (present: present, missing: present.length < ids.toSet().length);
 }
 
 /// Each target's linked ids from a junction [table], sorted, keyed by the
@@ -65,7 +89,7 @@ Future<Map<String, List<String>>> linkedIds(
     final rows = await db
         .customSelect(
           'SELECT $ownerColumn AS o, $linkColumn AS l FROM $table '
-          'WHERE $ownerColumn IN (${placeholders(chunk.length)})',
+          'WHERE $ownerColumn IN (${ruleIdPlaceholders(chunk.length)})',
           variables: [for (final id in chunk) Variable.withString(id)],
         )
         .get();
@@ -92,7 +116,7 @@ Future<Map<String, Map<String, Object?>>> columnValues(
     final rows = await db
         .customSelect(
           'SELECT id, ${columns.join(', ')} FROM $table '
-          'WHERE id IN (${placeholders(chunk.length)})',
+          'WHERE id IN (${ruleIdPlaceholders(chunk.length)})',
           variables: [for (final id in chunk) Variable.withString(id)],
         )
         .get();

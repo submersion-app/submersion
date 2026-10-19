@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -147,9 +148,16 @@ String ruleEnumValueLabel(AppLocalizations l, String field, String value) {
       value;
 }
 
+/// A diluent's O2/He percentages, '-' for one not set.
+String ruleDiluentLabel(num? o2, num? he) =>
+    '${o2 == null ? '-' : _trimNumber(o2)}/${he == null ? '-' : _trimNumber(he)}';
+
+/// [v] to two places at most, trailing zeros dropped, in the locale's digits.
 String _trimNumber(num v) {
   final s = v.toStringAsFixed(2);
-  return s.contains('.') ? s.replaceFirst(RegExp(r'\.?0+$'), '') : s;
+  return localiseDecimalText(
+    s.contains('.') ? s.replaceFirst(RegExp(r'\.?0+$'), '') : s,
+  );
 }
 
 /// A canonical number shown in the diver's units.
@@ -157,7 +165,7 @@ String ruleNumberLabel(UnitFormatter u, RuleUnit unit, num v) => switch (unit) {
   RuleUnit.depth => u.formatDepth(v.toDouble()),
   RuleUnit.altitude => u.formatAltitude(v.toDouble()),
   RuleUnit.windSpeed => u.formatWindSpeed(v.toDouble(), decimals: 1),
-  RuleUnit.millibar => '${(v * 1000).round()} mbar',
+  RuleUnit.millibar => u.formatSurfacePressure(v.toDouble()),
   RuleUnit.seconds => '${(v / 60).round()} min',
   RuleUnit.none => _trimNumber(v),
 };
@@ -199,7 +207,7 @@ String diveActionValueLabel(
   if (a.field == BulkField.diluentGas) {
     final o2 = a.values['diluentO2'] as num?;
     final he = a.values['diluentHe'] as num?;
-    return '${_trimNumber(o2 ?? 0)}/${_trimNumber(he ?? 0)}';
+    return ruleDiluentLabel(o2 ?? 0, he ?? 0);
   }
   final key = diveFieldValueKeys(a.field).first;
   return ruleValueLabel(
@@ -313,3 +321,19 @@ String? ruleProblemText(AppLocalizations l, Rule rule) =>
             ? l.rules_problem_noActions
             : null,
     };
+
+/// What a run of the rules left undone, one line each: selected items not
+/// the diver's to change, rules that cannot run, actions naming deleted
+/// items. Wherever a run's results show (#3513), so a skip is never silent.
+List<String> ruleRunNotes(
+  AppLocalizations l, {
+  int outOfScope = 0,
+  Iterable<String> skippedRules = const [],
+  Iterable<String> skippedActions = const [],
+}) => [
+  if (outOfScope > 0) l.rules_preview_outOfScope(outOfScope),
+  if (skippedRules.isNotEmpty)
+    l.rules_preview_skippedRules(skippedRules.join(', ')),
+  if (skippedActions.isNotEmpty)
+    l.rules_preview_skippedActions(skippedActions.join(', ')),
+];

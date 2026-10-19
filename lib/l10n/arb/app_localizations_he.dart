@@ -52254,8 +52254,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_section_sites => 'כללי אתרים';
 
   @override
-  String get rules_empty =>
-      'כללים מחילים את התנאים שלך על היומן, למשל הוספת סוג הצלילה עמוקה לכל צלילה עמוקה מ־30 מ\'. דבר לא רץ עד שתיצור כלל.';
+  String rules_empty(String depth) {
+    return 'כללים מחילים את התנאים שלך על היומן, למשל הוספת סוג הצלילה עמוקה לכל צלילה עמוקה מ־$depth. דבר לא רץ עד שתיצור כלל.';
+  }
 
   @override
   String get rules_action_new => 'כלל חדש';
@@ -52322,7 +52323,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_trigger_onDemandOnly => 'רק כשאתה מריץ אותו';
 
   @override
-  String get rules_trigger_off => 'כבוי: רץ רק כשאתה מריץ אותו';
+  String get rules_trigger_off => 'כבוי: רץ רק מהתפריט שלו';
 
   @override
   String get rules_condition_everyDive => 'כל צלילה';
@@ -52776,6 +52777,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין שינויים: האתרים האלה כבר תואמים לכללים שלך.';
 
   @override
+  String get rules_run_noRulesOnDives =>
+      'אין כללי צלילות פעילים. הפעל אחד, או הרץ אותו מהתפריט שלו.';
+
+  @override
+  String get rules_run_noRulesOnSites =>
+      'אין כללי אתרים פעילים. הפעל אחד, או הרץ אותו מהתפריט שלו.';
+
+  @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52958,6 +52967,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get rules_create_details => 'פרטים';
+
+  @override
+  String get rules_create_failed =>
+      'נשמר, אבל לא ניתן היה להריץ את הכללים שלך.';
 
   @override
   String get rules_action_applyRules => 'החל כללים';

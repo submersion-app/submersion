@@ -32,13 +32,22 @@ String ruleRunTriggerLabel(AppLocalizations l, RuleRun run) =>
 /// Settings > Manage > Rules > History (#3513): every run that changed
 /// something, newest first, each undoable until it is undone or deleted.
 class RuleHistoryPage extends ConsumerWidget {
-  const RuleHistoryPage({super.key});
+  const RuleHistoryPage({super.key, this.runIds});
+
+  /// Just these runs, whichever profile each belongs to (a multi-profile
+  /// import's See changes); null for the active diver's whole history.
+  final List<String>? runIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final runs = ref.watch(ruleRunsProvider);
-    final hasRuns = runs.value?.isNotEmpty ?? false;
+    final ids = runIds;
+    final runs = ids == null
+        ? ref.watch(ruleRunsProvider)
+        : ref.watch(ruleRunsByIdsProvider(ids.join(',')));
+    // Clearing is for the whole history, not a few runs shown from an
+    // import.
+    final hasRuns = ids == null && (runs.value?.isNotEmpty ?? false);
     return Scaffold(
       appBar: AppBar(
         title: Text(l.rules_history_title),

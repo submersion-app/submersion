@@ -1,8 +1,5 @@
-import 'package:drift/drift.dart';
-
-import 'package:submersion/core/database/database.dart';
-import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
@@ -23,12 +20,19 @@ class RuleTargetInfo {
   /// The dive's wall clock, flagged UTC.
   final DateTime? date;
 
-  /// The site's region and country.
+  /// The site's place, as the site list shows it.
   final String? place;
 }
 
+/// Labels through the repositories' own readers: a dive's summary as the
+/// dive list reads it, a site's place as the site list words it.
 class RuleTargetLabels {
-  AppDatabase get _db => DatabaseService.instance.database;
+  RuleTargetLabels({DiveRepository? dives, SiteRepository? sites})
+    : _dives = dives ?? DiveRepository(),
+      _sites = sites ?? SiteRepository();
+
+  final DiveRepository _dives;
+  final SiteRepository _sites;
 
   /// Info for each of [ids] that still exists.
   Future<Map<String, RuleTargetInfo>> infoFor(
@@ -37,39 +41,19 @@ class RuleTargetLabels {
   ) async {
     final out = <String, RuleTargetInfo>{};
     for (final chunk in ruleIdChunks(ids.toSet().toList())) {
-      final vars = [for (final id in chunk) Variable.withString(id)];
-      final marks = placeholders(chunk.length);
       if (subject == RuleSubject.dives) {
-        final rows = await _db
-            .customSelect(
-              'SELECT d.id, d.dive_number, d.dive_date_time, s.name AS site '
-              'FROM dives d LEFT JOIN dive_sites s ON s.id = d.site_id '
-              'WHERE d.id IN ($marks)',
-              variables: vars,
-            )
-            .get();
-        for (final r in rows) {
-          out[r.read<String>('id')] = RuleTargetInfo(
-            name: r.readNullable<String>('site'),
-            number: r.readNullable<int>('dive_number'),
-            date: wallClockUtcFromMillis(r.read<int>('dive_date_time')),
+        for (final d in await _dives.getSummariesByIds(chunk)) {
+          out[d.id] = RuleTargetInfo(
+            name: d.siteName,
+            number: d.diveNumber,
+            date: d.dateTime,
           );
         }
       } else {
-        final rows = await _db
-            .customSelect(
-              'SELECT id, name, region, country FROM dive_sites '
-              'WHERE id IN ($marks)',
-              variables: vars,
-            )
-            .get();
-        for (final r in rows) {
-          final place = [
-            r.readNullable<String>('region'),
-            r.readNullable<String>('country'),
-          ].whereType<String>().where((s) => s.isNotEmpty).join(', ');
-          out[r.read<String>('id')] = RuleTargetInfo(
-            name: r.read<String>('name'),
+        for (final s in await _sites.getSitesByIds(chunk)) {
+          final place = s.locationString;
+          out[s.id] = RuleTargetInfo(
+            name: s.name,
             place: place.isEmpty ? null : place,
           );
         }
