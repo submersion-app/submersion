@@ -29,6 +29,52 @@ void main() {
     expect(stats.meanB, closeTo(160 / 255, 0.01));
   });
 
+  test('a source that is already a ResizeImage still decodes', () async {
+    // Tiles draw ResizeImage.resizeIfNeeded(...); wrapping another
+    // ResizeImage around it trips an assert in debug builds.
+    final service = ColorAnalysisService();
+    final stats = await service.statsFor(
+      'k',
+      ResizeImage(MemoryImage(bluePng()), width: 6),
+    );
+    expect(stats, isNotNull);
+  });
+
+  test('the small analysis decode does not stay in the image cache', () async {
+    final source = MemoryImage(bluePng());
+    await ColorAnalysisService().statsFor('k', source);
+    final key = await ResizeImage(
+      source,
+      width: 64,
+      height: 64,
+      policy: ResizeImagePolicy.fit,
+    ).obtainKey(ImageConfiguration.empty);
+    expect(PaintingBinding.instance.imageCache.containsKey(key), isFalse);
+  });
+
+  test('a decode that never answers times out and frees its slot', () async {
+    var calls = 0;
+    final service = ColorAnalysisService(
+      decodeTimeout: const Duration(milliseconds: 50),
+      decodeRgba: (_) {
+        calls++;
+        return calls <= 2
+            ? Completer<Uint8List?>().future
+            : Future.value(solidRgba(20, 100, 160));
+      },
+    );
+    final stuck = [
+      service.statsFor('a', source),
+      service.statsFor('b', source),
+    ];
+    final later = service.statsFor('c', source);
+    expect(await Future.wait(stuck).timeout(const Duration(seconds: 2)), [
+      null,
+      null,
+    ]);
+    expect(await later.timeout(const Duration(seconds: 2)), isNotNull);
+  });
+
   test('a second request for the same key does not decode again', () async {
     var decodes = 0;
     final service = ColorAnalysisService(

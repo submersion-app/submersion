@@ -71,6 +71,17 @@ void main() {
     expect(File(first.last).parent.existsSync(), isFalse);
   });
 
+  test('exact decodes up to the frame (-ss after -i)', () async {
+    final runner = _FrameRunner((_) => 0);
+    await LinuxFfmpegEngine(runner: runner).extractFrames(
+      source: File('/v/dive.mp4'),
+      times: const [Duration(milliseconds: 1500)],
+      exact: true,
+    );
+    final args = runner.calls.single;
+    expect(args.indexOf('-ss'), greaterThan(args.indexOf('-i')));
+  });
+
   test('a failed seek is a null for that time only', () async {
     final runner = _FrameRunner((call) => call == 0 ? 1 : 0);
     final frames = await LinuxFfmpegEngine(

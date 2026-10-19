@@ -22,6 +22,7 @@ MediaItem item({
   String? diveId = 'd1',
   double? depth = 18,
   MatchConfidence confidence = MatchConfidence.interpolated,
+  int? offset,
   MediaType type = MediaType.photo,
   ColorAdjustment? adjustment,
 }) => MediaItem(
@@ -42,6 +43,7 @@ MediaItem item({
           depthMeters: depth,
           elapsedSeconds: 600,
           matchConfidence: confidence,
+          timestampOffsetSeconds: offset,
           createdAt: DateTime.utc(2026),
         ),
 );
@@ -54,9 +56,11 @@ void main() {
     MediaItem item, {
     bool diverAuto = false,
     VideoColorTrack? track,
+    MediaEnrichment? stored,
   }) async {
     final container = ProviderContainer(
       overrides: [
+        colorEnrichmentProvider.overrideWith((ref, id) async => stored),
         diverAutoColorCorrectionProvider.overrideWithValue(diverAuto),
         colorAnalysisServiceProvider.overrideWithValue(
           ColorAnalysisService(decodeRgba: (_) async => blueRgba()),
@@ -119,10 +123,57 @@ void main() {
   testWidgets('a surface shot is left alone with auto on', (tester) async {
     await pump(
       tester,
-      item(confidence: MatchConfidence.estimated),
+      item(confidence: MatchConfidence.estimated, offset: -120),
       diverAuto: true,
     );
     expect(filter(tester), isNull);
+  });
+
+  group('a dive photo shown without its enrichment (library rows)', () {
+    MediaEnrichment stored({
+      required double depth,
+      MatchConfidence confidence = MatchConfidence.interpolated,
+      int? offset,
+    }) => MediaEnrichment(
+      id: 'e1',
+      mediaId: 'm1',
+      diveId: 'd1',
+      depthMeters: depth,
+      elapsedSeconds: 600,
+      matchConfidence: confidence,
+      timestampOffsetSeconds: offset,
+      createdAt: DateTime.utc(2026),
+    );
+
+    testWidgets('a stored surface shot is still left alone', (tester) async {
+      await pump(
+        tester,
+        item(depth: null),
+        diverAuto: true,
+        stored: stored(
+          depth: 0.4,
+          confidence: MatchConfidence.estimated,
+          offset: 300,
+        ),
+      );
+      expect(filter(tester), isNull);
+    });
+
+    testWidgets('the stored depth bounds the fix', (tester) async {
+      await pump(
+        tester,
+        item(depth: null),
+        diverAuto: true,
+        stored: stored(depth: 5),
+      );
+      final stats = ChannelStats.fromRgba(blueRgba())!;
+      expect(
+        filter(tester)!.colorFilter,
+        ColorFilter.matrix(
+          computeAutoCorrection(stats, depthMeters: 5).toMatrix().values,
+        ),
+      );
+    });
   });
 
   testWidgets('media on no dive is left alone with auto on', (tester) async {

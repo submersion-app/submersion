@@ -51,6 +51,25 @@ void main() {
     expect(p.redFromGreen, lessThan(0.05));
   });
 
+  test('a red-dominant strobe shot is left alone (no red cut, no green '
+      'cast)', () {
+    expect(
+      computeAutoCorrection(
+        const ChannelStats(meanR: 0.55, meanG: 0.35, meanB: 0.30),
+        depthMeters: 20,
+      ),
+      AutoCorrectionParams.none,
+    );
+  });
+
+  test('the purple cap never cuts red below its own level', () {
+    final p = computeAutoCorrection(
+      const ChannelStats(meanR: 0.39, meanG: 0.5, meanB: 0.2),
+      depthMeters: 20,
+    );
+    expect(p.gainR, greaterThanOrEqualTo(1.0));
+  });
+
   test('shallower than 1 m is no correction', () {
     expect(
       computeAutoCorrection(deepBlue, depthMeters: 0.6),

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database.dart' hide MediaEnrichment;
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
@@ -187,6 +187,25 @@ void main() {
       await (db.delete(db.media)..where((t) => t.id.equals(plain))).go();
       await repository.restoreColorAdjustments(prior);
     });
+  });
+
+  test('enrichmentFor reads the stored match, or null', () async {
+    final id = await add('m1');
+    expect(await repository.enrichmentFor(id), isNull);
+    await media.saveEnrichment(
+      MediaEnrichment(
+        id: 'e1',
+        mediaId: id,
+        diveId: 'd1',
+        depthMeters: 14,
+        elapsedSeconds: 600,
+        matchConfidence: MatchConfidence.interpolated,
+        createdAt: DateTime(2026, 6, 1),
+      ),
+    );
+    final stored = await repository.enrichmentFor(id);
+    expect(stored!.depthMeters, 14);
+    expect(stored.matchConfidence, MatchConfidence.interpolated);
   });
 
   test('countOtherMediaOnDive skips the source and documents', () async {

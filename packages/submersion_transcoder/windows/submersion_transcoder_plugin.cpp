@@ -101,6 +101,7 @@ void ProbeOnWorker(
 // every time when the file cannot be opened as a video).
 void ExtractFramesOnWorker(
     std::string path, std::vector<int32_t> times_ms, int32_t max_dimension,
+    bool exact,
     std::shared_ptr<flutter::MethodResult<EncodableValue>> result) {
   namespace WME = winrt::Windows::Media::Editing;
   namespace WSS = winrt::Windows::Storage::Streams;
@@ -128,11 +129,13 @@ void ExtractFramesOnWorker(
       try {
         const winrt::Windows::Foundation::TimeSpan at{
             std::chrono::milliseconds(times_ms[i])};
-        // A nearby keyframe is close enough for colour, and far faster.
+        // A nearby keyframe is close enough for colour statistics, and far
+        // faster; a white-point pick needs the paused frame itself.
         auto stream = composition
                           .GetThumbnailAsync(
                               at, out_w, out_h,
-                              WME::VideoFramePrecision::NearestKeyFrame)
+                              exact ? WME::VideoFramePrecision::NearestFrame
+                                    : WME::VideoFramePrecision::NearestKeyFrame)
                           .get();
         const auto size = static_cast<uint32_t>(stream.Size());
         WSS::DataReader reader(stream);
@@ -356,7 +359,12 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
     const std::string* path = nullptr;
     const flutter::EncodableList* times = nullptr;
     int32_t max_dimension = 160;
+    bool exact = false;
     if (args) {
+      auto e = args->find(EncodableValue("exact"));
+      if (e != args->end()) {
+        if (const auto* v = std::get_if<bool>(&e->second)) exact = *v;
+      }
       auto p = args->find(EncodableValue("path"));
       if (p != args->end()) path = std::get_if<std::string>(&p->second);
       auto t = args->find(EncodableValue("timesMs"));
@@ -386,7 +394,8 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
     }
     std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
         std::move(result));
-    std::thread(ExtractFramesOnWorker, *path, times_ms, max_dimension, shared)
+    std::thread(ExtractFramesOnWorker, *path, times_ms, max_dimension, exact,
+                shared)
         .detach();
     return;
   }

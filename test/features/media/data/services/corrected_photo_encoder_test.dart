@@ -78,6 +78,22 @@ void main() {
     expect(img.decodeJpg(out.bytes), isNotNull);
   });
 
+  test('the pixel pass works in place, matching the matrix', () {
+    final rgba = Uint8List.fromList([
+      10, 120, 200, 255, //
+      90, 40, 30, 128, //
+    ]);
+    final m = ColorMatrix.warmth(1).then(ColorMatrix.contrast(0.3));
+    final expected = [m.applyToPixel(10, 120, 200), m.applyToPixel(90, 40, 30)];
+    final same = applyColorMatrixInPlace(rgba, m.values);
+    expect(identical(same, rgba), isTrue);
+    expect([
+      (rgba[0], rgba[1], rgba[2]),
+      (rgba[4], rgba[5], rgba[6]),
+    ], expected);
+    expect(rgba[7], 128); // alpha untouched
+  });
+
   test('a corrupt file gives null, so the original is shared', () async {
     expect(
       await encodeCorrectedPhoto(

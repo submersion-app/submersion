@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
+import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -39,10 +40,26 @@ void main() {
       item().copyWith(colorAdjustment: adjustment),
     );
     expect((await media.getMediaById(created.id))!.colorAdjustment, adjustment);
-
-    await media.updateMedia(created.copyWith(colorAdjustment: null));
-    expect((await media.getMediaById(created.id))!.colorAdjustment, isNull);
   });
+
+  test(
+    'a stale snapshot written back does not roll the adjustment back',
+    () async {
+      // A poller reads the row, waits on the network, then writes its copy
+      // back; the diver adjusted the photo in between.
+      final created = await media.createMedia(item());
+      final stale = (await media.getMediaById(created.id))!;
+      const saved = ColorAdjustment(warmth: 0.6);
+      await MediaColorAdjustmentRepository().setColorAdjustment(
+        created.id,
+        saved,
+      );
+      await media.updateMedia(stale.copyWith(caption: 'from the poller'));
+      final after = (await media.getMediaById(created.id))!;
+      expect(after.caption, 'from the poller');
+      expect(after.colorAdjustment, saved);
+    },
+  );
 
   test('a malformed stored value reads as no adjustment', () async {
     final created = await media.createMedia(item());

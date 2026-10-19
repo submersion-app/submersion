@@ -10,14 +10,17 @@ enum FrameExtractor {
   /// JPEG data for each of [timesMs], fitted inside [maxDimension] square,
   /// or NSNull for a time that could not be read. Synchronous; call it off
   /// the main thread.
-  static func extract(path: String, timesMs: [Int], maxDimension: Int) -> [Any] {
+  static func extract(
+    path: String, timesMs: [Int], maxDimension: Int, exact: Bool = false
+  ) -> [Any] {
     let asset = AVURLAsset(url: URL(fileURLWithPath: path))
     let generator = AVAssetImageGenerator(asset: asset)
     // Upright frames, as the player shows them.
     generator.appliesPreferredTrackTransform = true
     generator.maximumSize = CGSize(width: maxDimension, height: maxDimension)
-    // Colour does not need the exact frame; a nearby keyframe is far faster.
-    let tolerance = CMTime(value: 500, timescale: 1000)
+    // Colour statistics do not need the exact frame and a nearby keyframe
+    // is far faster; a white-point pick needs the paused frame itself.
+    let tolerance = exact ? CMTime.zero : CMTime(value: 500, timescale: 1000)
     generator.requestedTimeToleranceBefore = tolerance
     generator.requestedTimeToleranceAfter = tolerance
 

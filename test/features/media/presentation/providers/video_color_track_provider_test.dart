@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -33,6 +34,7 @@ class _FakeEngine implements TranscodeEngine {
     required File source,
     required List<Duration> times,
     int maxDimension = 160,
+    bool exact = false,
   }) async {
     requests.add(times);
     if (throws) throw StateError('codec');
@@ -82,26 +84,38 @@ const profile = [
 ];
 
 void main() {
+  var originalFetches = 0;
+
   ProviderContainer container(
     _FakeEngine engine, {
-    String? path = '/v/dive.mp4',
+    Duration timeout = const Duration(seconds: 30),
   }) {
     final c = ProviderContainer(
       overrides: [
         transcodeEngineProvider.overrideWithValue(engine),
-        resolvedFilePathProvider.overrideWith((ref, item) async => path),
+        // A grid must never fetch a whole original to colour a tile.
+        resolvedFilePathProvider.overrideWith((ref, item) async {
+          originalFetches++;
+          return '/cache/original.mp4';
+        }),
         diveProfileProvider.overrideWith((ref, id) async => profile),
+        videoFrameTimeoutProvider.overrideWithValue(timeout),
       ],
     );
     addTearDown(c.dispose);
     return c;
   }
 
+  setUp(() => originalFetches = 0);
+
+  VideoTrackKey key(MediaItem item, {String? path = '/v/dive.mp4'}) =>
+      VideoTrackKey(item, path: path);
+
   test('samples seven frames at the pinned times and warms each', () async {
     final engine = _FakeEngine((t) => [for (final _ in t) blueJpeg()]);
     final track = await container(
       engine,
-    ).read(videoColorTrackProvider(VideoTrackKey(video())).future);
+    ).read(videoColorTrackProvider(key(video())).future);
 
     expect(engine.requests.single, [
       for (final s in [5, 15, 25, 35, 45, 55, 65]) Duration(seconds: s),
@@ -123,7 +137,7 @@ void main() {
     );
     final track = await container(
       engine,
-    ).read(videoColorTrackProvider(VideoTrackKey(video())).future);
+    ).read(videoColorTrackProvider(key(video())).future);
     expect(track!.keys, hasLength(4));
   });
 
@@ -132,7 +146,7 @@ void main() {
     expect(
       await container(
         engine,
-      ).read(videoColorTrackProvider(VideoTrackKey(video())).future),
+      ).read(videoColorTrackProvider(key(video())).future),
       isNull,
     );
   });
@@ -142,39 +156,70 @@ void main() {
     expect(
       await container(
         engine,
-      ).read(videoColorTrackProvider(VideoTrackKey(video())).future),
+      ).read(videoColorTrackProvider(key(video())).future),
       isNull,
     );
   });
 
-  test('no playable file never asks the engine', () async {
-    final engine = _FakeEngine((t) => [for (final _ in t) blueJpeg()]);
+  test(
+    'a video with no local file uses its poster and fetches nothing',
+    () async {
+      final engine = _FakeEngine((t) => [for (final _ in t) blueJpeg()]);
+      expect(
+        await container(
+          engine,
+        ).read(videoColorTrackProvider(key(video(), path: null)).future),
+        isNull,
+      );
+      expect(engine.requests, isEmpty);
+      expect(originalFetches, 0);
+    },
+  );
+
+  test('a stuck extraction times out and does not block the next', () async {
+    var calls = 0;
+    final engine = _StuckOnceEngine(() => calls++);
+    final c = container(engine, timeout: const Duration(milliseconds: 50));
     expect(
-      await container(
-        engine,
-        path: null,
-      ).read(videoColorTrackProvider(VideoTrackKey(video())).future),
+      await c
+          .read(videoColorTrackProvider(key(video())).future)
+          .timeout(const Duration(seconds: 2)),
       isNull,
     );
-    expect(engine.requests, isEmpty);
+    final other = video().copyWith(localPath: '/v/other.mp4');
+    expect(
+      await c
+          .read(
+            videoColorTrackProvider(key(other, path: '/v/other.mp4')).future,
+          )
+          .timeout(const Duration(seconds: 2)),
+      isNotNull,
+    );
   });
 
   test('an unknown duration falls back to the poster', () async {
     final engine = _FakeEngine((t) => [for (final _ in t) blueJpeg()]);
     expect(
-      await container(engine).read(
-        videoColorTrackProvider(VideoTrackKey(video(duration: null))).future,
-      ),
+      await container(
+        engine,
+      ).read(videoColorTrackProvider(key(video(duration: null))).future),
       isNull,
     );
   });
 
-  test('keys compare by file, not by edits', () {
+  test('keys compare by file and placement, not by edits', () {
     final a = video();
-    expect(VideoTrackKey(a), VideoTrackKey(a.copyWith(caption: 'edited')));
+    expect(key(a), key(a.copyWith(caption: 'edited')));
+    expect(key(a), isNot(key(a, path: '/v/other.mp4')));
+    expect(key(a), isNot(key(a.copyWith(diveId: 'd2'))));
+    expect(key(a), isNot(key(a.copyWith(durationSeconds: 90))));
     expect(
-      VideoTrackKey(a),
-      isNot(VideoTrackKey(a.copyWith(localPath: '/v/other.mp4'))),
+      key(a),
+      isNot(
+        key(
+          a.copyWith(enrichment: a.enrichment!.copyWith(elapsedSeconds: 900)),
+        ),
+      ),
     );
   });
 
@@ -209,4 +254,22 @@ void main() {
     );
     expect(track.paramsAt(60, depthAt: videoDepthLookup(profile, 600)), params);
   });
+}
+
+/// Never answers its first extraction; answers the rest with blue frames.
+class _StuckOnceEngine extends _FakeEngine {
+  _StuckOnceEngine(this.onCall) : super((t) => [for (final _ in t) blueJpeg()]);
+
+  final int Function() onCall;
+
+  @override
+  Future<List<Uint8List?>> extractFrames({
+    required File source,
+    required List<Duration> times,
+    int maxDimension = 160,
+    bool exact = false,
+  }) {
+    if (onCall() == 0) return Completer<List<Uint8List?>>().future;
+    return super.extractFrames(source: source, times: times);
+  }
 }

@@ -12,6 +12,7 @@ class _FakeEngine implements TranscodeEngine {
     required File source,
     required List<Duration> times,
     int maxDimension = 160,
+    bool exact = false,
   }) async => List.filled(times.length, null);
 
   bool available = true;

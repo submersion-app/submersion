@@ -1068,15 +1068,18 @@ class _PhotoGallery extends ConsumerWidget {
 }
 
 /// Individual photo item that loads full-resolution image.
-class _PhotoItem extends StatelessWidget {
+class _PhotoItem extends ConsumerWidget {
   final MediaItem item;
 
   const _PhotoItem({required this.item});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MediaItemView(
-      item: item,
+      // The live row, not the list the viewer opened with: a colour
+      // adjustment saved since (the panel, Apply to this dive) must show
+      // on every page, not only the current one (issue #3520).
+      item: ref.watch(mediaByIdProvider(item.id)).value ?? item,
       fit: BoxFit.contain,
       showAccessActions: true,
     );
@@ -1202,6 +1205,9 @@ class _VideoItem extends ConsumerStatefulWidget {
 
 class _VideoItemState extends ConsumerState<_VideoItem> {
   VideoPlayerController? _controller;
+
+  /// The file [_controller] plays, for the colour track's frames.
+  String? _playbackPath;
   bool _isInitialized = false;
   bool _isLoading = true;
   String? _error;
@@ -1269,6 +1275,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     bool stale() => !mounted || generation != _loadGeneration;
     try {
       final path = await ref.read(resolvedFilePathProvider(widget.item).future);
+      _playbackPath = path;
 
       if (stale()) return;
       if (path == null) {
@@ -1411,8 +1418,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                 child: AspectRatio(
                   aspectRatio: controller.value.aspectRatio,
                   child: VideoColorFilter(
-                    item: widget.item,
+                    // The live row, so a saved adjustment shows (#3520).
+                    item:
+                        ref.watch(mediaByIdProvider(widget.item.id)).value ??
+                        widget.item,
                     player: controller,
+                    path: _playbackPath,
                     child: VideoPlayer(controller),
                   ),
                 ),

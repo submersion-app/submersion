@@ -49,6 +49,9 @@ class FakeColorRepository implements MediaColorAdjustmentRepository {
   }
 
   @override
+  Future<MediaEnrichment?> enrichmentFor(String mediaId) async => null;
+
+  @override
   Future<void> restoreColorAdjustments(
     Map<String, ColorAdjustment?> prior,
   ) async => restores.add(prior);

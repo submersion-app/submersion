@@ -87,11 +87,12 @@ public class SubmersionTranscoderPlugin: NSObject, FlutterPlugin, FlutterStreamH
         return
       }
       let maxDimension = min(max(a["maxDimension"] as? Int ?? 160, 16), 2048)
+      let exact = a["exact"] as? Bool ?? false
       // Seeking and decoding frames is slow on long clips; keep it off the
       // platform (main) thread.
       DispatchQueue.global(qos: .utility).async {
         let frames = FrameExtractor.extract(
-          path: path, timesMs: timesMs, maxDimension: maxDimension)
+          path: path, timesMs: timesMs, maxDimension: maxDimension, exact: exact)
         let reply = frames.map { frame -> Any in
           if let data = frame as? Data {
             return FlutterStandardTypedData(bytes: data)

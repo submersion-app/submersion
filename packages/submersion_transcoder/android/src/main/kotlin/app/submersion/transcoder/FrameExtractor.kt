@@ -23,6 +23,7 @@ object FrameExtractor {
         path: String,
         timesMs: List<Int>,
         maxDimension: Int,
+        exact: Boolean = false,
     ): List<ByteArray?> {
         val retriever = MediaMetadataRetriever()
         try {
@@ -31,7 +32,7 @@ object FrameExtractor {
             } else {
                 retriever.setDataSource(path)
             }
-            return timesMs.map { ms -> frameAt(retriever, ms, maxDimension) }
+            return timesMs.map { ms -> frameAt(retriever, ms, maxDimension, exact) }
         } catch (e: Exception) {
             return timesMs.map { null }
         } finally {
@@ -46,10 +47,16 @@ object FrameExtractor {
         retriever: MediaMetadataRetriever,
         ms: Int,
         maxDimension: Int,
+        exact: Boolean,
     ): ByteArray? {
         val us = ms.toLong() * 1000
-        // A nearby keyframe is close enough for colour, and far faster.
-        val option = MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+        // A nearby keyframe is close enough for colour statistics, and far
+        // faster; a white-point pick needs the paused frame itself.
+        val option = if (exact) {
+            MediaMetadataRetriever.OPTION_CLOSEST
+        } else {
+            MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+        }
         val bitmap = try {
             if (Build.VERSION.SDK_INT >= 27) {
                 retriever.getScaledFrameAtTime(us, option, maxDimension, maxDimension)

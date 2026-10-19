@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 MediaEnrichment enrichment({
   double? depth = 18,
   MatchConfidence confidence = MatchConfidence.interpolated,
+  int? offset,
 }) => MediaEnrichment(
   id: 'e',
   mediaId: 'm',
@@ -17,6 +18,7 @@ MediaEnrichment enrichment({
   depthMeters: depth,
   elapsedSeconds: 600,
   matchConfidence: confidence,
+  timestampOffsetSeconds: offset,
   createdAt: DateTime.utc(2026),
 );
 
@@ -42,8 +44,20 @@ void main() {
   group('isSurfaceShot', () {
     test('a shot outside the recorded profile is a surface shot', () {
       expect(
-        isSurfaceShot(enrichment(confidence: MatchConfidence.estimated)),
+        isSurfaceShot(
+          enrichment(confidence: MatchConfidence.estimated, offset: -90),
+        ),
         isTrue,
+      );
+    });
+    test('a mid-dive shot across a sparse profile gap is not', () {
+      // The matcher marks interpolation across a long gap `estimated` too,
+      // but only edge clamps carry an offset.
+      expect(
+        isSurfaceShot(
+          enrichment(depth: 20, confidence: MatchConfidence.estimated),
+        ),
+        isFalse,
       );
     });
     test('a shot shallower than 1 m is a surface shot', () {

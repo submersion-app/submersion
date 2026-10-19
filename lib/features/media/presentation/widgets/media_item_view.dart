@@ -147,10 +147,19 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   // imageData, sourceType, etc.), so deep equality on the item is the
   // correct cache key — it catches both identity changes and in-place
   // mutations of the same row.
+  //
+  // A colour adjustment saved on the row (issue #3520) changes the item and
+  // bumps updatedAt but not the pixels, so it is drawn without resolving
+  // the image again (which would flash a placeholder on every save).
   bool _inputsChanged(MediaItemView old) =>
-      old.item != widget.item ||
+      _resolutionInputs(old.item) != _resolutionInputs(widget.item) ||
       old.thumbnail != widget.thumbnail ||
       old.targetSize != widget.targetSize;
+
+  static MediaItem _resolutionInputs(MediaItem item) => item.copyWith(
+    colorAdjustment: null,
+    updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+  );
 
   /// Resolves and records the outcome.
   ///

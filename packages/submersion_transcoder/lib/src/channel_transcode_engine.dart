@@ -87,6 +87,7 @@ class ChannelTranscodeEngine implements TranscodeEngine {
     required File source,
     required List<Duration> times,
     int maxDimension = 160,
+    bool exact = false,
   }) async {
     final none = List<Uint8List?>.filled(times.length, null);
     if (times.isEmpty) return none;
@@ -95,6 +96,7 @@ class ChannelTranscodeEngine implements TranscodeEngine {
         'path': source.path,
         'timesMs': [for (final t in times) t.inMilliseconds],
         'maxDimension': maxDimension,
+        'exact': exact,
       });
       if (reply == null) return none;
       return [

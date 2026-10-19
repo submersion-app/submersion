@@ -1,11 +1,16 @@
 import 'dart:typed_data';
 
+import 'package:drift/drift.dart' show Value;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -179,6 +184,35 @@ void main() {
     expect(find.byType(ColorFiltered), findsNothing);
     await gesture.up();
     await tester.pump();
+    expect(find.byType(ColorFiltered), findsOneWidget);
+  });
+
+  testWidgets('each page draws the saved adjustment, not the opening list', (
+    tester,
+  ) async {
+    // The list the viewer was opened with predates the save (the panel
+    // closing, or Apply to this dive on a neighbour).
+    await tester.runAsync(() async {
+      final now = DateTime.utc(2026).millisecondsSinceEpoch;
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('d1'),
+              diveDateTime: Value(now),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      await MediaRepository().createMedia(
+        photo('a', adjustment: const ColorAdjustment(warmth: 1)),
+      );
+    });
+    await pump(
+      tester,
+      MediaViewerPage(mediaList: [photo('a')], initialMediaId: 'a'),
+    );
     expect(find.byType(ColorFiltered), findsOneWidget);
   });
 

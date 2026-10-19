@@ -17,6 +17,9 @@ double depthFactor(double? depthMeters) {
   return (depthMeters / 15).clamp(0.2, 1.0);
 }
 
+/// Red at or above this share of green is not deficient.
+const _redSufficient = 0.8;
+
 /// The automatic correction: rebuild red from green, then per-channel gains.
 class AutoCorrectionParams extends Equatable {
   const AutoCorrectionParams({
@@ -88,6 +91,9 @@ AutoCorrectionParams computeAutoCorrection(
   final f = depthFactor(depthMeters);
   if (f == 0 || stats.meanG <= 0) return AutoCorrectionParams.none;
   final mr = stats.meanR, mg = stats.meanG, mb = stats.meanB;
+  // Red the water did not take (a strobe-lit macro shot, a red subject):
+  // balancing it toward grey would only cut red and cast it green.
+  if (mr >= _redSufficient * mg) return AutoCorrectionParams.none;
 
   final a = math.min(0.5 * f, 0.5 * math.max(0.0, (mg - mr) / mg));
   final r1 = mr + a * mg;
@@ -98,7 +104,10 @@ AutoCorrectionParams computeAutoCorrection(
   var gainB = mb > 0 ? (grey / mb).clamp(0.6, 1.1) : 1.0;
 
   final greenOut = gainG * mg;
-  if (gainR * r1 > 1.05 * greenOut) gainR = 1.05 * greenOut / r1;
+  // Capped, but never below 1: the fix adds red, it never takes it away.
+  if (gainR * r1 > 1.05 * greenOut) {
+    gainR = math.max(1.0, 1.05 * greenOut / r1);
+  }
   if (gainB * mb > 1.05 * greenOut) gainB = 1.05 * greenOut / mb;
 
   return AutoCorrectionParams(

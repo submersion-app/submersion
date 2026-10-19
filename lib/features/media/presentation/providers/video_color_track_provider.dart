@@ -15,7 +15,6 @@ import 'package:submersion/features/media/domain/color/channel_stats.dart';
 import 'package:submersion/features/media/domain/color/video_color_track.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 
 final _log = LoggerService.forClass(VideoTrackKey);
 
@@ -24,17 +23,37 @@ final transcodeEngineProvider = Provider<TranscodeEngine?>(
   (ref) => engineForThisPlatform(),
 );
 
-/// A video for the per-moment colour providers. Two keys are equal when
-/// they read the same file, so saving an adjustment (which changes the item)
-/// does not extract the frames again.
+/// A video for the per-moment colour providers, and the local [path] to
+/// read its frames from.
+///
+/// Grid tiles pass only a file already on this device ([MediaItem.localPath]);
+/// the viewer passes the file it is playing. A video with no local file
+/// (store-only, a photo-library export) is never fetched to colour a tile:
+/// its tile uses the poster until it is played.
+///
+/// Two keys are equal when they read the same file at the same place in the
+/// same dive, so saving an adjustment (which changes the item) does not
+/// extract the frames again, but a re-match or a new time pin does.
 class VideoTrackKey extends Equatable {
-  const VideoTrackKey(this.item);
+  const VideoTrackKey(this.item, {this.path});
 
   final MediaItem item;
+  final String? path;
 
   @override
-  List<Object?> get props => [colorStatsKey(item)];
+  List<Object?> get props => [
+    colorStatsKey(item),
+    item.diveId,
+    item.enrichment?.elapsedSeconds,
+    item.durationSeconds,
+    path,
+  ];
 }
+
+/// How long one clip's frame extraction may take before it is given up.
+final videoFrameTimeoutProvider = Provider<Duration>(
+  (ref) => const Duration(seconds: 30),
+);
 
 /// One extraction at a time across the app: each decodes a whole clip's
 /// worth of seeks, and a grid of videos must not start them all at once.
@@ -56,21 +75,27 @@ final videoColorTrackProvider =
       final item = key.item;
       final engine = ref.watch(transcodeEngineProvider);
       final seconds = item.durationSeconds;
-      if (engine == null || seconds == null || seconds <= 0) return null;
-      final path = await ref.watch(resolvedFilePathProvider(item).future);
-      if (path == null) return null;
+      final path = key.path;
+      if (engine == null || path == null || seconds == null || seconds <= 0) {
+        return null;
+      }
+      final timeout = ref.watch(videoFrameTimeoutProvider);
 
       final depthAt = await ref.watch(videoDepthAtProvider(key).future);
       final times = frameSampleTimes(Duration(seconds: seconds));
       final List<Uint8List?> frames;
       try {
         frames = await _serially(
-          () => engine.extractFrames(
-            source: File(path),
-            times: [
-              for (final t in times) Duration(milliseconds: (t * 1000).round()),
-            ],
-          ),
+          () => engine
+              .extractFrames(
+                source: File(path),
+                times: [
+                  for (final t in times)
+                    Duration(milliseconds: (t * 1000).round()),
+                ],
+                // A native call that never answers must not hold the queue.
+              )
+              .timeout(timeout),
         );
       } catch (e, stackTrace) {
         _log.warning(

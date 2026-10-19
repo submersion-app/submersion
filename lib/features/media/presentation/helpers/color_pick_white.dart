@@ -66,6 +66,8 @@ Future<WhitePoint?> sampleWhiteFromVideo(
     source: File(path),
     times: [position],
     maxDimension: 640,
+    // The paused frame itself, not a nearby keyframe.
+    exact: true,
   );
   final jpeg = frames.isEmpty ? null : frames.first;
   if (jpeg == null) return null;

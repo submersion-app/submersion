@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -59,7 +60,8 @@ Future<CorrectedPhoto?> encodeCorrectedPhoto({
     final jpeg = await compute(
       _encodeCorrected,
       _EncodeJob(
-        rgba: rgba,
+        // Handed over, not copied: a large photo is ~100 MB of RGBA.
+        rgba: TransferableTypedData.fromList([rgba]),
         width: width,
         height: height,
         matrix: matrix.values,
@@ -104,7 +106,7 @@ class _EncodeJob {
     required this.exif,
   });
 
-  final Uint8List rgba;
+  final TransferableTypedData rgba;
   final int width;
   final int height;
   final List<double> matrix;
@@ -112,14 +114,10 @@ class _EncodeJob {
 }
 
 Uint8List _encodeCorrected(_EncodeJob job) {
-  final m = ColorMatrix(job.matrix);
-  final out = Uint8List.fromList(job.rgba);
-  for (var o = 0; o < out.length; o += 4) {
-    final (r, g, b) = m.applyToPixel(out[o], out[o + 1], out[o + 2]);
-    out[o] = r;
-    out[o + 1] = g;
-    out[o + 2] = b;
-  }
+  final out = applyColorMatrixInPlace(
+    job.rgba.materialize().asUint8List(),
+    job.matrix,
+  );
   final image = img.Image.fromBytes(
     width: job.width,
     height: job.height,
@@ -132,4 +130,24 @@ Uint8List _encodeCorrected(_EncodeJob job) {
     image.exif.imageIfd.orientation = 1;
   }
   return Uint8List.fromList(img.encodeJpg(image, quality: 92));
+}
+
+/// Applies the 4x5 colour matrix [m] to every pixel of straight RGBA
+/// [rgba], in place (no second full-size buffer), and returns it. Matches
+/// [ColorMatrix.applyToPixel]; alpha is left as it is.
+Uint8List applyColorMatrixInPlace(Uint8List rgba, List<double> m) {
+  int channel(int r, int g, int b, int row) {
+    final o = row * 5;
+    final v =
+        m[o] * r + m[o + 1] * g + m[o + 2] * b + m[o + 3] * 255 + m[o + 4];
+    return v.round().clamp(0, 255);
+  }
+
+  for (var i = 0; i + 3 < rgba.length; i += 4) {
+    final r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
+    rgba[i] = channel(r, g, b, 0);
+    rgba[i + 1] = channel(r, g, b, 1);
+    rgba[i + 2] = channel(r, g, b, 2);
+  }
+  return rgba;
 }

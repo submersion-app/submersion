@@ -19,11 +19,18 @@ typedef RgbaDecoder = Future<Uint8List?> Function(ImageProvider source);
 /// a fast scroll cannot flood the raster thread, and a failure is a null
 /// (no correction), never an exception in a grid.
 class ColorAnalysisService {
-  ColorAnalysisService({RgbaDecoder? decodeRgba, this.capacity = 1000})
-    : _decode = decodeRgba ?? decodeSmallRgba;
+  ColorAnalysisService({
+    RgbaDecoder? decodeRgba,
+    this.capacity = 1000,
+    this.decodeTimeout = const Duration(seconds: 15),
+  }) : _decode = decodeRgba ?? decodeSmallRgba;
 
   final RgbaDecoder _decode;
   final int capacity;
+
+  /// A decode that has not answered by then is given up as "no stats", so
+  /// one stuck image cannot hold a slot (and every later tile) for good.
+  final Duration decodeTimeout;
 
   static const _maxConcurrent = 2;
 
@@ -49,7 +56,7 @@ class ColorAnalysisService {
     await _acquire();
     ChannelStats? stats;
     try {
-      final rgba = await _decode(source);
+      final rgba = await _decode(source).timeout(decodeTimeout);
       stats = rgba == null ? null : ChannelStats.fromRgba(rgba);
     } catch (_) {
       stats = null;
@@ -85,9 +92,15 @@ class ColorAnalysisService {
 
 /// The production decoder: [source] fitted inside 64x64, read back as
 /// straight RGBA.
+///
+/// A tile's source is often already a [ResizeImage], which cannot be
+/// wrapped in another (an assert in debug builds), so its inner provider is
+/// resized instead. The small decode is evicted from the shared image cache
+/// once read, so analysis never pushes out the thumbnails a grid draws.
 Future<Uint8List?> decodeSmallRgba(ImageProvider source) async {
+  final base = source is ResizeImage ? source.imageProvider : source;
   final provider = ResizeImage(
-    source,
+    base,
     width: 64,
     height: 64,
     policy: ResizeImagePolicy.fit,
@@ -114,5 +127,7 @@ Future<Uint8List?> decodeSmallRgba(ImageProvider source) async {
     return data?.buffer.asUint8List();
   } finally {
     image.dispose();
+    final key = await provider.obtainKey(ImageConfiguration.empty);
+    PaintingBinding.instance.imageCache.evict(key);
   }
 }

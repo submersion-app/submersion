@@ -20,12 +20,17 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class _StubResolver implements MediaSourceResolver {
   _StubResolver(this._data);
   final MediaSourceData _data;
+  int calls = 0;
   @override
   MediaSourceType get sourceType => MediaSourceType.platformGallery;
   @override
   bool canResolveOnThisDevice(MediaItem item) => true;
   @override
-  Future<MediaSourceData> resolve(MediaItem item) async => _data;
+  Future<MediaSourceData> resolve(MediaItem item) async {
+    calls++;
+    return _data;
+  }
+
   @override
   Future<MediaSourceData> resolveThumbnail(
     MediaItem item, {
@@ -110,6 +115,32 @@ void main() {
     await pump(tester, BytesData(bytes: png), _item(adjustment: null));
     expect(find.byType(Image), findsOneWidget);
     expect(find.byType(ColorFiltered), findsNothing);
+  });
+
+  testWidgets('saving an adjustment does not reload the image', (tester) async {
+    final resolver = _StubResolver(BytesData(bytes: png));
+    Widget view(MediaItem item) => ProviderScope(
+      overrides: [
+        mediaSourceResolverRegistryProvider.overrideWithValue(
+          MediaSourceResolverRegistry({
+            MediaSourceType.platformGallery: resolver,
+          }),
+        ),
+        diverAutoColorCorrectionProvider.overrideWithValue(false),
+      ],
+      child: MaterialApp(home: MediaItemView(item: item, thumbnail: true)),
+    );
+    await tester.pumpWidget(view(_item(adjustment: null)));
+    await tester.pump();
+    expect(resolver.calls, 1);
+    // A save changes the colour column and bumps updatedAt; the pixels the
+    // tile resolves are the same.
+    await tester.pumpWidget(
+      view(_item().copyWith(updatedAt: DateTime.utc(2025))),
+    );
+    await tester.pump();
+    expect(resolver.calls, 1);
+    expect(find.byType(ColorFiltered), findsOneWidget);
   });
 
   testWidgets('a placeholder is never filtered', (tester) async {

@@ -7,7 +7,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart'
+    as domain;
 
 /// Writes the diver's hand colour adjustments (issue #3520).
 ///
@@ -115,6 +116,16 @@ class MediaColorAdjustmentRepository {
     }
   }
 
+  /// The profile match stored for [mediaId], for a tile drawn from a row
+  /// that was read without it (the library's lean rows), so the automatic
+  /// fix gets the same depth and surface check there as in the dive.
+  Future<domain.MediaEnrichment?> enrichmentFor(String mediaId) async {
+    final row = await (_db.select(
+      _db.mediaEnrichment,
+    )..where((t) => t.mediaId.equals(mediaId))).getSingleOrNull();
+    return row == null ? null : mediaEnrichmentFromRow(row);
+  }
+
   /// How many photos and videos "Apply to this dive" would change.
   Future<int> countOtherMediaOnDive(
     String diveId,
@@ -130,8 +141,8 @@ class MediaColorAdjustmentRepository {
           t.diveId.equals(diveId) &
           t.id.equals(excludeMediaId).not() &
           t.fileType.isIn([
-            mediaTypeToDbString(MediaType.photo),
-            mediaTypeToDbString(MediaType.video),
+            mediaTypeToDbString(domain.MediaType.photo),
+            mediaTypeToDbString(domain.MediaType.video),
           ]),
     );
 

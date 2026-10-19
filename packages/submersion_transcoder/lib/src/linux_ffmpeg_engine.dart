@@ -43,6 +43,7 @@ class LinuxFfmpegEngine implements TranscodeEngine {
     required File source,
     required List<Duration> times,
     int maxDimension = 160,
+    bool exact = false,
   }) async {
     if (times.isEmpty) return const [];
     final dir = await Directory.systemTemp.createTemp('frames');
@@ -51,14 +52,16 @@ class LinuxFfmpegEngine implements TranscodeEngine {
       for (var i = 0; i < times.length; i++) {
         final out = File('${dir.path}${Platform.pathSeparator}frame_$i.jpg');
         final seconds = times[i].inMilliseconds / 1000;
+        final at = seconds.toStringAsFixed(3);
         final result = await _runner.run('ffmpeg', [
           '-v',
           'error',
-          // Before -i: a fast keyframe seek, close enough for colour.
-          '-ss',
-          seconds.toStringAsFixed(3),
+          // Before -i: a fast keyframe seek, close enough for colour. After
+          // -i: decoded up to the very frame, for an exact pick.
+          if (!exact) ...['-ss', at],
           '-i',
           source.path,
+          if (exact) ...['-ss', at],
           '-frames:v',
           '1',
           '-vf',

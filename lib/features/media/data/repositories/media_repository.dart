@@ -499,7 +499,8 @@ class MediaRepository {
             manualElapsedSeconds: Value(item.manualElapsedSeconds),
             siteCategory: Value(item.siteCategory?.storageKey),
             displaySize: Value(item.displaySizeOverride?.storageKey),
-            colorAdjustment: Value(item.colorAdjustment?.toJsonString()),
+            // colorAdjustment is left out: MediaColorAdjustmentRepository owns it,
+            // so a stale snapshot written back here cannot roll it back (#3520).
             updatedAt: Value(now),
           ),
         );

@@ -5,12 +5,17 @@ import 'package:submersion/features/media/domain/color/color_matrix.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 /// Whether [e] places a photo at the surface: outside the recorded profile
-/// (the matcher marks those `estimated`: before the descent, after the
-/// ascent) or shallower than 1 m. Boat, beach and surface-interval shots
-/// must not be warmed into orange.
+/// (before the descent or after the ascent: the matcher clamps those to the
+/// profile's edge, marks them `estimated` and records the offset from the
+/// edge) or shallower than 1 m. Boat, beach and surface-interval shots must
+/// not be warmed into orange. An `estimated` match with no offset is a
+/// mid-dive interpolation across a sparse profile, not a surface shot.
 bool isSurfaceShot(MediaEnrichment? e) {
   if (e == null) return false;
-  if (e.matchConfidence == MatchConfidence.estimated) return true;
+  if (e.matchConfidence == MatchConfidence.estimated &&
+      e.timestampOffsetSeconds != null) {
+    return true;
+  }
   final depth = e.depthMeters;
   return depth != null && depth < 1.0;
 }

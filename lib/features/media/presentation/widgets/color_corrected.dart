@@ -62,20 +62,47 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
             item.mediaType == MediaType.video);
     final diverAuto = onDive && ref.watch(diverAutoColorCorrectionProvider);
 
-    AutoCorrectionParams? auto;
-    if (autoNeedFor(
+    // A dive photo read without its profile match (the library's lean rows)
+    // gets it from the database before the automatic fix is worked out, so
+    // its depth and surface check match the dive's own grid. No fix until
+    // it has answered: guessing without depth could warm a surface shot.
+    var placed = item;
+    var placementKnown = true;
+    if (!item.isVideo &&
+        item.enrichment == null &&
+        autoEnabledFor(
           item,
           adjustment: adjustment,
           diverAutoEnabled: diverAuto,
-        ) ==
-        AutoNeed.stats) {
+        )) {
+      final stored = ref.watch(colorEnrichmentProvider(item.id));
+      placementKnown = stored.hasValue;
+      placed = item.copyWith(enrichment: stored.value);
+    }
+
+    AutoCorrectionParams? auto;
+    if (placementKnown &&
+        autoNeedFor(
+              placed,
+              adjustment: adjustment,
+              diverAutoEnabled: diverAuto,
+            ) ==
+            AutoNeed.stats) {
       final track = item.isVideo
           ? widget.track ??
-                ref.watch(videoColorTrackProvider(VideoTrackKey(item))).value
+                ref
+                    .watch(
+                      // Only a file already on this device: a grid never
+                      // fetches a whole video to colour its tile.
+                      videoColorTrackProvider(
+                        VideoTrackKey(item, path: item.localPath),
+                      ),
+                    )
+                    .value
           : null;
       auto = track != null
           ? track.average
-          : autoParamsForPhoto(item, _stats(colorStatsKey(item)));
+          : autoParamsForPhoto(placed, _stats(colorStatsKey(item)));
     }
 
     final matrix = composeCorrection(adjustment: adjustment, auto: auto);

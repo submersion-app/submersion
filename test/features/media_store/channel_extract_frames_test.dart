@@ -37,6 +37,20 @@ void main() {
     ]);
   });
 
+  test('exact asks for the very frame, not a nearby keyframe', () async {
+    Object? sent;
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      sent = (call.arguments as Map)['exact'];
+      return [null, null];
+    });
+    await ChannelTranscodeEngine().extractFrames(
+      source: File('/v/dive.mov'),
+      times: times,
+      exact: true,
+    );
+    expect(sent, isTrue);
+  });
+
   test('a missing plugin gives a null per time', () async {
     expect(
       await ChannelTranscodeEngine().extractFrames(

@@ -23,9 +23,13 @@ class VideoColorFilter extends ConsumerWidget {
     required this.item,
     required this.player,
     required this.child,
+    this.path,
   });
 
   final MediaItem item;
+
+  /// The file being played, which the frames are read from.
+  final String? path;
   final ValueListenable<VideoPlayerValue> player;
   final Widget child;
 
@@ -43,7 +47,7 @@ class VideoColorFilter extends ConsumerWidget {
         ) ==
         AutoNeed.stats;
 
-    final key = VideoTrackKey(item);
+    final key = VideoTrackKey(item, path: path);
     final track = needsAuto
         ? ref.watch(videoColorTrackProvider(key)).value
         : null;

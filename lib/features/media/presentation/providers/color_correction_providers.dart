@@ -4,6 +4,8 @@ import 'package:submersion/features/media/data/repositories/media_color_adjustme
 import 'package:submersion/features/media/data/services/color_analysis_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Display-time colour correction wiring (issue #3520).
@@ -16,6 +18,19 @@ final mediaColorAdjustmentRepositoryProvider =
     Provider<MediaColorAdjustmentRepository>(
       (ref) => MediaColorAdjustmentRepository(),
     );
+
+/// [mediaId]'s stored profile match, for tiles whose row came without it.
+final colorEnrichmentProvider = FutureProvider.autoDispose
+    .family<MediaEnrichment?, String>((ref, mediaId) {
+      // Enrichment is written by re-matching and sync pulls, outside any
+      // notifier; the media tick covers the media_enrichment table.
+      ref.invalidateSelfWhen(
+        ref.watch(mediaRepositoryProvider).watchMediaChanges(),
+      );
+      return ref
+          .watch(mediaColorAdjustmentRepositoryProvider)
+          .enrichmentFor(mediaId);
+    });
 
 /// The diver's "Automatic color correction" switch.
 final diverAutoColorCorrectionProvider = Provider<bool>(

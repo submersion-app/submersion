@@ -36,9 +36,14 @@ abstract class TranscodeEngine {
   /// [maxDimension] square, in the same order; null for a time that could
   /// not be read. Never throws: no engine, no codec or an unreadable file
   /// is all nulls. Read-only: [source] is never modified.
+  ///
+  /// By default a nearby keyframe will do (fast, and close enough for
+  /// colour statistics); [exact] asks for the very frame at each time, for
+  /// picking a white point on the paused frame the diver is looking at.
   Future<List<Uint8List?>> extractFrames({
     required File source,
     required List<Duration> times,
     int maxDimension = 160,
+    bool exact = false,
   });
 }
