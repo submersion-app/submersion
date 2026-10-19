@@ -172,6 +172,8 @@ import 'package:submersion/features/site_types/presentation/pages/site_types_pag
 import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_page.dart';
 import 'package:submersion/features/query/presentation/pages/saved_queries_page.dart';
 import 'package:submersion/features/rules/presentation/pages/rule_edit_page.dart';
+import 'package:submersion/features/rules/presentation/pages/rule_history_page.dart';
+import 'package:submersion/features/rules/presentation/pages/rule_run_page.dart';
 import 'package:submersion/features/rules/presentation/pages/rules_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
@@ -1819,6 +1821,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/rules/new',
             name: 'ruleNew',
             builder: (context, state) => const RuleEditPage(),
+          ),
+          GoRoute(
+            path: '/rules/history',
+            name: 'ruleHistory',
+            builder: (context, state) => const RuleHistoryPage(),
+          ),
+          GoRoute(
+            path: '/rules/history/:runId',
+            name: 'ruleRun',
+            builder: (context, state) =>
+                RuleRunPage(runId: state.pathParameters['runId']!),
           ),
           GoRoute(
             path: '/rules/:id',

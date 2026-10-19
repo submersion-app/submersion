@@ -5,6 +5,7 @@ import 'package:submersion/features/query/presentation/providers/query_name_inde
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
+import 'package:submersion/features/rules/data/services/rule_target_labels.dart';
 import 'package:submersion/features/rules/data/services/rule_target_scope.dart';
 import 'package:submersion/features/rules/data/services/rule_undo_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
@@ -100,4 +101,29 @@ final ruleMatchCountProvider = FutureProvider.autoDispose
         // A half-typed condition the compiler rejects shows no count.
         return null;
       }
+    });
+
+/// One run with its changes and what identifies each changed item.
+final ruleRunDetailProvider = FutureProvider.autoDispose
+    .family<
+      ({
+        RuleRun? run,
+        List<RuleChange> changes,
+        Map<String, RuleTargetInfo> targets,
+      }),
+      String
+    >((ref, runId) async {
+      final repository = ref.watch(ruleRunRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchRunsChanges());
+      final run = await repository.getRun(runId);
+      final changes = await repository.getChanges(runId);
+      final labels = RuleTargetLabels();
+      final targets = <String, RuleTargetInfo>{
+        for (final s in RuleSubject.values)
+          ...await labels.infoFor(s, {
+            for (final c in changes)
+              if (c.subject == s) c.targetId,
+          }),
+      };
+      return (run: run, changes: changes, targets: targets);
     });

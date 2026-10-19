@@ -85166,6 +85166,108 @@ abstract class AppLocalizations {
   /// **'description'**
   String get rules_siteField_description;
 
+  /// App bar title of the rule run history
+  ///
+  /// In en, this message translates to:
+  /// **'Rule history'**
+  String get rules_history_title;
+
+  /// Empty state of the rule run history
+  ///
+  /// In en, this message translates to:
+  /// **'Each time your rules change something, the run appears here so you can review or undo it.'**
+  String get rules_history_empty;
+
+  /// History: a run started by an import, with no source name
+  ///
+  /// In en, this message translates to:
+  /// **'After import'**
+  String get rules_history_triggerImported;
+
+  /// History: a run started by an import from a named source
+  ///
+  /// In en, this message translates to:
+  /// **'After import ({source})'**
+  String rules_history_triggerImportedFrom(String source);
+
+  /// History: a run started by creating a dive or site by hand
+  ///
+  /// In en, this message translates to:
+  /// **'Created by hand'**
+  String get rules_history_triggerCreatedByHand;
+
+  /// History: a run started from the Rules page
+  ///
+  /// In en, this message translates to:
+  /// **'Run by hand on everything'**
+  String get rules_history_triggerOnDemandAll;
+
+  /// History: a run started on selected dives or sites
+  ///
+  /// In en, this message translates to:
+  /// **'Run on a selection'**
+  String get rules_history_triggerOnDemandSelection;
+
+  /// History row: how many items a run changed and by which rules
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} item changed by {rules}} other{{count} items changed by {rules}}}'**
+  String rules_history_changed(int count, String rules);
+
+  /// History row: the device a run happened on
+  ///
+  /// In en, this message translates to:
+  /// **'on {device}'**
+  String rules_history_device(String device);
+
+  /// History row: when a run was undone
+  ///
+  /// In en, this message translates to:
+  /// **'Undone {date}'**
+  String rules_history_undone(String date);
+
+  /// Tooltip of a history row's undo button
+  ///
+  /// In en, this message translates to:
+  /// **'Undo this run'**
+  String get rules_history_undoTooltip;
+
+  /// Tooltip of a history row's delete button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry'**
+  String get rules_history_deleteTooltip;
+
+  /// Menu entry that deletes every history entry
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history'**
+  String get rules_history_clear;
+
+  /// Title of the clear history confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Clear rule history?'**
+  String get rules_history_clearDialog_title;
+
+  /// Body of the clear history confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'This removes every entry. What the rules changed stays as it is; it just can\'t be undone from here any more.'**
+  String get rules_history_clearDialog_content;
+
+  /// App bar title of one rule run's change list
+  ///
+  /// In en, this message translates to:
+  /// **'Rule run'**
+  String get rules_run_title;
+
+  /// Button that undoes one rule run
+  ///
+  /// In en, this message translates to:
+  /// **'Undo this run'**
+  String get rules_run_undo;
+
   /// Settings > Manage entry
   ///
   /// In en, this message translates to:

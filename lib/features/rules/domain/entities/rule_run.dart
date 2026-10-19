@@ -40,11 +40,16 @@ class RuleRun {
     required this.ranAt,
     required this.changedCount,
     required this.undoneAt,
+    this.ruleNames = const [],
   });
 
   final String id;
   final String? diverId;
   final RuleRunTrigger trigger;
+
+  /// The names of the rules that made the run's changes, as they were named
+  /// then; filled by the history list.
+  final List<String> ruleNames;
   final String? sourceLabel;
   final String? deviceLabel;
   final DateTime ranAt;

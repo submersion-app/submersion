@@ -71,6 +71,7 @@ void main() {
     );
     final runs = await repo.getRuns('me');
     expect(runs.map((r) => r.id), [second, first]);
+    expect(runs.first.ruleNames, ['Deep']);
   });
 
   test('markUndone, deleteRun and deleteAllRuns', () async {

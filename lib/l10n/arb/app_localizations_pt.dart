@@ -53623,6 +53623,73 @@ class AppLocalizationsPt extends AppLocalizations {
   String get rules_siteField_description => 'description';
 
   @override
+  String get rules_history_title => 'Rule history';
+
+  @override
+  String get rules_history_empty =>
+      'Each time your rules change something, the run appears here so you can review or undo it.';
+
+  @override
+  String get rules_history_triggerImported => 'After import';
+
+  @override
+  String rules_history_triggerImportedFrom(String source) {
+    return 'After import ($source)';
+  }
+
+  @override
+  String get rules_history_triggerCreatedByHand => 'Created by hand';
+
+  @override
+  String get rules_history_triggerOnDemandAll => 'Run by hand on everything';
+
+  @override
+  String get rules_history_triggerOnDemandSelection => 'Run on a selection';
+
+  @override
+  String rules_history_changed(int count, String rules) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items changed by $rules',
+      one: '$count item changed by $rules',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_history_device(String device) {
+    return 'on $device';
+  }
+
+  @override
+  String rules_history_undone(String date) {
+    return 'Undone $date';
+  }
+
+  @override
+  String get rules_history_undoTooltip => 'Undo this run';
+
+  @override
+  String get rules_history_deleteTooltip => 'Delete this entry';
+
+  @override
+  String get rules_history_clear => 'Clear history';
+
+  @override
+  String get rules_history_clearDialog_title => 'Clear rule history?';
+
+  @override
+  String get rules_history_clearDialog_content =>
+      'This removes every entry. What the rules changed stays as it is; it just can\'t be undone from here any more.';
+
+  @override
+  String get rules_run_title => 'Rule run';
+
+  @override
+  String get rules_run_undo => 'Undo this run';
+
+  @override
   String get settings_manage_savedQueries => 'Consultas salvas';
 
   @override

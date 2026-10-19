@@ -94,14 +94,29 @@ class RuleRunRepository {
     return id;
   }
 
-  /// [diverId]'s runs, newest first.
+  /// [diverId]'s runs, newest first, each with its rules' names.
   Future<List<RuleRun>> getRuns(String diverId) async {
     final rows =
         await (_db.select(_db.ruleRuns)
               ..where((t) => t.diverId.equals(diverId))
               ..orderBy([(t) => OrderingTerm.desc(t.ranAt)]))
             .get();
-    return [for (final r in rows) ?_runFromRow(r)];
+    final names = <String, List<String>>{};
+    final nameRows = await _db
+        .customSelect(
+          'SELECT DISTINCT c.run_id, c.rule_name FROM rule_run_changes c '
+          'JOIN rule_runs r ON r.id = c.run_id WHERE r.diver_id = ? '
+          'ORDER BY c.run_id, c.sort_order',
+          variables: [Variable.withString(diverId)],
+          readsFrom: {_db.ruleRunChanges, _db.ruleRuns},
+        )
+        .get();
+    for (final r in nameRows) {
+      final list = names.putIfAbsent(r.read<String>('run_id'), () => []);
+      final name = r.read<String>('rule_name');
+      if (!list.contains(name)) list.add(name);
+    }
+    return [for (final r in rows) ?_runFromRow(r, names[r.id] ?? const [])];
   }
 
   Future<RuleRun?> getRun(String id) async {
@@ -175,7 +190,7 @@ class RuleRunRepository {
     }
   }
 
-  RuleRun? _runFromRow(RuleRunRow r) {
+  RuleRun? _runFromRow(RuleRunRow r, [List<String> ruleNames = const []]) {
     final trigger = RuleRunTrigger.values.asNameMap()[r.trigger];
     if (trigger == null) return null;
     return RuleRun(
@@ -189,6 +204,7 @@ class RuleRunRepository {
       undoneAt: r.undoneAt == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(r.undoneAt!),
+      ruleNames: ruleNames,
     );
   }
 
