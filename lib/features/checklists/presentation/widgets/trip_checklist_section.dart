@@ -46,7 +46,15 @@ class TripChecklistSection extends ConsumerWidget {
       );
     }
 
-    final sectionTitles = [for (final s in sections) s.title];
+    // Folded case-insensitively, first-seen casing wins, so the add/edit
+    // sheet's suggestion list doesn't show the same section twice just
+    // because two sections differ only in casing.
+    final sectionTitles = <String>[];
+    for (final s in sections) {
+      if (!sectionTitles.any((t) => t.toLowerCase() == s.title.toLowerCase())) {
+        sectionTitles.add(s.title);
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +218,15 @@ class TripChecklistSection extends ConsumerWidget {
     List<domain.TripChecklistSection> sections,
   ) {
     final repository = ref.read(tripChecklistRepositoryProvider);
-    final sectionTitles = [for (final s in sections) s.title];
+    // Folded case-insensitively, first-seen casing wins, so the add/edit
+    // sheet's suggestion list doesn't show the same section twice just
+    // because two sections differ only in casing.
+    final sectionTitles = <String>[];
+    for (final s in sections) {
+      if (!sectionTitles.any((t) => t.toLowerCase() == s.title.toLowerCase())) {
+        sectionTitles.add(s.title);
+      }
+    }
     final itemsBySection = <String, List<TripChecklistItem>>{
       for (final s in sections) s.id: [],
     };

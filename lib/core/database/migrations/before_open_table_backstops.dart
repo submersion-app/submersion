@@ -67,8 +67,8 @@ extension TableBackstopsFromV217 on AppDatabase {
     // section_id's foreign key. Running this backstop here, before that
     // self-heal, would see no templates table yet, skip, and leave that
     // self-heal to create the FK column with no sections table for it to
-    // reference. Called from before_open.dart instead, right after
-    // _seedBuiltInPreDiveTemplates.
+    // reference. Called from before_open.dart instead, right after that
+    // self-heal and before _seedBuiltInPreDiveTemplates.
 
     // v299 backstop: pre_dive_session_sections,
     // pre_dive_session_items.section_id and the section backfill+drop

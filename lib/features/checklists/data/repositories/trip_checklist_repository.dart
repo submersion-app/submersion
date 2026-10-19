@@ -78,7 +78,7 @@ class TripChecklistRepository {
     await _db.transaction(() async {
       await (_db.update(
         _db.tripChecklistItems,
-      )..where((t) => t.id.equals(itemId))).write(
+      )..where((t) => t.id.equals(itemId) & t.tripId.equals(tripId))).write(
         TripChecklistItemsCompanion(
           sectionId: Value(targetSectionId),
           updatedAt: Value(now),
