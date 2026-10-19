@@ -632,7 +632,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -641,6 +641,8 @@ jobs:
             scripts/check_native_libs_present_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_bundled_native_assets_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_glibc_floor_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_jni_local_refs_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -1373,7 +1375,9 @@ jobs:
   build-linux:
     name: Build Linux
     needs: codegen
-    runs-on: ubuntu-latest
+    # Pinned to the runner build-all.yml's build-linux releases from, so the
+    # glibc floor and package checks below test what ships (issue #3523).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -1403,6 +1407,9 @@ jobs:
       # compiles SQLCipher from source and links it against OpenSSL. The
       # hosted runner image happens to ship the headers today, so declaring
       # it keeps a future image change from silently breaking the build.
+      # binutils supplies readelf for the glibc floor check and for
+      # scripts/linux_package_deps.py in the packaging step, on the same
+      # reasoning.
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -1416,7 +1423,8 @@ jobs:
             libstdc++-12-dev \
             libsecret-1-dev \
             libwebkit2gtk-4.1-dev \
-            libssl-dev
+            libssl-dev \
+            binutils
 
       - name: Disable Swift Package Manager (project uses CocoaPods)
         run: flutter config --no-enable-swift-package-manager
@@ -1441,19 +1449,21 @@ jobs:
         # positive control that the check is not vacuously passing.
         run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
 
+      - name: Check glibc floor
+        # Same guard as build-all.yml's build-linux, run here so a change
+        # that raises the floor (a runner pin moved, a native dependency
+        # rebuilt against newer glibc) fails on the pull request rather than
+        # in the beta pipeline after merge (issue #3523).
+        run: python3 scripts/check_glibc_floor.py build/linux/x64/release/bundle
+
       # Packaging runs here as well as in build-all.yml because build-all.yml
       # is workflow_call-only: nothing a pull request triggers ever invokes it,
       # so without this the packaging path would be unverifiable until after a
       # merge, when a break already blocks the beta pipeline. Both workflows
       # call the same scripts, so they cannot drift.
-      #
-      # This job runs on ubuntu-latest, not the ubuntu:22.04 container
-      # build-all.yml uses, so it covers packaging mechanics and dependency
-      # resolution but NOT the glibc floor. build-all.yml remains the only
-      # check on the floor itself.
       - name: Install packaging tools
         run: |
-          sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil binutils
+          sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil
           sudo gem install --no-document fpm
 
       - name: Build .deb and .rpm
@@ -1468,14 +1478,15 @@ jobs:
             --rpm "packages/Submersion-ci-Linux-x86_64.rpm"
 
       # The .deb is verified against the runner's own Ubuntu release rather
-      # than an older distro. This job builds on ubuntu-latest, so its binary
-      # requires that runner's glibc, and installing it on debian:12
-      # (glibc 2.36) fails with "GLIBC_2.38 not found" no matter how correct
-      # the packaging is. build-all.yml builds on ubuntu-latest too, so no
-      # job proves installation on older distros: none is supported.
+      # than an older distro. The binary requires glibc 2.38 (the floor
+      # checked above), so installing it on debian:12 (glibc 2.36) fails with
+      # "GLIBC_2.38 not found" no matter how correct the packaging is: no
+      # older distro is supported. The job is pinned to ubuntu-24.04, the
+      # oldest Ubuntu that meets the floor, so this proves installation where
+      # it is hardest to satisfy.
       #
-      # The tag is derived from the runner rather than pinned, so this keeps
-      # matching when GitHub moves ubuntu-latest to the next release.
+      # The tag is derived from the runner rather than written out, so the
+      # job's runs-on is the only place to change.
       - name: Verify the packages install in clean containers
         run: |
           set -euo pipefail
