@@ -132,24 +132,33 @@ class _RuleLists extends ConsumerStatefulWidget {
 class _RuleListsState extends ConsumerState<_RuleLists> {
   /// Local copies so a dropped row does not snap back while the write and
   /// the tick catch up.
-  late List<Rule> _dives = List.of(widget.dives);
-  late List<Rule> _sites = List.of(widget.sites);
+  late List<Rule> _dives = List.unmodifiable(widget.dives);
+  late List<Rule> _sites = List.unmodifiable(widget.sites);
 
   @override
   void didUpdateWidget(_RuleLists old) {
     super.didUpdateWidget(old);
-    if (old.dives != widget.dives) _dives = List.of(widget.dives);
-    if (old.sites != widget.sites) _sites = List.of(widget.sites);
+    if (old.dives != widget.dives) _dives = List.unmodifiable(widget.dives);
+    if (old.sites != widget.sites) _sites = List.unmodifiable(widget.sites);
   }
 
   Future<void> _reorder(List<Rule> list, int oldIndex, int newIndex) async {
+    final moved = list[oldIndex];
+    final rest = [
+      for (var i = 0; i < list.length; i++)
+        if (i != oldIndex) list[i],
+    ];
+    final reordered = [...rest.take(newIndex), moved, ...rest.skip(newIndex)];
     setState(() {
-      final moved = list.removeAt(oldIndex);
-      list.insert(newIndex, moved);
+      if (identical(list, _dives)) {
+        _dives = reordered;
+      } else {
+        _sites = reordered;
+      }
     });
     try {
       await ref.read(ruleRepositoryProvider).reorder([
-        for (final r in list) r.id,
+        for (final r in reordered) r.id,
       ]);
     } catch (e, st) {
       _log.error('Failed to reorder rules', error: e, stackTrace: st);

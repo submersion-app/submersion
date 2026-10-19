@@ -150,8 +150,12 @@ class _RunTile extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.undo),
               tooltip: l.rules_history_undoTooltip,
-              onPressed: () =>
-                  undoRuleRun(ref, ScaffoldMessenger.of(context), l, run.id),
+              onPressed: () => undoRuleRun(
+                ref.read(ruleUndoServiceProvider),
+                ScaffoldMessenger.of(context),
+                l,
+                run.id,
+              ),
             ),
           IconButton(
             icon: const Icon(Icons.delete_outline),

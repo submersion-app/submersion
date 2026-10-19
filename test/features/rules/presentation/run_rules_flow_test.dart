@@ -122,6 +122,49 @@ void main() {
     expect(await tester.runAsync(() => typesOf('d35')), ['recreational']);
   });
 
+  testWidgets('Undo still works after the page that ran the rules is gone', (
+    tester,
+  ) async {
+    final show = ValueNotifier(true);
+    addTearDown(show.dispose);
+    await tester.runAsync(
+      () => pumpRulesApp(
+        tester,
+        path: '/host',
+        home: (_) => Scaffold(
+          body: ValueListenableBuilder<bool>(
+            valueListenable: show,
+            builder: (context, visible, _) => !visible
+                ? const SizedBox.shrink()
+                : Consumer(
+                    builder: (context, ref, _) => Center(
+                      child: ElevatedButton(
+                        onPressed: () => runRulesOnDemand(
+                          context,
+                          ref,
+                          subject: RuleSubject.dives,
+                        ),
+                        child: const Text('go'),
+                      ),
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await openPreview(tester);
+    await tester.tap(find.text('Apply to 1 dive'));
+    await settle(tester);
+    expect(find.text('Rules changed 1 dive'), findsOneWidget);
+    // The widget whose ref started the run is disposed before Undo.
+    show.value = false;
+    await tester.pump();
+    await tester.tap(find.text('Undo'));
+    await settle(tester);
+    expect(await tester.runAsync(() => typesOf('d35')), ['recreational']);
+  });
+
   testWidgets('Apply recomputes when data moved after the preview', (
     tester,
   ) async {

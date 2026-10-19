@@ -79,7 +79,7 @@ class _RuleRunPageState extends ConsumerState<RuleRunPage> {
                   padding: const EdgeInsets.all(16),
                   child: FilledButton.icon(
                     onPressed: () => undoRuleRun(
-                      ref,
+                      ref.read(ruleUndoServiceProvider),
                       ScaffoldMessenger.of(context),
                       l,
                       widget.runId,

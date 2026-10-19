@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:sqlite3/sqlite3.dart' show SqliteException;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -21,6 +22,23 @@ class RuleUndoResult {
     this.nothingYet = false,
     this.alreadyUndone = false,
   });
+
+  /// The outcome of undoing several runs at once (an import's runs, one per
+  /// profile): counts add up; it is "nothing yet" only when no run was
+  /// undone and one is still waiting, and "already undone" only when every
+  /// run was.
+  factory RuleUndoResult.combine(List<RuleUndoResult> results) {
+    int sum(int Function(RuleUndoResult) f) =>
+        results.fold(0, (total, r) => total + f(r));
+    final undoneNow = results.any((r) => !r.nothingYet && !r.alreadyUndone);
+    return RuleUndoResult(
+      restoredTargets: sum((r) => r.restoredTargets),
+      skippedEditedTargets: sum((r) => r.skippedEditedTargets),
+      skippedDeletedTargets: sum((r) => r.skippedDeletedTargets),
+      nothingYet: !undoneNow && results.any((r) => r.nothingYet),
+      alreadyUndone: results.every((r) => r.alreadyUndone),
+    );
+  }
 
   /// Dives and sites with at least one change reverted.
   final int restoredTargets;
@@ -99,13 +117,14 @@ class RuleUndoService {
     return result;
   }
 
-  /// Undoes [c] in its own savepoint, so a change that can no longer be
-  /// written (its old trip or dive centre was deleted since) is left alone
-  /// and counted as edited instead of failing the whole undo.
+  /// Undoes [c] in its own savepoint, so a change the database refuses to
+  /// write (its old trip or dive centre was deleted since) is left alone
+  /// and counted as edited instead of failing the whole undo. Any other
+  /// failure fails the undo, which rolls back and leaves the run undoable.
   Future<_Outcome> _undoInSavepoint(RuleChange c) async {
     try {
       return await _db.transaction(() => _undoOne(c));
-    } on Object {
+    } on SqliteException {
       return _Outcome.edited;
     }
   }

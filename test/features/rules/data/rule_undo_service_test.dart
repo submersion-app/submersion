@@ -5,6 +5,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
+import 'package:submersion/features/rules/data/services/dive_rule_applier.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/data/services/rule_undo_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
@@ -225,4 +226,49 @@ void main() {
     expect(result.skippedEditedTargets, 2);
     expect(await column('d35', 'trip_id'), 't2');
   });
+
+  test('undoing several runs reports their combined outcome', () {
+    final merged = RuleUndoResult.combine(const [
+      RuleUndoResult(restoredTargets: 2),
+      RuleUndoResult(restoredTargets: 1, skippedEditedTargets: 3),
+      RuleUndoResult(alreadyUndone: true),
+    ]);
+    expect(merged.restoredTargets, 3);
+    expect(merged.skippedEditedTargets, 3);
+    expect(merged.nothingYet, isFalse);
+    expect(merged.alreadyUndone, isFalse);
+    expect(
+      RuleUndoResult.combine(const [
+        RuleUndoResult(nothingYet: true),
+        RuleUndoResult(alreadyUndone: true),
+      ]).nothingYet,
+      isTrue,
+    );
+    expect(
+      RuleUndoResult.combine(const [
+        RuleUndoResult(alreadyUndone: true),
+        RuleUndoResult(alreadyUndone: true),
+      ]).alreadyUndone,
+      isTrue,
+    );
+  });
+
+  test('an unexpected failure is reported, not counted as an edit', () async {
+    final run = await runRule(
+      const DiveMembershipAction(DiveCollection.tags, MembershipMode.add, [
+        'cold',
+      ]),
+    );
+    final broken = RuleUndoService(dives: _ThrowingDiveApplier());
+    await expectLater(broken.undo(run), throwsStateError);
+    expect((await RuleRunRepository().getRun(run))!.isUndone, isFalse);
+  });
+}
+
+class _ThrowingDiveApplier extends DiveRuleApplier {
+  @override
+  Future<Map<String, List<Object>>> members(
+    DiveCollection c,
+    List<String> diveIds,
+  ) => throw StateError('broken');
 }

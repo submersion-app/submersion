@@ -15,14 +15,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 enum RuleChangeGrouping { target, rule }
 
-/// The stored column a dive field's first value lives in.
-String _diveColumn(BulkField f) => switch (f) {
-  BulkField.scrubberDuration => 'scrubber_duration_minutes',
-  _ => diveFieldValueKeys(
-    f,
-  ).first.replaceAllMapped(RegExp('[A-Z]'), (m) => '_${m[0]!.toLowerCase()}'),
-};
-
 /// How one change reads: its field and before and after values in the
 /// diver's units and language, ids shown as names.
 ({String field, String before, String after, String? appended})
@@ -79,7 +71,7 @@ describeRuleChange(
           kind: diveFieldKind(field),
           unit: diveFieldUnit(field),
           fieldName: field.name,
-          value: map[_diveColumn(field)],
+          value: map[diveFieldColumn(field)],
           refSubject: diveFieldRefSubject(field),
           nameOf: nameOf,
         );

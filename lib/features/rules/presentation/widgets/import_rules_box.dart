@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/rules/data/services/rule_undo_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
@@ -125,15 +126,15 @@ class _ImportRulesBoxState extends ConsumerState<ImportRulesBox> {
       final results = [
         for (final r in widget.runs) await service.undo(r.runId!),
       ];
-      final undone = results.any((r) => !r.nothingYet && !r.alreadyUndone);
+      final combined = RuleUndoResult.combine(results);
       if (mounted) {
         setState(() {
           _busy = false;
-          _undone = undone;
+          _undone = !combined.nothingYet && !combined.alreadyUndone;
         });
       }
       messenger.showSnackBar(
-        SnackBar(content: Text(ruleUndoMessage(l, results.first))),
+        SnackBar(content: Text(ruleUndoMessage(l, combined))),
       );
     } catch (e, st) {
       _log.error('Failed to undo import rules', error: e, stackTrace: st);

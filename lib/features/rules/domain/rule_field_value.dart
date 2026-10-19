@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart' show Constant, Variable;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
@@ -165,3 +167,27 @@ BulkScalarInputs bulkInputsFor(BulkField field, Map<String, Object?> values) {
 /// effects (visibility clears the legacy bucket, diluent sets O2 and He).
 DivesCompanion diveCompanionFor(SetDiveFieldAction a) =>
     buildScalarCompanion({a.field}, bulkInputsFor(a.field, a.values));
+
+/// The stored column [field]'s first value lands in, read off the write a
+/// set-field action makes rather than guessed from the value's name.
+String diveFieldColumn(BulkField field) {
+  final key = diveFieldValueKeys(field).first;
+  final probe = switch (diveFieldKind(field)) {
+    RuleValueKind.text || RuleValueKind.entityRef => 'x',
+    RuleValueKind.enumName => diveFieldEnumValues(field).first,
+    RuleValueKind.boolean => true,
+    RuleValueKind.rating => 1,
+    RuleValueKind.number => diveFieldIsInteger(field) ? 1 : 1.0,
+  };
+  final written = diveCompanionFor(
+    SetDiveFieldAction(field, {key: probe}),
+  ).toColumns(false);
+  return written.entries
+      .firstWhere(
+        (e) => switch (e.value) {
+          Variable(:final value) || Constant(:final value) => value != null,
+          _ => false,
+        },
+      )
+      .key;
+}

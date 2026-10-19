@@ -30,6 +30,22 @@ void main() {
     }
   });
 
+  test('each field\'s display column is the one its first value writes', () {
+    expect(
+      diveFieldColumn(BulkField.scrubberDuration),
+      'scrubber_duration_minutes',
+    );
+    expect(diveFieldColumn(BulkField.visibility), 'visibility_meters');
+    expect(diveFieldColumn(BulkField.diveCenter), 'dive_center_id');
+    for (final f in kRuleSettableDiveFields) {
+      final key = diveFieldValueKeys(f).first;
+      final written = diveCompanionFor(
+        SetDiveFieldAction(f, {key: _sample(f, key)}),
+      ).toColumns(false);
+      expect(written.keys, contains(diveFieldColumn(f)), reason: f.name);
+    }
+  });
+
   test('visibility writes the three columns and clears the legacy bucket', () {
     final cols = diveCompanionFor(
       const SetDiveFieldAction(BulkField.visibility, {

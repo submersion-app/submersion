@@ -28,15 +28,17 @@ String ruleUndoMessage(AppLocalizations l, RuleUndoResult r) {
   return l.rules_undo_done;
 }
 
-/// Undoes [runId] and shows the outcome in a snackbar on [messenger].
+/// Undoes [runId] with [service] and shows the outcome in a snackbar on
+/// [messenger]. Takes the service, not a ref: a snackbar's Undo can outlive
+/// the page that showed it.
 Future<void> undoRuleRun(
-  WidgetRef ref,
+  RuleUndoService service,
   ScaffoldMessengerState messenger,
   AppLocalizations l,
   String runId,
 ) async {
   try {
-    final result = await ref.read(ruleUndoServiceProvider).undo(runId);
+    final result = await service.undo(runId);
     messenger.showSnackBar(SnackBar(content: Text(ruleUndoMessage(l, result))));
   } catch (e, st) {
     _log.error('Failed to undo rule run', error: e, stackTrace: st);
@@ -59,8 +61,14 @@ Future<bool> runRulesOnDemand(
   final l = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final units = UnitFormatter(ref.read(settingsProvider));
+  // Read before the first await: the page may be gone by then, and the
+  // snackbar's Undo can run long after it.
+  final engine = ref.read(ruleEngineProvider);
+  final undoService = ref.read(ruleUndoServiceProvider);
+  final diverIdFuture = ref.read(validatedCurrentDiverIdProvider.future);
+  final nameOfFuture = ref.read(ruleNameOfProvider.future);
   try {
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final (diverId, nameOf) = await (diverIdFuture, nameOfFuture).wait;
     if (diverId == null) return false;
     final request = RuleRunRequest(
       diverId: diverId,
@@ -70,7 +78,6 @@ Future<bool> runRulesOnDemand(
       targets: {subject: targetIds},
       onlyRuleIds: onlyRuleIds,
     );
-    final engine = ref.read(ruleEngineProvider);
     final preview = await engine.preview(request);
     final dives = subject == RuleSubject.dives;
     void noChanges() => messenger.showSnackBar(
@@ -87,7 +94,6 @@ Future<bool> runRulesOnDemand(
     final targets = await RuleTargetLabels().infoFor(subject, {
       for (final c in preview.changes) c.targetId,
     });
-    final nameOf = await ref.read(ruleNameOfProvider.future);
     if (!context.mounted) return false;
     final apply = await showRulePreviewSheet(
       context,
@@ -114,7 +120,7 @@ Future<bool> runRulesOnDemand(
         ),
         action: SnackBarAction(
           label: l.rules_action_undo,
-          onPressed: () => undoRuleRun(ref, messenger, l, runId),
+          onPressed: () => undoRuleRun(undoService, messenger, l, runId),
         ),
       ),
     );

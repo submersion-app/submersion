@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
@@ -166,17 +167,22 @@ class RuleRunRepository {
   Future<void> _deleteRuns(List<String> ids) async {
     if (ids.isEmpty) return;
     try {
-      final changeIds =
-          await (_db.selectOnly(_db.ruleRunChanges)
+      final chunks = ruleIdChunks(ids).toList();
+      final changeIds = [
+        for (final chunk in chunks)
+          ...await (_db.selectOnly(_db.ruleRunChanges)
                 ..addColumns([_db.ruleRunChanges.id])
-                ..where(_db.ruleRunChanges.runId.isIn(ids)))
+                ..where(_db.ruleRunChanges.runId.isIn(chunk)))
               .map((r) => r.read(_db.ruleRunChanges.id)!)
-              .get();
+              .get(),
+      ];
       await _db.transaction(() async {
-        await (_db.delete(
-          _db.ruleRunChanges,
-        )..where((t) => t.runId.isIn(ids))).go();
-        await (_db.delete(_db.ruleRuns)..where((t) => t.id.isIn(ids))).go();
+        for (final chunk in chunks) {
+          await (_db.delete(
+            _db.ruleRunChanges,
+          )..where((t) => t.runId.isIn(chunk))).go();
+          await (_db.delete(_db.ruleRuns)..where((t) => t.id.isIn(chunk))).go();
+        }
       });
       await _syncRepository.logDeletions(
         entityType: changeEntity,
