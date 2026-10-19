@@ -24881,8 +24881,23 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülés előtti ellenőrzőlista sablon';
 
   @override
+  String get settings_conflict_ref_preDiveChecklistTemplateSection =>
+      'Pre-dive checklist template section';
+
+  @override
   String get settings_conflict_ref_preDiveSession =>
       'Merülés előtti ellenőrzőlista';
+
+  @override
+  String get settings_conflict_ref_preDiveSessionSection =>
+      'Pre-dive checklist section';
+
+  @override
+  String get settings_conflict_ref_checklistTemplateSection =>
+      'Checklist template section';
+
+  @override
+  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
 
   @override
   String get settings_conflict_ref_regulator => 'Légzőautomata';

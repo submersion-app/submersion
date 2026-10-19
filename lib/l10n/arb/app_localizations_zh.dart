@@ -23622,7 +23622,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_preDiveChecklistTemplate => '潜前清单模板';
 
   @override
+  String get settings_conflict_ref_preDiveChecklistTemplateSection =>
+      'Pre-dive checklist template section';
+
+  @override
   String get settings_conflict_ref_preDiveSession => '潜前清单';
+
+  @override
+  String get settings_conflict_ref_preDiveSessionSection =>
+      'Pre-dive checklist section';
+
+  @override
+  String get settings_conflict_ref_checklistTemplateSection =>
+      'Checklist template section';
+
+  @override
+  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
 
   @override
   String get settings_conflict_ref_regulator => '调节器';

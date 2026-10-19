@@ -24573,7 +24573,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Pre-dive checklist template';
 
   @override
+  String get settings_conflict_ref_preDiveChecklistTemplateSection =>
+      'Pre-dive checklist template section';
+
+  @override
   String get settings_conflict_ref_preDiveSession => 'Pre-dive checklist run';
+
+  @override
+  String get settings_conflict_ref_preDiveSessionSection =>
+      'Pre-dive checklist section';
+
+  @override
+  String get settings_conflict_ref_checklistTemplateSection =>
+      'Checklist template section';
+
+  @override
+  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
 
   @override
   String get settings_conflict_ref_regulator => 'Regulator';

@@ -25191,7 +25191,22 @@ class AppLocalizationsAr extends AppLocalizations {
       'قالب قائمة التحقق قبل الغوص';
 
   @override
+  String get settings_conflict_ref_preDiveChecklistTemplateSection =>
+      'Pre-dive checklist template section';
+
+  @override
   String get settings_conflict_ref_preDiveSession => 'قائمة التحقق قبل الغوص';
+
+  @override
+  String get settings_conflict_ref_preDiveSessionSection =>
+      'Pre-dive checklist section';
+
+  @override
+  String get settings_conflict_ref_checklistTemplateSection =>
+      'Checklist template section';
+
+  @override
+  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
 
   @override
   String get settings_conflict_ref_regulator => 'المنظم';

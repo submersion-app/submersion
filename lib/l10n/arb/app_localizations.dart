@@ -40192,11 +40192,35 @@ abstract class AppLocalizations {
   /// **'Pre-dive checklist template'**
   String get settings_conflict_ref_preDiveChecklistTemplate;
 
+  /// No description provided for @settings_conflict_ref_preDiveChecklistTemplateSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-dive checklist template section'**
+  String get settings_conflict_ref_preDiveChecklistTemplateSection;
+
   /// No description provided for @settings_conflict_ref_preDiveSession.
   ///
   /// In en, this message translates to:
   /// **'Pre-dive checklist run'**
   String get settings_conflict_ref_preDiveSession;
+
+  /// No description provided for @settings_conflict_ref_preDiveSessionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-dive checklist section'**
+  String get settings_conflict_ref_preDiveSessionSection;
+
+  /// No description provided for @settings_conflict_ref_checklistTemplateSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist template section'**
+  String get settings_conflict_ref_checklistTemplateSection;
+
+  /// No description provided for @settings_conflict_ref_tripChecklistSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist section'**
+  String get settings_conflict_ref_tripChecklistSection;
 
   /// No description provided for @settings_conflict_ref_regulator.
   ///

@@ -24953,8 +24953,24 @@ class AppLocalizationsDe extends AppLocalizations {
       'Vorlage für Checkliste vor dem Tauchgang';
 
   @override
+  String get settings_conflict_ref_preDiveChecklistTemplateSection =>
+      'Abschnitt einer Vorlage für Checkliste vor dem Tauchgang';
+
+  @override
   String get settings_conflict_ref_preDiveSession =>
       'Checkliste vor dem Tauchgang';
+
+  @override
+  String get settings_conflict_ref_preDiveSessionSection =>
+      'Abschnitt einer Checkliste vor dem Tauchgang';
+
+  @override
+  String get settings_conflict_ref_checklistTemplateSection =>
+      'Abschnitt einer Checklistenvorlage';
+
+  @override
+  String get settings_conflict_ref_tripChecklistSection =>
+      'Abschnitt einer Checkliste';
 
   @override
   String get settings_conflict_ref_regulator => 'Atemregler';
