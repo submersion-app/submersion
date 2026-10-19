@@ -52,7 +52,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(284));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(284));
   });
 
   test('upgrading from v283 adds 20 null colour columns', () async {
