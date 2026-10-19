@@ -314,13 +314,14 @@ class DiveRuleApplier {
       await _dives.bulkAppendNotes(chunk, '\n$text');
     }
     return AppliedAction([
-      for (final id in [...empty, ...filled])
+      for (final id in empty) _change(rule, id, 'notes', '', text),
+      for (final id in filled)
         _change(
           rule,
           id,
           'notes',
-          (before[id]!['notes'] as String?) ?? '',
-          empty.contains(id) ? text : '${before[id]!['notes']}\n$text',
+          before[id]!['notes'] as String,
+          '${before[id]!['notes']}\n$text',
         ),
     ]);
   }

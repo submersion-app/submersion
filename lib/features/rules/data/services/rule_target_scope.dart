@@ -4,6 +4,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
 /// How many ids one `IN (...)` list binds, well under SQLite's variable
@@ -61,13 +62,8 @@ class RuleTargetScope {
   ) async {
     if (targetIds.isEmpty) return {};
     final compiled = _compile(condition, s, diverId);
-    final ids = targetIds.toList();
     final out = <String>{};
-    for (var i = 0; i < ids.length; i += kRuleIdChunk) {
-      final chunk = ids.sublist(
-        i,
-        i + kRuleIdChunk > ids.length ? ids.length : i + kRuleIdChunk,
-      );
+    for (final chunk in ruleIdChunks(targetIds.toList())) {
       out.addAll(
         await _runner.ids(compiled, scope: scopeFor(s, diverId, chunk)),
       );
