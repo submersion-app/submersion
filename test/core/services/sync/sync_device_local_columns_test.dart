@@ -336,6 +336,28 @@ void main() {
       ]);
       expect((await storedCertification()).photoFront, isNull);
     });
+
+    // v294 keeps photos it could not prove were copied: the only copy left.
+    test('a peer row never clears a photo kept here', () async {
+      final local = await seedCertification();
+      await serializer.upsertRecord('certifications', {
+        ...withoutKeys(local, photoKeys),
+        'name': 'Advanced Nitrox',
+        'updatedAt': (local['updatedAt'] as int) + 1000,
+      });
+      final row = await storedCertification();
+      expect(row.name, 'Advanced Nitrox');
+      expect(row.photoFront, [1, 2]);
+    });
+
+    test('a replace-adopt clear and refill keeps a photo kept here', () async {
+      final local = await seedCertification();
+      await serializer.deleteAllRecords('certifications');
+      await serializer.upsertRecords('certifications', [
+        withoutKeys(local, photoKeys),
+      ]);
+      expect((await storedCertification()).photoFront, [1, 2]);
+    });
   });
 
   // A new entry in deviceLocalSyncColumns must work in every path that reads
