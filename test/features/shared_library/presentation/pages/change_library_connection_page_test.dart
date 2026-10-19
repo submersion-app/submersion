@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -133,6 +134,9 @@ Widget _app(
     accountGroupsProvider.overrideWith(
       (ref) async => signedInGroupsOf(accounts ?? _accounts),
     ),
+    accountGroupsOfKindsProvider(
+      libraryKindsKey,
+    ).overrideWith((ref) async => signedInGroupsOf(accounts ?? _accounts)),
     libraryConnectionServiceProvider.overrideWithValue(service),
     sharedLibrarySyncProvider.overrideWith(_RecordingSync.new),
   ],

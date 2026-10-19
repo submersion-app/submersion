@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/accounts/account_group.dart';
-import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -18,13 +18,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// [allowedKinds] restricts both sections (shared libraries allow only S3
 /// and WebDAV). When [consequenceOf] returns text for the choice, the sheet
 /// shows it with Cancel and Continue before returning, so a choice with
-/// consequences is explained before it takes effect.
+/// consequences is explained before it takes effect. [webdavCheck] is how an
+/// own WebDAV server added or signed in here is checked (a library reaches
+/// its folder read only).
 Future<AccountGroup?> showAccountSheet(
   BuildContext context, {
   Set<AccountKind>? allowedKinds,
   String? currentKey,
   bool addOnly = false,
   String? Function(AccountGroup choice)? consequenceOf,
+  WebDavCheck? webdavCheck,
 }) => showModalBottomSheet<AccountGroup>(
   context: context,
   isScrollControlled: true,
@@ -39,6 +42,7 @@ Future<AccountGroup?> showAccountSheet(
       currentKey: currentKey,
       addOnly: addOnly,
       consequenceOf: consequenceOf,
+      webdavCheck: webdavCheck,
     ),
   ),
 );
@@ -50,6 +54,7 @@ class _AccountSheet extends ConsumerStatefulWidget {
     required this.currentKey,
     required this.addOnly,
     required this.consequenceOf,
+    required this.webdavCheck,
   });
 
   final ScrollController controller;
@@ -57,6 +62,7 @@ class _AccountSheet extends ConsumerStatefulWidget {
   final String? currentKey;
   final bool addOnly;
   final String? Function(AccountGroup)? consequenceOf;
+  final WebDavCheck? webdavCheck;
 
   @override
   ConsumerState<_AccountSheet> createState() => _AccountSheetState();
@@ -66,6 +72,16 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
   AccountGroup? _pending;
   String? _pendingText;
   bool _busy = false;
+
+  /// The accounts the sheet lists. Without Google among the kinds (the
+  /// library pages' own servers) only those kinds are probed; otherwise it
+  /// shares the full list the page already holds.
+  FutureProvider<List<AccountGroup>> get _groupsProvider {
+    final kinds = widget.allowedKinds;
+    return kinds == null || kinds.contains(AccountKind.googledrive)
+        ? accountGroupsProvider
+        : accountGroupsOfKindsProvider(accountKindsKey(kinds));
+  }
 
   bool _allowed(AccountKind kind) =>
       widget.allowedKinds?.contains(kind) ?? kind != AccountKind.adobeLightroom;
@@ -85,12 +101,18 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
     try {
       var chosen = group;
       if (group.status == AccountStatus.needsSignIn) {
-        if (!await signInToGroup(context, ref, group)) return;
-        final fresh = await ref.read(accountGroupsProvider.future);
-        chosen = fresh.firstWhere(
-          (g) => g.key == group.key,
-          orElse: () => group,
-        );
+        if (!await signInToGroup(
+          context,
+          ref,
+          group,
+          webdavCheck: widget.webdavCheck,
+        )) {
+          return;
+        }
+        // By a row, not the key: a row nothing could place before the
+        // sign-in is grouped by its server after it.
+        final fresh = await ref.read(_groupsProvider.future);
+        chosen = fresh.holding(group.rows.first.id) ?? group;
       }
       _offer(chosen);
     } finally {
@@ -101,9 +123,15 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
   Future<void> _add(AccountKindOffer offer) async {
     setState(() => _busy = true);
     try {
-      final row = await addAccountRow(context, ref, offer, kinds: _serverKinds);
+      final row = await addAccountRow(
+        context,
+        ref,
+        offer,
+        kinds: _serverKinds,
+        webdavCheck: widget.webdavCheck,
+      );
       if (row == null) return;
-      final groups = await ref.read(accountGroupsProvider.future);
+      final groups = await ref.read(_groupsProvider.future);
       final group = groups.holding(row.id);
       if (group != null) _offer(group);
     } finally {
@@ -159,8 +187,21 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
       );
     }
 
+    // Never an empty list while the accounts load (or failed to): it would
+    // hide the diver's accounts and offer to add ones that exist.
+    final groupsAsync = ref.watch(_groupsProvider);
+    if (!groupsAsync.hasValue) {
+      return Center(
+        child: groupsAsync.hasError
+            ? Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(l10n.settings_connectedAccounts_loadError),
+              )
+            : const CircularProgressIndicator(),
+      );
+    }
     final groups = [
-      for (final g in ref.watch(accountGroupsProvider).value ?? const [])
+      for (final g in groupsAsync.requireValue)
         if (_allowed(g.kind)) g,
     ];
     final presentKinds = {for (final g in groups) g.kind};
@@ -170,48 +211,53 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
             !(kindOfOffer(o) != null && presentKinds.contains(kindOfOffer(o))))
           o,
     ];
-    return AbsorbPointer(
-      absorbing: _busy,
-      child: ListView(
-        controller: widget.controller,
-        padding: const EdgeInsets.only(bottom: 24),
-        children: [
-          if (!widget.addOnly && groups.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: buildSettingsSectionHeader(
-                context,
-                l10n.settings_accounts_sheet_yours,
+    // Not closed while a sign-in or switch runs: what follows it needs this
+    // sheet's context and ref.
+    return PopScope(
+      canPop: !_busy,
+      child: AbsorbPointer(
+        absorbing: _busy,
+        child: ListView(
+          controller: widget.controller,
+          padding: const EdgeInsets.only(bottom: 24),
+          children: [
+            if (!widget.addOnly && groups.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: buildSettingsSectionHeader(
+                  context,
+                  l10n.settings_accounts_sheet_yours,
+                ),
               ),
-            ),
-            for (final g in groups)
-              AccountGroupTile(
-                group: g,
-                inSheet: true,
-                selected: g.key == widget.currentKey,
-                onTap: () => _choose(g),
+              for (final g in groups)
+                AccountGroupTile(
+                  group: g,
+                  inSheet: true,
+                  selected: g.key == widget.currentKey,
+                  onTap: () => _choose(g),
+                ),
+            ],
+            if (offers.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: buildSettingsSectionHeader(
+                  context,
+                  l10n.settings_accounts_sheet_add,
+                ),
               ),
+              for (final o in offers)
+                ListTile(
+                  leading: Icon(switch (kindOfOffer(o)) {
+                    final kind? => accountKindIcon(kind),
+                    null => accountKindIcon(AccountKind.s3),
+                  }),
+                  title: Text(_offerLabel(context, o)),
+                  trailing: const Icon(Icons.add),
+                  onTap: () => _add(o),
+                ),
+            ],
           ],
-          if (offers.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: buildSettingsSectionHeader(
-                context,
-                l10n.settings_accounts_sheet_add,
-              ),
-            ),
-            for (final o in offers)
-              ListTile(
-                leading: Icon(switch (kindOfOffer(o)) {
-                  final kind? => accountKindIcon(kind),
-                  null => accountKindIcon(AccountKind.s3),
-                }),
-                title: Text(_offerLabel(context, o)),
-                trailing: const Icon(Icons.add),
-                onTap: () => _add(o),
-              ),
-          ],
-        ],
+        ),
       ),
     );
   }

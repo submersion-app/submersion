@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
-import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -94,6 +95,9 @@ Widget _connectApp(
     accountGroupsProvider.overrideWith(
       (ref) async => signedInGroupsOf(accounts()),
     ),
+    accountGroupsOfKindsProvider(
+      libraryKindsKey,
+    ).overrideWith((ref) async => signedInGroupsOf(accounts())),
     sharedLibraryMembershipServiceProvider.overrideWithValue(
       _FakeMembershipService(const {}),
     ),
@@ -117,12 +121,13 @@ void _tallView(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-ConnectedAccount _bucket() => ConnectedAccount(
+ConnectedAccount _bucket({AccountLocation? location}) => ConnectedAccount(
   id: 'a',
   kind: AccountKind.s3,
   label: 'Bucket',
   createdAt: DateTime.utc(2026),
   updatedAt: DateTime.utc(2026),
+  location: location,
 );
 
 void main() {
@@ -156,6 +161,9 @@ void main() {
           accountGroupsProvider.overrideWith(
             (ref) async => signedInGroupsOf(accounts),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf(accounts)),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _FakeMembershipService(probes),
           ),
@@ -208,6 +216,9 @@ void main() {
           accountGroupsProvider.overrideWith(
             (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _FakeMembershipService(const {
               'site-sync': LibraryProbe(
@@ -257,6 +268,9 @@ void main() {
           accountGroupsProvider.overrideWith(
             (ref) async => signedInGroupsOf(const []),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf(const [])),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
           currentDiverProvider.overrideWith((ref) async => null),
         ],
@@ -344,6 +358,9 @@ void main() {
           accountGroupsProvider.overrideWith(
             (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(service),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
           currentDiverProvider.overrideWith(
@@ -390,6 +407,9 @@ void main() {
           accountGroupsProvider.overrideWith(
             (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _FakeMembershipService({
               'old': const LibraryProbe(
@@ -441,6 +461,9 @@ void main() {
           accountGroupsProvider.overrideWith(
             (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(service),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
           currentDiverProvider.overrideWith(
@@ -470,10 +493,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      _connectApp([
-        ...await getBaseOverrides(),
-        libraryAccountSetupProvider.overrideWithValue(_BucketSetup()),
-      ], () => [_bucket()]),
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
@@ -488,13 +508,24 @@ void main() {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    // The account's location names its bucket (the accounts list adds this
+    // device's stored settings as a location for a row that has none).
     await tester.pumpWidget(
-      _connectApp([
-        ...await getBaseOverrides(),
-        libraryAccountSetupProvider.overrideWithValue(
-          _BucketSetup('reef-bucket'),
-        ),
-      ], () => [_bucket()]),
+      _connectApp(
+        await getBaseOverrides(),
+        () => [
+          _bucket(
+            location: const S3AccountLocation(
+              displayHost: 'minio.home',
+              endpoint: 'https://minio.home',
+              bucket: 'reef-bucket',
+              region: 'us-east-1',
+              prefix: 'submersion-sync/',
+              pathStyle: true,
+            ),
+          ),
+        ],
+      ),
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
@@ -572,15 +603,4 @@ void main() {
     );
     expect(find.text('No library here yet.'), findsNothing);
   });
-}
-
-/// An account whose stored S3 settings name [bucket] (its label does not),
-/// or none, without reaching the device's secure storage.
-class _BucketSetup extends LibraryAccountSetup {
-  _BucketSetup([this.bucket]);
-
-  final String? bucket;
-
-  @override
-  Future<String?> s3Bucket(String accountId) async => bucket;
 }

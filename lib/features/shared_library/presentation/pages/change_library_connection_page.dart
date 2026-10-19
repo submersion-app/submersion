@@ -14,7 +14,6 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
-import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -75,7 +74,8 @@ class _ChangeLibraryConnectionPageState
         accountId: library.connectedAccountId,
       );
     }
-    final groups = ref.watch(accountGroupsProvider);
+    // Own servers only: no Google or iCloud probe to list S3 and WebDAV.
+    final groups = ref.watch(accountGroupsOfKindsProvider(libraryKindsKey));
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sharedLibrary_connection_change)),
       body: library == null
@@ -85,7 +85,9 @@ class _ChangeLibraryConnectionPageState
                   // Left meanwhile, or reached by a stale link.
                   : Text(l10n.sharedLibrary_list_empty),
             )
+          // A reload keeps the form; see the connect page.
           : groups.when(
+              skipLoadingOnReload: true,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text(e.toString())),
               data: (all) => _body(context, library!, libraryServers(all)),
@@ -229,9 +231,9 @@ class _ChangeLibraryConnectionPageState
       _error = null;
     });
     try {
-      final account = await _location.resolveAccount(
-        ref.read(accountGroupServiceProvider),
-      );
+      // Checked through a signed-in row of the server; nothing is saved
+      // until a check finds this library there and the diver saves.
+      final account = _location.probeAccount();
       if (account == null) return;
       final result = await ref
           .read(libraryConnectionServiceProvider)
@@ -255,8 +257,7 @@ class _ChangeLibraryConnectionPageState
   }
 
   Future<void> _save({required bool acceptOlder}) async {
-    final account = _location.account;
-    if (account == null) return;
+    if (_location.account == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
     final l10n = context.l10n;
@@ -267,6 +268,10 @@ class _ChangeLibraryConnectionPageState
       _error = null;
     });
     try {
+      final account = await _location.resolveAccount(
+        ref.read(accountGroupServiceProvider),
+      );
+      if (account == null) return;
       await ref
           .read(libraryConnectionServiceProvider)
           .repoint(

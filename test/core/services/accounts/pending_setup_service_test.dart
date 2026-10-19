@@ -9,6 +9,8 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 
 import '../../../helpers/test_database.dart';
@@ -169,7 +171,7 @@ void main() {
   });
 
   // Issue #3482 phase 2: reminders only for accounts this device needs
-  // (spec section 7.2); the inventory's leftover Lightroom row asked forever.
+  // (spec section 7.2): another device's server asks for nothing here.
   test('a roster row nothing here uses raises no sign-in item', () async {
     await accounts.create(kind: AccountKind.s3, label: 'Another device');
     expect(await service().compute(), isEmpty);
@@ -266,6 +268,22 @@ void main() {
   // Issue #3388: routing reads the same usage map as the Connected Accounts
   // page, so the account this device is attached through goes to Media
   // Storage even when the announced store has since moved to another kind.
+  // Review of #3527: a library's account was sent to Media Storage when the
+  // announced store was of the same kind; its own account page signs it in.
+  test('a library\'s account routes to its account page', () async {
+    final account = await accounts.create(kind: AccountKind.s3, label: 'Club');
+    await SharedLibraryStore().upsertLibrary(
+      SharedLibrary(
+        id: 'lib',
+        name: 'Reef',
+        connectedAccountId: account.id,
+        prefix: 'submersion-sites/reef',
+      ),
+    );
+    final items = await service().compute();
+    expect(items.single.route, '/settings/connected-accounts/${account.id}');
+  });
+
   test('the attached media account routes to media storage', () async {
     final mediaAccount = await accounts.create(
       kind: AccountKind.s3,

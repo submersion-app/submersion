@@ -6109,7 +6109,7 @@
   "settings_cloudSync_firstSync_dialogTitle": "دمج المكتبات؟",
   "settings_cloudSync_replace_banner": "المزامنة متوقفة مؤقتًا: تم استبدال المكتبة من نسخة احتياطية على \"{deviceName}\". اضغط على \"مزامنة الآن\" للمراجعة.",
   "settings_cloudSync_switch_dialogContent": "لن يتم نقل بياناتك من {fromName} -- ستبقى هناك حتى تحذفها. بعد التبديل، ستدمج المزامنة التالية لهذا الجهاز بياناته مع ما هو موجود بالفعل على {toName}. ستظل أجهزتك الأخرى تستخدم {fromName} حتى تبدّل كلاً منها أيضًا.",
-  "settings_cloudSync_moved_banner": "قام {deviceName} بنقل هذه المكتبة إلى {destination}. لم تعد هذه الخدمة تُحدَّث بواسطته. اختر {destination} أدناه لمتابعة النقل.",
+  "settings_cloudSync_moved_banner": "قام {deviceName} بنقل هذه المكتبة إلى {destination}. لم تعد هذه الخدمة تُحدَّث بواسطته. اختر تغيير ثم {destination} لمتابعة النقل.",
   "settings_cloudSync_moved_dismiss": "تجاهل",
   "settings_cloudSync_cleanup_banner": "لا تزال بيانات المزامنة القديمة مخزّنة على {backend} من قبل أن تبدّل الخدمات. لم تعد مستخدمة.",
   "settings_cloudSync_cleanup_delete": "حذف البيانات القديمة",
@@ -10438,7 +10438,6 @@
   "settings_connectedAccounts_status_unavailable": "غير متاح على هذا الجهاز",
   "settings_connectedAccounts_disconnectDevice": "تسجيل الخروج على هذا الجهاز",
 
-  "settings_connectedAccounts_removeFromLibrary": "إزالة من المكتبة",
   "settings_connectedAccounts_rename": "إعادة التسمية",
   "settings_connectedAccounts_renameTitle": "إعادة تسمية الحساب",
   "settings_connectedAccounts_renameField": "الاسم",

@@ -22109,7 +22109,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String deviceName,
     String destination,
   ) {
-    return 'قام $deviceName بنقل هذه المكتبة إلى $destination. لم تعد هذه الخدمة تُحدَّث بواسطته. اختر $destination أدناه لمتابعة النقل.';
+    return 'قام $deviceName بنقل هذه المكتبة إلى $destination. لم تعد هذه الخدمة تُحدَّث بواسطته. اختر تغيير ثم $destination لمتابعة النقل.';
   }
 
   @override
@@ -37240,9 +37240,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'تسجيل الخروج على هذا الجهاز';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary => 'إزالة من المكتبة';
 
   @override
   String get settings_connectedAccounts_rename => 'إعادة التسمية';

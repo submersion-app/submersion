@@ -21695,7 +21695,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String deviceName,
     String destination,
   ) {
-    return '$deviceName heeft deze bibliotheek naar $destination verplaatst. Deze provider wordt er niet langer door bijgewerkt. Selecteer $destination hieronder om de verplaatsing te volgen.';
+    return '$deviceName heeft deze bibliotheek naar $destination verplaatst. Deze provider wordt er niet langer door bijgewerkt. Kies Wijzigen en daarna $destination om de verplaatsing te volgen.';
   }
 
   @override
@@ -36491,10 +36491,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Afmelden op dit apparaat';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary =>
-      'Uit bibliotheek verwijderen';
 
   @override
   String get settings_connectedAccounts_rename => 'Naam wijzigen';

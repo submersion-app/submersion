@@ -135,10 +135,14 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
   /// Saving points sync at the server, as the S3 and WebDAV settings pages
   /// did, and the draft reflects it.
   Future<void> _openOwnServer(AccountKind kind) async {
+    // The sync folder is shown, as the S3 and WebDAV settings pages showed
+    // it: a new device joining a library kept in a custom folder must be
+    // able to name that folder.
     final row = await showOwnServerPage(
       context,
       kinds: {kind},
       rootNavigator: true,
+      showSyncFolder: true,
     );
     if (!mounted) return;
     if (row != null) {

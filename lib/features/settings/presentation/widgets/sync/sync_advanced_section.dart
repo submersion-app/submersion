@@ -8,7 +8,6 @@ import 'package:submersion/features/settings/presentation/pages/troubleshoot_syn
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/replace_cloud_library_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -165,11 +164,7 @@ Future<void> stopSyncingOnThisDevice(WidgetRef ref) async {
   await repository.setRemoteFileId(null);
   ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
   await ref.read(syncInitializerProvider).saveProvider(null);
-  ref
-    ..invalidate(s3ConfigProvider)
-    ..invalidate(webdavConfigProvider)
-    ..invalidate(connectedAccountUsageProvider)
-    ..invalidate(accountGroupsProvider)
-    ..invalidate(pendingSetupItemsProvider);
+  ref.invalidate(webdavConfigProvider);
+  refreshAccountState(ref.invalidate);
   await ref.read(syncStateProvider.notifier).refreshState();
 }

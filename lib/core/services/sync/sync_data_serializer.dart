@@ -9668,9 +9668,12 @@ class SyncDataSerializer {
   /// Nullable columns where null means "never held a value" rather than a
   /// choice (v262, issue #2948): a device adopts its own old pref into such a
   /// column. A peer that has none carries no choice, so its null must not
-  /// clear the value this device holds.
+  /// clear the value this device holds. An account's location (v293, issue
+  /// #3482) is never cleared once written: a peer that has none yet has
+  /// simply not seen it.
   static const Map<String, Set<String>> _nullMeansUnsetKeys = {
     'diverSettings': {'pscrRatio', 'profileMetricsFollowViewport'},
+    'connectedAccounts': {'location'},
   };
 
   /// [data] without the [_nullMeansUnsetKeys] it carries as null, so

@@ -15,7 +15,6 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -28,19 +27,32 @@ final _log = LoggerService.forClass(OwnServerForm);
 Future<bool> signInToGroup(
   BuildContext context,
   WidgetRef ref,
-  AccountGroup group,
-) async {
+  AccountGroup group, {
+  WebDavCheck? webdavCheck,
+}) async {
   final container = ProviderScope.containerOf(context, listen: false);
   final bool ok;
   switch (group.kind) {
     case AccountKind.googledrive:
       ok = await _signInGoogle(context, ref);
+      if (ok) {
+        await _recordIdentity(ref, group.rows.first, AccountKind.googledrive);
+      }
     case AccountKind.dropbox:
       ok = await _signInDropbox(context, ref, group.rows.first.id);
+      if (ok) await _recordIdentity(ref, group.rows.first, AccountKind.dropbox);
     case AccountKind.s3 || AccountKind.webdav:
-      ok = await showOwnServerPage(context, existing: group) != null;
-      // Sync reads the legacy settings, which only the switch rewrites.
-      final syncRow = group.rowFor(AccountRole.sync);
+      ok =
+          await showOwnServerPage(
+            context,
+            existing: group,
+            webdavCheck: webdavCheck,
+          ) !=
+          null;
+      // Sync reads the legacy settings, which only the switch rewrites; only
+      // for the row this device already syncs through, never a server that
+      // merely has a default sync folder.
+      final syncRow = group.syncRowHere;
       if (ok && syncRow != null && context.mounted) {
         await switchSyncToRow(context, ref, syncRow);
       }
@@ -59,6 +71,7 @@ Future<ConnectedAccount?> addAccountRow(
   WidgetRef ref,
   AccountKindOffer offer, {
   Set<AccountKind> kinds = const {AccountKind.s3, AccountKind.webdav},
+  WebDavCheck? webdavCheck,
 }) async {
   final container = ProviderScope.containerOf(context, listen: false);
   final l10n = context.l10n;
@@ -74,6 +87,7 @@ Future<ConnectedAccount?> addAccountRow(
           AccountKind.googledrive,
           l10n.settings_cloudSync_provider_googleDrive,
         );
+        await _recordIdentity(ref, row, AccountKind.googledrive);
       }
     case AccountKindOffer.dropbox:
       final kept = await _connectDropbox(context, ref);
@@ -89,6 +103,7 @@ Future<ConnectedAccount?> addAccountRow(
               accountId: row.id,
               overwrite: true,
             );
+        await _recordIdentity(ref, row, AccountKind.dropbox);
       }
     case AccountKindOffer.icloud:
       final availability = await ref.read(iCloudAvailabilityProvider.future);
@@ -98,24 +113,70 @@ Future<ConnectedAccount?> addAccountRow(
           l10n.settings_cloudSync_provider_icloud,
         );
       } else if (context.mounted) {
+        // The message for the state iCloud is in: signed out, unsupported,
+        // or not reachable just now.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.settings_cloudSync_error_icloudSignedOut),
+            content: Text(
+              connectionErrorMessage(
+                l10n,
+                CloudProviderType.icloud,
+                availability,
+                l10n.settings_cloudSync_provider_icloud,
+                '',
+              ),
+            ),
           ),
         );
       }
     case AccountKindOffer.ownServer:
       if (!context.mounted) return null;
-      row = await showOwnServerPage(context, kinds: kinds);
+      row = await showOwnServerPage(
+        context,
+        kinds: kinds,
+        webdavCheck: webdavCheck,
+      );
   }
   if (row != null) _refresh(container);
   return row;
+}
+
+/// Records which account the diver signed in to (the Google address, the
+/// Dropbox account), shown under the account's name as the provider tiles
+/// showed it, so two Google accounts can be told apart. Best effort.
+Future<void> _recordIdentity(
+  WidgetRef ref,
+  ConnectedAccount row,
+  AccountKind kind,
+) async {
+  try {
+    final provider = kind == AccountKind.googledrive
+        ? ref.read(
+            cloudStorageProviderForProvider(CloudProviderType.googledrive),
+          )
+        : ref.read(dropboxStorageProviderInstanceProvider);
+    final email = (await provider.getUserEmail())?.trim();
+    if (email == null || email.isEmpty || email == row.accountIdentifier) {
+      return;
+    }
+    await ref
+        .read(connectedAccountsRepositoryProvider)
+        .updateLabels(row.id, accountIdentifier: email);
+  } catch (e, stack) {
+    _log.warning(
+      'Could not read the signed-in account',
+      error: e,
+      stackTrace: stack,
+    );
+  }
 }
 
 Future<bool> _signInGoogle(BuildContext context, WidgetRef ref) async {
   final provider = ref.read(
     cloudStorageProviderForProvider(CloudProviderType.googledrive),
   );
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final l10n = context.l10n;
   try {
     await authenticateWithBrowserWait(
       context,
@@ -127,6 +188,22 @@ Future<bool> _signInGoogle(BuildContext context, WidgetRef ref) async {
     return false;
   } catch (e, stack) {
     _log.warning('Google sign-in failed', error: e, stackTrace: stack);
+    // Said, as the provider tile said it: a failed sign-in must not look
+    // like nothing happened.
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(
+          connectionErrorMessage(
+            l10n,
+            CloudProviderType.googledrive,
+            null,
+            provider.providerName,
+            errorDisplayText(e),
+          ),
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
     return false;
   }
 }
@@ -158,8 +235,5 @@ Future<bool> _signInDropbox(
   return true;
 }
 
-void _refresh(ProviderContainer container) => container
-  ..invalidate(connectedAccountsWithStatusProvider)
-  ..invalidate(connectedAccountUsageProvider)
-  ..invalidate(accountGroupsProvider)
-  ..invalidate(pendingSetupItemsProvider);
+void _refresh(ProviderContainer container) =>
+    refreshAccountState(container.invalidate);

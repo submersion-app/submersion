@@ -20732,7 +20732,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String deviceName,
     String destination,
   ) {
-    return '$deviceName 已将此资料库移至 $destination。该后端不再由它更新。请在下方选择 $destination 以跟随此次移动。';
+    return '$deviceName 已将此资料库移至 $destination。该后端不再由它更新。请选择“更改”，然后选择 $destination 以跟随此次移动。';
   }
 
   @override
@@ -34612,9 +34612,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_disconnectDevice => '在此设备上退出登录';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary => '从库中移除';
 
   @override
   String get settings_connectedAccounts_rename => '重命名';

@@ -3,19 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
-import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_confirm_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/account_rename_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -63,6 +62,14 @@ class _Details extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final isICloud = group.kind == AccountKind.icloud;
+    // A build that cannot sign in to the service (no Dropbox app key, no
+    // Google client here) offers no sign-in that would fail at once.
+    final buildCanSignIn = switch (group.kind) {
+      AccountKind.googledrive =>
+        ref.watch(googleDriveAvailableProvider).value ?? false,
+      AccountKind.dropbox => ref.watch(dropboxConfiguredProvider),
+      _ => true,
+    };
     final canSignIn =
         !isICloud &&
         group.kind != AccountKind.adobeLightroom &&
@@ -99,7 +106,7 @@ class _Details extends ConsumerWidget {
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.settings_accounts_icloudManaged),
           ),
-        if (canSignIn && !group.isOwnServer)
+        if (canSignIn && buildCanSignIn && !group.isOwnServer)
           ListTile(
             leading: const Icon(Icons.login),
             title: Text(l10n.settings_accounts_signInAgain),
@@ -142,7 +149,9 @@ class _Details extends ConsumerWidget {
             ),
         ],
         const Divider(),
-        if (canSignIn && group.status == AccountStatus.signedIn)
+        // Lightroom has no sign-in here but can still be signed out of.
+        if ((canSignIn || group.kind == AccountKind.adobeLightroom) &&
+            group.signedInHere)
           ListTile(
             leading: const Icon(Icons.logout),
             title: Text(l10n.settings_connectedAccounts_disconnectDevice),
@@ -169,10 +178,9 @@ class _Details extends ConsumerWidget {
       shown.copyWith(label: group.address, nickname: group.nickname),
     );
     if (nickname == null) return;
-    final repository = ref.read(connectedAccountsRepositoryProvider);
-    for (final row in group.rows) {
-      await repository.setNickname(row.id, nickname);
-    }
+    await ref.read(connectedAccountsRepositoryProvider).setNicknameForRows([
+      for (final row in group.rows) row.id,
+    ], nickname);
   }
 
   /// Signing out breaks nothing when nothing here uses the account, so it
@@ -197,7 +205,7 @@ class _Details extends ConsumerWidget {
     }
     if (!context.mounted) return;
     final container = ProviderScope.containerOf(context, listen: false);
-    if (_runsSync) await leaveSyncForAccount(ref, group.kind);
+    if (_runsSync) await leaveSyncForAccount(container);
     await service.signOut(group);
     _refreshWith(container);
   }
@@ -225,7 +233,7 @@ class _Details extends ConsumerWidget {
     if (!confirmed || !context.mounted) return;
     final container = ProviderScope.containerOf(context, listen: false);
     final navigator = Navigator.of(context);
-    if (_runsSync) await leaveSyncForAccount(ref, group.kind);
+    if (_runsSync) await leaveSyncForAccount(container);
     await service.remove(group);
     _refreshWith(container);
     navigator.maybePop();
@@ -238,8 +246,9 @@ class _Details extends ConsumerWidget {
       ? l10n.settings_cloudSync_signOut_backupWarning
       : null;
 
-  /// Whether this device syncs through the account.
-  bool get _runsSync => group.rowFor(AccountRole.sync) != null;
+  /// Whether this device syncs through the account: its sync usage, never a
+  /// row that only sits in the default sync folder.
+  bool get _runsSync => group.syncRowHere != null;
 
   void _refresh(BuildContext context) =>
       _refreshWith(ProviderScope.containerOf(context, listen: false));
@@ -248,11 +257,7 @@ class _Details extends ConsumerWidget {
   /// every reader of the account's state must recompute, including the
   /// setup items behind the Settings > Data rows.
   void _refreshWith(ProviderContainer container) {
-    container
-      ..invalidate(connectedAccountsWithStatusProvider)
-      ..invalidate(connectedAccountUsageProvider)
-      ..invalidate(accountGroupsProvider)
-      ..invalidate(pendingSetupItemsProvider);
+    refreshAccountState(container.invalidate);
     // Signing out of the WebDAV sync account clears the sync settings too.
     if (group.kind == AccountKind.webdav) {
       container.invalidate(webdavConfigProvider);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -47,6 +48,17 @@ class SyncUsingRow extends ConsumerWidget {
     final selected = ref.watch(selectedCloudProviderTypeProvider);
 
     Future<void> change() async {
+      // The account sync uses decides the switch warning and the departure
+      // record, so wait for the list rather than read a value still loading.
+      final AccountGroup? current;
+      try {
+        current = currentSyncGroup(
+          await ref.read(accountGroupsProvider.future),
+        );
+      } on Object {
+        return;
+      }
+      if (!context.mounted) return;
       final choice = await showAccountSheet(
         context,
         allowedKinds: syncAccountKinds,
@@ -88,7 +100,15 @@ class SyncUsingRow extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (current != null) Text(accountStateText(l10n, current.status)),
+          // The sync row's own state: another device's photos folder on the
+          // server does not make sync here "not signed in".
+          if (current != null)
+            Text(
+              accountStateText(
+                l10n,
+                current.statusOf(current.syncRowHere?.id) ?? current.status,
+              ),
+            ),
           TileSubtitleAction(
             actionKey: const Key('sync-using-change'),
             label: l10n.settings_sync_change,

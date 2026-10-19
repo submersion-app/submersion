@@ -56,4 +56,21 @@ void main() {
     expect(account.label, 'Renamed');
     expect(account.location, isA<WebDavAccountLocation>());
   });
+
+  // Review of #3527: a peer on this build that holds the row without a
+  // location exports it as null; that null is "never held one", not a
+  // clear, and must not wipe the location here.
+  test('a peer\'s null location keeps the local one', () async {
+    final a = await repo.create(kind: AccountKind.webdav, label: 'eric @ x');
+    await repo.setLocation(a.id, location);
+    final fetched = (await serializer.fetchRecord('connectedAccounts', a.id))!;
+    final fromPeer = {...fetched, 'nickname': 'NAS', 'location': null};
+
+    await serializer.upsertRecord('connectedAccounts', fromPeer);
+    await serializer.upsertRecords('connectedAccounts', [fromPeer]);
+
+    final account = (await repo.getById(a.id))!;
+    expect(account.nickname, 'NAS');
+    expect(account.location, isA<WebDavAccountLocation>());
+  });
 }

@@ -6109,7 +6109,7 @@
   "settings_cloudSync_firstSync_dialogTitle": "Bibliotheken samenvoegen?",
   "settings_cloudSync_replace_banner": "Synchronisatie gepauzeerd: de bibliotheek is vervangen vanuit een back-up op \"{deviceName}\". Tik op Nu synchroniseren om te controleren.",
   "settings_cloudSync_switch_dialogContent": "Je gegevens worden niet van {fromName} verplaatst — ze blijven daar staan totdat je ze verwijdert. Na het wijzigen voegt de volgende synchronisatie van dit apparaat zijn gegevens samen met wat er al op {toName} staat. Je andere apparaten blijven {fromName} gebruiken totdat je ze ook elk wijzigt.",
-  "settings_cloudSync_moved_banner": "{deviceName} heeft deze bibliotheek naar {destination} verplaatst. Deze provider wordt er niet langer door bijgewerkt. Selecteer {destination} hieronder om de verplaatsing te volgen.",
+  "settings_cloudSync_moved_banner": "{deviceName} heeft deze bibliotheek naar {destination} verplaatst. Deze provider wordt er niet langer door bijgewerkt. Kies Wijzigen en daarna {destination} om de verplaatsing te volgen.",
   "settings_cloudSync_moved_dismiss": "Sluiten",
   "settings_cloudSync_cleanup_banner": "Er staan nog oude synchronisatiegegevens op {backend} van voordat je van provider wisselde. Ze worden niet meer gebruikt.",
   "settings_cloudSync_cleanup_delete": "Oude gegevens verwijderen",
@@ -10438,7 +10438,6 @@
   "settings_connectedAccounts_status_unavailable": "Niet beschikbaar op dit apparaat",
   "settings_connectedAccounts_disconnectDevice": "Afmelden op dit apparaat",
 
-  "settings_connectedAccounts_removeFromLibrary": "Uit bibliotheek verwijderen",
   "settings_connectedAccounts_rename": "Naam wijzigen",
   "settings_connectedAccounts_renameTitle": "Accountnaam wijzigen",
   "settings_connectedAccounts_renameField": "Naam",

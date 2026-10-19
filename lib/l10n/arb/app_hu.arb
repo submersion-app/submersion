@@ -6009,7 +6009,7 @@
   "settings_cloudSync_firstSync_dialogTitle": "Könyvtárak összevonása?",
   "settings_cloudSync_replace_banner": "A szinkronizálás szünetel: a könyvtárat egy biztonsági mentésből cserélték le a(z) \"{deviceName}\" eszközön. Koppintson a Szinkronizálás most gombra az áttekintéshez.",
   "settings_cloudSync_switch_dialogContent": "Az adatai nem kerülnek el a(z) {fromName} szolgáltatóról – ott maradnak, amíg nem törli őket. A váltás után ennek az eszköznek a következő szinkronizálása összevonja az adatait azzal, ami már a(z) {toName} szolgáltatón található. A többi eszköze továbbra is a(z) {fromName} szolgáltatót használja, amíg azokon is át nem vált.",
-  "settings_cloudSync_moved_banner": "A(z) {deviceName} áthelyezte ezt a könyvtárat ide: {destination}. Ezt a szolgáltatót már nem frissíti. Válassza a(z) {destination} lehetőséget alább a költözés követéséhez.",
+  "settings_cloudSync_moved_banner": "A(z) {deviceName} áthelyezte ezt a könyvtárat ide: {destination}. Ezt a szolgáltatót már nem frissíti. Válassza a Módosítás lehetőséget, majd a(z) {destination} lehetőséget a költözés követéséhez.",
   "settings_cloudSync_moved_dismiss": "Elvetés",
   "settings_cloudSync_cleanup_banner": "Régi szinkronizálási adatok vannak még tárolva a(z) {backend} szolgáltatón a szolgáltatóváltás előttről. Ezeket már nem használja a rendszer.",
   "settings_cloudSync_cleanup_delete": "Régi adatok törlése",
@@ -10438,7 +10438,6 @@
   "settings_connectedAccounts_status_unavailable": "Ezen az eszközön nem érhető el",
   "settings_connectedAccounts_disconnectDevice": "Kijelentkezés ezen az eszközön",
 
-  "settings_connectedAccounts_removeFromLibrary": "Eltávolítás a könyvtárból",
   "settings_connectedAccounts_rename": "Átnevezés",
   "settings_connectedAccounts_renameTitle": "Fiók átnevezése",
   "settings_connectedAccounts_renameField": "Név",

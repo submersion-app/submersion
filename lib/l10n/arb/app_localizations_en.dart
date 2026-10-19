@@ -21503,7 +21503,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String deviceName,
     String destination,
   ) {
-    return '$deviceName moved this library to $destination. This backend is no longer being updated by it. Select $destination below to follow the move.';
+    return '$deviceName moved this library to $destination. This backend is no longer being updated by it. Choose Change, then $destination, to follow the move.';
   }
 
   @override
@@ -36124,10 +36124,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Sign out on this device';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary =>
-      'Remove from library';
 
   @override
   String get settings_connectedAccounts_rename => 'Rename';

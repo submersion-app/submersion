@@ -11,6 +11,7 @@ import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
@@ -23,6 +24,12 @@ import '../../../../../helpers/test_database.dart';
 class _CancellingProvider extends FakeCloudStorageProvider {
   @override
   Future<void> authenticate() async => throw const CloudAuthCancelled();
+}
+
+class _FailingProvider extends FakeCloudStorageProvider {
+  @override
+  Future<void> authenticate() async =>
+      throw const CloudStorageException('network unreachable');
 }
 
 void main() {
@@ -89,6 +96,24 @@ void main() {
     );
     expect(row, isNotNull);
     expect(row!.kind, AccountKind.googledrive);
+    // Which Google account, as the provider tile showed it (review of
+    // #3527).
+    final stored = await tester.runAsync(
+      () => ConnectedAccountsRepository().getById(row.id),
+    );
+    expect(stored!.accountIdentifier, 'tester@example.com');
+  });
+
+  // Review of #3527: a failed sign-in is said, as the provider tile said
+  // it; before, the sheet just came back with nothing.
+  testWidgets('a failed Google sign-in says why', (tester) async {
+    final (context, ref) = await pumpHost(tester, _FailingProvider());
+    final row = await tester.runAsync(
+      () => addAccountRow(context, ref, AccountKindOffer.googleDrive),
+    );
+    await tester.pump();
+    expect(row, isNull);
+    expect(find.textContaining('network unreachable'), findsOneWidget);
   });
 
   testWidgets('a cancelled Google sign-in adds nothing', (tester) async {

@@ -71,7 +71,11 @@ void main() {
     }
   }
 
-  Future<void> pumpPage(WidgetTester tester, {WebDavConfig? existing}) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    WebDavConfig? existing,
+    WebDavCheck? webdavCheck,
+  }) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -111,7 +115,8 @@ void main() {
               child: OwnServerForm(
                 existing: group,
                 kinds: const {AccountKind.webdav},
-                onSaved: (_) {},
+                webdavCheck: webdavCheck,
+                onSaved: (_) async {},
               ),
             ),
           ),
@@ -248,6 +253,29 @@ void main() {
     final raw = await tester.runAsync(() => credentials.read(id!));
     expect(raw, contains('alice'));
     expect(find.text('Account saved'), findsOneWidget);
+  });
+
+  // Review of #3527: a library hands out logins that may not write, so
+  // the library flows pass a read-only check, and Save must use it instead
+  // of the sync settings' write probe.
+  testWidgets('Save uses the check it is given, writing nothing', (
+    tester,
+  ) async {
+    final checked = <WebDavConfig>[];
+    await pumpPage(
+      tester,
+      webdavCheck: (config) async {
+        checked.add(config);
+        return config;
+      },
+    );
+    await fillValidForm(tester);
+    await tester.tap(find.byKey(const Key('own-server-save')));
+    await settle(tester);
+
+    expect(checked, hasLength(1));
+    expect(server.captured, isEmpty);
+    expect(credentials.lastWritten, isNotNull);
   });
 
   testWidgets('a stored pin shows and can be forgotten', (tester) async {

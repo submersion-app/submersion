@@ -62,9 +62,17 @@ void main() {
     return (await accounts.getById(a.id))!;
   }
 
-  AccountGroup groupOf(List<ConnectedAccount> rows) => groupAccounts(
+  AccountGroup groupOf(
+    List<ConnectedAccount> rows, {
+    Set<String> keyless = const {},
+  }) => groupAccounts(
     rows: rows,
-    statusById: {for (final r in rows) r.id: AccountStatus.signedIn},
+    statusById: {
+      for (final r in rows)
+        r.id: keyless.contains(r.id)
+            ? AccountStatus.needsSignIn
+            : AccountStatus.signedIn,
+    },
     localLocationById: const {},
     usagesOf: (_) => const [],
   ).single;
@@ -132,5 +140,41 @@ void main() {
     final c = LibraryLocationController(initialPrefix: 'reef');
     addTearDown(c.dispose);
     expect(await c.resolveAccount(service), isNull);
+  });
+
+  // Review of #3527: a check saves nothing; every folder tried used to leave
+  // a synced roster row behind.
+  test('a check goes through a signed-in row and saves nothing', () async {
+    final sync = await row(s3('submersion-sync/'));
+    final c = LibraryLocationController(initialPrefix: 'reef')
+      ..selectServer(groupOf([sync]));
+    addTearDown(c.dispose);
+    final before = (await accounts.getAll()).length;
+
+    final probed = c.probeAccount()!;
+
+    expect(probed.id, sync.id);
+    expect((await accounts.getAll()).length, before);
+  });
+
+  test('a check with nothing signed in on the server says so', () async {
+    final lib = await row(s3('submersion-sites/reef/'), signedIn: false);
+    final other = await row(s3('submersion-sync/'), signedIn: false);
+    final c = LibraryLocationController(initialPrefix: 'wrecks')
+      ..selectServer(groupOf([lib, other], keyless: {lib.id, other.id}));
+    addTearDown(c.dispose);
+
+    expect(c.probeAccount, throwsStateError);
+  });
+
+  test('a folder typed with extra slashes finds its row', () async {
+    final sync = await row(s3('submersion-sync/'));
+    final lib = await row(s3('submersion-sites/reef/team/'), signedIn: false);
+    final c = LibraryLocationController(initialPrefix: 'reef//team')
+      ..selectServer(groupOf([sync, lib]));
+    addTearDown(c.dispose);
+
+    expect((await c.resolveAccount(service))!.id, lib.id);
+    expect(await credentials.read(lib.id), isNull);
   });
 }

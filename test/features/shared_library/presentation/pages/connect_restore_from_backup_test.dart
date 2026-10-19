@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
@@ -145,6 +146,9 @@ void main() {
           accountGroupsProvider.overrideWith(
             (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _EmptyFolders(),
           ),

@@ -6009,7 +6009,7 @@
   "settings_cloudSync_firstSync_dialogTitle": "Combiner les bibliothèques ?",
   "settings_cloudSync_replace_banner": "Synchronisation en pause : la bibliothèque a été remplacée à partir d'une sauvegarde sur « {deviceName} ». Touchez Synchroniser maintenant pour vérifier.",
   "settings_cloudSync_switch_dialogContent": "Vos données ne seront pas retirées de {fromName} : elles y restent jusqu'à ce que vous les supprimiez. Après le changement, la prochaine synchronisation de cet appareil combine ses données avec ce qui existe déjà sur {toName}. Vos autres appareils continuent d'utiliser {fromName} jusqu'à ce que vous changiez chacun d'eux également.",
-  "settings_cloudSync_moved_banner": "{deviceName} a déplacé cette bibliothèque vers {destination}. Ce service n'est plus mis à jour par celui-ci. Sélectionnez {destination} ci-dessous pour suivre le déplacement.",
+  "settings_cloudSync_moved_banner": "{deviceName} a déplacé cette bibliothèque vers {destination}. Ce service n'est plus mis à jour par celui-ci. Choisissez Modifier, puis {destination} pour suivre le déplacement.",
   "settings_cloudSync_moved_dismiss": "Ignorer",
   "settings_cloudSync_cleanup_banner": "D'anciennes données de synchronisation, datant d'avant votre changement de service, sont toujours stockées sur {backend}. Elles ne sont plus utilisées.",
   "settings_cloudSync_cleanup_delete": "Supprimer les anciennes données",
@@ -10438,7 +10438,6 @@
   "settings_connectedAccounts_status_unavailable": "Indisponible sur cet appareil",
   "settings_connectedAccounts_disconnectDevice": "Se déconnecter sur cet appareil",
 
-  "settings_connectedAccounts_removeFromLibrary": "Retirer de la bibliothèque",
   "settings_connectedAccounts_rename": "Renommer",
   "settings_connectedAccounts_renameTitle": "Renommer le compte",
   "settings_connectedAccounts_renameField": "Nom",

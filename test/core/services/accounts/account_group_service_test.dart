@@ -85,9 +85,9 @@ void main() {
     final lib = await rowFor(s3('submersion-sites/reef-team/'));
     final group = await groupOf([sync, lib]);
 
-    final signedIn = await service.storeServerSecret(
+    final signedIn = await service.storeServerConfig(
       group,
-      const S3Secret(accessKeyId: 'AKIA2', secretAccessKey: 'new'),
+      s3: s3('submersion-sync/', key: 'AKIA2', secret: 'new'),
     );
 
     expect(signedIn, 2);
@@ -105,9 +105,9 @@ void main() {
     );
     final group = await groupOf([sync]);
 
-    final signedIn = await service.storeServerSecret(
+    final signedIn = await service.storeServerConfig(
       group,
-      const S3Secret(accessKeyId: 'AKIA2', secretAccessKey: 'new'),
+      s3: s3('submersion-sync/', key: 'AKIA2', secret: 'new'),
     );
 
     expect(signedIn, 0);
@@ -162,6 +162,27 @@ void main() {
     );
 
     expect((await stored(lib.id))!.accessKeyId, 'AKIACLUB');
+  });
+
+  // Moved from LibraryAccountSetup's tests: the library row ensureRole
+  // makes names its folder, beside the sync row's identical address.
+  test('a library row is labelled with its folder', () async {
+    final sync = await rowFor(s3('submersion-sync/'));
+    await credentials.write(
+      sync.id,
+      jsonEncode(s3('submersion-sync/').toJson()),
+    );
+    final group = await groupOf([sync]);
+
+    final lib = await service.ensureRole(
+      group,
+      AccountRole.library,
+      libraryFolder: 'reef-team',
+    );
+
+    expect(lib.label, 'dives @ minio.home (submersion-sites/reef-team)');
+    expect((await stored(lib.id))!.prefix, 'submersion-sites/reef-team/');
+    expect((await stored(sync.id))!.prefix, 'submersion-sync/');
   });
 
   test('adding a role with no credentials here throws', () async {
@@ -261,5 +282,31 @@ void main() {
     final moved = s3('submersion-sync/').copyWith(bucket: 'other');
     expect(await service.storeServerConfig(group, s3: moved), 0);
     expect(await credentials.read(sync.id), isNull);
+  });
+
+  // Review of #3527: a club's own keys on its library folder survive an
+  // edit of the diver's own sync keys on the same bucket.
+  test('an edit replaces only the rows that held the edited keys', () async {
+    final sync = await rowFor(s3('submersion-sync/'));
+    final lib = await rowFor(s3('submersion-sites/reef-team/'));
+    final mine = s3('submersion-sync/');
+    await credentials.write(sync.id, jsonEncode(mine.toJson()));
+    await credentials.write(
+      lib.id,
+      jsonEncode(
+        s3('submersion-sites/reef-team/', key: 'CLUB', secret: 'c').toJson(),
+      ),
+    );
+    final group = await groupOf([sync, lib]);
+
+    final written = await service.storeServerConfig(
+      group,
+      s3: mine.copyWith(region: 'eu-west-1'),
+      previousS3: mine,
+    );
+
+    expect(written, 1);
+    expect((await stored(sync.id))!.region, 'eu-west-1');
+    expect((await stored(lib.id))!.accessKeyId, 'CLUB');
   });
 }

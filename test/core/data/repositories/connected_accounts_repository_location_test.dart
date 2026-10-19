@@ -48,6 +48,23 @@ void main() {
     expect(loaded.serverKey, location.serverKey);
   });
 
+  // Review of #3527: a location from a newer build reads as none here; a v1
+  // write over it would drop its newer fields on every device.
+  test('a location this build cannot read is left alone', () async {
+    final a = await repo.create(kind: AccountKind.s3, label: 'dives @ minio');
+    const newer = '{"v":2,"kind":"s3","bucket":"dives"}';
+    await db.customStatement(
+      "UPDATE connected_accounts SET location = '$newer' WHERE id = '${a.id}'",
+    );
+    await repo.setLocation(a.id, location);
+    final row = await db
+        .customSelect(
+          "SELECT location FROM connected_accounts WHERE id = '${a.id}'",
+        )
+        .getSingle();
+    expect(row.read<String?>('location'), newer);
+  });
+
   test('an identical location does not mark the row pending again', () async {
     final a = await repo.create(kind: AccountKind.s3, label: 'dives @ minio');
     await repo.setLocation(a.id, location);

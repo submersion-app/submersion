@@ -217,10 +217,9 @@ final suggestionServiceProvider = Provider<SuggestionService>(
   ),
 );
 
-// no-tick: a service object; it writes accounts at action time.
+// no-tick: a service object; it reads stored accounts at action time.
 final libraryAccountSetupProvider = Provider<LibraryAccountSetup>(
   (ref) => LibraryAccountSetup(
-    accounts: ref.watch(connectedAccountsRepositoryProvider),
     credentials: ref.watch(accountCredentialsStoreProvider),
   ),
 );

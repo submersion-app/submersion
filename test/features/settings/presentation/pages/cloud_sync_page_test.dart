@@ -39,6 +39,8 @@ import 'package:submersion/features/divers/data/repositories/diver_merge_reposit
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart'
+    show connectionErrorMessage, errorDisplayText;
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
     show sharedPreferencesProvider;
@@ -404,10 +406,7 @@ void main() {
 
   /// Pump [CloudSyncPage] with controllable overrides. Returns the fake sync
   /// notifier and fake merge repository so tests can assert on recorded calls.
-  ///
-  /// [s3Config] controls what [s3ConfigProvider] resolves to. Defaults to
-  /// null (unconfigured) so tests that do not care about S3 exercise the
-  /// intended unconfigured state rather than hitting FlutterSecureStorage.
+
   Future<
     ({
       _FakeSyncNotifier sync,
@@ -426,7 +425,6 @@ void main() {
     CloudStorageProvider? cloudProvider,
     bool mergeThrows = false,
     bool settle = true,
-    S3Config? s3Config,
     DropboxAuthData? dropboxAuth,
     // The concrete Dropbox provider backing the connect dialog. Only the
     // connect-flow test supplies one (a MockClient-backed provider so
@@ -511,9 +509,6 @@ void main() {
           // The adopt flow's safety backup must never construct the real
           // BackupService (it would touch the DatabaseService singleton).
           backupServiceProvider.overrideWithValue(fakeBackup),
-          // Override s3ConfigProvider so existing tests never hit
-          // FlutterSecureStorage; individual tests can supply a config.
-          s3ConfigProvider.overrideWith((ref) async => s3Config),
           webdavConfigProvider.overrideWith((ref) async => null),
           // Same for the Dropbox connection: null means not connected.
           dropboxAuthDataProvider.overrideWith((ref) async => dropboxAuth),
@@ -1268,6 +1263,22 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(handles.sync.acknowledgeMovedCalls, 1);
+    });
+
+    // Review of #3527: back on the kind that was left (S3 to Dropbox to
+    // another S3 account), Delete would reach the account sync uses now.
+    testWidgets('no cleanup offer while sync is back on that kind', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.s3,
+        syncState: const SyncState(cleanupOldBackendProviderId: 's3'),
+      );
+      expect(
+        find.textContaining('Old sync data is still stored'),
+        findsNothing,
+      );
     });
 
     testWidgets('shows the old-backend cleanup offer; Delete and Keep call '

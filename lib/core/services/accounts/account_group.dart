@@ -25,11 +25,13 @@ class AccountGroup {
     required this.usages,
     required this.locations,
     required this.roles,
+    required this.usagesKnown,
+    required this.address,
+    required this.usageRoles,
+    required this.rowStatuses,
     this.identifier,
-    this.usagesKnown = true,
-    String? address,
     this.nickname,
-  }) : address = address ?? label;
+  });
 
   /// Stable across rebuilds: kind and server for own servers, kind and row
   /// for everything else, `row|<id>` for a row nothing here can place.
@@ -63,12 +65,41 @@ class AccountGroup {
   /// Each row's role, where its usage or folder tells.
   final Map<String, AccountRole> roles;
 
+  /// The roles this device's usages name, a subset of [roles]: a default
+  /// folder name only suggests a role, a usage is one.
+  final Map<String, AccountRole> usageRoles;
+
+  /// Each row's own sign-in state on this device.
+  final Map<String, AccountStatus> rowStatuses;
+
   bool get isOwnServer => kind == AccountKind.s3 || kind == AccountKind.webdav;
 
+  /// The row of [role]: one this device uses for it first, else one whose
+  /// folder names it.
   ConnectedAccount? rowFor(AccountRole role) =>
+      rows.firstWhereOrNull((r) => usageRoles[r.id] == role) ??
       rows.firstWhereOrNull((r) => roles[r.id] == role);
 
+  /// The row this device syncs through, or null when sync runs elsewhere
+  /// (or is off). Unlike [rowFor], never a guess from a folder name.
+  ConnectedAccount? get syncRowHere =>
+      rows.firstWhereOrNull((r) => usageRoles[r.id] == AccountRole.sync);
+
+  /// [rowId]'s own sign-in state here, or null for a row not in the group.
+  AccountStatus? statusOf(String? rowId) => rowStatuses[rowId];
+
+  /// Whether any row is signed in here, so the account can be signed out of
+  /// even while another row (another device's folder) waits for a sign-in.
+  bool get signedInHere => rowStatuses.values.contains(AccountStatus.signedIn);
+
   AccountLocation? locationOf(String rowId) => locations[rowId];
+}
+
+extension AccountGroupLookup on List<AccountGroup> {
+  /// The group holding the roster row [rowId], or null.
+  AccountGroup? holding(String? rowId) => rowId == null
+      ? null
+      : firstWhereOrNull((g) => g.rows.any((r) => r.id == rowId));
 }
 
 /// Groups roster rows into accounts (spec section 7.2).
@@ -100,9 +131,13 @@ List<AccountGroup> groupAccounts({
     for (final MapEntry(:key, value: members) in byKey.entries)
       _group(key, members, statusById, locations, usagesOf, usagesKnown),
   ];
+  // Ties broken by key, so two accounts with one name keep their places
+  // across reloads.
   groups.sort((a, b) {
     final byKind = _kindOrder(a.kind).compareTo(_kindOrder(b.kind));
-    return byKind != 0 ? byKind : a.label.compareTo(b.label);
+    if (byKind != 0) return byKind;
+    final byLabel = a.label.toLowerCase().compareTo(b.label.toLowerCase());
+    return byLabel != 0 ? byLabel : a.key.compareTo(b.key);
   });
   return groups;
 }
@@ -127,6 +162,7 @@ AccountGroup _group(
 
   final usages = <AccountUsage>[];
   final roles = <String, AccountRole>{};
+  final usageRoles = <String, AccountRole>{};
   final locations = <String, AccountLocation>{};
   for (final row in members) {
     final rowUsages = usagesOf(row);
@@ -135,7 +171,9 @@ AccountGroup _group(
     }
     final location = allLocations[row.id];
     if (location != null) locations[row.id] = location;
-    final role = _roleOf(rowUsages, location);
+    final used = _usageRole(rowUsages);
+    if (used != null) usageRoles[row.id] = used;
+    final role = used ?? _folderRole(location);
     if (role != null) roles[row.id] = role;
   }
 
@@ -144,7 +182,12 @@ AccountGroup _group(
     S3AccountLocation(:final bucket, :final displayHost) =>
       '$bucket @ $displayHost',
     WebDavAccountLocation(:final username, :final host) => '$username @ $host',
-    null => _withoutFolderNote(first.label),
+    // Only storage labels carry a folder note; a Lightroom or OAuth label
+    // is a name, parentheses and all.
+    null
+        when first.kind == AccountKind.s3 || first.kind == AccountKind.webdav =>
+      _withoutFolderNote(first.label),
+    null => first.label,
   };
   // A nickname on any row names the account; the sync-role row's wins.
   final named =
@@ -168,11 +211,16 @@ AccountGroup _group(
     usagesKnown: usagesKnown,
     address: address,
     nickname: named,
+    usageRoles: Map.unmodifiable(usageRoles),
+    rowStatuses: Map.unmodifiable({
+      for (final r in members)
+        r.id: statusById[r.id] ?? AccountStatus.unavailable,
+    }),
   );
 }
 
-/// The role a row's usage names, else the one its default folder names.
-AccountRole? _roleOf(List<AccountUsage> usages, AccountLocation? location) {
+/// The role a row's usage on this device names, or null.
+AccountRole? _usageRole(List<AccountUsage> usages) {
   for (final u in usages) {
     switch (u.kind) {
       case AccountUsageKind.databaseSync:
@@ -185,6 +233,11 @@ AccountRole? _roleOf(List<AccountUsage> usages, AccountLocation? location) {
         break;
     }
   }
+  return null;
+}
+
+/// The role a row's default folder names, or null.
+AccountRole? _folderRole(AccountLocation? location) {
   final folder = location?.folder;
   if (folder == null) return null;
   if (folder == 'submersion-sync' || folder == kDefaultWebDavSyncFolder) {

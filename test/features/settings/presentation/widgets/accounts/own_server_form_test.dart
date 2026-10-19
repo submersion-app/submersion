@@ -51,7 +51,7 @@ void main() {
   Future<void> pumpForm(
     WidgetTester tester, {
     AccountGroup? existing,
-    ValueChanged<ConnectedAccount>? onSaved,
+    Future<void> Function(ConnectedAccount row)? onSaved,
   }) async {
     await tester.binding.setSurfaceSize(const Size(500, 1400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -68,7 +68,7 @@ void main() {
             body: SingleChildScrollView(
               child: OwnServerForm(
                 existing: existing,
-                onSaved: onSaved ?? (_) {},
+                onSaved: onSaved ?? (_) async {},
               ),
             ),
           ),
@@ -85,7 +85,7 @@ void main() {
     tester,
   ) async {
     ConnectedAccount? saved;
-    await pumpForm(tester, onSaved: (row) => saved = row);
+    await pumpForm(tester, onSaved: (row) async => saved = row);
 
     await tester.enterText(
       find.byKey(const Key('account-s3-endpoint')),

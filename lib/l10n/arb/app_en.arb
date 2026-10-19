@@ -13408,7 +13408,7 @@
       }
     }
   },
-  "settings_cloudSync_moved_banner": "{deviceName} moved this library to {destination}. This backend is no longer being updated by it. Select {destination} below to follow the move.",
+  "settings_cloudSync_moved_banner": "{deviceName} moved this library to {destination}. This backend is no longer being updated by it. Choose Change, then {destination}, to follow the move.",
   "@settings_cloudSync_moved_banner": {
     "placeholders": {
       "deviceName": {
@@ -22451,7 +22451,6 @@
   "settings_connectedAccounts_status_unavailable": "Unavailable on this device",
   "settings_connectedAccounts_disconnectDevice": "Sign out on this device",
 
-  "settings_connectedAccounts_removeFromLibrary": "Remove from library",
   "settings_connectedAccounts_rename": "Rename",
   "settings_connectedAccounts_renameTitle": "Rename account",
   "settings_connectedAccounts_renameField": "Name",

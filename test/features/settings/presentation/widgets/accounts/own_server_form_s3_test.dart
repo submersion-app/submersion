@@ -16,6 +16,7 @@ import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -214,7 +215,7 @@ void main() {
               child: OwnServerForm(
                 existing: group,
                 kinds: const {AccountKind.s3},
-                onSaved: (_) {},
+                onSaved: (_) async {},
               ),
             ),
           ),
@@ -594,5 +595,77 @@ void main() {
     final saved = (await savedConfig(tester))!;
     expect(saved.region, 'eu-west-2');
     expect(saved.bucket, 'dive-sync');
+  });
+
+  // Review of #3527: rows arrive newest first, so a library folder added
+  // after the sync folder came first; signing in must start from the sync
+  // folder, or the save relabels the library row and can move sync there.
+  testWidgets('signing in starts from the sync folder, not the newest', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    S3AccountLocation at(String prefix) => S3AccountLocation(
+      displayHost: 'minio.home',
+      endpoint: 'https://minio.home',
+      bucket: 'dives',
+      region: 'us-east-1',
+      prefix: prefix,
+      pathStyle: true,
+    );
+    ConnectedAccount row(String id, String prefix) => ConnectedAccount(
+      id: id,
+      kind: AccountKind.s3,
+      label: 'dives @ minio.home',
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+      location: at(prefix),
+    );
+    final group = groupAccounts(
+      rows: [
+        row('library', 'submersion-sites/reef/'),
+        row('sync', 'submersion-sync/'),
+      ],
+      statusById: const {
+        'library': AccountStatus.needsSignIn,
+        'sync': AccountStatus.needsSignIn,
+      },
+      localLocationById: const {},
+      usagesOf: (_) => const [],
+    ).single;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          s3StorageProviderInstanceProvider.overrideWithValue(provider),
+          accountCredentialsStoreProvider.overrideWithValue(credentials),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: OwnServerForm(
+                existing: group,
+                kinds: const {AccountKind.s3},
+                showSyncFolder: true,
+                onSaved: (_) async {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await settle(tester);
+    await tester.pumpAndSettle();
+    await expandAdvanced(tester);
+
+    final prefix = tester.widget<TextFormField>(
+      find.byKey(const Key('account-s3-prefix')),
+    );
+    expect(prefix.controller!.text, 'submersion-sync/');
   });
 }

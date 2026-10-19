@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
-
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
@@ -12,26 +10,10 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
-
-/// The secret a diver types to sign in to their own server.
-sealed class ServerSecret {
-  const ServerSecret();
-}
-
-final class S3Secret extends ServerSecret {
-  const S3Secret({required this.accessKeyId, required this.secretAccessKey});
-  final String accessKeyId;
-  final String secretAccessKey;
-}
-
-final class WebDavSecret extends ServerSecret {
-  const WebDavSecret({required this.password, this.pinnedCertSha256});
-  final String password;
-  final String? pinnedCertSha256;
-}
 
 /// Acts on an account, which may be several roster rows on one server
 /// (spec section 7.2). Ids and natural keys are never changed here: every
@@ -48,64 +30,6 @@ class AccountGroupService {
   final ConnectedAccountsRepository _accounts;
   final AccountCredentialsStore _credentials;
   final AccountProviderRegistry _registry;
-
-  /// Signs [group] in on this device: each row's config is rebuilt from its
-  /// location (or this device's stored config) with [secret], and written
-  /// only when it hashes back to that row's id, so a stale or foreign
-  /// location can never overwrite another row. Returns how many rows were
-  /// signed in.
-  Future<int> storeServerSecret(AccountGroup group, ServerSecret secret) async {
-    var signedIn = 0;
-    for (final row in group.rows) {
-      final json = await _configJsonFor(row, group.locationOf(row.id), secret);
-      if (json == null) continue;
-      await _credentials.write(row.id, json.config);
-      await _accounts.setLocation(row.id, json.location);
-      signedIn++;
-    }
-    return signedIn;
-  }
-
-  Future<({String config, AccountLocation location})?> _configJsonFor(
-    ConnectedAccount row,
-    AccountLocation? location,
-    ServerSecret secret,
-  ) async {
-    switch ((row.kind, secret)) {
-      case (AccountKind.s3, final S3Secret s):
-        final base = location is S3AccountLocation
-            ? location.toConfig(
-                accessKeyId: s.accessKeyId,
-                secretAccessKey: s.secretAccessKey,
-              )
-            : (await _storedS3(row.id))?.copyWith(
-                accessKeyId: s.accessKeyId,
-                secretAccessKey: s.secretAccessKey,
-              );
-        if (base == null || _s3Id(base) != row.id) return null;
-        return (
-          config: jsonEncode(base.toJson()),
-          location: S3AccountLocation.fromConfig(base),
-        );
-      case (AccountKind.webdav, final WebDavSecret s):
-        final base = location is WebDavAccountLocation
-            ? location.toConfig(
-                password: s.password,
-                pinnedCertSha256: s.pinnedCertSha256,
-              )
-            : (await _storedWebDav(row.id))?.copyWith(
-                password: s.password,
-                pinnedCertSha256: s.pinnedCertSha256,
-              );
-        if (base == null || _webDavId(base) != row.id) return null;
-        return (
-          config: jsonEncode(base.toJson()),
-          location: WebDavAccountLocation.fromConfig(base),
-        );
-      default:
-        return null;
-    }
-  }
 
   /// Creates [role]'s row on [group]'s server with the group's credentials
   /// and the role's default folder ([libraryFolder] for a library), with no
@@ -248,17 +172,23 @@ class AccountGroupService {
     ...group.rows.where((r) => group.roles[r.id] != AccountRole.sync),
   ];
 
-  /// Saves an edit of [group]'s server: every row takes the submitted
+  /// Saves an edit of [group]'s server: each row takes the submitted
   /// settings (keys, region, addressing, certificate) with its own folder,
-  /// and only when the result still hashes to that row's id. Returns how
-  /// many rows were written.
+  /// only when the result still hashes to that row's id, and only when the
+  /// row holds no keys here or the same keys as [previousS3] /
+  /// [previousWebDav] (what the form was filled from): a club's own keys on
+  /// its library folder are not replaced by the diver's. Returns how many
+  /// rows were written.
   Future<int> storeServerConfig(
     AccountGroup group, {
     S3Config? s3,
     WebDavConfig? webdav,
+    S3Config? previousS3,
+    WebDavConfig? previousWebDav,
   }) async {
     var written = 0;
     for (final row in group.rows) {
+      if (!await _holdsKeysOf(row, previousS3, previousWebDav)) continue;
       final folder =
           group.locationOf(row.id)?.folder ??
           switch (row.kind) {
@@ -295,21 +225,35 @@ class AccountGroupService {
     return written;
   }
 
+  /// Whether [row] holds no keys here, or the same keys as the previous
+  /// config (with no previous config, any).
+  Future<bool> _holdsKeysOf(
+    ConnectedAccount row,
+    S3Config? previousS3,
+    WebDavConfig? previousWebDav,
+  ) async {
+    switch (row.kind) {
+      case AccountKind.s3:
+        final held = await _storedS3(row.id);
+        return held == null ||
+            previousS3 == null ||
+            held.accessKeyId == previousS3.accessKeyId;
+      case AccountKind.webdav:
+        final held = await _storedWebDav(row.id);
+        return held == null ||
+            previousWebDav == null ||
+            (held.username == previousWebDav.username &&
+                held.password == previousWebDav.password);
+      default:
+        return true;
+    }
+  }
+
   AccountProviderAdapter? _adapterFor(ConnectedAccount row) =>
       _registry.capabilityFor<AccountProviderAdapter>(row.kind);
 
-  Future<S3Config?> _storedS3(String id) async {
-    final raw = await _credentials.read(id);
-    if (raw == null) return null;
-    try {
-      final decoded = jsonDecode(raw);
-      return decoded is Map<String, Object?>
-          ? S3Config.fromJson(decoded)
-          : null;
-    } on Object {
-      return null;
-    }
-  }
+  Future<S3Config?> _storedS3(String id) async =>
+      decodeS3Config(await _credentials.read(id));
 
   Future<WebDavConfig?> _storedWebDav(String id) async =>
       decodeWebDavConfig(await _credentials.read(id));
@@ -319,11 +263,4 @@ class AccountGroupService {
 
   static String _webDavId(WebDavConfig c) =>
       accountIdFor(kind: AccountKind.webdav, naturalKey: webdavNaturalKey(c));
-}
-
-extension AccountGroupLookup on List<AccountGroup> {
-  /// The group holding the roster row [rowId], or null.
-  AccountGroup? holding(String? rowId) => rowId == null
-      ? null
-      : firstWhereOrNull((g) => g.rows.any((r) => r.id == rowId));
 }

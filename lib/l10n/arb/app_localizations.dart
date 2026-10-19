@@ -34896,7 +34896,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_cloudSync_moved_banner.
   ///
   /// In en, this message translates to:
-  /// **'{deviceName} moved this library to {destination}. This backend is no longer being updated by it. Select {destination} below to follow the move.'**
+  /// **'{deviceName} moved this library to {destination}. This backend is no longer being updated by it. Choose Change, then {destination}, to follow the move.'**
   String settings_cloudSync_moved_banner(String deviceName, String destination);
 
   /// No description provided for @settings_cloudSync_moved_dismiss.
@@ -57829,12 +57829,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out on this device'**
   String get settings_connectedAccounts_disconnectDevice;
-
-  /// No description provided for @settings_connectedAccounts_removeFromLibrary.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove from library'**
-  String get settings_connectedAccounts_removeFromLibrary;
 
   /// No description provided for @settings_connectedAccounts_rename.
   ///

@@ -21830,7 +21830,7 @@ class AppLocalizationsPt extends AppLocalizations {
     String deviceName,
     String destination,
   ) {
-    return '$deviceName moveu esta biblioteca para $destination. Este provedor não está mais sendo atualizado por ele. Selecione $destination abaixo para acompanhar a mudança.';
+    return '$deviceName moveu esta biblioteca para $destination. Este provedor não está mais sendo atualizado por ele. Escolha Alterar e depois $destination para acompanhar a mudança.';
   }
 
   @override
@@ -36730,10 +36730,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Sair neste dispositivo';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary =>
-      'Remover da biblioteca';
 
   @override
   String get settings_connectedAccounts_rename => 'Mudar o nome';

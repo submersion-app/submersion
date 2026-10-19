@@ -80,6 +80,9 @@ final class S3AccountLocation extends AccountLocation {
     pathStyle: c.pathStyle,
   );
 
+  /// Derivable from [endpoint] and [region], and stored all the same: the
+  /// [serverKey] (and the row ids built the same way) must not move if the
+  /// derivation in [S3Config.displayHost] ever changes.
   final String displayHost;
   final String endpoint;
   final String bucket;
@@ -89,6 +92,15 @@ final class S3AccountLocation extends AccountLocation {
 
   @override
   String get serverKey => 's3|$displayHost|$bucket';
+
+  S3AccountLocation copyWith({String? prefix}) => S3AccountLocation(
+    displayHost: displayHost,
+    endpoint: endpoint,
+    bucket: bucket,
+    region: region,
+    prefix: prefix ?? this.prefix,
+    pathStyle: pathStyle,
+  );
 
   @override
   String get folder => prefix.replaceAll(RegExp(r'/+$'), '');
@@ -146,14 +158,18 @@ final class WebDavAccountLocation extends AccountLocation {
   @override
   String get serverKey => 'webdav|$davRoot';
 
-  WebDavConfig toConfig({required String password, String? pinnedCertSha256}) =>
-      WebDavConfig(
-        serverUrl: serverUrl,
-        username: username,
-        password: password,
-        folder: folder,
-        pinnedCertSha256: pinnedCertSha256,
-      );
+  WebDavAccountLocation copyWith({String? folder}) => WebDavAccountLocation(
+    serverUrl: serverUrl,
+    username: username,
+    folder: folder ?? this.folder,
+  );
+
+  WebDavConfig toConfig({required String password}) => WebDavConfig(
+    serverUrl: serverUrl,
+    username: username,
+    password: password,
+    folder: folder,
+  );
 
   @override
   Map<String, Object?> _fields() => {

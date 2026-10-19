@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
@@ -32,6 +33,7 @@ import 'package:submersion/features/settings/presentation/widgets/pending_setup_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../support/fake_keychain_storage.dart';
 
 class _RecordingAdapter extends AccountProviderAdapter {
   _RecordingAdapter(this.kind);
@@ -40,9 +42,14 @@ class _RecordingAdapter extends AccountProviderAdapter {
   final AccountKind kind;
   final disconnected = <String>[];
 
+  /// Rows that hold no keys on this device.
+  final keyless = <String>{};
+
   @override
   Future<AccountStatus> status(domain.ConnectedAccount account) async =>
-      AccountStatus.signedIn;
+      keyless.contains(account.id)
+      ? AccountStatus.needsSignIn
+      : AccountStatus.signedIn;
 
   @override
   Future<void> disconnect(domain.ConnectedAccount account) async {
@@ -73,6 +80,7 @@ void main() {
   late SharedPreferences prefs;
   late ConnectedAccountsRepository accounts;
   late _RecordingAdapter dropbox;
+  late _RecordingAdapter s3;
 
   setUp(() async {
     await setUpTestDatabase();
@@ -80,6 +88,7 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     accounts = ConnectedAccountsRepository();
     dropbox = _RecordingAdapter(AccountKind.dropbox);
+    s3 = _RecordingAdapter(AccountKind.s3);
   });
 
   tearDown(() => tearDownTestDatabase());
@@ -92,8 +101,12 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          // The detail view's server form reads this device's keys.
+          accountCredentialsStoreProvider.overrideWithValue(
+            AccountCredentialsStore(storage: InMemoryKeychain()),
+          ),
           accountProviderRegistryProvider.overrideWithValue(
-            AccountProviderRegistry([dropbox]),
+            AccountProviderRegistry([dropbox, s3]),
           ),
           ...overrides,
         ],
@@ -155,8 +168,10 @@ void main() {
       await tester.pumpAndSettle();
     }
     if (find.text(item).hitTestable().evaluate().isEmpty) {
+      // A finder that may match nothing yet: the detail list builds rows as
+      // they scroll in, and an own server's form pushes the actions below.
       await tester.scrollUntilVisible(
-        find.text(item).last,
+        find.text(item),
         200,
         scrollable: find
             .descendant(
@@ -449,6 +464,75 @@ void main() {
 
     expect(dropbox.disconnected, hasLength(1));
     expect(sync.signOutsBeforeDisconnect, isEmpty);
+  });
+
+  /// An S3 row in [prefix] on one server, placed by its synced location.
+  Future<domain.ConnectedAccount> addServerRow(
+    WidgetTester tester,
+    String prefix,
+  ) async {
+    late domain.ConnectedAccount row;
+    await tester.runAsync(() async {
+      row = await accounts.ensure(
+        kind: AccountKind.s3,
+        naturalKey: 'minio.home|dives|$prefix',
+        label: 'dives @ minio.home',
+        location: S3AccountLocation(
+          displayHost: 'minio.home',
+          endpoint: 'https://minio.home',
+          bucket: 'dives',
+          region: 'us-east-1',
+          prefix: prefix,
+          pathStyle: true,
+        ),
+      );
+    });
+    return row;
+  }
+
+  // Review of #3527: every server saved through the form has a row in the
+  // default sync folder; signing out of one sync does not use must leave
+  // sync (here Dropbox) alone.
+  testWidgets('signing out a server in the default sync folder leaves sync', (
+    tester,
+  ) async {
+    final server = await addServerRow(tester, 'submersion-sync/');
+    final sync = _SyncNotifier(s3);
+    await pumpPage(
+      tester,
+      overrides: [syncStateProvider.overrideWith((ref) => sync)],
+    );
+
+    await openMenu(tester, 'Sign out on this device');
+    await settle(tester);
+
+    expect(s3.disconnected, [server.id]);
+    expect(sync.signOutsBeforeDisconnect, isEmpty);
+  });
+
+  testWidgets('another device\'s folder needing sign-in keeps Sign out here', (
+    tester,
+  ) async {
+    await addServerRow(tester, 'submersion-sync/');
+    final photos = await addServerRow(tester, 'submersion-media/');
+    s3.keyless.add(photos.id);
+    await pumpPage(tester);
+
+    await tester.tap(find.byType(AccountGroupTile).first);
+    await settle(tester);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Remove from all devices'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(AccountDetailPage),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+
+    expect(find.text('Sign out on this device'), findsOneWidget);
   });
 
   testWidgets('removing a used account names its features and other devices', (

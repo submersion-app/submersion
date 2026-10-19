@@ -1,7 +1,8 @@
 part of 'cloud_sync_page.dart';
 
-/// The Sync page's conditional banners, unchanged (spec section 8.1 keeps
-/// them all), split out so the page stays under the 800-line guide.
+/// The Sync page's conditional banners (spec section 8.1 keeps them all;
+/// the old-backend cleanup now asks before deleting), split out so the page
+/// stays under the 800-line guide.
 mixin _SyncBanners on ConsumerState<CloudSyncPage> {
   Widget _buildCustomFolderBanner(
     BuildContext context,
@@ -63,7 +64,7 @@ mixin _SyncBanners on ConsumerState<CloudSyncPage> {
     );
   }
 
-  /// Banner shown when two or more diver profiles share a name -- the typical
+  /// Banner shown when two or more diver profiles share a name: the typical
   /// result of each device auto-creating its own owner diver before the first
   /// sync. Offers a one-tap merge per duplicate group.
   Widget _buildDuplicateDiversBanner(BuildContext context, WidgetRef ref) {
@@ -227,9 +228,9 @@ mixin _SyncBanners on ConsumerState<CloudSyncPage> {
   }
 
   /// Advisory banner shown to a straggler still pointed at a backend another
-  /// device moved away from. Informational + dismissible: the user follows the
-  /// move by selecting the destination provider tile themselves (a one-tap
-  /// switch is not offered because some destinations, e.g. S3, need config).
+  /// device moved away from. Informational and dismissible: the diver follows
+  /// the move with Change on the Using row (a one-tap switch is not offered
+  /// because some destinations, e.g. S3, need signing in first).
   Widget _buildMovedBanner(
     BuildContext context,
     WidgetRef ref,

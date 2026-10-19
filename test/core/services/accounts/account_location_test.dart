@@ -123,4 +123,24 @@ void main() {
       expect(AccountLocation.tryParse(j), isNull, reason: '$j');
     }
   });
+
+  test('copyWith moves the folder and keeps the server', () {
+    const s3 = S3AccountLocation(
+      displayHost: 'minio.home',
+      endpoint: 'https://minio.home',
+      bucket: 'dives',
+      region: 'us-east-1',
+      prefix: 'submersion-sync/',
+      pathStyle: true,
+    );
+    final moved = s3.copyWith(prefix: 'dives/');
+    expect(moved.folder, 'dives');
+    expect(moved.serverKey, s3.serverKey);
+    const dav = WebDavAccountLocation(
+      serverUrl: 'https://dav.home/dav',
+      username: 'ann',
+      folder: 'Submersion',
+    );
+    expect(dav.copyWith(folder: 'Dives').folder, 'Dives');
+  });
 }

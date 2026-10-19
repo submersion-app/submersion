@@ -11,6 +11,7 @@ import 'package:submersion/core/services/accounts/adapters/icloud_account_adapte
 import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/webdav_account_adapter.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_provider_instances.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 
@@ -70,7 +71,11 @@ final webdavCredentialsStoreProvider = Provider<WebDavCredentialsStore>(
 /// separately via their store factories when a test needs to.
 final accountProviderRegistryProvider = Provider<AccountProviderRegistry>(
   (ref) => AccountProviderRegistry([
-    S3AccountAdapter(credentials: ref.watch(accountCredentialsStoreProvider)),
+    S3AccountAdapter(
+      credentials: ref.watch(accountCredentialsStoreProvider),
+      legacySync: ref.watch(s3CredentialsStoreProvider),
+      syncSettings: s3ProviderInstance,
+    ),
     WebDavAccountAdapter(
       credentials: ref.watch(accountCredentialsStoreProvider),
       legacySync: ref.watch(webdavCredentialsStoreProvider),

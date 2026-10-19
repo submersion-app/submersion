@@ -89,6 +89,7 @@ class ConnectedAccountsRepository {
       id: accountIdFor(kind: kind, naturalKey: naturalKey),
       kind: kind,
       label: label,
+      location: location,
     );
     if (location == null) return account;
     await setLocation(account.id, location);
@@ -97,13 +98,16 @@ class ConnectedAccountsRepository {
 
   /// Writes the secret-free [location] of an S3 or WebDAV row and marks it
   /// pending. An identical stored value is left alone, so re-saving the same
-  /// server stamps no new HLC.
+  /// server stamps no new HLC; so is one this build cannot read (a newer
+  /// version's), which a v1 value would overwrite on every device.
   Future<void> setLocation(String id, AccountLocation location) async {
     final json = location.toJsonString();
     final row = await (_db.select(
       _db.connectedAccounts,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (row == null || row.location == json) return;
+    final stored = row.location;
+    if (stored != null && AccountLocation.tryParse(stored) == null) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.connectedAccounts,
@@ -128,8 +132,11 @@ class ConnectedAccountsRepository {
     required AccountKind kind,
     required String label,
     String? accountIdentifier,
+    AccountLocation? location,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    // A new row is written with its location: one insert and one pending
+    // mark, not an insert and then a location update with a second one.
     final inserted = await _db
         .into(_db.connectedAccounts)
         .insertReturningOrNull(
@@ -138,6 +145,7 @@ class ConnectedAccountsRepository {
             kind: kind.name,
             label: label,
             accountIdentifier: Value(accountIdentifier),
+            location: Value(location?.toJsonString()),
             createdAt: now,
             updatedAt: now,
           ),
@@ -231,6 +239,15 @@ class ConnectedAccountsRepository {
     );
     await _markPending(id, now);
   }
+
+  /// [setNickname] for every row of one account, in one transaction: one
+  /// table update for the readers to rebuild on, not one per row.
+  Future<void> setNicknameForRows(Iterable<String> ids, String? nickname) =>
+      _db.transaction(() async {
+        for (final id in ids) {
+          await setNickname(id, nickname);
+        }
+      });
 
   Future<void> delete(String id) async {
     await (_db.delete(

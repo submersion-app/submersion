@@ -458,6 +458,27 @@ class SyncRepository {
     );
   }
 
+  /// Retires the cursor minted against [providerId], for a switch to another
+  /// account of the same kind: its time still reads as the last sync, but
+  /// `getLastSyncTime(forProvider: providerId)` reads null, so the new
+  /// account's first sync is first contact (the Combine check runs, and no
+  /// cursor from the old account is reused).
+  Future<void> retireCursor(String providerId) async {
+    final metadata = await getOrCreateMetadata();
+    if (metadata.lastSyncTimestamp == null) return;
+    final stamped = metadata.lastSyncProvider;
+    if (stamped != null && stamped != providerId) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.syncMetadata,
+    )..where((t) => t.id.equals(_globalMetadataId))).write(
+      SyncMetadataCompanion(
+        lastSyncProvider: Value('$providerId:retired'),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
   /// Set the cloud provider. Clearing it (null) also clears the sync
   /// account selection; setting a bare type leaves any account id in place
   /// (the account-aware writer is [setSyncAccount]).

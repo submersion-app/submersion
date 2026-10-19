@@ -21756,7 +21756,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String deviceName,
     String destination,
   ) {
-    return 'A(z) $deviceName áthelyezte ezt a könyvtárat ide: $destination. Ezt a szolgáltatót már nem frissíti. Válassza a(z) $destination lehetőséget alább a költözés követéséhez.';
+    return 'A(z) $deviceName áthelyezte ezt a könyvtárat ide: $destination. Ezt a szolgáltatót már nem frissíti. Válassza a Módosítás lehetőséget, majd a(z) $destination lehetőséget a költözés követéséhez.';
   }
 
   @override
@@ -36518,10 +36518,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Kijelentkezés ezen az eszközön';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary =>
-      'Eltávolítás a könyvtárból';
 
   @override
   String get settings_connectedAccounts_rename => 'Átnevezés';

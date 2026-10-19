@@ -21339,7 +21339,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String deviceName,
     String destination,
   ) {
-    return '$deviceName העביר ספרייה זו אל $destination. שירות זה כבר אינו מתעדכן על ידיו. בחר $destination למטה כדי לעקוב אחר ההעברה.';
+    return '$deviceName העביר ספרייה זו אל $destination. שירות זה כבר אינו מתעדכן על ידיו. בחר שינוי ואז $destination כדי לעקוב אחר ההעברה.';
   }
 
   @override
@@ -35833,9 +35833,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_disconnectDevice => 'התנתק במכשיר זה';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary => 'הסר מהספרייה';
 
   @override
   String get settings_connectedAccounts_rename => 'שינוי שם';

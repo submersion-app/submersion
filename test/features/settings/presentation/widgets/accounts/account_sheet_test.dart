@@ -11,6 +11,7 @@ import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -75,6 +76,9 @@ void main() {
       ProviderScope(
         overrides: [
           accountGroupsProvider.overrideWith((ref) async => groups),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => groups),
           offerableAccountKindsProvider.overrideWithValue(offers),
         ],
         child: MaterialApp(

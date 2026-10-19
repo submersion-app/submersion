@@ -6261,7 +6261,7 @@
   "settings_cloudSync_firstSync_dialogTitle": "合并资料库？",
   "settings_cloudSync_replace_banner": "同步已暂停：资料库已被 \"{deviceName}\" 上的备份替换。点按\"立即同步\"以查看。",
   "settings_cloudSync_switch_dialogContent": "您的数据不会从 {fromName} 移走：在您删除之前它会一直保留在那里。切换后，此设备的下次同步会将其数据与 {toName} 上已有的内容合并。您的其他设备会继续使用 {fromName}，直到您也逐一切换它们。",
-  "settings_cloudSync_moved_banner": "{deviceName} 已将此资料库移至 {destination}。该后端不再由它更新。请在下方选择 {destination} 以跟随此次移动。",
+  "settings_cloudSync_moved_banner": "{deviceName} 已将此资料库移至 {destination}。该后端不再由它更新。请选择“更改”，然后选择 {destination} 以跟随此次移动。",
   "settings_cloudSync_moved_dismiss": "忽略",
   "settings_cloudSync_cleanup_banner": "{backend} 上仍存有您切换后端之前的旧同步数据。这些数据已不再使用。",
   "settings_cloudSync_cleanup_delete": "删除旧数据",
@@ -10438,7 +10438,6 @@
   "settings_connectedAccounts_status_unavailable": "此设备上不可用",
   "settings_connectedAccounts_disconnectDevice": "在此设备上退出登录",
 
-  "settings_connectedAccounts_removeFromLibrary": "从库中移除",
   "settings_connectedAccounts_rename": "重命名",
   "settings_connectedAccounts_renameTitle": "重命名账户",
   "settings_connectedAccounts_renameField": "名称",

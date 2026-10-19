@@ -238,4 +238,69 @@ void main() {
     expect(g.label, 'eric @ cloud.example.com');
     expect(g.rowFor(AccountRole.media)!.id, 'm');
   });
+
+  // Review of #3527: the default sync folder alone does not mean this device
+  // syncs through a server; only the sync usage does.
+  test('the row sync uses here comes from usage, not the folder', () {
+    final unused = _group([
+      _row('srv', AccountKind.s3, location: _s3('submersion-sync/')),
+    ]).single;
+    expect(unused.rowFor(AccountRole.sync)!.id, 'srv');
+    expect(unused.syncRowHere, isNull);
+
+    final used = _group(
+      [_row('srv', AccountKind.s3, location: _s3('submersion-sync/'))],
+      usages: {
+        'srv': const [AccountUsage(AccountUsageKind.databaseSync)],
+      },
+    ).single;
+    expect(used.syncRowHere!.id, 'srv');
+  });
+
+  test('a role from usage outranks one from the folder name', () {
+    // Newest first, as the roster lists rows: the default-folder row comes
+    // first, but sync runs on the custom folder.
+    final g = _group(
+      [
+        _row('default', AccountKind.s3, location: _s3('submersion-sync/')),
+        _row('custom', AccountKind.s3, location: _s3('dives/')),
+      ],
+      usages: {
+        'custom': const [AccountUsage(AccountUsageKind.databaseSync)],
+      },
+    ).single;
+    expect(g.rowFor(AccountRole.sync)!.id, 'custom');
+  });
+
+  test('each row keeps its own sign-in state', () {
+    final g = _group(
+      [
+        _row('sync', AccountKind.s3, location: _s3('submersion-sync/')),
+        _row('photos', AccountKind.s3, location: _s3('submersion-media/')),
+      ],
+      status: {'photos': AccountStatus.needsSignIn},
+    ).single;
+    expect(g.status, AccountStatus.needsSignIn);
+    expect(g.statusOf('sync'), AccountStatus.signedIn);
+    expect(g.signedInHere, isTrue);
+  });
+
+  test('accounts with one label keep a stable order', () {
+    List<String> order(List<ConnectedAccount> rows) => [
+      for (final g in _group(rows)) g.rows.single.id,
+    ];
+    final a = _row('a', AccountKind.googledrive, label: 'Drive');
+    final b = _row('b', AccountKind.dropbox, label: 'Drive');
+    final c = _row('c', AccountKind.s3, label: 'Home');
+    final d = _row('d', AccountKind.s3, label: 'Home');
+    expect(order([c, d]), order([d, c]));
+    expect(order([a, b]), ['a', 'b']);
+  });
+
+  test('a Lightroom name keeps its parentheses', () {
+    final g = _group([
+      _row('lr', AccountKind.adobeLightroom, label: 'Jane Doe (Dive Club)'),
+    ]).single;
+    expect(g.label, 'Jane Doe (Dive Club)');
+  });
 }

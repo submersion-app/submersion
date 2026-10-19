@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
@@ -18,6 +19,11 @@ import 'package:submersion/features/settings/presentation/widgets/webdav_error_t
 import 'package:submersion/features/settings/presentation/widgets/webdav_server_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Checks a WebDAV server before it is saved, returning the config to save.
+/// The sync settings write a probe file; a shared library reaches its
+/// folder read only, since a club may hand out logins that cannot write.
+typedef WebDavCheck = Future<WebDavConfig> Function(WebDavConfig config);
+
 /// The one "My own server" form (spec section 7.5): S3-compatible or WebDAV,
 /// today's fields, Check connection and Save. New servers start as their
 /// sync-role row; an [existing] account is pre-filled from what this device
@@ -28,6 +34,7 @@ class OwnServerForm extends ConsumerStatefulWidget {
     this.existing,
     this.kinds = const {AccountKind.s3, AccountKind.webdav},
     this.showSyncFolder = false,
+    this.webdavCheck,
     required this.onSaved,
   });
 
@@ -38,9 +45,15 @@ class OwnServerForm extends ConsumerStatefulWidget {
   /// account and its folder can be changed as on today's settings pages.
   final bool showSyncFolder;
 
+  /// How a WebDAV server is checked on Check and Save; null runs the sync
+  /// settings' write probe.
+  final WebDavCheck? webdavCheck;
+
   /// The row the save wrote: the server's sync-role row for a new server,
-  /// or the signed-in row of an existing account.
-  final ValueChanged<ConnectedAccount> onSaved;
+  /// or the row of an existing account in the submitted folder. Awaited
+  /// before the form is usable again, so what follows a save (pointing sync
+  /// at it) finishes, and fails, inside the save.
+  final Future<void> Function(ConnectedAccount row) onSaved;
 
   @override
   ConsumerState<OwnServerForm> createState() => _OwnServerFormState();
@@ -53,6 +66,12 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
   late AccountKind _kind;
   bool _busy = false;
 
+  /// The config the form was filled from on this device, so a save replaces
+  /// only the rows that held these keys (not a club's own keys on a library
+  /// folder of the same server).
+  S3Config? _storedS3;
+  WebDavConfig? _storedWebDav;
+
   @override
   void initState() {
     super.initState();
@@ -63,12 +82,18 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
 
   /// This device's stored config when it holds one (editing a signed-in
   /// account), else the synced location with empty secrets (signing in).
+  /// The sync row's folder first, so a sign-in never starts from a photos
+  /// or library folder.
   Future<void> _prefill(AccountGroup group) async {
     final service = ref.read(accountGroupServiceProvider);
-    final location = group.locations.values.firstOrNull;
+    final syncRow = group.syncRowHere ?? group.rowFor(AccountRole.sync);
+    final location =
+        (syncRow == null ? null : group.locationOf(syncRow.id)) ??
+        group.locations.values.firstOrNull;
     switch (group.kind) {
       case AccountKind.s3:
         final stored = await service.storedS3For(group);
+        _storedS3 = stored;
         final config =
             stored ??
             (location is S3AccountLocation
@@ -77,6 +102,7 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
         if (config != null && mounted && !_s3.hasTyping) _s3.load(config);
       case AccountKind.webdav:
         final stored = await service.storedWebDavFor(group);
+        _storedWebDav = stored;
         final config =
             stored ??
             (location is WebDavAccountLocation
@@ -131,11 +157,7 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
           _snack(l10n.settings_s3Config_test_success);
         }
       } else {
-        await runWithCertificateTrust(
-          context,
-          _webdav,
-          ref.read(webdavStorageProviderInstanceProvider).testConnection,
-        );
+        await runWithCertificateTrust(context, _webdav, _webdavCheck);
         _snack(l10n.settings_webdavConfig_test_success);
       }
     } on WebDavException catch (e) {
@@ -161,14 +183,12 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
       final row = _kind == AccountKind.s3
           ? await _saveS3(service, _s3.build())
           : await runWithCertificateTrust(context, _webdav, (config) async {
-              await ref
-                  .read(webdavStorageProviderInstanceProvider)
-                  .testConnection(config);
+              await _webdavCheck(config);
               return _saveWebDav(service, config);
             });
       if (!mounted) return;
       _snack(l10n.settings_accounts_saved);
-      widget.onSaved(row);
+      await widget.onSaved(row);
     } on WebDavException catch (e) {
       _snack(webDavErrorText(l10n, e), isError: true);
     } on CloudStorageException catch (e) {
@@ -183,24 +203,29 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
     }
   }
 
-  /// The same server as [widget.existing] signs every row of it in with the
-  /// new secret; anything else is saved as its own row.
+  Future<WebDavConfig> _webdavCheck(WebDavConfig config) =>
+      (widget.webdavCheck ??
+      ref.read(webdavStorageProviderInstanceProvider).testConnection)(config);
+
+  /// The same server as [widget.existing] signs its rows in with the
+  /// submitted settings and returns the row in the submitted folder; a
+  /// folder no row holds yet is saved as its own row.
   Future<ConnectedAccount> _saveS3(
     AccountGroupService service,
     S3Config config,
   ) async {
     final existing = widget.existing;
-    if (existing != null &&
-        S3AccountLocation.fromConfig(config).serverKey == existing.key) {
+    final location = S3AccountLocation.fromConfig(config);
+    if (existing != null && location.serverKey == existing.key) {
       // The submitted settings, not only the keys: an edit of the region or
       // the addressing must survive the save.
-      final signedIn = await service.storeServerConfig(existing, s3: config);
-      final sync = existing.rowFor(AccountRole.sync);
-      final sameFolder =
-          sync == null ||
-          (existing.locationOf(sync.id) as S3AccountLocation?)?.prefix ==
-              config.prefix;
-      if (signedIn > 0 && sameFolder) return sync ?? existing.rows.first;
+      final signedIn = await service.storeServerConfig(
+        existing,
+        s3: config,
+        previousS3: _storedS3,
+      );
+      final same = _rowInFolder(existing, location.folder);
+      if (signedIn > 0 && same != null) return same;
     }
     return service.saveOwnServer(s3: config);
   }
@@ -210,21 +235,25 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
     WebDavConfig config,
   ) async {
     final existing = widget.existing;
-    if (existing != null &&
-        WebDavAccountLocation.fromConfig(config).serverKey == existing.key) {
+    final location = WebDavAccountLocation.fromConfig(config);
+    if (existing != null && location.serverKey == existing.key) {
       final signedIn = await service.storeServerConfig(
         existing,
         webdav: config,
+        previousWebDav: _storedWebDav,
       );
-      final sync = existing.rowFor(AccountRole.sync);
-      final sameFolder =
-          sync == null ||
-          (existing.locationOf(sync.id) as WebDavAccountLocation?)?.folder ==
-              config.folder;
-      if (signedIn > 0 && sameFolder) return sync ?? existing.rows.first;
+      final same = _rowInFolder(existing, location.folder);
+      if (signedIn > 0 && same != null) return same;
     }
     return service.saveOwnServer(webdav: config);
   }
+
+  /// [group]'s row in [folder]: saving there needs no new row, and no
+  /// relabel that would drop a library row's folder note.
+  static ConnectedAccount? _rowInFolder(AccountGroup group, String folder) =>
+      group.rows.firstWhereOrNull(
+        (r) => group.locationOf(r.id)?.folder == folder,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -307,6 +336,8 @@ Future<ConnectedAccount?> showOwnServerPage(
   AccountGroup? existing,
   Set<AccountKind> kinds = const {AccountKind.s3, AccountKind.webdav},
   bool rootNavigator = false,
+  bool showSyncFolder = false,
+  WebDavCheck? webdavCheck,
 }) =>
     Navigator.of(context, rootNavigator: rootNavigator).push<ConnectedAccount>(
       MaterialPageRoute(
@@ -322,7 +353,9 @@ Future<ConnectedAccount?> showOwnServerPage(
             child: OwnServerForm(
               existing: existing,
               kinds: kinds,
-              onSaved: (row) => Navigator.of(context).pop(row),
+              showSyncFolder: showSyncFolder,
+              webdavCheck: webdavCheck,
+              onSaved: (row) async => Navigator.of(context).pop(row),
             ),
           ),
         ),

@@ -29,9 +29,6 @@ import 'package:submersion/features/settings/presentation/widgets/encryption_set
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-export 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart'
-    show connectionErrorMessage, errorDisplayText;
-
 part 'cloud_sync_page_banners.dart';
 
 class CloudSyncPage extends ConsumerStatefulWidget {
@@ -61,8 +58,8 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
     final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
     // A persisted Google Drive selection must not enable Sync Now on a build
     // where Drive is unavailable (e.g. a desktop build without the OAuth
-    // client compiled in) -- the tile is disabled in that case, so an enabled
-    // Sync Now with no usable provider would be inconsistent.
+    // client compiled in): the account sheet offers no Google Drive there,
+    // so an enabled Sync Now with no usable provider would be inconsistent.
     final googleDriveAvailable =
         ref.watch(googleDriveAvailableProvider).value ?? false;
     final selectionUsable =
@@ -255,6 +252,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
     bool hasProvider,
   ) {
     final isSyncing = syncState.status == SyncStatus.syncing;
+    final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -367,7 +365,11 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
           ReadFailedPeerBanner(peers: syncState.readFailedPeerLabels),
           if (syncState.movedMarker != null)
             _buildMovedBanner(context, ref, syncState.movedMarker!),
-          if (syncState.cleanupOldBackendProviderId != null)
+          // Not while sync is back on that kind: the delete reaches the kind's
+          // one settings instance, which then points at the account sync
+          // uses now, not the one left.
+          if (syncState.cleanupOldBackendProviderId != null &&
+              syncState.cleanupOldBackendProviderId != selectedProvider?.name)
             _buildCleanupOfferBanner(
               context,
               ref,

@@ -91,10 +91,9 @@ class AccountGroupTile extends StatelessWidget {
                 color: colors.onSurfaceVariant,
               ),
             ),
-          Text(
-            identifier == null ? state : '$identifier - $state',
-            style: TextStyle(color: stateColor),
-          ),
+          // On their own lines: no separator to translate or mirror.
+          if (identifier != null) Text(identifier),
+          Text(state, style: TextStyle(color: stateColor)),
           if (group.usagesKnown)
             Text(
               usages.isEmpty

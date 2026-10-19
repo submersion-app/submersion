@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/providers/account_providers.dart';
@@ -23,7 +24,9 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/sync/established_provider_store.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -36,13 +39,17 @@ import '../../../../../support/fake_keychain_storage.dart';
 class _Notifier extends StateNotifier<SyncState> implements SyncNotifier {
   _Notifier(super.state);
   int departures = 0;
+  String? lastTo;
 
   @override
   Future<void> recordBackendDeparture({
     required CloudStorageProvider oldProvider,
     required String toProviderId,
     String? toProviderName,
-  }) async => departures++;
+  }) async {
+    departures++;
+    lastTo = toProviderId;
+  }
 
   @override
   Future<void> refreshState() async {}
@@ -61,6 +68,22 @@ class _RecordingRepository extends SyncRepository {
     required String accountId,
     required CloudProviderType providerType,
   }) async => onSet(accountId, providerType);
+
+  final retired = <String>[];
+
+  @override
+  Future<void> retireCursor(String providerId) async => retired.add(providerId);
+}
+
+/// Counts sign-ins, so a test can tell a save from a re-authentication.
+class _CountingProvider extends FakeCloudStorageProvider {
+  int authenticateCalls = 0;
+
+  @override
+  Future<void> authenticate() async {
+    authenticateCalls++;
+    await super.authenticate();
+  }
 }
 
 final _t = DateTime.utc(2026);
@@ -92,25 +115,29 @@ void main() {
   final dropbox = _group('db', AccountKind.dropbox, 'Dropbox', sync: true);
 
   late _Notifier notifier;
+  late SharedPreferences sharedPrefs;
 
   Future<(BuildContext, WidgetRef)> pumpHost(
     WidgetTester tester, {
     DateTime? lastSync,
     InMemoryKeychain? keychain,
     SyncRepository? repository,
+    FakeCloudStorageProvider? cloudProvider,
   }) async {
     final keys = keychain ?? InMemoryKeychain();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
+    sharedPrefs = prefs;
     notifier = _Notifier(SyncState(lastSync: lastSync));
     late BuildContext context;
     late WidgetRef ref;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           syncStateProvider.overrideWith((ref) => notifier),
           cloudStorageProviderProvider.overrideWithValue(
-            FakeCloudStorageProvider(),
+            cloudProvider ?? FakeCloudStorageProvider(),
           ),
           accountCredentialsStoreProvider.overrideWithValue(
             AccountCredentialsStore(storage: keys),
@@ -182,9 +209,29 @@ void main() {
 
   testWidgets('choosing the current account changes nothing', (tester) async {
     final (context, ref) = await pumpHost(tester, lastSync: _t);
+    ref.read(selectedCloudProviderTypeProvider.notifier).state =
+        CloudProviderType.dropbox;
     await useAccountForSync(context, ref, dropbox, current: dropbox);
     expect(notifier.departures, 0);
-    expect(ref.read(selectedCloudProviderTypeProvider), isNull);
+    expect(
+      ref.read(selectedCloudProviderTypeProvider),
+      CloudProviderType.dropbox,
+    );
+  });
+
+  // Review of #3527: a failed or cancelled sign-in leaves "Using: X" with
+  // nothing selected; choosing X again selects it, and leaves nothing.
+  testWidgets('choosing the current account with sync off selects it again', (
+    tester,
+  ) async {
+    final (context, ref) = await pumpHost(tester, lastSync: _t);
+    await useAccountForSync(context, ref, dropbox, current: dropbox);
+    await tester.pump();
+    expect(notifier.departures, 0);
+    expect(
+      ref.read(selectedCloudProviderTypeProvider),
+      CloudProviderType.dropbox,
+    );
   });
 
   // Review: an own server with no keys here cannot take sync; the old
@@ -267,6 +314,161 @@ void main() {
 
     expect(log, ['s3row s3 null']);
     expect(ref.read(selectedCloudProviderTypeProvider), CloudProviderType.s3);
+  });
+
+  // Review of #3527: saving the sync account's server details (or moving
+  // between two accounts of the kind sync uses) signs nothing in again: a
+  // probe there used the previous row's cached provider and turned sync off
+  // when the old key was revoked.
+  testWidgets('a switch on the kind sync uses signs nothing in again', (
+    tester,
+  ) async {
+    final keychain = InMemoryKeychain();
+    final log = <String>[];
+    final counting = _CountingProvider();
+    final (context, ref) = await pumpHost(
+      tester,
+      keychain: keychain,
+      repository: _RecordingRepository((id, type) => log.add(id)),
+      cloudProvider: counting,
+    );
+    ref.read(selectedCloudProviderTypeProvider.notifier).state =
+        CloudProviderType.s3;
+    await AccountCredentialsStore(storage: keychain).write(
+      's3row',
+      jsonEncode(
+        S3Config(
+          endpoint: 'https://minio.home',
+          bucket: 'dives',
+          prefix: 'dive-log/',
+          accessKeyId: 'AKIA2',
+          secretAccessKey: 'new',
+        ).toJson(),
+      ),
+    );
+    final row = ConnectedAccount(
+      id: 's3row',
+      kind: AccountKind.s3,
+      label: 'dives @ minio.home',
+      createdAt: _t,
+      updatedAt: _t,
+    );
+
+    await switchSyncToRow(context, ref, row);
+    await tester.pump();
+
+    expect(log, ['s3row']);
+    expect(counting.authenticateCalls, 0);
+    expect(ref.read(selectedCloudProviderTypeProvider), CloudProviderType.s3);
+  });
+
+  // Review of #3527: after Stop syncing, the folder this device synced to
+  // has no usage left; picking the server again returns to it rather than
+  // starting an empty default folder.
+  testWidgets('picking a server again goes back to the folder last synced', (
+    tester,
+  ) async {
+    final keychain = InMemoryKeychain();
+    final log = <String>[];
+    final (context, ref) = await pumpHost(
+      tester,
+      keychain: keychain,
+      repository: _RecordingRepository((id, type) => log.add(id)),
+    );
+    final dives = S3Config(
+      endpoint: 'https://minio.home',
+      bucket: 'dives',
+      prefix: 'dives/',
+      accessKeyId: 'AKIA1',
+      secretAccessKey: 'shh',
+    );
+    final divesId = accountIdFor(
+      kind: AccountKind.s3,
+      naturalKey: s3NaturalKey(dives),
+    );
+    await AccountCredentialsStore(
+      storage: keychain,
+    ).write(divesId, jsonEncode(dives.toJson()));
+    await S3CredentialsStore(storage: keychain).save(dives);
+    final server = groupAccounts(
+      rows: [
+        ConnectedAccount(
+          id: divesId,
+          kind: AccountKind.s3,
+          label: 'dives @ minio.home',
+          createdAt: _t,
+          updatedAt: _t,
+          location: S3AccountLocation.fromConfig(dives),
+        ),
+      ],
+      statusById: {divesId: AccountStatus.signedIn},
+      localLocationById: const {},
+      usagesOf: (_) => const [],
+    ).single;
+
+    await useAccountForSync(context, ref, server);
+    await tester.pump();
+
+    expect(log, [divesId]);
+  });
+
+  // Review of #3527: S3 bucket X to S3 bucket Y was keyed 's3' throughout,
+  // so Y's first sync skipped the Combine check and reused X's cursor, and
+  // devices on X ignored the moved marker.
+  testWidgets('another account of the same kind starts as first contact', (
+    tester,
+  ) async {
+    final keychain = InMemoryKeychain();
+    final repo = _RecordingRepository((_, _) {});
+    final (context, ref) = await pumpHost(
+      tester,
+      lastSync: _t,
+      keychain: keychain,
+      repository: repo,
+    );
+    await EstablishedProviderStore(sharedPrefs).add('s3');
+    final y = S3Config(
+      endpoint: 'https://other.home',
+      bucket: 'logs',
+      prefix: 'submersion-sync/',
+      accessKeyId: 'AKIA9',
+      secretAccessKey: 'y',
+    );
+    final yId = accountIdFor(kind: AccountKind.s3, naturalKey: s3NaturalKey(y));
+    await AccountCredentialsStore(
+      storage: keychain,
+    ).write(yId, jsonEncode(y.toJson()));
+    AccountGroup s3Group(String id, S3AccountLocation location, bool sync) =>
+        groupAccounts(
+          rows: [
+            ConnectedAccount(
+              id: id,
+              kind: AccountKind.s3,
+              label: '${location.bucket} @ ${location.displayHost}',
+              createdAt: _t,
+              updatedAt: _t,
+              location: location,
+            ),
+          ],
+          statusById: {id: AccountStatus.signedIn},
+          localLocationById: const {},
+          usagesOf: (_) => [
+            if (sync) const AccountUsage(AccountUsageKind.databaseSync),
+          ],
+        ).single;
+    final x = s3Group(
+      'x',
+      S3AccountLocation.fromConfig(y.copyWith(bucket: 'dives')),
+      true,
+    );
+    final yGroup = s3Group(yId, S3AccountLocation.fromConfig(y), false);
+
+    await useAccountForSync(context, ref, yGroup, current: x);
+    await tester.pump();
+
+    expect(notifier.lastTo, 's3:$yId');
+    expect(repo.retired, ['s3']);
+    expect(EstablishedProviderStore(sharedPrefs).contains('s3'), isFalse);
   });
 
   test('the account sync uses is the one whose usage says so', () {
