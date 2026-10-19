@@ -70,11 +70,13 @@ class _ColorAdjustPanelState extends ConsumerState<ColorAdjustPanel> {
   void _clearDraft(String mediaId) {
     final container = _container;
     if (container == null) return;
-    scheduleMicrotask(
-      () => container
-          .read(colorAdjustmentDraftProvider(mediaId).notifier)
-          .clear(),
-    );
+    scheduleMicrotask(() {
+      try {
+        container.read(colorAdjustmentDraftProvider(mediaId).notifier).clear();
+      } on StateError {
+        // The scope went away with the viewer; its drafts went with it.
+      }
+    });
   }
 
   void _draw(ColorAdjustment adjustment) => ref

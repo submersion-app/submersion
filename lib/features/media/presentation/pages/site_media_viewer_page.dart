@@ -11,7 +11,11 @@ import 'package:submersion/features/media/data/services/media_share_temp_file.da
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
+import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
@@ -60,6 +64,24 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
+
+  /// The Adjust color panel (issue #3520) and its "Pick white" mode. Photos
+  /// only pick white here: this viewer shows a video's poster, not a player.
+  bool _colorPanelOpen = false;
+  bool _pickingWhite = false;
+  final GlobalKey _galleryBoundaryKey = GlobalKey();
+
+  Future<void> _pickWhiteAt(MediaItem item, Offset at) async {
+    setState(() => _pickingWhite = false);
+    final sample = await sampleWhiteFromPhoto(
+      ref,
+      _galleryBoundaryKey,
+      item,
+      at,
+    );
+    if (!mounted) return;
+    await applyPickedWhite(context, ref, item, sample);
+  }
 
   @override
   void onExitFullscreen() => _showOverlay = true;
@@ -197,17 +219,20 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
               },
               child: Stack(
                 children: [
-                  _MediaGalleryPager(
-                    mediaList: mediaList,
-                    pageController: _pageController,
-                    onPageChanged: (index) {
-                      // Swipes and settles both land here, which is what
-                      // re-syncs the nav target after a gesture.
-                      setState(() {
-                        _currentIndex = index;
-                        _navTargetIndex = index;
-                      });
-                    },
+                  RepaintBoundary(
+                    key: _galleryBoundaryKey,
+                    child: _MediaGalleryPager(
+                      mediaList: mediaList,
+                      pageController: _pageController,
+                      onPageChanged: (index) {
+                        // Swipes and settles both land here, which is what
+                        // re-syncs the nav target after a gesture.
+                        setState(() {
+                          _currentIndex = index;
+                          _navTargetIndex = index;
+                        });
+                      },
+                    ),
                   ),
 
                   // Transparent tap target to toggle overlays
@@ -216,17 +241,62 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                       label: context.l10n.media_photoViewer_toggleOverlayLabel,
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
-                        onTap: isFullscreen
+                        onTap: _pickingWhite
+                            ? null
+                            : isFullscreen
                             ? toggleFullscreenControls
                             : () =>
                                   setState(() => _showOverlay = !_showOverlay),
+                        onTapUp: _pickingWhite
+                            ? (details) => _pickWhiteAt(
+                                currentItem,
+                                details.localPosition,
+                              )
+                            : null,
+                        // Hold to compare with the original (issue #3520).
+                        onLongPressStart: (_) => ref
+                            .read(colorPeekOriginalProvider.notifier)
+                            .peek(currentItem.id),
+                        onLongPressEnd: (_) => ref
+                            .read(colorPeekOriginalProvider.notifier)
+                            .release(),
+                        onLongPressCancel: () => ref
+                            .read(colorPeekOriginalProvider.notifier)
+                            .release(),
                         child: const SizedBox.expand(),
                       ),
                     ),
                   ),
 
-                  if (_showOverlay && !isFullscreen) ...[
+                  if (_pickingWhite)
+                    Positioned(
+                      top: MediaQuery.paddingOf(context).top + 12,
+                      left: 16,
+                      right: 16,
+                      child: IgnorePointer(
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              context.l10n.media_color_pickWhiteHint,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  if (_showOverlay && !isFullscreen && !_pickingWhite) ...[
                     _TopOverlay(
+                      onAdjustColor: () =>
+                          setState(() => _colorPanelOpen = true),
                       currentIndex: currentIndex,
                       totalCount: mediaList.length,
                       onClose: () => Navigator.of(context).pop(),
@@ -269,7 +339,20 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
               autofocus: true,
               onKeyEvent: (node, event) =>
                   _handleKeyEvent(event, mediaList.length),
-              child: viewer,
+              child: ColorAdjustLayout(
+                open: _colorPanelOpen && !isFullscreen,
+                panelBuilder: (layout) => ColorAdjustPanel(
+                  item: currentItem,
+                  layout: layout,
+                  pickWhiteAvailable: !currentItem.isVideo,
+                  onPickWhite: () => setState(() => _pickingWhite = true),
+                  onDone: () => setState(() {
+                    _colorPanelOpen = false;
+                    _pickingWhite = false;
+                  }),
+                ),
+                child: viewer,
+              ),
             );
           },
           loading: () => const Center(
@@ -393,8 +476,10 @@ class _TopOverlay extends StatelessWidget {
   final VoidCallback onEnterFullscreen;
   final void Function(Rect? anchor) onShare;
   final VoidCallback? onEditDetails;
+  final VoidCallback onAdjustColor;
 
   const _TopOverlay({
+    required this.onAdjustColor,
     required this.currentIndex,
     required this.totalCount,
     required this.onClose,
@@ -448,6 +533,12 @@ class _TopOverlay extends StatelessWidget {
                       ),
                     ),
                   ),
+                ),
+                IconButton(
+                  key: const ValueKey('viewer_adjust_color'),
+                  icon: const Icon(Icons.palette_outlined, color: Colors.white),
+                  tooltip: context.l10n.media_color_adjustAction,
+                  onPressed: onAdjustColor,
                 ),
                 if (onEditDetails != null)
                   IconButton(

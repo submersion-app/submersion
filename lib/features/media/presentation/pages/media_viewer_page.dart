@@ -42,6 +42,11 @@ import 'package:submersion/features/media/presentation/widgets/media_species_chi
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
+import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
+import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -100,6 +105,40 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
+
+  /// The Adjust color panel (issue #3520) and its "Pick white" mode.
+  bool _colorPanelOpen = false;
+  bool _pickingWhite = false;
+
+  /// Wraps the gallery so "Pick white" can read the photo's pixels.
+  final GlobalKey _galleryBoundaryKey = GlobalKey();
+
+  /// "Pick white" answered by a tap at [at] on the page: the photo's pixels
+  /// (with its correction off for a frame), or a paused video's frame.
+  Future<void> _pickWhiteAt(MediaItem item, Offset at, Size box) async {
+    setState(() => _pickingWhite = false);
+    final controller = _videoControllers[item.id];
+    final sample = item.isVideo
+        ? controller == null
+              ? null
+              : await sampleWhiteFromVideo(
+                  ref,
+                  item,
+                  controller.value.position,
+                  at,
+                  box,
+                )
+        : await sampleWhiteFromPhoto(ref, _galleryBoundaryKey, item, at);
+    if (!mounted) return;
+    await applyPickedWhite(context, ref, item, sample);
+  }
+
+  /// Enters "Pick white"; a video is paused first so the tap reads the
+  /// frame on screen.
+  void _startPickingWhite(MediaItem item) {
+    if (item.isVideo) unawaited(_videoControllers[item.id]?.pause());
+    setState(() => _pickingWhite = true);
+  }
 
   /// Dives whose enrichment backfill has already been attempted this session,
   /// so a swipe through several un-enriched items of one dive runs it once.
@@ -470,31 +509,34 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
               child: Stack(
                 children: [
                   // Photo/video gallery
-                  _PhotoGallery(
-                    mediaList: mediaList,
-                    pageController: _pageController,
-                    onPageChanged: (index) {
-                      // Swipes and settles both land here, which is what
-                      // re-syncs the nav target after a gesture.
-                      setState(() {
-                        _currentIndex = index;
-                        _navTargetIndex = index;
-                      });
-                      // Controls left up on a paused video have no timer; the
-                      // next page restarts the 3-second hide so they do not
-                      // linger over a photo nobody tapped.
-                      if (isFullscreen && fullscreenControlsVisible) {
-                        revealFullscreenControls(autoHide: true);
-                      }
-                    },
-                    showOverlay: isFullscreen
-                        ? fullscreenControlsVisible
-                        : _showOverlay,
-                    fullscreen: isFullscreen,
-                    onFullscreenTap: toggleFullscreenControls,
-                    onSetOverlay: _onSetOverlay,
-                    onVideoControllerChanged: _onVideoControllerChanged,
-                    currentIndex: currentIndex,
+                  RepaintBoundary(
+                    key: _galleryBoundaryKey,
+                    child: _PhotoGallery(
+                      mediaList: mediaList,
+                      pageController: _pageController,
+                      onPageChanged: (index) {
+                        // Swipes and settles both land here, which is what
+                        // re-syncs the nav target after a gesture.
+                        setState(() {
+                          _currentIndex = index;
+                          _navTargetIndex = index;
+                        });
+                        // Controls left up on a paused video have no timer; the
+                        // next page restarts the 3-second hide so they do not
+                        // linger over a photo nobody tapped.
+                        if (isFullscreen && fullscreenControlsVisible) {
+                          revealFullscreenControls(autoHide: true);
+                        }
+                      },
+                      showOverlay: isFullscreen
+                          ? fullscreenControlsVisible
+                          : _showOverlay,
+                      fullscreen: isFullscreen,
+                      onFullscreenTap: toggleFullscreenControls,
+                      onSetOverlay: _onSetOverlay,
+                      onVideoControllerChanged: _onVideoControllerChanged,
+                      currentIndex: currentIndex,
+                    ),
                   ),
 
                   // Transparent tap target to toggle overlays (photos only)
@@ -506,18 +548,77 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             context.l10n.media_photoViewer_toggleOverlayLabel,
                         child: GestureDetector(
                           behavior: HitTestBehavior.translucent,
-                          onTap: isFullscreen
+                          onTap: _pickingWhite
+                              ? null
+                              : isFullscreen
                               ? toggleFullscreenControls
                               : () => setState(
                                   () => _showOverlay = !_showOverlay,
                                 ),
+                          onTapUp: _pickingWhite
+                              ? (details) => _pickWhiteAt(
+                                  currentItem,
+                                  details.localPosition,
+                                  context.size ?? Size.zero,
+                                )
+                              : null,
+                          // Hold to compare with the original (issue #3520).
+                          onLongPressStart: (_) => ref
+                              .read(colorPeekOriginalProvider.notifier)
+                              .peek(currentItem.id),
+                          onLongPressEnd: (_) => ref
+                              .read(colorPeekOriginalProvider.notifier)
+                              .release(),
+                          onLongPressCancel: () => ref
+                              .read(colorPeekOriginalProvider.notifier)
+                              .release(),
                           child: const SizedBox.expand(),
                         ),
                       ),
                     ),
 
+                  // "Pick white" on a paused video: the player owns ordinary
+                  // taps, so the pick gets its own catcher above it.
+                  if (_pickingWhite && currentItem.isVideo)
+                    Positioned.fill(
+                      child: LayoutBuilder(
+                        builder: (context, box) => GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapUp: (details) => _pickWhiteAt(
+                            currentItem,
+                            details.localPosition,
+                            box.biggest,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (_pickingWhite)
+                    Positioned(
+                      top: MediaQuery.paddingOf(context).top + 12,
+                      left: 16,
+                      right: 16,
+                      child: IgnorePointer(
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              context.l10n.media_color_pickWhiteHint,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
                   // Overlay controls (app bar and metadata)
-                  if (_showOverlay && !isFullscreen) ...[
+                  if (_showOverlay && !isFullscreen && !_pickingWhite) ...[
                     // Top app bar
                     MediaViewerToolbar(
                       item: currentItem,
@@ -536,6 +637,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
                       onTagSpecies: () =>
                           showMediaSpeciesSheet(context, currentItem),
+                      onAdjustColor: () =>
+                          setState(() => _colorPanelOpen = true),
                       // The viewer is deliberately NOT popped first: leaving it
                       // on the stack is what lets Back return the user to the
                       // photo they launched from, with its page index, zoom and
@@ -562,6 +665,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                                 mode: LaunchMode.externalApplication,
                               ),
                             ),
+                    ),
+
+                    // What colour correction the item is drawn with.
+                    Positioned(
+                      top:
+                          MediaQuery.paddingOf(context).top +
+                          kMediaViewerToolbarHeight +
+                          4,
+                      left: 12,
+                      child: ColorCorrectionLabel(item: currentItem),
                     ),
 
                     // Previous / next controls. Mounted with the rest of the
@@ -679,7 +792,22 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
             return Focus(
               autofocus: true,
               onKeyEvent: _handleKeyEvent,
-              child: viewer,
+              child: ColorAdjustLayout(
+                open: _colorPanelOpen && !isFullscreen,
+                panelBuilder: (layout) => ColorAdjustPanel(
+                  item: currentItem,
+                  layout: layout,
+                  pickWhiteAvailable:
+                      !currentItem.isVideo ||
+                      _videoControllers[currentItem.id] != null,
+                  onPickWhite: () => _startPickingWhite(currentItem),
+                  onDone: () => setState(() {
+                    _colorPanelOpen = false;
+                    _pickingWhite = false;
+                  }),
+                ),
+                child: viewer,
+              ),
             );
           },
         ),
