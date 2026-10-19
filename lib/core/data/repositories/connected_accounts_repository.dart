@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/database_service.dart';
@@ -76,16 +77,41 @@ class ConnectedAccountsRepository {
   /// is a local-only query and cannot dedup a replicated table.
   ///
   /// A drifted [label] (renamed bucket, changed host spelling) is refreshed
-  /// in place rather than minting a row.
+  /// in place rather than minting a row. A given [location] is written
+  /// through [setLocation].
   Future<domain.ConnectedAccount> ensure({
     required AccountKind kind,
     required String naturalKey,
     required String label,
-  }) => ensureById(
-    id: accountIdFor(kind: kind, naturalKey: naturalKey),
-    kind: kind,
-    label: label,
-  );
+    AccountLocation? location,
+  }) async {
+    final account = await ensureById(
+      id: accountIdFor(kind: kind, naturalKey: naturalKey),
+      kind: kind,
+      label: label,
+    );
+    if (location == null) return account;
+    await setLocation(account.id, location);
+    return account.copyWith(location: location);
+  }
+
+  /// Writes the secret-free [location] of an S3 or WebDAV row and marks it
+  /// pending. An identical stored value is left alone, so re-saving the same
+  /// server stamps no new HLC.
+  Future<void> setLocation(String id, AccountLocation location) async {
+    final json = location.toJsonString();
+    final row = await (_db.select(
+      _db.connectedAccounts,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null || row.location == json) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.connectedAccounts,
+    )..where((t) => t.id.equals(id))).write(
+      ConnectedAccountsCompanion(location: Value(json), updatedAt: Value(now)),
+    );
+    await _markPending(id, now);
+  }
 
   /// [ensure] for a caller that already holds the id (the deduplicator
   /// canonicalizing an anchor), preserving [accountIdentifier].
@@ -229,6 +255,7 @@ class ConnectedAccountsRepository {
         row.updatedAt,
         isUtc: true,
       ),
+      location: AccountLocation.tryParse(row.location),
     );
   }
 }

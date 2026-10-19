@@ -6471,6 +6471,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Controles van de uitrustingsstaat",
   "settings_conflict_field_configJson": "Configuratie",
   "settings_conflict_field_connectedAccounts_kind": "Dienst",
+  "settings_conflict_field_connectedAccounts_location": "Accountlocatie",
   "settings_conflict_field_connectionType": "Verbinding",
   "settings_conflict_field_contentHash": "Vingerafdruk van de inhoud",
   "settings_conflict_field_contentSizeBytes": "Grootte in bytes",

@@ -22846,6 +22846,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'الخدمة';
 
   @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'موقع الحساب';
+
+  @override
   String get settings_conflict_field_connectionType => 'الاتصال';
 
   @override

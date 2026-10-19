@@ -21425,6 +21425,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => '服务';
 
   @override
+  String get settings_conflict_field_connectedAccounts_location => '账户位置';
+
+  @override
   String get settings_conflict_field_connectionType => '连接';
 
   @override

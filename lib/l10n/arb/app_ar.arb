@@ -6471,6 +6471,7 @@
   "settings_conflict_field_conditionEngineEnabled": "فحوصات حالة المعدات",
   "settings_conflict_field_configJson": "الإعدادات",
   "settings_conflict_field_connectedAccounts_kind": "الخدمة",
+  "settings_conflict_field_connectedAccounts_location": "موقع الحساب",
   "settings_conflict_field_connectionType": "الاتصال",
   "settings_conflict_field_contentHash": "بصمة المحتوى",
   "settings_conflict_field_contentSizeBytes": "الحجم بالبايت",

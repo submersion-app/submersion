@@ -22507,6 +22507,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'Szolgáltatás';
 
   @override
+  String get settings_conflict_field_connectedAccounts_location => 'Fiók helye';
+
+  @override
   String get settings_conflict_field_connectionType => 'Kapcsolat';
 
   @override

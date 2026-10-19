@@ -365,6 +365,12 @@ class ConnectedAccounts extends Table {
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
 
+  /// v293: secret-free JSON describing where an S3 or WebDAV row points,
+  /// including its own folder (AccountLocation), so a second device signs
+  /// in by typing only the secret (issue #3482). Null for OAuth kinds and
+  /// for rows written before v293.
+  TextColumn get location => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

@@ -13617,6 +13617,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Gear condition checks",
   "settings_conflict_field_configJson": "Configuration",
   "settings_conflict_field_connectedAccounts_kind": "Service",
+  "settings_conflict_field_connectedAccounts_location": "Account location",
   "settings_conflict_field_connectionType": "Connection",
   "settings_conflict_field_contentHash": "Content fingerprint",
   "settings_conflict_field_contentSizeBytes": "Size in bytes",

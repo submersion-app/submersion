@@ -6371,6 +6371,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Controlli dello stato dell'attrezzatura",
   "settings_conflict_field_configJson": "Configurazione",
   "settings_conflict_field_connectedAccounts_kind": "Servizio",
+  "settings_conflict_field_connectedAccounts_location": "Posizione dell'account",
   "settings_conflict_field_connectionType": "Connessione",
   "settings_conflict_field_contentHash": "Impronta del contenuto",
   "settings_conflict_field_contentSizeBytes": "Dimensione in byte",

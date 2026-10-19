@@ -6475,6 +6475,7 @@
   "settings_conflict_field_conditionEngineEnabled": "בדיקות מצב הציוד",
   "settings_conflict_field_configJson": "הגדרות",
   "settings_conflict_field_connectedAccounts_kind": "שירות",
+  "settings_conflict_field_connectedAccounts_location": "מיקום החשבון",
   "settings_conflict_field_connectionType": "חיבור",
   "settings_conflict_field_contentHash": "טביעת אצבע של התוכן",
   "settings_conflict_field_contentSizeBytes": "גודל בבתים",

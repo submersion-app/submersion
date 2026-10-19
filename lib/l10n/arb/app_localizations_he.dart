@@ -22060,6 +22060,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'שירות';
 
   @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'מיקום החשבון';
+
+  @override
   String get settings_conflict_field_connectionType => 'חיבור';
 
   @override

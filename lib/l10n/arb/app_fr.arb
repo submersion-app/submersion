@@ -6371,6 +6371,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Contrôles de l'état de l'équipement",
   "settings_conflict_field_configJson": "Configuration",
   "settings_conflict_field_connectedAccounts_kind": "Service",
+  "settings_conflict_field_connectedAccounts_location": "Emplacement du compte",
   "settings_conflict_field_connectionType": "Connexion",
   "settings_conflict_field_contentHash": "Empreinte du contenu",
   "settings_conflict_field_contentSizeBytes": "Taille en octets",

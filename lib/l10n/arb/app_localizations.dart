@@ -36022,6 +36022,12 @@ abstract class AppLocalizations {
   /// **'Service'**
   String get settings_conflict_field_connectedAccounts_kind;
 
+  /// No description provided for @settings_conflict_field_connectedAccounts_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Account location'**
+  String get settings_conflict_field_connectedAccounts_location;
+
   /// No description provided for @settings_conflict_field_connectionType.
   ///
   /// In en, this message translates to:

@@ -6602,6 +6602,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Prüfungen des Ausrüstungszustands",
   "settings_conflict_field_configJson": "Konfiguration",
   "settings_conflict_field_connectedAccounts_kind": "Dienst",
+  "settings_conflict_field_connectedAccounts_location": "Kontoort",
   "settings_conflict_field_connectionType": "Verbindung",
   "settings_conflict_field_contentHash": "Inhaltsfingerabdruck",
   "settings_conflict_field_contentSizeBytes": "Größe in Byte",

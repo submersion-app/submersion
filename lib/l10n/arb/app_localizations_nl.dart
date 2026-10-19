@@ -22440,6 +22440,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'Dienst';
 
   @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'Accountlocatie';
+
+  @override
   String get settings_conflict_field_connectionType => 'Verbinding';
 
   @override

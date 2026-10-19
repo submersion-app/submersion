@@ -6371,6 +6371,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Felszerelés állapotának ellenőrzése",
   "settings_conflict_field_configJson": "Beállítások",
   "settings_conflict_field_connectedAccounts_kind": "Szolgáltatás",
+  "settings_conflict_field_connectedAccounts_location": "Fiók helye",
   "settings_conflict_field_connectionType": "Kapcsolat",
   "settings_conflict_field_contentHash": "Tartalom ujjlenyomata",
   "settings_conflict_field_contentSizeBytes": "Méret bájtban",

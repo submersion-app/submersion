@@ -39,8 +39,12 @@ extension MediaMigrations on AppDatabase {
       'account_identifier TEXT, '
       'created_at INTEGER NOT NULL, '
       'updated_at INTEGER NOT NULL, '
-      'hlc TEXT)',
+      'hlc TEXT, '
+      'location TEXT)',
     );
+    // v293: connected_accounts.location (issue #3482); a table created
+    // before v293 gains it here.
+    await _addColumnIfMissing('connected_accounts', 'location', 'TEXT');
     final metaCols = await customSelect(
       "PRAGMA table_info('sync_metadata')",
     ).get();

@@ -414,5 +414,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 292) await reportProgress();
+    // v293: connected_accounts.location (issue #3482). Column only, written
+    // when a device saves or signs in to an S3 or WebDAV account;
+    // re-asserted in beforeOpen through _assertConnectedAccountsSchema.
+    if (from < 293) {
+      await _assertConnectedAccountsSchema();
+    }
+    if (from < 293) await reportProgress();
   }
 }

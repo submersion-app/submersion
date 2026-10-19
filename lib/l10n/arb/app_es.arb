@@ -6471,6 +6471,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Comprobaciones del estado del equipo",
   "settings_conflict_field_configJson": "Configuración",
   "settings_conflict_field_connectedAccounts_kind": "Servicio",
+  "settings_conflict_field_connectedAccounts_location": "Ubicación de la cuenta",
   "settings_conflict_field_connectionType": "Conexión",
   "settings_conflict_field_contentHash": "Huella del contenido",
   "settings_conflict_field_contentSizeBytes": "Tamaño en bytes",

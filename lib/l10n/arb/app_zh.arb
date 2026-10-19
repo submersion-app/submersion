@@ -6623,6 +6623,7 @@
   "settings_conflict_field_conditionEngineEnabled": "装备状态检查",
   "settings_conflict_field_configJson": "配置",
   "settings_conflict_field_connectedAccounts_kind": "服务",
+  "settings_conflict_field_connectedAccounts_location": "账户位置",
   "settings_conflict_field_connectionType": "连接",
   "settings_conflict_field_contentHash": "内容指纹",
   "settings_conflict_field_contentSizeBytes": "大小（字节）",

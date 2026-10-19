@@ -22590,6 +22590,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'Servizio';
 
   @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'Posizione dell\'account';
+
+  @override
   String get settings_conflict_field_connectionType => 'Connessione';
 
   @override

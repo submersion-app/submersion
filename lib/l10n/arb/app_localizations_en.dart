@@ -22238,6 +22238,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'Service';
 
   @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'Account location';
+
+  @override
   String get settings_conflict_field_connectionType => 'Connection';
 
   @override
