@@ -11,6 +11,7 @@ import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
@@ -354,10 +355,14 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         ?entry.transmitterEquipmentId,
       };
       if (touched.isNotEmpty) scheduleConditionFindingsRefresh(touched);
+      final normalizedSerial = normalizeTransmitterSerial(serialText);
       if (_transmitterGearJustPicked &&
-          serialText.isNotEmpty &&
+          normalizedSerial != null &&
           _transmitterEquipmentId != null) {
-        await _offerCopySerialToGear(_transmitterEquipmentId!, serialText);
+        await _offerCopySerialToGear(
+          _transmitterEquipmentId!,
+          normalizedSerial,
+        );
       }
     } on TransmitterConflictException catch (e) {
       setState(
