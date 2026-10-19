@@ -7,11 +7,11 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
+import 'package:submersion/features/media/presentation/helpers/share_color_matrix.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
@@ -393,16 +393,14 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
         return;
       }
 
-      final file = await writeShareTempFile(item, resolvedResult.bytes!);
+      // A photo goes out with its colour correction (issue #3520).
+      final file = await writeShareFileFor(ref, item, resolvedResult.bytes!);
 
       // Dismiss loading - use rootNavigator to match where showDialog placed it
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
       await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: item.shareMimeType)],
-          sharePositionOrigin: anchor,
-        ),
+        ShareParams(files: [file], sharePositionOrigin: anchor),
       );
     } catch (e) {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
