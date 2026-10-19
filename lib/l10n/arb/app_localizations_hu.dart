@@ -23587,49 +23587,49 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_ruleId => 'Szabály';
 
   @override
-  String get settings_conflict_field_ruleActions => 'Actions';
+  String get settings_conflict_field_ruleActions => 'Műveletek';
 
   @override
-  String get settings_conflict_field_ruleChangeAfter => 'After';
+  String get settings_conflict_field_ruleChangeAfter => 'Utána';
 
   @override
-  String get settings_conflict_field_ruleChangeBefore => 'Before';
+  String get settings_conflict_field_ruleChangeBefore => 'Előtte';
 
   @override
-  String get settings_conflict_field_ruleChangeField => 'Changed field';
+  String get settings_conflict_field_ruleChangeField => 'Módosított mező';
 
   @override
-  String get settings_conflict_field_ruleCondition => 'Condition';
+  String get settings_conflict_field_ruleCondition => 'Feltétel';
 
   @override
-  String get settings_conflict_field_ruleName => 'Rule name';
+  String get settings_conflict_field_ruleName => 'Szabály neve';
 
   @override
-  String get settings_conflict_field_ruleRun => 'Rule run';
+  String get settings_conflict_field_ruleRun => 'Szabályfuttatás';
 
   @override
-  String get settings_conflict_field_ruleRunAt => 'Ran at';
+  String get settings_conflict_field_ruleRunAt => 'Futtatva';
 
   @override
-  String get settings_conflict_field_ruleRunChangedCount => 'Items changed';
+  String get settings_conflict_field_ruleRunChangedCount => 'Módosított elemek';
 
   @override
-  String get settings_conflict_field_ruleRunDevice => 'Device';
+  String get settings_conflict_field_ruleRunDevice => 'Eszköz';
 
   @override
-  String get settings_conflict_field_ruleRunSource => 'Source';
+  String get settings_conflict_field_ruleRunSource => 'Forrás';
 
   @override
-  String get settings_conflict_field_ruleRunTrigger => 'Started by';
+  String get settings_conflict_field_ruleRunTrigger => 'Indította';
 
   @override
-  String get settings_conflict_field_ruleRunUndoneAt => 'Undone at';
+  String get settings_conflict_field_ruleRunUndoneAt => 'Visszavonva';
 
   @override
-  String get settings_conflict_field_ruleTarget => 'Changed item';
+  String get settings_conflict_field_ruleTarget => 'Módosított elem';
 
   @override
-  String get settings_conflict_field_ruleTriggers => 'Runs when';
+  String get settings_conflict_field_ruleTriggers => 'Mikor fut';
 
   @override
   String get settings_conflict_field_sacBottom =>
@@ -52729,432 +52729,433 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_manage_rules => 'Rules';
+  String get settings_manage_rules => 'Szabályok';
 
   @override
   String get settings_manage_rules_subtitle =>
-      'Classify and fill in dives and sites automatically';
+      'Merülések és helyszínek automatikus besorolása és kitöltése';
 
   @override
-  String get rules_page_title => 'Rules';
+  String get rules_page_title => 'Szabályok';
 
   @override
-  String get rules_section_dives => 'Dive rules';
+  String get rules_section_dives => 'Merülésszabályok';
 
   @override
-  String get rules_section_sites => 'Site rules';
+  String get rules_section_sites => 'Helyszínszabályok';
 
   @override
   String get rules_empty =>
-      'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.';
+      'A szabályok a saját feltételeidet alkalmazzák a naplódra, például minden 30 m-nél mélyebb merüléshez hozzáadják a Mély típust. Semmi sem fut, amíg nem hozol létre szabályt.';
 
   @override
-  String get rules_action_new => 'New rule';
+  String get rules_action_new => 'Új szabály';
 
   @override
-  String get rules_action_history => 'History';
+  String get rules_action_history => 'Előzmények';
 
   @override
-  String get rules_action_runAll => 'Run rules';
+  String get rules_action_runAll => 'Szabályok futtatása';
 
   @override
-  String get rules_action_runAllDives => 'Run dive rules on all dives';
+  String get rules_action_runAllDives =>
+      'Merülésszabályok futtatása minden merülésen';
 
   @override
-  String get rules_action_runAllSites => 'Run site rules on all sites';
+  String get rules_action_runAllSites =>
+      'Helyszínszabályok futtatása minden helyszínen';
 
   @override
-  String get rules_row_runOnAllDives => 'Run on all dives';
+  String get rules_row_runOnAllDives => 'Futtatás minden merülésen';
 
   @override
-  String get rules_row_runOnAllSites => 'Run on all sites';
+  String get rules_row_runOnAllSites => 'Futtatás minden helyszínen';
 
   @override
-  String get rules_row_duplicate => 'Duplicate';
+  String get rules_row_duplicate => 'Másolat';
 
   @override
-  String get rules_row_delete => 'Delete';
+  String get rules_row_delete => 'Törlés';
 
   @override
-  String get rules_row_menuTooltip => 'Rule actions';
+  String get rules_row_menuTooltip => 'Szabályműveletek';
 
   @override
-  String get rules_row_enabled => 'Enabled';
+  String get rules_row_enabled => 'Bekapcsolva';
 
   @override
-  String get rules_reorderTooltip => 'Drag to change the order rules run in';
+  String get rules_reorderTooltip =>
+      'Húzd a szabályok futási sorrendjének módosításához';
 
   @override
-  String get rules_deleteDialog_title => 'Delete rule?';
+  String get rules_deleteDialog_title => 'Törlöd a szabályt?';
 
   @override
   String rules_deleteDialog_content(String name) {
-    return 'Delete \"$name\"? What it already changed stays in the history and can still be undone.';
+    return 'Törlöd ezt: „$name”? Amit már módosított, az az előzményekben marad, és továbbra is visszavonható.';
   }
 
   @override
   String rules_snackbar_deleted(String name) {
-    return 'Deleted \"$name\"';
+    return '„$name” törölve';
   }
 
   @override
-  String get rules_copySuffix => ' (copy)';
+  String get rules_copySuffix => ' (másolat)';
 
   @override
-  String get rules_trigger_afterImport => 'After import';
+  String get rules_trigger_afterImport => 'Importálás után';
 
   @override
-  String get rules_trigger_afterManualDive => 'After logging a dive by hand';
+  String get rules_trigger_afterManualDive => 'Merülés kézi rögzítése után';
 
   @override
-  String get rules_trigger_afterManualSite => 'After creating a site by hand';
+  String get rules_trigger_afterManualSite => 'Helyszín kézi létrehozása után';
 
   @override
-  String get rules_trigger_onDemandOnly => 'Only when you run it';
+  String get rules_trigger_onDemandOnly => 'Csak ha te futtatod';
 
   @override
-  String get rules_trigger_off => 'Off: runs only when you run it';
+  String get rules_trigger_off => 'Kikapcsolva: csak akkor fut, ha te futtatod';
 
   @override
-  String get rules_condition_everyDive => 'Every dive';
+  String get rules_condition_everyDive => 'Minden merülés';
 
   @override
-  String get rules_condition_everySite => 'Every site';
+  String get rules_condition_everySite => 'Minden helyszín';
 
   @override
   String get rules_problem_unreadable =>
-      'This rule\'s condition can\'t be read. Edit or delete it.';
+      'A szabály feltétele nem olvasható. Szerkeszd vagy töröld.';
 
   @override
   String get rules_problem_invalid =>
-      'This rule\'s condition is no longer valid. Edit or delete it.';
+      'A szabály feltétele már nem érvényes. Szerkeszd vagy töröld.';
 
   @override
   String get rules_problem_unknownSubject =>
-      'This rule is for something this version doesn\'t have.';
+      'Ez a szabály olyasmire vonatkozik, ami ebben a verzióban nincs.';
 
   @override
   String get rules_problem_unresolvedRef =>
-      'The condition names something that was deleted. Edit the rule to run it.';
+      'A feltétel törölt elemre hivatkozik. Szerkeszd a szabályt a futtatáshoz.';
 
   @override
   String get rules_problem_newerVersion =>
-      'Made by a newer version of Submersion. Update the app to run or edit it.';
+      'A Submersion egy újabb verziójával készült. Frissítsd az alkalmazást a futtatáshoz vagy szerkesztéshez.';
 
   @override
-  String get rules_problem_noActions => 'This rule has no actions.';
+  String get rules_problem_noActions => 'Ennek a szabálynak nincs művelete.';
 
   @override
   String get rules_problem_brokenAction =>
-      'An action names something that was deleted; that action is skipped.';
+      'Egy művelet törölt elemre hivatkozik; ez a művelet kimarad.';
 
   @override
   String rules_actionSummary_set(String field, String value) {
-    return 'Set $field to $value';
+    return '$field beállítása erre: $value';
   }
 
   @override
   String rules_actionSummary_add(String collection, String items) {
-    return 'Add $collection: $items';
+    return '$collection hozzáadása: $items';
   }
 
   @override
   String rules_actionSummary_remove(String collection, String items) {
-    return 'Remove $collection: $items';
+    return '$collection eltávolítása: $items';
   }
 
   @override
   String rules_actionSummary_appendNotes(String text) {
-    return 'Append to notes: $text';
+    return 'Hozzáfűzés a jegyzetekhez: $text';
   }
 
   @override
   String rules_actionSummary_appendDescription(String text) {
-    return 'Append to description: $text';
+    return 'Hozzáfűzés a leíráshoz: $text';
   }
 
   @override
-  String get rules_actionSummary_unknown => 'An action from a newer version';
+  String get rules_actionSummary_unknown =>
+      'Egy újabb verzióból származó művelet';
 
   @override
-  String get rules_actionSummary_missing => '(deleted)';
+  String get rules_actionSummary_missing => '(törölve)';
 
   @override
-  String get rules_value_yes => 'Yes';
+  String get rules_value_yes => 'Igen';
 
   @override
-  String get rules_value_no => 'No';
+  String get rules_value_no => 'Nem';
 
   @override
-  String get rules_value_empty => '(empty)';
+  String get rules_value_empty => '(üres)';
 
   @override
-  String get rules_collection_diveTypes => 'dive types';
+  String get rules_collection_diveTypes => 'merüléstípusok';
 
   @override
-  String get rules_collection_tags => 'tags';
+  String get rules_collection_tags => 'címkék';
 
   @override
-  String get rules_collection_equipment => 'equipment';
+  String get rules_collection_equipment => 'felszerelés';
 
   @override
-  String get rules_collection_buddies => 'buddies';
+  String get rules_collection_buddies => 'társak';
 
   @override
-  String get rules_collection_courses => 'courses';
+  String get rules_collection_courses => 'tanfolyamok';
 
   @override
-  String get rules_collection_siteTags => 'site tags';
+  String get rules_collection_siteTags => 'helyszíncímkék';
 
   @override
-  String get rules_collection_siteTypes => 'site types';
+  String get rules_collection_siteTypes => 'helyszíntípusok';
 
   @override
-  String get rules_field_diveCenter => 'dive center';
+  String get rules_field_diveCenter => 'merülőközpont';
 
   @override
-  String get rules_field_diveOperator => 'dive operator';
+  String get rules_field_diveOperator => 'merülésszervező';
 
   @override
-  String get rules_field_boatName => 'boat name';
+  String get rules_field_boatName => 'hajó neve';
 
   @override
-  String get rules_field_boatCaptain => 'boat captain';
+  String get rules_field_boatCaptain => 'hajó kapitánya';
 
   @override
-  String get rules_field_trip => 'trip';
+  String get rules_field_trip => 'út';
 
   @override
-  String get rules_field_rating => 'rating';
+  String get rules_field_rating => 'értékelés';
 
   @override
-  String get rules_field_isFavorite => 'favorite';
+  String get rules_field_isFavorite => 'kedvenc';
 
   @override
-  String get rules_field_excludedFromStats => 'excluded from statistics';
+  String get rules_field_excludedFromStats => 'statisztikából kizárva';
 
   @override
-  String get rules_field_excludedFromGasStats => 'excluded from gas statistics';
+  String get rules_field_excludedFromGasStats => 'gázstatisztikából kizárva';
 
   @override
-  String get rules_field_waterType => 'water type';
+  String get rules_field_waterType => 'víz típusa';
 
   @override
-  String get rules_field_visibility => 'visibility';
+  String get rules_field_visibility => 'látótávolság';
 
   @override
-  String get rules_field_currentDirection => 'current direction';
+  String get rules_field_currentDirection => 'áramlás iránya';
 
   @override
-  String get rules_field_currentStrength => 'current strength';
+  String get rules_field_currentStrength => 'áramlás erőssége';
 
   @override
-  String get rules_field_swellHeight => 'swell height';
+  String get rules_field_swellHeight => 'hullámmagasság';
 
   @override
-  String get rules_field_surfaceConditions => 'surface conditions';
+  String get rules_field_surfaceConditions => 'felszíni viszonyok';
 
   @override
-  String get rules_field_entryMethod => 'entry method';
+  String get rules_field_entryMethod => 'beszállás módja';
 
   @override
-  String get rules_field_exitMethod => 'exit method';
+  String get rules_field_exitMethod => 'kiszállás módja';
 
   @override
-  String get rules_field_altitude => 'altitude';
+  String get rules_field_altitude => 'tengerszint feletti magasság';
 
   @override
-  String get rules_field_surfacePressure => 'surface pressure';
+  String get rules_field_surfacePressure => 'felszíni nyomás';
 
   @override
-  String get rules_field_surfaceInterval => 'surface interval';
+  String get rules_field_surfaceInterval => 'felszíni idő';
 
   @override
-  String get rules_field_gradientFactorLow => 'GF low';
+  String get rules_field_gradientFactorLow => 'alacsony GF';
 
   @override
-  String get rules_field_gradientFactorHigh => 'GF high';
+  String get rules_field_gradientFactorHigh => 'magas GF';
 
   @override
-  String get rules_field_decoAlgorithm => 'deco algorithm';
+  String get rules_field_decoAlgorithm => 'dekompressziós algoritmus';
 
   @override
-  String get rules_field_decoConservatism => 'conservatism';
+  String get rules_field_decoConservatism => 'konzervativizmus';
 
   @override
-  String get rules_field_diveComputerModel => 'dive computer model';
+  String get rules_field_diveComputerModel => 'merülőkomputer-típus';
 
   @override
-  String get rules_field_windSpeed => 'wind speed';
+  String get rules_field_windSpeed => 'szélsebesség';
 
   @override
-  String get rules_field_windDirection => 'wind direction';
+  String get rules_field_windDirection => 'szélirány';
 
   @override
-  String get rules_field_cloudCover => 'cloud cover';
+  String get rules_field_cloudCover => 'felhőzet';
 
   @override
-  String get rules_field_precipitation => 'precipitation';
+  String get rules_field_precipitation => 'csapadék';
 
   @override
-  String get rules_field_humidity => 'humidity';
+  String get rules_field_humidity => 'páratartalom';
 
   @override
-  String get rules_field_weatherDescription => 'weather description';
+  String get rules_field_weatherDescription => 'időjárás leírása';
 
   @override
-  String get rules_field_diveMode => 'dive mode';
+  String get rules_field_diveMode => 'merülési mód';
 
   @override
-  String get rules_field_setpointLow => 'low setpoint';
+  String get rules_field_setpointLow => 'alacsony setpoint';
 
   @override
-  String get rules_field_setpointHigh => 'high setpoint';
+  String get rules_field_setpointHigh => 'magas setpoint';
 
   @override
-  String get rules_field_setpointDeco => 'deco setpoint';
+  String get rules_field_setpointDeco => 'dekó setpoint';
 
   @override
-  String get rules_field_diluentGas => 'diluent (O2/He)';
+  String get rules_field_diluentGas => 'hígítógáz (O2/He)';
 
   @override
-  String get rules_field_scrubberType => 'scrubber type';
+  String get rules_field_scrubberType => 'mésztípus';
 
   @override
-  String get rules_field_scrubberDuration => 'scrubber duration';
+  String get rules_field_scrubberDuration => 'mész élettartama';
 
   @override
-  String get rules_field_diverRole => 'my role';
+  String get rules_field_diverRole => 'szerepem';
 
   @override
-  String get rules_field_notes => 'notes';
+  String get rules_field_notes => 'jegyzetek';
 
   @override
-  String get rules_siteField_difficulty => 'difficulty';
+  String get rules_siteField_difficulty => 'nehézség';
 
   @override
-  String get rules_siteField_country => 'country';
+  String get rules_siteField_country => 'ország';
 
   @override
-  String get rules_siteField_region => 'region';
+  String get rules_siteField_region => 'régió';
 
   @override
-  String get rules_siteField_city => 'city';
+  String get rules_siteField_city => 'város';
 
   @override
-  String get rules_siteField_island => 'island';
+  String get rules_siteField_island => 'sziget';
 
   @override
-  String get rules_siteField_bodyOfWater => 'body of water';
+  String get rules_siteField_bodyOfWater => 'víztest';
 
   @override
-  String get rules_siteField_minDepth => 'minimum depth';
+  String get rules_siteField_minDepth => 'legkisebb mélység';
 
   @override
-  String get rules_siteField_maxDepth => 'maximum depth';
+  String get rules_siteField_maxDepth => 'legnagyobb mélység';
 
   @override
-  String get rules_siteField_hazards => 'hazards';
+  String get rules_siteField_hazards => 'veszélyek';
 
   @override
-  String get rules_siteField_accessNotes => 'access notes';
+  String get rules_siteField_accessNotes => 'megközelítési megjegyzések';
 
   @override
-  String get rules_siteField_mooringNumber => 'mooring number';
+  String get rules_siteField_mooringNumber => 'kikötőbója száma';
 
   @override
-  String get rules_siteField_parkingInfo => 'parking information';
+  String get rules_siteField_parkingInfo => 'parkolási információ';
 
   @override
-  String get rules_edit_titleNew => 'New rule';
+  String get rules_edit_titleNew => 'Új szabály';
 
   @override
-  String get rules_edit_titleEdit => 'Edit rule';
+  String get rules_edit_titleEdit => 'Szabály szerkesztése';
 
   @override
-  String get rules_edit_name => 'Name';
+  String get rules_edit_name => 'Név';
 
   @override
-  String get rules_edit_appliesTo => 'Applies to';
+  String get rules_edit_appliesTo => 'Mire vonatkozik';
 
   @override
-  String get rules_edit_subjectDives => 'Dives';
+  String get rules_edit_subjectDives => 'Merülések';
 
   @override
-  String get rules_edit_subjectSites => 'Sites';
+  String get rules_edit_subjectSites => 'Helyszínek';
 
   @override
-  String get rules_edit_whenRuns => 'When it runs';
+  String get rules_edit_whenRuns => 'Mikor fut';
 
   @override
   String get rules_edit_runNote =>
-      'You can always run a rule yourself, from the Rules page or on selected items.';
+      'A szabályt bármikor magad is futtathatod a Szabályok oldalon vagy a kijelölt elemeken.';
 
   @override
-  String get rules_edit_if => 'If';
+  String get rules_edit_if => 'Ha';
 
   @override
-  String get rules_edit_then => 'Then';
+  String get rules_edit_then => 'Akkor';
 
   @override
   String rules_edit_matchCountDives(int count) {
-    return 'Matches $count of your dives';
+    return '$count merülésedre illik';
   }
 
   @override
   String rules_edit_matchCountSites(int count) {
-    return 'Matches $count of your sites';
+    return '$count helyszínedre illik';
   }
 
   @override
   String get rules_edit_matchesEveryDive =>
-      'No condition: the rule matches every dive';
+      'Nincs feltétel: a szabály minden merülésre illik';
 
   @override
   String get rules_edit_matchesEverySite =>
-      'No condition: the rule matches every site';
+      'Nincs feltétel: a szabály minden helyszínre illik';
 
   @override
-  String get rules_edit_addAction => 'Add action';
+  String get rules_edit_addAction => 'Művelet hozzáadása';
 
   @override
-  String get rules_edit_noActions => 'Add at least one action.';
+  String get rules_edit_noActions => 'Adj hozzá legalább egy műveletet.';
 
   @override
-  String get rules_edit_readOnly => 'This rule can\'t be edited here.';
-
-  @override
-  String get rules_picker_search => 'Search actions';
+  String get rules_picker_search => 'Műveletek keresése';
 
   @override
   String rules_picker_set(String field) {
-    return 'Set $field';
+    return '$field beállítása';
   }
 
   @override
   String rules_picker_add(String collection) {
-    return 'Add $collection';
+    return '$collection hozzáadása';
   }
 
   @override
   String rules_picker_remove(String collection) {
-    return 'Remove $collection';
+    return '$collection eltávolítása';
   }
 
   @override
-  String get rules_picker_appendNotes => 'Append to notes';
+  String get rules_picker_appendNotes => 'Hozzáfűzés a jegyzetekhez';
 
   @override
-  String get rules_picker_appendDescription => 'Append to description';
+  String get rules_picker_appendDescription => 'Hozzáfűzés a leíráshoz';
 
   @override
-  String get rules_actionEditor_value => 'Value';
+  String get rules_actionEditor_value => 'Érték';
 
   @override
-  String get rules_actionEditor_text => 'Text to append';
+  String get rules_actionEditor_text => 'Hozzáfűzendő szöveg';
 
   @override
-  String get rules_actionEditor_role => 'Role';
+  String get rules_actionEditor_role => 'Szerep';
 
   @override
   String get rules_actionEditor_o2 => 'O2 %';
@@ -53164,19 +53165,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String rules_actionEditor_choose(String field) {
-    return 'Choose $field';
+    return '$field kiválasztása';
   }
 
   @override
-  String get rules_action_undo => 'Undo';
+  String get rules_action_undo => 'Visszavonás';
 
   @override
   String rules_preview_titleDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count dives?',
-      one: 'Apply rules to $count dive?',
+      other: 'Alkalmazod a szabályokat $count merülésre?',
+      one: 'Alkalmazod a szabályokat $count merülésre?',
     );
     return '$_temp0';
   }
@@ -53186,8 +53187,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count sites?',
-      one: 'Apply rules to $count site?',
+      other: 'Alkalmazod a szabályokat $count helyszínre?',
+      one: 'Alkalmazod a szabályokat $count helyszínre?',
     );
     return '$_temp0';
   }
@@ -53197,8 +53198,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives will change.',
-      one: '$count dive will change.',
+      other: '$count merülés módosul.',
+      one: '$count merülés módosul.',
     );
     return '$_temp0';
   }
@@ -53208,8 +53209,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites will change.',
-      one: '$count site will change.',
+      other: '$count helyszín módosul.',
+      one: '$count helyszín módosul.',
     );
     return '$_temp0';
   }
@@ -53219,35 +53220,35 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count selected items are not yours to change and were left out.',
-      one: '$count selected item is not yours to change and was left out.',
+      other: '$count kijelölt elemet nem módosíthatsz, ezért kimaradtak.',
+      one: '$count kijelölt elemet nem módosíthatsz, ezért kimaradt.',
     );
     return '$_temp0';
   }
 
   @override
   String rules_preview_skippedRules(String names) {
-    return 'These rules can\'t run and were skipped: $names';
+    return 'Ezek a szabályok nem futtathatók, ezért kimaradtak: $names';
   }
 
   @override
   String rules_preview_skippedActions(String names) {
-    return 'Some actions name deleted items and were skipped: $names';
+    return 'Néhány művelet törölt elemekre hivatkozik, ezért kimaradt: $names';
   }
 
   @override
-  String get rules_preview_groupByTarget => 'By item';
+  String get rules_preview_groupByTarget => 'Elemenként';
 
   @override
-  String get rules_preview_groupByRule => 'By rule';
+  String get rules_preview_groupByRule => 'Szabályonként';
 
   @override
   String rules_preview_applyDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count dives',
-      one: 'Apply to $count dive',
+      other: 'Alkalmazás $count merülésre',
+      one: 'Alkalmazás $count merülésre',
     );
     return '$_temp0';
   }
@@ -53257,27 +53258,27 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count sites',
-      one: 'Apply to $count site',
+      other: 'Alkalmazás $count helyszínre',
+      one: 'Alkalmazás $count helyszínre',
     );
     return '$_temp0';
   }
 
   @override
   String get rules_run_noChangesDives =>
-      'No changes: these dives already match your rules.';
+      'Nincs változás: ezek a merülések már megfelelnek a szabályaidnak.';
 
   @override
   String get rules_run_noChangesSites =>
-      'No changes: these sites already match your rules.';
+      'Nincs változás: ezek a helyszínek már megfelelnek a szabályaidnak.';
 
   @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count dives',
-      one: 'Rules changed $count dive',
+      other: 'A szabályok $count merülést módosítottak',
+      one: 'A szabályok $count merülést módosítottak',
     );
     return '$_temp0';
   }
@@ -53287,14 +53288,14 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count sites',
-      one: 'Rules changed $count site',
+      other: 'A szabályok $count helyszínt módosítottak',
+      one: 'A szabályok $count helyszínt módosítottak',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_undo_done => 'Undone.';
+  String get rules_undo_done => 'Visszavonva.';
 
   @override
   String rules_undo_doneSkipped(int count) {
@@ -53302,19 +53303,19 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Undone. $count items were edited after this run; their changes were left alone.',
+          'Visszavonva. $count elemet módosítottak e futás után; azok változásai megmaradtak.',
       one:
-          'Undone. $count item was edited after this run; its changes were left alone.',
+          'Visszavonva. $count elemet módosítottak e futás után; annak változásai megmaradtak.',
     );
     return '$_temp0';
   }
 
   @override
   String get rules_undo_nothingYet =>
-      'Nothing to undo on this device yet. Try again after syncing.';
+      'Ezen az eszközön még nincs mit visszavonni. Próbáld újra szinkronizálás után.';
 
   @override
-  String get rules_undo_alreadyUndone => 'Already undone.';
+  String get rules_undo_alreadyUndone => 'Már visszavonva.';
 
   @override
   String rules_change_line(
@@ -53328,89 +53329,89 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String rules_change_appended(String field, String text) {
-    return '$field: appended \"$text\"';
+    return '$field: hozzáfűzve: „$text”';
   }
 
   @override
-  String get rules_target_noSite => 'No site';
+  String get rules_target_noSite => 'Nincs helyszín';
 
   @override
-  String get rules_siteField_description => 'description';
+  String get rules_siteField_description => 'leírás';
 
   @override
-  String get rules_history_title => 'Rule history';
+  String get rules_history_title => 'Szabályelőzmények';
 
   @override
   String get rules_history_empty =>
-      'Each time your rules change something, the run appears here so you can review or undo it.';
+      'Valahányszor a szabályaid módosítanak valamit, a futás itt jelenik meg, hogy átnézhesd vagy visszavonhasd.';
 
   @override
-  String get rules_history_triggerImported => 'After import';
+  String get rules_history_triggerImported => 'Importálás után';
 
   @override
   String rules_history_triggerImportedFrom(String source) {
-    return 'After import ($source)';
+    return 'Importálás után ($source)';
   }
 
   @override
-  String get rules_history_triggerCreatedByHand => 'Created by hand';
+  String get rules_history_triggerCreatedByHand => 'Kézzel létrehozva';
 
   @override
-  String get rules_history_triggerOnDemandAll => 'Run by hand on everything';
+  String get rules_history_triggerOnDemandAll => 'Kézzel futtatva mindenre';
 
   @override
-  String get rules_history_triggerOnDemandSelection => 'Run on a selection';
+  String get rules_history_triggerOnDemandSelection => 'Kijelölésen futtatva';
 
   @override
   String rules_history_changed(int count, String rules) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items changed by $rules',
-      one: '$count item changed by $rules',
+      other: '$count elem módosítva: $rules',
+      one: '$count elem módosítva: $rules',
     );
     return '$_temp0';
   }
 
   @override
   String rules_history_device(String device) {
-    return 'on $device';
+    return 'ezen: $device';
   }
 
   @override
   String rules_history_undone(String date) {
-    return 'Undone $date';
+    return 'Visszavonva: $date';
   }
 
   @override
-  String get rules_history_undoTooltip => 'Undo this run';
+  String get rules_history_undoTooltip => 'Futás visszavonása';
 
   @override
-  String get rules_history_deleteTooltip => 'Delete this entry';
+  String get rules_history_deleteTooltip => 'Bejegyzés törlése';
 
   @override
-  String get rules_history_clear => 'Clear history';
+  String get rules_history_clear => 'Előzmények törlése';
 
   @override
-  String get rules_history_clearDialog_title => 'Clear rule history?';
+  String get rules_history_clearDialog_title => 'Törlöd a szabályelőzményeket?';
 
   @override
   String get rules_history_clearDialog_content =>
-      'This removes every entry. What the rules changed stays as it is; it just can\'t be undone from here any more.';
+      'Ez minden bejegyzést eltávolít. Amit a szabályok módosítottak, az úgy marad; csak innen már nem vonható vissza.';
 
   @override
-  String get rules_run_title => 'Rule run';
+  String get rules_run_title => 'Szabályfuttatás';
 
   @override
-  String get rules_run_undo => 'Undo this run';
+  String get rules_run_undo => 'Futás visszavonása';
 
   @override
   String rules_import_changedDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these dives',
-      one: 'Rules changed $count of these dives',
+      other: 'A szabályok $count merülést módosítottak ezek közül',
+      one: 'A szabályok $count merülést módosítottak ezek közül',
     );
     return '$_temp0';
   }
@@ -53420,45 +53421,46 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these sites',
-      one: 'Rules changed $count of these sites',
+      other: 'A szabályok $count helyszínt módosítottak ezek közül',
+      one: 'A szabályok $count helyszínt módosítottak ezek közül',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_import_seeChanges => 'See changes';
+  String get rules_import_seeChanges => 'Változások megtekintése';
 
   @override
-  String get rules_import_undo => 'Undo rule changes';
+  String get rules_import_undo => 'Szabálymódosítások visszavonása';
 
   @override
-  String get rules_import_undoNote => 'Undo keeps the imported dives.';
+  String get rules_import_undoNote =>
+      'A visszavonás megtartja az importált merüléseket.';
 
   @override
   String get rules_import_failed =>
-      'Dives imported, but your rules could not run.';
+      'A merülések importálva, de a szabályaid nem futhattak le.';
 
   @override
   String rules_create_changedDive(String rules) {
-    return 'Rules changed this dive: $rules';
+    return 'A szabályok módosították ezt a merülést: $rules';
   }
 
   @override
   String rules_create_changedSite(String rules) {
-    return 'Rules changed this site: $rules';
+    return 'A szabályok módosították ezt a helyszínt: $rules';
   }
 
   @override
   String rules_create_changedSites(String rules) {
-    return 'Rules changed these sites: $rules';
+    return 'A szabályok módosították ezeket a helyszíneket: $rules';
   }
 
   @override
-  String get rules_create_details => 'Details';
+  String get rules_create_details => 'Részletek';
 
   @override
-  String get rules_action_applyRules => 'Apply rules';
+  String get rules_action_applyRules => 'Szabályok alkalmazása';
 
   @override
   String get settings_manage_savedQueries => 'Mentett lekérdezések';

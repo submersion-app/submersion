@@ -23704,49 +23704,50 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_ruleId => 'Regla';
 
   @override
-  String get settings_conflict_field_ruleActions => 'Actions';
+  String get settings_conflict_field_ruleActions => 'Acciones';
 
   @override
-  String get settings_conflict_field_ruleChangeAfter => 'After';
+  String get settings_conflict_field_ruleChangeAfter => 'Después';
 
   @override
-  String get settings_conflict_field_ruleChangeBefore => 'Before';
+  String get settings_conflict_field_ruleChangeBefore => 'Antes';
 
   @override
-  String get settings_conflict_field_ruleChangeField => 'Changed field';
+  String get settings_conflict_field_ruleChangeField => 'Campo cambiado';
 
   @override
-  String get settings_conflict_field_ruleCondition => 'Condition';
+  String get settings_conflict_field_ruleCondition => 'Condición';
 
   @override
-  String get settings_conflict_field_ruleName => 'Rule name';
+  String get settings_conflict_field_ruleName => 'Nombre de la regla';
 
   @override
-  String get settings_conflict_field_ruleRun => 'Rule run';
+  String get settings_conflict_field_ruleRun => 'Ejecución de reglas';
 
   @override
-  String get settings_conflict_field_ruleRunAt => 'Ran at';
+  String get settings_conflict_field_ruleRunAt => 'Ejecutada el';
 
   @override
-  String get settings_conflict_field_ruleRunChangedCount => 'Items changed';
+  String get settings_conflict_field_ruleRunChangedCount =>
+      'Elementos cambiados';
 
   @override
-  String get settings_conflict_field_ruleRunDevice => 'Device';
+  String get settings_conflict_field_ruleRunDevice => 'Dispositivo';
 
   @override
-  String get settings_conflict_field_ruleRunSource => 'Source';
+  String get settings_conflict_field_ruleRunSource => 'Origen';
 
   @override
-  String get settings_conflict_field_ruleRunTrigger => 'Started by';
+  String get settings_conflict_field_ruleRunTrigger => 'Iniciado por';
 
   @override
-  String get settings_conflict_field_ruleRunUndoneAt => 'Undone at';
+  String get settings_conflict_field_ruleRunUndoneAt => 'Deshecho el';
 
   @override
-  String get settings_conflict_field_ruleTarget => 'Changed item';
+  String get settings_conflict_field_ruleTarget => 'Elemento cambiado';
 
   @override
-  String get settings_conflict_field_ruleTriggers => 'Runs when';
+  String get settings_conflict_field_ruleTriggers => 'Se ejecuta';
 
   @override
   String get settings_conflict_field_sacBottom => 'Consumo de gas en el fondo';
@@ -53062,432 +53063,437 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settings_manage_rules => 'Rules';
+  String get settings_manage_rules => 'Reglas';
 
   @override
   String get settings_manage_rules_subtitle =>
-      'Classify and fill in dives and sites automatically';
+      'Clasifica y completa inmersiones y sitios automáticamente';
 
   @override
-  String get rules_page_title => 'Rules';
+  String get rules_page_title => 'Reglas';
 
   @override
-  String get rules_section_dives => 'Dive rules';
+  String get rules_section_dives => 'Reglas de inmersiones';
 
   @override
-  String get rules_section_sites => 'Site rules';
+  String get rules_section_sites => 'Reglas de sitios';
 
   @override
   String get rules_empty =>
-      'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.';
+      'Las reglas aplican tus propias condiciones a tu registro, por ejemplo añadir el tipo Profunda a cada inmersión de más de 30 m. No se ejecuta nada hasta que creas una regla.';
 
   @override
-  String get rules_action_new => 'New rule';
+  String get rules_action_new => 'Nueva regla';
 
   @override
-  String get rules_action_history => 'History';
+  String get rules_action_history => 'Historial';
 
   @override
-  String get rules_action_runAll => 'Run rules';
+  String get rules_action_runAll => 'Ejecutar reglas';
 
   @override
-  String get rules_action_runAllDives => 'Run dive rules on all dives';
+  String get rules_action_runAllDives =>
+      'Ejecutar reglas de inmersiones en todas las inmersiones';
 
   @override
-  String get rules_action_runAllSites => 'Run site rules on all sites';
+  String get rules_action_runAllSites =>
+      'Ejecutar reglas de sitios en todos los sitios';
 
   @override
-  String get rules_row_runOnAllDives => 'Run on all dives';
+  String get rules_row_runOnAllDives => 'Ejecutar en todas las inmersiones';
 
   @override
-  String get rules_row_runOnAllSites => 'Run on all sites';
+  String get rules_row_runOnAllSites => 'Ejecutar en todos los sitios';
 
   @override
-  String get rules_row_duplicate => 'Duplicate';
+  String get rules_row_duplicate => 'Duplicar';
 
   @override
-  String get rules_row_delete => 'Delete';
+  String get rules_row_delete => 'Eliminar';
 
   @override
-  String get rules_row_menuTooltip => 'Rule actions';
+  String get rules_row_menuTooltip => 'Acciones de la regla';
 
   @override
-  String get rules_row_enabled => 'Enabled';
+  String get rules_row_enabled => 'Activada';
 
   @override
-  String get rules_reorderTooltip => 'Drag to change the order rules run in';
+  String get rules_reorderTooltip =>
+      'Arrastra para cambiar el orden en que se ejecutan las reglas';
 
   @override
-  String get rules_deleteDialog_title => 'Delete rule?';
+  String get rules_deleteDialog_title => '¿Eliminar la regla?';
 
   @override
   String rules_deleteDialog_content(String name) {
-    return 'Delete \"$name\"? What it already changed stays in the history and can still be undone.';
+    return '¿Eliminar «$name»? Lo que ya cambió queda en el historial y aún se puede deshacer.';
   }
 
   @override
   String rules_snackbar_deleted(String name) {
-    return 'Deleted \"$name\"';
+    return '«$name» eliminada';
   }
 
   @override
-  String get rules_copySuffix => ' (copy)';
+  String get rules_copySuffix => ' (copia)';
 
   @override
-  String get rules_trigger_afterImport => 'After import';
+  String get rules_trigger_afterImport => 'Después de importar';
 
   @override
-  String get rules_trigger_afterManualDive => 'After logging a dive by hand';
+  String get rules_trigger_afterManualDive =>
+      'Después de registrar una inmersión a mano';
 
   @override
-  String get rules_trigger_afterManualSite => 'After creating a site by hand';
+  String get rules_trigger_afterManualSite =>
+      'Después de crear un sitio a mano';
 
   @override
-  String get rules_trigger_onDemandOnly => 'Only when you run it';
+  String get rules_trigger_onDemandOnly => 'Solo cuando la ejecutes';
 
   @override
-  String get rules_trigger_off => 'Off: runs only when you run it';
+  String get rules_trigger_off =>
+      'Desactivada: solo se ejecuta cuando la ejecutes';
 
   @override
-  String get rules_condition_everyDive => 'Every dive';
+  String get rules_condition_everyDive => 'Todas las inmersiones';
 
   @override
-  String get rules_condition_everySite => 'Every site';
+  String get rules_condition_everySite => 'Todos los sitios';
 
   @override
   String get rules_problem_unreadable =>
-      'This rule\'s condition can\'t be read. Edit or delete it.';
+      'No se puede leer la condición de esta regla. Edítala o elimínala.';
 
   @override
   String get rules_problem_invalid =>
-      'This rule\'s condition is no longer valid. Edit or delete it.';
+      'La condición de esta regla ya no es válida. Edítala o elimínala.';
 
   @override
   String get rules_problem_unknownSubject =>
-      'This rule is for something this version doesn\'t have.';
+      'Esta regla es para algo que esta versión no tiene.';
 
   @override
   String get rules_problem_unresolvedRef =>
-      'The condition names something that was deleted. Edit the rule to run it.';
+      'La condición menciona algo que se eliminó. Edita la regla para ejecutarla.';
 
   @override
   String get rules_problem_newerVersion =>
-      'Made by a newer version of Submersion. Update the app to run or edit it.';
+      'Creada con una versión más reciente de Submersion. Actualiza la app para ejecutarla o editarla.';
 
   @override
-  String get rules_problem_noActions => 'This rule has no actions.';
+  String get rules_problem_noActions => 'Esta regla no tiene acciones.';
 
   @override
   String get rules_problem_brokenAction =>
-      'An action names something that was deleted; that action is skipped.';
+      'Una acción menciona algo que se eliminó; esa acción se omite.';
 
   @override
   String rules_actionSummary_set(String field, String value) {
-    return 'Set $field to $value';
+    return 'Establecer $field en $value';
   }
 
   @override
   String rules_actionSummary_add(String collection, String items) {
-    return 'Add $collection: $items';
+    return 'Añadir $collection: $items';
   }
 
   @override
   String rules_actionSummary_remove(String collection, String items) {
-    return 'Remove $collection: $items';
+    return 'Quitar $collection: $items';
   }
 
   @override
   String rules_actionSummary_appendNotes(String text) {
-    return 'Append to notes: $text';
+    return 'Añadir a las notas: $text';
   }
 
   @override
   String rules_actionSummary_appendDescription(String text) {
-    return 'Append to description: $text';
+    return 'Añadir a la descripción: $text';
   }
 
   @override
-  String get rules_actionSummary_unknown => 'An action from a newer version';
+  String get rules_actionSummary_unknown =>
+      'Una acción de una versión más reciente';
 
   @override
-  String get rules_actionSummary_missing => '(deleted)';
+  String get rules_actionSummary_missing => '(eliminado)';
 
   @override
-  String get rules_value_yes => 'Yes';
+  String get rules_value_yes => 'Sí';
 
   @override
   String get rules_value_no => 'No';
 
   @override
-  String get rules_value_empty => '(empty)';
+  String get rules_value_empty => '(vacío)';
 
   @override
-  String get rules_collection_diveTypes => 'dive types';
+  String get rules_collection_diveTypes => 'tipos de inmersión';
 
   @override
-  String get rules_collection_tags => 'tags';
+  String get rules_collection_tags => 'etiquetas';
 
   @override
-  String get rules_collection_equipment => 'equipment';
+  String get rules_collection_equipment => 'equipo';
 
   @override
-  String get rules_collection_buddies => 'buddies';
+  String get rules_collection_buddies => 'compañeros';
 
   @override
-  String get rules_collection_courses => 'courses';
+  String get rules_collection_courses => 'cursos';
 
   @override
-  String get rules_collection_siteTags => 'site tags';
+  String get rules_collection_siteTags => 'etiquetas de sitio';
 
   @override
-  String get rules_collection_siteTypes => 'site types';
+  String get rules_collection_siteTypes => 'tipos de sitio';
 
   @override
-  String get rules_field_diveCenter => 'dive center';
+  String get rules_field_diveCenter => 'centro de buceo';
 
   @override
-  String get rules_field_diveOperator => 'dive operator';
+  String get rules_field_diveOperator => 'operador de buceo';
 
   @override
-  String get rules_field_boatName => 'boat name';
+  String get rules_field_boatName => 'nombre del barco';
 
   @override
-  String get rules_field_boatCaptain => 'boat captain';
+  String get rules_field_boatCaptain => 'capitán del barco';
 
   @override
-  String get rules_field_trip => 'trip';
+  String get rules_field_trip => 'viaje';
 
   @override
-  String get rules_field_rating => 'rating';
+  String get rules_field_rating => 'valoración';
 
   @override
-  String get rules_field_isFavorite => 'favorite';
+  String get rules_field_isFavorite => 'favorita';
 
   @override
-  String get rules_field_excludedFromStats => 'excluded from statistics';
+  String get rules_field_excludedFromStats => 'excluida de las estadísticas';
 
   @override
-  String get rules_field_excludedFromGasStats => 'excluded from gas statistics';
+  String get rules_field_excludedFromGasStats =>
+      'excluida de las estadísticas de gas';
 
   @override
-  String get rules_field_waterType => 'water type';
+  String get rules_field_waterType => 'tipo de agua';
 
   @override
-  String get rules_field_visibility => 'visibility';
+  String get rules_field_visibility => 'visibilidad';
 
   @override
-  String get rules_field_currentDirection => 'current direction';
+  String get rules_field_currentDirection => 'dirección de la corriente';
 
   @override
-  String get rules_field_currentStrength => 'current strength';
+  String get rules_field_currentStrength => 'fuerza de la corriente';
 
   @override
-  String get rules_field_swellHeight => 'swell height';
+  String get rules_field_swellHeight => 'altura del oleaje';
 
   @override
-  String get rules_field_surfaceConditions => 'surface conditions';
+  String get rules_field_surfaceConditions => 'condiciones en superficie';
 
   @override
-  String get rules_field_entryMethod => 'entry method';
+  String get rules_field_entryMethod => 'método de entrada';
 
   @override
-  String get rules_field_exitMethod => 'exit method';
+  String get rules_field_exitMethod => 'método de salida';
 
   @override
-  String get rules_field_altitude => 'altitude';
+  String get rules_field_altitude => 'altitud';
 
   @override
-  String get rules_field_surfacePressure => 'surface pressure';
+  String get rules_field_surfacePressure => 'presión en superficie';
 
   @override
-  String get rules_field_surfaceInterval => 'surface interval';
+  String get rules_field_surfaceInterval => 'intervalo en superficie';
 
   @override
-  String get rules_field_gradientFactorLow => 'GF low';
+  String get rules_field_gradientFactorLow => 'GF bajo';
 
   @override
-  String get rules_field_gradientFactorHigh => 'GF high';
+  String get rules_field_gradientFactorHigh => 'GF alto';
 
   @override
-  String get rules_field_decoAlgorithm => 'deco algorithm';
+  String get rules_field_decoAlgorithm => 'algoritmo de descompresión';
 
   @override
-  String get rules_field_decoConservatism => 'conservatism';
+  String get rules_field_decoConservatism => 'conservadurismo';
 
   @override
-  String get rules_field_diveComputerModel => 'dive computer model';
+  String get rules_field_diveComputerModel => 'modelo de ordenador de buceo';
 
   @override
-  String get rules_field_windSpeed => 'wind speed';
+  String get rules_field_windSpeed => 'velocidad del viento';
 
   @override
-  String get rules_field_windDirection => 'wind direction';
+  String get rules_field_windDirection => 'dirección del viento';
 
   @override
-  String get rules_field_cloudCover => 'cloud cover';
+  String get rules_field_cloudCover => 'nubosidad';
 
   @override
-  String get rules_field_precipitation => 'precipitation';
+  String get rules_field_precipitation => 'precipitación';
 
   @override
-  String get rules_field_humidity => 'humidity';
+  String get rules_field_humidity => 'humedad';
 
   @override
-  String get rules_field_weatherDescription => 'weather description';
+  String get rules_field_weatherDescription => 'descripción del tiempo';
 
   @override
-  String get rules_field_diveMode => 'dive mode';
+  String get rules_field_diveMode => 'modo de buceo';
 
   @override
-  String get rules_field_setpointLow => 'low setpoint';
+  String get rules_field_setpointLow => 'setpoint bajo';
 
   @override
-  String get rules_field_setpointHigh => 'high setpoint';
+  String get rules_field_setpointHigh => 'setpoint alto';
 
   @override
-  String get rules_field_setpointDeco => 'deco setpoint';
+  String get rules_field_setpointDeco => 'setpoint de descompresión';
 
   @override
-  String get rules_field_diluentGas => 'diluent (O2/He)';
+  String get rules_field_diluentGas => 'diluyente (O2/He)';
 
   @override
-  String get rules_field_scrubberType => 'scrubber type';
+  String get rules_field_scrubberType => 'tipo de absorbente';
 
   @override
-  String get rules_field_scrubberDuration => 'scrubber duration';
+  String get rules_field_scrubberDuration => 'duración del absorbente';
 
   @override
-  String get rules_field_diverRole => 'my role';
+  String get rules_field_diverRole => 'mi función';
 
   @override
-  String get rules_field_notes => 'notes';
+  String get rules_field_notes => 'notas';
 
   @override
-  String get rules_siteField_difficulty => 'difficulty';
+  String get rules_siteField_difficulty => 'dificultad';
 
   @override
-  String get rules_siteField_country => 'country';
+  String get rules_siteField_country => 'país';
 
   @override
-  String get rules_siteField_region => 'region';
+  String get rules_siteField_region => 'región';
 
   @override
-  String get rules_siteField_city => 'city';
+  String get rules_siteField_city => 'ciudad';
 
   @override
-  String get rules_siteField_island => 'island';
+  String get rules_siteField_island => 'isla';
 
   @override
-  String get rules_siteField_bodyOfWater => 'body of water';
+  String get rules_siteField_bodyOfWater => 'masa de agua';
 
   @override
-  String get rules_siteField_minDepth => 'minimum depth';
+  String get rules_siteField_minDepth => 'profundidad mínima';
 
   @override
-  String get rules_siteField_maxDepth => 'maximum depth';
+  String get rules_siteField_maxDepth => 'profundidad máxima';
 
   @override
-  String get rules_siteField_hazards => 'hazards';
+  String get rules_siteField_hazards => 'peligros';
 
   @override
-  String get rules_siteField_accessNotes => 'access notes';
+  String get rules_siteField_accessNotes => 'notas de acceso';
 
   @override
-  String get rules_siteField_mooringNumber => 'mooring number';
+  String get rules_siteField_mooringNumber => 'número de boya';
 
   @override
-  String get rules_siteField_parkingInfo => 'parking information';
+  String get rules_siteField_parkingInfo => 'información de aparcamiento';
 
   @override
-  String get rules_edit_titleNew => 'New rule';
+  String get rules_edit_titleNew => 'Nueva regla';
 
   @override
-  String get rules_edit_titleEdit => 'Edit rule';
+  String get rules_edit_titleEdit => 'Editar regla';
 
   @override
-  String get rules_edit_name => 'Name';
+  String get rules_edit_name => 'Nombre';
 
   @override
-  String get rules_edit_appliesTo => 'Applies to';
+  String get rules_edit_appliesTo => 'Se aplica a';
 
   @override
-  String get rules_edit_subjectDives => 'Dives';
+  String get rules_edit_subjectDives => 'Inmersiones';
 
   @override
-  String get rules_edit_subjectSites => 'Sites';
+  String get rules_edit_subjectSites => 'Sitios';
 
   @override
-  String get rules_edit_whenRuns => 'When it runs';
+  String get rules_edit_whenRuns => 'Cuándo se ejecuta';
 
   @override
   String get rules_edit_runNote =>
-      'You can always run a rule yourself, from the Rules page or on selected items.';
+      'Siempre puedes ejecutar una regla manualmente, desde la página de reglas o sobre elementos seleccionados.';
 
   @override
-  String get rules_edit_if => 'If';
+  String get rules_edit_if => 'Si';
 
   @override
-  String get rules_edit_then => 'Then';
+  String get rules_edit_then => 'Entonces';
 
   @override
   String rules_edit_matchCountDives(int count) {
-    return 'Matches $count of your dives';
+    return 'Coincide con $count de tus inmersiones';
   }
 
   @override
   String rules_edit_matchCountSites(int count) {
-    return 'Matches $count of your sites';
+    return 'Coincide con $count de tus sitios';
   }
 
   @override
   String get rules_edit_matchesEveryDive =>
-      'No condition: the rule matches every dive';
+      'Sin condición: la regla coincide con todas las inmersiones';
 
   @override
   String get rules_edit_matchesEverySite =>
-      'No condition: the rule matches every site';
+      'Sin condición: la regla coincide con todos los sitios';
 
   @override
-  String get rules_edit_addAction => 'Add action';
+  String get rules_edit_addAction => 'Añadir acción';
 
   @override
-  String get rules_edit_noActions => 'Add at least one action.';
+  String get rules_edit_noActions => 'Añade al menos una acción.';
 
   @override
-  String get rules_edit_readOnly => 'This rule can\'t be edited here.';
-
-  @override
-  String get rules_picker_search => 'Search actions';
+  String get rules_picker_search => 'Buscar acciones';
 
   @override
   String rules_picker_set(String field) {
-    return 'Set $field';
+    return 'Establecer $field';
   }
 
   @override
   String rules_picker_add(String collection) {
-    return 'Add $collection';
+    return 'Añadir $collection';
   }
 
   @override
   String rules_picker_remove(String collection) {
-    return 'Remove $collection';
+    return 'Quitar $collection';
   }
 
   @override
-  String get rules_picker_appendNotes => 'Append to notes';
+  String get rules_picker_appendNotes => 'Añadir a las notas';
 
   @override
-  String get rules_picker_appendDescription => 'Append to description';
+  String get rules_picker_appendDescription => 'Añadir a la descripción';
 
   @override
-  String get rules_actionEditor_value => 'Value';
+  String get rules_actionEditor_value => 'Valor';
 
   @override
-  String get rules_actionEditor_text => 'Text to append';
+  String get rules_actionEditor_text => 'Texto que añadir';
 
   @override
-  String get rules_actionEditor_role => 'Role';
+  String get rules_actionEditor_role => 'Función';
 
   @override
   String get rules_actionEditor_o2 => 'O2 %';
@@ -53497,19 +53503,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String rules_actionEditor_choose(String field) {
-    return 'Choose $field';
+    return 'Elegir $field';
   }
 
   @override
-  String get rules_action_undo => 'Undo';
+  String get rules_action_undo => 'Deshacer';
 
   @override
   String rules_preview_titleDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count dives?',
-      one: 'Apply rules to $count dive?',
+      other: '¿Aplicar reglas a $count inmersiones?',
+      one: '¿Aplicar reglas a $count inmersión?',
     );
     return '$_temp0';
   }
@@ -53519,8 +53525,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count sites?',
-      one: 'Apply rules to $count site?',
+      other: '¿Aplicar reglas a $count sitios?',
+      one: '¿Aplicar reglas a $count sitio?',
     );
     return '$_temp0';
   }
@@ -53530,8 +53536,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives will change.',
-      one: '$count dive will change.',
+      other: 'Cambiarán $count inmersiones.',
+      one: 'Cambiará $count inmersión.',
     );
     return '$_temp0';
   }
@@ -53541,8 +53547,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites will change.',
-      one: '$count site will change.',
+      other: 'Cambiarán $count sitios.',
+      one: 'Cambiará $count sitio.',
     );
     return '$_temp0';
   }
@@ -53552,35 +53558,37 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count selected items are not yours to change and were left out.',
-      one: '$count selected item is not yours to change and was left out.',
+      other:
+          '$count elementos seleccionados no son tuyos para cambiarlos y se omitieron.',
+      one:
+          '$count elemento seleccionado no es tuyo para cambiarlo y se omitió.',
     );
     return '$_temp0';
   }
 
   @override
   String rules_preview_skippedRules(String names) {
-    return 'These rules can\'t run and were skipped: $names';
+    return 'Estas reglas no se pueden ejecutar y se omitieron: $names';
   }
 
   @override
   String rules_preview_skippedActions(String names) {
-    return 'Some actions name deleted items and were skipped: $names';
+    return 'Algunas acciones mencionan elementos eliminados y se omitieron: $names';
   }
 
   @override
-  String get rules_preview_groupByTarget => 'By item';
+  String get rules_preview_groupByTarget => 'Por elemento';
 
   @override
-  String get rules_preview_groupByRule => 'By rule';
+  String get rules_preview_groupByRule => 'Por regla';
 
   @override
   String rules_preview_applyDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count dives',
-      one: 'Apply to $count dive',
+      other: 'Aplicar a $count inmersiones',
+      one: 'Aplicar a $count inmersión',
     );
     return '$_temp0';
   }
@@ -53590,27 +53598,27 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count sites',
-      one: 'Apply to $count site',
+      other: 'Aplicar a $count sitios',
+      one: 'Aplicar a $count sitio',
     );
     return '$_temp0';
   }
 
   @override
   String get rules_run_noChangesDives =>
-      'No changes: these dives already match your rules.';
+      'Sin cambios: estas inmersiones ya cumplen tus reglas.';
 
   @override
   String get rules_run_noChangesSites =>
-      'No changes: these sites already match your rules.';
+      'Sin cambios: estos sitios ya cumplen tus reglas.';
 
   @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count dives',
-      one: 'Rules changed $count dive',
+      other: 'Las reglas cambiaron $count inmersiones',
+      one: 'Las reglas cambiaron $count inmersión',
     );
     return '$_temp0';
   }
@@ -53620,14 +53628,14 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count sites',
-      one: 'Rules changed $count site',
+      other: 'Las reglas cambiaron $count sitios',
+      one: 'Las reglas cambiaron $count sitio',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_undo_done => 'Undone.';
+  String get rules_undo_done => 'Deshecho.';
 
   @override
   String rules_undo_doneSkipped(int count) {
@@ -53635,19 +53643,19 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Undone. $count items were edited after this run; their changes were left alone.',
+          'Deshecho. $count elementos se editaron después de esta ejecución; sus cambios se dejaron como estaban.',
       one:
-          'Undone. $count item was edited after this run; its changes were left alone.',
+          'Deshecho. $count elemento se editó después de esta ejecución; sus cambios se dejaron como estaban.',
     );
     return '$_temp0';
   }
 
   @override
   String get rules_undo_nothingYet =>
-      'Nothing to undo on this device yet. Try again after syncing.';
+      'Aún no hay nada que deshacer en este dispositivo. Inténtalo de nuevo después de sincronizar.';
 
   @override
-  String get rules_undo_alreadyUndone => 'Already undone.';
+  String get rules_undo_alreadyUndone => 'Ya está deshecho.';
 
   @override
   String rules_change_line(
@@ -53661,89 +53669,91 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String rules_change_appended(String field, String text) {
-    return '$field: appended \"$text\"';
+    return '$field: se añadió «$text»';
   }
 
   @override
-  String get rules_target_noSite => 'No site';
+  String get rules_target_noSite => 'Sin sitio';
 
   @override
-  String get rules_siteField_description => 'description';
+  String get rules_siteField_description => 'descripción';
 
   @override
-  String get rules_history_title => 'Rule history';
+  String get rules_history_title => 'Historial de reglas';
 
   @override
   String get rules_history_empty =>
-      'Each time your rules change something, the run appears here so you can review or undo it.';
+      'Cada vez que tus reglas cambian algo, la ejecución aparece aquí para que puedas revisarla o deshacerla.';
 
   @override
-  String get rules_history_triggerImported => 'After import';
+  String get rules_history_triggerImported => 'Después de importar';
 
   @override
   String rules_history_triggerImportedFrom(String source) {
-    return 'After import ($source)';
+    return 'Después de importar ($source)';
   }
 
   @override
-  String get rules_history_triggerCreatedByHand => 'Created by hand';
+  String get rules_history_triggerCreatedByHand => 'Creado a mano';
 
   @override
-  String get rules_history_triggerOnDemandAll => 'Run by hand on everything';
+  String get rules_history_triggerOnDemandAll => 'Ejecutada a mano sobre todo';
 
   @override
-  String get rules_history_triggerOnDemandSelection => 'Run on a selection';
+  String get rules_history_triggerOnDemandSelection =>
+      'Ejecutada sobre una selección';
 
   @override
   String rules_history_changed(int count, String rules) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items changed by $rules',
-      one: '$count item changed by $rules',
+      other: '$count elementos cambiados por $rules',
+      one: '$count elemento cambiado por $rules',
     );
     return '$_temp0';
   }
 
   @override
   String rules_history_device(String device) {
-    return 'on $device';
+    return 'en $device';
   }
 
   @override
   String rules_history_undone(String date) {
-    return 'Undone $date';
+    return 'Deshecho $date';
   }
 
   @override
-  String get rules_history_undoTooltip => 'Undo this run';
+  String get rules_history_undoTooltip => 'Deshacer esta ejecución';
 
   @override
-  String get rules_history_deleteTooltip => 'Delete this entry';
+  String get rules_history_deleteTooltip => 'Eliminar esta entrada';
 
   @override
-  String get rules_history_clear => 'Clear history';
+  String get rules_history_clear => 'Borrar historial';
 
   @override
-  String get rules_history_clearDialog_title => 'Clear rule history?';
+  String get rules_history_clearDialog_title =>
+      '¿Borrar el historial de reglas?';
 
   @override
   String get rules_history_clearDialog_content =>
-      'This removes every entry. What the rules changed stays as it is; it just can\'t be undone from here any more.';
+      'Esto elimina todas las entradas. Lo que cambiaron las reglas se queda como está; simplemente ya no se podrá deshacer desde aquí.';
 
   @override
-  String get rules_run_title => 'Rule run';
+  String get rules_run_title => 'Ejecución de reglas';
 
   @override
-  String get rules_run_undo => 'Undo this run';
+  String get rules_run_undo => 'Deshacer esta ejecución';
 
   @override
   String rules_import_changedDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these dives',
-      one: 'Rules changed $count of these dives',
+      other: 'Las reglas cambiaron $count de estas inmersiones',
+      one: 'Las reglas cambiaron $count de estas inmersiones',
     );
     return '$_temp0';
   }
@@ -53753,45 +53763,46 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these sites',
-      one: 'Rules changed $count of these sites',
+      other: 'Las reglas cambiaron $count de estos sitios',
+      one: 'Las reglas cambiaron $count de estos sitios',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_import_seeChanges => 'See changes';
+  String get rules_import_seeChanges => 'Ver cambios';
 
   @override
-  String get rules_import_undo => 'Undo rule changes';
+  String get rules_import_undo => 'Deshacer los cambios de las reglas';
 
   @override
-  String get rules_import_undoNote => 'Undo keeps the imported dives.';
+  String get rules_import_undoNote =>
+      'Deshacer conserva las inmersiones importadas.';
 
   @override
   String get rules_import_failed =>
-      'Dives imported, but your rules could not run.';
+      'Inmersiones importadas, pero tus reglas no se pudieron ejecutar.';
 
   @override
   String rules_create_changedDive(String rules) {
-    return 'Rules changed this dive: $rules';
+    return 'Las reglas cambiaron esta inmersión: $rules';
   }
 
   @override
   String rules_create_changedSite(String rules) {
-    return 'Rules changed this site: $rules';
+    return 'Las reglas cambiaron este sitio: $rules';
   }
 
   @override
   String rules_create_changedSites(String rules) {
-    return 'Rules changed these sites: $rules';
+    return 'Las reglas cambiaron estos sitios: $rules';
   }
 
   @override
-  String get rules_create_details => 'Details';
+  String get rules_create_details => 'Detalles';
 
   @override
-  String get rules_action_applyRules => 'Apply rules';
+  String get rules_action_applyRules => 'Aplicar reglas';
 
   @override
   String get settings_manage_savedQueries => 'Consultas guardadas';

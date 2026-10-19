@@ -23100,49 +23100,49 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_ruleId => 'כלל';
 
   @override
-  String get settings_conflict_field_ruleActions => 'Actions';
+  String get settings_conflict_field_ruleActions => 'פעולות';
 
   @override
-  String get settings_conflict_field_ruleChangeAfter => 'After';
+  String get settings_conflict_field_ruleChangeAfter => 'אחרי';
 
   @override
-  String get settings_conflict_field_ruleChangeBefore => 'Before';
+  String get settings_conflict_field_ruleChangeBefore => 'לפני';
 
   @override
-  String get settings_conflict_field_ruleChangeField => 'Changed field';
+  String get settings_conflict_field_ruleChangeField => 'שדה ששונה';
 
   @override
-  String get settings_conflict_field_ruleCondition => 'Condition';
+  String get settings_conflict_field_ruleCondition => 'תנאי';
 
   @override
-  String get settings_conflict_field_ruleName => 'Rule name';
+  String get settings_conflict_field_ruleName => 'שם הכלל';
 
   @override
-  String get settings_conflict_field_ruleRun => 'Rule run';
+  String get settings_conflict_field_ruleRun => 'הרצת כללים';
 
   @override
-  String get settings_conflict_field_ruleRunAt => 'Ran at';
+  String get settings_conflict_field_ruleRunAt => 'הורץ ב';
 
   @override
-  String get settings_conflict_field_ruleRunChangedCount => 'Items changed';
+  String get settings_conflict_field_ruleRunChangedCount => 'פריטים ששונו';
 
   @override
-  String get settings_conflict_field_ruleRunDevice => 'Device';
+  String get settings_conflict_field_ruleRunDevice => 'מכשיר';
 
   @override
-  String get settings_conflict_field_ruleRunSource => 'Source';
+  String get settings_conflict_field_ruleRunSource => 'מקור';
 
   @override
-  String get settings_conflict_field_ruleRunTrigger => 'Started by';
+  String get settings_conflict_field_ruleRunTrigger => 'הופעל על ידי';
 
   @override
-  String get settings_conflict_field_ruleRunUndoneAt => 'Undone at';
+  String get settings_conflict_field_ruleRunUndoneAt => 'בוטל ב';
 
   @override
-  String get settings_conflict_field_ruleTarget => 'Changed item';
+  String get settings_conflict_field_ruleTarget => 'פריט ששונה';
 
   @override
-  String get settings_conflict_field_ruleTriggers => 'Runs when';
+  String get settings_conflict_field_ruleTriggers => 'מתי הוא רץ';
 
   @override
   String get settings_conflict_field_sacBottom => 'צריכת גז בקרקעית';
@@ -51905,432 +51905,427 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_manage_rules => 'Rules';
+  String get settings_manage_rules => 'כללים';
 
   @override
   String get settings_manage_rules_subtitle =>
-      'Classify and fill in dives and sites automatically';
+      'סווג והשלם צלילות ואתרים באופן אוטומטי';
 
   @override
-  String get rules_page_title => 'Rules';
+  String get rules_page_title => 'כללים';
 
   @override
-  String get rules_section_dives => 'Dive rules';
+  String get rules_section_dives => 'כללי צלילות';
 
   @override
-  String get rules_section_sites => 'Site rules';
+  String get rules_section_sites => 'כללי אתרים';
 
   @override
   String get rules_empty =>
-      'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.';
+      'כללים מחילים את התנאים שלך על היומן, למשל הוספת סוג הצלילה עמוקה לכל צלילה עמוקה מ־30 מ\'. דבר לא רץ עד שתיצור כלל.';
 
   @override
-  String get rules_action_new => 'New rule';
+  String get rules_action_new => 'כלל חדש';
 
   @override
-  String get rules_action_history => 'History';
+  String get rules_action_history => 'היסטוריה';
 
   @override
-  String get rules_action_runAll => 'Run rules';
+  String get rules_action_runAll => 'הרץ כללים';
 
   @override
-  String get rules_action_runAllDives => 'Run dive rules on all dives';
+  String get rules_action_runAllDives => 'הרץ כללי צלילות על כל הצלילות';
 
   @override
-  String get rules_action_runAllSites => 'Run site rules on all sites';
+  String get rules_action_runAllSites => 'הרץ כללי אתרים על כל האתרים';
 
   @override
-  String get rules_row_runOnAllDives => 'Run on all dives';
+  String get rules_row_runOnAllDives => 'הרץ על כל הצלילות';
 
   @override
-  String get rules_row_runOnAllSites => 'Run on all sites';
+  String get rules_row_runOnAllSites => 'הרץ על כל האתרים';
 
   @override
-  String get rules_row_duplicate => 'Duplicate';
+  String get rules_row_duplicate => 'שכפל';
 
   @override
-  String get rules_row_delete => 'Delete';
+  String get rules_row_delete => 'מחק';
 
   @override
-  String get rules_row_menuTooltip => 'Rule actions';
+  String get rules_row_menuTooltip => 'פעולות הכלל';
 
   @override
-  String get rules_row_enabled => 'Enabled';
+  String get rules_row_enabled => 'פעיל';
 
   @override
-  String get rules_reorderTooltip => 'Drag to change the order rules run in';
+  String get rules_reorderTooltip => 'גרור כדי לשנות את סדר הרצת הכללים';
 
   @override
-  String get rules_deleteDialog_title => 'Delete rule?';
+  String get rules_deleteDialog_title => 'למחוק את הכלל?';
 
   @override
   String rules_deleteDialog_content(String name) {
-    return 'Delete \"$name\"? What it already changed stays in the history and can still be undone.';
+    return 'למחוק את \"$name\"? מה שכבר שינה נשאר בהיסטוריה ועדיין אפשר לבטל אותו.';
   }
 
   @override
   String rules_snackbar_deleted(String name) {
-    return 'Deleted \"$name\"';
+    return '\"$name\" נמחק';
   }
 
   @override
-  String get rules_copySuffix => ' (copy)';
+  String get rules_copySuffix => ' (עותק)';
 
   @override
-  String get rules_trigger_afterImport => 'After import';
+  String get rules_trigger_afterImport => 'אחרי ייבוא';
 
   @override
-  String get rules_trigger_afterManualDive => 'After logging a dive by hand';
+  String get rules_trigger_afterManualDive => 'אחרי רישום צלילה ידנית';
 
   @override
-  String get rules_trigger_afterManualSite => 'After creating a site by hand';
+  String get rules_trigger_afterManualSite => 'אחרי יצירת אתר ידנית';
 
   @override
-  String get rules_trigger_onDemandOnly => 'Only when you run it';
+  String get rules_trigger_onDemandOnly => 'רק כשאתה מריץ אותו';
 
   @override
-  String get rules_trigger_off => 'Off: runs only when you run it';
+  String get rules_trigger_off => 'כבוי: רץ רק כשאתה מריץ אותו';
 
   @override
-  String get rules_condition_everyDive => 'Every dive';
+  String get rules_condition_everyDive => 'כל צלילה';
 
   @override
-  String get rules_condition_everySite => 'Every site';
+  String get rules_condition_everySite => 'כל אתר';
 
   @override
   String get rules_problem_unreadable =>
-      'This rule\'s condition can\'t be read. Edit or delete it.';
+      'לא ניתן לקרוא את התנאי של כלל זה. ערוך או מחק אותו.';
 
   @override
   String get rules_problem_invalid =>
-      'This rule\'s condition is no longer valid. Edit or delete it.';
+      'התנאי של כלל זה כבר אינו תקף. ערוך או מחק אותו.';
 
   @override
   String get rules_problem_unknownSubject =>
-      'This rule is for something this version doesn\'t have.';
+      'כלל זה מיועד למשהו שאין בגרסה זו.';
 
   @override
   String get rules_problem_unresolvedRef =>
-      'The condition names something that was deleted. Edit the rule to run it.';
+      'התנאי מזכיר משהו שנמחק. ערוך את הכלל כדי להריץ אותו.';
 
   @override
   String get rules_problem_newerVersion =>
-      'Made by a newer version of Submersion. Update the app to run or edit it.';
+      'נוצר בגרסה חדשה יותר של Submersion. עדכן את האפליקציה כדי להריץ או לערוך אותו.';
 
   @override
-  String get rules_problem_noActions => 'This rule has no actions.';
+  String get rules_problem_noActions => 'לכלל זה אין פעולות.';
 
   @override
   String get rules_problem_brokenAction =>
-      'An action names something that was deleted; that action is skipped.';
+      'פעולה מזכירה משהו שנמחק; הפעולה הזו תדולג.';
 
   @override
   String rules_actionSummary_set(String field, String value) {
-    return 'Set $field to $value';
+    return 'הגדר $field ל־$value';
   }
 
   @override
   String rules_actionSummary_add(String collection, String items) {
-    return 'Add $collection: $items';
+    return 'הוסף $collection: $items';
   }
 
   @override
   String rules_actionSummary_remove(String collection, String items) {
-    return 'Remove $collection: $items';
+    return 'הסר $collection: $items';
   }
 
   @override
   String rules_actionSummary_appendNotes(String text) {
-    return 'Append to notes: $text';
+    return 'הוסף להערות: $text';
   }
 
   @override
   String rules_actionSummary_appendDescription(String text) {
-    return 'Append to description: $text';
+    return 'הוסף לתיאור: $text';
   }
 
   @override
-  String get rules_actionSummary_unknown => 'An action from a newer version';
+  String get rules_actionSummary_unknown => 'פעולה מגרסה חדשה יותר';
 
   @override
-  String get rules_actionSummary_missing => '(deleted)';
+  String get rules_actionSummary_missing => '(נמחק)';
 
   @override
-  String get rules_value_yes => 'Yes';
+  String get rules_value_yes => 'כן';
 
   @override
-  String get rules_value_no => 'No';
+  String get rules_value_no => 'לא';
 
   @override
-  String get rules_value_empty => '(empty)';
+  String get rules_value_empty => '(ריק)';
 
   @override
-  String get rules_collection_diveTypes => 'dive types';
+  String get rules_collection_diveTypes => 'סוגי צלילה';
 
   @override
-  String get rules_collection_tags => 'tags';
+  String get rules_collection_tags => 'תגיות';
 
   @override
-  String get rules_collection_equipment => 'equipment';
+  String get rules_collection_equipment => 'ציוד';
 
   @override
-  String get rules_collection_buddies => 'buddies';
+  String get rules_collection_buddies => 'שותפים';
 
   @override
-  String get rules_collection_courses => 'courses';
+  String get rules_collection_courses => 'קורסים';
 
   @override
-  String get rules_collection_siteTags => 'site tags';
+  String get rules_collection_siteTags => 'תגיות אתר';
 
   @override
-  String get rules_collection_siteTypes => 'site types';
+  String get rules_collection_siteTypes => 'סוגי אתר';
 
   @override
-  String get rules_field_diveCenter => 'dive center';
+  String get rules_field_diveCenter => 'מרכז צלילה';
 
   @override
-  String get rules_field_diveOperator => 'dive operator';
+  String get rules_field_diveOperator => 'מפעיל צלילה';
 
   @override
-  String get rules_field_boatName => 'boat name';
+  String get rules_field_boatName => 'שם הסירה';
 
   @override
-  String get rules_field_boatCaptain => 'boat captain';
+  String get rules_field_boatCaptain => 'קפטן הסירה';
 
   @override
-  String get rules_field_trip => 'trip';
+  String get rules_field_trip => 'טיול';
 
   @override
-  String get rules_field_rating => 'rating';
+  String get rules_field_rating => 'דירוג';
 
   @override
-  String get rules_field_isFavorite => 'favorite';
+  String get rules_field_isFavorite => 'מועדף';
 
   @override
-  String get rules_field_excludedFromStats => 'excluded from statistics';
+  String get rules_field_excludedFromStats => 'מוחרג מהסטטיסטיקה';
 
   @override
-  String get rules_field_excludedFromGasStats => 'excluded from gas statistics';
+  String get rules_field_excludedFromGasStats => 'מוחרג מסטטיסטיקת הגז';
 
   @override
-  String get rules_field_waterType => 'water type';
+  String get rules_field_waterType => 'סוג מים';
 
   @override
-  String get rules_field_visibility => 'visibility';
+  String get rules_field_visibility => 'ראות';
 
   @override
-  String get rules_field_currentDirection => 'current direction';
+  String get rules_field_currentDirection => 'כיוון הזרם';
 
   @override
-  String get rules_field_currentStrength => 'current strength';
+  String get rules_field_currentStrength => 'עוצמת הזרם';
 
   @override
-  String get rules_field_swellHeight => 'swell height';
+  String get rules_field_swellHeight => 'גובה הגלים';
 
   @override
-  String get rules_field_surfaceConditions => 'surface conditions';
+  String get rules_field_surfaceConditions => 'תנאי פני המים';
 
   @override
-  String get rules_field_entryMethod => 'entry method';
+  String get rules_field_entryMethod => 'שיטת כניסה';
 
   @override
-  String get rules_field_exitMethod => 'exit method';
+  String get rules_field_exitMethod => 'שיטת יציאה';
 
   @override
-  String get rules_field_altitude => 'altitude';
+  String get rules_field_altitude => 'גובה';
 
   @override
-  String get rules_field_surfacePressure => 'surface pressure';
+  String get rules_field_surfacePressure => 'לחץ פני המים';
 
   @override
-  String get rules_field_surfaceInterval => 'surface interval';
+  String get rules_field_surfaceInterval => 'מרווח שטח';
 
   @override
-  String get rules_field_gradientFactorLow => 'GF low';
+  String get rules_field_gradientFactorLow => 'GF נמוך';
 
   @override
-  String get rules_field_gradientFactorHigh => 'GF high';
+  String get rules_field_gradientFactorHigh => 'GF גבוה';
 
   @override
-  String get rules_field_decoAlgorithm => 'deco algorithm';
+  String get rules_field_decoAlgorithm => 'אלגוריתם דקומפרסיה';
 
   @override
-  String get rules_field_decoConservatism => 'conservatism';
+  String get rules_field_decoConservatism => 'שמרנות';
 
   @override
-  String get rules_field_diveComputerModel => 'dive computer model';
+  String get rules_field_diveComputerModel => 'דגם מחשב צלילה';
 
   @override
-  String get rules_field_windSpeed => 'wind speed';
+  String get rules_field_windSpeed => 'מהירות הרוח';
 
   @override
-  String get rules_field_windDirection => 'wind direction';
+  String get rules_field_windDirection => 'כיוון הרוח';
 
   @override
-  String get rules_field_cloudCover => 'cloud cover';
+  String get rules_field_cloudCover => 'כיסוי עננים';
 
   @override
-  String get rules_field_precipitation => 'precipitation';
+  String get rules_field_precipitation => 'משקעים';
 
   @override
-  String get rules_field_humidity => 'humidity';
+  String get rules_field_humidity => 'לחות';
 
   @override
-  String get rules_field_weatherDescription => 'weather description';
+  String get rules_field_weatherDescription => 'תיאור מזג האוויר';
 
   @override
-  String get rules_field_diveMode => 'dive mode';
+  String get rules_field_diveMode => 'מצב צלילה';
 
   @override
-  String get rules_field_setpointLow => 'low setpoint';
+  String get rules_field_setpointLow => 'נקודת כיול נמוכה';
 
   @override
-  String get rules_field_setpointHigh => 'high setpoint';
+  String get rules_field_setpointHigh => 'נקודת כיול גבוהה';
 
   @override
-  String get rules_field_setpointDeco => 'deco setpoint';
+  String get rules_field_setpointDeco => 'נקודת כיול לדקו';
 
   @override
-  String get rules_field_diluentGas => 'diluent (O2/He)';
+  String get rules_field_diluentGas => 'מדלל (O2/He)';
 
   @override
-  String get rules_field_scrubberType => 'scrubber type';
+  String get rules_field_scrubberType => 'סוג סופח';
 
   @override
-  String get rules_field_scrubberDuration => 'scrubber duration';
+  String get rules_field_scrubberDuration => 'משך הסופח';
 
   @override
-  String get rules_field_diverRole => 'my role';
+  String get rules_field_diverRole => 'התפקיד שלי';
 
   @override
-  String get rules_field_notes => 'notes';
+  String get rules_field_notes => 'הערות';
 
   @override
-  String get rules_siteField_difficulty => 'difficulty';
+  String get rules_siteField_difficulty => 'רמת קושי';
 
   @override
-  String get rules_siteField_country => 'country';
+  String get rules_siteField_country => 'מדינה';
 
   @override
-  String get rules_siteField_region => 'region';
+  String get rules_siteField_region => 'אזור';
 
   @override
-  String get rules_siteField_city => 'city';
+  String get rules_siteField_city => 'עיר';
 
   @override
-  String get rules_siteField_island => 'island';
+  String get rules_siteField_island => 'אי';
 
   @override
-  String get rules_siteField_bodyOfWater => 'body of water';
+  String get rules_siteField_bodyOfWater => 'גוף מים';
 
   @override
-  String get rules_siteField_minDepth => 'minimum depth';
+  String get rules_siteField_minDepth => 'עומק מינימלי';
 
   @override
-  String get rules_siteField_maxDepth => 'maximum depth';
+  String get rules_siteField_maxDepth => 'עומק מרבי';
 
   @override
-  String get rules_siteField_hazards => 'hazards';
+  String get rules_siteField_hazards => 'סכנות';
 
   @override
-  String get rules_siteField_accessNotes => 'access notes';
+  String get rules_siteField_accessNotes => 'הערות גישה';
 
   @override
-  String get rules_siteField_mooringNumber => 'mooring number';
+  String get rules_siteField_mooringNumber => 'מספר מעגן';
 
   @override
-  String get rules_siteField_parkingInfo => 'parking information';
+  String get rules_siteField_parkingInfo => 'מידע על חניה';
 
   @override
-  String get rules_edit_titleNew => 'New rule';
+  String get rules_edit_titleNew => 'כלל חדש';
 
   @override
-  String get rules_edit_titleEdit => 'Edit rule';
+  String get rules_edit_titleEdit => 'עריכת כלל';
 
   @override
-  String get rules_edit_name => 'Name';
+  String get rules_edit_name => 'שם';
 
   @override
-  String get rules_edit_appliesTo => 'Applies to';
+  String get rules_edit_appliesTo => 'חל על';
 
   @override
-  String get rules_edit_subjectDives => 'Dives';
+  String get rules_edit_subjectDives => 'צלילות';
 
   @override
-  String get rules_edit_subjectSites => 'Sites';
+  String get rules_edit_subjectSites => 'אתרים';
 
   @override
-  String get rules_edit_whenRuns => 'When it runs';
+  String get rules_edit_whenRuns => 'מתי הוא רץ';
 
   @override
   String get rules_edit_runNote =>
-      'You can always run a rule yourself, from the Rules page or on selected items.';
+      'תמיד אפשר להריץ כלל בעצמך, מדף הכללים או על פריטים שנבחרו.';
 
   @override
-  String get rules_edit_if => 'If';
+  String get rules_edit_if => 'אם';
 
   @override
-  String get rules_edit_then => 'Then';
+  String get rules_edit_then => 'אז';
 
   @override
   String rules_edit_matchCountDives(int count) {
-    return 'Matches $count of your dives';
+    return 'תואם ל־$count מהצלילות שלך';
   }
 
   @override
   String rules_edit_matchCountSites(int count) {
-    return 'Matches $count of your sites';
+    return 'תואם ל־$count מהאתרים שלך';
   }
 
   @override
-  String get rules_edit_matchesEveryDive =>
-      'No condition: the rule matches every dive';
+  String get rules_edit_matchesEveryDive => 'אין תנאי: הכלל תואם לכל צלילה';
 
   @override
-  String get rules_edit_matchesEverySite =>
-      'No condition: the rule matches every site';
+  String get rules_edit_matchesEverySite => 'אין תנאי: הכלל תואם לכל אתר';
 
   @override
-  String get rules_edit_addAction => 'Add action';
+  String get rules_edit_addAction => 'הוסף פעולה';
 
   @override
-  String get rules_edit_noActions => 'Add at least one action.';
+  String get rules_edit_noActions => 'הוסף לפחות פעולה אחת.';
 
   @override
-  String get rules_edit_readOnly => 'This rule can\'t be edited here.';
-
-  @override
-  String get rules_picker_search => 'Search actions';
+  String get rules_picker_search => 'חיפוש פעולות';
 
   @override
   String rules_picker_set(String field) {
-    return 'Set $field';
+    return 'הגדר $field';
   }
 
   @override
   String rules_picker_add(String collection) {
-    return 'Add $collection';
+    return 'הוסף $collection';
   }
 
   @override
   String rules_picker_remove(String collection) {
-    return 'Remove $collection';
+    return 'הסר $collection';
   }
 
   @override
-  String get rules_picker_appendNotes => 'Append to notes';
+  String get rules_picker_appendNotes => 'הוסף להערות';
 
   @override
-  String get rules_picker_appendDescription => 'Append to description';
+  String get rules_picker_appendDescription => 'הוסף לתיאור';
 
   @override
-  String get rules_actionEditor_value => 'Value';
+  String get rules_actionEditor_value => 'ערך';
 
   @override
-  String get rules_actionEditor_text => 'Text to append';
+  String get rules_actionEditor_text => 'טקסט להוספה';
 
   @override
-  String get rules_actionEditor_role => 'Role';
+  String get rules_actionEditor_role => 'תפקיד';
 
   @override
   String get rules_actionEditor_o2 => 'O2 %';
@@ -52340,19 +52335,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String rules_actionEditor_choose(String field) {
-    return 'Choose $field';
+    return 'בחר $field';
   }
 
   @override
-  String get rules_action_undo => 'Undo';
+  String get rules_action_undo => 'בטל';
 
   @override
   String rules_preview_titleDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count dives?',
-      one: 'Apply rules to $count dive?',
+      other: 'להחיל כללים על $count צלילות?',
+      one: 'להחיל כללים על צלילה $count?',
     );
     return '$_temp0';
   }
@@ -52362,8 +52357,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count sites?',
-      one: 'Apply rules to $count site?',
+      other: 'להחיל כללים על $count אתרים?',
+      one: 'להחיל כללים על אתר $count?',
     );
     return '$_temp0';
   }
@@ -52373,8 +52368,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives will change.',
-      one: '$count dive will change.',
+      other: '$count צלילות ישתנו.',
+      one: 'צלילה $count תשתנה.',
     );
     return '$_temp0';
   }
@@ -52384,8 +52379,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites will change.',
-      one: '$count site will change.',
+      other: '$count אתרים ישתנו.',
+      one: 'אתר $count ישתנה.',
     );
     return '$_temp0';
   }
@@ -52395,35 +52390,35 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count selected items are not yours to change and were left out.',
-      one: '$count selected item is not yours to change and was left out.',
+      other: '$count פריטים נבחרים אינם שלך לשינוי ולכן הושמטו.',
+      one: 'פריט נבחר $count אינו שלך לשינוי ולכן הושמט.',
     );
     return '$_temp0';
   }
 
   @override
   String rules_preview_skippedRules(String names) {
-    return 'These rules can\'t run and were skipped: $names';
+    return 'לא ניתן להריץ את הכללים האלה והם דולגו: $names';
   }
 
   @override
   String rules_preview_skippedActions(String names) {
-    return 'Some actions name deleted items and were skipped: $names';
+    return 'חלק מהפעולות מזכירות פריטים שנמחקו ודולגו: $names';
   }
 
   @override
-  String get rules_preview_groupByTarget => 'By item';
+  String get rules_preview_groupByTarget => 'לפי פריט';
 
   @override
-  String get rules_preview_groupByRule => 'By rule';
+  String get rules_preview_groupByRule => 'לפי כלל';
 
   @override
   String rules_preview_applyDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count dives',
-      one: 'Apply to $count dive',
+      other: 'החל על $count צלילות',
+      one: 'החל על צלילה $count',
     );
     return '$_temp0';
   }
@@ -52433,27 +52428,27 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count sites',
-      one: 'Apply to $count site',
+      other: 'החל על $count אתרים',
+      one: 'החל על אתר $count',
     );
     return '$_temp0';
   }
 
   @override
   String get rules_run_noChangesDives =>
-      'No changes: these dives already match your rules.';
+      'אין שינויים: הצלילות האלה כבר תואמות לכללים שלך.';
 
   @override
   String get rules_run_noChangesSites =>
-      'No changes: these sites already match your rules.';
+      'אין שינויים: האתרים האלה כבר תואמים לכללים שלך.';
 
   @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count dives',
-      one: 'Rules changed $count dive',
+      other: 'הכללים שינו $count צלילות',
+      one: 'הכללים שינו צלילה $count',
     );
     return '$_temp0';
   }
@@ -52463,34 +52458,32 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count sites',
-      one: 'Rules changed $count site',
+      other: 'הכללים שינו $count אתרים',
+      one: 'הכללים שינו אתר $count',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_undo_done => 'Undone.';
+  String get rules_undo_done => 'בוטל.';
 
   @override
   String rules_undo_doneSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'Undone. $count items were edited after this run; their changes were left alone.',
-      one:
-          'Undone. $count item was edited after this run; its changes were left alone.',
+      other: 'בוטל. $count פריטים נערכו אחרי הרצה זו; השינויים שלהם נשארו.',
+      one: 'בוטל. פריט $count נערך אחרי הרצה זו; השינויים שלו נשארו.',
     );
     return '$_temp0';
   }
 
   @override
   String get rules_undo_nothingYet =>
-      'Nothing to undo on this device yet. Try again after syncing.';
+      'עדיין אין מה לבטל במכשיר הזה. נסה שוב אחרי סנכרון.';
 
   @override
-  String get rules_undo_alreadyUndone => 'Already undone.';
+  String get rules_undo_alreadyUndone => 'כבר בוטל.';
 
   @override
   String rules_change_line(
@@ -52499,94 +52492,94 @@ class AppLocalizationsHe extends AppLocalizations {
     String before,
     String after,
   ) {
-    return '$rule: $field $before → $after';
+    return '$rule: $field $before ← $after';
   }
 
   @override
   String rules_change_appended(String field, String text) {
-    return '$field: appended \"$text\"';
+    return '$field: נוסף \"$text\"';
   }
 
   @override
-  String get rules_target_noSite => 'No site';
+  String get rules_target_noSite => 'ללא אתר';
 
   @override
-  String get rules_siteField_description => 'description';
+  String get rules_siteField_description => 'תיאור';
 
   @override
-  String get rules_history_title => 'Rule history';
+  String get rules_history_title => 'היסטוריית כללים';
 
   @override
   String get rules_history_empty =>
-      'Each time your rules change something, the run appears here so you can review or undo it.';
+      'בכל פעם שהכללים שלך משנים משהו, ההרצה מופיעה כאן כדי שתוכל לעיין בה או לבטל אותה.';
 
   @override
-  String get rules_history_triggerImported => 'After import';
+  String get rules_history_triggerImported => 'אחרי ייבוא';
 
   @override
   String rules_history_triggerImportedFrom(String source) {
-    return 'After import ($source)';
+    return 'אחרי ייבוא ($source)';
   }
 
   @override
-  String get rules_history_triggerCreatedByHand => 'Created by hand';
+  String get rules_history_triggerCreatedByHand => 'נוצר ידנית';
 
   @override
-  String get rules_history_triggerOnDemandAll => 'Run by hand on everything';
+  String get rules_history_triggerOnDemandAll => 'הורץ ידנית על הכול';
 
   @override
-  String get rules_history_triggerOnDemandSelection => 'Run on a selection';
+  String get rules_history_triggerOnDemandSelection => 'הורץ על בחירה';
 
   @override
   String rules_history_changed(int count, String rules) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items changed by $rules',
-      one: '$count item changed by $rules',
+      other: '$count פריטים שונו על ידי $rules',
+      one: 'פריט $count שונה על ידי $rules',
     );
     return '$_temp0';
   }
 
   @override
   String rules_history_device(String device) {
-    return 'on $device';
+    return 'ב־$device';
   }
 
   @override
   String rules_history_undone(String date) {
-    return 'Undone $date';
+    return 'בוטל $date';
   }
 
   @override
-  String get rules_history_undoTooltip => 'Undo this run';
+  String get rules_history_undoTooltip => 'בטל הרצה זו';
 
   @override
-  String get rules_history_deleteTooltip => 'Delete this entry';
+  String get rules_history_deleteTooltip => 'מחק רשומה זו';
 
   @override
-  String get rules_history_clear => 'Clear history';
+  String get rules_history_clear => 'נקה היסטוריה';
 
   @override
-  String get rules_history_clearDialog_title => 'Clear rule history?';
+  String get rules_history_clearDialog_title => 'לנקות את היסטוריית הכללים?';
 
   @override
   String get rules_history_clearDialog_content =>
-      'This removes every entry. What the rules changed stays as it is; it just can\'t be undone from here any more.';
+      'פעולה זו מסירה את כל הרשומות. מה שהכללים שינו נשאר כמו שהוא; פשוט לא יהיה אפשר לבטל זאת מכאן.';
 
   @override
-  String get rules_run_title => 'Rule run';
+  String get rules_run_title => 'הרצת כללים';
 
   @override
-  String get rules_run_undo => 'Undo this run';
+  String get rules_run_undo => 'בטל הרצה זו';
 
   @override
   String rules_import_changedDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these dives',
-      one: 'Rules changed $count of these dives',
+      other: 'הכללים שינו $count מהצלילות האלה',
+      one: 'הכללים שינו $count מהצלילות האלה',
     );
     return '$_temp0';
   }
@@ -52596,45 +52589,45 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these sites',
-      one: 'Rules changed $count of these sites',
+      other: 'הכללים שינו $count מהאתרים האלה',
+      one: 'הכללים שינו $count מהאתרים האלה',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_import_seeChanges => 'See changes';
+  String get rules_import_seeChanges => 'הצג שינויים';
 
   @override
-  String get rules_import_undo => 'Undo rule changes';
+  String get rules_import_undo => 'בטל את שינויי הכללים';
 
   @override
-  String get rules_import_undoNote => 'Undo keeps the imported dives.';
+  String get rules_import_undoNote => 'הביטול שומר את הצלילות שיובאו.';
 
   @override
   String get rules_import_failed =>
-      'Dives imported, but your rules could not run.';
+      'הצלילות יובאו, אבל לא ניתן היה להריץ את הכללים שלך.';
 
   @override
   String rules_create_changedDive(String rules) {
-    return 'Rules changed this dive: $rules';
+    return 'הכללים שינו צלילה זו: $rules';
   }
 
   @override
   String rules_create_changedSite(String rules) {
-    return 'Rules changed this site: $rules';
+    return 'הכללים שינו אתר זה: $rules';
   }
 
   @override
   String rules_create_changedSites(String rules) {
-    return 'Rules changed these sites: $rules';
+    return 'הכללים שינו את האתרים האלה: $rules';
   }
 
   @override
-  String get rules_create_details => 'Details';
+  String get rules_create_details => 'פרטים';
 
   @override
-  String get rules_action_applyRules => 'Apply rules';
+  String get rules_action_applyRules => 'החל כללים';
 
   @override
   String get settings_manage_savedQueries => 'שאילתות שמורות';

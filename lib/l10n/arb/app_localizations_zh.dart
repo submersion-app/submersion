@@ -22398,49 +22398,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_ruleId => '规则';
 
   @override
-  String get settings_conflict_field_ruleActions => 'Actions';
+  String get settings_conflict_field_ruleActions => '操作';
 
   @override
-  String get settings_conflict_field_ruleChangeAfter => 'After';
+  String get settings_conflict_field_ruleChangeAfter => '之后';
 
   @override
-  String get settings_conflict_field_ruleChangeBefore => 'Before';
+  String get settings_conflict_field_ruleChangeBefore => '之前';
 
   @override
-  String get settings_conflict_field_ruleChangeField => 'Changed field';
+  String get settings_conflict_field_ruleChangeField => '更改的字段';
 
   @override
-  String get settings_conflict_field_ruleCondition => 'Condition';
+  String get settings_conflict_field_ruleCondition => '条件';
 
   @override
-  String get settings_conflict_field_ruleName => 'Rule name';
+  String get settings_conflict_field_ruleName => '规则名称';
 
   @override
-  String get settings_conflict_field_ruleRun => 'Rule run';
+  String get settings_conflict_field_ruleRun => '规则运行';
 
   @override
-  String get settings_conflict_field_ruleRunAt => 'Ran at';
+  String get settings_conflict_field_ruleRunAt => '运行时间';
 
   @override
-  String get settings_conflict_field_ruleRunChangedCount => 'Items changed';
+  String get settings_conflict_field_ruleRunChangedCount => '已更改的项目';
 
   @override
-  String get settings_conflict_field_ruleRunDevice => 'Device';
+  String get settings_conflict_field_ruleRunDevice => '设备';
 
   @override
-  String get settings_conflict_field_ruleRunSource => 'Source';
+  String get settings_conflict_field_ruleRunSource => '来源';
 
   @override
-  String get settings_conflict_field_ruleRunTrigger => 'Started by';
+  String get settings_conflict_field_ruleRunTrigger => '触发方式';
 
   @override
-  String get settings_conflict_field_ruleRunUndoneAt => 'Undone at';
+  String get settings_conflict_field_ruleRunUndoneAt => '撤销时间';
 
   @override
-  String get settings_conflict_field_ruleTarget => 'Changed item';
+  String get settings_conflict_field_ruleTarget => '更改的项目';
 
   @override
-  String get settings_conflict_field_ruleTriggers => 'Runs when';
+  String get settings_conflict_field_ruleTriggers => '运行时机';
 
   @override
   String get settings_conflict_field_sacBottom => '水底耗气量';
@@ -49796,432 +49796,419 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_manage_rules => 'Rules';
+  String get settings_manage_rules => '规则';
 
   @override
-  String get settings_manage_rules_subtitle =>
-      'Classify and fill in dives and sites automatically';
+  String get settings_manage_rules_subtitle => '自动分类并补全潜水和潜点';
 
   @override
-  String get rules_page_title => 'Rules';
+  String get rules_page_title => '规则';
 
   @override
-  String get rules_section_dives => 'Dive rules';
+  String get rules_section_dives => '潜水规则';
 
   @override
-  String get rules_section_sites => 'Site rules';
+  String get rules_section_sites => '潜点规则';
 
   @override
   String get rules_empty =>
-      'Rules apply your own conditions to your logbook, for example adding the Deep dive type to every dive deeper than 30 m. Nothing runs until you create a rule.';
+      '规则会把你自己的条件应用到日志上，例如为每次深于 30 米的潜水添加“深潜”类型。在你创建规则之前不会运行任何内容。';
 
   @override
-  String get rules_action_new => 'New rule';
+  String get rules_action_new => '新建规则';
 
   @override
-  String get rules_action_history => 'History';
+  String get rules_action_history => '历史';
 
   @override
-  String get rules_action_runAll => 'Run rules';
+  String get rules_action_runAll => '运行规则';
 
   @override
-  String get rules_action_runAllDives => 'Run dive rules on all dives';
+  String get rules_action_runAllDives => '对所有潜水运行潜水规则';
 
   @override
-  String get rules_action_runAllSites => 'Run site rules on all sites';
+  String get rules_action_runAllSites => '对所有潜点运行潜点规则';
 
   @override
-  String get rules_row_runOnAllDives => 'Run on all dives';
+  String get rules_row_runOnAllDives => '对所有潜水运行';
 
   @override
-  String get rules_row_runOnAllSites => 'Run on all sites';
+  String get rules_row_runOnAllSites => '对所有潜点运行';
 
   @override
-  String get rules_row_duplicate => 'Duplicate';
+  String get rules_row_duplicate => '复制';
 
   @override
-  String get rules_row_delete => 'Delete';
+  String get rules_row_delete => '删除';
 
   @override
-  String get rules_row_menuTooltip => 'Rule actions';
+  String get rules_row_menuTooltip => '规则操作';
 
   @override
-  String get rules_row_enabled => 'Enabled';
+  String get rules_row_enabled => '已启用';
 
   @override
-  String get rules_reorderTooltip => 'Drag to change the order rules run in';
+  String get rules_reorderTooltip => '拖动以更改规则的运行顺序';
 
   @override
-  String get rules_deleteDialog_title => 'Delete rule?';
+  String get rules_deleteDialog_title => '删除规则？';
 
   @override
   String rules_deleteDialog_content(String name) {
-    return 'Delete \"$name\"? What it already changed stays in the history and can still be undone.';
+    return '删除“$name”？它已做出的更改会保留在历史中，仍可撤销。';
   }
 
   @override
   String rules_snackbar_deleted(String name) {
-    return 'Deleted \"$name\"';
+    return '已删除“$name”';
   }
 
   @override
-  String get rules_copySuffix => ' (copy)';
+  String get rules_copySuffix => '（副本）';
 
   @override
-  String get rules_trigger_afterImport => 'After import';
+  String get rules_trigger_afterImport => '导入后';
 
   @override
-  String get rules_trigger_afterManualDive => 'After logging a dive by hand';
+  String get rules_trigger_afterManualDive => '手动记录潜水后';
 
   @override
-  String get rules_trigger_afterManualSite => 'After creating a site by hand';
+  String get rules_trigger_afterManualSite => '手动创建潜点后';
 
   @override
-  String get rules_trigger_onDemandOnly => 'Only when you run it';
+  String get rules_trigger_onDemandOnly => '仅在你手动运行时';
 
   @override
-  String get rules_trigger_off => 'Off: runs only when you run it';
+  String get rules_trigger_off => '已关闭：仅在你手动运行时运行';
 
   @override
-  String get rules_condition_everyDive => 'Every dive';
+  String get rules_condition_everyDive => '所有潜水';
 
   @override
-  String get rules_condition_everySite => 'Every site';
+  String get rules_condition_everySite => '所有潜点';
 
   @override
-  String get rules_problem_unreadable =>
-      'This rule\'s condition can\'t be read. Edit or delete it.';
+  String get rules_problem_unreadable => '无法读取此规则的条件。请编辑或删除它。';
 
   @override
-  String get rules_problem_invalid =>
-      'This rule\'s condition is no longer valid. Edit or delete it.';
+  String get rules_problem_invalid => '此规则的条件已失效。请编辑或删除它。';
 
   @override
-  String get rules_problem_unknownSubject =>
-      'This rule is for something this version doesn\'t have.';
+  String get rules_problem_unknownSubject => '此规则针对的是当前版本不具备的内容。';
 
   @override
-  String get rules_problem_unresolvedRef =>
-      'The condition names something that was deleted. Edit the rule to run it.';
+  String get rules_problem_unresolvedRef => '条件中引用了已删除的内容。请编辑规则后再运行。';
 
   @override
-  String get rules_problem_newerVersion =>
-      'Made by a newer version of Submersion. Update the app to run or edit it.';
+  String get rules_problem_newerVersion => '由更新版本的 Submersion 创建。请更新应用后再运行或编辑。';
 
   @override
-  String get rules_problem_noActions => 'This rule has no actions.';
+  String get rules_problem_noActions => '此规则没有任何操作。';
 
   @override
-  String get rules_problem_brokenAction =>
-      'An action names something that was deleted; that action is skipped.';
+  String get rules_problem_brokenAction => '某个操作引用了已删除的内容，该操作将被跳过。';
 
   @override
   String rules_actionSummary_set(String field, String value) {
-    return 'Set $field to $value';
+    return '将$field设为$value';
   }
 
   @override
   String rules_actionSummary_add(String collection, String items) {
-    return 'Add $collection: $items';
+    return '添加$collection：$items';
   }
 
   @override
   String rules_actionSummary_remove(String collection, String items) {
-    return 'Remove $collection: $items';
+    return '移除$collection：$items';
   }
 
   @override
   String rules_actionSummary_appendNotes(String text) {
-    return 'Append to notes: $text';
+    return '追加到备注：$text';
   }
 
   @override
   String rules_actionSummary_appendDescription(String text) {
-    return 'Append to description: $text';
+    return '追加到描述：$text';
   }
 
   @override
-  String get rules_actionSummary_unknown => 'An action from a newer version';
+  String get rules_actionSummary_unknown => '来自更新版本的操作';
 
   @override
-  String get rules_actionSummary_missing => '(deleted)';
+  String get rules_actionSummary_missing => '（已删除）';
 
   @override
-  String get rules_value_yes => 'Yes';
+  String get rules_value_yes => '是';
 
   @override
-  String get rules_value_no => 'No';
+  String get rules_value_no => '否';
 
   @override
-  String get rules_value_empty => '(empty)';
+  String get rules_value_empty => '（空）';
 
   @override
-  String get rules_collection_diveTypes => 'dive types';
+  String get rules_collection_diveTypes => '潜水类型';
 
   @override
-  String get rules_collection_tags => 'tags';
+  String get rules_collection_tags => '标签';
 
   @override
-  String get rules_collection_equipment => 'equipment';
+  String get rules_collection_equipment => '装备';
 
   @override
-  String get rules_collection_buddies => 'buddies';
+  String get rules_collection_buddies => '潜伴';
 
   @override
-  String get rules_collection_courses => 'courses';
+  String get rules_collection_courses => '课程';
 
   @override
-  String get rules_collection_siteTags => 'site tags';
+  String get rules_collection_siteTags => '潜点标签';
 
   @override
-  String get rules_collection_siteTypes => 'site types';
+  String get rules_collection_siteTypes => '潜点类型';
 
   @override
-  String get rules_field_diveCenter => 'dive center';
+  String get rules_field_diveCenter => '潜水中心';
 
   @override
-  String get rules_field_diveOperator => 'dive operator';
+  String get rules_field_diveOperator => '潜水运营商';
 
   @override
-  String get rules_field_boatName => 'boat name';
+  String get rules_field_boatName => '船名';
 
   @override
-  String get rules_field_boatCaptain => 'boat captain';
+  String get rules_field_boatCaptain => '船长';
 
   @override
-  String get rules_field_trip => 'trip';
+  String get rules_field_trip => '旅行';
 
   @override
-  String get rules_field_rating => 'rating';
+  String get rules_field_rating => '评分';
 
   @override
-  String get rules_field_isFavorite => 'favorite';
+  String get rules_field_isFavorite => '收藏';
 
   @override
-  String get rules_field_excludedFromStats => 'excluded from statistics';
+  String get rules_field_excludedFromStats => '排除在统计之外';
 
   @override
-  String get rules_field_excludedFromGasStats => 'excluded from gas statistics';
+  String get rules_field_excludedFromGasStats => '排除在气体统计之外';
 
   @override
-  String get rules_field_waterType => 'water type';
+  String get rules_field_waterType => '水域类型';
 
   @override
-  String get rules_field_visibility => 'visibility';
+  String get rules_field_visibility => '能见度';
 
   @override
-  String get rules_field_currentDirection => 'current direction';
+  String get rules_field_currentDirection => '水流方向';
 
   @override
-  String get rules_field_currentStrength => 'current strength';
+  String get rules_field_currentStrength => '水流强度';
 
   @override
-  String get rules_field_swellHeight => 'swell height';
+  String get rules_field_swellHeight => '涌浪高度';
 
   @override
-  String get rules_field_surfaceConditions => 'surface conditions';
+  String get rules_field_surfaceConditions => '水面状况';
 
   @override
-  String get rules_field_entryMethod => 'entry method';
+  String get rules_field_entryMethod => '入水方式';
 
   @override
-  String get rules_field_exitMethod => 'exit method';
+  String get rules_field_exitMethod => '出水方式';
 
   @override
-  String get rules_field_altitude => 'altitude';
+  String get rules_field_altitude => '海拔';
 
   @override
-  String get rules_field_surfacePressure => 'surface pressure';
+  String get rules_field_surfacePressure => '水面气压';
 
   @override
-  String get rules_field_surfaceInterval => 'surface interval';
+  String get rules_field_surfaceInterval => '水面间隔';
 
   @override
-  String get rules_field_gradientFactorLow => 'GF low';
+  String get rules_field_gradientFactorLow => '低 GF';
 
   @override
-  String get rules_field_gradientFactorHigh => 'GF high';
+  String get rules_field_gradientFactorHigh => '高 GF';
 
   @override
-  String get rules_field_decoAlgorithm => 'deco algorithm';
+  String get rules_field_decoAlgorithm => '减压算法';
 
   @override
-  String get rules_field_decoConservatism => 'conservatism';
+  String get rules_field_decoConservatism => '保守度';
 
   @override
-  String get rules_field_diveComputerModel => 'dive computer model';
+  String get rules_field_diveComputerModel => '潜水电脑型号';
 
   @override
-  String get rules_field_windSpeed => 'wind speed';
+  String get rules_field_windSpeed => '风速';
 
   @override
-  String get rules_field_windDirection => 'wind direction';
+  String get rules_field_windDirection => '风向';
 
   @override
-  String get rules_field_cloudCover => 'cloud cover';
+  String get rules_field_cloudCover => '云量';
 
   @override
-  String get rules_field_precipitation => 'precipitation';
+  String get rules_field_precipitation => '降水';
 
   @override
-  String get rules_field_humidity => 'humidity';
+  String get rules_field_humidity => '湿度';
 
   @override
-  String get rules_field_weatherDescription => 'weather description';
+  String get rules_field_weatherDescription => '天气描述';
 
   @override
-  String get rules_field_diveMode => 'dive mode';
+  String get rules_field_diveMode => '潜水模式';
 
   @override
-  String get rules_field_setpointLow => 'low setpoint';
+  String get rules_field_setpointLow => '低设定点';
 
   @override
-  String get rules_field_setpointHigh => 'high setpoint';
+  String get rules_field_setpointHigh => '高设定点';
 
   @override
-  String get rules_field_setpointDeco => 'deco setpoint';
+  String get rules_field_setpointDeco => '减压设定点';
 
   @override
-  String get rules_field_diluentGas => 'diluent (O2/He)';
+  String get rules_field_diluentGas => '稀释气 (O2/He)';
 
   @override
-  String get rules_field_scrubberType => 'scrubber type';
+  String get rules_field_scrubberType => '洗涤剂类型';
 
   @override
-  String get rules_field_scrubberDuration => 'scrubber duration';
+  String get rules_field_scrubberDuration => '洗涤剂时长';
 
   @override
-  String get rules_field_diverRole => 'my role';
+  String get rules_field_diverRole => '我的角色';
 
   @override
-  String get rules_field_notes => 'notes';
+  String get rules_field_notes => '备注';
 
   @override
-  String get rules_siteField_difficulty => 'difficulty';
+  String get rules_siteField_difficulty => '难度';
 
   @override
-  String get rules_siteField_country => 'country';
+  String get rules_siteField_country => '国家';
 
   @override
-  String get rules_siteField_region => 'region';
+  String get rules_siteField_region => '地区';
 
   @override
-  String get rules_siteField_city => 'city';
+  String get rules_siteField_city => '城市';
 
   @override
-  String get rules_siteField_island => 'island';
+  String get rules_siteField_island => '岛屿';
 
   @override
-  String get rules_siteField_bodyOfWater => 'body of water';
+  String get rules_siteField_bodyOfWater => '水体';
 
   @override
-  String get rules_siteField_minDepth => 'minimum depth';
+  String get rules_siteField_minDepth => '最小深度';
 
   @override
-  String get rules_siteField_maxDepth => 'maximum depth';
+  String get rules_siteField_maxDepth => '最大深度';
 
   @override
-  String get rules_siteField_hazards => 'hazards';
+  String get rules_siteField_hazards => '危险';
 
   @override
-  String get rules_siteField_accessNotes => 'access notes';
+  String get rules_siteField_accessNotes => '到达说明';
 
   @override
-  String get rules_siteField_mooringNumber => 'mooring number';
+  String get rules_siteField_mooringNumber => '系泊编号';
 
   @override
-  String get rules_siteField_parkingInfo => 'parking information';
+  String get rules_siteField_parkingInfo => '停车信息';
 
   @override
-  String get rules_edit_titleNew => 'New rule';
+  String get rules_edit_titleNew => '新建规则';
 
   @override
-  String get rules_edit_titleEdit => 'Edit rule';
+  String get rules_edit_titleEdit => '编辑规则';
 
   @override
-  String get rules_edit_name => 'Name';
+  String get rules_edit_name => '名称';
 
   @override
-  String get rules_edit_appliesTo => 'Applies to';
+  String get rules_edit_appliesTo => '适用于';
 
   @override
-  String get rules_edit_subjectDives => 'Dives';
+  String get rules_edit_subjectDives => '潜水';
 
   @override
-  String get rules_edit_subjectSites => 'Sites';
+  String get rules_edit_subjectSites => '潜点';
 
   @override
-  String get rules_edit_whenRuns => 'When it runs';
+  String get rules_edit_whenRuns => '运行时机';
 
   @override
-  String get rules_edit_runNote =>
-      'You can always run a rule yourself, from the Rules page or on selected items.';
+  String get rules_edit_runNote => '你随时可以在规则页面或对所选项目手动运行规则。';
 
   @override
-  String get rules_edit_if => 'If';
+  String get rules_edit_if => '如果';
 
   @override
-  String get rules_edit_then => 'Then';
+  String get rules_edit_then => '则';
 
   @override
   String rules_edit_matchCountDives(int count) {
-    return 'Matches $count of your dives';
+    return '匹配你的 $count 次潜水';
   }
 
   @override
   String rules_edit_matchCountSites(int count) {
-    return 'Matches $count of your sites';
+    return '匹配你的 $count 个潜点';
   }
 
   @override
-  String get rules_edit_matchesEveryDive =>
-      'No condition: the rule matches every dive';
+  String get rules_edit_matchesEveryDive => '无条件：规则匹配所有潜水';
 
   @override
-  String get rules_edit_matchesEverySite =>
-      'No condition: the rule matches every site';
+  String get rules_edit_matchesEverySite => '无条件：规则匹配所有潜点';
 
   @override
-  String get rules_edit_addAction => 'Add action';
+  String get rules_edit_addAction => '添加操作';
 
   @override
-  String get rules_edit_noActions => 'Add at least one action.';
+  String get rules_edit_noActions => '请至少添加一个操作。';
 
   @override
-  String get rules_edit_readOnly => 'This rule can\'t be edited here.';
-
-  @override
-  String get rules_picker_search => 'Search actions';
+  String get rules_picker_search => '搜索操作';
 
   @override
   String rules_picker_set(String field) {
-    return 'Set $field';
+    return '设置$field';
   }
 
   @override
   String rules_picker_add(String collection) {
-    return 'Add $collection';
+    return '添加$collection';
   }
 
   @override
   String rules_picker_remove(String collection) {
-    return 'Remove $collection';
+    return '移除$collection';
   }
 
   @override
-  String get rules_picker_appendNotes => 'Append to notes';
+  String get rules_picker_appendNotes => '追加到备注';
 
   @override
-  String get rules_picker_appendDescription => 'Append to description';
+  String get rules_picker_appendDescription => '追加到描述';
 
   @override
-  String get rules_actionEditor_value => 'Value';
+  String get rules_actionEditor_value => '值';
 
   @override
-  String get rules_actionEditor_text => 'Text to append';
+  String get rules_actionEditor_text => '要追加的文本';
 
   @override
-  String get rules_actionEditor_role => 'Role';
+  String get rules_actionEditor_role => '角色';
 
   @override
   String get rules_actionEditor_o2 => 'O2 %';
@@ -50231,19 +50218,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String rules_actionEditor_choose(String field) {
-    return 'Choose $field';
+    return '选择$field';
   }
 
   @override
-  String get rules_action_undo => 'Undo';
+  String get rules_action_undo => '撤销';
 
   @override
   String rules_preview_titleDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count dives?',
-      one: 'Apply rules to $count dive?',
+      other: '对 $count 次潜水应用规则？',
     );
     return '$_temp0';
   }
@@ -50253,8 +50239,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply rules to $count sites?',
-      one: 'Apply rules to $count site?',
+      other: '对 $count 个潜点应用规则？',
     );
     return '$_temp0';
   }
@@ -50264,8 +50249,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives will change.',
-      one: '$count dive will change.',
+      other: '将更改 $count 次潜水。',
     );
     return '$_temp0';
   }
@@ -50275,8 +50259,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sites will change.',
-      one: '$count site will change.',
+      other: '将更改 $count 个潜点。',
     );
     return '$_temp0';
   }
@@ -50286,35 +50269,33 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count selected items are not yours to change and were left out.',
-      one: '$count selected item is not yours to change and was left out.',
+      other: '有 $count 个所选项目你无权更改，已被跳过。',
     );
     return '$_temp0';
   }
 
   @override
   String rules_preview_skippedRules(String names) {
-    return 'These rules can\'t run and were skipped: $names';
+    return '这些规则无法运行，已跳过：$names';
   }
 
   @override
   String rules_preview_skippedActions(String names) {
-    return 'Some actions name deleted items and were skipped: $names';
+    return '部分操作引用了已删除的项目，已跳过：$names';
   }
 
   @override
-  String get rules_preview_groupByTarget => 'By item';
+  String get rules_preview_groupByTarget => '按项目';
 
   @override
-  String get rules_preview_groupByRule => 'By rule';
+  String get rules_preview_groupByRule => '按规则';
 
   @override
   String rules_preview_applyDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count dives',
-      one: 'Apply to $count dive',
+      other: '应用到 $count 次潜水',
     );
     return '$_temp0';
   }
@@ -50324,27 +50305,23 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Apply to $count sites',
-      one: 'Apply to $count site',
+      other: '应用到 $count 个潜点',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_run_noChangesDives =>
-      'No changes: these dives already match your rules.';
+  String get rules_run_noChangesDives => '无更改：这些潜水已符合你的规则。';
 
   @override
-  String get rules_run_noChangesSites =>
-      'No changes: these sites already match your rules.';
+  String get rules_run_noChangesSites => '无更改：这些潜点已符合你的规则。';
 
   @override
   String rules_run_doneDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count dives',
-      one: 'Rules changed $count dive',
+      other: '规则更改了 $count 次潜水',
     );
     return '$_temp0';
   }
@@ -50354,34 +50331,29 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count sites',
-      one: 'Rules changed $count site',
+      other: '规则更改了 $count 个潜点',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_undo_done => 'Undone.';
+  String get rules_undo_done => '已撤销。';
 
   @override
   String rules_undo_doneSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'Undone. $count items were edited after this run; their changes were left alone.',
-      one:
-          'Undone. $count item was edited after this run; its changes were left alone.',
+      other: '已撤销。有 $count 个项目在此次运行后被编辑过，其更改已保留。',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_undo_nothingYet =>
-      'Nothing to undo on this device yet. Try again after syncing.';
+  String get rules_undo_nothingYet => '此设备上暂时没有可撤销的内容。请在同步后重试。';
 
   @override
-  String get rules_undo_alreadyUndone => 'Already undone.';
+  String get rules_undo_alreadyUndone => '已撤销。';
 
   @override
   String rules_change_line(
@@ -50390,94 +50362,91 @@ class AppLocalizationsZh extends AppLocalizations {
     String before,
     String after,
   ) {
-    return '$rule: $field $before → $after';
+    return '$rule：$field $before → $after';
   }
 
   @override
   String rules_change_appended(String field, String text) {
-    return '$field: appended \"$text\"';
+    return '$field：追加了“$text”';
   }
 
   @override
-  String get rules_target_noSite => 'No site';
+  String get rules_target_noSite => '无潜点';
 
   @override
-  String get rules_siteField_description => 'description';
+  String get rules_siteField_description => '描述';
 
   @override
-  String get rules_history_title => 'Rule history';
+  String get rules_history_title => '规则历史';
 
   @override
-  String get rules_history_empty =>
-      'Each time your rules change something, the run appears here so you can review or undo it.';
+  String get rules_history_empty => '每当你的规则做出更改，该次运行都会显示在这里，方便你查看或撤销。';
 
   @override
-  String get rules_history_triggerImported => 'After import';
+  String get rules_history_triggerImported => '导入后';
 
   @override
   String rules_history_triggerImportedFrom(String source) {
-    return 'After import ($source)';
+    return '导入后（$source）';
   }
 
   @override
-  String get rules_history_triggerCreatedByHand => 'Created by hand';
+  String get rules_history_triggerCreatedByHand => '手动创建';
 
   @override
-  String get rules_history_triggerOnDemandAll => 'Run by hand on everything';
+  String get rules_history_triggerOnDemandAll => '手动对全部运行';
 
   @override
-  String get rules_history_triggerOnDemandSelection => 'Run on a selection';
+  String get rules_history_triggerOnDemandSelection => '对所选项运行';
 
   @override
   String rules_history_changed(int count, String rules) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items changed by $rules',
-      one: '$count item changed by $rules',
+      other: '$rules 更改了 $count 个项目',
     );
     return '$_temp0';
   }
 
   @override
   String rules_history_device(String device) {
-    return 'on $device';
+    return '在 $device 上';
   }
 
   @override
   String rules_history_undone(String date) {
-    return 'Undone $date';
+    return '已于 $date 撤销';
   }
 
   @override
-  String get rules_history_undoTooltip => 'Undo this run';
+  String get rules_history_undoTooltip => '撤销此次运行';
 
   @override
-  String get rules_history_deleteTooltip => 'Delete this entry';
+  String get rules_history_deleteTooltip => '删除此条目';
 
   @override
-  String get rules_history_clear => 'Clear history';
+  String get rules_history_clear => '清除历史';
 
   @override
-  String get rules_history_clearDialog_title => 'Clear rule history?';
+  String get rules_history_clearDialog_title => '清除规则历史？';
 
   @override
   String get rules_history_clearDialog_content =>
-      'This removes every entry. What the rules changed stays as it is; it just can\'t be undone from here any more.';
+      '这会移除所有条目。规则所做的更改会保留，只是无法再从这里撤销。';
 
   @override
-  String get rules_run_title => 'Rule run';
+  String get rules_run_title => '规则运行';
 
   @override
-  String get rules_run_undo => 'Undo this run';
+  String get rules_run_undo => '撤销此次运行';
 
   @override
   String rules_import_changedDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these dives',
-      one: 'Rules changed $count of these dives',
+      other: '规则更改了其中 $count 次潜水',
     );
     return '$_temp0';
   }
@@ -50487,45 +50456,43 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Rules changed $count of these sites',
-      one: 'Rules changed $count of these sites',
+      other: '规则更改了其中 $count 个潜点',
     );
     return '$_temp0';
   }
 
   @override
-  String get rules_import_seeChanges => 'See changes';
+  String get rules_import_seeChanges => '查看更改';
 
   @override
-  String get rules_import_undo => 'Undo rule changes';
+  String get rules_import_undo => '撤销规则更改';
 
   @override
-  String get rules_import_undoNote => 'Undo keeps the imported dives.';
+  String get rules_import_undoNote => '撤销会保留已导入的潜水。';
 
   @override
-  String get rules_import_failed =>
-      'Dives imported, but your rules could not run.';
+  String get rules_import_failed => '潜水已导入，但你的规则无法运行。';
 
   @override
   String rules_create_changedDive(String rules) {
-    return 'Rules changed this dive: $rules';
+    return '规则更改了此次潜水：$rules';
   }
 
   @override
   String rules_create_changedSite(String rules) {
-    return 'Rules changed this site: $rules';
+    return '规则更改了此潜点：$rules';
   }
 
   @override
   String rules_create_changedSites(String rules) {
-    return 'Rules changed these sites: $rules';
+    return '规则更改了这些潜点：$rules';
   }
 
   @override
-  String get rules_create_details => 'Details';
+  String get rules_create_details => '详情';
 
   @override
-  String get rules_action_applyRules => 'Apply rules';
+  String get rules_action_applyRules => '应用规则';
 
   @override
   String get settings_manage_savedQueries => '已保存的查询';

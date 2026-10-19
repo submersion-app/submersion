@@ -84939,12 +84939,6 @@ abstract class AppLocalizations {
   /// **'Add at least one action.'**
   String get rules_edit_noActions;
 
-  /// Shown above a read-only rule
-  ///
-  /// In en, this message translates to:
-  /// **'This rule can\'t be edited here.'**
-  String get rules_edit_readOnly;
-
   /// Search field hint of the action picker
   ///
   /// In en, this message translates to:

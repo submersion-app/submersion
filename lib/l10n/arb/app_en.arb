@@ -31772,8 +31772,6 @@
   "@rules_edit_addAction": {"description": "Button that adds an action to a rule"},
   "rules_edit_noActions": "Add at least one action.",
   "@rules_edit_noActions": {"description": "Shown when a rule has no actions yet"},
-  "rules_edit_readOnly": "This rule can't be edited here.",
-  "@rules_edit_readOnly": {"description": "Shown above a read-only rule"},
   "rules_picker_search": "Search actions",
   "@rules_picker_search": {"description": "Search field hint of the action picker"},
   "rules_picker_set": "Set {field}",

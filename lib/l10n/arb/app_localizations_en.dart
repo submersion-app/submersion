@@ -52578,9 +52578,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_edit_noActions => 'Add at least one action.';
 
   @override
-  String get rules_edit_readOnly => 'This rule can\'t be edited here.';
-
-  @override
   String get rules_picker_search => 'Search actions';
 
   @override
