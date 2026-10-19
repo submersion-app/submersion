@@ -26106,7 +26106,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_manage_header_equipment => 'Equipo';
 
   @override
-  String get settings_manage_header_diveLog => 'Inmersiones';
+  String get settings_manage_header_dives => 'Inmersiones';
 
   @override
   String get settings_manage_header_planning => 'Planificación';
@@ -26121,7 +26121,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_manage_header_organization => 'Organización';
 
   @override
-  String get settings_manage_header_setup => 'Configuración';
+  String get settings_manage_header_setup => 'Configuración inicial';
 
   @override
   String get settings_manage_species => 'Especies';

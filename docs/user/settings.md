@@ -198,7 +198,7 @@ where you'll run into them:
 | **Weight Presets** | Reusable sets of weights for a dive |
 | **Service types** | The maintenance your gear needs, and how often |
 | **Locations** | Where your gear is kept, serviced or lent |
-| **Equipment Default View** | The default layout for new equipment lists |
+| **Default equipment view** | Which statuses the Equipment list shows when no filter is set |
 
 **Dives**
 

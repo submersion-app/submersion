@@ -24645,7 +24645,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_header_equipment => '装备';
 
   @override
-  String get settings_manage_header_diveLog => '潜水';
+  String get settings_manage_header_dives => '潜水';
 
   @override
   String get settings_manage_header_planning => '计划';
@@ -24657,10 +24657,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_header_checklists => '检查清单';
 
   @override
-  String get settings_manage_header_organization => '组织';
+  String get settings_manage_header_organization => '整理';
 
   @override
-  String get settings_manage_header_setup => '设置';
+  String get settings_manage_header_setup => '初始设置';
 
   @override
   String get settings_manage_species => '物种';

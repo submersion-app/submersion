@@ -41934,11 +41934,11 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get settings_manage_header_equipment;
 
-  /// No description provided for @settings_manage_header_diveLog.
+  /// No description provided for @settings_manage_header_dives.
   ///
   /// In en, this message translates to:
   /// **'Dives'**
-  String get settings_manage_header_diveLog;
+  String get settings_manage_header_dives;
 
   /// No description provided for @settings_manage_header_planning.
   ///

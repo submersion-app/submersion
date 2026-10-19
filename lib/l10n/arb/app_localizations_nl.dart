@@ -25914,7 +25914,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_manage_header_equipment => 'Uitrusting';
 
   @override
-  String get settings_manage_header_diveLog => 'Duiken';
+  String get settings_manage_header_dives => 'Duiken';
 
   @override
   String get settings_manage_header_planning => 'Planning';
@@ -25929,7 +25929,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_manage_header_organization => 'Organisatie';
 
   @override
-  String get settings_manage_header_setup => 'Instellingen';
+  String get settings_manage_header_setup => 'Eerste configuratie';
 
   @override
   String get settings_manage_species => 'Soorten';

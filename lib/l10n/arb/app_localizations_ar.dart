@@ -26303,7 +26303,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_header_equipment => 'المعدات';
 
   @override
-  String get settings_manage_header_diveLog => 'الغوصات';
+  String get settings_manage_header_dives => 'الغوصات';
 
   @override
   String get settings_manage_header_planning => 'التخطيط';
@@ -26315,10 +26315,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_manage_header_checklists => 'قوائم التحقق';
 
   @override
-  String get settings_manage_header_organization => 'المنظمة';
+  String get settings_manage_header_organization => 'التنظيم';
 
   @override
-  String get settings_manage_header_setup => 'الإعداد';
+  String get settings_manage_header_setup => 'الإعداد الأولي';
 
   @override
   String get settings_manage_species => 'الأنواع';

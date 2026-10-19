@@ -7414,7 +7414,7 @@
   "settings_manage_siteTypes": "Tauchplatztypen",
   "settings_manage_siteTypes_subtitle": "Integrierte und eigene Tauchplatztypen",
   "settings_manage_header_equipment": "Ausrüstung",
-  "settings_manage_header_diveLog": "Tauchgänge",
+  "settings_manage_header_dives": "Tauchgänge",
   "settings_manage_header_planning": "Planung",
   "settings_manage_header_training": "Ausbildung",
   "settings_manage_header_checklists": "Checklisten",

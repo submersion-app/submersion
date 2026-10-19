@@ -2055,8 +2055,8 @@ void main() {
     });
 
     // Issue #1335 follow-up: the mixer's own settings gear moved off the
-    // top-level settings list and in here, under its own Planning section --
-    // the global preset list its cylinder dropdown now reads.
+    // top-level settings list and in here, under its own Planning section,
+    // beside the global preset list its cylinder dropdown now reads.
     testWidgets('renders the trimix mixer tile and navigates on tap', (
       tester,
     ) async {
@@ -2083,29 +2083,49 @@ void main() {
       await tester.pumpWidget(buildManageWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      for (final header in [
-        'Equipment',
-        'Dives',
-        'Planning',
-        'Training',
-        'Checklists',
-        'Organization',
-        'Setup',
-      ]) {
-        expect(find.text(header), findsOneWidget, reason: header);
+      // Each header, in display order, with the tiles that belong under it.
+      const sections = <(String, List<String>)>[
+        (
+          'Equipment',
+          [
+            'Tank Presets',
+            'Transmitters',
+            'Weight Presets',
+            'Service types',
+            'Locations',
+            'Default equipment view',
+          ],
+        ),
+        ('Dives', ['Dive Types', 'Site Types', 'Dive Roles', 'Species']),
+        ('Planning', ['Trimix Mixer']),
+        ('Training', ['Certification Agencies', 'Certification currency']),
+        ('Checklists', ['Trip Checklist Templates', 'Pre-Dive Checklists']),
+        ('Organization', ['Saved Queries', 'Tags']),
+        ('Setup', ['Setup assistant']),
+      ];
+
+      double topOf(String text) {
+        expect(find.text(text), findsOneWidget, reason: text);
+        return tester.getTopLeft(find.text(text)).dy;
       }
 
       // The old single "Manage Data" umbrella header is gone.
       expect(find.text('Manage Data'), findsNothing);
 
-      // A tile stays under its section header, not just anywhere on the
-      // page: Tank Presets sits above Equipment's next tile and below the
-      // Equipment header.
-      final equipmentHeaderY = tester.getTopLeft(find.text('Equipment')).dy;
-      final tankPresetsY = tester.getTopLeft(find.text('Tank Presets')).dy;
-      final diveLogHeaderY = tester.getTopLeft(find.text('Dives')).dy;
-      expect(tankPresetsY, greaterThan(equipmentHeaderY));
-      expect(tankPresetsY, lessThan(diveLogHeaderY));
+      // Every tile sits below its own header and above the next one, so a
+      // tile moved into the wrong group fails here.
+      for (var i = 0; i < sections.length; i++) {
+        final (header, tiles) = sections[i];
+        final headerY = topOf(header);
+        final nextHeaderY = i + 1 < sections.length
+            ? topOf(sections[i + 1].$1)
+            : double.infinity;
+        for (final tile in tiles) {
+          final tileY = topOf(tile);
+          expect(tileY, greaterThan(headerY), reason: '$tile under $header');
+          expect(tileY, lessThan(nextHeaderY), reason: '$tile in $header');
+        }
+      }
     });
   });
 

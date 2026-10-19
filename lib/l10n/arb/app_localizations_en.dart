@@ -25641,7 +25641,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_manage_header_equipment => 'Equipment';
 
   @override
-  String get settings_manage_header_diveLog => 'Dives';
+  String get settings_manage_header_dives => 'Dives';
 
   @override
   String get settings_manage_header_planning => 'Planning';

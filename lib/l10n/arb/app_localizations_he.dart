@@ -25427,7 +25427,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_header_equipment => 'ציוד';
 
   @override
-  String get settings_manage_header_diveLog => 'צלילות';
+  String get settings_manage_header_dives => 'צלילות';
 
   @override
   String get settings_manage_header_planning => 'תכנון';
@@ -25442,7 +25442,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_header_organization => 'ארגון';
 
   @override
-  String get settings_manage_header_setup => 'הגדרה';
+  String get settings_manage_header_setup => 'הגדרה ראשונית';
 
   @override
   String get settings_manage_species => 'מינים';

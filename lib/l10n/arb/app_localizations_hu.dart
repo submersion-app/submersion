@@ -25963,7 +25963,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_manage_header_equipment => 'Felszerelés';
 
   @override
-  String get settings_manage_header_diveLog => 'Merülések';
+  String get settings_manage_header_dives => 'Merülések';
 
   @override
   String get settings_manage_header_planning => 'Tervezés';
@@ -25975,10 +25975,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_manage_header_checklists => 'Ellenőrzőlisták';
 
   @override
-  String get settings_manage_header_organization => 'Szervezet';
+  String get settings_manage_header_organization => 'Rendszerezés';
 
   @override
-  String get settings_manage_header_setup => 'Beállítás';
+  String get settings_manage_header_setup => 'Kezdeti beállítás';
 
   @override
   String get settings_manage_species => 'Fajok';

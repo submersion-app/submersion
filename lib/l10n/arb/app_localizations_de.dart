@@ -26042,7 +26042,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_manage_header_equipment => 'Ausrüstung';
 
   @override
-  String get settings_manage_header_diveLog => 'Tauchgänge';
+  String get settings_manage_header_dives => 'Tauchgänge';
 
   @override
   String get settings_manage_header_planning => 'Planung';

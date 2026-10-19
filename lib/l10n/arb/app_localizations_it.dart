@@ -26103,7 +26103,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_manage_header_equipment => 'Attrezzatura';
 
   @override
-  String get settings_manage_header_diveLog => 'Immersioni';
+  String get settings_manage_header_dives => 'Immersioni';
 
   @override
   String get settings_manage_header_planning => 'Pianificazione';

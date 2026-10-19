@@ -14837,7 +14837,7 @@
   "settings_manage_siteTypes": "Site Types",
   "settings_manage_siteTypes_subtitle": "Built-in and custom dive site types",
   "settings_manage_header_equipment": "Equipment",
-  "settings_manage_header_diveLog": "Dives",
+  "settings_manage_header_dives": "Dives",
   "settings_manage_header_planning": "Planning",
   "settings_manage_header_training": "Training",
   "settings_manage_header_checklists": "Checklists",

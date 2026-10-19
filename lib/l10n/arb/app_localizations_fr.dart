@@ -26165,7 +26165,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_manage_header_equipment => 'Équipement';
 
   @override
-  String get settings_manage_header_diveLog => 'Plongées';
+  String get settings_manage_header_dives => 'Plongées';
 
   @override
   String get settings_manage_header_planning => 'Planification';
@@ -26180,7 +26180,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_manage_header_organization => 'Organisation';
 
   @override
-  String get settings_manage_header_setup => 'Réglages';
+  String get settings_manage_header_setup => 'Configuration initiale';
 
   @override
   String get settings_manage_species => 'Espèces';
