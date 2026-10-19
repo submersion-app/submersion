@@ -177,6 +177,53 @@ void main() {
     );
   });
 
+  testWidgets('a brand new trip still offers "+ Add section" alongside the '
+      'planning invitation', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          tripChecklistProvider('t1').overrideWith((ref) async => []),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
+        ],
+        child: SingleChildScrollView(
+          child: TripChecklistSection(trip: _trip(upcoming: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Plan your trip - add to-dos or apply a template'),
+      findsOneWidget,
+    );
+    // The only way to create the feature's "empty section laid out in
+    // advance" case is this button; a trip with no items and no sections
+    // yet must not hide it behind the empty-state message (issue #3360).
+    expect(find.text('Add section'), findsOneWidget);
+  });
+
+  testWidgets('a sections-provider failure shows the error, not a spinner', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          tripChecklistProvider('t1').overrideWith((ref) async => []),
+          tripChecklistSectionsProvider(
+            't1',
+          ).overrideWith((ref) => Future.error('section load boom')),
+        ],
+        child: SingleChildScrollView(
+          child: TripChecklistSection(trip: _trip(upcoming: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.textContaining('section load boom'), findsOneWidget);
+  });
+
   group('real-database interactions', () {
     late TripRepository tripRepository;
     late TripChecklistRepository checklistRepository;

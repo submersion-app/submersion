@@ -783,6 +783,68 @@ class SyncRepository {
       timestamp: 'updated_at',
       filter: null,
     ),
+    // The category/section->section_id migration (issue #3360) clears hlc
+    // on every section it backfills (brand new rows, never stamped) and on
+    // every item it re-points at one (an already-synced row whose link just
+    // changed under it). Without these eight entries, a diver who had
+    // already synced before updating would see the migration's new
+    // sections and item links apply locally but never reach any peer.
+    (
+      entityType: 'tripChecklistSections',
+      table: 'trip_checklist_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'tripChecklistItems',
+      table: 'trip_checklist_items',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'checklistTemplateSections',
+      table: 'checklist_template_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'checklistTemplateItems',
+      table: 'checklist_template_items',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'preDiveChecklistTemplateSections',
+      table: 'pre_dive_checklist_template_sections',
+      timestamp: 'updated_at',
+      // Built-in templates' sections are reference data re-seeded on every
+      // device and skipped by the export (same reasoning as serviceKinds
+      // above), so stamping one would only queue a sync record that
+      // publishes nothing.
+      filter:
+          'template_id NOT IN '
+          '(SELECT id FROM pre_dive_checklist_templates WHERE is_built_in = 1)',
+    ),
+    (
+      entityType: 'preDiveChecklistTemplateItems',
+      table: 'pre_dive_checklist_template_items',
+      timestamp: 'updated_at',
+      filter:
+          'template_id NOT IN '
+          '(SELECT id FROM pre_dive_checklist_templates WHERE is_built_in = 1)',
+    ),
+    (
+      entityType: 'preDiveSessionSections',
+      table: 'pre_dive_session_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'preDiveSessionItems',
+      table: 'pre_dive_session_items',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
   ];
 
   /// One-time self-heal for rows that carry `hlc IS NULL`. Such rows are

@@ -124,8 +124,18 @@ extension SupportMigrations on AppDatabase {
       final text = r.read<String>('text_value');
       final id = r.read<String>('id');
       final sectionId = _deterministicSectionId(parentId, text);
+      // Clearing hlc (rather than leaving an already-synced item's old
+      // value untouched) marks the row unstamped, the same state the new
+      // section rows above are already in. SyncRepository.backfillMissingHlc
+      // -- run at the start of every sync -- scans for exactly this
+      // (hlc IS NULL) and re-stamps it, so the section link this migration
+      // just gave the item does not stay invisible forever to a peer that
+      // already passed its old hlc in an earlier sync (same mechanism
+      // issue #1144's late hlcTargets registrations and the v182/v208
+      // backfill entries rely on; see sync_repository.dart's
+      // _hlcBackfillTargets, which this feature's tables must be added to).
       await customStatement(
-        'UPDATE $itemsTable SET section_id = ? '
+        'UPDATE $itemsTable SET section_id = ?, hlc = NULL '
         'WHERE id = ? AND section_id IS NULL',
         [sectionId, id],
       );

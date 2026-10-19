@@ -32,10 +32,13 @@ class TripChecklistSection extends ConsumerWidget {
     final items = itemsAsync.value;
     final sections = sectionsAsync.value;
     if (items == null || sections == null) {
-      if (itemsAsync.hasError) {
+      if (itemsAsync.hasError || sectionsAsync.hasError) {
+        final error = itemsAsync.hasError
+            ? itemsAsync.error
+            : sectionsAsync.error;
         return Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(itemsAsync.error.toString()),
+          child: Text(error.toString()),
         );
       }
       return const Center(
@@ -60,12 +63,13 @@ class TripChecklistSection extends ConsumerWidget {
         _buildHeader(context, ref, items),
         // A diver may lay out empty sections before adding any items (the
         // whole point of issue #3360's "create a section empty" case), so
-        // the planning invitation only replaces the section editor when
-        // there is truly nothing -- no items AND no sections -- to manage.
-        if (items.isEmpty && sections.isEmpty)
-          _buildEmptyState(context)
-        else
-          _buildGroupedItems(context, ref, items, sections),
+        // the planning invitation is shown alongside the section editor,
+        // not instead of it -- otherwise a brand new trip with neither
+        // items nor sections would have no way to create that first
+        // section at all, since the only "+ Add section" affordance lives
+        // inside the editor this would otherwise hide.
+        if (items.isEmpty && sections.isEmpty) _buildEmptyState(context),
+        _buildGroupedItems(context, ref, items, sections),
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
