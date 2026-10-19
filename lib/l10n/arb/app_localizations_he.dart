@@ -22085,6 +22085,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'שירות';
 
   @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'שם';
+
+  @override
   String get settings_conflict_field_connectionType => 'חיבור';
 
   @override
@@ -35983,6 +35986,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_removeFromLibrary => 'הסר מהספרייה';
+
+  @override
+  String get settings_connectedAccounts_rename => 'שינוי שם';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'שינוי שם החשבון';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'שם';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'השאירו ריק כדי להשתמש ב־$name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>

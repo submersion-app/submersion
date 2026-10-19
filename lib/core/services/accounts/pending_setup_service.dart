@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
@@ -107,7 +108,7 @@ class PendingSetupService {
           PendingSetupItem(
             kind: SetupItemKind.mediaStoreAttach,
             key: key,
-            label: store.displayHint,
+            label: shortStorageLabel(store.displayHint),
             route: '/settings/media-storage',
           ),
         );
@@ -127,7 +128,7 @@ class PendingSetupService {
           PendingSetupItem(
             kind: SetupItemKind.mediaStoreReconnect,
             key: key,
-            label: store.displayHint,
+            label: shortStorageLabel(store.displayHint),
             route: '/settings/media-storage',
           ),
         );
@@ -151,7 +152,7 @@ class PendingSetupService {
         PendingSetupItem(
           kind: SetupItemKind.accountSignIn,
           key: key,
-          label: account.label,
+          label: account.displayName,
           accountKind: account.kind,
           route: _routeFor(account, usage: usage, store: store),
           dismissed: _isDismissed(key),

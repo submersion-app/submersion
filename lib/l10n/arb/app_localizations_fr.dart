@@ -22677,6 +22677,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'Service';
 
   @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Nom';
+
+  @override
   String get settings_conflict_field_connectionType => 'Connexion';
 
   @override
@@ -37011,6 +37014,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Retirer de la bibliothèque';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Renommer';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Renommer le compte';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Nom';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Laissez vide pour utiliser $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>

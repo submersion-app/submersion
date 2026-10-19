@@ -21450,6 +21450,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => '服务';
 
   @override
+  String get settings_conflict_field_connectedAccounts_nickname => '名称';
+
+  @override
   String get settings_conflict_field_connectionType => '连接';
 
   @override
@@ -34760,6 +34763,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_removeFromLibrary => '从库中移除';
+
+  @override
+  String get settings_connectedAccounts_rename => '重命名';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => '重命名账户';
+
+  @override
+  String get settings_connectedAccounts_renameField => '名称';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return '留空则使用 $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle => '移除账户？';

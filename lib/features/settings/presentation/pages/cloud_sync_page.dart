@@ -5,6 +5,10 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_display_name.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
@@ -642,6 +646,18 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
     );
   }
 
+  /// The name the S3 sync account is shown under (issue #3522): the
+  /// diver's nickname for it, else the bucket and the service's name. The
+  /// account's id follows from the config, so nothing is probed.
+  String _s3AccountName(WidgetRef ref, S3Config config) {
+    final id = accountIdFor(
+      kind: AccountKind.s3,
+      naturalKey: s3NaturalKey(config),
+    );
+    return ref.watch(accountDisplayNameProvider(id)).value ??
+        shortStorageLabel('${config.bucket} @ ${config.displayHost}');
+  }
+
   Widget _buildS3ProviderTile(
     BuildContext context,
     WidgetRef ref,
@@ -659,7 +675,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
         title: Text(l10n.settings_cloudSync_provider_s3_title),
         subtitle: Text(
           isConfigured
-              ? '${config.bucket} @ ${config.displayHost}'
+              ? _s3AccountName(ref, config)
               : l10n.settings_cloudSync_provider_s3_subtitle,
         ),
         trailing: Row(

@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -627,15 +628,29 @@ final mediaStoreResolverProvider = Provider<MediaStoreResolver?>((ref) {
   return ref.watch(mediaStoreRuntimeProvider).value?.resolver;
 });
 
-/// Display hint for the connected store ("bucket @ host"), or null when
-/// this device has no store attached.
+/// Name of the connected store, or null when this device has no store
+/// attached: the nickname of the account it was attached through, else its
+/// display hint ("bucket @ host") with a well-known service's host named
+/// (issue #3522).
 final mediaStoreStatusHintProvider = FutureProvider<String?>((ref) async {
   final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
   if (runtime == null) return null;
   final storesRepository = ref.watch(mediaStoresRepositoryProvider);
-  ref.invalidateSelfWhen(storesRepository.watchStoresChanges());
+  final accounts = ref.watch(connectedAccountsRepositoryProvider);
+  ref
+    ..invalidateSelfWhen(storesRepository.watchStoresChanges())
+    // A rename ticks the roster.
+    ..invalidateSelfWhen(accounts.watchAccountsChanges());
   final active = await storesRepository.getActive();
-  return active?.displayHint ?? runtime.storeId;
+  if (active == null) return runtime.storeId;
+  final accountId = await ref
+      .watch(mediaStoreAttachStateProvider)
+      .attachedAccountId();
+  final account = accountId == null ? null : await accounts.getById(accountId);
+  return accountDisplayName(
+    label: active.displayHint,
+    nickname: account?.nickname,
+  );
 });
 
 /// Implementation behind mediaStoreEnqueueProvider: with a runtime

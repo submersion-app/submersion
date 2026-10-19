@@ -249,6 +249,10 @@ final Map<String, ConflictField> mediaLibraryOverrides = {
     (l) => l.settings_conflict_field_connectedAccounts_kind,
     FieldKind.shortText,
   ),
+  'connectedAccounts.nickname': ConflictField(
+    (l) => l.settings_conflict_field_connectedAccounts_nickname,
+    FieldKind.shortText,
+  ),
   'settings.key': ConflictField(
     (l) => l.settings_conflict_field_settings_key,
     FieldKind.shortText,

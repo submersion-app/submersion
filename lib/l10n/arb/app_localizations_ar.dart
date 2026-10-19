@@ -22871,6 +22871,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_kind => 'الخدمة';
 
   @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'الاسم';
+
+  @override
   String get settings_conflict_field_connectionType => 'الاتصال';
 
   @override
@@ -37394,6 +37397,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_removeFromLibrary => 'إزالة من المكتبة';
+
+  @override
+  String get settings_connectedAccounts_rename => 'إعادة التسمية';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'إعادة تسمية الحساب';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'الاسم';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'اتركه فارغًا لاستخدام $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle => 'إزالة الحساب؟';

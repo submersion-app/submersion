@@ -13628,6 +13628,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Gear condition checks",
   "settings_conflict_field_configJson": "Configuration",
   "settings_conflict_field_connectedAccounts_kind": "Service",
+  "settings_conflict_field_connectedAccounts_nickname": "Name",
   "settings_conflict_field_connectionType": "Connection",
   "settings_conflict_field_contentHash": "Content fingerprint",
   "settings_conflict_field_contentSizeBytes": "Size in bytes",
@@ -22504,6 +22505,18 @@
   "settings_connectedAccounts_status_unavailable": "Unavailable on this device",
   "settings_connectedAccounts_disconnectDevice": "Sign out on this device",
   "settings_connectedAccounts_removeFromLibrary": "Remove from library",
+  "settings_connectedAccounts_rename": "Rename",
+  "settings_connectedAccounts_renameTitle": "Rename account",
+  "settings_connectedAccounts_renameField": "Name",
+  "settings_connectedAccounts_renameDefault": "Leave empty to use {name}",
+  "@settings_connectedAccounts_renameDefault": {
+    "description": "Helper under the account name field; name is the short name the account gets when the field is left empty.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "settings_connectedAccounts_removeConfirmTitle": "Remove account?",
   "settings_connectedAccounts_removeConfirmBody": "The account is removed from every synced device. Credentials stored on other devices are not deleted.",
   "settings_setupGuide_title": "Set up photos & media",

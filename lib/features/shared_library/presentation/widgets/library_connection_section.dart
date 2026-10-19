@@ -42,7 +42,8 @@ class LibraryConnectionSection extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.cloud_outlined),
             title: Text(
-              account?.label ?? l10n.sharedLibrary_connection_accountMissing,
+              account?.displayName ??
+                  l10n.sharedLibrary_connection_accountMissing,
               style: account == null
                   ? TextStyle(color: theme.colorScheme.error)
                   : null,

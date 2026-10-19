@@ -164,6 +164,36 @@ void main() {
     },
   );
 
+  // Issue #3522: prompts name accounts and stores by their short names.
+  group('names', () {
+    const r2 =
+        'sync @ 149b84f66d5479265f3e4d4ad4740926.r2.cloudflarestorage.com';
+
+    test('a sign-in item uses the nickname, else the short label', () async {
+      final named = await accounts.create(kind: AccountKind.s3, label: r2);
+      await accounts.setNickname(named.id, 'Club bucket');
+      await accounts.create(
+        kind: AccountKind.s3,
+        label: 'photos @ s3.eu-west-1.amazonaws.com',
+      );
+      final items = await service().compute();
+      expect(items.map((i) => i.label).toSet(), {
+        'Club bucket',
+        'photos @ Amazon S3',
+      });
+    });
+
+    test('a store item uses the short label', () async {
+      await stores.upsertActive(
+        storeId: 'store-1',
+        providerType: 's3',
+        displayHint: r2,
+      );
+      final items = await service().compute();
+      expect(items.single.label, 'sync @ Cloudflare R2');
+    });
+  });
+
   test('signed-in accounts yield no items', () async {
     await accounts.create(kind: AccountKind.s3, label: 'MinIO');
     final items = await service(s3Status: AccountStatus.signedIn).compute();

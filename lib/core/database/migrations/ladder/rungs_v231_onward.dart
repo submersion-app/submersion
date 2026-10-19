@@ -421,5 +421,12 @@ extension RungsFromV231 on AppDatabase {
       await _clearCopiedCardPhotoColumns();
     }
     if (from < 294) await reportProgress();
+    // v295: connected_accounts.nickname (issue #3522). Column only, written
+    // when the diver renames an account; re-asserted in beforeOpen through
+    // _assertConnectedAccountsSchema.
+    if (from < 295) {
+      await _assertConnectedAccountsSchema();
+    }
+    if (from < 295) await reportProgress();
   }
 }

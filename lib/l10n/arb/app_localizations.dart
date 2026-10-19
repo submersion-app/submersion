@@ -36070,6 +36070,12 @@ abstract class AppLocalizations {
   /// **'Service'**
   String get settings_conflict_field_connectedAccounts_kind;
 
+  /// No description provided for @settings_conflict_field_connectedAccounts_nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get settings_conflict_field_connectedAccounts_nickname;
+
   /// No description provided for @settings_conflict_field_connectionType.
   ///
   /// In en, this message translates to:
@@ -58111,6 +58117,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from library'**
   String get settings_connectedAccounts_removeFromLibrary;
+
+  /// No description provided for @settings_connectedAccounts_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get settings_connectedAccounts_rename;
+
+  /// No description provided for @settings_connectedAccounts_renameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename account'**
+  String get settings_connectedAccounts_renameTitle;
+
+  /// No description provided for @settings_connectedAccounts_renameField.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get settings_connectedAccounts_renameField;
+
+  /// Helper under the account name field; name is the short name the account gets when the field is left empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to use {name}'**
+  String settings_connectedAccounts_renameDefault(String name);
 
   /// No description provided for @settings_connectedAccounts_removeConfirmTitle.
   ///
