@@ -407,5 +407,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 291) await reportProgress();
+    // v292: logbook rules and their run history (issue #3513). Tables
+    // only; re-asserted in beforeOpen through _assertRuleSchema.
+    if (from < 292) {
+      await _assertRuleSchema();
+    }
+    if (from < 292) await reportProgress();
   }
 }

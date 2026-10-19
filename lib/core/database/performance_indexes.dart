@@ -512,6 +512,32 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_saved_queries_diver '
         'ON saved_queries(diver_id, subject, sort_order)',
   ),
+  // Logbook rules (v292, issue #3513): a diver's rules in run order, the
+  // history newest first, a run's changes, and a target's changes.
+  (
+    name: 'idx_rules_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_rules_diver '
+        'ON rules(diver_id, subject, sort_order)',
+  ),
+  (
+    name: 'idx_rule_runs_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_rule_runs_diver '
+        'ON rule_runs(diver_id, ran_at)',
+  ),
+  (
+    name: 'idx_rule_run_changes_run',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_rule_run_changes_run '
+        'ON rule_run_changes(run_id, sort_order)',
+  ),
+  (
+    name: 'idx_rule_run_changes_target',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_rule_run_changes_target '
+        'ON rule_run_changes(subject, target_id)',
+  ),
   // A passport's trips: packed links by item (v248, issue #2338).
   (
     name: 'idx_trip_equipment_equipment',

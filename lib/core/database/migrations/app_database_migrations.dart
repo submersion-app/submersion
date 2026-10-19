@@ -64,6 +64,7 @@ part 'helpers/pre_dive_migrations.dart';
 part 'helpers/profile_series_history_migrations.dart';
 part 'helpers/quality_migrations.dart';
 part 'helpers/query_migrations.dart';
+part 'helpers/rule_migrations.dart';
 part 'helpers/safety_migrations.dart';
 part 'helpers/service_migrations.dart';
 part 'helpers/site_migrations.dart';

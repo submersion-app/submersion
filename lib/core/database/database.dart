@@ -23,6 +23,7 @@ import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
+import 'package:submersion/core/database/tables/rule_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
 import 'package:submersion/core/database/tables/service_tables.dart';
 import 'package:submersion/core/database/tables/shared_library_tables.dart';
@@ -56,6 +57,7 @@ export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
+export 'package:submersion/core/database/tables/rule_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
 export 'package:submersion/core/database/tables/service_tables.dart';
 export 'package:submersion/core/database/tables/shared_library_tables.dart';
@@ -172,6 +174,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EquipmentServiceStatus,
     // Saved queries (v238, issue #2365)
     SavedQueries,
+    // Logbook rules and their run history (v292, issue #3513)
+    Rules,
+    RuleRuns,
+    RuleRunChanges,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -274,7 +280,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 291;
+  static const int currentSchemaVersion = 292;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1262,6 +1268,9 @@ class AppDatabase extends _$AppDatabase {
     // v291: shared_libraries.description (issue #3389). Additive nullable
     // column, so the floor stays at 280.
     291,
+    // v292: logbook rules, rule_runs and rule_run_changes (issue #3513).
+    // Additive tables, so the floor stays at 280.
+    292,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

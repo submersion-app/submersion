@@ -75,5 +75,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // version-collision self-heal, and the columns added to v289 before it
     // shipped; idempotent).
     await _assertSharedLibrarySchema();
+
+    // v292 backstop: the logbook rules tables and indexes (parallel-branch
+    // version-collision self-heal; idempotent).
+    await _assertRuleSchema();
   }
 }
