@@ -364,9 +364,36 @@ void main() {
         container.read(modCalculatorInputsProvider).temperature,
         GasDensityTemperature.zeroC,
       );
-      container
-          .read(modCalculatorNotifierProvider.notifier)
-          .setTemperature(GasDensityTemperature.twentyC);
+      container.read(modCalculatorNotifierProvider.notifier)
+        ..setCheckTemperature(true)
+        ..setTemperature(GasDensityTemperature.twentyC);
+      expect(
+        container.read(modCalculatorInputsProvider).temperature,
+        GasDensityTemperature.twentyC,
+      );
+      expect(
+        container.read(modCalculatorResultProvider).densityTemperature,
+        GasDensityTemperature.twentyC,
+      );
+    });
+
+    test('the chosen temperature only applies while its switch is on', () {
+      final container = _container(_FakeRepository());
+      final notifier = container.read(modCalculatorNotifierProvider.notifier)
+        ..setCheckTemperature(true)
+        ..setTemperature(GasDensityTemperature.twentyC)
+        ..setCheckTemperature(false);
+      // The choice is remembered for when the switch comes back on, but the
+      // hidden picker no longer drives the check.
+      expect(
+        container.read(modCalculatorNotifierProvider).temperature,
+        GasDensityTemperature.twentyC,
+      );
+      expect(
+        container.read(modCalculatorInputsProvider).temperature,
+        GasDensityTemperature.zeroC,
+      );
+      notifier.setCheckTemperature(true);
       expect(
         container.read(modCalculatorInputsProvider).temperature,
         GasDensityTemperature.twentyC,

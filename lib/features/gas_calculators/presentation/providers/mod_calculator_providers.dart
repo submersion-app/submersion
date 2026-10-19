@@ -286,7 +286,11 @@ final modCalculatorInputsProvider = Provider<GasLimitsInputs>((ref) {
     o2Narcotic: settings.o2Narcotic,
     targetDepthMeters: mode.checkTargetDepth ? mode.targetDepthMeters : null,
     waterType: modCalculatorWaterType(prefs, settings),
-    temperature: prefs.temperature,
+    // Like the target depth, the chosen temperature only applies while its
+    // switch is on; off, the check falls back to the conservative default.
+    temperature: prefs.checkTemperature
+        ? prefs.temperature
+        : ModCalculatorPreferences.defaults.temperature,
   );
 });
 

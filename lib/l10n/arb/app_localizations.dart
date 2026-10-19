@@ -26887,7 +26887,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_mod_temperatureHint.
   ///
   /// In en, this message translates to:
-  /// **'Colder gas is denser, so the density check follows the temperature chosen here, not the actual gas temperature at depth.'**
+  /// **'Colder gas is denser. The density check assumes the temperature chosen here, not the actual gas temperature at depth.'**
   String get gasCalculators_mod_temperatureHint;
 
   /// No description provided for @gasCalculators_mod_openDensity.

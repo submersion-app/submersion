@@ -91,8 +91,9 @@ class ModCalculatorPreferences extends Equatable {
 
   final double minPpO2;
 
-  /// Gas temperature the Tec modes' density check assumes, shared across
-  /// modes like [waterType]. Defaults to the colder, conservative option.
+  /// Gas temperature the Tec modes' density check assumes while
+  /// [checkTemperature] is on, shared across modes like [waterType]. Defaults
+  /// to the colder, conservative option, which also applies while it is off.
   final GasDensityTemperature temperature;
 
   /// Whether the gas temperature toggle is shown at all; collapsed by

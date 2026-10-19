@@ -42,7 +42,6 @@ void main() {
     l10n: l10n,
     units: units,
     endLimitMeters: 30,
-    temperature: inputs.temperature,
   );
 
   test('the hypoxic minimum depth is rounded up, never down', () {

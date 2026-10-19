@@ -14,7 +14,7 @@ import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
 
 /// Opening the density calculator from the MOD card (#3501) hands over the
-/// mix, depth and, since this PR, the chosen gas temperature. A regression
+/// mix, depth and the chosen gas temperature. A regression
 /// here would leave the standalone calculator at its own previous
 /// temperature while every MOD-only test still passes.
 void main() {

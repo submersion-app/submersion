@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -25,7 +26,6 @@ List<ModAssessment> modAssessments(
   required AppLocalizations l10n,
   required UnitFormatter units,
   required double endLimitMeters,
-  required GasDensityTemperature temperature,
 }) {
   final items = <ModAssessment>[];
   void add(ModAssessmentSeverity severity, String text) =>
@@ -88,7 +88,7 @@ List<ModAssessment> modAssessments(
       );
     }
     final density = formatFixedForDisplay(a.densityGPerL ?? 0, 2);
-    final temp = units.formatTemperature(temperature.celsius, decimals: 0);
+    final temp = formatGasTemperature(units, result.densityTemperature);
     switch (a.densityLevel) {
       case GasDensityLevel.warn:
         add(
@@ -154,7 +154,6 @@ class ModAssessmentCard extends ConsumerWidget {
       l10n: l10n,
       units: UnitFormatter(settings),
       endLimitMeters: settings.endLimit,
-      temperature: ref.watch(modCalculatorInputsProvider).temperature,
     );
 
     return Card(

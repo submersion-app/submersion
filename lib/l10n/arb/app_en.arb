@@ -9931,7 +9931,7 @@
     }
   },
   "gasCalculators_mod_checkTemperature": "Check gas density at a different temperature",
-  "gasCalculators_mod_temperatureHint": "Colder gas is denser, so the density check follows the temperature chosen here, not the actual gas temperature at depth.",
+  "gasCalculators_mod_temperatureHint": "Colder gas is denser. The density check assumes the temperature chosen here, not the actual gas temperature at depth.",
   "gasCalculators_mod_openDensity": "Open in the gas density calculator",
   "gasCalculators_mod_assessmentTitle": "Assessment",
   "gasCalculators_mod_recBeyondLimit": "The MOD lies deeper than the recreational limit of {limit}. Down there narcosis and gas density, not oxygen, set the limit.",

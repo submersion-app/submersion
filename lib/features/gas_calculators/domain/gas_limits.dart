@@ -197,6 +197,9 @@ class GasLimitsResult {
   final double o2Percent;
   final double hePercent;
 
+  /// The gas temperature every [DepthAssessment.densityGPerL] assumes.
+  final GasDensityTemperature densityTemperature;
+
   /// The ppO2 the headline MOD is computed for.
   final double modPpO2;
 
@@ -233,6 +236,7 @@ class GasLimitsResult {
     required this.mode,
     required this.o2Percent,
     required this.hePercent,
+    required this.densityTemperature,
     required this.modPpO2,
     required this.modMeters,
     required this.secondaryModMeters,
@@ -316,6 +320,7 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     mode: inputs.mode,
     o2Percent: o2,
     hePercent: he,
+    densityTemperature: inputs.temperature,
     modPpO2: modPpO2,
     modMeters: mod,
     secondaryModMeters: secondaryMod,

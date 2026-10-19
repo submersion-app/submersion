@@ -15858,7 +15858,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_mod_temperatureHint =>
-      '较冷的气体密度更大,因此密度检查采用此处选择的温度,而非深度处气体的实际温度。';
+      '较冷的气体密度更大，因此密度检查采用此处选择的温度，而非深度处气体的实际温度。';
 
   @override
   String get gasCalculators_mod_openDensity => '在气体密度计算器中打开';
