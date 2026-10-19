@@ -294,10 +294,6 @@ class _ChecklistTemplateEditPageState
     Widget buildItem(BuildContext context, _EditableTemplateItem item) =>
         ListTile(
           title: Text(item.title),
-          leading: IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _removeItem(item),
-          ),
           onTap: () => _addOrEditItem(item: item),
         );
 
@@ -375,6 +371,7 @@ class _ChecklistTemplateEditPageState
           ];
         });
       },
+      onDeleteItem: (item) async => _removeItem(item),
     );
   }
 }

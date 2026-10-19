@@ -392,14 +392,6 @@ class _PreDiveTemplateEditPageState
                 ),
             ],
           ),
-          // No leading column at all in read-only mode -- see the removed
-          // comment above the old ReorderableListView for why.
-          leading: _readOnly
-              ? null
-              : IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => _removeItem(item),
-                ),
           onTap: _readOnly ? null : () => _addOrEditItem(item: item),
         );
 
@@ -478,6 +470,7 @@ class _PreDiveTemplateEditPageState
           ];
         });
       },
+      onDeleteItem: (item) async => _removeItem(item),
     );
   }
 }

@@ -6,7 +6,8 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_it
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// A single checklist row: checkbox, title, optional due chip, edit/delete.
+/// A single checklist row: checkbox, title, optional due chip. Tap to edit;
+/// deleting is the section editor's trailing delete button, not this tile's.
 class ChecklistItemTile extends ConsumerWidget {
   final TripChecklistItem item;
 
@@ -14,7 +15,6 @@ class ChecklistItemTile extends ConsumerWidget {
   final bool showOverdue;
   final ValueChanged<bool> onToggle;
   final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
 
   const ChecklistItemTile({
     super.key,
@@ -22,7 +22,6 @@ class ChecklistItemTile extends ConsumerWidget {
     required this.showOverdue,
     required this.onToggle,
     this.onEdit,
-    this.onDelete,
   });
 
   @override
@@ -86,23 +85,7 @@ class ChecklistItemTile extends ConsumerWidget {
                   ),
               ],
             ),
-      trailing: PopupMenuButton<String>(
-        iconSize: 20,
-        onSelected: (value) {
-          if (value == 'edit') onEdit?.call();
-          if (value == 'delete') onDelete?.call();
-        },
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            value: 'edit',
-            child: Text(context.l10n.checklists_item_edit),
-          ),
-          PopupMenuItem(
-            value: 'delete',
-            child: Text(context.l10n.checklists_item_delete),
-          ),
-        ],
-      ),
+      onTap: onEdit,
     );
   }
 }

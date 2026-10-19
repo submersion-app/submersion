@@ -259,7 +259,6 @@ class TripChecklistSection extends ConsumerWidget {
           categorySuggestions: sectionTitles,
           currentSectionTitle: sectionTitle,
         ),
-        onDelete: () => repository.deleteItem(item.id),
       );
     }
 
@@ -290,6 +289,7 @@ class TripChecklistSection extends ConsumerWidget {
         targetSectionId: targetSectionId,
         orderedIds: orderedIds,
       ),
+      onDeleteItem: (item) => repository.deleteItem(item.id),
     );
   }
 }

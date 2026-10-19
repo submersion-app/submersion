@@ -66,6 +66,7 @@ class SectionListEditor<T> extends StatefulWidget {
     List<String> orderedIds,
   )
   onMoveItem;
+  final Future<void> Function(T item) onDeleteItem;
 
   const SectionListEditor({
     super.key,
@@ -82,6 +83,7 @@ class SectionListEditor<T> extends StatefulWidget {
     required this.onReorderSections,
     required this.onDeleteSection,
     required this.onMoveItem,
+    required this.onDeleteItem,
   });
 
   @override
@@ -328,102 +330,115 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
   Widget _buildSection(SectionGroup<T> section) {
     final idx = widget.sections.indexOf(section);
     final canDelete = widget.sections.length > 1;
-    return DragTarget<_ItemDrag>(
-      onWillAcceptWithDetails: (details) => true,
-      onAcceptWithDetails: (details) {
-        final dragged = details.data;
-        if (dragged.sectionId == section.id) return;
-        final item = _findItem(dragged.itemId, dragged.sectionId);
-        if (item == null) return;
-        _moveItem(item, dragged.sectionId, section.id, null);
-      },
-      builder: (context, candidateItems, rejectedItems) {
-        return DragTarget<String>(
-          onWillAcceptWithDetails: (details) => details.data != section.id,
-          onAcceptWithDetails: (details) =>
-              _reorderSection(details.data, section.id),
-          builder: (context, candidateSections, rejectedSections) {
-            final highlighted =
-                candidateItems.isNotEmpty || candidateSections.isNotEmpty;
-            return Container(
-              color: highlighted
-                  ? Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer.withValues(alpha: 0.3)
-                  : null,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
-                    child: Row(
-                      children: [
-                        Draggable<String>(
-                          data: section.id,
-                          feedback: Material(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Text(section.title),
-                            ),
-                          ),
-                          child: const Icon(Icons.drag_handle),
-                        ),
-                        _ReorderArrows(
-                          canMoveUp: idx > 0,
-                          canMoveDown: idx < widget.sections.length - 1,
-                          onMoveUp: () => _nudgeSection(section, -1),
-                          onMoveDown: () => _nudgeSection(section, 1),
-                        ),
-                        Expanded(
-                          child: TextField(
-                            controller: _controllerFor(section),
-                            focusNode: _focusNodeFor(section),
-                            onSubmitted: (_) => _commitRename(section),
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: DragTarget<_ItemDrag>(
+        onWillAcceptWithDetails: (details) => true,
+        onAcceptWithDetails: (details) {
+          final dragged = details.data;
+          if (dragged.sectionId == section.id) return;
+          final item = _findItem(dragged.itemId, dragged.sectionId);
+          if (item == null) return;
+          _moveItem(item, dragged.sectionId, section.id, null);
+        },
+        builder: (context, candidateItems, rejectedItems) {
+          return DragTarget<String>(
+            onWillAcceptWithDetails: (details) => details.data != section.id,
+            onAcceptWithDetails: (details) =>
+                _reorderSection(details.data, section.id),
+            builder: (context, candidateSections, rejectedSections) {
+              final highlighted =
+                  candidateItems.isNotEmpty || candidateSections.isNotEmpty;
+              final theme = Theme.of(context);
+              return Card(
+                color: highlighted
+                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+                    : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _controllerFor(section),
+                              focusNode: _focusNodeFor(section),
+                              onSubmitted: (_) => _commitRename(section),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: const InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 12,
                                 ),
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
+                                border: InputBorder.none,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: canDelete
-                              ? () => _confirmDeleteSection(section)
-                              : null,
-                        ),
-                      ],
-                    ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: canDelete
+                                ? () => _confirmDeleteSection(section)
+                                : null,
+                          ),
+                          _ReorderArrows(
+                            canMoveUp: idx > 0,
+                            canMoveDown: idx < widget.sections.length - 1,
+                            onMoveUp: () => _nudgeSection(section, -1),
+                            onMoveDown: () => _nudgeSection(section, 1),
+                          ),
+                          Draggable<String>(
+                            data: section.id,
+                            feedback: Material(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(section.title),
+                              ),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8),
+                              child: Icon(Icons.drag_handle),
+                            ),
+                          ),
+                        ],
+                      ),
+                      for (final item in section.items)
+                        _buildItemRow(item, section.items, section.id),
+                    ],
                   ),
-                  for (final item in section.items)
-                    _buildItemRow(item, section.items, section.id),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildUnsectionedGroup(List<T> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 4, 4),
-          child: Text(
-            widget.noSectionLabel,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.noSectionLabel,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              for (final item in items) _buildItemRow(item, items, null),
+            ],
           ),
         ),
-        for (final item in items) _buildItemRow(item, items, null),
-      ],
+      ),
     );
   }
 
@@ -447,6 +462,17 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
               : null,
           child: Row(
             children: [
+              Expanded(child: widget.itemBuilder(context, item)),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => widget.onDeleteItem(item),
+              ),
+              _ReorderArrows(
+                canMoveUp: idx > 0,
+                canMoveDown: idx < bucket.length - 1,
+                onMoveUp: () => _nudgeItem(bucket, sectionId, item, -1),
+                onMoveDown: () => _nudgeItem(bucket, sectionId, item, 1),
+              ),
               Draggable<_ItemDrag>(
                 data: _ItemDrag(id, sectionId),
                 feedback: Material(
@@ -460,15 +486,11 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                   opacity: 0.3,
                   child: Icon(Icons.drag_handle),
                 ),
-                child: const Icon(Icons.drag_handle),
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.drag_handle),
+                ),
               ),
-              _ReorderArrows(
-                canMoveUp: idx > 0,
-                canMoveDown: idx < bucket.length - 1,
-                onMoveUp: () => _nudgeItem(bucket, sectionId, item, -1),
-                onMoveDown: () => _nudgeItem(bucket, sectionId, item, 1),
-              ),
-              Expanded(child: widget.itemBuilder(context, item)),
             ],
           ),
         );
@@ -477,6 +499,9 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
   }
 }
 
+/// Up/down nudge buttons, laid out side by side so they sit in a row's
+/// trailing area alongside a delete button and drag handle (matching
+/// NavOrderEditor's reorder-row convention) rather than stacked.
 class _ReorderArrows extends StatelessWidget {
   final bool canMoveUp;
   final bool canMoveDown;
@@ -492,21 +517,17 @@ class _ReorderArrows extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_up),
-          iconSize: 18,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 28, minHeight: 20),
+          visualDensity: VisualDensity.compact,
           onPressed: canMoveUp ? onMoveUp : null,
         ),
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_down),
-          iconSize: 18,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 28, minHeight: 20),
+          visualDensity: VisualDensity.compact,
           onPressed: canMoveDown ? onMoveDown : null,
         ),
       ],

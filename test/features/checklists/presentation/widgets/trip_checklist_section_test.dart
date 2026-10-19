@@ -235,7 +235,9 @@ void main() {
       expect(items.single.isDone, isTrue);
     });
 
-    testWidgets('editing an item via the tile menu updates it', (tester) async {
+    testWidgets('tapping an item opens the edit sheet and updates it', (
+      tester,
+    ) async {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
@@ -247,9 +249,7 @@ void main() {
       );
       await pumpSection(tester);
 
-      await tester.tap(find.byType(PopupMenuButton<String>).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit item'));
+      await tester.tap(find.widgetWithText(ListTile, 'Fins'));
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -264,9 +264,7 @@ void main() {
       expect(items.single.title, 'Split fins');
     });
 
-    testWidgets('deleting an item via the tile menu removes it', (
-      tester,
-    ) async {
+    testWidgets('tapping an item\'s delete icon removes it', (tester) async {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
@@ -279,9 +277,7 @@ void main() {
       await pumpSection(tester);
       expect(find.text('Fins'), findsOneWidget);
 
-      await tester.tap(find.byType(PopupMenuButton<String>).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete item'));
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
