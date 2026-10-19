@@ -118,15 +118,9 @@ class SiteRuleApplier {
     if (wanted.isEmpty) {
       return AppliedAction(const [], skippedMissingRef: missing);
     }
-    Future<Map<String, List<String>>> members(List<String> siteIds) =>
-        linkedIds(
-          _db,
-          table: tags ? 'site_tags' : 'site_site_types',
-          ownerColumn: 'site_id',
-          linkColumn: tags ? 'tag_id' : 'site_type_id',
-          ownerIds: siteIds,
-        );
-    final before = await members(ids);
+    Future<Map<String, List<String>>> read(List<String> siteIds) =>
+        members(a.collection, siteIds);
+    final before = await read(ids);
     final add = a.mode == MembershipMode.add;
     final changed = [
       for (final id in ids)
@@ -136,25 +130,48 @@ class SiteRuleApplier {
           id,
     ];
     for (final id in changed) {
-      switch ((tags, add)) {
-        case (true, true):
-          await _classification.addTags(id, wanted, notify: false);
-        case (true, false):
-          await _classification.removeTags(id, wanted, notify: false);
-        case (false, true):
-          await _classification.addTypes(id, wanted, notify: false);
-        case (false, false):
-          await _classification.removeTypes(id, wanted, notify: false);
-      }
+      await writeMembership(a.collection, add: add, siteId: id, ids: wanted);
     }
     final after = changed.isEmpty
         ? const <String, List<String>>{}
-        : await members(changed);
+        : await read(changed);
     return AppliedAction([
       for (final id in changed)
         if (!sameList(before[id]!, after[id]!))
           _change(rule, id, a.collection.name, before[id], after[id]),
     ], skippedMissingRef: missing);
+  }
+
+  /// Each site's members of [c], sorted.
+  Future<Map<String, List<String>>> members(
+    SiteCollection c,
+    List<String> siteIds,
+  ) => linkedIds(
+    _db,
+    table: c == SiteCollection.tags ? 'site_tags' : 'site_site_types',
+    ownerColumn: 'site_id',
+    linkColumn: c == SiteCollection.tags ? 'tag_id' : 'site_type_id',
+    ownerIds: siteIds,
+  );
+
+  /// Adds [ids] to, or removes them from, [c] on one site, without
+  /// notifying.
+  Future<void> writeMembership(
+    SiteCollection c, {
+    required bool add,
+    required String siteId,
+    required List<String> ids,
+  }) async {
+    switch ((c, add)) {
+      case (SiteCollection.tags, true):
+        await _classification.addTags(siteId, ids, notify: false);
+      case (SiteCollection.tags, false):
+        await _classification.removeTags(siteId, ids, notify: false);
+      case (SiteCollection.siteTypes, true):
+        await _classification.addTypes(siteId, ids, notify: false);
+      case (SiteCollection.siteTypes, false):
+        await _classification.removeTypes(siteId, ids, notify: false);
+    }
   }
 
   Future<AppliedAction> _append(

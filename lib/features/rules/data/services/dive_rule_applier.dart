@@ -130,19 +130,25 @@ class DiveRuleApplier {
     if (wanted.isEmpty) {
       return AppliedAction(const [], skippedMissingRef: missing);
     }
-    final before = await _members(a.collection, ids);
+    final before = await members(a.collection, ids);
     final changed = [
       for (final id in ids)
         if (_wouldChange(before[id]!, a.mode, wanted)) id,
     ];
     if (changed.isNotEmpty) {
       for (final chunk in ruleIdChunks(changed)) {
-        await _write(a, chunk, wanted);
+        await writeMembership(
+          a.collection,
+          add: a.mode == MembershipMode.add,
+          diveIds: chunk,
+          ids: wanted,
+          buddyRoleId: a.buddyRoleId,
+        );
       }
     }
     final after = changed.isEmpty
         ? const <String, List<Object>>{}
-        : await _members(a.collection, changed);
+        : await members(a.collection, changed);
     return AppliedAction([
       for (final id in changed)
         if (!sameList(before[id]!, after[id]!))
@@ -162,13 +168,16 @@ class DiveRuleApplier {
     };
   }
 
-  Future<void> _write(
-    DiveMembershipAction a,
-    List<String> diveIds,
-    List<String> ids,
-  ) async {
-    final add = a.mode == MembershipMode.add;
-    switch (a.collection) {
+  /// Adds [ids] to, or removes them from, [collection] on [diveIds] through
+  /// the bulk primitives. Added buddies get [buddyRoleId].
+  Future<void> writeMembership(
+    DiveCollection collection, {
+    required bool add,
+    required List<String> diveIds,
+    required List<String> ids,
+    String? buddyRoleId,
+  }) async {
+    switch (collection) {
       case DiveCollection.diveTypes:
         add
             ? await _dives.bulkAddDiveTypes(diveIds, ids)
@@ -189,7 +198,7 @@ class DiveRuleApplier {
         if (add) {
           await _buddies.bulkAddBuddies(
             diveIds,
-            await buddiesWithRole(ids, a.buddyRoleId),
+            await buddiesWithRole(ids, buddyRoleId),
             overwriteRole: false,
           );
         } else {
@@ -216,7 +225,7 @@ class DiveRuleApplier {
   }
 
   /// Each dive's members of [c], sorted; buddies as `{id, role}` maps.
-  Future<Map<String, List<Object>>> _members(
+  Future<Map<String, List<Object>>> members(
     DiveCollection c,
     List<String> diveIds,
   ) async {
