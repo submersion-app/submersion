@@ -111,7 +111,8 @@ AccountGroup _syncGroup(String label) {
   ).single;
 }
 
-/// A Google Drive account signed in here that nothing uses yet.
+/// A Google Drive account nothing uses yet, not signed in here: choosing it
+/// signs in (a signed-in account is not asked for a second consent).
 AccountGroup _driveGroup() {
   final at = DateTime.utc(2026);
   return groupAccounts(
@@ -124,7 +125,7 @@ AccountGroup _driveGroup() {
         updatedAt: at,
       ),
     ],
-    statusById: const {'drive-row': AccountStatus.signedIn},
+    statusById: const {'drive-row': AccountStatus.needsSignIn},
     localLocationById: const {},
     usagesOf: (_) => const [],
   ).single;
@@ -505,6 +506,11 @@ void main() {
                 ? null
                 : (cloudProvider ?? FakeCloudStorageProvider()),
           ),
+          // The account sheet signs Google in through the per-kind provider.
+          if (cloudProvider != null)
+            cloudStorageProviderForProvider(
+              CloudProviderType.googledrive,
+            ).overrideWithValue(cloudProvider),
           conflictsProvider.overrideWith((ref) async => const []),
           // The adopt flow's safety backup must never construct the real
           // BackupService (it would touch the DatabaseService singleton).
