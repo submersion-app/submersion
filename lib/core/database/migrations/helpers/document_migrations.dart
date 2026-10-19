@@ -200,7 +200,9 @@ extension DocumentMigrations on AppDatabase {
     ).get();
     if (withPhotos.isEmpty) return;
     final cards = {
-      for (final r in await customSelect('SELECT id FROM documents').get())
+      for (final r in await customSelect(
+        "SELECT id FROM documents WHERE type = 'certificationCard'",
+      ).get())
         r.read<String>('id'),
       if (await _tableExists('deletion_log'))
         for (final r in await customSelect(
@@ -209,13 +211,16 @@ extension DocumentMigrations on AppDatabase {
         ).get())
           r.read<String>('record_id'),
     };
-    for (final r in withPhotos) {
-      final certId = r.read<String>('id');
-      if (!cards.contains(documentCertificationCardId(certId))) continue;
+    final copied = [
+      for (final r in withPhotos)
+        if (cards.contains(documentCertificationCardId(r.read<String>('id'))))
+          r.read<String>('id'),
+    ];
+    for (final chunk in copied.slices(500)) {
       await customStatement(
         'UPDATE certifications SET photo_front = NULL, photo_back = NULL '
-        'WHERE id = ?',
-        [certId],
+        'WHERE id IN (${List.filled(chunk.length, '?').join(', ')})',
+        chunk,
       );
     }
   }
