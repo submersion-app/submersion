@@ -113,12 +113,13 @@ class RuleUndoService {
     if (run == null || run.isUndone) {
       return const RuleUndoResult(alreadyUndone: true);
     }
-    final changes = await _runs.getChanges(runId);
-    // The run synced but its change rows have not arrived yet: nothing to
-    // undo here so far, and the run must stay undoable.
-    if (changes.isEmpty && run.changedCount > 0) {
+    // The run synced but some of its change rows have not arrived yet:
+    // undoing only those here would mark the run undone and leave the rest
+    // applied for good, so it waits, undoable.
+    if (await _runs.arrivedTargetCount(runId) < run.changedCount) {
       return const RuleUndoResult(nothingYet: true);
     }
+    final changes = await _runs.getChanges(runId);
     final restoredDives = <String>{};
     final result = await _db.transaction(() async {
       // Checked again inside: transactions run one at a time, so an undo

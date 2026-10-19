@@ -94,25 +94,23 @@ class SiteMatchReviewPage extends ConsumerWidget {
         longitude: point.longitude,
       );
       if (draft == null || !context.mounted) return;
+      // Read now: the site exists even if the diver leaves while it is
+      // made, and gets its logbook rules (#3513) either way.
+      final rulesAfterCreate = captureRulesAfterCreate(context, ref);
       final created = await notifier.createSiteHere(p.dive.id, draft);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            created == null
-                ? l10n.siteMatchReview_applyError
-                : l10n.diveLog_edit_createdSite(created.name),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              created == null
+                  ? l10n.siteMatchReview_applyError
+                  : l10n.diveLog_edit_createdSite(created.name),
+            ),
           ),
-        ),
-      );
-      // Logbook rules for the site created by hand (#3513).
-      if (created != null) {
-        await runRulesAfterCreate(
-          context,
-          ref,
-          subject: RuleSubject.sites,
-          ids: [created.id],
         );
+      }
+      if (created != null) {
+        await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
       }
     }
 

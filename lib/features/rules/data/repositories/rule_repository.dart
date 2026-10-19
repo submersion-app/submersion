@@ -283,7 +283,7 @@ class RuleRepository {
         problem ??= RuleLoadProblem.unreadable;
       }
     } on RuleJsonException catch (e) {
-      problem = e.message.contains('newer')
+      problem = e.newerVersion
           ? RuleLoadProblem.newerVersion
           : problem ?? RuleLoadProblem.unreadable;
     } on FormatException {

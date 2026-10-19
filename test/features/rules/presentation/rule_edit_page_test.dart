@@ -277,6 +277,36 @@ void main() {
     expect(save().onPressed, isNotNull);
   });
 
+  testWidgets('switching subject clears a half-typed condition\'s block', (
+    tester,
+  ) async {
+    // The new subject's condition editor starts empty: nothing on screen
+    // is wrong, so nothing may hold Save back.
+    await pumpEditor(tester);
+    await tester.enterText(find.byKey(const ValueKey('rule_name')), 'Walls');
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey('rule_condition_dives')),
+        matching: find.byType(TextField),
+      ),
+      'depth >',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sites'));
+    await tester.pumpAndSettle();
+    await addAction(tester, 'Append to description');
+    await tester.enterText(
+      find.byKey(const ValueKey('rule_value_append')),
+      'Wall dive',
+    );
+    await tester.tap(find.byKey(const ValueKey('rule_action_ok')));
+    await tester.pumpAndSettle();
+    final save = tester.widget<AppBarTextAction>(
+      find.byKey(const ValueKey('rule_save')),
+    );
+    expect(save.onPressed, isNotNull);
+  });
+
   testWidgets('the condition shows a live match count', (tester) async {
     await tester.runAsync(() async {
       await seedRuleDive(db, 'd1', maxDepth: 25);

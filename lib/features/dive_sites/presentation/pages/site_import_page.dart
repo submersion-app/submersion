@@ -49,41 +49,43 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
 
   Future<void> _importSite(ExternalDiveSite site) async {
     final notifier = ref.read(externalSiteSearchProvider.notifier);
+    // Read now: importing a site from the search is creating it by hand
+    // (#3513), and it gets its rules even if the diver leaves meanwhile.
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     final importedSite = await notifier.importSite(site);
 
-    if (!mounted) return;
+    if (mounted) {
+      if (importedSite != null) {
+        setState(() {
+          _importedIds.add(site.externalId);
+        });
 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.diveSites_import_snackbar_imported(site.name),
+            ),
+            action: SnackBarAction(
+              label: context.l10n.diveSites_import_snackbar_viewAction,
+              onPressed: () {
+                context.push('/sites/${importedSite.id}');
+              },
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveSites_import_snackbar_failed),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
     if (importedSite != null) {
-      setState(() {
-        _importedIds.add(site.externalId);
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.l10n.diveSites_import_snackbar_imported(site.name),
-          ),
-          action: SnackBarAction(
-            label: context.l10n.diveSites_import_snackbar_viewAction,
-            onPressed: () {
-              context.push('/sites/${importedSite.id}');
-            },
-          ),
-        ),
-      );
-      // Importing a site from the search is creating it by hand (#3513).
-      await runRulesAfterCreate(
-        context,
-        ref,
+      await rulesAfterCreate(
         subject: RuleSubject.sites,
         ids: [importedSite.id],
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.diveSites_import_snackbar_failed),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
       );
     }
   }

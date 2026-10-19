@@ -595,6 +595,9 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
   }
 
   Future<void> _addBuiltInSite(ExternalDiveSite site) async {
+    // Read now: adding a built-in site is creating a site by hand (#3513),
+    // and it gets its rules even if the diver leaves meanwhile.
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     final String addedId;
     try {
       addedId =
@@ -620,19 +623,14 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     }
     // addSite reloads the notifier but not the map's FutureProvider; invalidate
     // so the new site appears and the built-in duplicate is deduped out.
-    ref.invalidate(sitesWithCountsProvider);
-    if (!mounted) return;
-    setState(() => _selectedBuiltInId = null);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
-    );
-    // Adding a built-in site is creating a site by hand (#3513).
-    await runRulesAfterCreate(
-      context,
-      ref,
-      subject: RuleSubject.sites,
-      ids: [addedId],
-    );
+    if (mounted) {
+      ref.invalidate(sitesWithCountsProvider);
+      setState(() => _selectedBuiltInId = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
+      );
+    }
+    await rulesAfterCreate(subject: RuleSubject.sites, ids: [addedId]);
   }
 
   /// Where [sites] sit on the map, skipping any without coordinates.

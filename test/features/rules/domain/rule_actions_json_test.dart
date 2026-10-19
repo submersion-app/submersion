@@ -36,7 +36,23 @@ void main() {
   test('refuses a newer version', () {
     expect(
       () => ruleActionsFromJson({'version': 2, 'actions': <Object?>[]}),
-      throwsA(isA<RuleJsonException>()),
+      throwsA(
+        isA<RuleJsonException>().having(
+          (e) => e.newerVersion,
+          'newerVersion',
+          isTrue,
+        ),
+      ),
+    );
+    expect(
+      () => ruleActionsFromJson({'version': 1, 'actions': 'nope'}),
+      throwsA(
+        isA<RuleJsonException>().having(
+          (e) => e.newerVersion,
+          'newerVersion',
+          isFalse,
+        ),
+      ),
     );
   });
 

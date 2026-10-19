@@ -174,7 +174,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EquipmentServiceStatus,
     // Saved queries (v238, issue #2365)
     SavedQueries,
-    // Logbook rules and their run history (v292, issue #3513)
+    // Logbook rules and their run history (v301, issue #3513)
     Rules,
     RuleRuns,
     RuleRunChanges,

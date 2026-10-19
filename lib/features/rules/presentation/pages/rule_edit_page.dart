@@ -161,9 +161,12 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
               ],
               selected: {_subject},
               onSelectionChanged: (s) => setState(() {
-                // A condition and actions are written for one subject.
+                // A condition and actions are written for one subject. The
+                // new subject's editor starts empty, so no half-typed text
+                // of the old one holds Save back.
                 _subject = s.single;
                 _condition = null;
+                _conditionValid = true;
                 _actions = [];
               }),
             ),

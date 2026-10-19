@@ -164,7 +164,9 @@ class _ImportRulesBoxState extends ConsumerState<ImportRulesBox> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _undone = !combined.nothingYet && !combined.alreadyUndone;
+          // Gone once nothing is left to undo, including runs undone from
+          // the history meanwhile; only "nothing yet" keeps it.
+          _undone = !combined.nothingYet;
         });
       }
       messenger.showSnackBar(

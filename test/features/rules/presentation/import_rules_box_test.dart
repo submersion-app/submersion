@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
+import 'package:submersion/features/rules/data/services/rule_undo_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
@@ -122,6 +123,22 @@ void main() {
       'recreational',
     ]);
     expect(await tester.runAsync(diveCount), 2);
+    expect(find.text('Undo rule changes'), findsNothing);
+  });
+
+  testWidgets('Undo goes once the runs were undone elsewhere', (tester) async {
+    // Undone from the history meanwhile: there is nothing left for this
+    // button to do.
+    await tester.runAsync(() => RuleUndoService().undo(run.runId!));
+    await pump(tester);
+    await tester.tap(find.text('Undo rule changes'));
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 60)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
     expect(find.text('Undo rule changes'), findsNothing);
   });
 

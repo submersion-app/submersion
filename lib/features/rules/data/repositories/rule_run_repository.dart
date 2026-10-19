@@ -162,6 +162,22 @@ class RuleRunRepository {
     return [for (final r in rows) ?_changeFromRow(r)];
   }
 
+  /// How many of [runId]'s dives and sites have a change row here, read
+  /// from the rows as stored (a subject this version does not know
+  /// counts): fewer than the run's changedCount means some have not
+  /// synced yet.
+  Future<int> arrivedTargetCount(String runId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS n FROM (SELECT DISTINCT subject, target_id '
+          'FROM rule_run_changes WHERE run_id = ?)',
+          variables: [Variable.withString(runId)],
+          readsFrom: {_db.ruleRunChanges},
+        )
+        .getSingle();
+    return row.read<int>('n');
+  }
+
   Future<void> markUndone(String id, DateTime at) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.ruleRuns)..where((t) => t.id.equals(id))).write(

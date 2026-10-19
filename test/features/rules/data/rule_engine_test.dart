@@ -6,6 +6,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
@@ -308,6 +310,14 @@ void main() {
       expect(ensured.toSet(), {'d20', 'd35'});
     });
 
+    test('only the stale ones are rebuilt, found in one query', () async {
+      // A whole-logbook run must not check every dive one by one.
+      final metrics = _StaleOnly({'d35'});
+      await RuleEngine.ensureDerivedCurrent(['d20', 'd35'], metrics);
+      expect(metrics.staleQueries, 1);
+      expect(metrics.rebuilt, ['d35']);
+    });
+
     test('are left alone when no rule reads them', () async {
       final ensured = <String>[];
       await rule('Cold when deep', depthOver(30), tagCold);
@@ -329,4 +339,28 @@ void main() {
     expect(preview.changedAnything, isTrue);
     expect(notes, 0);
   });
+}
+
+/// Reports [stale] as the stale dives and notes each rebuild.
+class _StaleOnly extends DerivedMetricsRepository {
+  _StaleOnly(this.stale);
+
+  final Set<String> stale;
+  final rebuilt = <String>[];
+  var staleQueries = 0;
+
+  @override
+  Future<List<String>> staleDiveIds({String? diverId}) async {
+    staleQueries++;
+    return stale.toList();
+  }
+
+  @override
+  Future<DiveDerivedMetrics?> ensureCurrent(
+    String diveId, {
+    bool force = false,
+  }) async {
+    rebuilt.add(diveId);
+    return null;
+  }
 }

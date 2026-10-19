@@ -11,9 +11,13 @@ const int kRuleActionsJsonVersion = 1;
 
 /// A stored action list that cannot be read.
 class RuleJsonException implements Exception {
-  const RuleJsonException(this.message);
+  const RuleJsonException(this.message, {this.newerVersion = false});
 
   final String message;
+
+  /// The list was written by a newer version of the app, rather than
+  /// malformed: the rule is kept as stored, never rewritten here.
+  final bool newerVersion;
 
   @override
   String toString() => 'RuleJsonException: $message';
@@ -71,7 +75,10 @@ List<RuleAction> ruleActionsFromJson(Map<String, Object?> json) {
     throw const RuleJsonException('missing version');
   }
   if (version > kRuleActionsJsonVersion) {
-    throw RuleJsonException('version $version is newer than this app');
+    throw RuleJsonException(
+      'version $version is newer than this app',
+      newerVersion: true,
+    );
   }
   final list = json['actions'];
   if (list is! List) throw const RuleJsonException('actions is not a list');

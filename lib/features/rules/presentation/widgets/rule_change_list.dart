@@ -170,9 +170,10 @@ class RuleChangeList extends StatelessWidget {
     final rows = <(RuleChange change, bool header)>[];
     final groups = <String, List<RuleChange>>{};
     for (final c in changes) {
+      // By rule id: two rules may share a name (a copy renamed back).
       final key = grouping == RuleChangeGrouping.target
           ? '${c.subject.name}:${c.targetId}'
-          : c.ruleName;
+          : c.ruleId ?? c.ruleName;
       groups.putIfAbsent(key, () => []).add(c);
     }
     for (final group in groups.values) {

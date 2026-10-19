@@ -45,7 +45,7 @@ class RuleEngine {
        _names = names,
        _deviceLabel =
            deviceLabel ?? (() => const DeviceDisplayNameService().resolve()),
-       _ensureDerived = ensureDerived ?? _ensureDerivedCurrent,
+       _ensureDerived = ensureDerived ?? ensureDerivedCurrent,
        _afterDiveWrites = afterDiveWrites ?? refreshAfterRuleWrites;
 
   final RuleRepository _rules;
@@ -58,10 +58,17 @@ class RuleEngine {
   final Future<void> Function(Iterable<String> diveIds) _ensureDerived;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
 
-  static Future<void> _ensureDerivedCurrent(Iterable<String> diveIds) async {
-    final metrics = DerivedMetricsRepository();
+  /// Rebuilds the derived fields of those [diveIds] whose stored ones are
+  /// missing or stale, found in one query rather than checked one by one
+  /// (a run over a whole logbook judges every dive).
+  static Future<void> ensureDerivedCurrent(
+    Iterable<String> diveIds, [
+    DerivedMetricsRepository? repository,
+  ]) async {
+    final metrics = repository ?? DerivedMetricsRepository();
+    final stale = (await metrics.staleDiveIds()).toSet();
     for (final id in diveIds) {
-      await metrics.ensureCurrent(id);
+      if (stale.contains(id)) await metrics.ensureCurrent(id);
     }
   }
 
@@ -81,10 +88,11 @@ class RuleEngine {
     // would queue behind the transaction's lock while the transaction
     // waited for it.
     final names = await _names(request.diverId);
-    await _prepareDerived(request, names);
+    final rules = await _load(request, names);
+    await _prepareDerived(request, rules);
     try {
       return await _db.transaction<RuleRunResult>(() async {
-        throw _RollbackPreview(await _pass(request, names));
+        throw _RollbackPreview(await _pass(request, rules));
       });
     } on _RollbackPreview catch (p) {
       return p.result;
@@ -101,9 +109,10 @@ class RuleEngine {
     // All resolved before the transaction (see [preview]).
     final names = await _names(request.diverId);
     final device = await _device();
-    await _prepareDerived(request, names);
+    final rules = await _load(request, names);
+    await _prepareDerived(request, rules);
     final result = await _db.transaction(() async {
-      final pass = await _pass(request, names);
+      final pass = await _pass(request, rules);
       if (!pass.changedAnything) return pass;
       final runId = await _runs.insertRun(
         diverId: request.diverId,
@@ -129,16 +138,12 @@ class RuleEngine {
   /// import's or a new dive's can outpace. When a rule about to run reads
   /// them, the dives it will judge get them computed first, outside the
   /// transaction (as the names are).
-  Future<void> _prepareDerived(RuleRunRequest request, NameIndex names) async {
-    if (!request.targets.containsKey(RuleSubject.dives)) return;
-    final rules = await _rules.getAll(
-      subject: RuleSubject.dives,
-      diverId: request.diverId,
-      names: names,
-    );
-    final reads = rules.any(
+  Future<void> _prepareDerived(
+    RuleRunRequest request,
+    Map<RuleSubject, List<Rule>> rules,
+  ) async {
+    final reads = (rules[RuleSubject.dives] ?? const <Rule>[]).any(
       (r) =>
-          _selected(r, request) &&
           r.isRunnable &&
           _scope.reads(
             r.condition,
@@ -201,23 +206,36 @@ class RuleEngine {
     return false;
   }
 
-  Future<RuleRunResult> _pass(RuleRunRequest request, NameIndex names) async {
+  /// The diver's rules that [request] runs, per requested subject, in run
+  /// order. Loaded once, before the transaction, for both the derived
+  /// fields check and the pass (a run writes no rules).
+  Future<Map<RuleSubject, List<Rule>>> _load(
+    RuleRunRequest request,
+    NameIndex names,
+  ) async => {
+    for (final subject in RuleSubject.values)
+      if (request.targets.containsKey(subject))
+        subject: [
+          for (final r in await _rules.getAll(
+            subject: subject,
+            diverId: request.diverId,
+            names: names,
+          ))
+            if (_selected(r, request)) r,
+        ],
+  };
+
+  Future<RuleRunResult> _pass(
+    RuleRunRequest request,
+    Map<RuleSubject, List<Rule>> selected,
+  ) async {
     final changes = <RuleChange>[];
     final byRule = <String, Set<String>>{};
     final skipped = <String>[];
     final skippedActions = <String>{};
     var targetCount = 0;
     var outOfScope = 0;
-    for (final subject in RuleSubject.values) {
-      if (!request.targets.containsKey(subject)) continue;
-      final rules = [
-        for (final r in await _rules.getAll(
-          subject: subject,
-          diverId: request.diverId,
-          names: names,
-        ))
-          if (_selected(r, request)) r,
-      ];
+    for (final MapEntry(key: subject, value: rules) in selected.entries) {
       if (rules.isEmpty) continue;
       final requested = request.targets[subject];
       final eligible = requested == null

@@ -11,6 +11,7 @@ import 'package:submersion/features/rules/data/repositories/rule_repository.dart
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/pages/rules_page.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/rules/presentation/widgets/rules_page_menus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -115,6 +116,41 @@ void main() {
     expect(find.text('Append to description: Warm'), findsOneWidget);
     expect(find.text('Every dive'), findsOneWidget);
     expect(find.textContaining('After import'), findsWidgets);
+  });
+
+  testWidgets('a reorder that fails to save puts the rows back', (
+    tester,
+  ) async {
+    // The stored order is unchanged, so the screen must not keep showing
+    // an order the rules will not run in.
+    await tester.runAsync(() async {
+      await make('Alpha');
+      await make('Bravo');
+      await pumpRulesApp(
+        tester,
+        home: (_) => const RulesPage(),
+        extra: [ruleRepositoryProvider.overrideWithValue(_FailingReorder())],
+      );
+    });
+    await tester.pumpAndSettle();
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byIcon(Icons.drag_handle).first),
+    );
+    for (var i = 0; i < 12; i++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump();
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Something went wrong. Please try again.'), findsWidgets);
+    expect(
+      tester.getTopLeft(find.text('Alpha')).dy,
+      lessThan(tester.getTopLeft(find.text('Bravo')).dy),
+    );
   });
 
   testWidgets('the switch turns a rule off', (tester) async {
@@ -276,4 +312,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('1 dive will change.'), findsOneWidget);
   });
+}
+
+/// A repository whose reorder write fails.
+class _FailingReorder extends RuleRepository {
+  @override
+  Future<void> reorder(List<String> orderedIds) async =>
+      throw StateError('disk full');
 }

@@ -328,6 +328,42 @@ void main() {
     expect((await RuleRunRepository().getRun(run))!.isUndone, isFalse);
   });
 
+  test('a run with only some changes synced stays undoable', () async {
+    // Undoing the rows that arrived and marking the run undone would leave
+    // the rest applied for good once they land.
+    final run = await runRule(
+      const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),
+    );
+    await db.customStatement(
+      "DELETE FROM rule_run_changes WHERE target_id = 'd40'",
+    );
+    final result = await undo.undo(run);
+    expect(result.nothingYet, isTrue);
+    expect(result.restoredTargets, 0);
+    expect(await column('d35', 'water_type'), 'salt');
+    expect((await RuleRunRepository().getRun(run))!.isUndone, isFalse);
+  });
+
+  test('a change this version cannot read does not hold the run', () async {
+    // A newer version's change row (an unknown subject) is counted as
+    // arrived, so the run still undoes what this version can.
+    final run = await runRule(
+      const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),
+    );
+    await db.customStatement(
+      "UPDATE rule_runs SET changed_count = 3 WHERE id = '$run'",
+    );
+    await db.customStatement(
+      'INSERT INTO rule_run_changes (id, run_id, subject, target_id, '
+      'rule_name, field, before_json, after_json, created_at, updated_at) '
+      "VALUES ('x', '$run', 'boats', 'b1', 'Deep', 'name', 'null', 'null', "
+      '0, 0)',
+    );
+    final result = await undo.undo(run);
+    expect(result.restoredTargets, 2);
+    expect((await RuleRunRepository().getRun(run))!.isUndone, isTrue);
+  });
+
   test('undoing a trip change drops tank links into the trip left', () async {
     await db.customStatement(
       "INSERT INTO trips (id, name, start_date, end_date, created_at, "

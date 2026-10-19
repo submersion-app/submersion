@@ -128,6 +128,20 @@ void main() {
     expect(r!.problem, RuleLoadProblem.newerVersion);
   });
 
+  test('a malformed action is unreadable whatever its message', () async {
+    // The error text mentions "newer" by chance; only a newer version may
+    // open read-only and keep its stored JSON on save.
+    final id = await make('Broken');
+    await db.customStatement(
+      'UPDATE rules SET actions_json = '
+      '\'{"version":1,"actions":[{"kind":"setDiveField","field":["newer"],'
+      '"values":{}}]}\' '
+      "WHERE id = '$id'",
+    );
+    final r = await repo.getById(id, names: names);
+    expect(r!.problem, RuleLoadProblem.unreadable);
+  });
+
   test('saving keeps what a newer version added', () async {
     // A field this version lacks, inside an action kind it knows, and a
     // trigger it lacks: the rule must not run, and saving it here (say a

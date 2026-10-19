@@ -3091,7 +3091,7 @@ class SyncService {
     'cylinderFills': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
-    // v292: a rule run's change belongs to its run (issue #3513).
+    // v301: a rule run's change belongs to its run (issue #3513).
     'ruleRunChanges': [(field: 'runId', parent: 'ruleRuns', nullable: false)],
     // v202: a child item (O2 cell, battery) points at the item it is installed
     // in. Nullable: deleting the parent orphans the child, never drops it.

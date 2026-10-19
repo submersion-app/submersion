@@ -156,20 +156,25 @@ class _RuleListsState extends ConsumerState<_RuleLists> {
         if (i != oldIndex) list[i],
     ];
     final reordered = [...rest.take(newIndex), moved, ...rest.skip(newIndex)];
-    setState(() {
-      if (identical(list, _dives)) {
-        _dives = reordered;
+    final dives = identical(list, _dives);
+    void show(List<Rule> rules) => setState(() {
+      if (dives) {
+        _dives = rules;
       } else {
-        _sites = reordered;
+        _sites = rules;
       }
     });
+    show(reordered);
     try {
       await ref.read(ruleRepositoryProvider).reorder([
         for (final r in reordered) r.id,
       ]);
     } catch (e, st) {
       _log.error('Failed to reorder rules', error: e, stackTrace: st);
-      if (mounted) showRulesError(context);
+      if (!mounted) return;
+      // Nothing was stored: back to the order the rules still run in.
+      show(list);
+      showRulesError(context);
     }
   }
 
