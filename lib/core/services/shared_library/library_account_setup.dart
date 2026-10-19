@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -84,6 +85,7 @@ class LibraryAccountSetup {
       kind: AccountKind.s3,
       naturalKey: s3NaturalKey(config),
       label: '${config.bucket} @ ${config.displayHost} ($where)',
+      location: S3AccountLocation.fromConfig(config),
     );
     await _credentials.write(account.id, jsonEncode(config.toJson()));
     return account;
@@ -123,6 +125,7 @@ class LibraryAccountSetup {
       kind: AccountKind.webdav,
       naturalKey: webdavNaturalKey(config),
       label: '${config.displayLabel} ($where)',
+      location: WebDavAccountLocation.fromConfig(config),
     );
     await _credentials.write(account.id, jsonEncode(config.toJson()));
     return account;

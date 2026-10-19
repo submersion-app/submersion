@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/adapters/dropbox_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/google_drive_account_adapter.dart';
@@ -11,6 +12,16 @@ import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.da
 import 'package:submersion/core/services/accounts/adapters/webdav_account_adapter.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
+
+/// Acts on accounts (groups of roster rows): sign in, add a role, sign out
+/// and remove (issue #3482).
+final accountGroupServiceProvider = Provider<AccountGroupService>(
+  (ref) => AccountGroupService(
+    accounts: ref.watch(connectedAccountsRepositoryProvider),
+    credentials: ref.watch(accountCredentialsStoreProvider),
+    registry: ref.watch(accountProviderRegistryProvider),
+  ),
+);
 
 final connectedAccountsRepositoryProvider =
     Provider<ConnectedAccountsRepository>(

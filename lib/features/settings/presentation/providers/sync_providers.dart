@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
@@ -395,6 +396,7 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
       kind: kind,
       naturalKey: s3NaturalKey(config),
       label: '${config.bucket} @ ${config.displayHost}',
+      location: S3AccountLocation.fromConfig(config),
     );
   }
   if (kind == AccountKind.webdav) {
@@ -411,6 +413,7 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
       kind: kind,
       naturalKey: webdavNaturalKey(config),
       label: config.displayLabel,
+      location: WebDavAccountLocation.fromConfig(config),
     );
   }
   return repo.ensure(

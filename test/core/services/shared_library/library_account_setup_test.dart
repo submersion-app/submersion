@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
@@ -64,6 +65,15 @@ void main() {
       expect(sync['accessKeyId'], 'AKIASYNC', reason: 'sync keys untouched');
     },
   );
+
+  // Issue #3482: a library account's location carries its library folder.
+  test('an S3 library account records its location and folder', () async {
+    final account = await setup.saveS3(s3(), folder: 'club');
+    final location =
+        (await ConnectedAccountsRepository().getById(account.id))!.location
+            as S3AccountLocation;
+    expect(location.prefix, 'submersion-sites/club/');
+  });
 
   test('a WebDAV account for libraries keeps its own folder', () async {
     final account = await setup.saveWebDav(
