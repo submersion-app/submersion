@@ -16,6 +16,7 @@ import 'package:submersion/features/media/presentation/providers/color_correctio
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -293,6 +294,15 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                             )
                           : null,
                     ),
+                    // What colour correction the item is drawn with.
+                    Positioned(
+                      top:
+                          MediaQuery.paddingOf(context).top +
+                          kToolbarHeight +
+                          12,
+                      left: 12,
+                      child: ColorCorrectionLabel(item: currentItem),
+                    ),
                     // Previous / next controls. Mounted with the rest of the
                     // chrome, so the tap-to-hide gesture takes them away too.
                     MediaNavArrows(
@@ -323,7 +333,9 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                   item: currentItem,
                   layout: layout,
                   pickWhiteAvailable: !currentItem.isVideo,
-                  onPickWhite: () => setState(() => _pickingWhite = true),
+                  // Tapping Pick white again cancels it.
+                  onPickWhite: () =>
+                      setState(() => _pickingWhite = !_pickingWhite),
                   onDone: () => setState(() {
                     _colorPanelOpen = false;
                     _pickingWhite = false;

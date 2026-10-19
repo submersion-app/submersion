@@ -137,6 +137,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// Enters "Pick white"; a video is paused first so the tap reads the
   /// frame on screen.
   void _startPickingWhite(MediaItem item) {
+    // Tapping Pick white again cancels it.
+    if (_pickingWhite) {
+      setState(() => _pickingWhite = false);
+      return;
+    }
     if (item.isVideo) unawaited(_videoControllers[item.id]?.pause());
     setState(() => _pickingWhite = true);
   }

@@ -227,6 +227,53 @@ void main() {
     expect(find.text('Adjusted'), findsOneWidget);
   });
 
+  testWidgets('the site viewer labels an adjusted photo', (tester) async {
+    await pump(
+      tester,
+      const SiteMediaViewerPage(
+        siteId: 'site-1',
+        initialMediaId: 'a',
+        scope: SiteViewerScope.attachments,
+      ),
+      overrides: [
+        mediaForSiteProvider('site-1').overrideWith(
+          (ref) async => [
+            photo(
+              'a',
+              siteId: 'site-1',
+              adjustment: const ColorAdjustment(tint: 0.3),
+            ),
+          ],
+        ),
+        flatMediaFromDivesAtSiteProvider(
+          'site-1',
+        ).overrideWith((ref) async => const <MediaItem>[]),
+      ],
+    );
+    expect(find.text('Adjusted'), findsOneWidget);
+  });
+
+  testWidgets('tapping Pick white again cancels it', (tester) async {
+    await pump(
+      tester,
+      MediaViewerPage(mediaList: [photo('a')], initialMediaId: 'a'),
+      size: const Size(1200, 800),
+    );
+    await openPanel(tester);
+    await tester.tap(find.text('Pick white'));
+    await tester.pump();
+    expect(
+      find.text('Tap something that should be white or gray'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Pick white'));
+    await tester.pump();
+    expect(
+      find.text('Tap something that should be white or gray'),
+      findsNothing,
+    );
+  });
+
   testWidgets('the site viewer offers the panel too', (tester) async {
     await pump(
       tester,
