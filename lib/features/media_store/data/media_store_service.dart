@@ -317,7 +317,10 @@ class MediaStoreService {
       // A reused account keeps its own location unless the config is the
       // one its id was made from: a location never names another row.
       if (account.id ==
-          accountIdFor(kind: AccountKind.s3, naturalKey: s3NaturalKey(config))) {
+          accountIdFor(
+            kind: AccountKind.s3,
+            naturalKey: s3NaturalKey(config),
+          )) {
         await _accounts.setLocation(
           account.id,
           S3AccountLocation.fromConfig(config),
