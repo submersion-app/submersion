@@ -55,3 +55,81 @@ class RuleRun {
 
   bool get isUndone => undoneAt != null;
 }
+
+/// What to run the rules on (#3513). A null target set for a subject means
+/// every dive or site the diver's rules may change; a subject missing from
+/// [targets] is not run. [onlyRuleIds] narrows the run to those rules,
+/// enabled or not ("Run on all" from a rule's row). Automatic triggers run
+/// only the rules that chose them; on-demand runs ignore trigger choices.
+class RuleRunRequest {
+  const RuleRunRequest({
+    required this.diverId,
+    required this.trigger,
+    required this.targets,
+    this.sourceLabel,
+    this.onlyRuleIds,
+  });
+
+  final String diverId;
+  final RuleRunTrigger trigger;
+  final Map<RuleSubject, Set<String>?> targets;
+  final String? sourceLabel;
+  final List<String>? onlyRuleIds;
+}
+
+/// What a run (or its preview) did.
+class RuleRunResult {
+  const RuleRunResult({
+    required this.runId,
+    required this.changes,
+    required this.changedTargetCount,
+    required this.changedCountByRule,
+    required this.skippedRuleNames,
+    required this.skippedActionRuleNames,
+    required this.targetCount,
+    required this.outOfScopeCount,
+    required this.ruleCount,
+  });
+
+  static const empty = RuleRunResult(
+    runId: null,
+    changes: [],
+    changedTargetCount: 0,
+    changedCountByRule: {},
+    skippedRuleNames: [],
+    skippedActionRuleNames: [],
+    targetCount: 0,
+    outOfScopeCount: 0,
+    ruleCount: 0,
+  );
+
+  /// The history entry, or null for a preview or a run that changed
+  /// nothing.
+  final String? runId;
+  final List<RuleChange> changes;
+
+  /// Distinct dives and sites changed.
+  final int changedTargetCount;
+
+  /// Distinct targets each rule changed, by rule name.
+  final Map<String, int> changedCountByRule;
+
+  /// Rules that could not run (a condition that no longer loads, an action
+  /// from a newer version).
+  final List<String> skippedRuleNames;
+
+  /// Rules that ran but skipped an action naming something deleted.
+  final List<String> skippedActionRuleNames;
+
+  /// Eligible targets the run considered.
+  final int targetCount;
+
+  /// Requested targets left out because the diver may not change them (a
+  /// library site, another profile's site, an unlogged plan).
+  final int outOfScopeCount;
+
+  /// Rules that ran.
+  final int ruleCount;
+
+  bool get changedAnything => changes.isNotEmpty;
+}
