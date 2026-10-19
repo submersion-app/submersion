@@ -18943,6 +18943,98 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_closeTooltip => 'إغلاق عارض الصور';
 
   @override
+  String get media_color_adjustAction => 'ضبط الألوان';
+
+  @override
+  String get media_color_auto => 'تلقائي';
+
+  @override
+  String get media_color_pickWhite => 'اختيار الأبيض';
+
+  @override
+  String get media_color_pickWhiteHint =>
+      'انقر على شيء يُفترض أن يكون أبيض أو رماديًا';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'تعذّرت قراءة لون في هذا الموضع. جرّب موضعًا أكثر سطوعًا.';
+
+  @override
+  String get media_color_original => 'الأصل';
+
+  @override
+  String get media_color_strength => 'القوة';
+
+  @override
+  String get media_color_warmth => 'الدفء';
+
+  @override
+  String get media_color_tint => 'الصبغة';
+
+  @override
+  String get media_color_brightness => 'السطوع';
+
+  @override
+  String get media_color_contrast => 'التباين';
+
+  @override
+  String get media_color_saturation => 'التشبع';
+
+  @override
+  String get media_color_reset => 'إعادة تعيين';
+
+  @override
+  String get media_color_applyToDive => 'تطبيق على هذه الغطسة';
+
+  @override
+  String get media_color_applyToDiveTitle => 'تطبيق على هذه الغطسة؟';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستستخدم $count من الصور ومقاطع الفيديو الأخرى هذه التعديلات.',
+      many: 'ستستخدم $count صورة ومقطع فيديو آخر هذه التعديلات.',
+      few: 'ستستخدم $count صور ومقاطع فيديو أخرى هذه التعديلات.',
+      two: 'ستستخدم صورتان أو مقطعا فيديو آخران هذه التعديلات.',
+      one: 'ستستخدم صورة أو مقطع فيديو آخر هذه التعديلات.',
+    );
+    return '$_temp0 تُحفظ نقاط البياض الخاصة بكل منها.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count من الصور ومقاطع الفيديو',
+      many: 'تم تحديث $count صورة ومقطع فيديو',
+      few: 'تم تحديث $count صور ومقاطع فيديو',
+      two: 'تم تحديث صورتين أو مقطعَي فيديو',
+      one: 'تم تحديث صورة أو مقطع فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'تراجع';
+
+  @override
+  String get media_color_undoFailed => 'تعذّر التراجع عن التغيير';
+
+  @override
+  String get media_color_saveFailed => 'تعذّر حفظ ضبط الألوان';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · تلقائي';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'معدّلة';
+
+  @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
       'تمت كتابة بيانات الغوصة على الصورة';
 

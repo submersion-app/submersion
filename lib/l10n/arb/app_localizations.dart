@@ -29839,6 +29839,138 @@ abstract class AppLocalizations {
   /// **'Close photo viewer'**
   String get media_photoViewer_closeTooltip;
 
+  /// No description provided for @media_color_adjustAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust color'**
+  String get media_color_adjustAction;
+
+  /// No description provided for @media_color_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get media_color_auto;
+
+  /// No description provided for @media_color_pickWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick white'**
+  String get media_color_pickWhite;
+
+  /// No description provided for @media_color_pickWhiteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap something that should be white or gray'**
+  String get media_color_pickWhiteHint;
+
+  /// No description provided for @media_color_pickWhiteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read a color there. Try a brighter spot.'**
+  String get media_color_pickWhiteFailed;
+
+  /// No description provided for @media_color_original.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get media_color_original;
+
+  /// No description provided for @media_color_strength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength'**
+  String get media_color_strength;
+
+  /// No description provided for @media_color_warmth.
+  ///
+  /// In en, this message translates to:
+  /// **'Warmth'**
+  String get media_color_warmth;
+
+  /// No description provided for @media_color_tint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tint'**
+  String get media_color_tint;
+
+  /// No description provided for @media_color_brightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get media_color_brightness;
+
+  /// No description provided for @media_color_contrast.
+  ///
+  /// In en, this message translates to:
+  /// **'Contrast'**
+  String get media_color_contrast;
+
+  /// No description provided for @media_color_saturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get media_color_saturation;
+
+  /// No description provided for @media_color_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get media_color_reset;
+
+  /// No description provided for @media_color_applyToDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to this dive'**
+  String get media_color_applyToDive;
+
+  /// No description provided for @media_color_applyToDiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to this dive?'**
+  String get media_color_applyToDiveTitle;
+
+  /// No description provided for @media_color_applyToDiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} other photo or video will use these adjustments.} other{{count} other photos and videos will use these adjustments.}} Their own white points are kept.'**
+  String media_color_applyToDiveBody(int count);
+
+  /// No description provided for @media_color_appliedToDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated {count} photo or video} other{Updated {count} photos and videos}}'**
+  String media_color_appliedToDive(int count);
+
+  /// No description provided for @media_color_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get media_color_undo;
+
+  /// No description provided for @media_color_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the change'**
+  String get media_color_undoFailed;
+
+  /// No description provided for @media_color_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the color adjustment'**
+  String get media_color_saveFailed;
+
+  /// No description provided for @media_color_labelAutoDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'{depth} · auto'**
+  String media_color_labelAutoDepth(String depth);
+
+  /// No description provided for @media_color_labelAdjusted.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjusted'**
+  String get media_color_labelAdjusted;
+
   /// No description provided for @media_photoViewer_diveDataWrittenToPhoto.
   ///
   /// In en, this message translates to:

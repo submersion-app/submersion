@@ -18556,6 +18556,94 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoViewer_closeTooltip => 'Fotoviewer sluiten';
 
   @override
+  String get media_color_adjustAction => 'Kleur aanpassen';
+
+  @override
+  String get media_color_auto => 'Automatisch';
+
+  @override
+  String get media_color_pickWhite => 'Wit kiezen';
+
+  @override
+  String get media_color_pickWhiteHint =>
+      'Tik op iets dat wit of grijs hoort te zijn';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'Daar kon geen kleur worden gelezen. Probeer een lichtere plek.';
+
+  @override
+  String get media_color_original => 'Origineel';
+
+  @override
+  String get media_color_strength => 'Sterkte';
+
+  @override
+  String get media_color_warmth => 'Warmte';
+
+  @override
+  String get media_color_tint => 'Tint';
+
+  @override
+  String get media_color_brightness => 'Helderheid';
+
+  @override
+  String get media_color_contrast => 'Contrast';
+
+  @override
+  String get media_color_saturation => 'Verzadiging';
+
+  @override
+  String get media_color_reset => 'Herstellen';
+
+  @override
+  String get media_color_applyToDive => 'Toepassen op deze duik';
+
+  @override
+  String get media_color_applyToDiveTitle => 'Toepassen op deze duik?';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count andere foto\'s en video\'s krijgen deze aanpassingen.',
+      one: '$count andere foto of video krijgt deze aanpassingen.',
+    );
+    return '$_temp0 Hun eigen witpunten blijven behouden.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s en video\'s bijgewerkt',
+      one: '$count foto of video bijgewerkt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'Ongedaan maken';
+
+  @override
+  String get media_color_undoFailed =>
+      'De wijziging kon niet ongedaan worden gemaakt';
+
+  @override
+  String get media_color_saveFailed =>
+      'De kleuraanpassing kon niet worden opgeslagen';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · automatisch';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'Aangepast';
+
+  @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
       'Duikgegevens naar foto geschreven';
 

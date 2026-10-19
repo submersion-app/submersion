@@ -18670,6 +18670,92 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_photoViewer_closeTooltip => 'Cerrar visor de fotos';
 
   @override
+  String get media_color_adjustAction => 'Ajustar color';
+
+  @override
+  String get media_color_auto => 'Automático';
+
+  @override
+  String get media_color_pickWhite => 'Elegir blanco';
+
+  @override
+  String get media_color_pickWhiteHint =>
+      'Toca algo que debería ser blanco o gris';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'No se pudo leer un color ahí. Prueba un punto más claro.';
+
+  @override
+  String get media_color_original => 'Original';
+
+  @override
+  String get media_color_strength => 'Intensidad';
+
+  @override
+  String get media_color_warmth => 'Calidez';
+
+  @override
+  String get media_color_tint => 'Matiz';
+
+  @override
+  String get media_color_brightness => 'Brillo';
+
+  @override
+  String get media_color_contrast => 'Contraste';
+
+  @override
+  String get media_color_saturation => 'Saturación';
+
+  @override
+  String get media_color_reset => 'Restablecer';
+
+  @override
+  String get media_color_applyToDive => 'Aplicar a esta inmersión';
+
+  @override
+  String get media_color_applyToDiveTitle => '¿Aplicar a esta inmersión?';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos y vídeos más usarán estos ajustes.',
+      one: '$count foto o vídeo más usará estos ajustes.',
+    );
+    return '$_temp0 Se conservan sus propios puntos blancos.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se actualizaron $count fotos y vídeos',
+      one: 'Se actualizó $count foto o vídeo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'Deshacer';
+
+  @override
+  String get media_color_undoFailed => 'No se pudo deshacer el cambio';
+
+  @override
+  String get media_color_saveFailed => 'No se pudo guardar el ajuste de color';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · automático';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'Ajustada';
+
+  @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
       'Datos de inmersión escritos en la foto';
 

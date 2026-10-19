@@ -18265,6 +18265,91 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_closeTooltip => 'סגור מציג תמונות';
 
   @override
+  String get media_color_adjustAction => 'התאמת צבע';
+
+  @override
+  String get media_color_auto => 'אוטומטי';
+
+  @override
+  String get media_color_pickWhite => 'בחירת לבן';
+
+  @override
+  String get media_color_pickWhiteHint => 'הקש על משהו שאמור להיות לבן או אפור';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'לא ניתן היה לקרוא צבע במקום הזה. נסה נקודה בהירה יותר.';
+
+  @override
+  String get media_color_original => 'מקור';
+
+  @override
+  String get media_color_strength => 'עוצמה';
+
+  @override
+  String get media_color_warmth => 'חמימות';
+
+  @override
+  String get media_color_tint => 'גוון';
+
+  @override
+  String get media_color_brightness => 'בהירות';
+
+  @override
+  String get media_color_contrast => 'ניגודיות';
+
+  @override
+  String get media_color_saturation => 'רוויה';
+
+  @override
+  String get media_color_reset => 'איפוס';
+
+  @override
+  String get media_color_applyToDive => 'החלה על הצלילה הזו';
+
+  @override
+  String get media_color_applyToDiveTitle => 'להחיל על הצלילה הזו?';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות וסרטונים נוספים יקבלו את ההתאמות האלה.',
+      one: 'תמונה או סרטון נוסף אחד יקבלו את ההתאמות האלה.',
+    );
+    return '$_temp0 נקודות הלבן של כל אחד נשמרות.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עודכנו $count תמונות וסרטונים',
+      one: 'עודכנו תמונה או סרטון אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'ביטול';
+
+  @override
+  String get media_color_undoFailed => 'לא ניתן היה לבטל את השינוי';
+
+  @override
+  String get media_color_saveFailed => 'לא ניתן היה לשמור את התאמת הצבע';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · אוטומטי';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'מותאם';
+
+  @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
       'נתוני צלילה נכתבו לתמונה';
 
