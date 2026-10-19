@@ -133,6 +133,31 @@ void main() {
     expect(lib.location!.serverKey, group.locationOf(sync.id)!.serverKey);
   });
 
+  // Issue #3482 phase 2: a club may hand out keys for its library folder on
+  // the bucket a diver also syncs to; a new library takes the keys of a
+  // library row already there before the diver's own sync keys.
+  test('a new library role prefers another library row\'s keys', () async {
+    final sync = await rowFor(s3('submersion-sync/'));
+    await credentials.write(
+      sync.id,
+      jsonEncode(s3('submersion-sync/', key: 'AKIASYNC').toJson()),
+    );
+    final other = await rowFor(s3('submersion-sites/reef-team/'));
+    await credentials.write(
+      other.id,
+      jsonEncode(s3('submersion-sites/reef-team/', key: 'AKIACLUB').toJson()),
+    );
+    final group = await groupOf([sync, other]);
+
+    final lib = await service.ensureRole(
+      group,
+      AccountRole.library,
+      libraryFolder: 'wrecks',
+    );
+
+    expect((await stored(lib.id))!.accessKeyId, 'AKIACLUB');
+  });
+
   test('adding a role with no credentials here throws', () async {
     final sync = await rowFor(s3('submersion-sync/'));
     final group = await groupOf([sync]);

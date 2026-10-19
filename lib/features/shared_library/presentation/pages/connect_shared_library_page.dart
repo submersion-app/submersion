@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/picked_file_path.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -76,7 +78,7 @@ class _ConnectSharedLibraryPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final accounts = ref.watch(eligibleLibraryAccountsProvider);
+    final groups = ref.watch(accountGroupsProvider);
     final diver = ref.watch(currentDiverProvider).valueOrNull;
     if (!_nameSeeded && diver != null) {
       _displayName.text = diver.name;
@@ -84,19 +86,18 @@ class _ConnectSharedLibraryPageState
     }
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sharedLibrary_connect_action)),
-      body: accounts.when(
+      body: groups.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
-        data: (list) {
-          if (list.isEmpty && !_location.addingAccount) {
-            return _noAccounts(context);
-          }
+        data: (all) {
+          final list = libraryServers(all);
+          if (list.isEmpty) return _noAccounts(context);
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               LibraryLocationFields(
                 controller: _location,
-                accounts: list,
+                servers: list,
                 enabled: !_busy,
                 onEdited: () => setState(() {
                   _probe = null;
@@ -109,7 +110,9 @@ class _ConnectSharedLibraryPageState
                   alignment: Alignment.centerRight,
                   child: FilledButton.tonal(
                     onPressed: _busy ? null : _runProbe,
-                    child: Text(l10n.sharedLibrary_connect_probe_action),
+                    // The same words as the change-connection page: it
+                    // checks a folder (spec section 4).
+                    child: Text(l10n.sharedLibrary_connection_check),
                   ),
                 ),
               ],
@@ -147,8 +150,11 @@ class _ConnectSharedLibraryPageState
             const SizedBox(height: 16),
             FilledButton.icon(
               icon: const Icon(Icons.add),
-              label: Text(l10n.sharedLibrary_connect_addAccount),
-              onPressed: () => _location.setAddingAccount(true),
+              label: Text(l10n.settings_accounts_add),
+              onPressed: () async {
+                final added = await addLibraryServer(context);
+                if (added != null) _location.selectServer(added);
+              },
             ),
           ],
         ),
@@ -270,8 +276,7 @@ class _ConnectSharedLibraryPageState
   }
 
   Future<void> _runProbe() async {
-    final account = _location.account;
-    if (account == null) return;
+    if (_location.server == null) return;
     final problem = libraryFolderProblem(context.l10n, _location.folder);
     if (problem != null) {
       setState(() => _error = problem);
@@ -282,6 +287,12 @@ class _ConnectSharedLibraryPageState
       _error = null;
     });
     try {
+      // The library's own row on the chosen server: one already there for
+      // this folder, else a new one on the server's keys.
+      final account = await _location.resolveAccount(
+        ref.read(accountGroupServiceProvider),
+      );
+      if (account == null) return;
       final probe = await ref
           .read(sharedLibraryMembershipServiceProvider)
           .probe(account: account, prefix: _location.folder);

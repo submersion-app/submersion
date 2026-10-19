@@ -120,7 +120,14 @@ class AccountGroupService {
     if (existing != null && await _credentials.read(existing.id) != null) {
       return existing;
     }
-    for (final row in group.rows) {
+    // Rows of the same role first: a club may hand out keys for its library
+    // folder on the bucket a diver also syncs to, and a new library should
+    // take those, not the diver's own sync keys.
+    final ordered = [
+      ...group.rows.where((r) => group.roles[r.id] == role),
+      ...group.rows.where((r) => group.roles[r.id] != role),
+    ];
+    for (final row in ordered) {
       switch (row.kind) {
         case AccountKind.s3:
           final server = await _storedS3(row.id);
