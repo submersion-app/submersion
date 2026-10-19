@@ -7,14 +7,16 @@ import 'package:submersion/features/media/domain/color/color_correction_policy.d
 import 'package:submersion/features/media/domain/color/video_color_track.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
+import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 
 /// Draws [child] (an image of [item]) with the item's colour correction
 /// (issue #3520): the hand adjustment, the automatic fix, or both, as one
 /// colour matrix. Display-only: the pixels behind [child] are never changed.
 ///
 /// [analysisSource] is the image [child] draws, used for the automatic
-/// fix's colour statistics; [track] is a video's per-moment track, whose
-/// average a tile uses.
+/// fix's colour statistics. A video tile uses its per-moment track's
+/// average ([track], else [videoColorTrackProvider]), falling back to the
+/// poster's own colour while the track is unknown.
 class ColorCorrected extends ConsumerStatefulWidget {
   const ColorCorrected({
     super.key,
@@ -67,8 +69,11 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
           diverAutoEnabled: diverAuto,
         ) ==
         AutoNeed.stats) {
-      final track = widget.track;
-      auto = item.isVideo && track != null
+      final track = item.isVideo
+          ? widget.track ??
+                ref.watch(videoColorTrackProvider(VideoTrackKey(item))).value
+          : null;
+      auto = track != null
           ? track.average
           : autoParamsForPhoto(item, _stats(colorStatsKey(item)));
     }

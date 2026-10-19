@@ -41,6 +41,7 @@ import 'package:submersion/features/media/presentation/widgets/media_info_sheet.
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
+import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1281,7 +1282,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               child: Center(
                 child: AspectRatio(
                   aspectRatio: controller.value.aspectRatio,
-                  child: VideoPlayer(controller),
+                  child: VideoColorFilter(
+                    item: widget.item,
+                    player: controller,
+                    child: VideoPlayer(controller),
+                  ),
                 ),
               ),
             ),
