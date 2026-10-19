@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_style_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
@@ -298,6 +299,29 @@ void main() {
     await _pump(tester, points: [_dive1], onExpand: () => expanded++);
     await tester.tap(find.byTooltip('View fullscreen map'));
     expect(expanded, 1);
+  });
+
+  testWidgets(
+    'a story-card map keeps its expand button and no style switcher',
+    (tester) async {
+      // The switcher belongs on the fullscreen view the expand button opens
+      // (issue #3473).
+      await _pump(
+        tester,
+        points: [_dive1],
+        interactive: false,
+        onExpand: () {},
+      );
+      expect(find.byType(MapStyleButton), findsNothing);
+      expect(find.byTooltip('View fullscreen map'), findsOneWidget);
+    },
+  );
+
+  testWidgets('an interactive map carries the map style switcher', (
+    tester,
+  ) async {
+    await _pump(tester, points: [_dive1]);
+    expect(find.byType(MapStyleButton), findsOneWidget);
   });
 
   testWidgets('new points re-fit the camera', (tester) async {

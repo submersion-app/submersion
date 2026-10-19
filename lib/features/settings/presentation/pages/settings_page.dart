@@ -17,6 +17,7 @@ import 'package:submersion/features/settings/presentation/widgets/equipment_defa
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
+import 'package:submersion/features/settings/presentation/pages/data_settings_pane.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
@@ -187,7 +188,7 @@ class SettingsPage extends ConsumerWidget {
       case 'manage':
         return const _ManageSectionContent();
       case 'data':
-        return const DataSectionContent();
+        return const DataSettingsPane();
       case 'dataSources':
         return const _DataSourcesSectionContent();
       case 'about':
@@ -437,7 +438,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'network' => context.l10n.settings_section_network_subtitle,
       'notifications' => context.l10n.settings_section_notifications_subtitle,
       'manage' => context.l10n.settings_section_manage_subtitle,
-      'data' => context.l10n.settings_section_data_subtitle,
+      'data' => context.l10n.settings_section_data_tagline,
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
       'safety' => context.l10n.settings_section_safety_subtitle,

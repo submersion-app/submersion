@@ -512,7 +512,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_saved_queries_diver '
         'ON saved_queries(diver_id, subject, sort_order)',
   ),
-  // Logbook rules (v292, issue #3513): a diver's rules in run order, the
+  // Logbook rules (v296, issue #3513): a diver's rules in run order, the
   // history newest first, a run's changes, and a target's changes.
   (
     name: 'idx_rules_diver',

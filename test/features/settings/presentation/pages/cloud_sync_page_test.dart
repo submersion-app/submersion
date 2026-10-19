@@ -686,7 +686,7 @@ void main() {
     ) async {
       await pumpPage(tester);
 
-      expect(find.text('Database Cloud Sync'), findsOneWidget);
+      expect(find.text('Sync between devices'), findsOneWidget);
       // Provider section header and provider tiles.
       expect(find.text('Cloud Provider'), findsOneWidget);
       expect(find.text('iCloud'), findsOneWidget);
@@ -786,7 +786,7 @@ void main() {
         find.text(
           'App-managed cloud sync is disabled while the database sits on a '
           'device storage volume. No sync service can reach that folder on '
-          'Android, so use Backup & Restore to keep copies elsewhere.',
+          'Android, so use Backups to keep copies elsewhere.',
         ),
         findsOneWidget,
       );

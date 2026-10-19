@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/suunto_cloud/suunto_api_exception.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
 
@@ -164,6 +166,125 @@ void main() {
         null,
         null,
         null,
+      ]);
+    });
+
+    // Issue #3266: the people the diver logged in the Suunto app ride on the
+    // workout's `journal`, never in the dive export itself. The fixture is a
+    // real workout shared on the issue, trimmed, with the names replaced.
+    test('reads the dive buddies from a real workout journal', () async {
+      final body = File(
+        p.join(
+          'test',
+          'fixtures',
+          'suunto_cloud',
+          'workout_journal_buddies.json',
+        ),
+      ).readAsStringSync();
+      final client = SuuntoCloudClient(
+        httpClient: MockClient((request) async => http.Response(body, 200)),
+      )..sessionKey = 'sk-abc';
+
+      final dives = await client.listDives();
+
+      expect(dives.single.journal.buddies, ['Buddy 1', 'Buddy 2', 'Buddy 3']);
+    });
+
+    test(
+      'reads no buddies from a missing, empty or malformed journal',
+      () async {
+        final client = SuuntoCloudClient(
+          httpClient: MockClient((request) async {
+            return http.Response(
+              jsonEncode({
+                'payload': [
+                  {
+                    'key': 'messy',
+                    'activityId': 78,
+                    'startTime': 5000,
+                    'journal': {
+                      'diveBuddy': [
+                        {'id': 'a', 'value': '  Ann  '},
+                        {'id': 'b', 'value': ''},
+                        {'id': 'c', 'value': null},
+                        {'id': 'd'},
+                        'not a map',
+                        {'id': 'e', 'value': 'ann'},
+                        {'id': 'f', 'value': 'Ben'},
+                      ],
+                    },
+                  },
+                  {
+                    'key': 'null-buddies',
+                    'activityId': 78,
+                    'startTime': 4000,
+                    'journal': {'diveBuddy': null},
+                  },
+                  {
+                    'key': 'null-journal',
+                    'activityId': 78,
+                    'startTime': 3000,
+                    'journal': null,
+                  },
+                  {
+                    'key': 'odd-shape',
+                    'activityId': 78,
+                    'startTime': 2000,
+                    'journal': {'diveBuddy': 'Ann'},
+                  },
+                  {'key': 'absent', 'activityId': 78, 'startTime': 1000},
+                ],
+              }),
+              200,
+            );
+          }),
+        )..sessionKey = 'sk-abc';
+
+        final dives = await client.listDives();
+
+        expect(dives.map((d) => d.journal.buddies).toList(), [
+          ['Ann', 'Ben'],
+          isEmpty,
+          isEmpty,
+          isEmpty,
+          isEmpty,
+        ]);
+      },
+    );
+
+    // Issue #3491: private notes ride on the journal and go below the
+    // notes the diver shares.
+    test('joins private notes below the notes', () async {
+      final client = SuuntoCloudClient(
+        httpClient: MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'payload': [
+                {
+                  'key': 'both',
+                  'activityId': 78,
+                  'startTime': 2000,
+                  'description': 'Night dive',
+                  'journal': {'privateNotes': ' Cold '},
+                },
+                {
+                  'key': 'private-only',
+                  'activityId': 78,
+                  'startTime': 1000,
+                  'journal': {'privateNotes': 'Cold'},
+                },
+              ],
+            }),
+            200,
+          );
+        }),
+      )..sessionKey = 'sk-abc';
+
+      final dives = await client.listDives();
+
+      expect(dives.map((d) => d.notes).toList(), [
+        'Night dive\n\nCold',
+        'Cold',
       ]);
     });
 

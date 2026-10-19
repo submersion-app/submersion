@@ -1528,7 +1528,6 @@
       }
     }
   },
-  "backup_appBar_title": "Backup & Restore",
   "backup_backingUp": "Backing up...",
   "backup_backupNow": "Backup Now",
   "backup_note_dialog_title": "Back up now",
@@ -2140,6 +2139,7 @@
     "description": "Name of the built-in generic refresher currency rule"
   },
   "currencyRule_tdi_refresher_name": "TDI refresher",
+  "currencyRule_iart_refresher_name": "IART refresher",
   "@currencyRule_tdi_refresher_name": {
     "description": "Name of the built-in TDI refresher currency rule"
   },
@@ -2188,6 +2188,7 @@
     "description": "Advisory sentence of the generic refresher rule"
   },
   "currencyRule_tdi_refresher_advisory": "TDI suggests a refresher after six to twelve months without technical diving.",
+  "currencyRule_iart_refresher_advisory": "IART suggests a refresher after six to twelve months without technical diving.",
   "@currencyRule_tdi_refresher_advisory": {
     "description": "Advisory sentence of the TDI refresher rule"
   },
@@ -2517,6 +2518,11 @@
   "certifications_edit_group_tdiService": "Service",
   "certifications_edit_group_tdiOverhead": "Overhead",
   "certifications_edit_group_tdiProfessional": "Professional",
+  "certifications_edit_group_iartOpenCircuit": "Open Circuit",
+  "certifications_edit_group_iartRebreather": "Rebreather",
+  "certifications_edit_group_iartOverhead": "Overhead",
+  "certifications_edit_group_iartService": "Service",
+  "certifications_edit_group_iartProfessional": "Professional",
   "certifications_edit_help_expiryDate": "Leave empty for certifications that don't expire",
   "certifications_edit_helper_title": "Optional. Leave blank to use the certification",
   "certifications_edit_hint_cardNumber": "Enter certification card number",
@@ -2590,6 +2596,10 @@
   "certifications_list_empty_title": "No certifications added yet",
   "certifications_list_error_loading": "Error loading certifications: {error}",
   "certifications_list_fab_addCertification": "Add Certification",
+  "certifications_list_groupBy": "Group by",
+  "certifications_list_groupBy_agency": "Agency",
+  "certifications_list_groupBy_none": "None",
+  "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Expired",
   "certifications_list_section_expiringSoon": "Expiring Soon",
   "certifications_list_section_valid": "Valid",
@@ -2621,6 +2631,8 @@
   "certifications_share_option_certificate_subtitle": "Formal certificate document",
   "certifications_share_option_certificate_title": "Share as Certificate",
   "certifications_share_title": "Share Certification",
+  "certifications_sortSheet_view_list": "List",
+  "certifications_sortSheet_view_wallet": "Certification Wallet",
   "certifications_summary_header_subtitle": "Select a certification from the list to view details",
   "certifications_summary_header_title": "Certifications",
   "certifications_summary_overview_title": "Overview",
@@ -2640,6 +2652,7 @@
   "certifications_wallet_tooltip_add": "Add certification",
   "certifications_wallet_tooltip_moreOptions": "More options",
   "certifications_wallet_tooltip_share": "Share certification",
+  "certifications_wallet_tooltip_sort": "Sort",
   "@certifications_detail_dialog_deleteContent": {
     "placeholders": {
       "name": {
@@ -3232,7 +3245,7 @@
   "connections_kindOne_diveComputer": "Dive computer",
   "connections_kindOne_course": "Course",
   "connections_empty_noDives": "No dives yet. Connections appear once your log has dives in it.",
-  "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.",
+  "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Data tools.",
   "connections_empty_sites": "No dives have a site yet.",
   "connections_empty_filtered": "Nothing matches the current filter.",
   "connections_focusMissing": "That item is no longer in the log.",
@@ -7467,6 +7480,7 @@
   "enum_certificationAgency_sdi": "SDI",
   "enum_certificationAgency_ssi": "SSI",
   "enum_certificationAgency_tdi": "TDI",
+  "enum_certificationAgency_iart": "IART",
   "enum_certificationLevel_advancedNitrox": "Advanced Nitrox",
   "enum_certificationLevel_advancedOpenWater": "Advanced Open Water",
   "enum_certificationLevel_cave": "Cave",
@@ -12893,11 +12907,15 @@
   },
   "settings_navCustomization_alwaysHideLabels_title": "Always hide labels",
   "@settings_navCustomization_alwaysHideLabels_title": {
-    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
+    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424). Shared by the phone and desktop tabs; only the value and the subtitle below it differ by scope (#3222)."
   },
   "settings_navCustomization_alwaysHideLabels_subtitle": "Icons only, even where labels would normally fit",
   "@settings_navCustomization_alwaysHideLabels_subtitle": {
-    "description": "Subtitle under the always-hide-labels switch."
+    "description": "Subtitle under the always-hide-labels switch on the phone tab: a hard setting with no override."
+  },
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session",
+  "@settings_navCustomization_alwaysHideLabels_subtitleDesktop": {
+    "description": "Subtitle under the always-hide-labels switch on the desktop tab: unlike the phone switch, this only sets the rail's initial state and can be overridden for the session by the rail's own collapse arrow."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {
@@ -13101,15 +13119,12 @@
     "description": "Picker group header for settings pages and tools such as the emergency card."
   },
   "settings_backToSettings_tooltip": "Back to settings",
-  "settings_cloudSync_appBar_title": "Database Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",
   "settings_cloudSync_autoSync_subtitle": "Sync automatically after changes",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item needs attention} other{{count} items need attention}}",
   "settings_cloudSync_disabledBanner_content": "App-managed cloud sync is disabled because you're using a custom storage folder. Your folder's sync service (Dropbox, Google Drive, OneDrive, etc.) handles synchronization.",
   "settings_cloudSync_disabledBanner_title": "Cloud Sync Disabled",
-  "settings_cloudSync_entry_subtitle": "Sync via cloud storage",
-  "sharedLibrary_settings_title": "Shared Site Libraries",
-  "sharedLibrary_settings_subtitle": "Dive sites kept together with other divers",
+  "sharedLibrary_settings_title": "Shared site libraries",
   "sharedLibrary_list_empty": "No shared site library connected yet.",
   "sharedLibrary_connect_action": "Connect a library",
   "sharedLibrary_connect_addAccount": "Add storage account",
@@ -13144,6 +13159,16 @@
   "sharedLibrary_members_rejectBody": "Their card is removed and nothing they write counts. Only new storage keys stop them from writing files at all.",
   "sharedLibrary_members_left": "Left the library",
   "sharedLibrary_members_removeRole": "Remove role",
+  "sharedLibrary_members_remove": "Remove from library",
+  "sharedLibrary_members_removeTitle": "Remove {name}?",
+  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "sharedLibrary_members_removeBody": "{name} will no longer be able to edit sites or suggest changes. Sites and edits they already contributed stay in the library.\n\nThey can still read the library until you change its storage keys, and its passphrase if it is encrypted.",
+  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "sharedLibrary_members_removeConfirm": "Remove",
+  "sharedLibrary_members_removedHeader": "Removed",
+  "sharedLibrary_members_removedOn": "Removed {date}",
+  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "sharedLibrary_members_allowBack": "Allow back",
   "sharedLibrary_owner_onlyOne": "Only one owner. If they lose access, only the recovery code can restore it.",
   "sharedLibrary_owner_addOwner": "Choose another owner",
   "sharedLibrary_owner_newCode": "New recovery code",
@@ -13237,6 +13262,7 @@
   "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
   "sharedLibrary_library_neverSynced": "Not synced yet",
   "sharedLibrary_library_readOnlyBanner": "Your credentials allow reading only. You can suggest changes; a referent applies them.",
+  "sharedLibrary_library_removedBanner": "An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.",
   "sharedLibrary_library_errorBanner": "Last sync failed: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_library_addMySites": "Add my sites",
@@ -13357,7 +13383,7 @@
   "settings_cloudSync_replaceLibrary_confirm": "Replace",
   "settings_cloudSync_firstSync_banner": "First sync is waiting for confirmation. Tap Sync Now to review what will be combined.",
   "settings_cloudSync_firstSync_dialogConfirm": "Merge and Sync",
-  "settings_cloudSync_firstSync_replaceHint": "If instead this device's library should replace what is in the cloud, cancel and use Settings > Cloud Sync > Replace cloud library.",
+  "settings_cloudSync_firstSync_replaceHint": "If instead this device's library should replace what is in the cloud, cancel and use Settings > Data > Sync between devices > Replace cloud library.",
   "settings_cloudSync_firstSync_dialogContent": "Existing sync data was found in the cloud ({deviceCount} sync file(s)). Your first sync will combine that data with the {diveCount} dive(s) on this device, across every synced device.\n\nIf the same dives were added separately on each device, they will appear twice.",
   "@settings_cloudSync_firstSync_dialogContent": {
     "placeholders": {
@@ -14543,24 +14569,18 @@
   "@settings_conflict_whatDiffers": {"placeholders": {"count": {"type": "int"}}},
   "settings_conflict_whitespaceOnly": "Only spacing or line breaks differ.",
   "settings_data_appDefaultLocation": "App default location",
-  "settings_data_backup": "Backup & Restore",
-  "settings_data_backup_subtitle": "Create a backup of your data",
   "settings_data_customFolder": "Custom folder",
-  "settings_data_databaseStorage": "Database Storage",
+  "settings_data_databaseStorage": "Database storage",
   "settings_data_export_failed": "Export failed: {error}",
-  "settings_data_header_backupSync": "Backup & Sync",
-  "settings_data_header_import": "Import",
-  "settings_data_header_storage": "Storage",
-  "settings_data_offlineMaps": "Offline Maps",
+  "settings_data_offlineMaps": "Offline maps",
   "settings_data_offlineMaps_subtitle": "Map tiles and 3D terrain data",
   "settings_data_syncTime_daysAgo": "{count}d ago",
   "settings_data_syncTime_hoursAgo": "{count}h ago",
   "settings_data_syncTime_justNow": "Just now",
   "settings_data_syncTime_minutesAgo": "{count}m ago",
-  "dataHealth_feature_backup": "Backup",
+  "dataHealth_feature_backup": "Backups",
   "dataHealth_feature_sync": "Sync",
   "dataHealth_feature_libraries": "Libraries",
-  "dataHealth_feature_media": "Media",
   "dataHealth_level_healthy": "Healthy",
   "dataHealth_level_attention": "Needs attention",
   "dataHealth_level_failing": "Failing",
@@ -14588,10 +14608,55 @@
   "dataHealth_sync_peersHeld": "Another device needs attention before it can sync",
   "dataHealth_sync_autoOff": "Recommended: turn on automatic sync",
   "dataHealth_sync_neverSynced": "Not synced yet",
-  "dataHealth_sync_rowSubtitle": "Synced: {when}",
-  "@dataHealth_sync_rowSubtitle": {"placeholders": {"when": {"type": "String"}}},
-  "dataHealth_sync_rowSubtitleDevices": "{count, plural, one{Synced: {when} · {count} device} other{Synced: {when} · {count} devices}}",
-  "@dataHealth_sync_rowSubtitleDevices": {"placeholders": {"when": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_data_header_yourData": "Your data",
+  "settings_data_header_advanced": "Advanced",
+  "settings_data_setUp": "Set up",
+  "settings_data_importOptions": "Import options",
+  "settings_data_importOptions_subtitle": "Site matching, surfacing pressure, auto tags",
+  "settings_data_dataTools": "Data tools",
+  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality",
+  "settings_sync_title": "Sync between devices",
+  "settings_backups_title": "Backups",
+  "settings_photosVideos_title": "Photos & videos",
+  "settings_section_data_tagline": "Backups, sync and photos",
+  "dataHealth_feature_photos": "Photos",
+  "settings_data_backups_status_never": "Not backed up yet",
+  "settings_data_backups_status_local": "Backed up {when}, on this device only",
+  "@settings_data_backups_status_local": {"placeholders": {"when": {"type": "String"}}},
+  "settings_data_backups_status_cloud": "Backed up {when}, copy in {account}",
+  "@settings_data_backups_status_cloud": {"placeholders": {"when": {"type": "String"}, "account": {"type": "String"}}},
+  "settings_data_backups_status_cloudUnknown": "Backed up {when}, copy in the cloud",
+  "@settings_data_backups_status_cloudUnknown": {"placeholders": {"when": {"type": "String"}}},
+  "settings_data_time_justNow": "just now",
+  "settings_data_status_checking": "Checking…",
+  "settings_data_accounts_status_list": "{accounts}",
+  "@settings_data_accounts_status_list": {"placeholders": {"accounts": {"type": "String"}}},
+  "settings_data_backups_status_folder": "Backed up {when}, copy in your backup folder",
+  "@settings_data_backups_status_folder": {"placeholders": {"when": {"type": "String"}}},
+  "settings_data_sync_status_off": "Only on this device",
+  "settings_data_sync_status_synced": "Synced {when}",
+  "@settings_data_sync_status_synced": {"placeholders": {"when": {"type": "String"}}},
+  "settings_data_sync_status_folder": "Kept in step by your folder's sync service",
+  "settings_data_backups_status_plain": "Backed up {when}",
+  "@settings_data_backups_status_plain": {"placeholders": {"when": {"type": "String"}}},
+  "settings_data_setUpFeature": "Set up {feature}",
+  "@settings_data_setUpFeature": {"description": "Screen-reader label of the Set up action under a Settings > Data row, naming the row.", "placeholders": {"feature": {"type": "String"}}},
+  "settings_data_sync_status_one": "In step with {device}, {when}",
+  "@settings_data_sync_status_one": {"placeholders": {"device": {"type": "String"}, "when": {"type": "String"}}},
+  "settings_data_sync_status_many": "{count, plural, one{In step with {count} device, {when}} other{In step with {count} devices, {when}}}",
+  "@settings_data_sync_status_many": {"placeholders": {"count": {"type": "int"}, "when": {"type": "String"}}},
+  "settings_data_photos_status_off": "Copies are not kept in the cloud",
+  "settings_data_photos_status_on": "Copies kept in {store}",
+  "@settings_data_photos_status_on": {"placeholders": {"store": {"type": "String"}}},
+  "settings_data_photos_status_onUnknown": "Copies kept in the cloud",
+  "settings_data_libraries_status_none": "None joined",
+  "settings_data_libraries_status_some": "{count, plural, one{{count} library, last sync {when}} other{{count} libraries, last sync {when}}}",
+  "@settings_data_libraries_status_some": {"placeholders": {"count": {"type": "int"}, "when": {"type": "String"}}},
+  "settings_data_libraries_status_someNever": "{count, plural, one{{count} library, not synced yet} other{{count} libraries, not synced yet}}",
+  "@settings_data_libraries_status_someNever": {"placeholders": {"count": {"type": "int"}}},
+  "settings_data_accounts_status_none": "None yet",
+  "settings_data_accounts_status_needSignIn": "{count, plural, one{{count} account needs sign-in} other{{count} accounts need sign-in}}",
+  "@settings_data_accounts_status_needSignIn": {"placeholders": {"count": {"type": "int"}}},
   "dataHealth_libraries_failed": "{name}: sync failed",
   "@dataHealth_libraries_failed": {"placeholders": {"name": {"type": "String"}}},
   "dataHealth_libraries_failedMany": "{count, plural, one{{count} library failed to sync} other{{count} libraries failed to sync}}",
@@ -15168,7 +15233,6 @@
   "settings_section_about_title": "About",
   "settings_section_appearance_subtitle": "Theme & display",
   "settings_section_appearance_title": "Appearance",
-  "settings_section_data_subtitle": "Backup, restore & storage",
   "settings_section_data_title": "Data",
   "settings_section_decompression_title": "Decompression",
   "settings_section_diverProfile_subtitle": "Active diver & profiles",
@@ -15244,7 +15308,7 @@
   "settings_storage_customFolder_change": "Change",
   "settings_storage_customFolder_subtitle": "Choose a synced folder (Dropbox, Google Drive, etc.)",
   "settings_storage_customFolder_subtitleDeviceOnly": "Move the database to internal storage or SD card",
-  "settings_storage_customFolder_deviceOnly_noCloudSync": "App-managed cloud sync is disabled while the database sits on a device storage volume. No sync service can reach that folder on Android, so use Backup & Restore to keep copies elsewhere.",
+  "settings_storage_customFolder_deviceOnly_noCloudSync": "App-managed cloud sync is disabled while the database sits on a device storage volume. No sync service can reach that folder on Android, so use Backups to keep copies elsewhere.",
   "settings_storage_dismissError_tooltip": "Dismiss error",
   "settings_storage_dismissSuccess_tooltip": "Dismiss success message",
   "settings_storage_header_storageLocation": "Storage Location",
@@ -15262,7 +15326,7 @@
   "settings_storage_resetDatabase": "Reset Database",
   "settings_storage_resetDatabase_subtitle": "Delete all data on this device and start fresh",
   "settings_storage_resetDialog_title": "Reset Database?",
-  "settings_storage_resetDialog_body": "This permanently deletes all data on THIS device, including dives, sites, gear, and settings. A backup is created automatically before resetting.\n\nYour cloud library is not deleted, and other devices keep their data. Cloud sync will be disconnected so the reset is not undone; you can reconnect it in Settings > Cloud Sync.",
+  "settings_storage_resetDialog_body": "This permanently deletes all data on THIS device, including dives, sites, gear, and settings. A backup is created automatically before resetting.\n\nYour cloud library is not deleted, and other devices keep their data. Cloud sync will be disconnected so the reset is not undone; you can reconnect it under Settings > Data > Sync between devices.",
   "settings_storage_resetDialog_confirmWord": "Delete",
   "@settings_storage_resetDialog_confirmWord": {
     "description": "The word the user must type to arm the reset. Compared literally against their input, so it MUST match the word quoted in settings_storage_resetDialog_confirmHint in the same locale."
@@ -15271,7 +15335,7 @@
   "settings_storage_resetDialog_confirmButton": "Reset",
   "settings_storage_resetDialog_resetFailed": "Reset failed: {error}",
   "settings_storage_resetComplete_title": "Database Reset",
-  "settings_storage_resetComplete_description": "This device's data has been cleared and a backup was saved. Cloud sync is now disconnected so the reset is not undone; you can reconnect it in Settings > Cloud Sync. Tap continue to reload the app.",
+  "settings_storage_resetComplete_description": "This device's data has been cleared and a backup was saved. Cloud sync is now disconnected so the reset is not undone; you can reconnect it under Settings > Data > Sync between devices. Tap continue to reload the app.",
   "settings_summary_activeDiver": "Active Diver",
   "settings_summary_currentConfiguration": "Current Configuration",
   "settings_summary_depth": "Depth",
@@ -17690,8 +17754,8 @@
   "transfer_csvExport_unitsMine": "My units",
   "transfer_csvExport_unitsMineDescription": "Values in your unit, date and time settings, named in each column header",
   "transfer_detail_backTooltip": "Back to transfer",
-  "transfer_export_aboutContent": "Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Backup & Restore.",
-  "transfer_export_backupLink": "Go to Backup & Restore",
+  "transfer_export_aboutContent": "Export your dive data in various formats. PDF creates a printable logbook. UDDF is a universal format compatible with most dive logging software. CSV and Excel files can be opened in spreadsheet applications. You can also back up your entire database from Settings > Data > Backups.",
+  "transfer_export_backupLink": "Go to Backups",
   "transfer_export_aboutTitle": "About Export",
   "transfer_export_completed": "Export completed",
   "transfer_export_csvSubtitle": "Spreadsheet format",
@@ -21843,7 +21907,7 @@
   "db_location_internal": "Internal storage",
   "db_location_sd_card": "SD card",
   "db_location_external_note": "Files here are removed if you uninstall the app.",
-  "db_location_backup_note": "Android cannot run the database from a cloud-synced folder. To keep a copy in Dropbox, Nextcloud, or Google Drive, set a Backup Location under Backup & Restore.",
+  "db_location_backup_note": "Android cannot run the database from a cloud-synced folder. To keep a copy in Dropbox, Nextcloud, or Google Drive, set a backup folder under Backups.",
   "diveLog_bulkEdit_membership_onAll": "on all {count}",
   "@diveLog_bulkEdit_membership_onAll": {
     "placeholders": {
@@ -21965,6 +22029,9 @@
       }
     }
   },
+  "settings_mediaStorage_verify_deferred": "Nothing was deleted: deletes wait until this device has finished syncing.",
+  "settings_mediaStorage_verify_unregistered": "Nothing was deleted: reconnect the media store so this dive log knows which files are its own.",
+  "settings_mediaStorage_verify_uploads": "Nothing was deleted: deletes wait until uploads finish.",
   "settings_mediaStorage_backfill_action": "Upload existing library",
   "settings_mediaStorage_backfill_enqueued": "{count} uploads queued",
   "@settings_mediaStorage_backfill_enqueued": {
@@ -21979,7 +22046,7 @@
   "settings_mediaStorage_provider_label": "Provider",
   "settings_mediaStorage_provider_webdav": "WebDAV",
   "settings_mediaStorage_webdav_useSyncServer": "Use my sync server",
-  "settings_mediaStorage_connect_dropbox_hint": "Uses your Dropbox connection from Cloud Sync. Media is stored in your Dropbox app folder.",
+  "settings_mediaStorage_connect_dropbox_hint": "Uses your Dropbox connection from Sync between devices. Media is stored in your Dropbox app folder.",
   "settings_mediaStorage_connect_gdrive_hint": "Signs in with Google. Media is stored in this app's private Drive space.",
   "settings_mediaStorage_connect_icloud_hint": "Media is stored in this app's iCloud container and syncs through your Apple ID.",
   "settings_mediaStorage_connect_action": "Connect {provider}",
@@ -22437,19 +22504,15 @@
     }
   },
   "settings_setup_dismiss": "Dismiss",
-  "settings_photosMedia_title": "Photos & Media",
-  "settings_photosMedia_subtitle": "Sources, storage & accounts",
   "settings_photosMedia_sourcesHeader": "Where photos come from",
   "settings_photosMedia_storageHeader": "Where copies are kept",
-  "settings_photosMedia_accountsHeader": "Accounts",
   "settings_photosMedia_displayHeader": "Display",
   "settings_photosMedia_guidedSetup": "Guided setup",
   "settings_photosMedia_photoSources_title": "Photo library & sources",
   "settings_photosMedia_photoSources_subtitle": "Gallery, files and import options",
   "settings_photosMedia_networkSources_title": "Network sources",
   "settings_photosMedia_networkSources_subtitle": "URLs and manifest feeds (advanced)",
-  "settings_connectedAccounts_title": "Connected Accounts",
-  "settings_connectedAccounts_subtitle": "Sign-ins used by sync, media storage and shared libraries",
+  "settings_connectedAccounts_title": "Connected accounts",
   "settings_connectedAccounts_empty": "No accounts connected yet",
   "settings_connectedAccounts_status_signedIn": "Signed in",
   "settings_connectedAccounts_status_needsSignIn": "Needs sign-in",
@@ -24050,6 +24113,21 @@
   "@dataQuality_msg_tankInactive": {
     "placeholders": {
       "drop": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_detector_transmitter_role": "Transmitter role",
+  "dataQuality_msg_transmitterRoleBailout": "Tank {tankNumber} is marked {role} from its transmitter's name, but it lost {ocDrop} after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.",
+  "@dataQuality_msg_transmitterRoleBailout": {
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      },
+      "ocDrop": {
         "type": "String"
       }
     }
@@ -27164,7 +27242,6 @@
   "settings_appearance_title_sites": "Sites Appearance",
   "settings_appearance_title_trips": "Trips Appearance",
   "settings_cloudSync_troubleshoot_tileSubtitle": "Fix a stuck sync or free cloud space",
-  "settings_data_header_dataTools": "Data Tools",
   "settings_decompression_ascentGasLabel": "Plan ascent with",
   "settings_decompression_ascentGas_allCarried": "All carried cylinders",
   "settings_decompression_ascentGas_decoStage": "Deco/stage + back gas",
@@ -27220,7 +27297,7 @@
   "settings_fixDiveTimes_selectAll": "Select All",
   "settings_fixDiveTimes_selectDivesHint": "Select dives to apply",
   "settings_fixDiveTimes_subtitle": "Adjust times for imported dives",
-  "settings_fixDiveTimes_title": "Fix Dive Times",
+  "settings_fixDiveTimes_title": "Fix dive times",
   "settings_fixDiveTimes_to": "To",
   "settings_fixDiveTimes_zeroOffset": "Hour offset is 0, nothing to change.",
   "settings_syncDevices_appBar_refreshTooltip": "Refresh",
@@ -28359,7 +28436,7 @@
   "startup_recovery_noDiveLog_body": "There is no {filename} in {folder}. Choose the folder that holds the dive log file itself.",
   "startup_recovery_unusable_body": "The dive log at {path} is damaged, or it is not a Submersion dive log.",
   "startup_recovery_unusableBackup_body": "That file is not a backup Submersion can restore: {path}",
-  "startup_recovery_encryptedBackup_body": "That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.",
+  "startup_recovery_encryptedBackup_body": "That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings > Data > Backups.",
   "startup_recovery_useDefault_title": "Go back to the app default location?",
   "startup_recovery_useDefault_body": "From now on Submersion opens the dive log in its own folder, or starts an empty one there if there is none. Nothing in {folder} is moved or deleted. To use that folder again, choose it in Settings, under Database Storage.",
   "startup_recovery_useDefault_confirm": "Use the default location",
@@ -30148,6 +30225,38 @@
   "settings_storageUsage_category_temporary": "Temporary files",
   "settings_storageUsage_category_exports": "Exported files",
   "settings_storageUsage_category_importedFiles": "Imported logbook files",
+  "settings_storageUsage_totalSplit": "{device} on this device, {cloud} in the cloud",
+  "@settings_storageUsage_totalSplit": {"placeholders": {"device": {"type": "String"}, "cloud": {"type": "String"}}},
+  "settings_storageUsage_reclaimTitle": "About {size} can be reclaimed",
+  "@settings_storageUsage_reclaimTitle": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimNothing": "Nothing to reclaim right now",
+  "settings_storageUsage_reclaimLast": "Last reclaimed {size}, {when}",
+  "@settings_storageUsage_reclaimLast": {"placeholders": {"size": {"type": "String"}, "when": {"type": "String"}}},
+  "settings_storageUsage_reclaimWaiting": "{size} more will be reclaimable after the safety wait",
+  "@settings_storageUsage_reclaimWaiting": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimWaitingSync": "{size} more will be reclaimable once this device has finished syncing",
+  "@settings_storageUsage_reclaimWaitingSync": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimWaitingUnregistered": "{size} more will be reclaimable after you reconnect the media store",
+  "@settings_storageUsage_reclaimWaitingUnregistered": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimWaitingUploads": "{size} more will be reclaimable once uploads finish",
+  "@settings_storageUsage_reclaimWaitingUploads": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimAction": "Reclaim storage",
+  "settings_storageUsage_reclaimDone": "Reclaimed {size}",
+  "@settings_storageUsage_reclaimDone": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimDoneDeferred": "Reclaimed {size}. The cloud cleanup waits until this device has finished syncing.",
+  "@settings_storageUsage_reclaimDoneDeferred": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimDoneUnregistered": "Reclaimed {size}. Reconnect the media store to clean up the cloud.",
+  "@settings_storageUsage_reclaimDoneUnregistered": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_reclaimDoneUploads": "Reclaimed {size}. The cloud cleanup waits until uploads finish.",
+  "@settings_storageUsage_reclaimDoneUploads": {"placeholders": {"size": {"type": "String"}}},
+  "settings_storageUsage_group_cloud": "In the Cloud",
+  "settings_storageUsage_cloud_media": "Media store",
+  "settings_storageUsage_cloud_sync": "Database sync",
+  "settings_storageUsage_cloud_libraries": "Shared site libraries",
+  "settings_storageUsage_cloud_scanned": "Scanned {when}",
+  "@settings_storageUsage_cloud_scanned": {"placeholders": {"when": {"type": "String"}}},
+  "settings_storageUsage_cloud_notScanned": "Not scanned yet",
+  "settings_storageUsage_cloud_rescan": "Rescan",
   "profilePhoto_sheet_title": "Profile Photo",
   "profilePhoto_source_camera": "Take Photo",
   "common_camera_unavailable": "The camera could not be opened. Please allow camera access in Settings.",
@@ -30247,9 +30356,9 @@
   },
   "startup_interruptedRestore_body": "Submersion was restoring a backup when it stopped. Your dive log from before that restore is still on this device, and this version can open it.",
   "startup_interruptedRestore_recoverAction": "Recover my previous dive log",
-  "startup_interruptedRestore_recoverNote": "The file in its place now is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.",
+  "startup_interruptedRestore_recoverNote": "The file in its place now is kept, not deleted. You can restore or delete it later under Settings > Data > Backups.",
   "startup_interruptedRestore_keepAction": "Keep what is there now",
-  "startup_interruptedRestore_keepNote": "Your previous dive log is kept, not deleted. You can restore or delete it later in Backup & Restore in Settings.",
+  "startup_interruptedRestore_keepNote": "Your previous dive log is kept, not deleted. You can restore or delete it later under Settings > Data > Backups.",
   "startup_interruptedRestore_failed": "Recovery did not complete. Nothing was deleted; both files are still on this device.",
   "startup_diveLogUnavailable_downloading": "Downloading your dive log from iCloud",
   "startup_diveLogUnavailable_iCloud_title": "Your dive log is still in iCloud",
@@ -30453,6 +30562,40 @@
   "@dataQuality_msg_unknownTransmitter": {
     "placeholders": {
       "serial": { "type": "String" }
+    }
+  },
+  "dataQuality_repairLabel_useAsBailout": "Use as bailout",
+  "dataQuality_useAsBailout_title": "Make this tank the bailout?",
+  "dataQuality_useAsBailout_merge": "Removes the duplicate Bailout cylinder (switches move to Tank {tankNumber})",
+  "@dataQuality_useAsBailout_merge": {
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_useAsBailout_register": "Also register this transmitter as {role}",
+  "@dataQuality_useAsBailout_register": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_useAsBailout_mixesKept": "{count, plural, =1{{count} other dive kept its gas mix. Check it.} other{{count} other dives kept their gas mix. Check them.}}",
+  "@dataQuality_useAsBailout_mixesKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_useAsBailout_registered": "Transmitter registered as {role}. Undo changes this dive only.",
+  "@dataQuality_useAsBailout_registered": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
     }
   },
   "dataQuality_repairLabel_assignTransmitter": "Assign transmitter",

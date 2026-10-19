@@ -9,13 +9,13 @@ path. Neither pointer means anything on another device.
 **Media Sync** closes that gap. Connect a storage provider and Submersion keeps a
 copy of each photo and video in cloud storage you control, then serves those
 copies to your other devices on demand. It is optional, off by default, and set
-up separately from Cloud Sync.
+up separately from Sync between devices.
 
 > [!TIP]
-> **In the app this lives under Settings > Data > Photos & Media > Media Storage.** Photos & Media covers two ideas: where photos come from (your
+> **In the app this lives under Settings > Data > Photos & videos > Media Storage.** Photos & videos covers two ideas: where photos come from (your
 > gallery, files, URLs; see [Marine Life & Photos](marine-life-and-photos.md))
 > and where copies are kept, which is this page. **Guided setup** on the Photos &
-> Media page walks through both.
+> videos page walks through both.
 
 ## What Media Sync Solves
 
@@ -44,17 +44,17 @@ one.
 | Provider | Where files land | Notes |
 |----------|------------------|-------|
 | **S3** | A bucket you own (AWS S3, Backblaze B2, MinIO, Wasabi and others) | Most control; you supply the endpoint, bucket and keys |
-| **Dropbox** | Your Dropbox app folder | Reuses the Dropbox connection from Cloud Sync |
+| **Dropbox** | Your Dropbox app folder | Reuses the Dropbox connection from Sync between devices |
 | **Google Drive** | The app's private Drive space | Signs in with Google; files are not visible in your normal Drive |
 | **iCloud** | The app's iCloud container | Apple devices only; travels with your Apple Account |
 
-The media store is set up independently of Cloud Sync. You can sync your logbook
+The media store is set up independently of Sync between devices. You can sync your logbook
 over iCloud and keep media in S3, or use media storage with no database sync at
 all.
 
 ## Connecting
 
-1. Go to **Settings > Data > Photos & Media > Media Storage**.
+1. Go to **Settings > Data > Photos & videos > Media Storage**.
 2. Choose a provider with **Provider**.
 3. For Dropbox, Google Drive or iCloud, tap **Connect** for that provider and
    complete the sign-in. There is nothing else to fill in.
@@ -65,7 +65,7 @@ all.
 5. Use **Test Connection** to check the details, then **Save**.
 
 > [!TIP]
-> **Already using S3 for Cloud Sync?** **Copy settings from Sync** on the S3 form
+> **Already using S3 for Sync between devices?** **Copy settings from Sync** on the S3 form
 > fills in the endpoint, bucket and keys from your sync settings. The key prefix
 > stays `submersion-media/`, so media keeps its own space even in a shared
 > bucket.
@@ -132,7 +132,7 @@ video setting; on Linux, installing `ffmpeg` enables it.
 ## Transfers
 
 **View transfers** on the Media Storage page (or **Transfers** on the Photos &
-Media page) shows the queue. Each row is one item:
+videos page) shows the queue. Each row is one item:
 
 | State | Meaning |
 |-------|---------|
@@ -266,5 +266,5 @@ many dives or devices use them.
 - [Marine Life & Photos](marine-life-and-photos.md): linking photos to dives, and where they come from
 - [Multi-Device Sync](multi-device-sync.md): syncing the logbook itself
 - [Encrypted Sync](encrypted-sync.md): end-to-end encryption for sync and backups
-- [Backup & Restore](backup-and-restore.md): snapshots of your database
+- [Backups](backup-and-restore.md): snapshots of your database
 - [Settings](settings.md): every setting

@@ -165,10 +165,13 @@ void main() {
     await tester.pumpWidget(
       backfillApp([
         diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(['d1'])),
-        safetyReviewProvider('d1').overrideWith((ref) async {
+        // Analyze all dives recomputes every review (#1643), so the sweep
+        // waits on the recompute provider first.
+        safetyReviewRecomputeProvider('d1').overrideWith((ref) async {
           await gate.future;
           return null;
         }),
+        safetyReviewProvider('d1').overrideWith((ref) async => null),
       ]),
     );
     await tester.pumpAndSettle();

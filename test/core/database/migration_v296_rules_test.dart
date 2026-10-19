@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v292 adds the logbook rules tables (#3513): rules, rule_runs and
+/// v296 adds the logbook rules tables (#3513): rules, rule_runs and
 /// rule_run_changes. Table-only rung, additive, floor unchanged.
 
 Future<Set<String>> _tables(AppDatabase db) async {
@@ -35,10 +35,10 @@ const _ruleIndexes = {
 };
 
 void main() {
-  test('v292 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 292);
-    expect(AppDatabase.migrationVersions.last, 292);
-    expect(AppDatabase.migrationStepCount(291), 1);
+  test('v296 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, 296);
+    expect(AppDatabase.migrationVersions.last, 296);
+    expect(AppDatabase.migrationStepCount(294), 1);
   });
 
   test('a fresh database has the three tables and their indexes', () async {
@@ -93,7 +93,7 @@ void main() {
     });
   });
 
-  test('a database already at v292 without the tables gains them', () async {
+  test('a database already at v296 without the tables gains them', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute(

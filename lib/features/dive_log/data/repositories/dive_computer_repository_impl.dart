@@ -2964,6 +2964,10 @@ class TankData {
   /// Display name from the transmitter registry's label, if any.
   final String? tankName;
 
+  /// False when [o2Percent]/[hePercent] are the resolver's default rather
+  /// than a mix the computer recorded (see `DownloadedTank.mixRecorded`).
+  final bool mixRecorded;
+
   const TankData({
     required this.index,
     required this.o2Percent,
@@ -2979,6 +2983,7 @@ class TankData {
     this.transmitterSerial,
     this.equipmentId,
     this.tankName,
+    this.mixRecorded = true,
   });
 
   TankData copyWith({
@@ -2997,6 +3002,7 @@ class TankData {
     String? transmitterSerial,
     String? equipmentId,
     String? tankName,
+    bool? mixRecorded,
   }) => TankData(
     index: index ?? this.index,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -3012,6 +3018,7 @@ class TankData {
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
     equipmentId: equipmentId ?? this.equipmentId,
     tankName: tankName ?? this.tankName,
+    mixRecorded: mixRecorded ?? this.mixRecorded,
   );
 }
 

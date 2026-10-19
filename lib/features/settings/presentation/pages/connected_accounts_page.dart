@@ -11,6 +11,7 @@ import 'package:submersion/core/services/media_store/media_store_attach_state.da
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -250,9 +251,13 @@ class _AccountTile extends ConsumerWidget {
                   .read(connectedAccountsRepositoryProvider)
                   .delete(account.id);
           }
+          // A sign-out touches only the keychain, so nothing in the
+          // database ticks; the setup items behind the Settings > Data rows
+          // must recompute too.
           container
             ..invalidate(connectedAccountsWithStatusProvider)
-            ..invalidate(connectedAccountUsageProvider);
+            ..invalidate(connectedAccountUsageProvider)
+            ..invalidate(pendingSetupItemsProvider);
           // Disconnecting the WebDAV sync account clears the sync settings
           // too; the Cloud Sync tile reads them through this provider.
           if (account.kind == AccountKind.webdav) {

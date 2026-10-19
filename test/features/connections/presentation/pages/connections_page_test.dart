@@ -159,12 +159,12 @@ void main() {
     expect(find.byKey(const ValueKey('entity-search')), findsOneWidget);
   });
 
-  testWidgets('an empty buddy map keeps the panel and points at Data Tools', (
+  testWidgets('an empty buddy map keeps the panel and points at Data tools', (
     tester,
   ) async {
     await _pump(tester, graph: (ref, budget) => ConnectionGraph.empty);
     expect(find.byKey(const ValueKey('connections-panel')), findsOneWidget);
-    expect(find.textContaining('Data Tools'), findsOneWidget);
+    expect(find.textContaining('Data tools'), findsOneWidget);
   });
 
   testWidgets('an empty result under a filter blames the filter', (

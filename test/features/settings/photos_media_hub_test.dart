@@ -83,19 +83,22 @@ void main() {
     ),
   );
 
-  testWidgets('hub shows the two layer groups and the accounts entry', (
-    tester,
-  ) async {
+  testWidgets('hub shows the two layer groups', (tester) async {
     await tester.pumpWidget(app(const PhotosMediaHubPage()));
     await tester.pump();
 
     expect(find.text('Where photos come from'), findsOneWidget);
     expect(find.text('Where copies are kept'), findsOneWidget);
-    expect(find.text('Connected Accounts'), findsOneWidget);
+    // Issue #3460: connected accounts serve sync and shared libraries too,
+    // so they are reached from Settings > Data, not from this hub.
+    expect(find.text('Accounts'), findsNothing);
+    expect(find.text('Connected Accounts'), findsNothing);
     // Lightroom and Network sources now live inside "Photo library &
     // sources", not at the hub level.
     expect(find.text('Adobe Lightroom'), findsNothing);
     expect(find.text('Network sources'), findsNothing);
+    // Sentence-case page name from the vocabulary pass (#3482).
+    expect(find.text('Photos & videos'), findsOneWidget);
   });
 
   testWidgets('setup guide renders three steps with live status', (

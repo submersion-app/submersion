@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -122,9 +123,11 @@ class QualityContextBuilder {
     final pressures = <String, List<QualityPressureSample>>{};
     // The detectors read what the rest of the app reads: one source per
     // stretch of a tank, never two recordings interleaved (#2440).
+    final allSeries = await _tankSeries.getSeriesForDive(dive.id);
+    final primarySourceId = sources.where((s) => s.isPrimary).firstOrNull?.id;
     final tankSeries = selectTankSeriesPerSource(
-      await _tankSeries.getSeriesForDive(dive.id),
-      preferredSourceId: sources.where((s) => s.isPrimary).firstOrNull?.id,
+      allSeries,
+      preferredSourceId: primarySourceId,
     );
     final byTank = <String, List<series.TankPressureSeries>>{};
     for (final s in tankSeries) {
@@ -137,6 +140,28 @@ class QualityContextBuilder {
             .putIfAbsent(entry.key, () => [])
             .add(QualityPressureSample(t: p.timestamp, bar: p.pressure));
       }
+    }
+
+    // A name-derived tank is judged on its own computer's reading (#3307).
+    final ownComputerPressures = <String, List<QualityPressureSample>>{};
+    for (final tank in dive.tanks) {
+      if (tank.roleSource != TankRoleSource.transmitterName) continue;
+      // Same pick getTankPressuresForComputer makes: this computer's series,
+      // then one source per stretch, so two recordings never interleave.
+      final own = [
+        for (final s in selectTankSeriesPerSource(
+          selectTankSeriesForComputer(allSeries, tank.computerId),
+          preferredSourceId: primarySourceId,
+          preferredComputerId: tank.computerId,
+        ))
+          if (s.tankId == tank.id) s,
+      ];
+      if (own.isEmpty) continue;
+      ownComputerPressures[tank.id] = [
+        for (final p in mergeTankSeriesPoints(own))
+          if (p.pressure.isFinite)
+            QualityPressureSample(t: p.timestamp, bar: p.pressure),
+      ];
     }
 
     final switchRows =
@@ -153,6 +178,7 @@ class QualityContextBuilder {
           tankId: r.tankId,
           depth: r.depth,
           createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
+          computerId: r.computerId,
         ),
     ];
 
@@ -168,6 +194,7 @@ class QualityContextBuilder {
       carriesDiverData: carriesDiverData,
       tanks: dive.tanks,
       pressuresByTankId: pressures,
+      ownComputerPressuresByTankId: ownComputerPressures,
       gasSwitches: switches,
       neighbors: neighbors,
       ppO2MaxBar: await _ppO2Max(dive.diverId),

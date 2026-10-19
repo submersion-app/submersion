@@ -2449,9 +2449,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'Sicherung und Wiederherstellung';
-
-  @override
   String get backup_backingUp => 'Sicherung wird erstellt...';
 
   @override
@@ -3398,6 +3395,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'TDI-Auffrischung';
 
   @override
+  String get currencyRule_iart_refresher_name => 'IART-Auffrischung';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Erneuerung Erste Hilfe und HLW';
 
@@ -3439,6 +3439,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'TDI empfiehlt nach sechs bis zwölf Monaten ohne technischen Tauchgang eine Auffrischung.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'IART empfiehlt nach sechs bis zwölf Monaten ohne technischen Tauchgang eine Auffrischung.';
 
   @override
   String get currencyRule_first_aid_advisory =>
@@ -3878,6 +3882,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_group_tdiProfessional => 'Berufsstufen';
 
   @override
+  String get certifications_edit_group_iartOpenCircuit => 'Offener Kreislauf';
+
+  @override
+  String get certifications_edit_group_iartRebreather => 'Kreislaufgerät';
+
+  @override
+  String get certifications_edit_group_iartOverhead => 'Überkopf-Umgebung';
+
+  @override
+  String get certifications_edit_group_iartService => 'Service';
+
+  @override
+  String get certifications_edit_group_iartProfessional => 'Berufsstufen';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'Leer lassen für Zertifizierungen ohne Ablaufdatum';
 
@@ -4137,6 +4156,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zertifizierung hinzufügen';
 
   @override
+  String get certifications_list_groupBy => 'Gruppieren nach';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Verband';
+
+  @override
+  String get certifications_list_groupBy_none => 'Keine';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Abgelaufen';
 
   @override
@@ -4239,6 +4270,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_share_title => 'Zertifizierung teilen';
 
   @override
+  String get certifications_sortSheet_view_list => 'Liste';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Zertifizierungskartei';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Wählen Sie eine Zertifizierung aus der Liste, um Details anzuzeigen';
 
@@ -4297,6 +4334,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Zertifizierung teilen';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Sortieren';
 
   @override
   String get checklists_section_title => 'Checkliste';
@@ -5069,7 +5109,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Noch keine Buddys mit Tauchgängen verknüpft. Füge Buddys zu deinen Tauchgängen hinzu oder wandle alte Buddy-Namen unter Einstellungen, Datenwerkzeuge um.';
+      'Noch keine Buddys mit Tauchgängen verknüpft. Füge Buddys zu deinen Tauchgängen hinzu oder wandle alte Buddy-Namen unter Einstellungen > Daten > Datenwerkzeuge um.';
 
   @override
   String get connections_empty_sites =>
@@ -12342,6 +12382,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_tdi => 'TDI';
+
+  @override
+  String get enum_certificationAgency_iart => 'IART';
 
   @override
   String get enum_certificationLevel_advancedNitrox => 'Advanced Nitrox';
@@ -20735,6 +20778,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nur Icons, auch wenn Platz für Beschriftungen wäre';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Startzustand der Seitenleiste; der Pfeil kann sie für diese Sitzung weiterhin ein- oder ausklappen';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Elemente ziehen, um die Seitenleiste neu zu ordnen. Startseite bleibt immer oben.';
 
@@ -20888,10 +20935,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Zurück zu Einstellungen';
 
   @override
-  String get settings_cloudSync_appBar_title =>
-      'Datenbank-Cloud-Synchronisierung';
-
-  @override
   String get settings_cloudSync_autoSync => 'Automatische Synchronisierung';
 
   @override
@@ -20918,15 +20961,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Cloud-Synchronisierung deaktiviert';
 
   @override
-  String get settings_cloudSync_entry_subtitle =>
-      'Synchronisierung über Cloud-Speicher';
-
-  @override
   String get sharedLibrary_settings_title => 'Geteilte Tauchplatzbibliotheken';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'Tauchplätze, die du mit anderen Tauchern pflegst';
 
   @override
   String get sharedLibrary_list_empty =>
@@ -21035,6 +21070,33 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_members_removeRole => 'Rolle entfernen';
+
+  @override
+  String get sharedLibrary_members_remove => 'Aus der Bibliothek entfernen';
+
+  @override
+  String sharedLibrary_members_removeTitle(String name) {
+    return '$name entfernen?';
+  }
+
+  @override
+  String sharedLibrary_members_removeBody(String name) {
+    return '$name kann dann keine Orte mehr bearbeiten und keine Änderungen mehr vorschlagen. Orte und Änderungen, die die Person schon beigetragen hat, bleiben in der Bibliothek.\n\nLesen kann sie die Bibliothek weiterhin, bis du ihre Speicherschlüssel änderst, und ihre Passphrase, falls sie verschlüsselt ist.';
+  }
+
+  @override
+  String get sharedLibrary_members_removeConfirm => 'Entfernen';
+
+  @override
+  String get sharedLibrary_members_removedHeader => 'Entfernt';
+
+  @override
+  String sharedLibrary_members_removedOn(String date) {
+    return 'Entfernt am $date';
+  }
+
+  @override
+  String get sharedLibrary_members_allowBack => 'Wieder zulassen';
 
   @override
   String get sharedLibrary_owner_onlyOne =>
@@ -21347,6 +21409,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get sharedLibrary_library_readOnlyBanner =>
       'Deine Zugangsdaten erlauben nur Lesen. Du kannst Änderungen vorschlagen; ein Verantwortlicher übernimmt sie.';
+
+  @override
+  String get sharedLibrary_library_removedBanner =>
+      'Ein Verantwortlicher hat dich aus dieser Bibliothek entfernt. Ihre Orte bleiben auf diesem Gerät, aber du kannst sie nicht mehr ändern. Wenn du die Bibliothek verlässt, behältst du eigene Kopien der Orte, an denen du getaucht bist.';
 
   @override
   String sharedLibrary_library_errorBanner(String error) {
@@ -21730,7 +21796,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_replaceHint =>
-      'Wenn stattdessen die Bibliothek dieses Geräts das ersetzen soll, was in der Cloud liegt, brechen Sie ab und verwenden Sie Einstellungen > Cloud-Synchronisierung > Cloud-Bibliothek ersetzen.';
+      'Wenn stattdessen die Bibliothek dieses Geräts das ersetzen soll, was in der Cloud liegt, brechen Sie ab und verwenden Sie Einstellungen > Daten > Synchronisierung zwischen Geräten > Cloud-Bibliothek ersetzen.';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
@@ -25206,12 +25272,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_data_appDefaultLocation => 'Standard-App-Speicherort';
 
   @override
-  String get settings_data_backup => 'Sicherung und Wiederherstellung';
-
-  @override
-  String get settings_data_backup_subtitle => 'Sicherung Ihrer Daten erstellen';
-
-  @override
   String get settings_data_customFolder => 'Benutzerdefinierter Ordner';
 
   @override
@@ -25221,15 +25281,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'Export fehlgeschlagen: $error';
   }
-
-  @override
-  String get settings_data_header_backupSync => 'Sicherung & Synchronisierung';
-
-  @override
-  String get settings_data_header_import => 'Import';
-
-  @override
-  String get settings_data_header_storage => 'Speicher';
 
   @override
   String get settings_data_offlineMaps => 'Offline-Karten';
@@ -25257,16 +25308,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Sicherung';
+  String get dataHealth_feature_backup => 'Sicherungen';
 
   @override
   String get dataHealth_feature_sync => 'Sync';
 
   @override
   String get dataHealth_feature_libraries => 'Bibliotheken';
-
-  @override
-  String get dataHealth_feature_media => 'Medien';
 
   @override
   String get dataHealth_level_healthy => 'In Ordnung';
@@ -25359,17 +25407,164 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataHealth_sync_neverSynced => 'Noch nicht synchronisiert';
 
   @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'Synchronisiert: $when';
+  String get settings_data_header_yourData => 'Deine Daten';
+
+  @override
+  String get settings_data_header_advanced => 'Erweitert';
+
+  @override
+  String get settings_data_setUp => 'Einrichten';
+
+  @override
+  String get settings_data_importOptions => 'Importoptionen';
+
+  @override
+  String get settings_data_importOptions_subtitle =>
+      'Platzzuordnung, Druck beim Auftauchen, automatische Tags';
+
+  @override
+  String get settings_data_dataTools => 'Datenwerkzeuge';
+
+  @override
+  String get settings_data_dataTools_subtitle =>
+      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung neu zuordnen, Datenqualität';
+
+  @override
+  String get settings_sync_title => 'Synchronisierung zwischen Geräten';
+
+  @override
+  String get settings_backups_title => 'Sicherungen';
+
+  @override
+  String get settings_photosVideos_title => 'Fotos & Videos';
+
+  @override
+  String get settings_section_data_tagline =>
+      'Sicherungen, Synchronisierung und Fotos';
+
+  @override
+  String get dataHealth_feature_photos => 'Fotos';
+
+  @override
+  String get settings_data_backups_status_never => 'Noch nicht gesichert';
+
+  @override
+  String settings_data_backups_status_local(String when) {
+    return 'Gesichert $when, nur auf diesem Gerät';
   }
 
   @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
+  String settings_data_backups_status_cloud(String when, String account) {
+    return 'Gesichert $when, Kopie in $account';
+  }
+
+  @override
+  String settings_data_backups_status_cloudUnknown(String when) {
+    return 'Gesichert $when, Kopie in der Cloud';
+  }
+
+  @override
+  String get settings_data_time_justNow => 'gerade eben';
+
+  @override
+  String get settings_data_status_checking => 'Wird geprüft…';
+
+  @override
+  String settings_data_accounts_status_list(String accounts) {
+    return '$accounts';
+  }
+
+  @override
+  String settings_data_backups_status_folder(String when) {
+    return 'Gesichert $when, Kopie in deinem Sicherungsordner';
+  }
+
+  @override
+  String get settings_data_sync_status_off => 'Nur auf diesem Gerät';
+
+  @override
+  String settings_data_sync_status_synced(String when) {
+    return 'Synchronisiert $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Wird vom Sync-Dienst deines Ordners abgeglichen';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Gesichert $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '$feature einrichten';
+  }
+
+  @override
+  String settings_data_sync_status_one(String device, String when) {
+    return 'Auf dem Stand von $device, $when';
+  }
+
+  @override
+  String settings_data_sync_status_many(int count, String when) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Synchronisiert: $when · $count Geräte',
-      one: 'Synchronisiert: $when · $count Gerät',
+      other: 'Auf dem Stand von $count Geräten, $when',
+      one: 'Auf dem Stand von $count Gerät, $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_photos_status_off =>
+      'Es werden keine Kopien in der Cloud aufbewahrt';
+
+  @override
+  String settings_data_photos_status_on(String store) {
+    return 'Kopien in $store';
+  }
+
+  @override
+  String get settings_data_photos_status_onUnknown => 'Kopien in der Cloud';
+
+  @override
+  String get settings_data_libraries_status_none =>
+      'Keiner Bibliothek beigetreten';
+
+  @override
+  String settings_data_libraries_status_some(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Bibliotheken, letzte Synchronisierung $when',
+      one: '$count Bibliothek, letzte Synchronisierung $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_data_libraries_status_someNever(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Bibliotheken, noch nicht synchronisiert',
+      one: '$count Bibliothek, noch nicht synchronisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_accounts_status_none => 'Noch keine';
+
+  @override
+  String settings_data_accounts_status_needSignIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Konten brauchen eine Anmeldung',
+      one: '$count Konto braucht eine Anmeldung',
     );
     return '$_temp0';
   }
@@ -26582,10 +26777,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_section_appearance_title => 'Darstellung';
 
   @override
-  String get settings_section_data_subtitle =>
-      'Sicherung, Wiederherstellung & Speicher';
-
-  @override
   String get settings_section_data_title => 'Daten';
 
   @override
@@ -26833,7 +27024,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_storage_customFolder_deviceOnly_noCloudSync =>
-      'Die app-verwaltete Cloud-Synchronisierung ist deaktiviert, solange die Datenbank auf einem Gerätespeicher liegt. Unter Android kann kein Synchronisierungsdienst diesen Ordner erreichen — nutzen Sie Sicherung und Wiederherstellung, um anderswo Kopien zu behalten.';
+      'Die app-verwaltete Cloud-Synchronisierung ist deaktiviert, solange die Datenbank auf einem Gerätespeicher liegt. Unter Android kann kein Synchronisierungsdienst diesen Ordner erreichen. Nutzen Sie Sicherungen, um anderswo Kopien zu behalten.';
 
   @override
   String get settings_storage_dismissError_tooltip => 'Fehler schließen';
@@ -26899,7 +27090,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_body =>
-      'Dies löscht dauerhaft alle Daten auf DIESEM Gerät, einschließlich Tauchgänge, Tauchplätze, Ausrüstung und Einstellungen. Vor dem Zurücksetzen wird automatisch eine Sicherung erstellt.\n\nIhre Cloud-Bibliothek wird nicht gelöscht, und andere Geräte behalten ihre Daten. Die Cloud-Synchronisierung wird getrennt, damit das Zurücksetzen nicht rückgängig gemacht wird; Sie können sie unter Einstellungen > Cloud-Synchronisierung wieder verbinden.';
+      'Dies löscht dauerhaft alle Daten auf DIESEM Gerät, einschließlich Tauchgänge, Tauchplätze, Ausrüstung und Einstellungen. Vor dem Zurücksetzen wird automatisch eine Sicherung erstellt.\n\nIhre Cloud-Bibliothek wird nicht gelöscht, und andere Geräte behalten ihre Daten. Die Cloud-Synchronisierung wird getrennt, damit das Zurücksetzen nicht rückgängig gemacht wird; Sie können sie unter Einstellungen > Daten > Synchronisierung zwischen Geräten wieder verbinden.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'Delete';
@@ -26921,7 +27112,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_storage_resetComplete_description =>
-      'Die Daten dieses Geräts wurden gelöscht und eine Sicherung wurde gespeichert. Die Cloud-Synchronisierung ist jetzt getrennt, damit das Zurücksetzen nicht rückgängig gemacht wird; Sie können sie unter Einstellungen > Cloud-Synchronisierung wieder verbinden. Tippen Sie auf Weiter, um die App neu zu laden.';
+      'Die Daten dieses Geräts wurden gelöscht und eine Sicherung wurde gespeichert. Die Cloud-Synchronisierung ist jetzt getrennt, damit das Zurücksetzen nicht rückgängig gemacht wird; Sie können sie unter Einstellungen > Daten > Synchronisierung zwischen Geräten wieder verbinden. Tippen Sie auf Weiter, um die App neu zu laden.';
 
   @override
   String get settings_summary_activeDiver => 'Aktiver Taucher';
@@ -30508,10 +30699,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV- und Excel-Dateien können in Tabellenkalkulationen geöffnet werden. Unter Einstellungen > Sicherung und Wiederherstellung können Sie außerdem Ihre gesamte Datenbank sichern.';
+      'Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV- und Excel-Dateien können in Tabellenkalkulationen geöffnet werden. Unter Einstellungen > Daten > Sicherungen können Sie außerdem Ihre gesamte Datenbank sichern.';
 
   @override
-  String get transfer_export_backupLink => 'Zu Sicherung & Wiederherstellung';
+  String get transfer_export_backupLink => 'Zu Sicherungen';
 
   @override
   String get transfer_export_aboutTitle => 'Über Export';
@@ -35809,7 +36000,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get db_location_backup_note =>
-      'Android kann die Datenbank nicht aus einem cloud-synchronisierten Ordner betreiben. Um eine Kopie in Dropbox, Nextcloud oder Google Drive zu behalten, legen Sie unter Sicherung und Wiederherstellung einen Sicherungsort fest.';
+      'Android kann die Datenbank nicht aus einem cloud-synchronisierten Ordner betreiben. Um eine Kopie in Dropbox, Nextcloud oder Google Drive zu behalten, legen Sie unter Sicherungen einen Sicherungsordner fest.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -35990,6 +36181,18 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_verify_deferred =>
+      'Nichts wurde gelöscht: Löschvorgänge warten, bis dieses Gerät die Synchronisierung abgeschlossen hat.';
+
+  @override
+  String get settings_mediaStorage_verify_unregistered =>
+      'Nichts wurde gelöscht: Verbinde den Medienspeicher erneut, damit dieses Tauchlogbuch weiß, welche Dateien ihm gehören.';
+
+  @override
+  String get settings_mediaStorage_verify_uploads =>
+      'Nichts wurde gelöscht: Löschvorgänge warten, bis die Uploads abgeschlossen sind.';
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Vorhandene Bibliothek hochladen';
 
@@ -36018,7 +36221,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>
-      'Verwendet Ihre Dropbox-Verbindung aus der Cloud-Synchronisierung. Medien werden im Dropbox-App-Ordner gespeichert.';
+      'Verwendet Ihre Dropbox-Verbindung aus der Synchronisierung zwischen Geräten. Medien werden im Dropbox-App-Ordner gespeichert.';
 
   @override
   String get settings_mediaStorage_connect_gdrive_hint =>
@@ -36620,20 +36823,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_setup_dismiss => 'Ausblenden';
 
   @override
-  String get settings_photosMedia_title => 'Fotos & Medien';
-
-  @override
-  String get settings_photosMedia_subtitle => 'Quellen, Speicher & Konten';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'Woher Fotos kommen';
 
   @override
   String get settings_photosMedia_storageHeader =>
       'Wo Kopien aufbewahrt werden';
-
-  @override
-  String get settings_photosMedia_accountsHeader => 'Konten';
 
   @override
   String get settings_photosMedia_displayHeader => 'Anzeige';
@@ -36658,10 +36852,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_title => 'Verbundene Konten';
-
-  @override
-  String get settings_connectedAccounts_subtitle =>
-      'Anmeldungen für Synchronisierung, Medienspeicher und geteilte Bibliotheken';
 
   @override
   String get settings_connectedAccounts_empty => 'Noch keine Konten verbunden';
@@ -39335,6 +39525,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Diese Flasche verlor $drop, obwohl die Gas-Zeitleiste sie als nicht in Verwendung ausweist';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_role => 'Senderrolle';
+
+  @override
+  String dataQuality_msg_transmitterRoleBailout(
+    int tankNumber,
+    String role,
+    String ocDrop,
+  ) {
+    return 'Flasche $tankNumber ist nach dem Sendernamen als $role markiert, verlor aber $ocDrop nach dem Wechsel auf offenen Kreislauf und im Kreislauf fast nichts. Sie ist also wohl das Bailout. Ein nie geatmetes Bailout oder eines ohne Gaswechsel am Computer lässt sich so nicht erkennen.';
   }
 
   @override
@@ -46964,9 +47166,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Hängende Synchronisierung beheben oder Cloud-Speicher freigeben';
 
   @override
-  String get settings_data_header_dataTools => 'Datenwerkzeuge';
-
-  @override
   String get settings_decompression_ascentGasLabel => 'Aufstieg planen mit';
 
   @override
@@ -48600,7 +48799,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.';
+      'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach unter Einstellungen > Daten > Sicherungen wieder her.';
 
   @override
   String get startup_recovery_useDefault_title =>
@@ -50665,6 +50864,92 @@ class AppLocalizationsDe extends AppLocalizations {
       'Original-Importdateien';
 
   @override
+  String settings_storageUsage_totalSplit(String device, String cloud) {
+    return '$device auf diesem Gerät, $cloud in der Cloud';
+  }
+
+  @override
+  String settings_storageUsage_reclaimTitle(String size) {
+    return 'Etwa $size können freigegeben werden';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimNothing =>
+      'Derzeit nichts freizugeben';
+
+  @override
+  String settings_storageUsage_reclaimLast(String size, String when) {
+    return 'Zuletzt freigegeben: $size, $when';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaiting(String size) {
+    return 'Weitere $size werden nach der Sicherheitswartezeit freigebbar';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingSync(String size) {
+    return 'Weitere $size werden freigebbar, sobald dieses Gerät die Synchronisierung abgeschlossen hat';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUnregistered(String size) {
+    return 'Weitere $size werden freigebbar, wenn du den Medienspeicher erneut verbindest';
+  }
+
+  @override
+  String settings_storageUsage_reclaimWaitingUploads(String size) {
+    return 'Weitere $size werden freigebbar, sobald die Uploads abgeschlossen sind';
+  }
+
+  @override
+  String get settings_storageUsage_reclaimAction => 'Speicher freigeben';
+
+  @override
+  String settings_storageUsage_reclaimDone(String size) {
+    return '$size freigegeben';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneDeferred(String size) {
+    return '$size freigegeben. Die Cloud-Bereinigung wartet, bis dieses Gerät die Synchronisierung abgeschlossen hat.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUnregistered(String size) {
+    return '$size freigegeben. Verbinde den Medienspeicher erneut, um die Cloud zu bereinigen.';
+  }
+
+  @override
+  String settings_storageUsage_reclaimDoneUploads(String size) {
+    return '$size freigegeben. Die Cloud-Bereinigung wartet, bis die Uploads abgeschlossen sind.';
+  }
+
+  @override
+  String get settings_storageUsage_group_cloud => 'In der Cloud';
+
+  @override
+  String get settings_storageUsage_cloud_media => 'Medienspeicher';
+
+  @override
+  String get settings_storageUsage_cloud_sync => 'Datenbank-Synchronisierung';
+
+  @override
+  String get settings_storageUsage_cloud_libraries =>
+      'Geteilte Tauchplatzbibliotheken';
+
+  @override
+  String settings_storageUsage_cloud_scanned(String when) {
+    return 'Geprüft $when';
+  }
+
+  @override
+  String get settings_storageUsage_cloud_notScanned => 'Noch nicht geprüft';
+
+  @override
+  String get settings_storageUsage_cloud_rescan => 'Erneut prüfen';
+
+  @override
   String get profilePhoto_sheet_title => 'Profilfoto';
 
   @override
@@ -50826,7 +51111,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'Die Datei, die jetzt an seiner Stelle liegt, wird aufbewahrt und nicht gelöscht. Du kannst sie später unter Sicherung und Wiederherstellung in den Einstellungen wiederherstellen oder löschen.';
+      'Die Datei, die jetzt an seiner Stelle liegt, wird aufbewahrt und nicht gelöscht. Du kannst sie später unter Einstellungen > Daten > Sicherungen wiederherstellen oder löschen.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -50834,7 +51119,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Dein vorheriges Tauchlogbuch wird aufbewahrt und nicht gelöscht. Du kannst es später unter Sicherung und Wiederherstellung in den Einstellungen wiederherstellen oder löschen.';
+      'Dein vorheriges Tauchlogbuch wird aufbewahrt und nicht gelöscht. Du kannst es später unter Einstellungen > Daten > Sicherungen wiederherstellen oder löschen.';
 
   @override
   String get startup_interruptedRestore_failed =>
@@ -51165,6 +51450,41 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return 'Sender $serial ist keiner Flasche zugewiesen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_useAsBailout => 'Als Bailout verwenden';
+
+  @override
+  String get dataQuality_useAsBailout_title =>
+      'Diese Flasche zum Bailout machen?';
+
+  @override
+  String dataQuality_useAsBailout_merge(int tankNumber) {
+    return 'Entfernt die doppelte Bailout-Flasche (Gaswechsel gehen auf Flasche $tankNumber über)';
+  }
+
+  @override
+  String dataQuality_useAsBailout_register(String role) {
+    return 'Diesen Sender auch als $role registrieren';
+  }
+
+  @override
+  String dataQuality_useAsBailout_mixesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count weitere Tauchgänge haben ihr Gasgemisch behalten. Bitte prüfen.',
+      one:
+          '$count weiterer Tauchgang hat sein Gasgemisch behalten. Bitte prüfen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_useAsBailout_registered(String role) {
+    return 'Sender als $role registriert. Rückgängig ändert nur diesen Tauchgang.';
   }
 
   @override

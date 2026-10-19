@@ -1040,8 +1040,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 ),
               ),
             ),
-            // Map style switcher, below the fullscreen button.
-            const Positioned(right: 8, top: 48, child: MapCornerControls()),
+            // No map style switcher on the locked preview: the fullscreen map
+            // carries one.
           ],
         ),
       ),

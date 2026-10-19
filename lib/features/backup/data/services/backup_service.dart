@@ -36,6 +36,7 @@ import 'package:submersion/features/backup/data/services/backup_database_adapter
 import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
@@ -98,6 +99,11 @@ class BackupService {
   /// Nullable so existing constructions keep working.
   final PostRestoreSyncStore? _postRestoreSyncStore;
 
+  /// Told when a restore is about to replace the database, so the storage
+  /// cleanup defers cloud deletes and runs its post-restore pass (storage GC
+  /// design, Coordinator).
+  final Future<void> Function(DateTime at)? _onRestoring;
+
   /// End-to-end encryption deps: when the sync-encryption flag is on and a
   /// key + keyslot mirror are available, cloud uploads become framed .sbe
   /// artifacts and encrypted restores can decrypt silently. Both nullable so
@@ -133,6 +139,7 @@ class BackupService {
     SyncRepository? syncRepository,
     LibraryEpochStore? epochStore,
     PostRestoreSyncStore? postRestoreSyncStore,
+    Future<void> Function(DateTime at)? onRestoring,
     BackupSafPort? safPort,
     EncryptionKeyStore? encryptionKeyStore,
     SyncPreferences? syncPreferences,
@@ -144,6 +151,7 @@ class BackupService {
        _syncRepository = syncRepository ?? SyncRepository(),
        _epochStore = epochStore,
        _postRestoreSyncStore = postRestoreSyncStore,
+       _onRestoring = onRestoring,
        _safPort = safPort ?? const MethodChannelBackupSafPort(),
        _encryptionKeyStore = encryptionKeyStore,
        _syncPreferences = syncPreferences,
@@ -174,11 +182,16 @@ class BackupService {
       _preferences,
       saf: _safPort,
     );
+    // Read right after resolving, so a dead folder grant the resolver just
+    // reset counts as the default, and a folder change during the write
+    // cannot relabel the copy this target receives.
+    final toChosenFolder = _preferences.getSettings().backupLocation != null;
     try {
       return await _performBackupInto(
         lease.target,
         isAutomatic: isAutomatic,
         note: isAutomatic ? null : normalizeBackupNote(note),
+        toChosenFolder: toChosenFolder,
       );
     } finally {
       await lease.release();
@@ -188,6 +201,7 @@ class BackupService {
   Future<BackupRecord> _performBackupInto(
     BackupTarget target, {
     required bool isAutomatic,
+    required bool toChosenFolder,
     String? note,
   }) async {
     final filename = await _generateFilename();
@@ -252,7 +266,11 @@ class BackupService {
     var location = BackupLocation.local;
 
     final settings = _preferences.getSettings();
+    // The account the provider uploads through, read before the upload: a
+    // switch while it runs must not be recorded as this copy's account.
+    String? uploadAccountId;
     if (settings.cloudBackupEnabled && _cloudProvider != null) {
+      uploadAccountId = await _syncAccountIdOrNull();
       try {
         cloudFileId = await _uploadToCloud(ref, storedName);
         // Only a real file id means a cloud copy exists: the upload also
@@ -297,6 +315,14 @@ class BackupService {
     // get. Every backup overwrites it, so one that uploads clears it.
     await _preferences.setLastCloudCopyMissing(
       settings.cloudBackupEnabled && location == BackupLocation.local,
+    );
+    await _preferences.setLastBackupDestination(
+      location == BackupLocation.both
+          ? LastBackupDestination.cloud
+          : toChosenFolder
+          ? LastBackupDestination.folder
+          : LastBackupDestination.device,
+      cloudAccountId: location == BackupLocation.both ? uploadAccountId : null,
     );
 
     // Prune old backups
@@ -368,6 +394,7 @@ class BackupService {
 
     await _preferences.addRecord(record);
     await _preferences.setLastBackupTime(record.timestamp);
+    await _preferences.setLastBackupDestination(LastBackupDestination.file);
 
     _log.info('Export completed: $filename');
     return record;
@@ -752,6 +779,11 @@ class BackupService {
     // Determine backup source path. A SAF (content://) ref is streamed to a
     // temp file first; SQLite open + validation need a real filesystem path.
     String sourcePath;
+    // Set when sourcePath is a copy this restore made (a SAF stream or a
+    // cloud download). Nothing else ever deletes it, so every such restore
+    // would otherwise leave a full-size database in the temp folder
+    // (storage GC design, leak 1).
+    var madeCopy = false;
     final localRef = record.localPath;
     if (localRef != null && isSafRef(localRef)) {
       if (!await _safPort.exists(localRef)) {
@@ -760,21 +792,54 @@ class BackupService {
         );
       }
       final tempDir = await resolveSyncTempDir();
-      sourcePath = p.join(tempDir.path, record.filename);
-      await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
+      sourcePath = p.join(tempDir.path, _restoreCopyName(record.filename));
+      madeCopy = true;
+      try {
+        await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
+      } catch (_) {
+        // A stream that failed part way leaves a partial copy behind.
+        await _MaterializedBackup(sourcePath, isTemp: true).cleanUp();
+        rethrow;
+      }
     } else if (localRef != null && await File(localRef).exists()) {
       sourcePath = localRef;
     } else if (record.cloudFileId != null && _cloudProvider != null) {
       // Download from cloud to a temp location
       _log.info('Downloading backup from cloud');
+      madeCopy = true;
       sourcePath = await _downloadFromCloud(
         record.cloudFileId!,
-        record.filename,
+        _restoreCopyName(record.filename),
       );
     } else {
       throw const BackupException('Backup file not found locally or in cloud');
     }
+    try {
+      await _restoreFromSource(
+        record,
+        sourcePath,
+        mode: mode,
+        encryptionSecret: encryptionSecret,
+        onMigrationProgress: onMigrationProgress,
+      );
+    } finally {
+      await _MaterializedBackup(sourcePath, isTemp: madeCopy).cleanUp();
+    }
+  }
 
+  /// A temp name for the copy a restore makes, unique per restore. The
+  /// record's own name would collide with a share-sheet export of the same
+  /// backup, which [exportBackupToTemp] writes to the same folder; the
+  /// RestoreTempSweep matches this prefix for copies a killed restore left.
+  String _restoreCopyName(String filename) => 'restore-${_uuid.v4()}-$filename';
+
+  Future<void> _restoreFromSource(
+    BackupRecord record,
+    String sourcePath, {
+    required RestoreMode mode,
+    String? encryptionSecret,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     // An encrypted cloud artifact must be decrypted BEFORE validation (the
     // SQLite deep-check needs plaintext).
     final materialized = await _materializePlaintextBackup(
@@ -989,6 +1054,13 @@ class BackupService {
     String sourcePath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    // Marked BEFORE the replace: the marker is what holds the storage
+    // cleanup's cloud deletes back until a sync after the restore has run,
+    // so it must exist even if the app dies between the replace and the
+    // steps after it. A restore that then fails only defers cleanup until
+    // the next pull, which is the safe direction. A marker that cannot be
+    // recorded stops the restore here, before the live database is touched.
+    await _onRestoring?.call(DateTime.now());
     String liveDeviceId;
     try {
       liveDeviceId = await _syncRepository.getDeviceId();
@@ -1492,6 +1564,21 @@ class BackupService {
   // ===========================================================================
   // Private Helpers
   // ===========================================================================
+
+  /// The connected account driving sync, or null when it cannot be read: a
+  /// missing name only makes Settings > Data say "the cloud".
+  Future<String?> _syncAccountIdOrNull() async {
+    try {
+      return await _syncRepository.getSyncAccountId();
+    } catch (e, stack) {
+      _log.warning(
+        'Could not read the sync account for the backup record',
+        error: e,
+        stackTrace: stack,
+      );
+      return null;
+    }
+  }
 
   /// Names a new backup, tagging it with the device that wrote it.
   ///

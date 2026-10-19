@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.da
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_sparkline_summaries.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
@@ -1658,8 +1659,10 @@ class DiveRepository {
   /// smoothing flattening short features.
   ///
   /// Summarises a dive's primary series only when it has any, every series
-  /// otherwise ([_sparklineSeries]); a dive with no series is absent from
-  /// the result.
+  /// otherwise; a dive with no series is absent from the result. The blobs
+  /// are decoded, merged and downsampled on a background isolate
+  /// ([summarizeSparklinesInBackground]), since a page's worth on the UI
+  /// isolate dropped frames mid-scroll (#3506).
   Future<Map<String, List<domain.DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
     int maxSamples = 120,
@@ -1667,15 +1670,15 @@ class DiveRepository {
     if (diveIds.isEmpty) return {};
     try {
       return await PerfTimer.measure('batchProfileSummaries', () async {
-        final byDive = await _profileSeries.getSeriesForDives(diveIds);
-        final result = <String, List<domain.DiveProfilePoint>>{
-          for (final entry in byDive.entries)
-            entry.key: _downsample([
-              for (final p in mergeSeriesPoints(_sparklineSeries(entry.value)))
-                domain.DiveProfilePoint(timestamp: p.timestamp, depth: p.depth),
-            ], maxSamples),
-        };
-        return result;
+        final rows = await _profileSeries.getRowsForDives(diveIds);
+        final summaries = await summarizeSparklinesInBackground(
+          rows,
+          maxSamples: maxSamples,
+        );
+        for (final id in summaries.unreadableSeriesIds) {
+          _log.warning('Skipping unreadable diveProfileSeries $id');
+        }
+        return summaries.byDive;
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -1685,39 +1688,6 @@ class DiveRepository {
       );
       return {};
     }
-  }
-
-  /// The series a sparkline summarises: the primary ones when the dive has
-  /// any, every series otherwise.
-  ///
-  /// A demoted series is either a consolidated secondary computer's copy of
-  /// the dive or the originals a saved edit superseded. Interleaving either
-  /// with the primary drew the mini chart as a sawtooth between two
-  /// computers' depths (#543). With a primary present this matches
-  /// [getDiveProfile]'s `primaryOnly` read, so the mini chart and the lazily
-  /// loaded list profile show the same shape. The two deliberately differ
-  /// when NO series is primary (none promoted yet): that read returns an
-  /// empty list, while a sparkline is better drawn from whatever exists
-  /// than left blank, so every series contributes here.
-  static List<ProfileSeries> _sparklineSeries(List<ProfileSeries> series) {
-    final primary = [
-      for (final s in series)
-        if (s.isPrimary) s,
-    ];
-    return primary.isEmpty ? series : primary;
-  }
-
-  /// Evenly spaces [points] down to at most [maxSamples], keeping the first
-  /// and last point. Returns [points] unchanged when already short enough.
-  static List<domain.DiveProfilePoint> _downsample(
-    List<domain.DiveProfilePoint> points,
-    int maxSamples,
-  ) {
-    if (points.length <= maxSamples) return points;
-    return [
-      for (var i = 0; i < maxSamples; i++)
-        points[(i * (points.length - 1)) ~/ (maxSamples - 1)],
-    ];
   }
 
   /// Create a new dive

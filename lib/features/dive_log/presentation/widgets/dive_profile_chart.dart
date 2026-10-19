@@ -7353,7 +7353,8 @@ class DiveProfileMiniChart extends StatelessWidget {
               // arcs, producing a less informative "blob" silhouette.
               isCurved: false,
               color: chartColor,
-              barWidth: 1.5,
+              // A thin outline keeps the small silhouette light (issue #3496).
+              barWidth: 1,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(

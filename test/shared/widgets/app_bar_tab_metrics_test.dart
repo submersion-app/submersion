@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 
 import '../../helpers/contrast_ratio.dart';
@@ -98,5 +99,33 @@ void main() {
         Color.alphaBlend(foreground.withValues(alpha: 0.8), fill),
       );
     });
+  });
+
+  // The Equipment and Training switches sit on a desktop pane header drawn
+  // in the scheme's surface, whatever colour the app bar takes (#3465), and
+  // have to say which section is showing in every theme the app ships.
+  group('AppBarTabColors.on a pane surface', () {
+    for (final preset in AppThemeRegistry.presets) {
+      for (final brightness in Brightness.values) {
+        final theme = AppThemeRegistry.resolveTheme(preset, brightness);
+        final surface = theme.colorScheme.surface;
+        final colors = AppBarTabColors.on(
+          theme,
+          background: surface,
+          foreground: theme.colorScheme.onSurface,
+        );
+
+        test('${preset.id} ${brightness.name}: both names read at AA', () {
+          expect(
+            contrastRatio(colors.selected, surface),
+            greaterThanOrEqualTo(4.5),
+          );
+          expect(
+            contrastRatio(colors.unselected, surface),
+            greaterThanOrEqualTo(4.5),
+          );
+        });
+      }
+    }
   });
 }

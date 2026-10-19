@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/display_zoom.dart';
 import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
@@ -154,7 +156,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // names it, and leaves the clocks idle otherwise (#2365).
     ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _maybeSyncOnLaunch();
+      _runStorageCleanupAfter(_maybeSyncOnLaunch(), StorageGcTrigger.launch);
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _convertGearFiles();
@@ -211,7 +213,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
       case LifecycleMeaning.resumed:
         ref.read(appLockNotifierProvider.notifier).noteResumed();
-        _maybeSyncOnResume();
+        _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
         _resumeMediaTransfers();
         // NFC may have been turned on in the system settings meanwhile, as
         // the passport screens tell the diver to do.
@@ -238,6 +240,23 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// callback later still.
   void _resumeMediaTransfers() {
     unawaited(ref.read(mediaTransferResumeProvider)());
+  }
+
+  /// Runs the storage cleanup coordinator (issue #3396) once [syncs] end:
+  /// device sweeps at most daily, the cloud cleanup on its own cadence, and
+  /// a post-restore pass when a restore left its marker. After the syncs,
+  /// because an automatic pass that finds one running skips its cloud part,
+  /// and one started beside the launch or resume sync never deleted. Same
+  /// database timing argument as [_resumeMediaTransfers]; the syncs and the
+  /// coordinator contain their own failures, so it is safe to leave
+  /// unawaited.
+  void _runStorageCleanupAfter(Future<void> syncs, StorageGcTrigger trigger) {
+    unawaited(
+      syncs.whenComplete(() {
+        if (!mounted) return;
+        unawaited(ref.read(storageGcCoordinatorProvider).run(trigger));
+      }),
+    );
   }
 
   /// One-time repair of media rows whose cloud stamps a peer dropped before
@@ -273,15 +292,24 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       // Already logged inside reconcileDeviceIdentity; proceed with the sync.
     }
     if (!mounted) return;
-    ref.read(syncStateProvider.notifier).performSync(auto: true);
-    ref.read(sharedLibrarySyncProvider.notifier).syncAll(auto: true);
+    await _syncAll();
   }
 
-  void _maybeSyncOnResume() {
+  Future<void> _maybeSyncOnResume() async {
     final settings = ref.read(syncBehaviorProvider);
     if (!settings.autoSyncEnabled || !settings.syncOnResume) return;
-    ref.read(syncStateProvider.notifier).performSync(auto: true);
-    ref.read(sharedLibrarySyncProvider.notifier).syncAll(auto: true);
+    await _syncAll();
+  }
+
+  /// The library sync and every shared library's, at once; completes when
+  /// both have ended, however they ended.
+  Future<void> _syncAll() async {
+    await Future.wait(
+      [
+        ref.read(syncStateProvider.notifier).performSync(auto: true),
+        ref.read(sharedLibrarySyncProvider.notifier).syncAll(auto: true),
+      ].map((sync) => sync.catchError((Object _) {})),
+    );
   }
 
   void _onSyncStateChanged(SyncState? prev, SyncState next) {

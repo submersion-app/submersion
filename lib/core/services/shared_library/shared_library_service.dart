@@ -13,6 +13,7 @@ import 'package:submersion/core/services/shared_library/crypto/suggestion_signat
 import 'package:submersion/core/services/shared_library/library_details_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/core/services/shared_library/site_document_merge.dart
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 
 part 'shared_library_sync_parts.dart';
+part 'shared_library_sync_removals.dart';
 
 enum SharedLibrarySyncStatus {
   success,
@@ -221,6 +223,10 @@ class SharedLibraryService {
         manifest,
       );
       await _store.replaceMembers(libraryId, members);
+      final removals = await _readRemovals(t, libraryId, roles);
+      final removedHere = removals.any(
+        (r) => r.memberId == membership.memberId,
+      );
       // Probed afresh every sync: a refused upload sets it, so upgraded
       // credentials clear the banner on the next run. An ownership reset
       // waiting for this member's answer holds every write back, and so do
@@ -231,7 +237,9 @@ class SharedLibraryService {
       // that belongs to the library) brings the device back.
       final now = await _store.getLibrary(libraryId);
       final holdWrites =
-          now?.pendingRoles != null || (now?.rolesRejected ?? false);
+          now?.pendingRoles != null ||
+          (now?.rolesRejected ?? false) ||
+          removedHere;
       var readOnly = holdWrites;
       SharedLibraryMember? mine;
       for (final m in members) {
@@ -244,10 +252,11 @@ class SharedLibraryService {
       // sync met.
       final myKey =
           membership.signingKey ?? await _store.ensureSigningKey(diverId);
-      if (mine == null ||
-          mine.displayName != membership.displayName ||
-          mine.publicKey != myKey.publicKey ||
-          !mine.cardVerified) {
+      if (!removedHere &&
+          (mine == null ||
+              mine.displayName != membership.displayName ||
+              mine.publicKey != myKey.publicKey ||
+              !mine.cardVerified)) {
         try {
           final card = await SharedLibraryMember.signed(
             memberId: membership.memberId,
@@ -267,16 +276,8 @@ class SharedLibraryService {
           _log.warning('Could not write member card for $libraryId: $e');
         }
       }
-      // Editors and owners with a genuine card whose key no owner approved
-      // yet: their edits are held, neither applied nor overwritten.
-      final pendingKeys = {
-        for (final m in members)
-          if (m.cardVerified &&
-              m.publicKey != null &&
-              roles.roleOf(m.memberId) != SharedLibraryRole.reader &&
-              roles.approvedKeys[m.memberId] != m.publicKey)
-            m.memberId: m.publicKey!,
-      };
+      final pendingKeys = _pendingKeysOf(members, roles, removals);
+      final judged = _judgedRoles(roles, removals);
 
       // Notes an earlier build left only on the site rows become the
       // profile's own records, for personal sync to carry: once, before
@@ -332,8 +333,8 @@ class SharedLibraryService {
         final checked = await dropUnverifiedAll(
           [for (final p in batch) (p.remote, p.local)],
           libraryId: libraryId,
-          approvedKeys: roles.editingKeys,
-          retiredKeys: roles.retiredKeys,
+          approvedKeys: judged.editingKeys,
+          retiredKeys: judged.retiredKeys,
           pendingKeys: pendingKeys,
         );
         for (var k = 0; k < batch.length; k++) {
@@ -406,8 +407,8 @@ class SharedLibraryService {
               localKeys.keys.toSet(),
               libraryId: libraryId,
               // A held author's signature proves the value as well.
-              keys: {...pendingKeys, ...roles.editingKeys},
-              retiredKeys: roles.retiredKeys,
+              keys: {...pendingKeys, ...judged.editingKeys},
+              retiredKeys: judged.retiredKeys,
             );
             if (state.deleted) {
               // A tombstone keeps the document's fields, so an undelete
@@ -417,8 +418,8 @@ class SharedLibraryService {
                 remote,
                 local: doc,
                 libraryId: libraryId,
-                approvedKeys: roles.editingKeys,
-                retiredKeys: roles.retiredKeys,
+                approvedKeys: judged.editingKeys,
+                retiredKeys: judged.retiredKeys,
               );
               doc = mergeSiteDocuments(local: doc, remote: proven).merged;
             }
@@ -470,7 +471,7 @@ class SharedLibraryService {
         }
       }
       if (roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
-        await _pullSuggestions(t, libraryId, roles: roles);
+        await _pullSuggestions(t, libraryId, roles: roles, removals: removals);
       }
 
       // Files read in the wrong form (a member wrote plain after the

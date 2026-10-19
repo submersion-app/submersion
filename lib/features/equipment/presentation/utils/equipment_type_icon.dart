@@ -29,13 +29,11 @@ IconData equipmentTypeIcon(EquipmentType type) {
   switch (type) {
     case EquipmentType.regulator:
       return SubmersionIcons.regulator;
-    // Regulator parts (issue #1487). Material glyphs for now: a round DIN
-    // face, breathing air, and a cable for the hose. Drawn glyphs can
-    // follow under the equipment icons design.
+    // Regulator parts (issue #1487).
     case EquipmentType.firstStage:
-      return Icons.settings_input_svideo;
+      return SubmersionIcons.firstStage;
     case EquipmentType.secondStage:
-      return Icons.air;
+      return SubmersionIcons.secondStage;
     case EquipmentType.hose:
       return Icons.cable;
     case EquipmentType.bcd:

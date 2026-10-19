@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
 import 'package:submersion/core/services/media_store/icloud_media_platform.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
@@ -34,6 +35,16 @@ class _UndownloadablePlatform extends DirectoryICloudMediaPlatform {
   Future<bool> ensureDownloaded(String path) async => false;
 }
 
+/// Counts the refreshes that make iCloud download every evicted item.
+class _CountingPlatform extends DirectoryICloudMediaPlatform {
+  _CountingPlatform(super.root);
+
+  int refreshes = 0;
+
+  @override
+  Future<void> refreshFolder(String path) async => refreshes++;
+}
+
 void main() {
   // The NativeICloudMediaPlatform tests invoke a real MethodChannel, which
   // needs the services binding available (it then fails with a
@@ -42,6 +53,16 @@ void main() {
 
   late Directory container;
   late Directory tmp;
+
+  /// A media object's path inside the container's store root.
+  String objectPath(String shard, String name) => p.join(
+    container.path,
+    'submersion-media',
+    'smv1',
+    'objects',
+    shard,
+    name,
+  );
 
   ICloudMediaObjectStore build({int? smallFileThresholdBytes}) {
     return ICloudMediaObjectStore(
@@ -95,6 +116,150 @@ void main() {
     // The .uploading staging suffix never leaks into listings.
     final keys = await store.list('smv1/').map((o) => o.key).toList();
     expect(keys, ['smv1/objects/aa/video.mp4']);
+  });
+
+  test('a large upload is dated by the upload, not the source file', () async {
+    // The cleanup's grace window and early delete are measured from
+    // lastModified. A copy that kept the photo's capture date would make a
+    // fresh upload look months old to a device that has not seen its row.
+    final store = build(smallFileThresholdBytes: 1024);
+    final src = File('${tmp.path}/old-video.mp4')
+      ..writeAsBytesSync(List<int>.filled(4096, 7))
+      ..setLastModifiedSync(DateTime(2025, 1, 1));
+    final before = DateTime.now().subtract(const Duration(seconds: 5));
+
+    await store.putFile(
+      'smv1/objects/aa/old-video.mp4',
+      src,
+      contentType: 'video/mp4',
+    );
+
+    final listed = await store.list('smv1/objects/').single;
+    expect(listed.lastModified.isAfter(before), isTrue);
+  });
+
+  test('an upload that cannot be dated is not published', () async {
+    // Published with the source's old time, a fresh upload could look past
+    // the grace window to a device that has not seen its row yet.
+    final store = ICloudMediaObjectStore(
+      platform: DirectoryICloudMediaPlatform(container),
+      smallFileThresholdBytes: 1024,
+      dateStagedCopy: (file, at) async =>
+          throw FileSystemException('read-only', file.path),
+    );
+    final src = File('${tmp.path}/old-video.mp4')
+      ..writeAsBytesSync(List<int>.filled(4096, 7));
+
+    await expectLater(
+      store.putFile('smv1/objects/aa/old-video.mp4', src, contentType: 'v'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+    expect(await store.list('smv1/').toList(), isEmpty);
+    final staged = Directory(
+      '${container.path}/submersion-media',
+    ).listSync(recursive: true).whereType<File>();
+    expect(staged, isEmpty, reason: 'the staging copy is removed');
+  });
+
+  group('local listing', () {
+    test('asks iCloud for nothing', () async {
+      // A refresh starts downloading every evicted item; a measurement
+      // must not pull the whole media library back onto the disk.
+      final platform = _CountingPlatform(container);
+      final store = ICloudMediaObjectStore(platform: platform);
+      File(objectPath('aa', 'aabb.jpg'))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([1, 2, 3]);
+
+      final listed = await store.listLocal('smv1/').toList();
+
+      expect(platform.refreshes, 0);
+      expect(listed.single.key, 'smv1/objects/aa/aabb.jpg');
+      expect(listed.single.sizeBytes, 3);
+    });
+
+    test('reports an evicted item under its key, size unknown', () async {
+      // Where eviction leaves a .<name>.icloud placeholder, the object is
+      // still there; only its size is not known on this device.
+      final store = ICloudMediaObjectStore(
+        platform: DirectoryICloudMediaPlatform(container),
+      );
+      File(objectPath('aa', '.aabb.jpg.icloud'))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([9]);
+
+      final listed = await store.listLocal('smv1/').toList();
+
+      expect(listed.single.key, 'smv1/objects/aa/aabb.jpg');
+      expect(listed.single.sizeBytes, isNull);
+    });
+
+    test('the full listing still refreshes', () async {
+      final platform = _CountingPlatform(container);
+      final store = ICloudMediaObjectStore(platform: platform);
+
+      await store.list('smv1/').toList();
+
+      expect(platform.refreshes, 1);
+    });
+  });
+
+  group('evicted objects and ages', () {
+    test('the full listing reports an evicted object under its key', () async {
+      // A deleting sweep's reverse repair checks exact keys: a placeholder
+      // listed under its own name made a present object look missing, and
+      // the repair cleared its synced upload stamps on every device.
+      final store = ICloudMediaObjectStore(
+        platform: DirectoryICloudMediaPlatform(container),
+      );
+      File(objectPath('aa', '.aabb.jpg.icloud'))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([9]);
+
+      final listed = await store.list('smv1/').toList();
+
+      expect(listed.single.key, 'smv1/objects/aa/aabb.jpg');
+      expect(listed.single.sizeBytes, isNull);
+    });
+
+    test('an object copied with an old date is aged by its arrival', () async {
+      // Builds before the upload-time fix staged copies with the source's
+      // modification time; the change time still says when the file
+      // arrived, so the grace window starts there.
+      final store = ICloudMediaObjectStore(
+        platform: DirectoryICloudMediaPlatform(container),
+      );
+      final before = DateTime.now().subtract(const Duration(seconds: 5));
+      File(objectPath('aa', 'aabb.jpg'))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([1, 2, 3])
+        ..setLastModifiedSync(DateTime(2024, 1, 1));
+
+      final listed = await store.list('smv1/').single;
+      final head = await store.head('smv1/objects/aa/aabb.jpg');
+
+      expect(listed.lastModified.isAfter(before), isTrue);
+      expect(head!.lastModified.isAfter(before), isTrue);
+    });
+
+    test('deleting an evicted object removes its placeholder', () async {
+      final store = ICloudMediaObjectStore(
+        platform: DirectoryICloudMediaPlatform(container),
+      );
+      final placeholder = File(objectPath('aa', '.aabb.jpg.icloud'))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([9]);
+
+      await store.delete('smv1/objects/aa/aabb.jpg');
+
+      expect(placeholder.existsSync(), isFalse);
+    });
   });
 
   test('null container path maps to a fatal MediaStoreException', () async {

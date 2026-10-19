@@ -193,6 +193,20 @@ class AssignTransmitterRepair extends QualityRepairAction {
   final String serial;
 }
 
+/// Make a name-derived transmitter tank the bailout (issue #3307), merging
+/// the computer's duplicate bailout cylinder [ocTankId] when it is as
+/// imported. The confirmation can also register the transmitter.
+class UseAsBailoutRepair extends QualityRepairAction {
+  const UseAsBailoutRepair({
+    required this.diveId,
+    required this.tankId,
+    required this.ocTankId,
+  });
+  final String diveId;
+  final String tankId;
+  final String ocTankId;
+}
+
 double? _num(Map<String, Object?> p, String k) => (p[k] as num?)?.toDouble();
 
 /// Pure mapping from a finding to its offered repairs (spec's repair table).
@@ -205,6 +219,19 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
   final related = f.relatedDiveId;
 
   switch (f.detectorId) {
+    case 'transmitter_role':
+      final tankId = p['tankId'] as String?;
+      final ocTankId = p['ocTankId'] as String?;
+      return [
+        if (tankId != null && ocTankId != null)
+          UseAsBailoutRepair(
+            diveId: diveId,
+            tankId: tankId,
+            ocTankId: ocTankId,
+          ),
+        GoToDiveRepair(diveId),
+      ];
+
     case 'clock_offset':
       if (p.containsKey('offsetHours')) {
         final hours = (p['offsetHours'] as num).toInt();

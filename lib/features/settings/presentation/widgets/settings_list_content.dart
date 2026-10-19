@@ -54,7 +54,7 @@ const settingsSections = [
     id: 'data',
     icon: Icons.storage,
     title: 'Data',
-    subtitle: 'Backup, restore & storage',
+    subtitle: 'Backups, sync and photos',
   ),
   SettingsSection(
     id: 'dataSources',
@@ -335,7 +335,7 @@ class _SettingsSectionTile extends StatelessWidget {
       case 'manage':
         return context.l10n.settings_section_manage_subtitle;
       case 'data':
-        return context.l10n.settings_section_data_subtitle;
+        return context.l10n.settings_section_data_tagline;
       case 'about':
         return context.l10n.settings_section_about_subtitle;
       case 'dataSources':

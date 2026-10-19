@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_computer/data/services/bailout_gas_claim.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 import 'package:submersion/features/dive_computer/data/services/downloaded_tank_defaults.dart';
 import 'package:submersion/features/dive_computer/domain/services/profile_overlap_match.dart';
@@ -735,15 +736,41 @@ class DiveImportService {
         if (hit == null) _unmatchedSerials.add(serial);
       }
     }
+    // A transmitter the registry made the bailout takes the gas list's
+    // bailout cylinder, and switches to that cylinder follow it (#3307).
+    final claim = claimBailoutGasesInDive(
+      tanks: matchedTanks,
+      diveMode: dive.diveMode.code,
+      switches: dive.gasSwitches,
+      samples: [
+        for (final s in dive.profile)
+          (
+            timeSeconds: s.timeSeconds,
+            pressureBar: s.pressure,
+            tankIndex: s.tankIndex,
+            tankPressuresBar: s.tankPressures,
+          ),
+      ],
+      depths: [
+        for (final s in dive.profile) (t: s.timeSeconds, depth: s.depth),
+      ],
+    );
     final tanks = defaultTankPreset == null
-        ? matchedTanks
-        : applyDefaultPresetToTanks(matchedTanks, defaultTankPreset);
+        ? claim.tanks
+        : applyDefaultPresetToTanks(claim.tanks, defaultTankPreset);
 
     // Convert events to EventData
     final events = _convertEvents(dive.events);
 
     // Convert gas switches to GasSwitchData
-    final gasSwitches = _parser.parseGasSwitches(dive);
+    final gasSwitches = [
+      for (final sw in _parser.parseGasSwitches(dive))
+        GasSwitchData(
+          timestamp: sw.timestamp,
+          depth: sw.depth,
+          toTankIndex: claim.remappedIndices[sw.toTankIndex] ?? sw.toTankIndex,
+        ),
+    ];
 
     // Import using repository
     final diveId = await _repository.importProfile(

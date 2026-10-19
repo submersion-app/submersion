@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/library_connection_service.dart';
@@ -280,6 +279,6 @@ class _ChangeLibraryConnectionPageState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.sharedLibrary_connection_saved)),
     );
-    context.pop();
+    Navigator.of(context).pop();
   }
 }

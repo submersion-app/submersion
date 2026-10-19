@@ -34,6 +34,7 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
@@ -946,29 +947,24 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Data'), findsOneWidget);
-      expect(find.text('Backup, restore & storage'), findsOneWidget);
+      expect(find.text('Backups, sync and photos'), findsOneWidget);
     });
 
-    testWidgets('Data Tools offers Retype gear marked Other (#1886)', (
+    testWidgets('Data tools offers Retype gear marked Other (#1886)', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        buildTestWidget(const SettingsSectionDetailPage(sectionId: 'data')),
-      );
+      // The tools moved from the Data page to Advanced > Data tools (#3482).
+      await tester.pumpWidget(buildTestWidget(const DataToolsPage()));
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        find.text('Retype gear marked Other'),
-        100,
-        scrollable: find.byType(Scrollable).first,
-      );
+      expect(find.text('Retype gear marked Other'), findsOneWidget);
       expect(
         find.text('Give imported gear the type its name states'),
         findsOneWidget,
       );
     });
 
-    testWidgets('Storage offers one Offline Maps row covering tiles and 3D '
+    testWidgets('Advanced offers one Offline maps row covering tiles and 3D '
         'terrain', (tester) async {
       // Map tiles and 3D terrain data used to be two rows with two pages.
       await tester.pumpWidget(
@@ -976,7 +972,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Offline Maps'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Offline maps'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Offline maps'), findsOneWidget);
       expect(find.text('Map tiles and 3D terrain data'), findsOneWidget);
       expect(find.text('3D Maps'), findsNothing);
     });

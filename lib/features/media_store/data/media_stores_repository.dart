@@ -63,7 +63,19 @@ class MediaStoresRepository {
               ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
               ..limit(1))
             .getSingleOrNull();
-    if (row == null) return null;
+    return row == null ? null : _toDescriptor(row);
+  }
+
+  /// The descriptor of store [storeId], or null when this library has none
+  /// for it.
+  Future<MediaStoreDescriptor?> getById(String storeId) async {
+    final row = await (_db.select(
+      _db.mediaStores,
+    )..where((t) => t.id.equals(storeId))).getSingleOrNull();
+    return row == null ? null : _toDescriptor(row);
+  }
+
+  MediaStoreDescriptor _toDescriptor(MediaStore row) {
     return (
       id: row.id,
       providerType: row.providerType,
@@ -76,16 +88,14 @@ class MediaStoresRepository {
 
   /// Records a completed Verify Library sweep (orphan-prevention spec
   /// 6.4). Synced, so one device's sweep satisfies the fleet-wide 30-day
-  /// cadence for every device.
+  /// cadence for every device. Leaves updatedAt alone: it orders the
+  /// descriptors for [getActive], and a stamp is not a new announcement.
   Future<void> stampLastSweep(String storeId, DateTime at) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.mediaStores,
     )..where((t) => t.id.equals(storeId))).write(
-      MediaStoresCompanion(
-        lastSweepAt: Value(at.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
+      MediaStoresCompanion(lastSweepAt: Value(at.millisecondsSinceEpoch)),
     );
     await _syncRepository.markRecordPending(
       entityType: 'mediaStores',

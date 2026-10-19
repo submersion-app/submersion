@@ -258,30 +258,16 @@ jobs:
               fi
             }
 
+      # Submits with retries, then staples with its own retries, so a dropped
+      # CloudKit connection while fetching the ticket does not cost a second
+      # upload (issue #3488). scripts/release/notarize_dmg_test.sh covers it.
       - name: Notarize DMG
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TAG_NAME: ${{ inputs.version-tag }}
-        run: |
-          DMG="Submersion-${TAG_NAME}-macOS.dmg"
-          for attempt in 1 2 3; do
-            if xcrun notarytool submit "$DMG" \
-                --apple-id "$APPLE_ID" \
-                --password "$APPLE_APP_PASSWORD" \
-                --team-id "$APPLE_TEAM_ID" \
-                --wait; then
-              break
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              echo "Notarization failed after 3 attempts"
-              exit 1
-            fi
-            echo "Notarization attempt $attempt failed, retrying in 30s..."
-            sleep 30
-          done
-          xcrun stapler staple "$DMG"
+        run: ./scripts/release/notarize_dmg.sh "Submersion-${TAG_NAME}-macOS.dmg"
 
       - name: Sign DMG with Sparkle EdDSA
         id: sparkle-sign

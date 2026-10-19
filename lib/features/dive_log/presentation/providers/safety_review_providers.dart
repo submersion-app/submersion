@@ -39,8 +39,6 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   ref,
   diveId,
 ) async {
-  final repo = ref.watch(safetyFindingsRepositoryProvider);
-
   // getReview is a one-shot SELECT, not a Drift stream, so this provider only
   // re-runs when invalidated. A sync imports safety review/finding rows (and a
   // batch "Analyze all dives" writes them) directly to the DB, bypassing every
@@ -50,6 +48,39 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   ref.invalidateSelfWhen(
     ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
   );
+  return _reviewDive(ref, diveId, recompute: false);
+});
+
+/// [safetyReviewProvider] without the "stored review is current" shortcut:
+/// runs the engine again even when the stored review matches this engine and
+/// these settings. "Analyze all dives" reads this, because a user reaches for
+/// it after correcting a dive's data, which neither the engine version nor
+/// the settings fingerprint can see (#1643).
+///
+/// Every other guard still holds: a review this build cannot judge (a newer
+/// engine or fingerprint format) is kept, and when the engine cannot run
+/// (toggle off, settings not loaded, no usable analysis) the stored review is
+/// returned untouched rather than lost. AutoDispose, and read once per dive
+/// through a short-lived listener, so every read computes afresh and a long
+/// sweep leaves nothing behind; it does not watch for changes.
+final safetyReviewRecomputeProvider = FutureProvider.autoDispose
+    .family<SafetyReview?, String>(
+      (ref, diveId) => _reviewDive(ref, diveId, recompute: true),
+    );
+
+Future<SafetyReview?> _reviewDive(
+  Ref ref,
+  String diveId, {
+  required bool recompute,
+}) async {
+  // Set the moment this build is invalidated or rebuilt: Riverpod runs
+  // onDispose callbacks then, whereas ref.mounted turns false only once the
+  // replacement build starts, which for an unlistened provider is its next
+  // read.
+  var superseded = false;
+  ref.onDispose(() => superseded = true);
+
+  final repo = ref.watch(safetyFindingsRepositoryProvider);
 
   // Compare against the active diver's settings, not the placeholder or the
   // previous diver's still in state during a switch.
@@ -57,7 +88,12 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   final currentInputs = ref.watch(diverAnalysisSettingsProvider).fingerprint;
 
   final stored = await repo.getReview(diveId);
-  if (stored != null && _isCurrent(stored, currentInputs)) return stored;
+  if (stored != null &&
+      (recompute
+          ? _isFromNewerBuild(stored)
+          : _isCurrent(stored, currentInputs))) {
+    return stored;
+  }
 
   // The toggle below is per diver: right after a diver switch it still reads
   // the previous diver's until the new diver's settings load (#2564).
@@ -75,6 +111,11 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   // since this analysis was computed (it rebuilds, and this with it), or an
   // analysis that records none, which cannot show it used the diver's.
   if (analysis.inputsFingerprint != currentInputs) return stored;
+  // Invalidated while awaiting above: a newer build owns this dive's review,
+  // so a save here could land after it and overwrite its result (or the
+  // Analyze all dives recompute) with this older one. Invalidation does not
+  // cancel the awaits, so this build has to stand down itself.
+  if (superseded) return stored;
 
   final now = DateTime.now();
   // Return what was stored, not the engine's raw output: a kept finding
@@ -92,7 +133,7 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
       ),
     ),
   );
-});
+}
 
 /// Whether [stored] may be served as is under [currentInputs].
 ///
@@ -101,13 +142,20 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
 /// At this engine version the fingerprint must match, unless it was written
 /// in a newer format this build cannot compare, which is kept for the same
 /// reason. An older engine, or no fingerprint at all, is recomputed.
-bool _isCurrent(SafetyReview stored, String currentInputs) {
+bool _isCurrent(SafetyReview stored, String currentInputs) =>
+    _isFromNewerBuild(stored) ||
+    (stored.engineVersion == SafetyReviewService.engineVersion &&
+        stored.inputsHash == currentInputs);
+
+/// Whether [stored] came from a build newer than this one: a newer engine, or
+/// this engine under a fingerprint format this build cannot compare. Never
+/// recomputed here, even on request, or this build would overwrite the newer
+/// peer's review with its own older one.
+bool _isFromNewerBuild(SafetyReview stored) {
   const engine = SafetyReviewService.engineVersion;
-  if (stored.engineVersion > engine) return true;
-  if (stored.engineVersion < engine) return false;
+  if (stored.engineVersion != engine) return stored.engineVersion > engine;
   final hash = stored.inputsHash;
-  if (hash == null) return false;
-  return hash == currentInputs || AnalysisSettings.isNewerFormat(hash);
+  return hash != null && AnalysisSettings.isNewerFormat(hash);
 }
 
 /// The safety finding currently selected for profile-chart highlighting, or

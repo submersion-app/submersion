@@ -244,6 +244,7 @@ _ResolvedCylinders _resolveCylinders(
         role: role,
         roleSource: _roleSourceOf(tank, parsed.diveMode, vendor),
         transmitterSerial: _transmitterSerial(tank.transmitterSerial),
+        mixRecorded: gas != null,
       ),
     );
   }

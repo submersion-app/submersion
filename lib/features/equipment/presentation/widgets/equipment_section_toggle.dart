@@ -14,6 +14,7 @@ class EquipmentSectionToggle extends StatelessWidget {
     super.key,
     required this.controller,
     this.tabHeight = defaultTabHeight,
+    this.onAppBar = false,
   });
 
   final TabController controller;
@@ -21,12 +22,14 @@ class EquipmentSectionToggle extends StatelessWidget {
   /// See [SectionTitleToggle.tabHeight].
   final double tabHeight;
 
+  /// See [SectionTitleToggle.onAppBar].
+  final bool onAppBar;
+
   static const String _featureId = 'equipment';
 
   static const double defaultTabHeight = SectionTitleToggle.defaultTabHeight;
   static const double compactTabHeight = SectionTitleToggle.compactTabHeight;
   static const double indicatorWeight = SectionTitleToggle.indicatorWeight;
-  static const double pillHeight = SectionTitleToggle.pillHeight;
   static const double labelPadding = SectionTitleToggle.labelPadding;
 
   static double heightFor(double tabHeight) =>
@@ -73,6 +76,7 @@ class EquipmentSectionToggle extends StatelessWidget {
     featureId: _featureId,
     labels: _names(context),
     tabHeight: tabHeight,
+    onAppBar: onAppBar,
     tabBarKey: const ValueKey('equipment_section_toggle'),
   );
 }

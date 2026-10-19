@@ -465,6 +465,28 @@ void main() {
       );
     });
 
+    test('a resumed manifest is dated by its export, not the retry', () async {
+      // Peers read updatedAt as "everything this device had by then is
+      // published"; a photo added between the export and the retry is not
+      // in the resumed base, so the retry's time would claim too much.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      provider.failUploadsAfter = 0;
+      await expectLater(publish(), throwsA(anything));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      final retryAt = DateTime.now().millisecondsSinceEpoch;
+
+      provider.failUploadsAfter = null;
+      await publish();
+
+      final deviceId = await SyncRepository().getDeviceId();
+      final manifest = SyncManifest.fromBytes(
+        (await download(ChangesetLogLayout.manifestName(deviceId)))!,
+      );
+      expect(manifest.updatedAt, lessThan(retryAt));
+    });
+
     test(
       'the resumed manifest describes the bytes actually uploaded',
       () async {

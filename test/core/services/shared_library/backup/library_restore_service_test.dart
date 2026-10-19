@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
@@ -331,5 +332,149 @@ void main() {
       ),
     );
     expect(await backups.list(libraryId: lib.id), hasLength(1));
+  });
+
+  group('removal records (issue #3481)', () {
+    final record = MemberRemoval(
+      memberId: 'x',
+      displayName: 'Xan',
+      removedAt: DateTime.utc(2026, 10, 18),
+      removedBy: 'm1',
+      signature: 'sig',
+    );
+
+    test('a restore leaves them in place', () async {
+      final backup = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+      final t = await memberships.transportForLibrary(lib);
+      await t.writeRemoval(record);
+      await restorer().restore(
+        libraryId: lib.id,
+        diverId: 'd1',
+        backupId: backup.backupId,
+      );
+      expect(await t.listRemovals(), [record]);
+    });
+
+    /// [id] joins as [name], is approved and gets [role].
+    Future<SharedLibraryMembership> addMember(
+      String id,
+      String name,
+      SharedLibraryRole role,
+    ) async {
+      await DiverRepository().createDiver(
+        Diver(
+          id: id,
+          name: name,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await memberships.join(
+        account: account,
+        prefix: 'site-sync',
+        diverId: id,
+        displayName: name,
+      );
+      final store = SharedLibraryStore();
+      final ann = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
+      final m = (await store.membership(diverId: id, libraryId: lib.id))!;
+      await memberships.approveMember(
+        libraryId: lib.id,
+        memberId: m.memberId,
+        actingMemberId: ann.memberId,
+        publicKey: m.signingKey!.publicKey,
+      );
+      await memberships.setRole(
+        libraryId: lib.id,
+        actingMemberId: ann.memberId,
+        memberId: m.memberId,
+        role: role,
+      );
+      return m;
+    }
+
+    test('a removal made after the backup survives a restore', () async {
+      final bo = await addMember('d2', 'Bo', SharedLibraryRole.editor);
+      final ann = (await SharedLibraryStore().membership(
+        diverId: 'd1',
+        libraryId: lib.id,
+      ))!;
+      final backup = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+      await memberships.removeMember(
+        libraryId: lib.id,
+        memberId: bo.memberId,
+        actingMemberId: ann.memberId,
+      );
+      final removedAt = (await SharedLibraryStore().removals(
+        lib.id,
+      )).single.removedAt;
+      await restorer().restore(
+        libraryId: lib.id,
+        diverId: 'd1',
+        backupId: backup.backupId,
+      );
+      final t = await memberships.transportForLibrary(lib);
+      final roles = await t.readRoles();
+      expect(roles.roleOf(bo.memberId), SharedLibraryRole.reader);
+      expect(roles.approvedKeys, isNot(contains(bo.memberId)));
+      expect(
+        (await t.listMembers()).map((m) => m.memberId),
+        isNot(contains(bo.memberId)),
+      );
+      expect(roles.retired[bo.memberId]!.last, (
+        key: bo.signingKey!.publicKey,
+        untilMs: removedAt.millisecondsSinceEpoch,
+      ));
+      expect(
+        await validRemovals(await t.listRemovals(), lib.id, roles),
+        hasLength(1),
+      );
+    });
+
+    test('a removal by an owner the backup lacks is re-signed', () async {
+      final bo = await addMember('d2', 'Bo', SharedLibraryRole.editor);
+      final ann = (await SharedLibraryStore().membership(
+        diverId: 'd1',
+        libraryId: lib.id,
+      ))!;
+      final backup = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+      final cy = await addMember('d3', 'Cy', SharedLibraryRole.owner);
+      await memberships.removeMember(
+        libraryId: lib.id,
+        memberId: bo.memberId,
+        actingMemberId: cy.memberId,
+      );
+      await restorer().restore(
+        libraryId: lib.id,
+        diverId: 'd1',
+        backupId: backup.backupId,
+      );
+      final t = await memberships.transportForLibrary(lib);
+      final roles = await t.readRoles();
+      expect(roles.owners, isNot(contains(cy.memberId)));
+      final kept = await validRemovals(await t.listRemovals(), lib.id, roles);
+      expect(kept.single.memberId, bo.memberId);
+      expect(kept.single.removedBy, ann.memberId);
+    });
+
+    test(
+      'a backup leaves them out, so older versions can restore it',
+      () async {
+        final t = await memberships.transportForLibrary(lib);
+        await t.writeRemoval(record);
+        final backup = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+        final contents = await LibraryBackupArchive.read(
+          await File(
+            (await backups.list(
+              libraryId: lib.id,
+            )).singleWhere((b) => b.backupId == backup.backupId).localPath!,
+          ).readAsBytes(),
+        );
+        expect(
+          contents.files.keys.where((k) => k.contains('removed-')),
+          isEmpty,
+        );
+      },
+    );
   });
 }

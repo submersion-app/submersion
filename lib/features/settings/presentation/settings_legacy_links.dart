@@ -1,5 +1,7 @@
+import 'package:submersion/features/settings/presentation/pages/data_settings_pane.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 
 /// Where a `/settings?selected=<id>` link should really go, or null when the
 /// settings page already renders it correctly.
@@ -12,6 +14,8 @@ import 'package:submersion/features/settings/presentation/pages/settings_page.da
 ///   its own app bar, so rendering it inside the generic section wrapper
 ///   would show two. That also catches a desktop URL left behind when the
 ///   window narrows below the master-detail breakpoint.
+/// - On phone, a page opened inside the desktop Data pane (#3467) goes to
+///   its own route, the top page of the pane's stack.
 String? resolveLegacySettingsLocation(Uri uri, {required bool masterDetail}) {
   final selected = uri.queryParameters['selected'];
   if (selected == null) return null;
@@ -28,8 +32,19 @@ String? resolveLegacySettingsLocation(Uri uri, {required bool masterDetail}) {
   return switch (selected) {
     'decompression' => SafetySubPage.decompression.phoneRoute,
     'safety' => subPage?.phoneRoute ?? '/settings/safety',
+    'data' => _topDataPage(uri),
     _ => null,
   };
+}
+
+/// The innermost page a Data pane URL opens, or null when it opens none.
+String? _topDataPage(Uri uri) {
+  final pages = SettingsPaneNavigator.stackIn(
+    uri,
+    DataSettingsPane.queryParam,
+    dataPanePage,
+  );
+  return pages.isEmpty ? null : pages.last.$1;
 }
 
 /// Where a `/settings/section/<id>` link should go instead of the generic

@@ -17,6 +17,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
+import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
@@ -265,6 +266,7 @@ class SyncService {
   /// labels such as "From Eric's MacBook" need no cloud read. Optional:
   /// the legacy tests build the service without one.
   final PeerDeviceNameStore? _peerNames;
+  final PeerSyncSnapshotStore? _peerSnapshots;
 
   /// Told which media rows a merge gave something new to be found by, so
   /// their cached "not found here" searches retry at once (spec 6.2).
@@ -335,6 +337,7 @@ class SyncService {
     SyncEncryptionService? encryptionService,
     AppLocalizations Function()? localizations,
     PeerDeviceNameStore? peerNames,
+    PeerSyncSnapshotStore? peerSnapshots,
     Future<void> Function(MediaResolutionHints hints)? onMediaResolutionHints,
   }) : _syncRepository = syncRepository,
        _eventScopeApplier = EventScopeTombstoneApplier(
@@ -346,6 +349,7 @@ class SyncService {
        _epochStore = epochStore,
        _encryptionService = encryptionService,
        _peerNames = peerNames,
+       _peerSnapshots = peerSnapshots,
        _onMediaResolutionHints = onMediaResolutionHints,
        _localizations = localizations ?? _englishLocalizations;
 
@@ -568,6 +572,12 @@ class SyncService {
         0.0,
         _l10n.settings_cloudSync_progress_preparing,
       );
+      // Until this sync reaches its clean end, the storage cleanup must not
+      // trust the previous snapshot: an authentication failure, an adoption
+      // halt or a failure below leaves this device behind its peers (storage
+      // GC design, safety). A reset that cannot be written fails this sync
+      // rather than leave a stale caught-up snapshot behind it.
+      await _peerSnapshots?.markNotCaughtUp();
       if (!await provider.isAuthenticated()) {
         return SyncResult(
           status: SyncResultStatus.authError,
@@ -651,6 +661,9 @@ class SyncService {
       var recordsSynced = 0;
       var conflictsFound = 0;
       var recordsFailed = 0;
+      // The snapshot's time: before the pull, not after the publish (see
+      // PeerSyncSnapshot.takenAt).
+      final pullStartedAt = DateTime.now();
       final pullResult = await _changesetReader.pull(
         provider: provider,
         selfDeviceId: deviceId,
@@ -727,6 +740,36 @@ class SyncService {
         );
       } catch (e) {
         _log.warning('Device retirement sweep failed (non-fatal): $e');
+      }
+
+      // What the storage cleanup needs from this pull once the manifests are
+      // gone: whether every live peer applied cleanly to its head, and when
+      // each last published. It describes the pull, so it is written once the
+      // pull and the retirement sweep are done: a publish or cleanup failure
+      // later in this sync does not change which peer rows this device holds,
+      // and tying the two together deadlocked a full cloud (every publish
+      // fails, so the cleanup that frees space never ran). Best-effort: a
+      // failed write leaves the not-caught-up mark this sync set at its
+      // start, the cautious state.
+      try {
+        await _peerSnapshots?.write(
+          buildPeerSyncSnapshot(
+            now: pullStartedAt,
+            providerId: provider.providerId,
+            selfDeviceId: deviceId,
+            peerManifests: pullResult.peerManifests,
+            fencedPeerIds: fencedPeerIds,
+            readFailedPeerIds: pullResult.readFailedPeerDeviceIds,
+            newerSchemaPeerIds: pullResult.newerSchemaPeerDeviceIds,
+            incompletePeerIds: pullResult.incompletePeerDeviceIds,
+            unpublishedPeerIds: pullResult.unpublishedPeerDeviceIds,
+            skippedPeerIds: pullResult.skippedPeerDeviceIds,
+            recordsFailed: recordsFailed,
+            manifestListedAt: pullResult.peerManifestListedAt,
+          ),
+        );
+      } catch (e) {
+        _log.warning('Peer sync snapshot write failed (non-fatal): $e');
       }
 
       // ---- Upload: publish our delta ----

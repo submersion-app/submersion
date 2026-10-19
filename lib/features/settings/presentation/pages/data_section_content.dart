@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
-import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
-import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
-import 'package:submersion/features/settings/presentation/widgets/import_preferences_group.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/data_row_status_text.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings > Data: the health strip and facts line (#3390) above the
-/// existing entries, all flat, with the four feature rows marked by the same
-/// health symbol as the strip (#3394).
+/// Settings > Data: the health strip and facts line (#3390), then the five
+/// "Your data" rows, each with the strip's health mark (#3394) and a
+/// one-sentence status, then the rarely used rows under "Advanced" (#3482).
 class DataSectionContent extends ConsumerStatefulWidget {
   const DataSectionContent({super.key});
 
@@ -60,42 +59,38 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final storageState = ref.watch(storageConfigNotifierProvider);
+    final now = DateTime.now();
     final isCustomFolder =
-        storageState.config.mode == StorageLocationMode.customFolder;
+        ref.watch(storageConfigNotifierProvider).config.mode ==
+        StorageLocationMode.customFolder;
     final health = {
       for (final h in ref.watch(dataHealthProvider)) h.feature: h,
     };
 
-    Widget featureTitle(String title, DataFeature feature) {
-      final h = health[feature];
-      if (h == null || h.level == HealthLevel.notSetUp) return Text(title);
-      return Row(
-        children: [
-          Flexible(child: Text(title)),
-          const SizedBox(width: 8),
-          HealthSymbol(
-            level: h.level,
-            size: 16,
-            semanticLabel: healthSemanticsLabel(l10n, h),
-          ),
-        ],
-      );
-    }
-
-    Widget tile({
+    Widget feature({
       required IconData icon,
-      required Widget title,
-      Widget? subtitle,
+      required String title,
+      required DataRowStatus status,
       required String route,
-    }) => ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon),
+      DataFeature? healthOf,
+    }) => DataRowTile(
+      icon: icon,
       title: title,
-      subtitle: subtitle,
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.push(route),
+      subtitle: dataRowStatusText(l10n, status, now),
+      route: route,
+      health: healthOf == null || !status.showsHealthMark
+          ? null
+          : health[healthOf],
+      offersSetUp: status.offersSetUp,
     );
+
+    Widget advanced(
+      IconData icon,
+      String title,
+      String subtitle,
+      String route,
+    ) =>
+        DataRowTile(icon: icon, title: title, subtitle: subtitle, route: route);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -108,99 +103,73 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
           const SizedBox(height: 12),
           const Divider(height: 1),
           const SizedBox(height: 16),
-          _header(context, l10n.settings_data_header_backupSync),
-          tile(
+          _header(context, l10n.settings_data_header_yourData),
+          feature(
             icon: Icons.backup,
-            title: featureTitle(l10n.settings_data_backup, DataFeature.backup),
-            subtitle: _backupSubtitle(context),
+            title: l10n.settings_backups_title,
+            status: ref.watch(backupsRowStatusProvider),
             route: '/settings/backup',
+            healthOf: DataFeature.backup,
           ),
-          // Cloud sync is available on every platform (iCloud on Apple
-          // devices, S3-compatible storage elsewhere); the Cloud Sync page
-          // gates which providers each platform sees.
-          tile(
+          // Available on every platform (iCloud on Apple devices, other
+          // accounts everywhere); the sync page gates which each one sees.
+          feature(
             icon: Icons.cloud_sync,
-            title: featureTitle(
-              l10n.settings_cloudSync_appBar_title,
-              DataFeature.sync,
-            ),
-            subtitle: _syncSubtitle(context, health[DataFeature.sync]),
+            title: l10n.settings_sync_title,
+            status: ref.watch(syncRowStatusProvider),
             route: '/settings/cloud-sync',
+            healthOf: DataFeature.sync,
+          ),
+          feature(
+            icon: Icons.perm_media_outlined,
+            title: l10n.settings_photosVideos_title,
+            status: ref.watch(photosRowStatusProvider),
+            route: '/settings/photos-media',
+            healthOf: DataFeature.media,
           ),
           // Shared site libraries (issue #2567).
-          tile(
+          feature(
             icon: Icons.groups_outlined,
-            title: featureTitle(
-              l10n.sharedLibrary_settings_title,
-              DataFeature.sharedLibraries,
-            ),
-            subtitle: Text(l10n.sharedLibrary_settings_subtitle),
+            title: l10n.sharedLibrary_settings_title,
+            status: ref.watch(librariesRowStatusProvider),
             route: '/settings/shared-libraries',
-          ),
-          tile(
-            icon: Icons.perm_media_outlined,
-            title: featureTitle(
-              l10n.settings_photosMedia_title,
-              DataFeature.media,
-            ),
-            subtitle: Text(l10n.settings_photosMedia_subtitle),
-            route: '/settings/photos-media',
+            healthOf: DataFeature.sharedLibraries,
           ),
           // The accounts behind sync, media storage and shared libraries;
-          // its own entry so it is not filed under one of them (issue
-          // #3388). Photos & Media keeps a link too.
-          tile(
+          // its own entry so it is not filed under one of them (#3388).
+          feature(
             icon: Icons.account_circle_outlined,
-            title: Text(l10n.settings_connectedAccounts_title),
-            subtitle: Text(l10n.settings_connectedAccounts_subtitle),
+            title: l10n.settings_connectedAccounts_title,
+            status: ref.watch(accountsRowStatusProvider),
             route: '/settings/connected-accounts',
           ),
           const SizedBox(height: 16),
-          _header(context, l10n.settings_data_header_storage),
-          tile(
-            icon: Icons.folder,
-            title: Text(l10n.settings_data_databaseStorage),
-            subtitle: Text(
-              isCustomFolder
-                  ? l10n.settings_data_customFolder
-                  : l10n.settings_data_appDefaultLocation,
-            ),
-            route: '/settings/storage',
+          _header(context, l10n.settings_data_header_advanced),
+          advanced(
+            Icons.folder,
+            l10n.settings_data_databaseStorage,
+            isCustomFolder
+                ? l10n.settings_data_customFolder
+                : l10n.settings_data_appDefaultLocation,
+            '/settings/storage',
           ),
-          tile(
-            icon: Icons.cloud_download,
-            title: Text(l10n.settings_data_offlineMaps),
-            subtitle: Text(l10n.settings_data_offlineMaps_subtitle),
-            route: '/settings/offline-maps',
+          advanced(
+            Icons.cloud_download,
+            l10n.settings_data_offlineMaps,
+            l10n.settings_data_offlineMaps_subtitle,
+            '/settings/offline-maps',
           ),
-          const SizedBox(height: 16),
-          _header(context, l10n.settings_data_header_import),
-          const ImportPreferencesGroup(),
-          const SizedBox(height: 16),
-          _header(context, l10n.settings_data_header_dataTools),
-          tile(
-            icon: Icons.access_time,
-            title: Text(l10n.settings_fixDiveTimes_title),
-            subtitle: Text(l10n.settings_fixDiveTimes_subtitle),
-            route: '/settings/fix-dive-times',
+          advanced(
+            Icons.input,
+            l10n.settings_data_importOptions,
+            l10n.settings_data_importOptions_subtitle,
+            '/settings/import-options',
           ),
-          tile(
-            icon: Icons.group_add,
-            title: Text(l10n.buddies_linkText_page_title),
-            subtitle: Text(l10n.buddies_linkText_page_subtitle),
-            route: '/settings/link-buddy-names',
-          ),
-          tile(
-            icon: Icons.category,
-            title: Text(l10n.equipment_retypeOther_title),
-            subtitle: Text(l10n.equipment_retypeOther_subtitle),
-            route: '/settings/retype-other-gear',
-          ),
-          tile(
-            icon: Icons.rule,
-            title: Text(l10n.dataQuality_settings_title),
-            subtitle: Text(l10n.dataQuality_settings_subtitle),
-            route: '/settings/data-quality',
+          advanced(
+            Icons.build_outlined,
+            l10n.settings_data_dataTools,
+            l10n.settings_data_dataTools_subtitle,
+            '/settings/data-tools',
           ),
         ],
       ),
@@ -211,37 +180,4 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
     padding: const EdgeInsets.only(bottom: 4),
     child: buildSettingsSectionHeader(context, title),
   );
-
-  Widget _backupSubtitle(BuildContext context) {
-    final l10n = context.l10n;
-    final lastBackup = ref.watch(lastBackupTimeProvider);
-    if (lastBackup == null) return Text(l10n.settings_data_backup_subtitle);
-    return Text(
-      l10n.backup_status_lastBackup(
-        relativeAgo(l10n, lastBackup, DateTime.now()),
-      ),
-    );
-  }
-
-  /// "Synced 12m ago · 3 devices" while sync is in use. Signing out keeps
-  /// the last sync timestamp, so the row follows the strip's verdict rather
-  /// than the timestamp alone.
-  Widget _syncSubtitle(BuildContext context, FeatureHealth? syncHealth) {
-    final l10n = context.l10n;
-    final lastSync = ref.watch(lastSyncTimeProvider);
-    final inUse =
-        syncHealth != null &&
-        syncHealth.level != HealthLevel.notSetUp &&
-        syncHealth.reason != HealthReason.syncOff;
-    if (lastSync == null || !inUse) {
-      return Text(l10n.settings_cloudSync_entry_subtitle);
-    }
-    final when = relativeAgo(l10n, lastSync, DateTime.now());
-    final devices = ref.watch(syncedDeviceCountProvider);
-    return Text(
-      devices > 1
-          ? l10n.dataHealth_sync_rowSubtitleDevices(when, devices)
-          : l10n.dataHealth_sync_rowSubtitle(when),
-    );
-  }
 }

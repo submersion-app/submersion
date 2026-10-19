@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
@@ -28,6 +29,44 @@ class _RecordingRepo extends SafetyFindingsRepository {
     saved.add(review.diveId);
     return review;
   }
+}
+
+/// Holds one review per dive in memory, so a sweep can be seeded with a
+/// review that already passes the "is current" check.
+class _StoringRepo extends SafetyFindingsRepository {
+  final stored = <String, SafetyReview>{};
+
+  @override
+  Future<SafetyReview?> getReview(String diveId) async => stored[diveId];
+
+  @override
+  Future<SafetyReview> saveReview(SafetyReview review) async {
+    stored[review.diveId] = review;
+    return review;
+  }
+}
+
+/// A review of [diveId] carrying only a missed-deco-stop finding, which the
+/// rapid-ascent fixture never produces: a sweep that really recomputes
+/// replaces it, one that serves it back leaves it.
+SafetyReview _staleReview(String diveId, {required int engineVersion}) {
+  final at = DateTime.utc(2026, 8, 1);
+  return SafetyReview(
+    diveId: diveId,
+    engineVersion: engineVersion,
+    reviewedAt: at,
+    inputsHash: _defaultFingerprint(),
+    findings: [
+      SafetyFinding(
+        id: 'stale-$diveId',
+        diveId: diveId,
+        ruleId: SafetyRuleId.missedDecoStop,
+        severity: SafetySeverity.values.first,
+        engineVersion: engineVersion,
+        createdAt: at,
+      ),
+    ],
+  );
 }
 
 /// The fingerprint of the settings [MockSettingsNotifier] starts with.
@@ -92,7 +131,7 @@ void main() {
 
   /// A container whose analysis always yields a rapid-ascent fixture, so every
   /// dive produces a persistable review.
-  ProviderContainer makeContainer(_RecordingRepo repo) {
+  ProviderContainer makeContainer(SafetyFindingsRepository repo) {
     final profile = rapidAscentProfile();
     // Stamped with the loaded settings' fingerprint, as the real pipeline
     // does: a review is saved only from an analysis that records them.
@@ -253,5 +292,67 @@ void main() {
       reason: 'swept counts dives visited, not successes',
     );
     expect(repo.saved, <String>['d2']);
+  });
+  group('recompute (issue #1643)', () {
+    Set<SafetyRuleId> rulesOf(_StoringRepo repo, String diveId) => {
+      for (final f in repo.stored[diveId]!.findings) f.ruleId,
+    };
+
+    test('recomputes a review that is already current', () async {
+      final repo = _StoringRepo();
+      repo.stored['d1'] = _staleReview(
+        'd1',
+        engineVersion: SafetyReviewService.engineVersion,
+      );
+
+      final result = await makeContainer(
+        repo,
+      ).read(safetyReviewSweepProvider).run(recompute: true);
+
+      expect(result.swept, 2);
+      // d2 had no review, so it shows what grading this profile yields.
+      expect(rulesOf(repo, 'd2'), contains(SafetyRuleId.rapidAscent));
+      expect(
+        rulesOf(repo, 'd1'),
+        rulesOf(repo, 'd2'),
+        reason:
+            'Analyze all dives must grade the profile again, not serve '
+            'back a stored review whose findings came from older data',
+      );
+    });
+
+    test('without recompute a current review is served as stored', () async {
+      final repo = _StoringRepo();
+      repo.stored['d1'] = _staleReview(
+        'd1',
+        engineVersion: SafetyReviewService.engineVersion,
+      );
+
+      await makeContainer(repo).read(safetyReviewSweepProvider).run();
+
+      expect(
+        rulesOf(repo, 'd1'),
+        {SafetyRuleId.missedDecoStop},
+        reason:
+            'the post-restore sweep only fills gaps; restored reviews '
+            'are already current',
+      );
+    });
+
+    test('keeps a review written by a newer engine', () async {
+      final repo = _StoringRepo();
+      repo.stored['d1'] = _staleReview(
+        'd1',
+        engineVersion: SafetyReviewService.engineVersion + 1,
+      );
+
+      await makeContainer(
+        repo,
+      ).read(safetyReviewSweepProvider).run(recompute: true);
+
+      expect(rulesOf(repo, 'd1'), {
+        SafetyRuleId.missedDecoStop,
+      }, reason: 'an older engine must not overwrite a newer peer\'s review');
+    });
   });
 }

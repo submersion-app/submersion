@@ -189,6 +189,65 @@ void main() {
     },
   );
 
+  // #3307: two computers on one transmitter each logged its pressure; a
+  // tank whose role was read off the transmitter's name is judged on its own
+  // computer's reading, and only such tanks get one.
+  test('keeps each name-derived tank\'s own computer\'s series', () async {
+    final entry = DateTime.utc(2026, 7, 3, 10);
+    for (final id in ['c1', 'c2']) {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: Value(id),
+              name: Value('Computer $id'),
+              createdAt: const Value(0),
+              updatedAt: const Value(0),
+            ),
+          );
+    }
+    await diveRepo.createDive(
+      domain.Dive(
+        id: 'dC',
+        dateTime: entry,
+        entryTime: entry,
+        tanks: const [
+          domain.DiveTank(
+            id: 'tx',
+            order: 0,
+            role: TankRole.oxygenSupply,
+            roleSource: TankRoleSource.transmitterName,
+            computerId: 'c1',
+          ),
+          domain.DiveTank(id: 'dil', order: 1, role: TankRole.diluent),
+        ],
+      ),
+    );
+    for (final (computer, end) in [('c1', 190.0), ('c2', 150.0)]) {
+      await tankSeries.insertSeries(
+        diveId: 'dC',
+        tankId: 'tx',
+        computerId: computer,
+        samples: [
+          const TankPressureSample(timestamp: 0, pressure: 200.0),
+          TankPressureSample(timestamp: 60, pressure: end),
+        ],
+      );
+    }
+    await tankSeries.insertSeries(
+      diveId: 'dC',
+      tankId: 'dil',
+      samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
+    );
+
+    final ctx = (await builder.buildAll(['dC'])).single;
+    expect(ctx.ownComputerPressuresByTankId['tx']!.map((s) => s.bar), [
+      200.0,
+      190.0,
+    ]);
+    expect(ctx.ownComputerPressuresByTankId.containsKey('dil'), isFalse);
+  });
+
   test("a neighbor's last depth matches the merged profile on an end-timestamp "
       'tie', () async {
     // Two primary series of one dive sharing an end timestamp: the sync

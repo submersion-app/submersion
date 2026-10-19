@@ -86,6 +86,10 @@ final syncHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
 });
 
 /// Each joined library with this member's listed role resolved.
+///
+/// Not retried: Riverpod retries a thrown Exception for about 38 seconds,
+/// and the Settings > Data libraries row reads "Checking..." until this
+/// settles. The next visit reads it again anyway.
 final libraryHealthInputsProvider =
     FutureProvider.autoDispose<List<LibraryHealthInput>>((ref) async {
       final libraries = await ref.watch(sharedLibrariesProvider.future);
@@ -107,7 +111,7 @@ final libraryHealthInputsProvider =
             );
           }(),
       ]);
-    });
+    }, retry: (_, _) => null);
 
 final sharedLibrariesHealthProvider = Provider.autoDispose<FeatureHealth>((
   ref,
@@ -120,16 +124,19 @@ final sharedLibrariesHealthProvider = Provider.autoDispose<FeatureHealth>((
 /// Pending setup items that belong to photos and media: attaching or
 /// reconnecting the store, and sign-ins for the store's account or
 /// Lightroom. The setup service already routes each sign-in to the page that
-/// owns its account, so the route says which feature it belongs to.
+/// owns its account, so the route says which feature it belongs to. A
+/// dismissed prompt does not count: the diver chose not to be told.
 int countMediaSetupItems(List<PendingSetupItem> items) => items
     .where(
-      (i) => switch (i.kind) {
-        SetupItemKind.mediaStoreAttach => true,
-        SetupItemKind.mediaStoreReconnect => true,
-        SetupItemKind.accountSignIn =>
-          i.route == '/settings/media-storage' ||
-              i.route == '/settings/lightroom',
-      },
+      (i) =>
+          !i.dismissed &&
+          switch (i.kind) {
+            SetupItemKind.mediaStoreAttach => true,
+            SetupItemKind.mediaStoreReconnect => true,
+            SetupItemKind.accountSignIn =>
+              i.route == '/settings/media-storage' ||
+                  i.route == '/settings/lightroom',
+          },
     )
     .length;
 
@@ -177,12 +184,6 @@ final dataHealthProvider = Provider.autoDispose<List<FeatureHealth>>((ref) {
     ref.watch(sharedLibrariesHealthProvider),
     ref.watch(mediaHealthProvider),
   ];
-});
-
-/// This device plus every peer that has published a name.
-final syncedDeviceCountProvider = Provider.autoDispose<int>((ref) {
-  final peers = ref.watch(peerDeviceNamesProvider).value;
-  return 1 + (peers?.length ?? 0);
 });
 
 final dataFactsProvider = FutureProvider.autoDispose<DataFacts>((ref) async {

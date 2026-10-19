@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -28,6 +29,8 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
   final calls = <(String, String, SharedLibraryRole)>[];
   final approvals = <(String, String)>[];
   final rejections = <String>[];
+  final removals = <String>[];
+  final allowedBack = <String>[];
 
   @override
   Future<void> approveMember({
@@ -43,6 +46,23 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
     required String memberId,
     required String actingMemberId,
   }) async => rejections.add(memberId);
+
+  @override
+  Future<void> removeMember({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) async {
+    if (offline) throw const CloudStorageException('Network unreachable');
+    removals.add(memberId);
+  }
+
+  @override
+  Future<void> allowBack({
+    required String libraryId,
+    required String memberId,
+    required String actingMemberId,
+  }) async => allowedBack.add(memberId);
 
   @override
   Future<void> setRole({
@@ -64,6 +84,7 @@ Future<Widget> _page(
   required _RecordingMembershipService service,
   bool withPending = false,
   bool withDeparted = false,
+  List<MemberRemoval> removed = const [],
 }) async => testApp(
   overrides: [
     ...await getBaseOverrides(),
@@ -129,6 +150,7 @@ Future<Widget> _page(
           ),
       ],
     ),
+    libraryRemovalsProvider('L').overrideWith((ref) async => removed),
     sharedLibraryMembershipServiceProvider.overrideWithValue(service),
   ],
   locale: const Locale('en'),
@@ -153,7 +175,7 @@ void main() {
     expect(find.text('Editor'), findsOneWidget);
     expect(find.text('Reader'), findsOneWidget);
     // A reader gets no role menu.
-    expect(find.byType(PopupMenuButton<SharedLibraryRole>), findsNothing);
+    expect(find.byType(PopupMenuButton<Object>), findsNothing);
   });
 
   testWidgets('an owner changes a role through the menu', (tester) async {
@@ -162,7 +184,7 @@ void main() {
       await _page(SharedLibraryRole.owner, service: service),
     );
     await tester.pumpAndSettle();
-    final menus = find.byType(PopupMenuButton<SharedLibraryRole>);
+    final menus = find.byType(PopupMenuButton<Object>);
     expect(menus, findsNWidgets(3));
 
     await tester.tap(menus.at(2));
@@ -181,7 +203,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(PopupMenuButton<SharedLibraryRole>).first);
+    await tester.tap(find.byType(PopupMenuButton<Object>).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Reader').last);
     await tester.pumpAndSettle();
@@ -196,7 +218,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(PopupMenuButton<SharedLibraryRole>).last);
+    await tester.tap(find.byType(PopupMenuButton<Object>).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Editor').last);
     await tester.pumpAndSettle();
@@ -265,4 +287,118 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.calls, [('me', 'gone', SharedLibraryRole.reader)]);
   });
+
+  group('removing a member (issue #3481)', () {
+    testWidgets('owners can remove another approved member', (tester) async {
+      final service = _RecordingMembershipService();
+      await tester.pumpWidget(
+        await _page(SharedLibraryRole.owner, service: service),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<Object>).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove from library'));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove Bob?'), findsOneWidget);
+      expect(
+        find.textContaining('Sites and edits they already contributed stay'),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+      await tester.pumpAndSettle();
+      expect(service.removals, ['ed']);
+    });
+
+    testWidgets('cancel removes nobody', (tester) async {
+      final service = _RecordingMembershipService();
+      await tester.pumpWidget(
+        await _page(SharedLibraryRole.owner, service: service),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<Object>).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove from library'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(service.removals, isEmpty);
+      expect(find.text('Remove Bob?'), findsNothing);
+    });
+
+    testWidgets("no Remove on the owner's own row", (tester) async {
+      await tester.pumpWidget(
+        await _page(
+          SharedLibraryRole.owner,
+          service: _RecordingMembershipService(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<Object>).first);
+      await tester.pumpAndSettle();
+      expect(find.text('Owner'), findsWidgets);
+      expect(find.text('Remove from library'), findsNothing);
+    });
+
+    testWidgets('readers see no Remove and no Removed list', (tester) async {
+      await tester.pumpWidget(
+        await _page(
+          SharedLibraryRole.reader,
+          service: _RecordingMembershipService(),
+          removed: [_removal('pd', 'Pat')],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(PopupMenuButton<Object>), findsNothing);
+      expect(find.text('Removed'), findsNothing);
+      expect(find.text('Pat'), findsNothing);
+    });
+
+    testWidgets('removed people are listed under Removed with Allow back', (
+      tester,
+    ) async {
+      final service = _RecordingMembershipService();
+      await tester.pumpWidget(
+        await _page(
+          SharedLibraryRole.owner,
+          service: service,
+          // An older app of the removed member wrote their card again.
+          withPending: true,
+          removed: [_removal('pd', 'Pat')],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Removed'), findsOneWidget);
+      expect(find.text('Pat'), findsOneWidget);
+      expect(find.text('Waiting for approval'), findsNothing);
+      expect(find.textContaining('Removed '), findsOneWidget);
+      await tester.tap(find.text('Allow back'));
+      await tester.pumpAndSettle();
+      expect(service.allowedBack, ['pd']);
+    });
+
+    testWidgets('a refused removal shows a snack bar', (tester) async {
+      await tester.pumpWidget(
+        await _page(
+          SharedLibraryRole.owner,
+          service: _RecordingMembershipService(offline: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<Object>).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove from library'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Network unreachable'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }
+
+MemberRemoval _removal(String memberId, String name) => MemberRemoval(
+  memberId: memberId,
+  displayName: name,
+  removedAt: DateTime.utc(2026, 10, 18),
+  removedBy: 'me',
+);

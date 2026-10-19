@@ -1618,6 +1618,104 @@ void main() {
           expect(service.unmatchedTransmitterSerials, ['555']);
         },
       );
+
+      // #3307: once the registry says the "OC" transmitter is the bailout,
+      // it takes the gas list's bailout cylinder instead of keeping 100% O2
+      // beside a duplicate.
+      test(
+        'a registry bailout claims the computer\'s bailout cylinder',
+        () async {
+          service = DiveImportService(
+            repository: mockComputerRepo,
+            diveRepository: mockDiveRepo,
+            transmitterMatcherForImports: () async =>
+                TransmitterMatcher.fromEntries([
+                  Transmitter(
+                    id: 'e2',
+                    transmitterSerial: '180777',
+                    label: 'OC',
+                    role: TankRole.bailout,
+                    createdAt: DateTime.utc(2026, 9, 1),
+                    updatedAt: DateTime.utc(2026, 9, 1),
+                  ),
+                ]),
+          );
+
+          await service.importDives(
+            dives: [
+              DownloadedDive(
+                fingerprint: 'fp-ccr',
+                startTime: DateTime(2026, 2, 1, 9, 0),
+                durationSeconds: 3000,
+                maxDepth: 40.0,
+                diveMode: DiveMode.ccr,
+                profile: const [],
+                tanks: const [
+                  DownloadedTank(
+                    index: 0,
+                    o2Percent: 100.0,
+                    role: 'oxygenSupply',
+                    roleSource: TankRoleSource.transmitterName,
+                    transmitterSerial: '180777',
+                    mixRecorded: false,
+                  ),
+                  DownloadedTank(
+                    index: 3,
+                    o2Percent: 18.0,
+                    hePercent: 45.0,
+                    role: 'bailout',
+                  ),
+                ],
+                gasSwitches: const [
+                  GasSwitchEvent(
+                    timeSeconds: 2400,
+                    depth: 40.0,
+                    toTankIndex: 3,
+                  ),
+                ],
+                events: const [],
+              ),
+            ],
+            computer: computer,
+          );
+
+          final captured = verify(
+            mockComputerRepo.importProfile(
+              computerId: anyNamed('computerId'),
+              profileStartTime: anyNamed('profileStartTime'),
+              points: anyNamed('points'),
+              durationSeconds: anyNamed('durationSeconds'),
+              maxDepth: anyNamed('maxDepth'),
+              avgDepth: anyNamed('avgDepth'),
+              isPrimary: anyNamed('isPrimary'),
+              diverId: anyNamed('diverId'),
+              tanks: captureAnyNamed('tanks'),
+              decoAlgorithm: anyNamed('decoAlgorithm'),
+              diveMode: anyNamed('diveMode'),
+              gfLow: anyNamed('gfLow'),
+              gfHigh: anyNamed('gfHigh'),
+              decoConservatism: anyNamed('decoConservatism'),
+              events: anyNamed('events'),
+              gasSwitches: captureAnyNamed('gasSwitches'),
+              diveNumber: anyNamed('diveNumber'),
+              forceNew: anyNamed('forceNew'),
+              rawData: anyNamed('rawData'),
+              rawFingerprint: anyNamed('rawFingerprint'),
+              descriptorVendor: anyNamed('descriptorVendor'),
+              descriptorProduct: anyNamed('descriptorProduct'),
+              descriptorModel: anyNamed('descriptorModel'),
+              libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+            ),
+          ).captured;
+          final tanks = captured[0] as List<TankData>;
+          final switches = captured[1] as List<GasSwitchData>;
+          expect(tanks.map((t) => t.index), [0]);
+          expect(tanks.single.role, 'bailout');
+          expect(tanks.single.o2Percent, 18.0);
+          expect(tanks.single.hePercent, 45.0);
+          expect(switches.map((s) => s.toTankIndex), [0]);
+        },
+      );
     });
 
     test(

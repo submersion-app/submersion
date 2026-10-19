@@ -181,7 +181,7 @@ Three presets control the inner radius, outer radius, and separation margin:
 | **Balanced** (default) | 150 m (490 ft) | 1000 m (3280 ft) | 75 m (245 ft) |
 | **Relaxed** | 300 m (985 ft) | 2000 m (6560 ft) | 50 m (165 ft) |
 
-Change the preset with **Auto site matching** in **Settings > Data**.
+Change the preset with **Auto site matching** in **Settings > Data > Advanced > Import options**.
 
 > [!TIP]
 > **Strict** works well when your sites have precise GPS marks and your dive computer records accurate surface positions. **Relaxed** is better when you surface well away from the entry point, or when GPS accuracy on your computer is limited.

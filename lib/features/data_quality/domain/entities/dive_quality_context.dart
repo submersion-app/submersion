@@ -69,6 +69,7 @@ class DiveQualityContext {
     this.carriesDiverData,
     this.tanks = const [],
     this.pressuresByTankId = const {},
+    this.ownComputerPressuresByTankId = const {},
     this.gasSwitches = const [],
     this.neighbors = const [],
     this.ppO2MaxBar = QualityThresholds.ppO2WarnBar,
@@ -112,6 +113,13 @@ class DiveQualityContext {
   /// as suspect above this, and genuinely wrong further above it. Defaults to
   /// [QualityThresholds.ppO2WarnBar] (1.6) when settings are unavailable.
   final double ppO2MaxBar;
+
+  /// For a tank whose role was read off its transmitter's name, the series
+  /// its own computer logged (issue #3307). On a consolidated dive the
+  /// merged [pressuresByTankId] series can be another computer's reading of
+  /// the same transmitter, which must not be judged against this computer's
+  /// gas switches.
+  final Map<String, List<QualityPressureSample>> ownComputerPressuresByTankId;
 
   /// Normalized serials of the diver's registered transmitters (issue #1365),
   /// so a detector can tell a downloaded tank nobody has assigned yet.

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/backup/presentation/providers/unrecognized_backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_usage_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -65,7 +65,7 @@ class UnrecognizedBackupsNotice extends ConsumerWidget {
   /// this feature's providers: a reclaim changes what the backups row should
   /// say, and this side of the navigation is where that row lives.
   Future<void> _review(BuildContext context, WidgetRef ref) async {
-    await context.push(routeLocation);
+    await context.pushSettingsPage(routeLocation);
     // Checked here as well as inside the callee: the analyzer cannot see a
     // guard on the far side of a call, and use_build_context_synchronously is
     // fatal in CI. The tested guard is the one in the callee.
@@ -77,12 +77,13 @@ class UnrecognizedBackupsNotice extends ConsumerWidget {
 /// Refreshes the rows a reclaim can change, if this notice is still on screen.
 ///
 /// Separate from the push so the guard is reachable from a test. The await on
-/// `context.push` has no bound: the sub-page stays open as long as the user
-/// reads it, and the Storage usage page underneath can be torn down in that
-/// window by a deep link or a shell navigation. A `WidgetRef` whose element has
-/// been unmounted throws `StateError` on invalidate, so without this check a
-/// tap the user made on a page they have already left surfaces as an unhandled
-/// error. There is nothing to refresh in that case either: the rows are gone.
+/// `context.pushSettingsPage` has no bound: the sub-page stays open as long as
+/// the user reads it, and the Storage usage page underneath can be torn down
+/// in that window by a deep link or a shell navigation. A `WidgetRef` whose
+/// element has been unmounted throws `StateError` on invalidate, so without
+/// this check a tap the user made on a page they have already left surfaces
+/// as an unhandled error. There is nothing to refresh in that case either:
+/// the rows are gone.
 @visibleForTesting
 void refreshAfterUnrecognizedReview(BuildContext context, WidgetRef ref) {
   if (!context.mounted) return;

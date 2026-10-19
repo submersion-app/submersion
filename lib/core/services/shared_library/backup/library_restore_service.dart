@@ -10,6 +10,7 @@ import 'package:submersion/core/services/shared_library/crypto/field_signatures.
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -128,6 +129,16 @@ class LibraryRestoreService {
     );
 
     final key = me.signingKey ?? await _store.ensureSigningKey(diverId);
+    // Removals are not in backups (issue #3481): the folder's own outlive
+    // the restore, applied again to the roles it brings back.
+    final removals = [
+      for (final r in await validRemovals(
+        await t.listRemovals(),
+        libraryId,
+        roles,
+      ))
+        if (r.memberId != me.memberId) r,
+    ];
     await _restoreSites(
       t,
       library.id,
@@ -137,13 +148,13 @@ class LibraryRestoreService {
       // Fields count when signed by a member trusted then or now.
       signers: [backupRoles, roles],
     );
-    await _memberships.writeSignedRoles(
+    final restored = await _memberships.writeSignedRoles(
       library,
       t,
       // The backup's roles with this owner kept as owner (an earlier key of
-      // theirs retired, its edits still counting) and the current recovery
-      // key.
-      backupRoles
+      // theirs retired, its edits still counting), the current recovery
+      // key, and every current removal applied again.
+      _removingAll(removals, backupRoles)
           .withRole(me.memberId, SharedLibraryRole.owner)
           .approveKey(me.memberId, key.publicKey, at: DateTime.now())
           .copyWith(
@@ -157,10 +168,28 @@ class LibraryRestoreService {
       signer: me.memberId,
       key: key,
     );
+    // writeSignedRoles signed again any removal whose owner the restored
+    // roles do not list; the cache follows the restored roles.
+    await _store.setRemovals(
+      libraryId,
+      await validRemovals(await t.listRemovals(), libraryId, restored),
+    );
     await _restoreOthers(t, opened);
+    // The backup's card of someone removed since stays gone.
+    for (final r in removals) {
+      await t.deleteMember(r.memberId);
+    }
     await _store.clearRemoteStamps(libraryId);
     await _store.replaceMembers(libraryId, await t.listMembers());
   });
+
+  static SharedLibraryRoles _removingAll(
+    List<MemberRemoval> removals,
+    SharedLibraryRoles roles,
+  ) => removals.fold(
+    roles,
+    (acc, r) => acc.removing(r.memberId, at: r.removedAt),
+  );
 
   /// Writes the backup at [path] into the empty folder [prefix] of
   /// [account] and joins it there as [diverId]: the library keeps its id.

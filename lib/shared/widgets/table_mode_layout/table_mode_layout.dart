@@ -48,6 +48,11 @@ class TableModeLayout extends ConsumerWidget {
   /// standard toolbar at large text; the standard height when null.
   final double? appBarToolbarHeight;
 
+  /// Wraps the phone layout's app bar, selection bar included, so a host
+  /// that slides the page sideways can hold the bar still (#3465). Not used
+  /// on desktop, where nothing slides.
+  final PreferredSizeWidget Function(PreferredSizeWidget bar)? phoneAppBarPin;
+
   /// The table content widget (EntityTableView or similar).
   final Widget tableContent;
 
@@ -134,6 +139,7 @@ class TableModeLayout extends ConsumerWidget {
     this.appBarSubtitle,
     this.appBarTitleWidget,
     this.appBarToolbarHeight,
+    this.phoneAppBarPin,
     required this.tableContent,
     required this.detailBuilder,
     required this.summaryBuilder,
@@ -232,20 +238,24 @@ class TableModeLayout extends ConsumerWidget {
     bool showProfile,
   ) {
     final body = _buildBody(context, showMap, showProfile);
+    final pin = ResponsiveBreakpoints.isMasterDetail(context)
+        ? null
+        : phoneAppBarPin;
+    final PreferredSizeWidget bar = isSelectionMode && selectionAppBar != null
+        ? selectionAppBar!
+        : AppBar(
+            toolbarHeight: appBarToolbarHeight,
+            title:
+                appBarTitleWidget ??
+                TitleWithSubtitle(
+                  title: Text(appBarTitle),
+                  subtitle: appBarSubtitle,
+                ),
+            actions: toggleActions,
+          );
 
     return Scaffold(
-      appBar: isSelectionMode && selectionAppBar != null
-          ? selectionAppBar
-          : AppBar(
-              toolbarHeight: appBarToolbarHeight,
-              title:
-                  appBarTitleWidget ??
-                  TitleWithSubtitle(
-                    title: Text(appBarTitle),
-                    subtitle: appBarSubtitle,
-                  ),
-              actions: toggleActions,
-            ),
+      appBar: pin?.call(bar) ?? bar,
       body: body,
       floatingActionButton: floatingActionButton,
     );

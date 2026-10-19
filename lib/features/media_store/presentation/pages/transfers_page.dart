@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_sweep_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_transfers_suspended_notice.dart';
 import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -211,8 +213,26 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
     final messenger = ScaffoldMessenger.of(context);
     final queue = ref.read(mediaTransferQueueRepositoryProvider);
     _selection.exit();
-    for (final id in ids) {
-      await queue.delete(id);
+    // The worker abandons any resumable session the rows held. Without a
+    // runtime (none attached, or one that cannot be built, which is when
+    // stuck rows most need clearing) the rows still go; their sessions are
+    // left to the verify sweep's reap.
+    MediaStoreWorker? worker;
+    try {
+      worker =
+          (await ref
+                  .read(mediaStoreRuntimeProvider.future)
+                  .timeout(ref.read(mediaStoreRuntimeWaitProvider)))
+              ?.worker;
+    } catch (_) {
+      worker = null;
+    }
+    if (worker != null) {
+      await worker.deleteEntries(ids.toList());
+    } else {
+      for (final id in ids) {
+        await queue.delete(id);
+      }
     }
     if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(

@@ -243,10 +243,25 @@ void main() {
     expect(await svc.compute(), hasLength(1));
 
     await svc.dismiss('account_${account.id}');
-    expect(await svc.compute(), isEmpty);
+    expect((await svc.compute()).where((i) => !i.dismissed), isEmpty);
 
     // A different object (new key) still surfaces.
     await accounts.create(kind: AccountKind.s3, label: 'Other');
-    expect(await svc.compute(), hasLength(1));
+    expect((await svc.compute()).where((i) => !i.dismissed), hasLength(1));
+  });
+
+  // Issue #3482 review: dismissing the prompt hides the card entry, but the
+  // account still needs a sign-in, and the Settings > Data accounts row must
+  // keep saying so instead of listing it as fine.
+  test('a dismissed sign-in stays listed, flagged as dismissed', () async {
+    final account = await accounts.create(kind: AccountKind.s3, label: 'M');
+    final svc = service();
+    expect((await svc.compute()).single.dismissed, isFalse);
+
+    await svc.dismiss('account_${account.id}');
+
+    final item = (await svc.compute()).single;
+    expect(item.kind, SetupItemKind.accountSignIn);
+    expect(item.dismissed, isTrue);
   });
 }

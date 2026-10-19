@@ -44,6 +44,7 @@ const Map<String, String> keptEnglishValues = {
   'buddies_field_emailHint': _exampleAddress,
   'buddies_list_count@nl': _dutchBuddy,
   'certifications_edit_group_tdiOpenCircuit@nl': _sameWord,
+  'certifications_edit_group_iartOpenCircuit@nl': _sameWord,
   'certifications_list_count@fr': _sameWord,
   'checklists_applySheet_itemCount@nl': _dutchItem,
   'common_elapsed_daysHours@es': _units,
