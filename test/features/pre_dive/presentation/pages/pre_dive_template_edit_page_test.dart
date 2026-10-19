@@ -864,6 +864,11 @@ void main() {
       );
       await pumpPage(tester, templateId: 'tpl-1', repo: repo);
 
+      // The section editor's drag handle and arrows make each row taller
+      // than the old flat list, so the third item can start below the
+      // test viewport's fold.
+      await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Cell 1 mV in O2'));
       await tester.pumpAndSettle();
 

@@ -300,6 +300,16 @@ class _ChecklistTemplateEditPageState
           onTap: () => _addOrEditItem(item: item),
         );
 
+    // An item whose sectionId matches no section in the current draft (a
+    // dangling id, e.g. from sync or a since-deleted section) degrades to
+    // unsectioned rather than silently vanishing from the list.
+    final validSectionIds = {for (final s in _sections) s.id};
+    final unsectioned = _items
+        .where(
+          (i) => i.sectionId == null || !validSectionIds.contains(i.sectionId),
+        )
+        .toList();
+
     return SectionListEditor<_EditableTemplateItem>(
       sections: [
         for (final section in _sections)
@@ -309,7 +319,7 @@ class _ChecklistTemplateEditPageState
             items: _items.where((i) => i.sectionId == section.id).toList(),
           ),
       ],
-      unsectionedItems: _items.where((i) => i.sectionId == null).toList(),
+      unsectionedItems: unsectioned,
       itemId: (item) => item.id,
       itemBuilder: buildItem,
       addSectionLabel: context.l10n.sectionEditor_addSection,

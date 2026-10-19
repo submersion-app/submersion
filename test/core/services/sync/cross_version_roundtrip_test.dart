@@ -1017,8 +1017,14 @@ void main() {
           ),
         );
         final sessionRepository = PreDiveSessionRepository();
+        // startSession mints a fresh id for a section whose id arrives
+        // blank (same as it does for items), so an item referencing a
+        // section by id must be given that section's REAL id upfront, the
+        // same way SessionItemComposer pre-generates both before calling
+        // startSession in production -- not the blank placeholder.
+        const sectionId = 'section-1';
         final section = pre_dive_session.PreDiveSessionSection(
-          id: '',
+          id: sectionId,
           sessionId: '',
           title: 'Assembly',
           createdAt: DateTime.now(),
@@ -1032,7 +1038,7 @@ void main() {
               id: '',
               sessionId: '',
               title: 'Scrubber packed',
-              sectionId: section.id,
+              sectionId: sectionId,
               createdAt: DateTime.now(),
               updatedAt: DateTime.now(),
             ),

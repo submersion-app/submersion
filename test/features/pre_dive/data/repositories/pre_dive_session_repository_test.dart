@@ -318,9 +318,14 @@ void main() {
   });
 
   group('sections (#3360)', () {
+    // startSession mints a fresh id for a section whose id arrives blank
+    // (same as it does for items), so an item referencing a section by id
+    // must be given that section's REAL id upfront -- a non-blank id here,
+    // not the empty placeholder other drafts leave for the repository to
+    // fill in.
     domain.PreDiveSessionSection sectionDraft(String title, {int order = 0}) =>
         domain.PreDiveSessionSection(
-          id: '',
+          id: 'section-${title.toLowerCase()}',
           sessionId: '',
           title: title,
           sortOrder: order,
