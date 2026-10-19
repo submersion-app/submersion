@@ -51,8 +51,9 @@ Future<bool> signInToGroup(
 Future<ConnectedAccount?> addAccountRow(
   BuildContext context,
   WidgetRef ref,
-  AccountKindOffer offer,
-) async {
+  AccountKindOffer offer, {
+  Set<AccountKind> kinds = const {AccountKind.s3, AccountKind.webdav},
+}) async {
   final container = ProviderScope.containerOf(context, listen: false);
   final l10n = context.l10n;
   final accounts = ref.read(connectedAccountsRepositoryProvider);
@@ -99,7 +100,7 @@ Future<ConnectedAccount?> addAccountRow(
       }
     case AccountKindOffer.ownServer:
       if (!context.mounted) return null;
-      row = await showOwnServerPage(context);
+      row = await showOwnServerPage(context, kinds: kinds);
   }
   if (row != null) _refresh(container);
   return row;
