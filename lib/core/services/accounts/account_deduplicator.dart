@@ -192,6 +192,13 @@ class AccountDeduplicator {
       label: row.label,
       accountIdentifier: row.accountIdentifier,
     );
+    // A name the diver gave the legacy row survives the collapse (issue
+    // #3522), unless the canonical row already carries one of its own.
+    final nickname = row.nickname;
+    if (nickname != null &&
+        (await _accounts.getById(canonicalId))?.nickname == null) {
+      await _accounts.setNickname(canonicalId, nickname);
+    }
     if (_established.contains(row.id)) {
       await _established.add(canonicalId);
     }

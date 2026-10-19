@@ -1,6 +1,5 @@
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -72,11 +71,9 @@ final attachedStoreHintProvider = FutureProvider.autoDispose<String?>((
   final attachState = ref.watch(mediaStoreAttachStateProvider);
   final id = await attachState.attachedStoreId();
   if (id == null) return null;
-  final hint = (await stores.getById(id))?.displayHint;
-  if (hint == null) return null;
-  final accountId = await attachState.attachedAccountId();
-  final account = accountId == null ? null : await accounts.getById(accountId);
-  return accountDisplayName(label: hint, nickname: account?.nickname);
+  final store = await stores.getById(id);
+  if (store == null) return null;
+  return mediaStoreName(store, attachState: attachState, accounts: accounts);
 });
 
 /// Where the most recent backup went.

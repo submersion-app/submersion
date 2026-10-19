@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -643,15 +644,32 @@ final mediaStoreStatusHintProvider = FutureProvider<String?>((ref) async {
     ..invalidateSelfWhen(accounts.watchAccountsChanges());
   final active = await storesRepository.getActive();
   if (active == null) return runtime.storeId;
-  final accountId = await ref
-      .watch(mediaStoreAttachStateProvider)
-      .attachedAccountId();
-  final account = accountId == null ? null : await accounts.getById(accountId);
-  return accountDisplayName(
-    label: active.displayHint,
-    nickname: account?.nickname,
+  return mediaStoreName(
+    active,
+    attachState: ref.watch(mediaStoreAttachStateProvider),
+    accounts: accounts,
   );
 });
+
+/// The name [store] is shown under (issue #3522): the nickname of the
+/// account this device attached it through, else its display hint with a
+/// well-known service's host named. The nickname applies only while this
+/// device is attached to [store] itself: after another device switches
+/// stores, the account it attached through points somewhere else.
+Future<String> mediaStoreName(
+  MediaStoreDescriptor store, {
+  required MediaStoreAttachState attachState,
+  required ConnectedAccountsRepository accounts,
+}) async {
+  String? nickname;
+  if (await attachState.attachedStoreId() == store.id) {
+    final accountId = await attachState.attachedAccountId();
+    if (accountId != null) {
+      nickname = (await accounts.getById(accountId))?.nickname;
+    }
+  }
+  return accountDisplayName(label: store.displayHint, nickname: nickname);
+}
 
 /// Implementation behind mediaStoreEnqueueProvider: with a runtime
 /// attached, imports feed the queue and kick the worker; without one this

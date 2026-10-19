@@ -118,6 +118,24 @@ void main() {
     expect(await deletionCount(), 11);
   });
 
+  // Issue #3522: a name the diver gave the legacy row survives the collapse.
+  test('carries a nickname onto the canonical id', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await syncS3.save(syncConfig);
+    final a = await accounts.create(kind: AccountKind.s3, label: 'x');
+    await accounts.setNickname(a.id, 'Dive sync');
+    await SyncRepository().setSyncAccount(
+      accountId: a.id,
+      providerType: CloudProviderType.s3,
+    );
+
+    await (await dedup(prefs)).run();
+
+    final canonical = await accounts.getById(syncCanonicalId());
+    expect(canonical!.nickname, 'Dive sync');
+  });
+
   test('is a no-op on a second run', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
