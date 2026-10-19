@@ -38,7 +38,7 @@ void main() {
   test('v296 is the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, 296);
     expect(AppDatabase.migrationVersions.last, 296);
-    expect(AppDatabase.migrationStepCount(294), 1);
+    expect(AppDatabase.migrationStepCount(295), 1);
   });
 
   test('a fresh database has the three tables and their indexes', () async {
