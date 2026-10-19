@@ -145,6 +145,23 @@ void main() {
     expect(await nicknameOf(tester, account.id), isNull);
   });
 
+  testWidgets('the keyboard done action saves the name', (tester) async {
+    final account = await addR2(tester);
+    await pumpPage(tester);
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rename').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Club bucket');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await settle(tester);
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(await nicknameOf(tester, account.id), 'Club bucket');
+  });
+
   testWidgets('Cancel leaves the name alone', (tester) async {
     final account = await addR2(tester, nickname: 'Club bucket');
     await pumpPage(tester);
