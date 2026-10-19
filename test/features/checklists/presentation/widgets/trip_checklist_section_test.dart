@@ -574,6 +574,45 @@ void main() {
       final sections = await checklistRepository.getSectionsForTrip(trip.id);
       expect(sections.map((s) => s.title).toList(), ['B', 'A']);
     });
+
+    testWidgets('an item\'s down arrow reorders items within its section', (
+      tester,
+    ) async {
+      final section = await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Gear',
+      );
+      final first = await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          tripId: trip.id,
+          title: 'Mask',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final second = await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          tripId: trip.id,
+          title: 'Fins',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await pumpSection(tester);
+
+      // Index 0 is the section's own (disabled, since there is only one
+      // section) down arrow; index 1 is the first item's.
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).at(1));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final items = await checklistRepository.getByTripId(trip.id);
+      expect(items.map((i) => i.id).toList(), [second.id, first.id]);
+    });
   });
 
   // Case-insensitive folding of a typed category onto an existing section
