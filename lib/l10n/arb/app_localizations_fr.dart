@@ -4511,17 +4511,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checklists_template_addItem => 'Ajouter un élément';
 
   @override
-  String get sectionEditor_addSection => 'Add section';
+  String get sectionEditor_addSection => 'Ajouter une section';
 
   @override
-  String get sectionEditor_newSectionTitle => 'New section';
+  String get sectionEditor_newSectionTitle => 'Nouvelle section';
 
   @override
-  String get sectionEditor_noSection => 'No section';
+  String get sectionEditor_noSection => 'Aucune section';
 
   @override
   String sectionEditor_delete_title(String title) {
-    return 'Delete \"$title\"?';
+    return 'Supprimer « $title » ?';
   }
 
   @override
@@ -4529,20 +4529,20 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'What should happen to its $count items?',
-      one: 'What should happen to its 1 item?',
-      zero: 'This section has no items.',
+      other: 'Que faire de ses $count éléments ?',
+      one: 'Que faire de son 1 élément ?',
+      zero: 'Cette section ne contient aucun élément.',
     );
     return '$_temp0';
   }
 
   @override
   String sectionEditor_delete_moveTo(String title) {
-    return 'Move items to \"$title\"';
+    return 'Déplacer les éléments vers « $title »';
   }
 
   @override
-  String get sectionEditor_delete_deleteItems => 'Delete items too';
+  String get sectionEditor_delete_deleteItems => 'Supprimer aussi les éléments';
 
   @override
   String get preDive_templates_title => 'Checklists pré-plongée';
@@ -25073,21 +25073,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplateSection =>
-      'Pre-dive checklist template section';
+      'Section du modèle de liste avant plongée';
 
   @override
   String get settings_conflict_ref_preDiveSession => 'Liste avant plongée';
 
   @override
   String get settings_conflict_ref_preDiveSessionSection =>
-      'Pre-dive checklist section';
+      'Section de la liste avant plongée';
 
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
-      'Checklist template section';
+      'Section du modèle de liste de contrôle';
 
   @override
-  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
+  String get settings_conflict_ref_tripChecklistSection =>
+      'Section de la liste de contrôle';
 
   @override
   String get settings_conflict_ref_regulator => 'Détendeur';

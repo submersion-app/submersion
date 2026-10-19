@@ -15,6 +15,9 @@ void main() {
   });
 
   test('the floor holds every pre-WebDAV build', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, greaterThanOrEqualTo(280));
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(280),
+    );
   });
 }

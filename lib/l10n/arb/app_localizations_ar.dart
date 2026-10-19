@@ -4579,17 +4579,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_template_addItem => 'إضافة عنصر';
 
   @override
-  String get sectionEditor_addSection => 'Add section';
+  String get sectionEditor_addSection => 'إضافة قسم';
 
   @override
-  String get sectionEditor_newSectionTitle => 'New section';
+  String get sectionEditor_newSectionTitle => 'قسم جديد';
 
   @override
-  String get sectionEditor_noSection => 'No section';
+  String get sectionEditor_noSection => 'بلا قسم';
 
   @override
   String sectionEditor_delete_title(String title) {
-    return 'Delete \"$title\"?';
+    return 'حذف \"$title\"؟';
   }
 
   @override
@@ -4597,20 +4597,20 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'What should happen to its $count items?',
-      one: 'What should happen to its 1 item?',
-      zero: 'This section has no items.',
+      other: 'ماذا يجب أن يحدث لعناصره البالغ عددها $count؟',
+      one: 'ماذا يجب أن يحدث لعنصره الواحد؟',
+      zero: 'لا يحتوي هذا القسم على عناصر.',
     );
     return '$_temp0';
   }
 
   @override
   String sectionEditor_delete_moveTo(String title) {
-    return 'Move items to \"$title\"';
+    return 'نقل العناصر إلى \"$title\"';
   }
 
   @override
-  String get sectionEditor_delete_deleteItems => 'Delete items too';
+  String get sectionEditor_delete_deleteItems => 'حذف العناصر أيضًا';
 
   @override
   String get preDive_templates_title => 'قوائم تحقق ما قبل الغوص';
@@ -25192,21 +25192,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplateSection =>
-      'Pre-dive checklist template section';
+      'قسم من قالب قائمة التحقق قبل الغوص';
 
   @override
   String get settings_conflict_ref_preDiveSession => 'قائمة التحقق قبل الغوص';
 
   @override
   String get settings_conflict_ref_preDiveSessionSection =>
-      'Pre-dive checklist section';
+      'قسم من قائمة التحقق قبل الغوص';
 
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
-      'Checklist template section';
+      'قسم من قالب قائمة التحقق';
 
   @override
-  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
+  String get settings_conflict_ref_tripChecklistSection =>
+      'قسم من قائمة التحقق';
 
   @override
   String get settings_conflict_ref_regulator => 'المنظم';

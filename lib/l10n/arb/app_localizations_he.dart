@@ -4405,17 +4405,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_template_addItem => 'הוסף פריט';
 
   @override
-  String get sectionEditor_addSection => 'Add section';
+  String get sectionEditor_addSection => 'הוספת קטע';
 
   @override
-  String get sectionEditor_newSectionTitle => 'New section';
+  String get sectionEditor_newSectionTitle => 'קטע חדש';
 
   @override
-  String get sectionEditor_noSection => 'No section';
+  String get sectionEditor_noSection => 'ללא קטע';
 
   @override
   String sectionEditor_delete_title(String title) {
-    return 'Delete \"$title\"?';
+    return 'למחוק את \"$title\"?';
   }
 
   @override
@@ -4423,20 +4423,20 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'What should happen to its $count items?',
-      one: 'What should happen to its 1 item?',
-      zero: 'This section has no items.',
+      other: 'מה לעשות עם $count הפריטים שבו?',
+      one: 'מה לעשות עם הפריט שבו?',
+      zero: 'בקטע הזה אין פריטים.',
     );
     return '$_temp0';
   }
 
   @override
   String sectionEditor_delete_moveTo(String title) {
-    return 'Move items to \"$title\"';
+    return 'העבר פריטים אל \"$title\"';
   }
 
   @override
-  String get sectionEditor_delete_deleteItems => 'Delete items too';
+  String get sectionEditor_delete_deleteItems => 'מחק גם את הפריטים';
 
   @override
   String get preDive_templates_title => 'רשימות בדיקה לפני צלילה';
@@ -24366,21 +24366,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplateSection =>
-      'Pre-dive checklist template section';
+      'קטע בתבנית רשימת בדיקות לפני צלילה';
 
   @override
   String get settings_conflict_ref_preDiveSession => 'רשימת בדיקות לפני צלילה';
 
   @override
   String get settings_conflict_ref_preDiveSessionSection =>
-      'Pre-dive checklist section';
+      'קטע ברשימת בדיקות לפני צלילה';
 
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
-      'Checklist template section';
+      'קטע בתבנית רשימת משימות';
 
   @override
-  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
+  String get settings_conflict_ref_tripChecklistSection => 'קטע ברשימת משימות';
 
   @override
   String get settings_conflict_ref_regulator => 'וסת';

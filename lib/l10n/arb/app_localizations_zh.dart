@@ -4259,17 +4259,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_template_addItem => '添加事项';
 
   @override
-  String get sectionEditor_addSection => 'Add section';
+  String get sectionEditor_addSection => '添加分区';
 
   @override
-  String get sectionEditor_newSectionTitle => 'New section';
+  String get sectionEditor_newSectionTitle => '新分区';
 
   @override
-  String get sectionEditor_noSection => 'No section';
+  String get sectionEditor_noSection => '无分区';
 
   @override
   String sectionEditor_delete_title(String title) {
-    return 'Delete \"$title\"?';
+    return '删除“$title”？';
   }
 
   @override
@@ -4277,20 +4277,20 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'What should happen to its $count items?',
-      one: 'What should happen to its 1 item?',
-      zero: 'This section has no items.',
+      other: '它的 $count 个项目该如何处理？',
+      one: '它的 1 个项目该如何处理？',
+      zero: '此分区没有项目。',
     );
     return '$_temp0';
   }
 
   @override
   String sectionEditor_delete_moveTo(String title) {
-    return 'Move items to \"$title\"';
+    return '将项目移至“$title”';
   }
 
   @override
-  String get sectionEditor_delete_deleteItems => 'Delete items too';
+  String get sectionEditor_delete_deleteItems => '同时删除项目';
 
   @override
   String get preDive_templates_title => '潜前检查清单';
@@ -23623,21 +23623,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplateSection =>
-      'Pre-dive checklist template section';
+      '潜前清单模板的分区';
 
   @override
   String get settings_conflict_ref_preDiveSession => '潜前清单';
 
   @override
-  String get settings_conflict_ref_preDiveSessionSection =>
-      'Pre-dive checklist section';
+  String get settings_conflict_ref_preDiveSessionSection => '潜前清单的分区';
 
   @override
-  String get settings_conflict_ref_checklistTemplateSection =>
-      'Checklist template section';
+  String get settings_conflict_ref_checklistTemplateSection => '清单模板的分区';
 
   @override
-  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
+  String get settings_conflict_ref_tripChecklistSection => '清单的分区';
 
   @override
   String get settings_conflict_ref_regulator => '调节器';

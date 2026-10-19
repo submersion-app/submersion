@@ -4481,17 +4481,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_template_addItem => 'Tétel hozzáadása';
 
   @override
-  String get sectionEditor_addSection => 'Add section';
+  String get sectionEditor_addSection => 'Szakasz hozzáadása';
 
   @override
-  String get sectionEditor_newSectionTitle => 'New section';
+  String get sectionEditor_newSectionTitle => 'Új szakasz';
 
   @override
-  String get sectionEditor_noSection => 'No section';
+  String get sectionEditor_noSection => 'Nincs szakasz';
 
   @override
   String sectionEditor_delete_title(String title) {
-    return 'Delete \"$title\"?';
+    return 'Törli: „$title”?';
   }
 
   @override
@@ -4499,20 +4499,20 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'What should happen to its $count items?',
-      one: 'What should happen to its 1 item?',
-      zero: 'This section has no items.',
+      other: 'Mi történjen a $count tételével?',
+      one: 'Mi történjen az 1 tételével?',
+      zero: 'Ennek a szakasznak nincs tétele.',
     );
     return '$_temp0';
   }
 
   @override
   String sectionEditor_delete_moveTo(String title) {
-    return 'Move items to \"$title\"';
+    return 'Tételek áthelyezése ide: „$title”';
   }
 
   @override
-  String get sectionEditor_delete_deleteItems => 'Delete items too';
+  String get sectionEditor_delete_deleteItems => 'Tételek törlése is';
 
   @override
   String get preDive_templates_title => 'Merülés előtti ellenőrzőlisták';
@@ -24882,7 +24882,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplateSection =>
-      'Pre-dive checklist template section';
+      'Merülés előtti ellenőrzőlista sablon szakasza';
 
   @override
   String get settings_conflict_ref_preDiveSession =>
@@ -24890,14 +24890,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveSessionSection =>
-      'Pre-dive checklist section';
+      'Merülés előtti ellenőrzőlista szakasza';
 
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
-      'Checklist template section';
+      'Ellenőrzőlista sablon szakasza';
 
   @override
-  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
+  String get settings_conflict_ref_tripChecklistSection =>
+      'Ellenőrzőlista szakasza';
 
   @override
   String get settings_conflict_ref_regulator => 'Légzőautomata';

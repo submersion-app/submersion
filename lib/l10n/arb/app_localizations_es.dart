@@ -4501,17 +4501,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checklists_template_addItem => 'Agregar elemento';
 
   @override
-  String get sectionEditor_addSection => 'Add section';
+  String get sectionEditor_addSection => 'Añadir sección';
 
   @override
-  String get sectionEditor_newSectionTitle => 'New section';
+  String get sectionEditor_newSectionTitle => 'Nueva sección';
 
   @override
-  String get sectionEditor_noSection => 'No section';
+  String get sectionEditor_noSection => 'Sin sección';
 
   @override
   String sectionEditor_delete_title(String title) {
-    return 'Delete \"$title\"?';
+    return '¿Eliminar \"$title\"?';
   }
 
   @override
@@ -4519,20 +4519,21 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'What should happen to its $count items?',
-      one: 'What should happen to its 1 item?',
-      zero: 'This section has no items.',
+      other: '¿Qué debería pasar con sus $count elementos?',
+      one: '¿Qué debería pasar con su 1 elemento?',
+      zero: 'Esta sección no tiene elementos.',
     );
     return '$_temp0';
   }
 
   @override
   String sectionEditor_delete_moveTo(String title) {
-    return 'Move items to \"$title\"';
+    return 'Mover elementos a \"$title\"';
   }
 
   @override
-  String get sectionEditor_delete_deleteItems => 'Delete items too';
+  String get sectionEditor_delete_deleteItems =>
+      'Eliminar también los elementos';
 
   @override
   String get preDive_templates_title => 'Listas previas a la inmersión';
@@ -25018,7 +25019,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplateSection =>
-      'Pre-dive checklist template section';
+      'Sección de la plantilla de lista previa a la inmersión';
 
   @override
   String get settings_conflict_ref_preDiveSession =>
@@ -25026,14 +25027,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveSessionSection =>
-      'Pre-dive checklist section';
+      'Sección de la lista previa a la inmersión';
 
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
-      'Checklist template section';
+      'Sección de la plantilla de lista de verificación';
 
   @override
-  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
+  String get settings_conflict_ref_tripChecklistSection =>
+      'Sección de la lista de verificación';
 
   @override
   String get settings_conflict_ref_regulator => 'Regulador';

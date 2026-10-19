@@ -4474,17 +4474,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_template_addItem => 'Item toevoegen';
 
   @override
-  String get sectionEditor_addSection => 'Add section';
+  String get sectionEditor_addSection => 'Sectie toevoegen';
 
   @override
-  String get sectionEditor_newSectionTitle => 'New section';
+  String get sectionEditor_newSectionTitle => 'Nieuwe sectie';
 
   @override
-  String get sectionEditor_noSection => 'No section';
+  String get sectionEditor_noSection => 'Geen sectie';
 
   @override
   String sectionEditor_delete_title(String title) {
-    return 'Delete \"$title\"?';
+    return '\"$title\" verwijderen?';
   }
 
   @override
@@ -4492,20 +4492,20 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'What should happen to its $count items?',
-      one: 'What should happen to its 1 item?',
-      zero: 'This section has no items.',
+      other: 'Wat moet er met de $count items gebeuren?',
+      one: 'Wat moet er met het 1 item gebeuren?',
+      zero: 'Deze sectie heeft geen items.',
     );
     return '$_temp0';
   }
 
   @override
   String sectionEditor_delete_moveTo(String title) {
-    return 'Move items to \"$title\"';
+    return 'Items verplaatsen naar \"$title\"';
   }
 
   @override
-  String get sectionEditor_delete_deleteItems => 'Delete items too';
+  String get sectionEditor_delete_deleteItems => 'Items ook verwijderen';
 
   @override
   String get preDive_templates_title => 'Pre-dive checklists';
@@ -24837,21 +24837,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplateSection =>
-      'Pre-dive checklist template section';
+      'Sectie van het sjabloon voor checklist voor de duik';
 
   @override
   String get settings_conflict_ref_preDiveSession => 'Checklist voor de duik';
 
   @override
   String get settings_conflict_ref_preDiveSessionSection =>
-      'Pre-dive checklist section';
+      'Sectie van de checklist voor de duik';
 
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
-      'Checklist template section';
+      'Sectie van het checklistsjabloon';
 
   @override
-  String get settings_conflict_ref_tripChecklistSection => 'Checklist section';
+  String get settings_conflict_ref_tripChecklistSection =>
+      'Sectie van de checklist';
 
   @override
   String get settings_conflict_ref_regulator => 'Ademautomaat';
