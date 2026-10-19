@@ -86,6 +86,8 @@ class QualityContextBuilder {
     final effectiveNow = now ?? DateTime.now();
     _ppO2MaxByDiver.clear();
     _knownSerialsByDiver.clear();
+    _mismatchedSerialsByDiver.clear();
+    _transmittersByDiver.clear();
     _profileCount = null;
     _diverNames = null;
     final dives = await _diveRepo.getDivesByIds(diveIds);

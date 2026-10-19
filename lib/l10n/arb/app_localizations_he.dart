@@ -50362,12 +50362,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
+    return 'להעתיק את המספר הסידורי אל \"$gearName\"?';
   }
 
   @override
   String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
+    return 'המספר הסידורי שעליו רשומה זו מתאימה ($serial) אינו רשום עדיין בפריט הציוד של המשדר.';
   }
 
   @override
@@ -50452,11 +50452,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_detector_transmitter_gear_serial_mismatch =>
-      'Transmitter serial mismatch';
+      'אי-התאמה במספר הסידורי של המשדר';
 
   @override
   String dataQuality_msg_transmitterGearSerialMismatch(String serial) {
-    return 'Transmitter $serial is linked to a gear item recorded with a different serial';
+    return 'המשדר $serial משויך לפריט ציוד הרשום עם מספר סידורי שונה';
   }
 
   @override

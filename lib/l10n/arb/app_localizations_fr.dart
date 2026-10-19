@@ -51567,12 +51567,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
+    return 'Copier le numéro de série vers « $gearName » ?';
   }
 
   @override
   String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
+    return 'Le numéro de série sur lequel correspond cette entrée ($serial) n\'est pas encore enregistré sur l\'article d\'équipement de l\'émetteur.';
   }
 
   @override
@@ -51658,11 +51658,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataQuality_detector_transmitter_gear_serial_mismatch =>
-      'Transmitter serial mismatch';
+      'Numéro de série de l\'émetteur incohérent';
 
   @override
   String dataQuality_msg_transmitterGearSerialMismatch(String serial) {
-    return 'Transmitter $serial is linked to a gear item recorded with a different serial';
+    return 'L\'émetteur $serial est associé à un article d\'équipement enregistré avec un numéro de série différent';
   }
 
   @override

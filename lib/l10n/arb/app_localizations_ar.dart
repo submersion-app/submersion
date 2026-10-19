@@ -52115,12 +52115,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
+    return 'نسخ الرقم التسلسلي إلى \"$gearName\"؟';
   }
 
   @override
   String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
+    return 'الرقم التسلسلي الذي يطابقه هذا الإدخال ($serial) غير مسجَّل بعد على عنصر معدات جهاز الإرسال.';
   }
 
   @override
@@ -52209,11 +52209,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataQuality_detector_transmitter_gear_serial_mismatch =>
-      'Transmitter serial mismatch';
+      'عدم تطابق الرقم التسلسلي لجهاز الإرسال';
 
   @override
   String dataQuality_msg_transmitterGearSerialMismatch(String serial) {
-    return 'Transmitter $serial is linked to a gear item recorded with a different serial';
+    return 'جهاز الإرسال $serial مرتبط بعنصر معدات مسجَّل برقم تسلسلي مختلف';
   }
 
   @override

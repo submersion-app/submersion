@@ -51168,12 +51168,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
+    return 'Átmásolja a sorozatszámot ide: „$gearName”?';
   }
 
   @override
   String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
+    return 'A sorozatszám, amellyel ez a bejegyzés egyezik ($serial), még nincs rögzítve a jeladó felszerelési elemén.';
   }
 
   @override
@@ -51260,11 +51260,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_detector_transmitter_gear_serial_mismatch =>
-      'Transmitter serial mismatch';
+      'Jeladó sorozatszám-eltérés';
 
   @override
   String dataQuality_msg_transmitterGearSerialMismatch(String serial) {
-    return 'Transmitter $serial is linked to a gear item recorded with a different serial';
+    return 'A(z) $serial jeladó egy olyan felszerelési elemhez van kapcsolva, amely eltérő sorozatszámmal van rögzítve';
   }
 
   @override

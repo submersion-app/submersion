@@ -48286,12 +48286,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
+    return '将序列号复制到“$gearName”？';
   }
 
   @override
   String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
+    return '此条目匹配的序列号（$serial）尚未记录在发射器装备项目上。';
   }
 
   @override
@@ -48375,11 +48375,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_detector_transmitter_gear_serial_mismatch =>
-      'Transmitter serial mismatch';
+      '发射器序列号不匹配';
 
   @override
   String dataQuality_msg_transmitterGearSerialMismatch(String serial) {
-    return 'Transmitter $serial is linked to a gear item recorded with a different serial';
+    return '发射器 $serial 关联的装备项目记录的序列号不同';
   }
 
   @override

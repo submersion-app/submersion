@@ -51124,12 +51124,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
+    return 'Serienummer kopiëren naar \"$gearName\"?';
   }
 
   @override
   String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
+    return 'Het serienummer waarop deze registratie overeenkomt ($serial) is nog niet vastgelegd bij het zenderuitrustingsitem.';
   }
 
   @override
@@ -51216,11 +51216,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataQuality_detector_transmitter_gear_serial_mismatch =>
-      'Transmitter serial mismatch';
+      'Afwijkend zenderserienummer';
 
   @override
   String dataQuality_msg_transmitterGearSerialMismatch(String serial) {
-    return 'Transmitter $serial is linked to a gear item recorded with a different serial';
+    return 'Zender $serial is gekoppeld aan een uitrustingsitem dat met een ander serienummer is vastgelegd';
   }
 
   @override
