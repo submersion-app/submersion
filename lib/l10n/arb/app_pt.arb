@@ -1244,7 +1244,7 @@
   "sectionEditor_newSectionTitle": "Nova seção",
   "sectionEditor_noSection": "Sem seção",
   "sectionEditor_delete_title": "Excluir \"{title}\"?",
-  "sectionEditor_delete_content": "{count, plural, =0{Esta seção não tem itens.} =1{O que deve acontecer com seu 1 item?} other{O que deve acontecer com seus {count} itens?}}",
+  "sectionEditor_delete_content": "{count, plural, =0{Esta seção não tem itens.} =1{O que deve acontecer com seu {count} item?} other{O que deve acontecer com seus {count} itens?}}",
   "sectionEditor_delete_moveTo": "Mover itens para \"{title}\"",
   "sectionEditor_delete_deleteItems": "Excluir os itens também",
   "preDive_templates_title": "Listas de Verificação Pré-Mergulho",

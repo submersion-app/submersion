@@ -4537,7 +4537,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'O que deve acontecer com seus $count itens?',
-      one: 'O que deve acontecer com seu 1 item?',
+      one: 'O que deve acontecer com seu $count item?',
       zero: 'Esta seção não tem itens.',
     );
     return '$_temp0';

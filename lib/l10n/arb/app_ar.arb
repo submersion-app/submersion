@@ -1244,7 +1244,7 @@
   "sectionEditor_newSectionTitle": "قسم جديد",
   "sectionEditor_noSection": "بلا قسم",
   "sectionEditor_delete_title": "حذف \"{title}\"؟",
-  "sectionEditor_delete_content": "{count, plural, =0{لا يحتوي هذا القسم على عناصر.} =1{ماذا يجب أن يحدث لعنصره الواحد؟} other{ماذا يجب أن يحدث لعناصره البالغ عددها {count}؟}}",
+  "sectionEditor_delete_content": "{count, plural, =0{لا يحتوي هذا القسم على عناصر.} =1{ماذا يجب أن يحدث لعنصره الواحد؟} two{ماذا يجب أن يحدث لعنصريه؟} few{ماذا يجب أن يحدث لعناصره البالغ عددها {count}؟} many{ماذا يجب أن يحدث لعناصره البالغ عددها {count}؟} other{ماذا يجب أن يحدث لعناصره البالغ عددها {count}؟}}",
   "sectionEditor_delete_moveTo": "نقل العناصر إلى \"{title}\"",
   "sectionEditor_delete_deleteItems": "حذف العناصر أيضًا",
   "preDive_templates_title": "قوائم تحقق ما قبل الغوص",

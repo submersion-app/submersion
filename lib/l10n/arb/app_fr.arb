@@ -1244,7 +1244,7 @@
   "sectionEditor_newSectionTitle": "Nouvelle section",
   "sectionEditor_noSection": "Aucune section",
   "sectionEditor_delete_title": "Supprimer « {title} » ?",
-  "sectionEditor_delete_content": "{count, plural, =0{Cette section ne contient aucun élément.} =1{Que faire de son 1 élément ?} other{Que faire de ses {count} éléments ?}}",
+  "sectionEditor_delete_content": "{count, plural, =0{Cette section ne contient aucun élément.} =1{Que faire de son {count} élément ?} other{Que faire de ses {count} éléments ?}}",
   "sectionEditor_delete_moveTo": "Déplacer les éléments vers « {title} »",
   "sectionEditor_delete_deleteItems": "Supprimer aussi les éléments",
   "preDive_templates_title": "Checklists pré-plongée",

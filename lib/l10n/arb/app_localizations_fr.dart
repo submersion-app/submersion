@@ -4552,7 +4552,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Que faire de ses $count éléments ?',
-      one: 'Que faire de son 1 élément ?',
+      one: 'Que faire de son $count élément ?',
       zero: 'Cette section ne contient aucun élément.',
     );
     return '$_temp0';

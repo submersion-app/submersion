@@ -4619,6 +4619,9 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'ماذا يجب أن يحدث لعناصره البالغ عددها $count؟',
+      many: 'ماذا يجب أن يحدث لعناصره البالغ عددها $count؟',
+      few: 'ماذا يجب أن يحدث لعناصره البالغ عددها $count؟',
+      two: 'ماذا يجب أن يحدث لعنصريه؟',
       one: 'ماذا يجب أن يحدث لعنصره الواحد؟',
       zero: 'لا يحتوي هذا القسم على عناصر.',
     );
