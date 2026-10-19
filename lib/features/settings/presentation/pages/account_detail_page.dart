@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
-import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/accou
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -99,7 +99,13 @@ class _Details extends ConsumerWidget {
             onTap: () => signInToGroup(context, ref, group),
           ),
         if (group.isOwnServer) ...[
-          _Header(l10n.settings_accounts_serverDetails),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: buildSettingsSectionHeader(
+              context,
+              l10n.settings_accounts_serverDetails,
+            ),
+          ),
           OwnServerForm(
             key: ValueKey(group.key),
             existing: group,
@@ -115,11 +121,17 @@ class _Details extends ConsumerWidget {
               if (context.mounted) _refresh(context);
             },
           ),
-          _Header(l10n.settings_accounts_folders),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: buildSettingsSectionHeader(
+              context,
+              l10n.settings_accounts_folders,
+            ),
+          ),
           for (final row in group.rows)
             ListTile(
               dense: true,
-              title: Text(_folderOf(group.locationOf(row.id)) ?? row.label),
+              title: Text(group.locationOf(row.id)?.folder ?? row.label),
               subtitle: Text(_roleName(l10n, group, row.id)),
             ),
         ],
@@ -213,38 +225,13 @@ class _Details extends ConsumerWidget {
   }
 }
 
-String? _folderOf(AccountLocation? location) => switch (location) {
-  S3AccountLocation(:final prefix) => prefix,
-  WebDavAccountLocation(:final folder) => folder,
-  null => null,
-};
-
 String _roleName(AppLocalizations l10n, AccountGroup group, String rowId) =>
     switch (group.roles[rowId]) {
       AccountRole.sync => l10n.settings_accounts_usage_sync,
       AccountRole.media => l10n.settings_accounts_usage_photos,
       AccountRole.library =>
         l10n.settings_connectedAccounts_usage_sharedLibrary(
-          (_folderOf(group.locationOf(rowId)) ?? '')
-              .replaceAll(RegExp(r'/+$'), '')
-              .split('/')
-              .last,
+          (group.locationOf(rowId)?.folder ?? '').split('/').last,
         ),
       null => l10n.settings_accounts_folder_other,
     };
-
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-    child: Text(
-      text,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-        color: Theme.of(context).colorScheme.primary,
-      ),
-    ),
-  );
-}

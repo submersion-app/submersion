@@ -184,6 +184,26 @@ Future<void> useAccountForSync(
   final type = group.kind.cloudProviderType;
   if (type == null) return;
   if (current != null && current.key == group.key) return;
+  // An own server takes sync through its sync-role row; resolve it before
+  // anything is recorded, so an account with no keys here changes nothing.
+  ConnectedAccount? syncRow;
+  if (group.isOwnServer) {
+    try {
+      syncRow = await ref
+          .read(accountGroupServiceProvider)
+          .ensureRole(group, AccountRole.sync);
+    } on StateError {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.settings_accounts_signInTo(group.label)),
+          ),
+        );
+      }
+      return;
+    }
+  }
+  if (!context.mounted) return;
   // Recorded before the switch, while the provider still names the old
   // backend.
   final oldProvider = ref.read(cloudStorageProviderProvider);
@@ -199,12 +219,8 @@ Future<void> useAccountForSync(
         );
   }
   if (!context.mounted) return;
-  if (group.isOwnServer) {
-    final row = await ref
-        .read(accountGroupServiceProvider)
-        .ensureRole(group, AccountRole.sync);
-    if (!context.mounted) return;
-    await switchSyncToRow(context, ref, row);
+  if (syncRow != null) {
+    await switchSyncToRow(context, ref, syncRow);
     return;
   }
   await selectProvider(context, ref, type);
@@ -223,12 +239,18 @@ Future<void> switchSyncToRow(
   switch (row.kind) {
     case AccountKind.s3:
       final config = await service.storedS3ForRow(row.id);
-      if (config == null) return;
+      if (config == null) {
+        if (context.mounted) _noConfig(context);
+        return;
+      }
       await ref.read(s3StorageProviderInstanceProvider).saveConfig(config);
       container.invalidate(s3ConfigProvider);
     case AccountKind.webdav:
       final config = await service.storedWebDavForRow(row.id);
-      if (config == null) return;
+      if (config == null) {
+        if (context.mounted) _noConfig(context);
+        return;
+      }
       await ref.read(webdavStorageProviderInstanceProvider).saveConfig(config);
       container.invalidate(webdavConfigProvider);
     default:
@@ -245,4 +267,11 @@ Future<void> switchSyncToRow(
     ..invalidate(accountGroupsProvider)
     ..invalidate(pendingSetupItemsProvider);
   await container.read(selectedSyncAccountProvider.future);
+}
+
+/// Says the chosen server's settings could not be read on this device.
+void _noConfig(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(context.l10n.settings_s3Config_error_secureStorage)),
+  );
 }

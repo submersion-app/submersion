@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The one account picker (spec section 7.4): the diver's accounts, then
@@ -176,7 +177,13 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           if (!widget.addOnly && groups.isNotEmpty) ...[
-            _Header(l10n.settings_accounts_sheet_yours),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              child: buildSettingsSectionHeader(
+                context,
+                l10n.settings_accounts_sheet_yours,
+              ),
+            ),
             for (final g in groups)
               AccountGroupTile(
                 group: g,
@@ -186,7 +193,13 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
               ),
           ],
           if (offers.isNotEmpty) ...[
-            _Header(l10n.settings_accounts_sheet_add),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              child: buildSettingsSectionHeader(
+                context,
+                l10n.settings_accounts_sheet_add,
+              ),
+            ),
             for (final o in offers)
               ListTile(
                 leading: Icon(switch (kindOfOffer(o)) {
@@ -213,20 +226,4 @@ String _offerLabel(BuildContext context, AccountKindOffer offer) {
     AccountKindOffer.dropbox => l10n.settings_cloudSync_provider_dropbox_title,
     AccountKindOffer.ownServer => l10n.settings_accounts_ownServer_title,
   };
-}
-
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-    child: Text(
-      text,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-        color: Theme.of(context).colorScheme.primary,
-      ),
-    ),
-  );
 }

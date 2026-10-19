@@ -11,6 +11,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -21,6 +24,7 @@ import 'package:submersion/features/settings/presentation/widgets/sync/sync_acco
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../../support/fake_keychain_storage.dart';
 
 /// Holds a [SyncState] and counts recorded departures; everything else the
 /// switch never calls.
@@ -88,6 +92,9 @@ void main() {
           cloudStorageProviderProvider.overrideWithValue(
             FakeCloudStorageProvider(),
           ),
+          accountCredentialsStoreProvider.overrideWithValue(
+            AccountCredentialsStore(storage: InMemoryKeychain()),
+          ),
           syncInitializerProvider.overrideWithValue(
             SyncInitializer(syncRepository: SyncRepository(), prefs: prefs),
           ),
@@ -153,6 +160,43 @@ void main() {
     await useAccountForSync(context, ref, dropbox, current: dropbox);
     expect(notifier.departures, 0);
     expect(ref.read(selectedCloudProviderTypeProvider), isNull);
+  });
+
+  // Review: an own server with no keys here cannot take sync; the old
+  // backend must not be marked departed, and nothing may throw.
+  testWidgets('an own server not signed in here records no departure', (
+    tester,
+  ) async {
+    final (context, ref) = await pumpHost(tester, lastSync: _t);
+    final server = groupAccounts(
+      rows: [
+        ConnectedAccount(
+          id: 's3row',
+          kind: AccountKind.s3,
+          label: 'dives @ minio',
+          createdAt: _t,
+          updatedAt: _t,
+          location: const S3AccountLocation(
+            displayHost: 'minio',
+            endpoint: 'https://minio',
+            bucket: 'dives',
+            region: 'us-east-1',
+            prefix: 'submersion-sites/reef/',
+            pathStyle: true,
+          ),
+        ),
+      ],
+      statusById: const {'s3row': AccountStatus.signedIn},
+      localLocationById: const {},
+      usagesOf: (_) => const [],
+    ).single;
+
+    await useAccountForSync(context, ref, server, current: dropbox);
+    await tester.pump();
+
+    expect(notifier.departures, 0);
+    expect(tester.takeException(), isNull);
+    expect(find.text('Sign in to dives @ minio'), findsOneWidget);
   });
 
   test('the account sync uses is the one whose usage says so', () {

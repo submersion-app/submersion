@@ -82,7 +82,7 @@ class LibraryLocationController extends ChangeNotifier {
     if (initial != null && folder == _initialFolder) return account = initial;
     final where = LibraryAccountSetup.libraryFolder(folder);
     final existing = group.rows.firstWhereOrNull(
-      (r) => _folderOf(group.locationOf(r.id)) == where,
+      (r) => group.locationOf(r.id)?.folder == where,
     );
     // A row nothing on this device can place (written before locations,
     // signed in elsewhere) cannot lend its server to a new folder; it is
@@ -99,12 +99,6 @@ class LibraryLocationController extends ChangeNotifier {
           libraryFolder: folder,
         );
   }
-
-  static String? _folderOf(AccountLocation? location) => switch (location) {
-    S3AccountLocation(:final prefix) => prefix.replaceAll(RegExp(r'/+$'), ''),
-    WebDavAccountLocation(:final folder) => folder,
-    null => null,
-  };
 
   @override
   void dispose() {

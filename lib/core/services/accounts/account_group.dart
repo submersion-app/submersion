@@ -164,11 +164,7 @@ AccountRole? _roleOf(List<AccountUsage> usages, AccountLocation? location) {
         break;
     }
   }
-  final folder = switch (location) {
-    S3AccountLocation(:final prefix) => prefix.replaceAll(RegExp(r'/+$'), ''),
-    WebDavAccountLocation(:final folder) => folder,
-    null => null,
-  };
+  final folder = location?.folder;
   if (folder == null) return null;
   if (folder == 'submersion-sync' || folder == kDefaultWebDavSyncFolder) {
     return AccountRole.sync;

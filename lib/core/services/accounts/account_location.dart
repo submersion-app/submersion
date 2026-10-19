@@ -19,6 +19,10 @@ sealed class AccountLocation {
   /// Rows on one server share this, whatever their folder.
   String get serverKey;
 
+  /// The row's own folder on its server, without a trailing slash
+  /// ("submersion-sync", "submersion-sites/reef").
+  String get folder;
+
   Map<String, Object?> _fields();
 
   String toJsonString() => jsonEncode({'v': _version, ..._fields()});
@@ -83,6 +87,9 @@ final class S3AccountLocation extends AccountLocation {
   @override
   String get serverKey => 's3|$displayHost|$bucket';
 
+  @override
+  String get folder => prefix.replaceAll(RegExp(r'/+$'), '');
+
   S3Config toConfig({
     required String accessKeyId,
     required String secretAccessKey,
@@ -124,6 +131,7 @@ final class WebDavAccountLocation extends AccountLocation {
 
   final String serverUrl;
   final String username;
+  @override
   final String folder;
 
   /// The same root [WebDavConfig.davRoot] computes, so the key matches the
