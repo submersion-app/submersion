@@ -16541,7 +16541,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (luchtdichtheid)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Gasdichtheid bij 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Gasdichtheid bij $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Gasdichtheid bij een andere temperatuur controleren';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'Kouder gas is dichter, dus de dichtheidscontrole volgt de hier gekozen temperatuur, niet de werkelijke gastemperatuur op diepte.';
 
   @override
   String get gasCalculators_mod_openDensity =>
@@ -16587,18 +16597,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: gasdichtheid $density g/L ligt boven de aanbevolen $limit g/L.';
+    return '$where: gasdichtheid $density g/L bij $temp ligt boven de aanbevolen $limit g/L.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: gasdichtheid $density g/L ligt boven de harde limiet van $limit g/L.';
+    return '$where: gasdichtheid $density g/L bij $temp ligt boven de harde limiet van $limit g/L.';
   }
 
   @override
@@ -25999,7 +26011,25 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ingebouwde en eigen duikstektypes';
 
   @override
-  String get settings_manage_header_manageData => 'Gegevens beheren';
+  String get settings_manage_header_equipment => 'Uitrusting';
+
+  @override
+  String get settings_manage_header_dives => 'Duiken';
+
+  @override
+  String get settings_manage_header_planning => 'Planning';
+
+  @override
+  String get settings_manage_header_training => 'Opleiding';
+
+  @override
+  String get settings_manage_header_checklists => 'Checklists';
+
+  @override
+  String get settings_manage_header_organization => 'Organisatie';
+
+  @override
+  String get settings_manage_header_setup => 'Eerste configuratie';
 
   @override
   String get settings_manage_species => 'Soorten';
@@ -29205,7 +29235,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Ochtend, middag, avond of nacht';
+      'Ochtendschemering, ochtend, middag, avondschemering of nacht';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -34428,6 +34458,26 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get maps_regionSelector_selectRegionButton => 'Selecteer regio';
+
+  @override
+  String get maps_regionSelector_dragToMove =>
+      'Sleep om de kaart te verplaatsen, knijp of gebruik + / - om te zoomen';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Verplaatsen';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Selecteren';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Inzoomen';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Uitzoomen';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'Het gebied overschrijdt de datumgrens. Blijf aan één kant of teken twee gebieden.';
 
   @override
   String get tankPresets_addPreset => 'Flesinstelling toevoegen';
@@ -46418,7 +46468,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Middag';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Avond';
+  String get insights_timePatterns_timeOfDay_dawn => 'Ochtendschemering';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken hebben geen locatie van de duikstek en gebruiken de standaardtijden voor zonsopgang ($sunrise) en zonsondergang ($sunset)',
+      one:
+          '1 duik heeft geen locatie van de duikstek en gebruikt de standaardtijden voor zonsopgang ($sunrise) en zonsondergang ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Avondschemering';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Ochtend';

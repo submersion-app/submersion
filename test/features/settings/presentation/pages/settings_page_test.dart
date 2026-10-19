@@ -2055,8 +2055,8 @@ void main() {
     });
 
     // Issue #1335 follow-up: the mixer's own settings gear moved off the
-    // top-level settings list and in here, next to Tank Presets -- the
-    // global preset list its cylinder dropdown now reads.
+    // top-level settings list and in here, under its own Planning section,
+    // beside the global preset list its cylinder dropdown now reads.
     testWidgets('renders the trimix mixer tile and navigates on tap', (
       tester,
     ) async {
@@ -2065,7 +2065,6 @@ void main() {
 
       expect(find.text('Trimix Mixer'), findsOneWidget);
 
-      // The Certification Agencies tile (issue #690) pushed this one down.
       await tester.ensureVisible(find.text('Trimix Mixer'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Trimix Mixer'));
@@ -2073,6 +2072,60 @@ void main() {
 
       expect(find.text('Trimix Mixer Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    // Issue #3505: the flat 18-tile list is grouped into sections by where
+    // each setting is actually used, so a reader can scan by area instead
+    // of the whole list.
+    testWidgets('groups the manage tiles under section headers', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      // Each header, in display order, with the tiles that belong under it.
+      const sections = <(String, List<String>)>[
+        (
+          'Equipment',
+          [
+            'Tank Presets',
+            'Transmitters',
+            'Weight Presets',
+            'Service types',
+            'Locations',
+            'Default equipment view',
+          ],
+        ),
+        ('Dives', ['Dive Types', 'Site Types', 'Dive Roles', 'Species']),
+        ('Planning', ['Trimix Mixer']),
+        ('Training', ['Certification Agencies', 'Certification currency']),
+        ('Checklists', ['Trip Checklist Templates', 'Pre-Dive Checklists']),
+        ('Organization', ['Saved Queries', 'Tags']),
+        ('Setup', ['Setup assistant']),
+      ];
+
+      double topOf(String text) {
+        expect(find.text(text), findsOneWidget, reason: text);
+        return tester.getTopLeft(find.text(text)).dy;
+      }
+
+      // The old single "Manage Data" umbrella header is gone.
+      expect(find.text('Manage Data'), findsNothing);
+
+      // Every tile sits below its own header and above the next one, so a
+      // tile moved into the wrong group fails here.
+      for (var i = 0; i < sections.length; i++) {
+        final (header, tiles) = sections[i];
+        final headerY = topOf(header);
+        final nextHeaderY = i + 1 < sections.length
+            ? topOf(sections[i + 1].$1)
+            : double.infinity;
+        for (final tile in tiles) {
+          final tileY = topOf(tile);
+          expect(tileY, greaterThan(headerY), reason: '$tile under $header');
+          expect(tileY, lessThan(nextHeaderY), reason: '$tile in $header');
+        }
+      }
     });
   });
 

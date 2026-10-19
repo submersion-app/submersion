@@ -22,7 +22,7 @@ class BlenderSettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Settings > Manage > Data reaches this page on its own route, so the
+    // Settings > Manage > Planning reaches this page on its own route, so the
     // calculator -- until now the only thing that started the load -- never
     // mounts. Without this watch every card below shows a hard-coded default,
     // and because saving writes the whole preferences blob at once, the first

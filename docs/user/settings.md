@@ -186,27 +186,61 @@ warn about gear that falls due. See
 
 ## Manage
 
-The reusable lists and rules Submersion offers throughout the app:
+The reusable lists and rules Submersion offers throughout the app, grouped by
+where you'll run into them:
+
+**Equipment**
+
+| Item | What it manages |
+|------|-----------------|
+| **Tank Presets** | Tank configurations and the default tank; see [Equipment](equipment.md#tank-presets) |
+| **Transmitters** | Air-integration transmitters linked to cylinders |
+| **Weight Presets** | Reusable sets of weights for a dive |
+| **Service types** | The maintenance your gear needs, and how often |
+| **Locations** | Where your gear is kept, serviced or lent |
+| **Default equipment view** | Which statuses the Equipment list shows when no filter is set |
+
+**Dives**
 
 | Item | What it manages |
 |------|-----------------|
 | **Dive Types** | Your own dive types |
 | **Site Types** | Built-in and custom dive site types |
 | **Dive Roles** | Your own roles for buddies on a dive |
-| **Certification Agencies** | Your own agencies and certifications; see [Certifications and Courses](certifications-and-courses.md) |
-| **Tank Presets** | Tank configurations and the default tank; see [Equipment](equipment.md#tank-presets) |
-| **Transmitters** | Air-integration transmitters linked to cylinders |
-| **Weight Presets** | Reusable sets of weights for a dive |
+| **Species** | The species catalog; see [Marine Life & Photos](marine-life-and-photos.md) |
+
+**Planning**
+
+| Item | What it manages |
+|------|-----------------|
 | **Trimix Mixer** | Fill gases, conditions and billing defaults for the trimix blender |
-| **Service types** | The maintenance your gear needs, and how often |
+
+**Training**
+
+| Item | What it manages |
+|------|-----------------|
+| **Certification Agencies** | Your own agencies and certifications; see [Certifications and Courses](certifications-and-courses.md) |
 | **Certification currency** | Refresher and renewal rules |
-| **Locations** | Where your gear is kept, serviced or lent |
-| **Setup assistant** | Revisit the first-run choices for units, appearance and backup |
+
+**Checklists**
+
+| Item | What it manages |
+|------|-----------------|
 | **Trip Checklist Templates** | Reusable to-do lists for trip planning |
 | **Pre-Dive Checklists** | Buddy checks, CCR build lists, gear packing |
-| **Species** | The species catalog; see [Marine Life & Photos](marine-life-and-photos.md) |
-| **Tags** | Manage, merge and delete tags |
+
+**Organization**
+
+| Item | What it manages |
+|------|-----------------|
 | **Saved Queries** | Rename, reorder and delete saved dive searches |
+| **Tags** | Manage, merge and delete tags |
+
+**Setup**
+
+| Item | What it manages |
+|------|-----------------|
+| **Setup assistant** | Revisit the first-run choices for units, appearance and backup |
 
 ## Data
 

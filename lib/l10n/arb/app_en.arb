@@ -9929,7 +9929,16 @@
   "gasCalculators_mod_rowEad": "EAD (N₂ narcotic)",
   "gasCalculators_mod_rowEnd": "END (N₂ + O₂ narcotic)",
   "gasCalculators_mod_rowEadd": "EADD (air density)",
-  "gasCalculators_mod_rowDensity": "Gas density at 0 °C",
+  "gasCalculators_mod_rowDensity": "Gas density at {temp}",
+  "@gasCalculators_mod_rowDensity": {
+    "placeholders": {
+      "temp": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_checkTemperature": "Check gas density at a different temperature",
+  "gasCalculators_mod_temperatureHint": "Colder gas is denser. The density check assumes the temperature chosen here, not the actual gas temperature at depth.",
   "gasCalculators_mod_openDensity": "Open in the gas density calculator",
   "gasCalculators_mod_assessmentTitle": "Assessment",
   "gasCalculators_mod_recBeyondLimit": "The MOD lies deeper than the recreational limit of {limit}. Down there narcosis and gas density, not oxygen, set the limit.",
@@ -9979,7 +9988,7 @@
       }
     }
   },
-  "gasCalculators_mod_densityWarn": "{where}: gas density {density} g/L is above the recommended {limit} g/L.",
+  "gasCalculators_mod_densityWarn": "{where}: gas density {density} g/L at {temp} is above the recommended {limit} g/L.",
   "@gasCalculators_mod_densityWarn": {
     "placeholders": {
       "where": {
@@ -9988,18 +9997,24 @@
       "density": {
         "type": "String"
       },
+      "temp": {
+        "type": "String"
+      },
       "limit": {
         "type": "String"
       }
     }
   },
-  "gasCalculators_mod_densityCritical": "{where}: gas density {density} g/L is above the hard limit of {limit} g/L.",
+  "gasCalculators_mod_densityCritical": "{where}: gas density {density} g/L at {temp} is above the hard limit of {limit} g/L.",
   "@gasCalculators_mod_densityCritical": {
     "placeholders": {
       "where": {
         "type": "String"
       },
       "density": {
+        "type": "String"
+      },
+      "temp": {
         "type": "String"
       },
       "limit": {
@@ -14868,7 +14883,13 @@
   "settings_manage_diveTypes_subtitle": "Manage custom dive types",
   "settings_manage_siteTypes": "Site Types",
   "settings_manage_siteTypes_subtitle": "Built-in and custom dive site types",
-  "settings_manage_header_manageData": "Manage Data",
+  "settings_manage_header_equipment": "Equipment",
+  "settings_manage_header_dives": "Dives",
+  "settings_manage_header_planning": "Planning",
+  "settings_manage_header_training": "Training",
+  "settings_manage_header_checklists": "Checklists",
+  "settings_manage_header_organization": "Organization",
+  "settings_manage_header_setup": "Setup",
   "settings_manage_species": "Species",
   "settings_manage_species_subtitle": "Manage the species catalog",
   "settings_manage_tags": "Tags",
@@ -16516,7 +16537,7 @@
   "insights_timePatterns_surfaceInterval_subtitle": "Time between dives",
   "insights_timePatterns_surfaceInterval_title": "Surface Interval Statistics",
   "insights_timePatterns_timeOfDay_error": "Failed to load time of day data",
-  "insights_timePatterns_timeOfDay_subtitle": "Morning, afternoon, evening, or night",
+  "insights_timePatterns_timeOfDay_subtitle": "Dawn, morning, afternoon, dusk or night",
   "insights_timePatterns_timeOfDay_title": "Dives by Time of Day",
   "insights_tooltip_diveRecords": "Dive Records",
   "insights_tooltip_filter": "Filter insights",
@@ -20778,6 +20799,12 @@
   "maps_regionSelector_dragToSelect": "Drag on the map to select a region",
   "maps_regionSelector_selectRegion": "Select region on map",
   "maps_regionSelector_selectRegionButton": "Select Region",
+  "maps_regionSelector_dragToMove": "Drag to move the map, pinch or use + / - to zoom",
+  "maps_regionSelector_modeMove": "Move",
+  "maps_regionSelector_modeSelect": "Select",
+  "maps_regionSelector_zoomIn": "Zoom in",
+  "maps_regionSelector_zoomOut": "Zoom out",
+  "maps_regionSelector_dateLine": "The box crosses the date line. Keep it on one side, or draw two boxes.",
   "tankPresets_addPreset": "Add tank preset",
   "tankPresets_builtInPresets": "Built-in Presets",
   "tankPresets_builtInPresets_description": "Switch off the presets you don't use to hide them from the tank pickers. The default preset is always shown.",
@@ -26476,7 +26503,9 @@
   "insights_timePatterns_seasonal_semanticLabel": "Bar chart. Dives by month. {description}",
   "insights_timePatterns_surfaceInterval_statLabel": "{label} surface interval: {value}",
   "insights_timePatterns_timeOfDay_afternoon": "Afternoon",
-  "insights_timePatterns_timeOfDay_evening": "Evening",
+  "insights_timePatterns_timeOfDay_dawn": "Dawn",
+  "insights_timePatterns_timeOfDay_defaultSunTimes": "{count, plural, =1{1 dive has no site location and uses default sunrise ({sunrise}) and sunset ({sunset}) times} other{{count} dives have no site location and use default sunrise ({sunrise}) and sunset ({sunset}) times}}",
+  "insights_timePatterns_timeOfDay_dusk": "Dusk",
   "insights_timePatterns_timeOfDay_morning": "Morning",
   "insights_timePatterns_timeOfDay_night": "Night",
   "insights_timePatterns_timeOfDay_semanticLabel": "Pie chart. Dives by time of day. {description}",
@@ -27071,6 +27100,23 @@
       "value": {
         "type": "String",
         "example": "1h 20m"
+      }
+    }
+  },
+  "@insights_timePatterns_timeOfDay_defaultSunTimes": {
+    "description": "Footnote under the dives-by-time-of-day pie chart, shown when some dives have no site coordinates and were bucketed on fixed clock times. The two times are already formatted in the diver's 12-hour or 24-hour setting.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "sunrise": {
+        "type": "String",
+        "example": "6:00 AM"
+      },
+      "sunset": {
+        "type": "String",
+        "example": "6:00 PM"
       }
     }
   },

@@ -10,6 +10,7 @@ import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_ppo2_limit_slider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -188,6 +189,30 @@ class ModInputCard extends ConsumerWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.gasCalculators_mod_checkTemperature),
+                value: prefs.checkTemperature,
+                onChanged: notifier.setCheckTemperature,
+              ),
+              if (prefs.checkTemperature) ...[
+                _Labelled(
+                  label: l10n.gasCalculators_density_temperature,
+                  child: GasTemperatureSegmentedButton(
+                    units: units,
+                    selected: prefs.temperature,
+                    onChanged: notifier.setTemperature,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.gasCalculators_mod_temperatureHint,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ],
           ],
         ),

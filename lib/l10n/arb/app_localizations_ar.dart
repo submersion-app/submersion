@@ -16857,7 +16857,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (كثافة الهواء)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'كثافة الغاز عند 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'كثافة الغاز عند $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'فحص كثافة الغاز عند درجة حرارة مختلفة';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'الغاز الأبرد أكثر كثافة، لذلك يعتمد فحص الكثافة على درجة الحرارة المختارة هنا، لا على درجة حرارة الغاز الفعلية في العمق.';
 
   @override
   String get gasCalculators_mod_openDensity => 'فتح في حاسبة كثافة الغاز';
@@ -16902,18 +16912,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: كثافة الغاز $density غ/ل أعلى من $limit غ/ل الموصى بها.';
+    return '$where: كثافة الغاز $density غ/ل عند $temp أعلى من $limit غ/ل الموصى بها.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: كثافة الغاز $density غ/ل أعلى من الحد الأقصى البالغ $limit غ/ل.';
+    return '$where: كثافة الغاز $density غ/ل عند $temp أعلى من الحد الأقصى البالغ $limit غ/ل.';
   }
 
   @override
@@ -26388,7 +26400,25 @@ class AppLocalizationsAr extends AppLocalizations {
       'أنواع مواقع الغوص المدمجة والمخصصة';
 
   @override
-  String get settings_manage_header_manageData => 'إدارة البيانات';
+  String get settings_manage_header_equipment => 'المعدات';
+
+  @override
+  String get settings_manage_header_dives => 'الغوصات';
+
+  @override
+  String get settings_manage_header_planning => 'التخطيط';
+
+  @override
+  String get settings_manage_header_training => 'التدريب';
+
+  @override
+  String get settings_manage_header_checklists => 'قوائم التحقق';
+
+  @override
+  String get settings_manage_header_organization => 'التنظيم';
+
+  @override
+  String get settings_manage_header_setup => 'الإعداد الأولي';
 
   @override
   String get settings_manage_species => 'الأنواع';
@@ -29605,7 +29635,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'صباحاً، بعد الظهر، مساءً، أو ليلاً';
+      'فجراً، صباحاً، بعد الظهر، عند الغسق، أو ليلاً';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'الغوصات حسب وقت اليوم';
@@ -35126,6 +35156,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get maps_regionSelector_selectRegionButton => 'تحديد المنطقة';
+
+  @override
+  String get maps_regionSelector_dragToMove =>
+      'اسحب لتحريك الخريطة، واضغط بإصبعين أو استخدم + / - للتكبير';
+
+  @override
+  String get maps_regionSelector_modeMove => 'تحريك';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'تحديد';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'تكبير';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'تصغير';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'تتجاوز المنطقة خط التاريخ الدولي. ابقَ في جانب واحد أو ارسم منطقتين.';
 
   @override
   String get tankPresets_addPreset => 'إضافة إعداد أسطوانة';
@@ -47305,7 +47355,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'بعد الظهر';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'المساء';
+  String get insights_timePatterns_timeOfDay_dawn => 'الفجر';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      many:
+          '$count غطسة ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      few:
+          '$count غطسات ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      two:
+          'غطستان ليس لهما موقع محدد وتستخدمان الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+      one:
+          'غطسة واحدة ليس لها موقع محدد وتستخدم الوقتين الافتراضيين للشروق ($sunrise) والغروب ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'الغسق';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'الصباح';

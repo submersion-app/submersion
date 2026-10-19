@@ -23,6 +23,7 @@ GasLimitsInputs _inputs({
   bool o2Narcotic = true,
   double? target,
   WaterType waterType = WaterType.salt,
+  GasDensityTemperature temperature = GasDensityTemperature.zeroC,
 }) => GasLimitsInputs(
   mode: mode,
   o2Percent: o2,
@@ -36,6 +37,7 @@ GasLimitsInputs _inputs({
   o2Narcotic: o2Narcotic,
   targetDepthMeters: target,
   waterType: waterType,
+  temperature: temperature,
 );
 
 void main() {
@@ -91,12 +93,17 @@ void main() {
   });
 
   group('OC Tec', () {
-    GasLimitsInputs tx2135({double? target, bool o2Narcotic = true}) => _inputs(
+    GasLimitsInputs tx2135({
+      double? target,
+      bool o2Narcotic = true,
+      GasDensityTemperature temperature = GasDensityTemperature.zeroC,
+    }) => _inputs(
       mode: ModCalculatorMode.ocTec,
       o2: 21,
       he: 35,
       target: target,
       o2Narcotic: o2Narcotic,
+      temperature: temperature,
     );
 
     test('MOD and deco MOD follow the salt-water environment', () {
@@ -191,6 +198,27 @@ void main() {
         r.atMod.densityLevel,
         gasDensityLevelForDisplay(density.densityGPerL, 2),
       );
+    });
+
+    test('density follows the chosen gas temperature, colder is denser', () {
+      final cold = computeGasLimits(
+        tx2135(temperature: GasDensityTemperature.zeroC),
+      );
+      final warm = computeGasLimits(
+        tx2135(temperature: GasDensityTemperature.twentyC),
+      );
+      expect(cold.atMod.densityGPerL, greaterThan(warm.atMod.densityGPerL!));
+      final density = computeGasDensity(
+        GasDensityInputs(
+          o2Percent: 21,
+          hePercent: 35,
+          depthMeters: warm.modMeters,
+          setpointBar: null,
+          temperature: GasDensityTemperature.twentyC,
+          waterType: WaterType.salt,
+        ),
+      );
+      expect(warm.atMod.densityGPerL, closeTo(density.densityGPerL, 1e-12));
     });
 
     test('a target shallower than the minimum depth is flagged', () {

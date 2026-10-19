@@ -81,4 +81,48 @@ void main() {
       }
     }
   });
+
+  group('time of day labels (issue #3340)', () {
+    test('each bucket key reads as its name', () {
+      expect(
+        [
+          for (final key in ['Dawn', 'Morning', 'Afternoon', 'Dusk', 'Night'])
+            timeOfDayDistributionLabel(key, en),
+        ],
+        ['Dawn', 'Morning', 'Afternoon', 'Dusk', 'Night'],
+      );
+    });
+
+    test('an unknown key is shown as it is', () {
+      expect(timeOfDayDistributionLabel('Evening', en), 'Evening');
+    });
+
+    test('every locale has five different bucket names', () {
+      for (final locale in AppLocalizations.supportedLocales) {
+        final l10n = lookupAppLocalizations(locale);
+        final names = {
+          for (final key in ['Dawn', 'Morning', 'Afternoon', 'Dusk', 'Night'])
+            timeOfDayDistributionLabel(key, l10n),
+        };
+        expect(names, hasLength(5), reason: '$locale');
+      }
+    });
+
+    test('every locale translates Dawn and Dusk', () {
+      for (final locale in AppLocalizations.supportedLocales) {
+        if (locale.languageCode == 'en') continue;
+        final l10n = lookupAppLocalizations(locale);
+        expect(
+          timeOfDayDistributionLabel('Dawn', l10n),
+          isNot('Dawn'),
+          reason: '$locale',
+        );
+        expect(
+          timeOfDayDistributionLabel('Dusk', l10n),
+          isNot('Dusk'),
+          reason: '$locale',
+        );
+      }
+    });
+  });
 }

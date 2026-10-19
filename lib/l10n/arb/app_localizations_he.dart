@@ -16290,7 +16290,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (צפיפות אוויר)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'צפיפות גז ב-0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'צפיפות גז ב-$temp';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'בדוק את צפיפות הגז בטמפרטורה אחרת';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'גז קר יותר צפוף יותר, כך שבדיקת הצפיפות מתבססת על הטמפרטורה שנבחרה כאן, לא על טמפרטורת הגז בפועל בעומק.';
 
   @override
   String get gasCalculators_mod_openDensity => 'פתח במחשבון צפיפות הגז';
@@ -16335,18 +16345,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: צפיפות הגז $density ג/ל מעל $limit ג/ל המומלצים.';
+    return '$where: צפיפות הגז $density ג/ל ב-$temp מעל $limit ג/ל המומלצים.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: צפיפות הגז $density ג/ל מעל הגבול המוחלט של $limit ג/ל.';
+    return '$where: צפיפות הגז $density ג/ל ב-$temp מעל הגבול המוחלט של $limit ג/ל.';
   }
 
   @override
@@ -25511,7 +25523,25 @@ class AppLocalizationsHe extends AppLocalizations {
       'סוגי אתרי צלילה מובנים ומותאמים';
 
   @override
-  String get settings_manage_header_manageData => 'ניהול נתונים';
+  String get settings_manage_header_equipment => 'ציוד';
+
+  @override
+  String get settings_manage_header_dives => 'צלילות';
+
+  @override
+  String get settings_manage_header_planning => 'תכנון';
+
+  @override
+  String get settings_manage_header_training => 'הכשרה';
+
+  @override
+  String get settings_manage_header_checklists => 'רשימות בדיקה';
+
+  @override
+  String get settings_manage_header_organization => 'ארגון';
+
+  @override
+  String get settings_manage_header_setup => 'הגדרה ראשונית';
 
   @override
   String get settings_manage_species => 'מינים';
@@ -28660,7 +28690,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'בוקר, צהריים, ערב או לילה';
+      'שחר, בוקר, צהריים, דמדומים או לילה';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'צלילות לפי שעה ביום';
@@ -33814,6 +33844,26 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get maps_regionSelector_selectRegionButton => 'בחר אזור';
+
+  @override
+  String get maps_regionSelector_dragToMove =>
+      'גרור כדי להזיז את המפה, צבוט או השתמש ב-+ / - לזום';
+
+  @override
+  String get maps_regionSelector_modeMove => 'הזזה';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'בחירה';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'הגדלה';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'הקטנה';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'האזור חוצה את קו התאריך. הישאר בצד אחד או צייר שני אזורים.';
 
   @override
   String get tankPresets_addPreset => 'הוסף תבנית מיכל';
@@ -45718,7 +45768,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'צהריים';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'ערב';
+  String get insights_timePatterns_timeOfDay_dawn => 'שחר';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ל-$count צלילות אין מיקום אתר והן משתמשות בזמני ברירת המחדל של הזריחה ($sunrise) והשקיעה ($sunset)',
+      one:
+          'לצלילה אחת אין מיקום אתר והיא משתמשת בזמני ברירת המחדל של הזריחה ($sunrise) והשקיעה ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'דמדומים';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'בוקר';

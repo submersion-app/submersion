@@ -26917,8 +26917,20 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_mod_rowDensity.
   ///
   /// In en, this message translates to:
-  /// **'Gas density at 0 °C'**
-  String get gasCalculators_mod_rowDensity;
+  /// **'Gas density at {temp}'**
+  String gasCalculators_mod_rowDensity(String temp);
+
+  /// No description provided for @gasCalculators_mod_checkTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Check gas density at a different temperature'**
+  String get gasCalculators_mod_checkTemperature;
+
+  /// No description provided for @gasCalculators_mod_temperatureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Colder gas is denser. The density check assumes the temperature chosen here, not the actual gas temperature at depth.'**
+  String get gasCalculators_mod_temperatureHint;
 
   /// No description provided for @gasCalculators_mod_openDensity.
   ///
@@ -26975,20 +26987,22 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_mod_densityWarn.
   ///
   /// In en, this message translates to:
-  /// **'{where}: gas density {density} g/L is above the recommended {limit} g/L.'**
+  /// **'{where}: gas density {density} g/L at {temp} is above the recommended {limit} g/L.'**
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   );
 
   /// No description provided for @gasCalculators_mod_densityCritical.
   ///
   /// In en, this message translates to:
-  /// **'{where}: gas density {density} g/L is above the hard limit of {limit} g/L.'**
+  /// **'{where}: gas density {density} g/L at {temp} is above the hard limit of {limit} g/L.'**
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   );
 
@@ -42090,11 +42104,47 @@ abstract class AppLocalizations {
   /// **'Built-in and custom dive site types'**
   String get settings_manage_siteTypes_subtitle;
 
-  /// No description provided for @settings_manage_header_manageData.
+  /// No description provided for @settings_manage_header_equipment.
   ///
   /// In en, this message translates to:
-  /// **'Manage Data'**
-  String get settings_manage_header_manageData;
+  /// **'Equipment'**
+  String get settings_manage_header_equipment;
+
+  /// No description provided for @settings_manage_header_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get settings_manage_header_dives;
+
+  /// No description provided for @settings_manage_header_planning.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get settings_manage_header_planning;
+
+  /// No description provided for @settings_manage_header_training.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get settings_manage_header_training;
+
+  /// No description provided for @settings_manage_header_checklists.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get settings_manage_header_checklists;
+
+  /// No description provided for @settings_manage_header_organization.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get settings_manage_header_organization;
+
+  /// No description provided for @settings_manage_header_setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get settings_manage_header_setup;
 
   /// No description provided for @settings_manage_species.
   ///
@@ -47338,7 +47388,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_timePatterns_timeOfDay_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Morning, afternoon, evening, or night'**
+  /// **'Dawn, morning, afternoon, dusk or night'**
   String get insights_timePatterns_timeOfDay_subtitle;
 
   /// No description provided for @insights_timePatterns_timeOfDay_title.
@@ -54718,6 +54768,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Region'**
   String get maps_regionSelector_selectRegionButton;
+
+  /// No description provided for @maps_regionSelector_dragToMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to move the map, pinch or use + / - to zoom'**
+  String get maps_regionSelector_dragToMove;
+
+  /// No description provided for @maps_regionSelector_modeMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get maps_regionSelector_modeMove;
+
+  /// No description provided for @maps_regionSelector_modeSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get maps_regionSelector_modeSelect;
+
+  /// No description provided for @maps_regionSelector_zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get maps_regionSelector_zoomIn;
+
+  /// No description provided for @maps_regionSelector_zoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get maps_regionSelector_zoomOut;
+
+  /// No description provided for @maps_regionSelector_dateLine.
+  ///
+  /// In en, this message translates to:
+  /// **'The box crosses the date line. Keep it on one side, or draw two boxes.'**
+  String get maps_regionSelector_dateLine;
 
   /// No description provided for @tankPresets_addPreset.
   ///
@@ -74454,11 +74540,27 @@ abstract class AppLocalizations {
   /// **'Afternoon'**
   String get insights_timePatterns_timeOfDay_afternoon;
 
-  /// No description provided for @insights_timePatterns_timeOfDay_evening.
+  /// No description provided for @insights_timePatterns_timeOfDay_dawn.
   ///
   /// In en, this message translates to:
-  /// **'Evening'**
-  String get insights_timePatterns_timeOfDay_evening;
+  /// **'Dawn'**
+  String get insights_timePatterns_timeOfDay_dawn;
+
+  /// Footnote under the dives-by-time-of-day pie chart, shown when some dives have no site coordinates and were bucketed on fixed clock times. The two times are already formatted in the diver's 12-hour or 24-hour setting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive has no site location and uses default sunrise ({sunrise}) and sunset ({sunset}) times} other{{count} dives have no site location and use default sunrise ({sunrise}) and sunset ({sunset}) times}}'**
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  );
+
+  /// No description provided for @insights_timePatterns_timeOfDay_dusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk'**
+  String get insights_timePatterns_timeOfDay_dusk;
 
   /// No description provided for @insights_timePatterns_timeOfDay_morning.
   ///

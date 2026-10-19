@@ -16594,7 +16594,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (levegősűrűség)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Gázsűrűség 0 °C-on';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Gázsűrűség $temp-on';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Gázsűrűség ellenőrzése más hőmérsékleten';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'A hidegebb gáz sűrűbb, ezért a sűrűségvizsgálat az itt kiválasztott hőmérsékletet veszi alapul, nem a gáz tényleges hőmérsékletét a mélységben.';
 
   @override
   String get gasCalculators_mod_openDensity =>
@@ -16640,18 +16650,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a gázsűrűség ($density g/L) meghaladja az ajánlott $limit g/L-t.';
+    return '$where: a gázsűrűség ($density g/L, $temp) meghaladja az ajánlott $limit g/L-t.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a gázsűrűség ($density g/L) meghaladja a $limit g/L kemény határt.';
+    return '$where: a gázsűrűség ($density g/L, $temp) meghaladja a $limit g/L kemény határt.';
   }
 
   @override
@@ -26047,7 +26059,25 @@ class AppLocalizationsHu extends AppLocalizations {
       'Beépített és egyedi merülőhely-típusok';
 
   @override
-  String get settings_manage_header_manageData => 'Adatok kezelése';
+  String get settings_manage_header_equipment => 'Felszerelés';
+
+  @override
+  String get settings_manage_header_dives => 'Merülések';
+
+  @override
+  String get settings_manage_header_planning => 'Tervezés';
+
+  @override
+  String get settings_manage_header_training => 'Képzés';
+
+  @override
+  String get settings_manage_header_checklists => 'Ellenőrzőlisták';
+
+  @override
+  String get settings_manage_header_organization => 'Rendszerezés';
+
+  @override
+  String get settings_manage_header_setup => 'Kezdeti beállítás';
 
   @override
   String get settings_manage_species => 'Fajok';
@@ -29255,7 +29285,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Reggel, délután, este vagy éjszaka';
+      'Hajnal, reggel, délután, alkonyat vagy éjszaka';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -34482,6 +34512,26 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get maps_regionSelector_selectRegionButton => 'Régió kiválasztása';
+
+  @override
+  String get maps_regionSelector_dragToMove =>
+      'Húzza a térkép mozgatásához, csípje össze vagy használja a + / - gombokat a nagyításhoz';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Mozgatás';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Kijelölés';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Nagyítás';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Kicsinyítés';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'A terület átlépi a dátumválasztó vonalat. Maradjon az egyik oldalon, vagy rajzoljon két területet.';
 
   @override
   String get tankPresets_addPreset => 'Palacksablon hozzáadása';
@@ -46460,7 +46510,27 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Délután';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Este';
+  String get insights_timePatterns_timeOfDay_dawn => 'Hajnal';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülésnek nincs merülőhely-pozíciója, ezért az alapértelmezett napkelte ($sunrise) és napnyugta ($sunset) időpontot használják',
+      one:
+          '1 merülésnek nincs merülőhely-pozíciója, ezért az alapértelmezett napkelte ($sunrise) és napnyugta ($sunset) időpontot használja',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Alkonyat';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Reggel';

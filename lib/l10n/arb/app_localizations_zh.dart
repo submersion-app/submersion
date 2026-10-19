@@ -15870,7 +15870,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD（空气密度）';
 
   @override
-  String get gasCalculators_mod_rowDensity => '0 °C 时的气体密度';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return '$temp 时的气体密度';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature => '在不同温度下检查气体密度';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      '较冷的气体密度更大，因此密度检查采用此处选择的温度，而非深度处气体的实际温度。';
 
   @override
   String get gasCalculators_mod_openDensity => '在气体密度计算器中打开';
@@ -15914,18 +15923,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where：气体密度 $density g/L 高于建议的 $limit g/L。';
+    return '$where：气体密度 $density g/L（$temp）高于建议的 $limit g/L。';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where：气体密度 $density g/L 高于 $limit g/L 的硬性限值。';
+    return '$where：气体密度 $density g/L（$temp）高于 $limit g/L 的硬性限值。';
   }
 
   @override
@@ -24728,7 +24739,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_siteTypes_subtitle => '内置和自定义潜水点类型';
 
   @override
-  String get settings_manage_header_manageData => '管理数据';
+  String get settings_manage_header_equipment => '装备';
+
+  @override
+  String get settings_manage_header_dives => '潜水';
+
+  @override
+  String get settings_manage_header_planning => '计划';
+
+  @override
+  String get settings_manage_header_training => '培训';
+
+  @override
+  String get settings_manage_header_checklists => '检查清单';
+
+  @override
+  String get settings_manage_header_organization => '整理';
+
+  @override
+  String get settings_manage_header_setup => '初始设置';
 
   @override
   String get settings_manage_species => '物种';
@@ -27737,7 +27766,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_error => '加载时段数据失败';
 
   @override
-  String get insights_timePatterns_timeOfDay_subtitle => '上午、下午、傍晚或夜间';
+  String get insights_timePatterns_timeOfDay_subtitle => '黎明、上午、下午、黄昏或夜间';
 
   @override
   String get insights_timePatterns_timeOfDay_title => '按时段统计的潜水次数';
@@ -32680,6 +32709,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get maps_regionSelector_selectRegionButton => '选择地区';
+
+  @override
+  String get maps_regionSelector_dragToMove => '拖动以移动地图，双指捏合或使用 + / - 缩放';
+
+  @override
+  String get maps_regionSelector_modeMove => '移动';
+
+  @override
+  String get maps_regionSelector_modeSelect => '选择';
+
+  @override
+  String get maps_regionSelector_zoomIn => '放大';
+
+  @override
+  String get maps_regionSelector_zoomOut => '缩小';
+
+  @override
+  String get maps_regionSelector_dateLine => '该区域跨越了国际日期变更线。请保持在一侧，或分别绘制两个区域。';
 
   @override
   String get tankPresets_addPreset => '添加气瓶预设';
@@ -43942,7 +43989,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => '下午';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => '傍晚';
+  String get insights_timePatterns_timeOfDay_dawn => '黎明';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水没有潜水点位置，使用默认的日出（$sunrise）和日落（$sunset）时间',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => '黄昏';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => '上午';

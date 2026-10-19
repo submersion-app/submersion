@@ -16650,7 +16650,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (densidade do ar)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Densidade do gás a 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Densidade do gás a $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Verificar a densidade do gás a outra temperatura';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'Gás mais frio é mais denso, por isso a verificação de densidade segue a temperatura escolhida aqui, não a temperatura real do gás na profundidade.';
 
   @override
   String get gasCalculators_mod_openDensity =>
@@ -16696,18 +16706,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a densidade do gás $density g/L está acima dos $limit g/L recomendados.';
+    return '$where: a densidade do gás $density g/L a $temp está acima dos $limit g/L recomendados.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a densidade do gás $density g/L está acima do limite máximo de $limit g/L.';
+    return '$where: a densidade do gás $density g/L a $temp está acima do limite máximo de $limit g/L.';
   }
 
   @override
@@ -26165,7 +26177,25 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tipos de ponto de mergulho integrados e personalizados';
 
   @override
-  String get settings_manage_header_manageData => 'Gerenciar Dados';
+  String get settings_manage_header_equipment => 'Equipamentos';
+
+  @override
+  String get settings_manage_header_dives => 'Mergulhos';
+
+  @override
+  String get settings_manage_header_planning => 'Planejamento';
+
+  @override
+  String get settings_manage_header_training => 'Treinamento';
+
+  @override
+  String get settings_manage_header_checklists => 'Listas de verificação';
+
+  @override
+  String get settings_manage_header_organization => 'Organização';
+
+  @override
+  String get settings_manage_header_setup => 'Configuração inicial';
 
   @override
   String get settings_manage_species => 'Espécies';
@@ -29406,7 +29436,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Manhã, tarde, entardecer ou noite';
+      'Amanhecer, manhã, tarde, entardecer ou noite';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -34660,6 +34690,26 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get maps_regionSelector_selectRegionButton => 'Selecionar Região';
+
+  @override
+  String get maps_regionSelector_dragToMove =>
+      'Arraste para mover o mapa; use pinça ou + / - para dar zoom';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Mover';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Selecionar';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Aproximar';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Afastar';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'A área cruza a linha internacional de data. Mantenha-a de um lado ou desenhe duas áreas.';
 
   @override
   String get tankPresets_addPreset => 'Adicionar preset de cilindro';
@@ -46719,13 +46769,33 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Tarde';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Noite';
+  String get insights_timePatterns_timeOfDay_dawn => 'Amanhecer';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos não têm localização do ponto de mergulho e usam os horários padrão de nascer ($sunrise) e pôr do sol ($sunset)',
+      one:
+          '$count mergulho não tem localização do ponto de mergulho e usa os horários padrão de nascer ($sunrise) e pôr do sol ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Entardecer';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Manhã';
 
   @override
-  String get insights_timePatterns_timeOfDay_night => 'Madrugada';
+  String get insights_timePatterns_timeOfDay_night => 'Noite';
 
   @override
   String insights_timePatterns_timeOfDay_semanticLabel(String description) {

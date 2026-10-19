@@ -598,7 +598,7 @@ final divesByDayOfWeekProvider =
       );
     });
 
-final divesByTimeOfDayProvider = FutureProvider<List<DistributionSegment>>((
+final divesByTimeOfDayProvider = FutureProvider<TimeOfDayDistribution>((
   ref,
 ) async {
   _keepAliveWithExpiry(ref);

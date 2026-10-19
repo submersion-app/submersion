@@ -68,6 +68,23 @@ String measuredRuntimeSecondsSql(String alias) =>
 String effectiveRuntimeSecondsSql(String alias) =>
     'COALESCE(${measuredRuntimeSecondsSql(alias)}, $alias.bottom_time)';
 
+/// When the dive started, in epoch milliseconds: `entry_time`, else the dive
+/// date.
+String diveStartMillisSql(String alias) =>
+    'COALESCE($alias.entry_time, $alias.dive_date_time)';
+
+/// When the dive ended, in epoch milliseconds, or NULL when that is unknown.
+///
+/// The stored `exit_time` when it is after the start; otherwise the start
+/// plus [effectiveRuntimeSecondsSql]. NULL only for a dive with neither a
+/// usable exit time nor a duration in any form (issue #3340).
+String diveExitMillisSql(String alias) {
+  final start = diveStartMillisSql(alias);
+  return 'CASE WHEN $alias.exit_time > $start THEN $alias.exit_time '
+      'ELSE $start + ${effectiveRuntimeSecondsSql(alias)} '
+      '* $_millisecondsPerSecond END';
+}
+
 /// The alias the previous dive takes inside [diveSurfaceIntervalSecondsSql],
 /// exposed so a caller's `previousScope` can name it.
 const kSurfaceIntervalPreviousAlias = 'si_prev';

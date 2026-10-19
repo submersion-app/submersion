@@ -16634,7 +16634,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (Luftdichte)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Gasdichte bei 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Gasdichte bei $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Gasdichte bei anderer Temperatur prüfen';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'Kälteres Gas ist dichter. Die Dichteprüfung folgt der hier gewählten Temperatur, nicht der tatsächlichen Gastemperatur in der Tiefe.';
 
   @override
   String get gasCalculators_mod_openDensity => 'Im Gasdichte-Rechner öffnen';
@@ -16679,18 +16689,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: Gasdichte $density g/L liegt über den empfohlenen $limit g/L.';
+    return '$where: Gasdichte $density g/L bei $temp liegt über den empfohlenen $limit g/L.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: Gasdichte $density g/L liegt über der harten Grenze von $limit g/L.';
+    return '$where: Gasdichte $density g/L bei $temp liegt über der harten Grenze von $limit g/L.';
   }
 
   @override
@@ -26127,7 +26139,25 @@ class AppLocalizationsDe extends AppLocalizations {
       'Integrierte und eigene Tauchplatztypen';
 
   @override
-  String get settings_manage_header_manageData => 'Daten verwalten';
+  String get settings_manage_header_equipment => 'Ausrüstung';
+
+  @override
+  String get settings_manage_header_dives => 'Tauchgänge';
+
+  @override
+  String get settings_manage_header_planning => 'Planung';
+
+  @override
+  String get settings_manage_header_training => 'Ausbildung';
+
+  @override
+  String get settings_manage_header_checklists => 'Checklisten';
+
+  @override
+  String get settings_manage_header_organization => 'Organisation';
+
+  @override
+  String get settings_manage_header_setup => 'Einrichtung';
 
   @override
   String get settings_manage_species => 'Arten';
@@ -29350,7 +29380,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Morgens, nachmittags, abends oder nachts';
+      'Morgendämmerung, Morgen, Nachmittag, Abenddämmerung oder Nacht';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -34603,6 +34633,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get maps_regionSelector_selectRegionButton => 'Region auswählen';
+
+  @override
+  String get maps_regionSelector_dragToMove =>
+      'Ziehen, um die Karte zu verschieben; zum Zoomen zusammenziehen oder + / - verwenden';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Verschieben';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Auswählen';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Vergrößern';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Verkleinern';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'Der Bereich überschreitet die Datumsgrenze. Bleiben Sie auf einer Seite oder zeichnen Sie zwei Bereiche.';
 
   @override
   String get tankPresets_addPreset => 'Flaschenvorlage hinzufügen';
@@ -46625,7 +46675,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Nachmittag';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Abend';
+  String get insights_timePatterns_timeOfDay_dawn => 'Morgendämmerung';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge haben keinen Tauchplatz-Standort und verwenden die Standardzeiten für Sonnenaufgang ($sunrise) und Sonnenuntergang ($sunset)',
+      one:
+          '1 Tauchgang hat keinen Tauchplatz-Standort und verwendet die Standardzeiten für Sonnenaufgang ($sunrise) und Sonnenuntergang ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Abenddämmerung';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Morgen';
