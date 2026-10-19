@@ -60,14 +60,20 @@ void main() {
 
       await tester.tap(find.text('OC Tec'));
       await tester.pumpAndSettle();
-      await tester.tap(
-        find.text('Check gas density at a different temperature'),
+      final checkTemperature = find.text(
+        'Check gas density at a different temperature',
       );
+      await tester.ensureVisible(checkTemperature);
+      await tester.tap(checkTemperature);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('20°C'));
+      final twentyC = find.text('20°C');
+      await tester.ensureVisible(twentyC);
+      await tester.tap(twentyC);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Open in the gas density calculator'));
+      final openDensity = find.text('Open in the gas density calculator');
+      await tester.ensureVisible(openDensity);
+      await tester.tap(openDensity);
       await tester.pumpAndSettle();
 
       expect(find.byType(DensityCalculator), findsOneWidget);
