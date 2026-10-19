@@ -38,6 +38,17 @@ extension PreDiveMigrations on AppDatabase {
       "SELECT name FROM sqlite_master WHERE type='table' AND name='divers'",
     ).get();
     if (diversTable.isEmpty) return;
+    // _assertPreDiveChecklistSchema (called just before this, both from the
+    // v128 rung and from beforeOpen) always creates
+    // pre_dive_checklist_template_items from the CURRENT table definition
+    // when it (re)creates the table -- which already bakes in section_id's
+    // foreign key to pre_dive_checklist_template_sections, regardless of how
+    // far the ladder has otherwise progressed. Without this, the DELETE in
+    // kRetireLegacyGueEdgeItemsSql below fails with "no such table" the
+    // moment that happens before this function's own v295 rung has run
+    // (issue #3360). createTable is idempotent, so this is a no-op once the
+    // real rung creates the table properly.
+    await Migrator(this).createTable(preDiveChecklistTemplateSections);
     await customStatement(kSeedBuiltInPreDiveTemplatesSql);
     await customStatement(kRetireLegacyGueEdgeItemsSql);
     // kSeedBuiltInPreDiveTemplateItemsSql's column list names section_id

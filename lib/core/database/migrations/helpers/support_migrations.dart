@@ -76,6 +76,12 @@ extension SupportMigrations on AppDatabase {
     required String sortColumn,
     String? extraCondition,
   }) async {
+    // A freshly created database (_onCreate) builds the current schema
+    // directly, with section_id and no category/section column at all --
+    // this function still runs from the beforeOpen backstop on every open,
+    // so it must recognize "already migrated, nothing to backfill" rather
+    // than querying a column that was never there.
+    if (!await _columnExists(itemsTable, textColumn)) return;
     final rows = await customSelect(
       'SELECT id, $parentColumn AS parent_id, $textColumn AS text_value '
       'FROM $itemsTable '

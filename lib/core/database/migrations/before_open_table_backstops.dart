@@ -59,10 +59,16 @@ extension TableBackstopsFromV217 on AppDatabase {
 
     // v295 backstop: pre_dive_checklist_template_sections,
     // pre_dive_checklist_template_items.section_id and the section
-    // backfill+drop (idempotent; issue #3360). Built-in section
-    // assignment happens separately via _seedBuiltInPreDiveTemplates,
-    // called later in this same beforeOpen.
-    await _assertAndBackfillPreDiveTemplateSections();
+    // backfill+drop (idempotent; issue #3360). NOT called here: unlike the
+    // other three table groups, pre_dive_checklist_templates/items can be
+    // recreated from scratch later in this same beforeOpen by
+    // _assertPreDiveChecklistSchema's parallel-branch self-heal (v128),
+    // using the current table definitions -- which already bake in
+    // section_id's foreign key. Running this backstop here, before that
+    // self-heal, would see no templates table yet, skip, and leave that
+    // self-heal to create the FK column with no sections table for it to
+    // reference. Called from before_open.dart instead, right after
+    // _seedBuiltInPreDiveTemplates.
 
     // v296 backstop: pre_dive_session_sections,
     // pre_dive_session_items.section_id and the section backfill+drop
