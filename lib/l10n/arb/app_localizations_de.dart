@@ -20910,9 +20910,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Zurück zu Einstellungen';
 
   @override
-  String get settings_cloudSync_autoSync => 'Automatische Synchronisierung';
-
-  @override
   String get settings_cloudSync_autoSync_subtitle =>
       'Nach Änderungen automatisch synchronisieren';
 
@@ -20944,15 +20941,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_action => 'Bibliothek verbinden';
-
-  @override
-  String get sharedLibrary_connect_addAccount => 'Speicherkonto hinzufügen';
-
-  @override
-  String get sharedLibrary_connect_saveAccount => 'Konto speichern';
-
-  @override
-  String get sharedLibrary_connect_account_label => 'Speicherkonto';
 
   @override
   String get sharedLibrary_connect_prefix_label => 'Ordner (Präfix)';
@@ -21316,9 +21304,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_confirm => 'Passphrase wiederholen';
-
-  @override
-  String get sharedLibrary_connect_probe_action => 'Prüfen';
 
   @override
   String sharedLibrary_connect_join_action(String name) {
@@ -21697,13 +21682,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_cloudSync_adopt_notNow => 'Nicht jetzt';
 
   @override
-  String get settings_cloudSync_dangerZone => 'Gefahrenbereich';
-
-  @override
-  String get settings_cloudSync_replaceLibrary_tile =>
-      'Cloud-Bibliothek ersetzen';
-
-  @override
   String get settings_cloudSync_replaceLibrary_tileSubtitle =>
       'Die Bibliothek dieses Geräts für alle Geräte verbindlich machen';
 
@@ -21791,19 +21769,12 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_dialogTitle =>
-      'Synchronisierungs-Backend wechseln?';
-
-  @override
   String settings_cloudSync_switch_dialogContent(
     String fromName,
     String toName,
   ) {
     return 'Ihre Daten werden nicht von $fromName entfernt – sie bleiben dort, bis Sie sie löschen. Nach dem Wechsel kombiniert die nächste Synchronisierung dieses Geräts seine Daten mit allem, was bereits auf $toName vorhanden ist. Ihre anderen Geräte verwenden weiterhin $fromName, bis Sie auch jedes von ihnen umstellen.';
   }
-
-  @override
-  String get settings_cloudSync_switch_confirm => 'Wechseln';
 
   @override
   String settings_cloudSync_moved_banner(
@@ -21835,16 +21806,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Cloud-Backup wird deaktiviert und Sicherungen werden am Standardspeicherort gespeichert.';
 
   @override
-  String get settings_cloudSync_header_cloudProvider => 'Cloud-Anbieter';
-
-  @override
   String settings_cloudSync_header_conflicts(Object count) {
     return 'Konflikte ($count)';
   }
-
-  @override
-  String get settings_cloudSync_header_syncBehavior =>
-      'Synchronisierungsverhalten';
 
   @override
   String settings_cloudSync_lastSynced(Object time) {
@@ -21932,9 +21896,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sie werden automatisch übernommen, sobald das App-Store-Update dieses Geräts diese Version erreicht. Das Update befindet sich möglicherweise noch in der Prüfung oder ist, falls jenes Gerät eine Beta verwendet (TestFlight oder Google Play-Test), noch nicht veröffentlicht: Treten Sie auf diesem Gerät derselben Beta bei, oder warten Sie auf die nächste Version.';
 
   @override
-  String get settings_cloudSync_provider_connected => 'Verbunden';
-
-  @override
   String settings_cloudSync_provider_connectedTo(Object providerName) {
     return 'Verbunden mit $providerName';
   }
@@ -21946,9 +21907,6 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return 'Verbindung zu $providerName fehlgeschlagen: $error';
   }
-
-  @override
-  String get settings_cloudSync_dropbox_account_title => 'Dropbox-Konto';
 
   @override
   String get settings_cloudSync_dropbox_connect_codeLabel =>
@@ -21978,33 +21936,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_title => 'Dropbox verbinden';
 
   @override
-  String get settings_cloudSync_dropbox_connected => 'Mit Dropbox verbunden';
-
-  @override
-  String settings_cloudSync_dropbox_connectedAs(Object account) {
-    return 'Verbunden als $account';
-  }
-
-  @override
-  String get settings_cloudSync_dropbox_disconnect => 'Trennen';
-
-  @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      'Synchronisierung über Dropbox (Apps/Submersion)';
-
-  @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
 
   @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
-
-  @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      'Über Google Drive synchronisieren';
-
-  @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
-      'In diesem Build nicht verfügbar';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title =>
@@ -22023,27 +21958,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable =>
-      'Auf dieser Plattform nicht verfügbar';
-
-  @override
-  String get settings_cloudSync_provider_s3_edit =>
-      'S3-Konfiguration bearbeiten';
-
-  @override
-  String get settings_cloudSync_provider_s3_subtitle =>
-      'Funktioniert mit jedem S3-kompatiblen Speicherdienst';
-
-  @override
   String get settings_cloudSync_provider_s3_title => 'S3-kompatibler Speicher';
-
-  @override
-  String get settings_cloudSync_provider_webdav_edit =>
-      'WebDAV-Konfiguration bearbeiten';
-
-  @override
-  String get settings_cloudSync_provider_webdav_subtitle =>
-      'Jeder WebDAV-Server';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -22054,30 +21969,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_cloudSync_selectProviderHint =>
       'Wählen Sie einen Cloud-Anbieter, um die Synchronisierung zu aktivieren';
-
-  @override
-  String get settings_cloudSync_signOut => 'Abmelden';
-
-  @override
-  String get settings_cloudSync_signOutDialog_cancel => 'Abbrechen';
-
-  @override
-  String get settings_cloudSync_signOutDialog_content =>
-      'Dadurch wird die Verbindung zum Cloud-Anbieter getrennt. Ihre lokalen Daten bleiben erhalten.';
-
-  @override
-  String get settings_cloudSync_signOutDialog_signOut => 'Abmelden';
-
-  @override
-  String get settings_cloudSync_signOutDialog_title => 'Abmelden?';
-
-  @override
-  String get settings_cloudSync_signOutSuccess =>
-      'Vom Cloud-Anbieter abgemeldet';
-
-  @override
-  String get settings_cloudSync_signOut_subtitle =>
-      'Verbindung zum Cloud-Anbieter trennen';
 
   @override
   String get settings_cloudSync_status_conflictsDetected => 'Konflikte erkannt';
@@ -22103,15 +21994,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_cloudSync_syncNow => 'Jetzt synchronisieren';
 
   @override
-  String get settings_cloudSync_syncOnLaunch => 'Beim Start synchronisieren';
-
-  @override
   String get settings_cloudSync_syncOnLaunch_subtitle =>
       'Beim Start nach Aktualisierungen suchen';
-
-  @override
-  String get settings_cloudSync_syncOnResume =>
-      'Bei Fortsetzung synchronisieren';
 
   @override
   String get settings_cloudSync_syncOnResume_subtitle =>
@@ -26420,16 +26304,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_profileHub_switchDiver => 'Taucher wechseln';
 
   @override
-  String get settings_s3Config_action_remove => 'Konfiguration entfernen';
-
-  @override
   String get settings_s3Config_action_testConnection => 'Verbindung testen';
 
   @override
   String get settings_s3Config_advanced_title => 'Erweitert';
-
-  @override
-  String get settings_s3Config_appBar_title => 'S3-kompatibler Speicher';
 
   @override
   String get settings_s3Config_error_secureStorage =>
@@ -26472,23 +26350,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Secret Access Key';
 
   @override
-  String get settings_s3Config_remove_confirm_action => 'Entfernen';
-
-  @override
-  String get settings_s3Config_remove_confirm_body =>
-      'Die Synchronisierung über S3 wird auf diesem Gerät beendet. Ihre Daten im Bucket werden nicht gelöscht.';
-
-  @override
-  String get settings_s3Config_remove_confirm_title =>
-      'S3-Konfiguration entfernen?';
-
-  @override
-  String get settings_s3Config_removed => 'S3-Konfiguration entfernt';
-
-  @override
-  String get settings_s3Config_saved => 'S3-Konfiguration gespeichert';
-
-  @override
   String settings_s3Config_test_regionDetected(String region) {
     return 'Region erkannt: $region';
   }
@@ -26515,13 +26376,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_webdavConfig_action_forgetCertificate => 'Vergessen';
 
   @override
-  String get settings_webdavConfig_action_remove => 'Konfiguration entfernen';
-
-  @override
   String get settings_webdavConfig_action_testConnection => 'Verbindung testen';
-
-  @override
-  String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
   String get settings_webdavConfig_error_conflict =>
@@ -26613,23 +26468,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_field_username_label => 'Benutzername';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_action => 'Entfernen';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_body =>
-      'Serverangaben und Passwort werden von diesem Gerät entfernt. Die Dateien auf dem Server bleiben erhalten.';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_title =>
-      'WebDAV-Konfiguration entfernen?';
-
-  @override
-  String get settings_webdavConfig_removed => 'WebDAV-Konfiguration entfernt';
-
-  @override
-  String get settings_webdavConfig_saved => 'WebDAV-Konfiguration gespeichert';
 
   @override
   String get settings_webdavConfig_test_success => 'Verbindung erfolgreich';
@@ -36792,20 +36630,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => 'Angemeldet';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn =>
-      'Anmeldung erforderlich';
-
-  @override
   String get settings_connectedAccounts_status_unavailable =>
       'Auf diesem Gerät nicht verfügbar';
 
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Auf diesem Gerät abmelden';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary =>
-      'Aus der Bibliothek entfernen';
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>
@@ -36864,13 +36694,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_connectedAccounts_usage_none =>
       'Auf diesem Gerät nicht verwendet';
-
-  @override
-  String get settings_connectedAccounts_usage_databaseSync =>
-      'Datenbank-Synchronisierung';
-
-  @override
-  String get settings_connectedAccounts_usage_mediaStorage => 'Medienspeicher';
 
   @override
   String settings_connectedAccounts_usage_sharedLibrary(String name) {
@@ -48145,10 +47968,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String autoUpdate_banner_packageManagerHint(String command) {
     return 'Aktualisieren mit: $command';
   }
-
-  @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      'Über Apple iCloud synchronisieren';
 
   @override
   String get settings_debugLog_search_hint => 'Protokolle durchsuchen...';

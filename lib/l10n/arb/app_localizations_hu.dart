@@ -20865,9 +20865,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Vissza a beállításokhoz';
 
   @override
-  String get settings_cloudSync_autoSync => 'Automatikus szinkronizálás';
-
-  @override
   String get settings_cloudSync_autoSync_subtitle =>
       'Automatikus szinkronizálás változtatások után';
 
@@ -20899,15 +20896,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_action => 'Könyvtár csatlakoztatása';
-
-  @override
-  String get sharedLibrary_connect_addAccount => 'Tárhelyfiók hozzáadása';
-
-  @override
-  String get sharedLibrary_connect_saveAccount => 'Fiók mentése';
-
-  @override
-  String get sharedLibrary_connect_account_label => 'Tárhelyfiók';
 
   @override
   String get sharedLibrary_connect_prefix_label => 'Mappa (előtag)';
@@ -21267,9 +21255,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_confirm => 'Jelmondat újra';
-
-  @override
-  String get sharedLibrary_connect_probe_action => 'Ellenőrzés';
 
   @override
   String sharedLibrary_connect_join_action(String name) {
@@ -21648,12 +21633,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_cloudSync_adopt_notNow => 'Most nem';
 
   @override
-  String get settings_cloudSync_dangerZone => 'Veszélyes műveletek';
-
-  @override
-  String get settings_cloudSync_replaceLibrary_tile => 'Felhőkönyvtár cseréje';
-
-  @override
   String get settings_cloudSync_replaceLibrary_tileSubtitle =>
       'Ennek az eszköznek a könyvtára legyen az, amelyet minden eszköz használ';
 
@@ -21740,19 +21719,12 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_dialogTitle =>
-      'Vált a szinkronizálási szolgáltatón?';
-
-  @override
   String settings_cloudSync_switch_dialogContent(
     String fromName,
     String toName,
   ) {
     return 'Az adatai nem kerülnek el a(z) $fromName szolgáltatóról – ott maradnak, amíg nem törli őket. A váltás után ennek az eszköznek a következő szinkronizálása összevonja az adatait azzal, ami már a(z) $toName szolgáltatón található. A többi eszköze továbbra is a(z) $fromName szolgáltatót használja, amíg azokon is át nem vált.';
   }
-
-  @override
-  String get settings_cloudSync_switch_confirm => 'Váltás';
 
   @override
   String settings_cloudSync_moved_banner(
@@ -21784,16 +21756,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'A felhőalapú biztonsági mentés kikapcsol, és a mentések az alapértelmezett helyre kerülnek.';
 
   @override
-  String get settings_cloudSync_header_cloudProvider => 'Felhő szolgáltató';
-
-  @override
   String settings_cloudSync_header_conflicts(Object count) {
     return 'Ütközések ($count)';
   }
-
-  @override
-  String get settings_cloudSync_header_syncBehavior =>
-      'Szinkronizálási viselkedés';
 
   @override
   String settings_cloudSync_lastSynced(Object time) {
@@ -21881,9 +21846,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Automatikusan érvénybe lépnek, amint az eszköz alkalmazásbolti frissítése eléri azt a verziót. A frissítés még ellenőrzés alatt állhat, vagy ha a másik eszköz bétát használ (TestFlight vagy Google Play tesztelés), még nem jelent meg: csatlakozz ezen az eszközön is ugyanahhoz a bétához, vagy várd meg a következő kiadást.';
 
   @override
-  String get settings_cloudSync_provider_connected => 'Csatlakoztatva';
-
-  @override
   String settings_cloudSync_provider_connectedTo(Object providerName) {
     return 'Csatlakoztatva: $providerName';
   }
@@ -21895,9 +21857,6 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return '$providerName csatlakozás sikertelen: $error';
   }
-
-  @override
-  String get settings_cloudSync_dropbox_account_title => 'Dropbox-fiók';
 
   @override
   String get settings_cloudSync_dropbox_connect_codeLabel =>
@@ -21928,34 +21887,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Dropbox csatlakoztatása';
 
   @override
-  String get settings_cloudSync_dropbox_connected =>
-      'Csatlakoztatva a Dropboxhoz';
-
-  @override
-  String settings_cloudSync_dropbox_connectedAs(Object account) {
-    return 'Csatlakoztatva mint $account';
-  }
-
-  @override
-  String get settings_cloudSync_dropbox_disconnect => 'Leválasztás';
-
-  @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      'Szinkronizálás Dropboxon keresztül (Apps/Submersion)';
-
-  @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
 
   @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
-
-  @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      'Szinkronizálás Google Drive-on keresztül';
-
-  @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
-      'Ebben a buildben nem érhető el';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title =>
@@ -21974,27 +21909,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable =>
-      'Nem érhető el ezen a platformon';
-
-  @override
-  String get settings_cloudSync_provider_s3_edit =>
-      'S3-konfiguráció szerkesztése';
-
-  @override
-  String get settings_cloudSync_provider_s3_subtitle =>
-      'Bármely S3-kompatibilis tárolószolgáltatással működik';
-
-  @override
   String get settings_cloudSync_provider_s3_title => 'S3-kompatibilis tároló';
-
-  @override
-  String get settings_cloudSync_provider_webdav_edit =>
-      'WebDAV-konfiguráció szerkesztése';
-
-  @override
-  String get settings_cloudSync_provider_webdav_subtitle =>
-      'Bármely WebDAV-kiszolgáló';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -22005,30 +21920,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_cloudSync_selectProviderHint =>
       'Válasszon felhő szolgáltatót a szinkronizálás engedélyezéséhez';
-
-  @override
-  String get settings_cloudSync_signOut => 'Kijelentkezés';
-
-  @override
-  String get settings_cloudSync_signOutDialog_cancel => 'Mégse';
-
-  @override
-  String get settings_cloudSync_signOutDialog_content =>
-      'Ez leválasztja a felhő szolgáltatóról. A helyi adatok sértetlenek maradnak.';
-
-  @override
-  String get settings_cloudSync_signOutDialog_signOut => 'Kijelentkezés';
-
-  @override
-  String get settings_cloudSync_signOutDialog_title => 'Kijelentkezés?';
-
-  @override
-  String get settings_cloudSync_signOutSuccess =>
-      'Kijelentkezve a felhő szolgáltatóból';
-
-  @override
-  String get settings_cloudSync_signOut_subtitle =>
-      'Leválasztás a felhő szolgáltatóról';
 
   @override
   String get settings_cloudSync_status_conflictsDetected =>
@@ -22055,14 +21946,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_cloudSync_syncNow => 'Szinkronizálás most';
 
   @override
-  String get settings_cloudSync_syncOnLaunch => 'Szinkronizálás indításkor';
-
-  @override
   String get settings_cloudSync_syncOnLaunch_subtitle =>
       'Frissítések ellenőrzése indításkor';
-
-  @override
-  String get settings_cloudSync_syncOnResume => 'Szinkronizálás folytatáskor';
 
   @override
   String get settings_cloudSync_syncOnResume_subtitle =>
@@ -26339,16 +26224,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_profileHub_switchDiver => 'Búvár váltása';
 
   @override
-  String get settings_s3Config_action_remove => 'Konfiguráció eltávolítása';
-
-  @override
   String get settings_s3Config_action_testConnection => 'Kapcsolat tesztelése';
 
   @override
   String get settings_s3Config_advanced_title => 'Speciális';
-
-  @override
-  String get settings_s3Config_appBar_title => 'S3-kompatibilis tároló';
 
   @override
   String get settings_s3Config_error_secureStorage =>
@@ -26391,23 +26270,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Secret Access Key';
 
   @override
-  String get settings_s3Config_remove_confirm_action => 'Eltávolítás';
-
-  @override
-  String get settings_s3Config_remove_confirm_body =>
-      'Az S3-on keresztüli szinkronizálás leáll ezen az eszközön. A bucketben lévő adatok nem törlődnek.';
-
-  @override
-  String get settings_s3Config_remove_confirm_title =>
-      'Eltávolítja az S3-konfigurációt?';
-
-  @override
-  String get settings_s3Config_removed => 'S3-konfiguráció eltávolítva';
-
-  @override
-  String get settings_s3Config_saved => 'S3-konfiguráció mentve';
-
-  @override
   String settings_s3Config_test_regionDetected(String region) {
     return 'Észlelt régió: $region';
   }
@@ -26434,14 +26296,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_webdavConfig_action_forgetCertificate => 'Elfelejtés';
 
   @override
-  String get settings_webdavConfig_action_remove => 'Konfiguráció eltávolítása';
-
-  @override
   String get settings_webdavConfig_action_testConnection =>
       'Kapcsolat tesztelése';
-
-  @override
-  String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
   String get settings_webdavConfig_error_conflict =>
@@ -26533,23 +26389,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_field_username_label => 'Felhasználónév';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_action => 'Eltávolítás';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_body =>
-      'A kiszolgáló adatai és a jelszó törlődnek erről az eszközről. A kiszolgálón lévő fájlok megmaradnak.';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_title =>
-      'Eltávolítja a WebDAV-konfigurációt?';
-
-  @override
-  String get settings_webdavConfig_removed => 'WebDAV-konfiguráció eltávolítva';
-
-  @override
-  String get settings_webdavConfig_saved => 'WebDAV-konfiguráció mentve';
 
   @override
   String get settings_webdavConfig_test_success => 'Sikeres kapcsolat';
@@ -36645,20 +36484,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => 'Bejelentkezve';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn =>
-      'Bejelentkezés szükséges';
-
-  @override
   String get settings_connectedAccounts_status_unavailable =>
       'Ezen az eszközön nem érhető el';
 
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Kijelentkezés ezen az eszközön';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary =>
-      'Eltávolítás a könyvtárból';
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>
@@ -36717,13 +36548,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_usage_none =>
       'Ezen az eszközön nincs használatban';
-
-  @override
-  String get settings_connectedAccounts_usage_databaseSync =>
-      'Adatbázis-szinkronizálás';
-
-  @override
-  String get settings_connectedAccounts_usage_mediaStorage => 'Médiatárhely';
 
   @override
   String settings_connectedAccounts_usage_sharedLibrary(String name) {
@@ -47975,10 +47799,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String autoUpdate_banner_packageManagerHint(String command) {
     return 'Frissítés: $command';
   }
-
-  @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      'Szinkronizálás Apple iCloud segítségével';
 
   @override
   String get settings_debugLog_search_hint => 'Keresés a naplókban...';

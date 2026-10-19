@@ -39,11 +39,12 @@ void main() {
     expect(offenders, isEmpty);
   });
 
-  test('cloud sync sign-out uses 退出登录', () {
+  // The cloud sync sign-out moved to the account (issue #3482): "Sign out
+  // on this device" and its confirmation keep the same term.
+  test('signing out of an account uses 退出登录', () {
     final zh = lookupAppLocalizations(const Locale('zh'));
-    expect(zh.settings_cloudSync_signOut, '退出登录');
-    expect(zh.settings_cloudSync_signOutDialog_signOut, '退出登录');
-    expect(zh.settings_cloudSync_signOutDialog_title, '退出登录？');
+    expect(zh.settings_connectedAccounts_disconnectDevice, contains('退出登录'));
+    expect(zh.settings_connectedAccounts_signOutConfirmTitle, contains('退出登录'));
   });
 
   test('the sign-in placeholder is translated', () {

@@ -33539,12 +33539,6 @@ abstract class AppLocalizations {
   /// **'Back to settings'**
   String get settings_backToSettings_tooltip;
 
-  /// No description provided for @settings_cloudSync_autoSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto Sync'**
-  String get settings_cloudSync_autoSync;
-
   /// No description provided for @settings_cloudSync_autoSync_subtitle.
   ///
   /// In en, this message translates to:
@@ -33586,24 +33580,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect a library'**
   String get sharedLibrary_connect_action;
-
-  /// No description provided for @sharedLibrary_connect_addAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Add storage account'**
-  String get sharedLibrary_connect_addAccount;
-
-  /// No description provided for @sharedLibrary_connect_saveAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Save account'**
-  String get sharedLibrary_connect_saveAccount;
-
-  /// No description provided for @sharedLibrary_connect_account_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Storage account'**
-  String get sharedLibrary_connect_account_label;
 
   /// No description provided for @sharedLibrary_connect_prefix_label.
   ///
@@ -34185,12 +34161,6 @@ abstract class AppLocalizations {
   /// **'Passphrase again'**
   String get sharedLibrary_encryption_confirm;
 
-  /// No description provided for @sharedLibrary_connect_probe_action.
-  ///
-  /// In en, this message translates to:
-  /// **'Check'**
-  String get sharedLibrary_connect_probe_action;
-
   /// No description provided for @sharedLibrary_connect_join_action.
   ///
   /// In en, this message translates to:
@@ -34767,18 +34737,6 @@ abstract class AppLocalizations {
   /// **'Not Now'**
   String get settings_cloudSync_adopt_notNow;
 
-  /// No description provided for @settings_cloudSync_dangerZone.
-  ///
-  /// In en, this message translates to:
-  /// **'Danger Zone'**
-  String get settings_cloudSync_dangerZone;
-
-  /// No description provided for @settings_cloudSync_replaceLibrary_tile.
-  ///
-  /// In en, this message translates to:
-  /// **'Replace cloud library'**
-  String get settings_cloudSync_replaceLibrary_tile;
-
   /// No description provided for @settings_cloudSync_replaceLibrary_tileSubtitle.
   ///
   /// In en, this message translates to:
@@ -34878,12 +34836,6 @@ abstract class AppLocalizations {
   /// **'Sync is paused: the library was replaced from a backup on \"{deviceName}\". Tap Sync Now to review.'**
   String settings_cloudSync_replace_banner(String deviceName);
 
-  /// No description provided for @settings_cloudSync_switch_dialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Switch sync backend?'**
-  String get settings_cloudSync_switch_dialogTitle;
-
   /// No description provided for @settings_cloudSync_switch_dialogContent.
   ///
   /// In en, this message translates to:
@@ -34892,12 +34844,6 @@ abstract class AppLocalizations {
     String fromName,
     String toName,
   );
-
-  /// No description provided for @settings_cloudSync_switch_confirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Switch'**
-  String get settings_cloudSync_switch_confirm;
 
   /// No description provided for @settings_cloudSync_moved_banner.
   ///
@@ -34941,23 +34887,11 @@ abstract class AppLocalizations {
   /// **'Cloud backup will be turned off and backups will be saved to the default location.'**
   String get settings_cloudSync_signOut_backupWarning;
 
-  /// No description provided for @settings_cloudSync_header_cloudProvider.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud Provider'**
-  String get settings_cloudSync_header_cloudProvider;
-
   /// No description provided for @settings_cloudSync_header_conflicts.
   ///
   /// In en, this message translates to:
   /// **'Conflicts ({count})'**
   String settings_cloudSync_header_conflicts(Object count);
-
-  /// No description provided for @settings_cloudSync_header_syncBehavior.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync Behavior'**
-  String get settings_cloudSync_header_syncBehavior;
 
   /// No description provided for @settings_cloudSync_lastSynced.
   ///
@@ -35063,12 +34997,6 @@ abstract class AppLocalizations {
   /// **'They apply automatically once this device\'s app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.'**
   String get settings_cloudSync_peerRequiresUpdate_storeAction;
 
-  /// No description provided for @settings_cloudSync_provider_connected.
-  ///
-  /// In en, this message translates to:
-  /// **'Connected'**
-  String get settings_cloudSync_provider_connected;
-
   /// No description provided for @settings_cloudSync_provider_connectedTo.
   ///
   /// In en, this message translates to:
@@ -35083,12 +35011,6 @@ abstract class AppLocalizations {
     Object providerName,
     Object error,
   );
-
-  /// No description provided for @settings_cloudSync_dropbox_account_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Dropbox account'**
-  String get settings_cloudSync_dropbox_account_title;
 
   /// No description provided for @settings_cloudSync_dropbox_connect_codeLabel.
   ///
@@ -35132,30 +35054,6 @@ abstract class AppLocalizations {
   /// **'Connect Dropbox'**
   String get settings_cloudSync_dropbox_connect_title;
 
-  /// No description provided for @settings_cloudSync_dropbox_connected.
-  ///
-  /// In en, this message translates to:
-  /// **'Connected to Dropbox'**
-  String get settings_cloudSync_dropbox_connected;
-
-  /// No description provided for @settings_cloudSync_dropbox_connectedAs.
-  ///
-  /// In en, this message translates to:
-  /// **'Connected as {account}'**
-  String settings_cloudSync_dropbox_connectedAs(Object account);
-
-  /// No description provided for @settings_cloudSync_dropbox_disconnect.
-  ///
-  /// In en, this message translates to:
-  /// **'Disconnect'**
-  String get settings_cloudSync_dropbox_disconnect;
-
-  /// No description provided for @settings_cloudSync_provider_dropbox_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync via Dropbox (Apps/Submersion)'**
-  String get settings_cloudSync_provider_dropbox_subtitle;
-
   /// No description provided for @settings_cloudSync_provider_dropbox_title.
   ///
   /// In en, this message translates to:
@@ -35167,18 +35065,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google Drive'**
   String get settings_cloudSync_provider_googleDrive;
-
-  /// No description provided for @settings_cloudSync_provider_googleDrive_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync via Google Drive'**
-  String get settings_cloudSync_provider_googleDrive_subtitle;
-
-  /// No description provided for @settings_cloudSync_googleDrive_desktopNotConfigured.
-  ///
-  /// In en, this message translates to:
-  /// **'Not available in this build'**
-  String get settings_cloudSync_googleDrive_desktopNotConfigured;
 
   /// No description provided for @settings_cloudSync_googleDrive_browserWait_title.
   ///
@@ -35204,41 +35090,11 @@ abstract class AppLocalizations {
   /// **'Failed to initialize {providerName} provider'**
   String settings_cloudSync_provider_initFailed(Object providerName);
 
-  /// No description provided for @settings_cloudSync_provider_notAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Not available on this platform'**
-  String get settings_cloudSync_provider_notAvailable;
-
-  /// No description provided for @settings_cloudSync_provider_s3_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit S3 configuration'**
-  String get settings_cloudSync_provider_s3_edit;
-
-  /// No description provided for @settings_cloudSync_provider_s3_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Works with any S3-compatible storage service'**
-  String get settings_cloudSync_provider_s3_subtitle;
-
   /// No description provided for @settings_cloudSync_provider_s3_title.
   ///
   /// In en, this message translates to:
   /// **'S3-Compatible Storage'**
   String get settings_cloudSync_provider_s3_title;
-
-  /// No description provided for @settings_cloudSync_provider_webdav_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit WebDAV configuration'**
-  String get settings_cloudSync_provider_webdav_edit;
-
-  /// No description provided for @settings_cloudSync_provider_webdav_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Any WebDAV server'**
-  String get settings_cloudSync_provider_webdav_subtitle;
 
   /// No description provided for @settings_cloudSync_provider_webdav_title.
   ///
@@ -35257,48 +35113,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select a cloud provider to enable sync'**
   String get settings_cloudSync_selectProviderHint;
-
-  /// No description provided for @settings_cloudSync_signOut.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign Out'**
-  String get settings_cloudSync_signOut;
-
-  /// No description provided for @settings_cloudSync_signOutDialog_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get settings_cloudSync_signOutDialog_cancel;
-
-  /// No description provided for @settings_cloudSync_signOutDialog_content.
-  ///
-  /// In en, this message translates to:
-  /// **'This will disconnect from the cloud provider. Your local data will remain intact.'**
-  String get settings_cloudSync_signOutDialog_content;
-
-  /// No description provided for @settings_cloudSync_signOutDialog_signOut.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign Out'**
-  String get settings_cloudSync_signOutDialog_signOut;
-
-  /// No description provided for @settings_cloudSync_signOutDialog_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign Out?'**
-  String get settings_cloudSync_signOutDialog_title;
-
-  /// No description provided for @settings_cloudSync_signOutSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed out from cloud provider'**
-  String get settings_cloudSync_signOutSuccess;
-
-  /// No description provided for @settings_cloudSync_signOut_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Disconnect from cloud provider'**
-  String get settings_cloudSync_signOut_subtitle;
 
   /// No description provided for @settings_cloudSync_status_conflictsDetected.
   ///
@@ -35342,23 +35156,11 @@ abstract class AppLocalizations {
   /// **'Sync Now'**
   String get settings_cloudSync_syncNow;
 
-  /// No description provided for @settings_cloudSync_syncOnLaunch.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync on Launch'**
-  String get settings_cloudSync_syncOnLaunch;
-
   /// No description provided for @settings_cloudSync_syncOnLaunch_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Check for updates at startup'**
   String get settings_cloudSync_syncOnLaunch_subtitle;
-
-  /// No description provided for @settings_cloudSync_syncOnResume.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync on Resume'**
-  String get settings_cloudSync_syncOnResume;
 
   /// No description provided for @settings_cloudSync_syncOnResume_subtitle.
   ///
@@ -42546,12 +42348,6 @@ abstract class AppLocalizations {
   /// **'Switch Diver'**
   String get settings_profileHub_switchDiver;
 
-  /// No description provided for @settings_s3Config_action_remove.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove Configuration'**
-  String get settings_s3Config_action_remove;
-
   /// No description provided for @settings_s3Config_action_testConnection.
   ///
   /// In en, this message translates to:
@@ -42563,12 +42359,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Advanced'**
   String get settings_s3Config_advanced_title;
-
-  /// No description provided for @settings_s3Config_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'S3-Compatible Storage'**
-  String get settings_s3Config_appBar_title;
 
   /// No description provided for @settings_s3Config_error_secureStorage.
   ///
@@ -42636,36 +42426,6 @@ abstract class AppLocalizations {
   /// **'Secret Access Key'**
   String get settings_s3Config_field_secretAccessKey_label;
 
-  /// No description provided for @settings_s3Config_remove_confirm_action.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove'**
-  String get settings_s3Config_remove_confirm_action;
-
-  /// No description provided for @settings_s3Config_remove_confirm_body.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync via S3 will stop on this device. Your data in the bucket is not deleted.'**
-  String get settings_s3Config_remove_confirm_body;
-
-  /// No description provided for @settings_s3Config_remove_confirm_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove S3 configuration?'**
-  String get settings_s3Config_remove_confirm_title;
-
-  /// No description provided for @settings_s3Config_removed.
-  ///
-  /// In en, this message translates to:
-  /// **'S3 configuration removed'**
-  String get settings_s3Config_removed;
-
-  /// No description provided for @settings_s3Config_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'S3 configuration saved'**
-  String get settings_s3Config_saved;
-
   /// No description provided for @settings_s3Config_test_regionDetected.
   ///
   /// In en, this message translates to:
@@ -42708,23 +42468,11 @@ abstract class AppLocalizations {
   /// **'Forget'**
   String get settings_webdavConfig_action_forgetCertificate;
 
-  /// No description provided for @settings_webdavConfig_action_remove.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove configuration'**
-  String get settings_webdavConfig_action_remove;
-
   /// No description provided for @settings_webdavConfig_action_testConnection.
   ///
   /// In en, this message translates to:
   /// **'Test connection'**
   String get settings_webdavConfig_action_testConnection;
-
-  /// No description provided for @settings_webdavConfig_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'WebDAV'**
-  String get settings_webdavConfig_appBar_title;
 
   /// No description provided for @settings_webdavConfig_error_conflict.
   ///
@@ -42863,36 +42611,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Username'**
   String get settings_webdavConfig_field_username_label;
-
-  /// No description provided for @settings_webdavConfig_remove_confirm_action.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove'**
-  String get settings_webdavConfig_remove_confirm_action;
-
-  /// No description provided for @settings_webdavConfig_remove_confirm_body.
-  ///
-  /// In en, this message translates to:
-  /// **'The server details and password are removed from this device. Files on the server are kept.'**
-  String get settings_webdavConfig_remove_confirm_body;
-
-  /// No description provided for @settings_webdavConfig_remove_confirm_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove WebDAV configuration?'**
-  String get settings_webdavConfig_remove_confirm_title;
-
-  /// No description provided for @settings_webdavConfig_removed.
-  ///
-  /// In en, this message translates to:
-  /// **'WebDAV configuration removed'**
-  String get settings_webdavConfig_removed;
-
-  /// No description provided for @settings_webdavConfig_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'WebDAV configuration saved'**
-  String get settings_webdavConfig_saved;
 
   /// No description provided for @settings_webdavConfig_test_success.
   ///
@@ -58046,12 +57764,6 @@ abstract class AppLocalizations {
   /// **'Signed in'**
   String get settings_connectedAccounts_status_signedIn;
 
-  /// No description provided for @settings_connectedAccounts_status_needsSignIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Needs sign-in'**
-  String get settings_connectedAccounts_status_needsSignIn;
-
   /// No description provided for @settings_connectedAccounts_status_unavailable.
   ///
   /// In en, this message translates to:
@@ -58063,12 +57775,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out on this device'**
   String get settings_connectedAccounts_disconnectDevice;
-
-  /// No description provided for @settings_connectedAccounts_removeFromLibrary.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove from library'**
-  String get settings_connectedAccounts_removeFromLibrary;
 
   /// No description provided for @settings_connectedAccounts_removeConfirmTitle.
   ///
@@ -58165,18 +57871,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not used on this device'**
   String get settings_connectedAccounts_usage_none;
-
-  /// No description provided for @settings_connectedAccounts_usage_databaseSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Database sync'**
-  String get settings_connectedAccounts_usage_databaseSync;
-
-  /// No description provided for @settings_connectedAccounts_usage_mediaStorage.
-  ///
-  /// In en, this message translates to:
-  /// **'Media storage'**
-  String get settings_connectedAccounts_usage_mediaStorage;
 
   /// Connected account usage: a shared site library by name.
   ///
@@ -76581,12 +76275,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update with: {command}'**
   String autoUpdate_banner_packageManagerHint(String command);
-
-  /// Subtitle of the iCloud provider tile on the Cloud Sync page.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync via Apple iCloud'**
-  String get settings_cloudSync_provider_icloud_subtitle;
 
   /// Hint text of the search field in the debug log viewer app bar.
   ///

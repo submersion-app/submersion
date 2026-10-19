@@ -41,7 +41,7 @@ passphrase.
 Encryption is set up on one device and then adopted by the others.
 
 1. Set up sync first. Encryption is in
-   **Settings > Data > Sync between devices**, under **End-to-end encryption**, and needs a cloud provider already
+   **Settings > Data > Sync between devices > Advanced > Encryption**, and needs a cloud provider already
    chosen ("Select a cloud provider first" until then). Do this on the device
    that holds your library.
 2. Tap **Enable encryption**.

@@ -21201,9 +21201,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
 
   @override
-  String get settings_cloudSync_autoSync => 'المزامنة التلقائية';
-
-  @override
   String get settings_cloudSync_autoSync_subtitle =>
       'المزامنة تلقائيًا بعد التغييرات';
 
@@ -21238,15 +21235,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_action => 'توصيل مكتبة';
-
-  @override
-  String get sharedLibrary_connect_addAccount => 'إضافة حساب تخزين';
-
-  @override
-  String get sharedLibrary_connect_saveAccount => 'حفظ الحساب';
-
-  @override
-  String get sharedLibrary_connect_account_label => 'حساب التخزين';
 
   @override
   String get sharedLibrary_connect_prefix_label => 'المجلد (البادئة)';
@@ -21609,9 +21597,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_confirm => 'عبارة المرور مرة أخرى';
-
-  @override
-  String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override
   String sharedLibrary_connect_join_action(String name) {
@@ -21992,12 +21977,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_adopt_notNow => 'ليس الآن';
 
   @override
-  String get settings_cloudSync_dangerZone => 'منطقة الخطر';
-
-  @override
-  String get settings_cloudSync_replaceLibrary_tile => 'استبدال مكتبة السحابة';
-
-  @override
   String get settings_cloudSync_replaceLibrary_tileSubtitle =>
       'اجعل مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة';
 
@@ -22093,18 +22072,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_dialogTitle => 'تبديل خدمة المزامنة؟';
-
-  @override
   String settings_cloudSync_switch_dialogContent(
     String fromName,
     String toName,
   ) {
     return 'لن يتم نقل بياناتك من $fromName -- ستبقى هناك حتى تحذفها. بعد التبديل، ستدمج المزامنة التالية لهذا الجهاز بياناته مع ما هو موجود بالفعل على $toName. ستظل أجهزتك الأخرى تستخدم $fromName حتى تبدّل كلاً منها أيضًا.';
   }
-
-  @override
-  String get settings_cloudSync_switch_confirm => 'تبديل';
 
   @override
   String settings_cloudSync_moved_banner(
@@ -22136,15 +22109,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم إيقاف النسخ الاحتياطي السحابي وسيتم حفظ النسخ الاحتياطية في الموقع الافتراضي.';
 
   @override
-  String get settings_cloudSync_header_cloudProvider => 'مزود السحابة';
-
-  @override
   String settings_cloudSync_header_conflicts(Object count) {
     return 'التعارضات ($count)';
   }
-
-  @override
-  String get settings_cloudSync_header_syncBehavior => 'سلوك المزامنة';
 
   @override
   String settings_cloudSync_lastSynced(Object time) {
@@ -22235,9 +22202,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم تطبيقها تلقائيًا عندما يصل تحديث متجر التطبيقات لهذا الجهاز إلى ذلك الإصدار. قد يكون التحديث لا يزال قيد المراجعة، أو لم يُطرح بعد إذا كان الجهاز الآخر يشغّل إصدار بيتا (TestFlight أو اختبار Google Play): انضم إلى البيتا نفسها على هذا الجهاز، أو انتظر الإصدار التالي.';
 
   @override
-  String get settings_cloudSync_provider_connected => 'متصل';
-
-  @override
   String settings_cloudSync_provider_connectedTo(Object providerName) {
     return 'متصل بـ $providerName';
   }
@@ -22249,9 +22213,6 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return 'فشل الاتصال بـ $providerName: $error';
   }
-
-  @override
-  String get settings_cloudSync_dropbox_account_title => 'حساب Dropbox';
 
   @override
   String get settings_cloudSync_dropbox_connect_codeLabel => 'رمز التفويض';
@@ -22280,33 +22241,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_title => 'الاتصال بـ Dropbox';
 
   @override
-  String get settings_cloudSync_dropbox_connected => 'متصل بـ Dropbox';
-
-  @override
-  String settings_cloudSync_dropbox_connectedAs(Object account) {
-    return 'متصل كـ $account';
-  }
-
-  @override
-  String get settings_cloudSync_dropbox_disconnect => 'قطع الاتصال';
-
-  @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      'المزامنة عبر Dropbox (Apps/Submersion)';
-
-  @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
 
   @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
-
-  @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      'المزامنة عبر Google Drive';
-
-  @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
-      'غير متوفر في هذا الإصدار';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title =>
@@ -22325,24 +22263,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable =>
-      'غير متاح على هذه المنصة';
-
-  @override
-  String get settings_cloudSync_provider_s3_edit => 'تحرير إعدادات S3';
-
-  @override
-  String get settings_cloudSync_provider_s3_subtitle =>
-      'يعمل مع أي خدمة تخزين متوافقة مع S3';
-
-  @override
   String get settings_cloudSync_provider_s3_title => 'تخزين متوافق مع S3';
-
-  @override
-  String get settings_cloudSync_provider_webdav_edit => 'تعديل إعدادات WebDAV';
-
-  @override
-  String get settings_cloudSync_provider_webdav_subtitle => 'أي خادم WebDAV';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -22353,29 +22274,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_cloudSync_selectProviderHint =>
       'اختر مزود سحابة لتمكين المزامنة';
-
-  @override
-  String get settings_cloudSync_signOut => 'تسجيل الخروج';
-
-  @override
-  String get settings_cloudSync_signOutDialog_cancel => 'إلغاء';
-
-  @override
-  String get settings_cloudSync_signOutDialog_content =>
-      'سيؤدي هذا إلى قطع الاتصال بمزود السحابة. ستبقى بياناتك المحلية سليمة.';
-
-  @override
-  String get settings_cloudSync_signOutDialog_signOut => 'تسجيل الخروج';
-
-  @override
-  String get settings_cloudSync_signOutDialog_title => 'تسجيل الخروج؟';
-
-  @override
-  String get settings_cloudSync_signOutSuccess =>
-      'تم تسجيل الخروج من مزود السحابة';
-
-  @override
-  String get settings_cloudSync_signOut_subtitle => 'قطع الاتصال بمزود السحابة';
 
   @override
   String get settings_cloudSync_status_conflictsDetected => 'تم اكتشاف تعارضات';
@@ -22399,14 +22297,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_syncNow => 'مزامنة الآن';
 
   @override
-  String get settings_cloudSync_syncOnLaunch => 'المزامنة عند التشغيل';
-
-  @override
   String get settings_cloudSync_syncOnLaunch_subtitle =>
       'التحقق من التحديثات عند بدء التشغيل';
-
-  @override
-  String get settings_cloudSync_syncOnResume => 'المزامنة عند الاستئناف';
 
   @override
   String get settings_cloudSync_syncOnResume_subtitle =>
@@ -26682,16 +26574,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_profileHub_switchDiver => 'تبديل الغواص';
 
   @override
-  String get settings_s3Config_action_remove => 'إزالة الإعدادات';
-
-  @override
   String get settings_s3Config_action_testConnection => 'اختبار الاتصال';
 
   @override
   String get settings_s3Config_advanced_title => 'متقدم';
-
-  @override
-  String get settings_s3Config_appBar_title => 'تخزين متوافق مع S3';
 
   @override
   String get settings_s3Config_error_secureStorage =>
@@ -26735,23 +26621,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'Secret Access Key';
 
   @override
-  String get settings_s3Config_remove_confirm_action => 'إزالة';
-
-  @override
-  String get settings_s3Config_remove_confirm_body =>
-      'ستتوقف المزامنة عبر S3 على هذا الجهاز. لن تُحذف بياناتك في الحاوية.';
-
-  @override
-  String get settings_s3Config_remove_confirm_title =>
-      'هل تريد إزالة إعدادات S3؟';
-
-  @override
-  String get settings_s3Config_removed => 'تمت إزالة إعدادات S3';
-
-  @override
-  String get settings_s3Config_saved => 'تم حفظ إعدادات S3';
-
-  @override
   String settings_s3Config_test_regionDetected(String region) {
     return 'تم اكتشاف المنطقة: $region';
   }
@@ -26778,13 +26647,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_webdavConfig_action_forgetCertificate => 'نسيان';
 
   @override
-  String get settings_webdavConfig_action_remove => 'إزالة الإعدادات';
-
-  @override
   String get settings_webdavConfig_action_testConnection => 'اختبار الاتصال';
-
-  @override
-  String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
   String get settings_webdavConfig_error_conflict =>
@@ -26876,23 +26739,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_field_username_label => 'اسم المستخدم';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_action => 'إزالة';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_body =>
-      'تُزال بيانات الخادم وكلمة المرور من هذا الجهاز. تبقى الملفات على الخادم.';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_title =>
-      'إزالة إعدادات WebDAV؟';
-
-  @override
-  String get settings_webdavConfig_removed => 'تمت إزالة إعدادات WebDAV';
-
-  @override
-  String get settings_webdavConfig_saved => 'تم حفظ إعدادات WebDAV';
 
   @override
   String get settings_webdavConfig_test_success => 'نجح الاتصال';
@@ -37360,19 +37206,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => 'تم تسجيل الدخول';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn =>
-      'يتطلب تسجيل الدخول';
-
-  @override
   String get settings_connectedAccounts_status_unavailable =>
       'غير متاح على هذا الجهاز';
 
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'تسجيل الخروج على هذا الجهاز';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary => 'إزالة من المكتبة';
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle => 'إزالة الحساب؟';
@@ -37429,13 +37268,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_usage_none =>
       'غير مستخدم على هذا الجهاز';
-
-  @override
-  String get settings_connectedAccounts_usage_databaseSync =>
-      'مزامنة قاعدة البيانات';
-
-  @override
-  String get settings_connectedAccounts_usage_mediaStorage => 'تخزين الوسائط';
 
   @override
   String settings_connectedAccounts_usage_sharedLibrary(String name) {
@@ -48896,10 +48728,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String autoUpdate_banner_packageManagerHint(String command) {
     return 'حدّث باستخدام: $command';
   }
-
-  @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      'المزامنة عبر Apple iCloud';
 
   @override
   String get settings_debugLog_search_hint => 'البحث في السجلات...';
