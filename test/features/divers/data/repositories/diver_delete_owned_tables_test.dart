@@ -503,6 +503,17 @@ void main() {
             ),
           );
       await db
+          .into(db.preDiveSessionSections)
+          .insert(
+            PreDiveSessionSectionsCompanion.insert(
+              id: 'pdss-a',
+              sessionId: 'pds-a',
+              title: 'Cells',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
           .into(db.preDiveSessionItems)
           .insert(
             PreDiveSessionItemsCompanion.insert(
@@ -515,6 +526,7 @@ void main() {
           );
       return [
         ('pre_dive_sessions', 'preDiveSessions', 'pds-a'),
+        ('pre_dive_session_sections', 'preDiveSessionSections', 'pdss-a'),
         ('pre_dive_session_items', 'preDiveSessionItems', 'pdsi-a'),
       ];
     },

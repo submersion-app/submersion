@@ -177,6 +177,11 @@ const List<_OwnedTable> _ownedTables = [
         entityType: 'preDiveSessionItems',
         parentColumn: 'session_id',
       ),
+      (
+        table: 'pre_dive_session_sections',
+        entityType: 'preDiveSessionSections',
+        parentColumn: 'session_id',
+      ),
     ],
   ),
 ];

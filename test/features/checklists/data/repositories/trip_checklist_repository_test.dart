@@ -157,6 +157,10 @@ void main() {
       expect(second.added, 0);
       expect(second.skipped, 2);
       expect(await repository.getByTripId(testTrip.id), hasLength(2));
+      // A fully-skipped re-apply must not create duplicate (or any new)
+      // sections as a side effect of resolving each skipped item's section.
+      final sections = await repository.getSectionsForTrip(testTrip.id);
+      expect(sections.map((s) => s.title).toSet(), {'Bookings', 'Gear'});
     });
 
     test('throws StateError when template does not exist', () async {

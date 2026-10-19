@@ -227,52 +227,53 @@ class TripChecklistRepository {
     return created.id;
   }
 
-  /// Transaction-safe variant of [findOrCreateSectionId] for [applyTemplate]:
-  /// inserts without the sync bookkeeping [createSection] does (that must
-  /// wait until the caller's outer transaction commits). Resolves against
-  /// [knownSections] -- the caller's running list, so applying a
-  /// many-item template does not re-query every section on every item --
-  /// rather than mutating a shared collection, the newly created section (if
-  /// any) comes back in the result for the caller to fold in immutably.
-  Future<({String? sectionId, domain.TripChecklistSection? created})>
-  _resolveTemplateSectionId(
-    String tripId,
-    String? title,
+  /// Pure lookup half of resolving a template section to a trip section for
+  /// [applyTemplate]: case-insensitive title match against [knownSections],
+  /// no write. Returns null both for "no section" and "no match yet" -- the
+  /// caller tells those apart via [trimmedSectionTitle].
+  String? _matchTripSectionByTitle(
+    String? trimmedTitle,
     List<domain.TripChecklistSection> knownSections,
-  ) async {
-    final trimmed = title?.trim();
-    if (trimmed == null || trimmed.isEmpty) {
-      return (sectionId: null, created: null);
-    }
+  ) {
+    if (trimmedTitle == null) return null;
     for (final section in knownSections) {
-      if (section.title.toLowerCase() == trimmed.toLowerCase()) {
-        return (sectionId: section.id, created: null);
+      if (section.title.toLowerCase() == trimmedTitle.toLowerCase()) {
+        return section.id;
       }
     }
+    return null;
+  }
+
+  /// Transaction-safe variant of [createSection] for [applyTemplate]: inserts
+  /// without the sync bookkeeping `createSection` does (that must wait until
+  /// the caller's outer transaction commits).
+  Future<domain.TripChecklistSection> _createTripSectionRow(
+    String tripId,
+    String title,
+    int sortOrder,
+  ) async {
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
-    final sortOrder = knownSections.length;
     await _db
         .into(_db.tripChecklistSections)
         .insert(
           TripChecklistSectionsCompanion(
             id: Value(id),
             tripId: Value(tripId),
-            title: Value(trimmed),
+            title: Value(title),
             sortOrder: Value(sortOrder),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
         );
-    final created = domain.TripChecklistSection(
+    return domain.TripChecklistSection(
       id: id,
       tripId: tripId,
-      title: trimmed,
+      title: title,
       sortOrder: sortOrder,
       createdAt: DateTime.fromMillisecondsSinceEpoch(now),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
     );
-    return (sectionId: id, created: created);
   }
 
   Future<int> _nextSectionSortOrder(String tripId) async {
@@ -556,22 +557,39 @@ class TripChecklistRepository {
           // Bridge the template's section (its own table now) to a trip
           // section by title: find an existing one case-insensitively
           // before creating one, the same resolution the item editor's
-          // picker uses.
-          final resolved = await _resolveTemplateSectionId(
-            trip.id,
-            item.sectionId == null
-                ? null
-                : templateSectionTitleById[item.sectionId],
-            knownSections,
-          );
-          final sectionId = resolved.sectionId;
-          if (resolved.created != null) {
-            knownSections = [...knownSections, resolved.created!];
-            pendingSectionIds.add(resolved.created!.id);
-          }
-          if (existingKeys.contains((item.title, sectionId))) {
+          // picker uses. The match is looked up (not created) before the
+          // skip check below, so a fully-skipped re-apply creates no
+          // sections -- a placeholder key standing in for "this section
+          // doesn't exist among the trip's sections yet" cannot equal any
+          // persisted item's real sectionId (null or an existing uuid), so
+          // it never causes a false-positive skip either.
+          final trimmedSectionTitle = item.sectionId == null
+              ? null
+              : templateSectionTitleById[item.sectionId]?.trim();
+          final hasSectionTitle =
+              trimmedSectionTitle != null && trimmedSectionTitle.isNotEmpty;
+          final matchedSectionId = hasSectionTitle
+              ? _matchTripSectionByTitle(trimmedSectionTitle, knownSections)
+              : null;
+          final comparisonSectionId =
+              matchedSectionId ??
+              (hasSectionTitle
+                  ? '__pending_section__:${trimmedSectionTitle.toLowerCase()}'
+                  : null);
+          if (existingKeys.contains((item.title, comparisonSectionId))) {
             skipped++;
             continue;
+          }
+          var sectionId = matchedSectionId;
+          if (sectionId == null && hasSectionTitle) {
+            final created = await _createTripSectionRow(
+              trip.id,
+              trimmedSectionTitle,
+              knownSections.length,
+            );
+            knownSections = [...knownSections, created];
+            pendingSectionIds.add(created.id);
+            sectionId = created.id;
           }
           final id = _uuid.v4();
           final dueDate = item.dueOffsetDays == null

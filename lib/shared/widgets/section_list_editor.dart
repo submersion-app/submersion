@@ -333,11 +333,9 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
       onAcceptWithDetails: (details) {
         final dragged = details.data;
         if (dragged.sectionId == section.id) return;
-        widget.onMoveItem(
-          dragged.itemId,
-          section.id,
-          _orderedIdsAfterMoving(dragged.itemId, section.id, null),
-        );
+        final item = _findItem(dragged.itemId, dragged.sectionId);
+        if (item == null) return;
+        _moveItem(item, dragged.sectionId, section.id, null);
       },
       builder: (context, candidateItems, rejectedItems) {
         return DragTarget<String>(
