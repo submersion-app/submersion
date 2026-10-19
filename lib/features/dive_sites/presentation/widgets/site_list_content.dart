@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -1289,6 +1291,22 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         minCount: 1,
         isEnabled: (ids) => ids.every((id) => _mayPushToLibrary(byId[id])),
         onInvoke: _addToLibrary,
+      ),
+      // Logbook rules on the checked sites, previewed first (#3513). Library
+      // sites and other profiles' sites are left out by the rules' scope.
+      BulkAction(
+        id: 'apply_rules',
+        icon: Icons.rule,
+        label: context.l10n.rules_action_applyRules,
+        onInvoke: () async =>
+            await runRulesOnDemand(
+              context,
+              ref,
+              subject: RuleSubject.sites,
+              targetIds: _selectedIds.toSet(),
+            )
+            ? BulkActionOutcome.completed
+            : BulkActionOutcome.cancelled,
       ),
     ];
   }

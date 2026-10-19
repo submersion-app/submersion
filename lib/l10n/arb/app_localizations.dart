@@ -85328,6 +85328,12 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get rules_create_details;
 
+  /// Selection bar action that runs logbook rules on the selected dives or sites
+  ///
+  /// In en, this message translates to:
+  /// **'Apply rules'**
+  String get rules_action_applyRules;
+
   /// Settings > Manage entry
   ///
   /// In en, this message translates to:

@@ -53743,6 +53743,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get rules_create_details => 'Details';
 
   @override
+  String get rules_action_applyRules => 'Apply rules';
+
+  @override
   String get settings_manage_savedQueries => 'Consultas salvas';
 
   @override
