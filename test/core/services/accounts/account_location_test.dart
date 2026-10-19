@@ -48,7 +48,7 @@ void main() {
   });
 
   test('an S3 location rebuilds a config that hashes to the same id', () {
-    final cfg = _s3(prefix: 'submersion-sites/club/');
+    final cfg = _s3(prefix: 'submersion-sites/reef-team/');
     final loc =
         AccountLocation.tryParse(
               S3AccountLocation.fromConfig(cfg).toJsonString(),
@@ -64,7 +64,7 @@ void main() {
   });
 
   test('a WebDAV location rebuilds a config that hashes to the same id', () {
-    final cfg = _dav(folder: 'submersion-sites/club');
+    final cfg = _dav(folder: 'submersion-sites/reef-team');
     final loc =
         AccountLocation.tryParse(
               WebDavAccountLocation.fromConfig(cfg).toJsonString(),
@@ -85,7 +85,7 @@ void main() {
     expect(
       S3AccountLocation.fromConfig(_s3(prefix: 'submersion-sync/')).serverKey,
       S3AccountLocation.fromConfig(
-        _s3(prefix: 'submersion-sites/club/'),
+        _s3(prefix: 'submersion-sites/reef-team/'),
       ).serverKey,
     );
     expect(

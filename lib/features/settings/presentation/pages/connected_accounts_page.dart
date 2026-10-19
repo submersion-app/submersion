@@ -7,66 +7,12 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
-import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
-import 'package:submersion/core/services/sync/sync_event_bus.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-/// The account roster with per-device sign-in status. Statuses are derived
-/// live (keychain probe / session check); invalidate after any
-/// connect/disconnect elsewhere.
-final connectedAccountsWithStatusProvider =
-    FutureProvider.autoDispose<List<(domain.ConnectedAccount, AccountStatus)>>((
-      ref,
-    ) async {
-      final repository = ref.watch(connectedAccountsRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchAccountsChanges());
-      final accounts = await repository.getAll();
-      final registry = ref.watch(accountProviderRegistryProvider);
-      // Status probes hit the keychain / provider sessions: run them
-      // concurrently so one slow probe cannot serialize the page load.
-      return Future.wait([
-        for (final account in accounts)
-          () async {
-            final adapter = registry.capabilityFor<AccountProviderAdapter>(
-              account.kind,
-            );
-            return (
-              account,
-              adapter == null
-                  ? AccountStatus.unavailable
-                  : await adapter.status(account),
-            );
-          }(),
-      ]);
-    });
-
-/// What each account is used for on this device (issue #3388), from the
-/// same [AccountUsageService] the pending-setup card routes with.
-final connectedAccountUsageProvider =
-    FutureProvider.autoDispose<AccountUsageSnapshot>((ref) async {
-      // Re-read on any change to what the usages come from, the page stays
-      // mounted under the Settings routes that make those changes: shared
-      // libraries (table updates), the sync selection (setSyncAccount and
-      // setCloudProvider notify the sync event bus) and the media store
-      // attachment (every attach change fires markerMismatchChanges).
-      final libraries = ref.watch(sharedLibraryStoreProvider);
-      ref
-        ..invalidateSelfWhen(libraries.watchLibraries())
-        ..invalidateSelfWhen(SyncEventBus.changes)
-        ..invalidateSelfWhen(MediaStoreAttachState.markerMismatchChanges);
-      return AccountUsageService(
-        attachState: MediaStoreAttachState(
-          prefs: ref.watch(sharedPreferencesProvider),
-        ),
-        libraries: libraries,
-      ).load();
-    });
 
 /// Top-level roster of linked endpoints (program spec section 5): one place
 /// to see every account, its per-device status, and the two scopes of

@@ -45,6 +45,14 @@ void main() {
 
   tearDown(() => tearDownTestDatabase());
 
+  /// Makes [account] this device's sync account, a use that needs it signed
+  /// in here.
+  Future<void> useForSync(domain.ConnectedAccount account) =>
+      SyncRepository().setSyncAccount(
+        accountId: account.id,
+        providerType: CloudProviderType.s3,
+      );
+
   PendingSetupService service({
     AccountStatus s3Status = AccountStatus.needsSignIn,
   }) => PendingSetupService(
@@ -146,26 +154,31 @@ void main() {
     },
   );
 
-  test(
-    'accounts needing sign-in yield items; unavailable kinds are skipped',
-    () async {
-      await accounts.create(kind: AccountKind.s3, label: 'MinIO');
-      await accounts.create(kind: AccountKind.icloud, label: 'iCloud');
-      final items = await service().compute();
-      expect(items, hasLength(1));
-      expect(items.single.kind, SetupItemKind.accountSignIn);
-      expect(items.single.label, 'MinIO');
-      expect(items.single.accountKind, AccountKind.s3);
-      expect(
-        items.single.route,
-        '/settings/cloud-sync',
-        reason: 'no store announced and not the sync account: default route',
-      );
-    },
-  );
+  test('accounts this device uses yield sign-in items; unavailable kinds are '
+      'skipped', () async {
+    await useForSync(
+      await accounts.create(kind: AccountKind.s3, label: 'MinIO'),
+    );
+    await accounts.create(kind: AccountKind.icloud, label: 'iCloud');
+    final items = await service().compute();
+    expect(items, hasLength(1));
+    expect(items.single.kind, SetupItemKind.accountSignIn);
+    expect(items.single.label, 'MinIO');
+    expect(items.single.accountKind, AccountKind.s3);
+    expect(items.single.route, '/settings/cloud-sync');
+  });
+
+  // Issue #3482 phase 2: reminders only for accounts this device needs
+  // (spec section 7.2); the inventory's leftover Lightroom row asked forever.
+  test('a roster row nothing here uses raises no sign-in item', () async {
+    await accounts.create(kind: AccountKind.s3, label: 'Another device');
+    expect(await service().compute(), isEmpty);
+  });
 
   test('signed-in accounts yield no items', () async {
-    await accounts.create(kind: AccountKind.s3, label: 'MinIO');
+    await useForSync(
+      await accounts.create(kind: AccountKind.s3, label: 'MinIO'),
+    );
     final items = await service(s3Status: AccountStatus.signedIn).compute();
     expect(items, isEmpty);
   });
@@ -189,10 +202,12 @@ void main() {
       providerType: 's3',
       displayHint: 'hint',
     );
-    // Attach so only the sign-in items remain.
-    await MediaStoreAttachState(
-      prefs: prefs,
-    ).setAttached('store-1', providerType: CloudProviderType.s3);
+    // Attach through the media account so only the sign-in items remain.
+    await MediaStoreAttachState(prefs: prefs).setAttached(
+      'store-1',
+      providerType: CloudProviderType.s3,
+      accountId: mediaAccount.id,
+    );
 
     final svc = PendingSetupService(
       prefs: prefs,
@@ -239,6 +254,7 @@ void main() {
 
   test('dismissal is per key and sticks', () async {
     final account = await accounts.create(kind: AccountKind.s3, label: 'M');
+    await useForSync(account);
     final svc = service();
     expect(await svc.compute(), hasLength(1));
 
@@ -246,7 +262,9 @@ void main() {
     expect((await svc.compute()).where((i) => !i.dismissed), isEmpty);
 
     // A different object (new key) still surfaces.
-    await accounts.create(kind: AccountKind.s3, label: 'Other');
+    await useForSync(
+      await accounts.create(kind: AccountKind.s3, label: 'Other'),
+    );
     expect((await svc.compute()).where((i) => !i.dismissed), hasLength(1));
   });
 
@@ -255,6 +273,7 @@ void main() {
   // keep saying so instead of listing it as fine.
   test('a dismissed sign-in stays listed, flagged as dismissed', () async {
     final account = await accounts.create(kind: AccountKind.s3, label: 'M');
+    await useForSync(account);
     final svc = service();
     expect((await svc.compute()).single.dismissed, isFalse);
 

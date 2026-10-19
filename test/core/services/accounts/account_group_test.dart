@@ -105,7 +105,7 @@ void main() {
           _row('sync', AccountKind.s3, location: _s3('submersion-sync/')),
           _row('lib', AccountKind.s3),
         ],
-        local: {'lib': _s3('submersion-sites/club/')},
+        local: {'lib': _s3('submersion-sites/reef-team/')},
       );
       expect(groups, hasLength(1));
       expect(groups.single.rowFor(AccountRole.library)!.id, 'lib');
@@ -137,7 +137,7 @@ void main() {
       _row(
         'lib',
         AccountKind.s3,
-        label: 'dives @ minio.home (submersion-sites/club)',
+        label: 'dives @ minio.home (submersion-sites/reef-team)',
       ),
     ]).single;
     expect(g.label, 'dives @ minio.home');
@@ -151,10 +151,10 @@ void main() {
       ],
       usages: {
         'a': const [
-          AccountUsage(AccountUsageKind.sharedLibrary, libraryName: 'Club'),
+          AccountUsage(AccountUsageKind.sharedLibrary, libraryName: 'Reef team'),
         ],
         'b': const [
-          AccountUsage(AccountUsageKind.sharedLibrary, libraryName: 'Club'),
+          AccountUsage(AccountUsageKind.sharedLibrary, libraryName: 'Reef team'),
         ],
       },
     ).single;

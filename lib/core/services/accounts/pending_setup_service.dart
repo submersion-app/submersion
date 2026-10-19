@@ -139,6 +139,11 @@ class PendingSetupService {
     // here and are skipped.
     final usage = await _usage.load();
     for (final account in await _accounts.getAll()) {
+      // Only accounts this device needs: its sync account, its media store's
+      // account, its libraries' accounts and its Lightroom connector. A row
+      // nothing here uses (another device's server, a leftover connector)
+      // asks for no sign-in (spec section 7.2), and is never probed.
+      if (usage.usagesOf(account).isEmpty) continue;
       final adapter = _registry.capabilityFor<AccountProviderAdapter>(
         account.kind,
       );

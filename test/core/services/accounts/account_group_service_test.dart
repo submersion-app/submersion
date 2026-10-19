@@ -76,7 +76,7 @@ void main() {
 
   test('signing in writes each row its own folder', () async {
     final sync = await rowFor(s3('submersion-sync/'));
-    final lib = await rowFor(s3('submersion-sites/club/'));
+    final lib = await rowFor(s3('submersion-sites/reef-team/'));
     final group = await groupOf([sync, lib]);
 
     final signedIn = await service.storeServerSecret(
@@ -86,7 +86,7 @@ void main() {
 
     expect(signedIn, 2);
     expect((await stored(sync.id))!.prefix, 'submersion-sync/');
-    expect((await stored(lib.id))!.prefix, 'submersion-sites/club/');
+    expect((await stored(lib.id))!.prefix, 'submersion-sites/reef-team/');
     expect((await stored(lib.id))!.accessKeyId, 'AKIA2');
   });
 
@@ -119,14 +119,14 @@ void main() {
     final lib = await service.ensureRole(
       group,
       AccountRole.library,
-      libraryFolder: 'club',
+      libraryFolder: 'reef-team',
     );
 
     expect(
       lib.id,
       accountIdFor(
         kind: AccountKind.s3,
-        naturalKey: s3NaturalKey(s3('submersion-sites/club/')),
+        naturalKey: s3NaturalKey(s3('submersion-sites/reef-team/')),
       ),
     );
     expect((await stored(lib.id))!.accessKeyId, 'AKIA1');
@@ -157,7 +157,7 @@ void main() {
 
   test('removing an account deletes every row and its credentials', () async {
     final sync = await rowFor(s3('submersion-sync/'));
-    final lib = await rowFor(s3('submersion-sites/club/'));
+    final lib = await rowFor(s3('submersion-sites/reef-team/'));
     await credentials.write(
       sync.id,
       jsonEncode(s3('submersion-sync/').toJson()),

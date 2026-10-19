@@ -42,7 +42,7 @@ Calls this plan makes where the spec leaves a choice or the code forces one; eac
 Inputs the spec implies that no task's tests would otherwise exercise. Each test is added to the owning task.
 
 1. A legacy S3 row with no `location`, on a device that holds no credentials for it: it must show as its own account, never merged into another server's group and never hidden, and Sign in again must ask for the full server details (Task 3 grouping table, Task 6 sign-in test).
-2. Two rows on one server whose folders differ (sync `submersion-sync/`, library `submersion-sites/club/`): one account in the list; signing in writes each row its own folder, and a row whose rebuilt config does not hash back to its own id is skipped, never overwritten (Task 4).
+2. Two rows on one server whose folders differ (sync `submersion-sync/`, library `submersion-sites/reef-team/`): one account in the list; signing in writes each row its own folder, and a row whose rebuilt config does not hash back to its own id is skipped, never overwritten (Task 4).
 3. Choosing, on the Sync page, the account sync already uses: no "Switch sync backend?" step and no departure recorded (Task 9).
 4. Connecting a shared library through an account that is not signed in on this device: the sheet signs in first, then the library row is created with the library folder, and its id equals `accountIdFor(kind: s3, naturalKey: s3NaturalKey(server with that folder))` (Task 11).
 5. iCloud on Android, Windows or Linux: never offered under Add an account; an iCloud roster row synced from an Apple device reads "Unavailable on this device" and offers neither Sign in again nor Sign out (Tasks 5 and 7).
@@ -72,7 +72,7 @@ test('an S3 location never carries a secret', () {
 });
 test('a WebDAV location never carries the password', () { /* same, password */ });
 test('round-trips and rebuilds a config that hashes to the same id', () {
-  final cfg = s3('AKIA1', 'shh', prefix: 'submersion-sites/club/');
+  final cfg = s3('AKIA1', 'shh', prefix: 'submersion-sites/reef-team/');
   final loc = AccountLocation.tryParse(S3AccountLocation.fromConfig(cfg).toJsonString())! as S3AccountLocation;
   final rebuilt = loc.toConfig(accessKeyId: 'AKIA1', secretAccessKey: 'shh');
   expect(accountIdFor(kind: AccountKind.s3, naturalKey: s3NaturalKey(rebuilt)),
@@ -80,7 +80,7 @@ test('round-trips and rebuilds a config that hashes to the same id', () {
 });
 test('rows on one server share a server key across folders', () {
   expect(S3AccountLocation.fromConfig(s3(prefix: 'submersion-sync/')).serverKey,
-      S3AccountLocation.fromConfig(s3(prefix: 'submersion-sites/club/')).serverKey);
+      S3AccountLocation.fromConfig(s3(prefix: 'submersion-sites/reef-team/')).serverKey);
 });
 test('tryParse rejects null, junk, unknown kinds and newer versions', () {
   for (final j in [null, '', '{', '{"v":1,"kind":"ftp"}', '{"v":2,"kind":"s3"}']) {
@@ -143,7 +143,7 @@ Rules, in the order the tests pin them:
 - Label: S3 `'$bucket @ $displayHost'`, WebDAV `'$username @ $host'` when a location is known; otherwise the first row's label with a trailing `' (...)'` folder note removed.
 - Order: iCloud, Google Drive, Dropbox, S3 and WebDAV together, Lightroom; then label.
 
-- [ ] **Step 1: Write the table test** `groups rows the way the spec says`, one case per rule: sync and media rows on one minio bucket give one group with both usages; the same bucket on two hosts gives two groups; a legacy row with no location and no local config is alone (Review Focus 1); a row known only from `localLocationById` joins its server's group; one row needing sign-in makes the group need sign-in; an all-unavailable iCloud group is unavailable; the label drops `(submersion-sites/club)`.
+- [ ] **Step 1: Write the table test** `groups rows the way the spec says`, one case per rule: sync and media rows on one minio bucket give one group with both usages; the same bucket on two hosts gives two groups; a legacy row with no location and no local config is alone (Review Focus 1); a row known only from `localLocationById` joins its server's group; one row needing sign-in makes the group need sign-in; an all-unavailable iCloud group is unavailable; the label drops `(submersion-sites/reef-team)`.
 - [ ] **Step 2: Run, expect a compile failure**
 - [ ] **Step 3: Implement**
 - [ ] **Step 4: Run, expect PASS**

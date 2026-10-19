@@ -68,11 +68,11 @@ void main() {
 
   // Issue #3482: a library account's location carries its library folder.
   test('an S3 library account records its location and folder', () async {
-    final account = await setup.saveS3(s3(), folder: 'club');
+    final account = await setup.saveS3(s3(), folder: 'reef-team');
     final location =
         (await ConnectedAccountsRepository().getById(account.id))!.location
             as S3AccountLocation;
-    expect(location.prefix, 'submersion-sites/club/');
+    expect(location.prefix, 'submersion-sites/reef-team/');
   });
 
   test('a WebDAV account for libraries keeps its own folder', () async {
