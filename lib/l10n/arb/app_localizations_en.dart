@@ -23292,6 +23292,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_ruleId => 'Rule';
 
   @override
+  String get settings_conflict_field_ruleActions => 'Actions';
+
+  @override
+  String get settings_conflict_field_ruleChangeAfter => 'After';
+
+  @override
+  String get settings_conflict_field_ruleChangeBefore => 'Before';
+
+  @override
+  String get settings_conflict_field_ruleChangeField => 'Changed field';
+
+  @override
+  String get settings_conflict_field_ruleCondition => 'Condition';
+
+  @override
+  String get settings_conflict_field_ruleName => 'Rule name';
+
+  @override
+  String get settings_conflict_field_ruleRun => 'Rule run';
+
+  @override
+  String get settings_conflict_field_ruleRunAt => 'Ran at';
+
+  @override
+  String get settings_conflict_field_ruleRunChangedCount => 'Items changed';
+
+  @override
+  String get settings_conflict_field_ruleRunDevice => 'Device';
+
+  @override
+  String get settings_conflict_field_ruleRunSource => 'Source';
+
+  @override
+  String get settings_conflict_field_ruleRunTrigger => 'Started by';
+
+  @override
+  String get settings_conflict_field_ruleRunUndoneAt => 'Undone at';
+
+  @override
+  String get settings_conflict_field_ruleTarget => 'Changed item';
+
+  @override
+  String get settings_conflict_field_ruleTriggers => 'Runs when';
+
+  @override
   String get settings_conflict_field_sacBottom => 'Bottom gas consumption';
 
   @override

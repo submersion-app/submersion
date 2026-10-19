@@ -54,6 +54,9 @@ void main() {
     'cylinder_fills': 'cylinderFills',
     'connection_maps': 'connectionMaps',
     'saved_queries': 'savedQueries',
+    'rules': 'rules',
+    'rule_runs': 'ruleRuns',
+    'rule_run_changes': 'ruleRunChanges',
     'insight_observation_dismissals': 'insightObservationDismissals',
     'dive_computers': 'diveComputers',
     'dive_computer_connections': 'diveComputerConnections',
@@ -170,6 +173,7 @@ void main() {
     'dive_computers': 'diveComputers',
     'checklist_templates': 'checklistTemplates',
     'media': 'media',
+    'rule_runs': 'ruleRuns',
   };
 
   String camel(String snake) {

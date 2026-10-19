@@ -114,6 +114,9 @@ class SyncRepository {
     'cylinderFills': (table: 'cylinder_fills', pk: 'id'),
     'connectionMaps': (table: 'connection_maps', pk: 'id'),
     'savedQueries': (table: 'saved_queries', pk: 'id'),
+    'rules': (table: 'rules', pk: 'id'),
+    'ruleRuns': (table: 'rule_runs', pk: 'id'),
+    'ruleRunChanges': (table: 'rule_run_changes', pk: 'id'),
     'insightObservationDismissals': (
       table: 'insight_observation_dismissals',
       pk: 'id',

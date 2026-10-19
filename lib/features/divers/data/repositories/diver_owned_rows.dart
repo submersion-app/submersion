@@ -63,6 +63,19 @@ const List<_OwnedTable> _ownedTables = [
     hasBuiltIns: false,
     children: [],
   ),
+  (table: 'rules', entityType: 'rules', hasBuiltIns: false, children: []),
+  (
+    table: 'rule_runs',
+    entityType: 'ruleRuns',
+    hasBuiltIns: false,
+    children: [
+      (
+        table: 'rule_run_changes',
+        entityType: 'ruleRunChanges',
+        parentColumn: 'run_id',
+      ),
+    ],
+  ),
   (
     table: 'nav_tracks',
     entityType: 'navTracks',

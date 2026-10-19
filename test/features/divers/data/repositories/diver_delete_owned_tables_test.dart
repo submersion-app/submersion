@@ -225,6 +225,58 @@ void main() {
           );
       return [('saved_queries', 'savedQueries', 'sq-a')];
     },
+    'a rule': () async {
+      await db
+          .into(db.rules)
+          .insert(
+            RulesCompanion.insert(
+              id: 'rule-a',
+              subject: 'dives',
+              name: 'Deep',
+              conditionJson: '',
+              actionsJson: '{"version":1,"actions":[]}',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('rules', 'rules', 'rule-a')];
+    },
+    'a rule run and its change': () async {
+      await db
+          .into(db.ruleRuns)
+          .insert(
+            RuleRunsCompanion.insert(
+              id: 'run-a',
+              trigger: 'imported',
+              ranAt: stale,
+              changedCount: 1,
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.ruleRunChanges)
+          .insert(
+            RuleRunChangesCompanion.insert(
+              id: 'change-a',
+              runId: 'run-a',
+              subject: 'dives',
+              targetId: 'd',
+              ruleName: 'Deep',
+              field: 'diveTypes',
+              beforeJson: '[]',
+              afterJson: '["deep"]',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('rule_runs', 'ruleRuns', 'run-a'),
+        ('rule_run_changes', 'ruleRunChanges', 'change-a'),
+      ];
+    },
     'an underwater route': () async {
       await db
           .into(db.navTracks)
@@ -918,6 +970,8 @@ const _clearedByDelete = {
   'transmitters',
   'cylinder_fills',
   'saved_queries',
+  'rules',
+  'rule_runs',
   'nav_tracks',
   'trips',
   'weight_presets',

@@ -336,6 +336,9 @@ class SyncData {
   final List<Map<String, dynamic>> cylinderFills;
   final List<Map<String, dynamic>> connectionMaps;
   final List<Map<String, dynamic>> savedQueries;
+  final List<Map<String, dynamic>> rules;
+  final List<Map<String, dynamic>> ruleRuns;
+  final List<Map<String, dynamic>> ruleRunChanges;
   final List<Map<String, dynamic>> insightObservationDismissals;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
@@ -467,6 +470,9 @@ class SyncData {
     this.cylinderFills = const [],
     this.connectionMaps = const [],
     this.savedQueries = const [],
+    this.rules = const [],
+    this.ruleRuns = const [],
+    this.ruleRunChanges = const [],
     this.insightObservationDismissals = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
@@ -588,6 +594,9 @@ class SyncData {
     'cylinderFills': cylinderFills,
     'connectionMaps': connectionMaps,
     'savedQueries': savedQueries,
+    'rules': rules,
+    'ruleRuns': ruleRuns,
+    'ruleRunChanges': ruleRunChanges,
     'insightObservationDismissals': insightObservationDismissals,
     'tideRecords': tideRecords,
     'settings': settings,
@@ -720,6 +729,9 @@ class SyncData {
       cylinderFills: _parseList(json['cylinderFills']),
       connectionMaps: _parseList(json['connectionMaps']),
       savedQueries: _parseList(json['savedQueries']),
+      rules: _parseList(json['rules']),
+      ruleRuns: _parseList(json['ruleRuns']),
+      ruleRunChanges: _parseList(json['ruleRunChanges']),
       insightObservationDismissals: _parseList(
         json['insightObservationDismissals'],
       ),
@@ -1227,6 +1239,9 @@ class SyncDataSerializer {
     (key: 'cylinderFills', table: _db.cylinderFills, blob: false, full: null),
     (key: 'connectionMaps', table: _db.connectionMaps, blob: false, full: null),
     (key: 'savedQueries', table: _db.savedQueries, blob: false, full: null),
+    (key: 'rules', table: _db.rules, blob: false, full: null),
+    (key: 'ruleRuns', table: _db.ruleRuns, blob: false, full: null),
+    (key: 'ruleRunChanges', table: _db.ruleRunChanges, blob: false, full: null),
     (
       key: 'insightObservationDismissals',
       table: _db.insightObservationDismissals,
@@ -2506,6 +2521,12 @@ class SyncDataSerializer {
         'savedQueries',
         () => _exportSavedQueries(hlcSince),
       ),
+      rules: await _safeExport('rules', () => _exportRules(hlcSince)),
+      ruleRuns: await _safeExport('ruleRuns', () => _exportRuleRuns(hlcSince)),
+      ruleRunChanges: await _safeExport(
+        'ruleRunChanges',
+        () => _exportRuleRunChanges(hlcSince),
+      ),
       insightObservationDismissals: await _safeExport(
         'insightObservationDismissals',
         () => _exportInsightObservationDismissals(hlcSince),
@@ -3399,6 +3420,21 @@ class SyncDataSerializer {
           _db.savedQueries,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'rules':
+        final row = await (_db.select(
+          _db.rules,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'ruleRuns':
+        final row = await (_db.select(
+          _db.ruleRuns,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'ruleRunChanges':
+        final row = await (_db.select(
+          _db.ruleRunChanges,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'insightObservationDismissals':
         final row = await (_db.select(
           _db.insightObservationDismissals,
@@ -3873,6 +3909,21 @@ class SyncDataSerializer {
       case 'savedQueries':
         final rows = await (_db.select(
           _db.savedQueries,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'rules':
+        final rows = await (_db.select(
+          _db.rules,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'ruleRuns':
+        final rows = await (_db.select(
+          _db.ruleRuns,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'ruleRunChanges':
+        final rows = await (_db.select(
+          _db.ruleRunChanges,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'insightObservationDismissals':
@@ -5255,6 +5306,25 @@ class SyncDataSerializer {
             .into(_db.savedQueries)
             .insertOnConflictUpdate(
               SavedQueryRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'rules':
+        await _db
+            .into(_db.rules)
+            .insertOnConflictUpdate(RuleRow.fromJson(data).toCompanion(false));
+        return;
+      case 'ruleRuns':
+        await _db
+            .into(_db.ruleRuns)
+            .insertOnConflictUpdate(
+              RuleRunRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'ruleRunChanges':
+        await _db
+            .into(_db.ruleRunChanges)
+            .insertOnConflictUpdate(
+              RuleRunChangeRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'insightObservationDismissals':
@@ -6745,6 +6815,34 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'rules':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.rules,
+            records.map((r) => RuleRow.fromJson(r).toCompanion(false)).toList(),
+          ),
+        );
+        return;
+      case 'ruleRuns':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.ruleRuns,
+            records
+                .map((r) => RuleRunRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'ruleRunChanges':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.ruleRunChanges,
+            records
+                .map((r) => RuleRunChangeRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'insightObservationDismissals':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -7253,6 +7351,12 @@ class SyncDataSerializer {
         return plain(_db.connectionMaps, _db.connectionMaps.id);
       case 'savedQueries':
         return plain(_db.savedQueries, _db.savedQueries.id);
+      case 'rules':
+        return plain(_db.rules, _db.rules.id);
+      case 'ruleRuns':
+        return plain(_db.ruleRuns, _db.ruleRuns.id);
+      case 'ruleRunChanges':
+        return plain(_db.ruleRunChanges, _db.ruleRunChanges.id);
       case 'insightObservationDismissals':
         return plain(
           _db.insightObservationDismissals,
@@ -7717,6 +7821,12 @@ class SyncDataSerializer {
         return _db.connectionMaps;
       case 'savedQueries':
         return _db.savedQueries;
+      case 'rules':
+        return _db.rules;
+      case 'ruleRuns':
+        return _db.ruleRuns;
+      case 'ruleRunChanges':
+        return _db.ruleRunChanges;
       case 'insightObservationDismissals':
         return _db.insightObservationDismissals;
       case 'species':
@@ -8325,6 +8435,19 @@ class SyncDataSerializer {
       case 'savedQueries':
         await (_db.delete(
           _db.savedQueries,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'rules':
+        await (_db.delete(_db.rules)..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'ruleRuns':
+        await (_db.delete(
+          _db.ruleRuns,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'ruleRunChanges':
+        await (_db.delete(
+          _db.ruleRunChanges,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'insightObservationDismissals':
@@ -9651,6 +9774,35 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.savedQueries);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportRules(String? hlcSince) async {
+    final query = _db.select(_db.rules);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportRuleRuns(String? hlcSince) async {
+    final query = _db.select(_db.ruleRuns);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportRuleRunChanges(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.ruleRunChanges);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

@@ -37978,6 +37978,96 @@ abstract class AppLocalizations {
   /// **'Rule'**
   String get settings_conflict_field_ruleId;
 
+  /// No description provided for @settings_conflict_field_ruleActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get settings_conflict_field_ruleActions;
+
+  /// No description provided for @settings_conflict_field_ruleChangeAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get settings_conflict_field_ruleChangeAfter;
+
+  /// No description provided for @settings_conflict_field_ruleChangeBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get settings_conflict_field_ruleChangeBefore;
+
+  /// No description provided for @settings_conflict_field_ruleChangeField.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed field'**
+  String get settings_conflict_field_ruleChangeField;
+
+  /// No description provided for @settings_conflict_field_ruleCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get settings_conflict_field_ruleCondition;
+
+  /// No description provided for @settings_conflict_field_ruleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule name'**
+  String get settings_conflict_field_ruleName;
+
+  /// No description provided for @settings_conflict_field_ruleRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule run'**
+  String get settings_conflict_field_ruleRun;
+
+  /// No description provided for @settings_conflict_field_ruleRunAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Ran at'**
+  String get settings_conflict_field_ruleRunAt;
+
+  /// No description provided for @settings_conflict_field_ruleRunChangedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Items changed'**
+  String get settings_conflict_field_ruleRunChangedCount;
+
+  /// No description provided for @settings_conflict_field_ruleRunDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get settings_conflict_field_ruleRunDevice;
+
+  /// No description provided for @settings_conflict_field_ruleRunSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get settings_conflict_field_ruleRunSource;
+
+  /// No description provided for @settings_conflict_field_ruleRunTrigger.
+  ///
+  /// In en, this message translates to:
+  /// **'Started by'**
+  String get settings_conflict_field_ruleRunTrigger;
+
+  /// No description provided for @settings_conflict_field_ruleRunUndoneAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Undone at'**
+  String get settings_conflict_field_ruleRunUndoneAt;
+
+  /// No description provided for @settings_conflict_field_ruleTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed item'**
+  String get settings_conflict_field_ruleTarget;
+
+  /// No description provided for @settings_conflict_field_ruleTriggers.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs when'**
+  String get settings_conflict_field_ruleTriggers;
+
   /// No description provided for @settings_conflict_field_sacBottom.
   ///
   /// In en, this message translates to:

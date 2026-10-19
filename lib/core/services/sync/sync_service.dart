@@ -1577,6 +1577,16 @@ class SyncService {
             records: data.savedQueries,
             hasUpdatedAt: true,
           ),
+          // Logbook rules (#3513) reference tags, types and gear only
+          // inside their JSON, by id, so they carry no FK but the diver.
+          // A run comes before its changes, whose run_id must resolve.
+          (type: 'rules', records: data.rules, hasUpdatedAt: true),
+          (type: 'ruleRuns', records: data.ruleRuns, hasUpdatedAt: true),
+          (
+            type: 'ruleRunChanges',
+            records: data.ruleRunChanges,
+            hasUpdatedAt: true,
+          ),
           // Observation dismissals (#2381) carry a diver FK only, and their
           // deterministic ids make a plain last-writer-wins upsert safe.
           (
@@ -2681,6 +2691,9 @@ class SyncService {
     'cylinderFills': true,
     'connectionMaps': true,
     'savedQueries': true,
+    'rules': true,
+    'ruleRuns': true,
+    'ruleRunChanges': true,
     'insightObservationDismissals': true,
     'species': false,
     'tags': true,
@@ -3011,6 +3024,8 @@ class SyncService {
     'cylinderFills': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
+    // v292: a rule run's change belongs to its run (issue #3513).
+    'ruleRunChanges': [(field: 'runId', parent: 'ruleRuns', nullable: false)],
     // v202: a child item (O2 cell, battery) points at the item it is installed
     // in. Nullable: deleting the parent orphans the child, never drops it.
     'equipment': [
