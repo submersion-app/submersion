@@ -69,3 +69,35 @@ final ruleNameOfProvider = FutureProvider.autoDispose<RuleNameOf>((ref) async {
   final names = await ref.watch(queryNameIndexProvider.future);
   return (QuerySubject subject, String id) => names.labelOf(subject, id);
 });
+
+/// One rule by id, for the editor. The editor seeds itself from the first
+/// value and ignores later ticks.
+final ruleByIdProvider = FutureProvider.autoDispose.family<Rule?, String>((
+  ref,
+  id,
+) async {
+  final repository = ref.watch(ruleRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchRulesChanges());
+  final names = await ref.watch(queryNameIndexProvider.future);
+  return repository.getById(id, names: names);
+});
+
+/// How many of the diver's dives or sites a condition matches, keyed by
+/// the subject and the condition's stored JSON (empty for no condition).
+final ruleMatchCountProvider = FutureProvider.autoDispose
+    .family<int?, ({RuleSubject subject, String conditionJson})>((
+      ref,
+      key,
+    ) async {
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return null;
+      final condition = decodeRuleCondition(key.conditionJson);
+      try {
+        return await ref
+            .read(ruleTargetScopeProvider)
+            .countMatches(condition, key.subject, diverId);
+      } on Object {
+        // A half-typed condition the compiler rejects shows no count.
+        return null;
+      }
+    });

@@ -84843,6 +84843,180 @@ abstract class AppLocalizations {
   /// **'parking information'**
   String get rules_siteField_parkingInfo;
 
+  /// App bar title when creating a logbook rule
+  ///
+  /// In en, this message translates to:
+  /// **'New rule'**
+  String get rules_edit_titleNew;
+
+  /// App bar title when editing a logbook rule
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rule'**
+  String get rules_edit_titleEdit;
+
+  /// Label of the rule name field
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get rules_edit_name;
+
+  /// Label above the dives/sites choice of a new rule
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to'**
+  String get rules_edit_appliesTo;
+
+  /// Segment: the rule applies to dives
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get rules_edit_subjectDives;
+
+  /// Segment: the rule applies to dive sites
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get rules_edit_subjectSites;
+
+  /// Header above a rule's trigger checkboxes
+  ///
+  /// In en, this message translates to:
+  /// **'When it runs'**
+  String get rules_edit_whenRuns;
+
+  /// Note under a rule's trigger checkboxes
+  ///
+  /// In en, this message translates to:
+  /// **'You can always run a rule yourself, from the Rules page or on selected items.'**
+  String get rules_edit_runNote;
+
+  /// Header above a rule's condition
+  ///
+  /// In en, this message translates to:
+  /// **'If'**
+  String get rules_edit_if;
+
+  /// Header above a rule's actions
+  ///
+  /// In en, this message translates to:
+  /// **'Then'**
+  String get rules_edit_then;
+
+  /// Live count under a dive rule's condition
+  ///
+  /// In en, this message translates to:
+  /// **'Matches {count} of your dives'**
+  String rules_edit_matchCountDives(int count);
+
+  /// Live count under a site rule's condition
+  ///
+  /// In en, this message translates to:
+  /// **'Matches {count} of your sites'**
+  String rules_edit_matchCountSites(int count);
+
+  /// Shown when a dive rule's condition is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No condition: the rule matches every dive'**
+  String get rules_edit_matchesEveryDive;
+
+  /// Shown when a site rule's condition is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No condition: the rule matches every site'**
+  String get rules_edit_matchesEverySite;
+
+  /// Button that adds an action to a rule
+  ///
+  /// In en, this message translates to:
+  /// **'Add action'**
+  String get rules_edit_addAction;
+
+  /// Shown when a rule has no actions yet
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one action.'**
+  String get rules_edit_noActions;
+
+  /// Shown above a read-only rule
+  ///
+  /// In en, this message translates to:
+  /// **'This rule can\'t be edited here.'**
+  String get rules_edit_readOnly;
+
+  /// Search field hint of the action picker
+  ///
+  /// In en, this message translates to:
+  /// **'Search actions'**
+  String get rules_picker_search;
+
+  /// Action picker entry that sets a field
+  ///
+  /// In en, this message translates to:
+  /// **'Set {field}'**
+  String rules_picker_set(String field);
+
+  /// Action picker entry that adds items
+  ///
+  /// In en, this message translates to:
+  /// **'Add {collection}'**
+  String rules_picker_add(String collection);
+
+  /// Action picker entry that removes items
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {collection}'**
+  String rules_picker_remove(String collection);
+
+  /// Action picker entry that appends to dive notes
+  ///
+  /// In en, this message translates to:
+  /// **'Append to notes'**
+  String get rules_picker_appendNotes;
+
+  /// Action picker entry that appends to a site description
+  ///
+  /// In en, this message translates to:
+  /// **'Append to description'**
+  String get rules_picker_appendDescription;
+
+  /// Label of a set-field action's value input
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get rules_actionEditor_value;
+
+  /// Label of an append action's text field
+  ///
+  /// In en, this message translates to:
+  /// **'Text to append'**
+  String get rules_actionEditor_text;
+
+  /// Title of the role choice when a rule adds buddies
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get rules_actionEditor_role;
+
+  /// Label of the diluent oxygen percentage
+  ///
+  /// In en, this message translates to:
+  /// **'O2 %'**
+  String get rules_actionEditor_o2;
+
+  /// Label of the diluent helium percentage
+  ///
+  /// In en, this message translates to:
+  /// **'He %'**
+  String get rules_actionEditor_he;
+
+  /// Title of a picker that chooses one item for a set-field action
+  ///
+  /// In en, this message translates to:
+  /// **'Choose {field}'**
+  String rules_actionEditor_choose(String field);
+
   /// Settings > Manage entry
   ///
   /// In en, this message translates to:

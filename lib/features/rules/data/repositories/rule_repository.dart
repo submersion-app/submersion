@@ -296,3 +296,15 @@ class RuleRepository {
 /// empty string for "matches everything".
 String encodeRuleCondition(QueryNode? condition) =>
     condition == null ? '' : jsonEncode(queryNodeToJson(condition));
+
+/// The condition [encodeRuleCondition] stored, or null for none or an
+/// unreadable one.
+QueryNode? decodeRuleCondition(String json) {
+  if (json.isEmpty) return null;
+  try {
+    final decoded = jsonDecode(json);
+    return decoded is Map<String, dynamic> ? queryNodeFromJson(decoded) : null;
+  } on Object {
+    return null;
+  }
+}

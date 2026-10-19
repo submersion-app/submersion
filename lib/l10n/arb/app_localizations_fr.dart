@@ -53467,6 +53467,108 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rules_siteField_parkingInfo => 'parking information';
 
   @override
+  String get rules_edit_titleNew => 'New rule';
+
+  @override
+  String get rules_edit_titleEdit => 'Edit rule';
+
+  @override
+  String get rules_edit_name => 'Name';
+
+  @override
+  String get rules_edit_appliesTo => 'Applies to';
+
+  @override
+  String get rules_edit_subjectDives => 'Dives';
+
+  @override
+  String get rules_edit_subjectSites => 'Sites';
+
+  @override
+  String get rules_edit_whenRuns => 'When it runs';
+
+  @override
+  String get rules_edit_runNote =>
+      'You can always run a rule yourself, from the Rules page or on selected items.';
+
+  @override
+  String get rules_edit_if => 'If';
+
+  @override
+  String get rules_edit_then => 'Then';
+
+  @override
+  String rules_edit_matchCountDives(int count) {
+    return 'Matches $count of your dives';
+  }
+
+  @override
+  String rules_edit_matchCountSites(int count) {
+    return 'Matches $count of your sites';
+  }
+
+  @override
+  String get rules_edit_matchesEveryDive =>
+      'No condition: the rule matches every dive';
+
+  @override
+  String get rules_edit_matchesEverySite =>
+      'No condition: the rule matches every site';
+
+  @override
+  String get rules_edit_addAction => 'Add action';
+
+  @override
+  String get rules_edit_noActions => 'Add at least one action.';
+
+  @override
+  String get rules_edit_readOnly => 'This rule can\'t be edited here.';
+
+  @override
+  String get rules_picker_search => 'Search actions';
+
+  @override
+  String rules_picker_set(String field) {
+    return 'Set $field';
+  }
+
+  @override
+  String rules_picker_add(String collection) {
+    return 'Add $collection';
+  }
+
+  @override
+  String rules_picker_remove(String collection) {
+    return 'Remove $collection';
+  }
+
+  @override
+  String get rules_picker_appendNotes => 'Append to notes';
+
+  @override
+  String get rules_picker_appendDescription => 'Append to description';
+
+  @override
+  String get rules_actionEditor_value => 'Value';
+
+  @override
+  String get rules_actionEditor_text => 'Text to append';
+
+  @override
+  String get rules_actionEditor_role => 'Role';
+
+  @override
+  String get rules_actionEditor_o2 => 'O2 %';
+
+  @override
+  String get rules_actionEditor_he => 'He %';
+
+  @override
+  String rules_actionEditor_choose(String field) {
+    return 'Choose $field';
+  }
+
+  @override
   String get settings_manage_savedQueries => 'Requêtes enregistrées';
 
   @override
