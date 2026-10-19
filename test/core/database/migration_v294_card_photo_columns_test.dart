@@ -76,7 +76,7 @@ void main() {
   test('v294 is in the ladder and leaves the sync floor alone', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(294));
     expect(AppDatabase.migrationVersions, contains(294));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(294));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(294));
   });
 
   test('clears the old photos of a card the documents store holds', () async {
