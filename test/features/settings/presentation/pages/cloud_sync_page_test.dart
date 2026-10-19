@@ -39,6 +39,7 @@ import 'package:submersion/features/divers/data/repositories/diver_merge_reposit
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
     show sharedPreferencesProvider;
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart'
@@ -105,6 +106,25 @@ AccountGroup _syncGroup(String label) {
     statusById: const {'sync-row': AccountStatus.signedIn},
     localLocationById: const {},
     usagesOf: (_) => const [AccountUsage(AccountUsageKind.databaseSync)],
+  ).single;
+}
+
+/// A Google Drive account signed in here that nothing uses yet.
+AccountGroup _driveGroup() {
+  final at = DateTime.utc(2026);
+  return groupAccounts(
+    rows: [
+      ConnectedAccount(
+        id: 'drive-row',
+        kind: AccountKind.googledrive,
+        label: 'Google Drive',
+        createdAt: at,
+        updatedAt: at,
+      ),
+    ],
+    statusById: const {'drive-row': AccountStatus.signedIn},
+    localLocationById: const {},
+    usagesOf: (_) => const [],
   ).single;
 }
 
@@ -959,14 +979,30 @@ void main() {
     // skipped on macOS developer machines, where the branch is unreachable.
     final dialogReachable = Platform.isWindows || Platform.isLinux;
 
+    /// Sets sync up on the Google Drive account through the account sheet,
+    /// which replaced the provider tiles (#3482).
+    Future<void> chooseDrive(WidgetTester tester) async {
+      await tester.tap(find.text('Set up'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(AccountGroupTile, 'Google Drive'));
+      // The sheet closes, then the sign-in starts; the wait dialog animates,
+      // so settling would never finish.
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
     testWidgets('shows the wait dialog and connects when auth completes', (
       tester,
     ) async {
       final fake = _PendingAuthCloudStorageProvider();
-      await pumpPage(tester, cloudProvider: fake);
+      await pumpPage(
+        tester,
+        cloudProvider: fake,
+        accountGroups: [_driveGroup()],
+      );
 
-      await tester.tap(find.text('Google Drive'));
-      await tester.pump();
+      await chooseDrive(tester);
 
       // The browser-wait dialog is up while authenticate() is pending.
       expect(find.text('Continue in your browser'), findsOneWidget);
@@ -983,10 +1019,13 @@ void main() {
       tester,
     ) async {
       final fake = _PendingAuthCloudStorageProvider();
-      await pumpPage(tester, cloudProvider: fake);
+      await pumpPage(
+        tester,
+        cloudProvider: fake,
+        accountGroups: [_driveGroup()],
+      );
 
-      await tester.tap(find.text('Google Drive'));
-      await tester.pump();
+      await chooseDrive(tester);
 
       final cancelLabel = MaterialLocalizations.of(
         tester.element(find.byType(AlertDialog)),
