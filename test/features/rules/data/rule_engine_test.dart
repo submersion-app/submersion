@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -55,7 +57,7 @@ void main() {
     );
     rules = RuleRepository();
     engine = RuleEngine(
-      names: () async => NameIndex(const []),
+      names: (_) async => NameIndex(const []),
       deviceLabel: () async => 'Test device',
     );
   });
@@ -196,5 +198,55 @@ void main() {
     final run = await RuleRunRepository().getRun(result.runId!);
     expect(run!.deviceLabel, 'Test device');
     expect(run.changedCount, 1);
+  });
+
+  test('names resolve before the transaction opens (no deadlock)', () async {
+    await rule('Cold when deep', depthOver(30), tagCold);
+    // A name index rebuilding OUTSIDE the transaction zone (as the live
+    // provider does) must not be awaited while the transaction holds the
+    // connection lock.
+    final e = RuleEngine(
+      names: (_) {
+        final c = Completer<NameIndex>();
+        Zone.root.run(
+          () => db
+              .customSelect('SELECT 1')
+              .get()
+              .then((_) => c.complete(NameIndex(const []))),
+        );
+        return c.future;
+      },
+      deviceLabel: () async => 'x',
+    );
+    final preview = await e
+        .preview(request())
+        .timeout(const Duration(seconds: 5));
+    expect(preview.changedAnything, isTrue);
+    final run = await e.run(request()).timeout(const Duration(seconds: 5));
+    expect(run.changedAnything, isTrue);
+  });
+
+  test('names are resolved for the request\'s diver', () async {
+    final seen = <String>[];
+    await RuleEngine(
+      names: (diverId) async {
+        seen.add(diverId);
+        return NameIndex(const []);
+      },
+      deviceLabel: () async => 'x',
+    ).preview(request());
+    expect(seen, ['me']);
+  });
+
+  test('a preview notifies nothing', () async {
+    await rule('Cold when deep', depthOver(30), tagCold);
+    await Future<void>.delayed(Duration.zero);
+    var notes = 0;
+    final sub = SyncEventBus.changes.listen((_) => notes++);
+    addTearDown(sub.cancel);
+    final preview = await engine.preview(request());
+    await Future<void>.delayed(Duration.zero);
+    expect(preview.changedAnything, isTrue);
+    expect(notes, 0);
   });
 }

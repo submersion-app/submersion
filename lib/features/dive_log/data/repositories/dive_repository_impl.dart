@@ -7651,7 +7651,13 @@ class DiveRepository {
   }
 
   /// Bulk add tags to multiple dives
-  Future<void> bulkAddTags(List<String> diveIds, List<String> tagIds) async {
+  /// [notify] false leaves the sync notification to the caller (a rules
+  /// run notifies once; its rolled-back preview must not notify at all).
+  Future<void> bulkAddTags(
+    List<String> diveIds,
+    List<String> tagIds, {
+    bool notify = true,
+  }) async {
     if (diveIds.isEmpty || tagIds.isEmpty) return;
 
     try {
@@ -7700,7 +7706,7 @@ class DiveRepository {
           localUpdatedAt: now,
         );
       }
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Bulk added ${tagIds.length} tags to ${diveIds.length} dives');
     } catch (e, stackTrace) {
       _log.error('Failed to bulk add tags', error: e, stackTrace: stackTrace);
@@ -7709,7 +7715,12 @@ class DiveRepository {
   }
 
   /// Bulk remove tags from multiple dives
-  Future<void> bulkRemoveTags(List<String> diveIds, List<String> tagIds) async {
+  /// [notify] as for [bulkAddTags].
+  Future<void> bulkRemoveTags(
+    List<String> diveIds,
+    List<String> tagIds, {
+    bool notify = true,
+  }) async {
     if (diveIds.isEmpty || tagIds.isEmpty) return;
 
     try {
@@ -7736,7 +7747,7 @@ class DiveRepository {
           localUpdatedAt: now,
         );
       }
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
       _log.info(
         'Bulk removed ${tagIds.length} tags from ${diveIds.length} dives',
       );

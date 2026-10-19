@@ -73,14 +73,15 @@ Future<bool> runRulesOnDemand(
     final engine = ref.read(ruleEngineProvider);
     final preview = await engine.preview(request);
     final dives = subject == RuleSubject.dives;
-    if (!preview.changedAnything) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            dives ? l.rules_run_noChangesDives : l.rules_run_noChangesSites,
-          ),
+    void noChanges() => messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          dives ? l.rules_run_noChangesDives : l.rules_run_noChangesSites,
         ),
-      );
+      ),
+    );
+    if (!preview.changedAnything) {
+      noChanges();
       return false;
     }
     final targets = await RuleTargetLabels().infoFor(subject, {
@@ -98,7 +99,11 @@ Future<bool> runRulesOnDemand(
     );
     if (!apply) return false;
     final result = await engine.run(request);
-    if (!result.changedAnything) return false;
+    // Apply recomputes; the data may have moved since the preview.
+    if (!result.changedAnything) {
+      noChanges();
+      return false;
+    }
     final runId = result.runId!;
     messenger.showSnackBar(
       SnackBar(

@@ -211,4 +211,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Matches 1 of your dives'), findsOneWidget);
   });
+
+  testWidgets('renaming a rule whose condition no longer loads keeps it', (
+    tester,
+  ) async {
+    const stored =
+        '{"version":1,"node":{"t":"cond","path":["noSuchField"],'
+        '"op":"eq","value":{"k":"str","v":"x"}}}';
+    late String id;
+    await tester.runAsync(() async {
+      id = await repo.create(
+        diverId: 'me',
+        subject: RuleSubject.dives,
+        name: 'Broken',
+        triggers: const {RuleTrigger.afterImport},
+        condition: null,
+        actions: const [AppendDiveNotesAction('x')],
+      );
+      await db.customStatement(
+        "UPDATE rules SET condition_json = '$stored' WHERE id = '$id'",
+      );
+    });
+    await pumpEditor(tester, ruleId: id);
+    expect(find.textContaining('no longer valid'), findsOneWidget);
+    expect(find.textContaining('matches every dive'), findsNothing);
+    await tester.enterText(find.byKey(const ValueKey('rule_name')), 'Renamed');
+    await save(tester);
+    final row = await tester.runAsync(
+      () => db
+          .customSelect(
+            "SELECT name, condition_json FROM rules WHERE id = '$id'",
+          )
+          .getSingle(),
+    );
+    expect(row!.read<String>('name'), 'Renamed');
+    expect(row.read<String>('condition_json'), stored);
+  });
 }

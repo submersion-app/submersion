@@ -31,7 +31,7 @@ class RuleEngine {
     RuleTargetScope? scope,
     DiveRuleApplier? dives,
     SiteRuleApplier? sites,
-    required Future<NameIndex> Function() names,
+    required Future<NameIndex> Function(String diverId) names,
     Future<String?> Function()? deviceLabel,
   }) : _rules = rules ?? RuleRepository(),
        _runs = runs ?? RuleRunRepository(),
@@ -47,22 +47,27 @@ class RuleEngine {
   final RuleTargetScope _scope;
   final DiveRuleApplier _dives;
   final SiteRuleApplier _sites;
-  final Future<NameIndex> Function() _names;
+  final Future<NameIndex> Function(String diverId) _names;
   final Future<String?> Function() _deviceLabel;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  /// This device's name, asked of the platform once and only when a run
-  /// records history (a hand-saved dive with no rule changes asks nothing).
+  /// This device's name, asked of the platform once per engine and always
+  /// before a transaction opens: nothing awaited inside the transaction may
+  /// need the connection from outside it.
   Future<String?>? _deviceName;
 
   Future<String?> _device() => _deviceName ??= _deviceLabel();
 
   /// What [request] would change, without changing anything.
   Future<RuleRunResult> preview(RuleRunRequest request) async {
+    // Resolved before the transaction: a name index rebuilding outside it
+    // would queue behind the transaction's lock while the transaction
+    // waited for it.
+    final names = await _names(request.diverId);
     try {
       return await _db.transaction<RuleRunResult>(() async {
-        throw _RollbackPreview(await _pass(request));
+        throw _RollbackPreview(await _pass(request, names));
       });
     } on _RollbackPreview catch (p) {
       return p.result;
@@ -72,14 +77,17 @@ class RuleEngine {
   /// Applies [request] and records it in the history when it changed
   /// something.
   Future<RuleRunResult> run(RuleRunRequest request) async {
+    // Both resolved before the transaction (see [preview]).
+    final names = await _names(request.diverId);
+    final device = await _device();
     final result = await _db.transaction(() async {
-      final pass = await _pass(request);
+      final pass = await _pass(request, names);
       if (!pass.changedAnything) return pass;
       final runId = await _runs.insertRun(
         diverId: request.diverId,
         trigger: request.trigger,
         sourceLabel: request.sourceLabel,
-        deviceLabel: await _device(),
+        deviceLabel: device,
         changes: pass.changes,
       );
       return RuleRunResult(
@@ -113,8 +121,7 @@ class RuleEngine {
     };
   }
 
-  Future<RuleRunResult> _pass(RuleRunRequest request) async {
-    final names = await _names();
+  Future<RuleRunResult> _pass(RuleRunRequest request, NameIndex names) async {
     final changes = <RuleChange>[];
     final byRule = <String, Set<String>>{};
     final skipped = <String>[];

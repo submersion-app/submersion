@@ -150,4 +150,24 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('Apply says so when the recomputed run changes nothing', (
+    tester,
+  ) async {
+    await pumpHost(tester);
+    await openPreview(tester);
+    // Between the preview and Apply the dive already gained the type.
+    await tester.runAsync(
+      () => db.customStatement(
+        "INSERT INTO dive_dive_types (id, dive_id, dive_type_id, created_at) "
+        "VALUES ('m1', 'd35', 'deep', 0), ('m2', 'd35', 'recreational', 0)",
+      ),
+    );
+    await tester.tap(find.text('Apply to 1 dive'));
+    await settle(tester);
+    expect(
+      find.text('No changes: these dives already match your rules.'),
+      findsOneWidget,
+    );
+  });
 }

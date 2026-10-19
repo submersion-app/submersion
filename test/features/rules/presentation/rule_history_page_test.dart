@@ -52,7 +52,7 @@ void main() {
     await db.customStatement("UPDATE dives SET water_type = 'fresh'");
     final r =
         await RuleEngine(
-          names: () async => NameIndex(const []),
+          names: (_) async => NameIndex(const []),
           deviceLabel: () async => 'MacBook',
         ).run(
           RuleRunRequest(

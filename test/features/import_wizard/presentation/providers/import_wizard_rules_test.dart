@@ -83,7 +83,7 @@ void main() {
     await seedRuleDive(db, 'd35', maxDepth: 35);
     await seedRuleDive(db, 'o40', diver: 'other', maxDepth: 40);
     await seedRuleSite(db, 's1');
-    engine = RuleEngine(names: () async => NameIndex(const []));
+    engine = RuleEngine(names: (_) async => NameIndex(const []));
   });
   tearDown(tearDownTestDatabase);
 

@@ -1,4 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/query/data/name_index_loader.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
@@ -30,7 +34,18 @@ final ruleTargetScopeProvider = Provider<RuleTargetScope>(
 
 // no-tick: a stateless service; each run reads the live name index.
 final ruleEngineProvider = Provider<RuleEngine>(
-  (ref) => RuleEngine(names: () => ref.read(queryNameIndexProvider.future)),
+  (ref) => RuleEngine(
+    // The active profile's live index; another profile's rules (a
+    // multi-diver import) resolve against that profile's own names.
+    names: (diverId) async {
+      final active = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId == active) return ref.read(queryNameIndexProvider.future);
+      return NameIndexLoader(DatabaseService.instance.database).load(
+        diverId: diverId,
+        l10n: l10nForLocaleTag(ref.read(localeProvider)),
+      );
+    },
+  ),
 );
 
 // no-tick: a stateless service; callers read it on demand.

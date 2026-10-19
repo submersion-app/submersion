@@ -65,10 +65,15 @@ class RuleUndoService {
       return const RuleUndoResult(alreadyUndone: true);
     }
     final changes = await _runs.getChanges(runId);
+    // The run synced but its change rows have not arrived yet: nothing to
+    // undo here so far, and the run must stay undoable.
+    if (changes.isEmpty && run.changedCount > 0) {
+      return const RuleUndoResult(nothingYet: true);
+    }
     final result = await _db.transaction(() async {
       final byTarget = <String, Set<_Outcome>>{};
       for (final c in changes) {
-        final outcome = await _undoOne(c);
+        final outcome = await _undoInSavepoint(c);
         byTarget
             .putIfAbsent('${c.subject.name}:${c.targetId}', () => {})
             .add(outcome);
@@ -92,6 +97,17 @@ class RuleUndoService {
     });
     if (!result.nothingYet) SyncEventBus.notifyLocalChange();
     return result;
+  }
+
+  /// Undoes [c] in its own savepoint, so a change that can no longer be
+  /// written (its old trip or dive centre was deleted since) is left alone
+  /// and counted as edited instead of failing the whole undo.
+  Future<_Outcome> _undoInSavepoint(RuleChange c) async {
+    try {
+      return await _db.transaction(() => _undoOne(c));
+    } on Object {
+      return _Outcome.edited;
+    }
   }
 
   Future<_Outcome> _undoOne(RuleChange c) async {

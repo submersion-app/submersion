@@ -51,7 +51,7 @@ void main() {
       "VALUES ('cold', 'Cold', 0, 0)",
     );
     rules = RuleRepository();
-    engine = RuleEngine(names: () async => NameIndex(const []));
+    engine = RuleEngine(names: (_) async => NameIndex(const []));
   });
   tearDown(tearDownTestDatabase);
 
@@ -195,5 +195,34 @@ void main() {
     expect(changes.first.ruleName, 'Salty');
     final result = await undo.undo(run);
     expect(result.restoredTargets, 2);
+  });
+
+  test('a run whose changes have not synced yet stays undoable', () async {
+    final run = await runRule(
+      const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),
+    );
+    await db.customStatement('DELETE FROM rule_run_changes');
+    final result = await undo.undo(run);
+    expect(result.nothingYet, isTrue);
+    expect((await RuleRunRepository().getRun(run))!.isUndone, isFalse);
+  });
+
+  test('a change that can no longer be written is skipped, not fatal', () async {
+    await db.customStatement(
+      "INSERT INTO trips (id, name, start_date, end_date, created_at, "
+      "updated_at) VALUES ('t1', 'Old', 0, 0, 0, 0), ('t2', 'New', 0, 0, 0, 0)",
+    );
+    await db.customStatement("UPDATE dives SET trip_id = 't1'");
+    final run = await runRule(
+      const SetDiveFieldAction(BulkField.trip, {'tripId': 't2'}),
+    );
+    // The trip the dives were on before is gone; restoring it would break
+    // the foreign key.
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    await db.customStatement("DELETE FROM trips WHERE id = 't1'");
+    await db.customStatement('PRAGMA foreign_keys = ON');
+    final result = await undo.undo(run);
+    expect(result.skippedEditedTargets, 2);
+    expect(await column('d35', 'trip_id'), 't2');
   });
 }

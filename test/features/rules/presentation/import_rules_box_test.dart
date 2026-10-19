@@ -50,7 +50,7 @@ void main() {
         ]),
       ],
     );
-    run = await RuleEngine(names: () async => NameIndex(const [])).run(
+    run = await RuleEngine(names: (_) async => NameIndex(const [])).run(
       const RuleRunRequest(
         diverId: 'me',
         trigger: RuleRunTrigger.imported,

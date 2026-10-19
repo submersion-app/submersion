@@ -184,8 +184,8 @@ class DiveRuleApplier {
             : await _dives.bulkRemoveDiveTypes(diveIds, ids);
       case DiveCollection.tags:
         add
-            ? await _dives.bulkAddTags(diveIds, ids)
-            : await _dives.bulkRemoveTags(diveIds, ids);
+            ? await _dives.bulkAddTags(diveIds, ids, notify: false)
+            : await _dives.bulkRemoveTags(diveIds, ids, notify: false);
       case DiveCollection.equipment:
         add
             ? await _dives.bulkAddEquipment(diveIds, ids)

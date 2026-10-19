@@ -46,6 +46,10 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
   RuleSubject _subject = RuleSubject.dives;
   Set<RuleTrigger> _triggers = {RuleTrigger.afterImport};
   QueryNode? _condition;
+
+  /// Whether the diver edited the condition. A rule whose stored condition
+  /// did not load keeps that JSON on save unless they did.
+  bool _conditionTouched = false;
   List<RuleAction> _actions = [];
 
   bool get _isNew => widget.ruleId == null;
@@ -119,7 +123,7 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          if (_readOnly)
+          if (_readOnly || _original?.problem != null)
             _Banner(
               text:
                   (_original == null
@@ -177,7 +181,10 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
               key: ValueKey('rule_condition_${_subject.name}'),
               root: appQueryRegistry.entityFor(_subject.querySubject),
               value: _condition,
-              onChanged: (n) => setState(() => _condition = n),
+              onChanged: (n) => setState(() {
+                _condition = n;
+                _conditionTouched = true;
+              }),
             ),
           ),
           const SizedBox(height: 8),
@@ -232,7 +239,10 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
         )
         .value;
     final dives = _subject == RuleSubject.dives;
-    final text = _condition == null
+    final unloaded = _original?.problem != null && !_conditionTouched;
+    final text = unloaded
+        ? ''
+        : _condition == null
         ? (dives
               ? l10n.rules_edit_matchesEveryDive
               : l10n.rules_edit_matchesEverySite)
@@ -307,9 +317,9 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
             condition: _condition,
             clearCondition: _condition == null,
             actions: _actions,
-            // The diver rewrote the condition and actions, so what is saved
-            // is what the editor shows.
-            clearProblem: true,
+            // A condition that did not load is kept as stored unless the
+            // diver edited it; what they edited is saved as shown.
+            clearProblem: _conditionTouched || _original!.problem == null,
           ),
         );
       }
