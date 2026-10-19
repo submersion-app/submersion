@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/adapters/dropbox_account_adapter.dart';
@@ -16,6 +17,16 @@ final connectedAccountsRepositoryProvider =
     Provider<ConnectedAccountsRepository>(
       (ref) => ConnectedAccountsRepository(),
     );
+
+/// The name the account [id] is shown under (issue #3522): the diver's
+/// nickname, else its label with a well-known service's host named. Null
+/// when the roster has no such row. Follows renames and syncs.
+final accountDisplayNameProvider = FutureProvider.autoDispose
+    .family<String?, String>((ref, id) async {
+      final repository = ref.watch(connectedAccountsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchAccountsChanges());
+      return (await repository.getById(id))?.displayName;
+    });
 
 /// Per-account keychain access. Overridable so widget tests can supply an
 /// in-memory keychain (the real one has no platform channel under test).

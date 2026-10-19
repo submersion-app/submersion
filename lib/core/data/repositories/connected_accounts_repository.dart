@@ -186,6 +186,26 @@ class ConnectedAccountsRepository {
     await _markPending(id, now);
   }
 
+  /// Gives the account the short name the diver chose (issue #3522), or
+  /// clears it when [nickname] is null or blank, and marks the row pending
+  /// so the name reaches every device. An unchanged name writes nothing,
+  /// so saving the dialog as it stands stamps no new HLC.
+  Future<void> setNickname(String id, String? nickname) async {
+    final trimmed = nickname?.trim();
+    final value = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+    final row = await (_db.select(
+      _db.connectedAccounts,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null || row.nickname == value) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.connectedAccounts,
+    )..where((t) => t.id.equals(id))).write(
+      ConnectedAccountsCompanion(nickname: Value(value), updatedAt: Value(now)),
+    );
+    await _markPending(id, now);
+  }
+
   Future<void> delete(String id) async {
     await (_db.delete(
       _db.connectedAccounts,
@@ -229,6 +249,7 @@ class ConnectedAccountsRepository {
         row.updatedAt,
         isUtc: true,
       ),
+      nickname: row.nickname,
     );
   }
 }

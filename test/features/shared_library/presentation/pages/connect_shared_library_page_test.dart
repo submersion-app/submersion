@@ -371,10 +371,8 @@ void main() {
 
     expect(setup.s3.single.bucket, 'submersion-sync');
     expect(setup.folders, ['reef']);
-    expect(
-      find.text('submersion-sync @ s3.eu-west-1.amazonaws.com'),
-      findsOneWidget,
-    );
+    // The picker names the account by its short name (issue #3522).
+    expect(find.text('submersion-sync @ Amazon S3'), findsOneWidget);
     expect(find.byKey(const Key('library-prefix')), findsOneWidget);
     expect(find.text('Save account'), findsNothing);
   });

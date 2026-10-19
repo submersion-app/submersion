@@ -11,6 +11,7 @@ import 'package:submersion/core/services/media_store/media_store_attach_state.da
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/account_rename_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
@@ -166,15 +167,23 @@ class _AccountTile extends ConsumerWidget {
       ),
     };
     final usages = this.usages;
+    final name = account.displayName;
+    // The full address stays visible under a short name (issue #3522), so
+    // two accounts on one service can still be told apart.
+    final showsAddress = name != account.label;
+    final secondaryStyle = theme.textTheme.bodySmall?.copyWith(
+      color: colorScheme.onSurfaceVariant,
+    );
 
     return ListTile(
       leading: Icon(_icon),
-      title: Text(account.label),
-      isThreeLine: usages != null,
+      title: Text(name),
+      isThreeLine: usages != null || showsAddress,
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (showsAddress) Text(account.label, style: secondaryStyle),
           Text(
             account.accountIdentifier == null
                 ? statusText
@@ -188,9 +197,7 @@ class _AccountTile extends ConsumerWidget {
                   : l10n.settings_connectedAccounts_usage_label(
                       usages.map((u) => usageName(l10n, u)).join(', '),
                     ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: secondaryStyle,
             ),
         ],
       ),
@@ -199,6 +206,15 @@ class _AccountTile extends ConsumerWidget {
           // Removing the row rebuilds the list and can dispose this tile
           // before the refresh below; the container outlives it.
           final container = ProviderScope.containerOf(context, listen: false);
+          if (choice == 'rename') {
+            final nickname = await showAccountRenameDialog(context, account);
+            if (nickname == null) return;
+            // The roster ticks on the write, so the rows refresh themselves.
+            await container
+                .read(connectedAccountsRepositoryProvider)
+                .setNickname(account.id, nickname);
+            return;
+          }
           final registry = ref.read(accountProviderRegistryProvider);
           final adapter = registry.capabilityFor<AccountProviderAdapter>(
             account.kind,
@@ -218,7 +234,7 @@ class _AccountTile extends ConsumerWidget {
                       used == null
                           ? l10n.settings_connectedAccounts_usage_unknown
                           : l10n.settings_connectedAccounts_signOutConfirmBody(
-                              account.label,
+                              name,
                             ),
                     ],
                     usages: used ?? const [],
@@ -265,6 +281,10 @@ class _AccountTile extends ConsumerWidget {
           }
         },
         itemBuilder: (_) => [
+          PopupMenuItem(
+            value: 'rename',
+            child: Text(l10n.settings_connectedAccounts_rename),
+          ),
           if (status == AccountStatus.signedIn)
             PopupMenuItem(
               value: 'signOut',

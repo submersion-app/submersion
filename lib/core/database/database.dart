@@ -1272,9 +1272,12 @@ class AppDatabase extends _$AppDatabase {
     // column, so the floor stays at 280.
     292,
     294,
+    // v295: connected_accounts.nickname (issue #3522). Additive nullable
+    // column, so the floor stays at 280.
+    295,
     // v296: logbook rules, rule_runs and rule_run_changes (issue #3513).
     // Additive tables, so the floor stays at 280. Renumbered from 292 as
-    // #3481 and #3502 shipped 292 and 294, #3482 holds 293 and #3524 295.
+    // #3481 and #3502 shipped 292 and 294, #3482 holds 293 and #3522 shipped 295.
     296,
   ];
 

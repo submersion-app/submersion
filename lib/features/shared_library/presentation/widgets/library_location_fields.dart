@@ -147,7 +147,7 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
               for (final a in list)
                 DropdownMenuItem(
                   value: a,
-                  child: Text(a.label, overflow: TextOverflow.ellipsis),
+                  child: Text(a.displayName, overflow: TextOverflow.ellipsis),
                 ),
             ],
             onChanged: widget.enabled
