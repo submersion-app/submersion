@@ -62,14 +62,14 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
             item.mediaType == MediaType.video);
     final diverAuto = onDive && ref.watch(diverAutoColorCorrectionProvider);
 
-    // A dive photo read without its profile match (the library's lean rows)
-    // gets it from the database before the automatic fix is worked out, so
-    // its depth and surface check match the dive's own grid. No fix until
-    // it has answered: guessing without depth could warm a surface shot.
+    // A dive photo or video read without its profile match (the library's
+    // lean rows) gets it from the database before the automatic fix is
+    // worked out, so its depth, surface check and (for a video) the depth
+    // through the clip match the dive's own grid. No fix until it has
+    // answered: guessing without depth could warm a surface shot.
     var placed = item;
     var placementKnown = true;
-    if (!item.isVideo &&
-        item.enrichment == null &&
+    if (item.enrichment == null &&
         autoEnabledFor(
           item,
           adjustment: adjustment,
@@ -95,7 +95,7 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
                       // Only a file already on this device: a grid never
                       // fetches a whole video to colour its tile.
                       videoColorTrackProvider(
-                        VideoTrackKey(item, path: item.localPath),
+                        VideoTrackKey(placed, path: item.localPath),
                       ),
                     )
                     .value

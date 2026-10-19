@@ -12,6 +12,7 @@ import 'package:submersion/features/media/domain/color/video_color_track.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
+import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/color_corrected.dart';
 
 Uint8List blueRgba() => Uint8List.fromList([
@@ -174,6 +175,49 @@ void main() {
         ),
       );
     });
+  });
+
+  testWidgets('a lean video row builds its track with the stored match', (
+    tester,
+  ) async {
+    final keys = <VideoTrackKey>[];
+    final container = ProviderContainer(
+      overrides: [
+        diverAutoColorCorrectionProvider.overrideWithValue(true),
+        colorAnalysisServiceProvider.overrideWithValue(
+          ColorAnalysisService(decodeRgba: (_) async => blueRgba()),
+        ),
+        colorEnrichmentProvider.overrideWith(
+          (ref, id) async => MediaEnrichment(
+            id: 'e1',
+            mediaId: 'm1',
+            diveId: 'd1',
+            depthMeters: 20,
+            elapsedSeconds: 600,
+            matchConfidence: MatchConfidence.interpolated,
+            createdAt: DateTime.utc(2026),
+          ),
+        ),
+        videoColorTrackProvider.overrideWith((ref, key) async {
+          keys.add(key);
+          return null;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: ColorCorrected(
+          item: item(type: MediaType.video, depth: null),
+          analysisSource: source,
+          child: const SizedBox(width: 10, height: 10),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(keys.last.item.enrichment?.elapsedSeconds, 600);
   });
 
   testWidgets('media on no dive is left alone with auto on', (tester) async {

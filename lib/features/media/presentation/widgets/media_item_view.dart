@@ -367,17 +367,23 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       cacheWidth: cacheWidth,
       file: file,
     );
-    final provider = MediaTileImageMemo.providerFor(file, cacheWidth);
-    return _corrected(
-      provider,
-      Image(image: provider, fit: widget.fit, errorBuilder: _imageError),
-    );
+    return _correctedImage(MediaTileImageMemo.providerFor(file, cacheWidth));
   }
 
-  /// [image] drawn with the item's colour correction (issue #3520); the
-  /// placeholders and error tiles never pass through here.
-  Widget _corrected(ImageProvider source, Widget image) =>
-      ColorCorrected(item: widget.item, analysisSource: source, child: image);
+  /// [provider]'s image drawn with the item's colour correction (issue
+  /// #3520). Only the decoded frame goes through the filter: the broken-image
+  /// tile from [Image.errorBuilder] replaces the frame and is drawn as is.
+  Widget _correctedImage(ImageProvider provider) => Image(
+    image: provider,
+    fit: widget.fit,
+    errorBuilder: _imageError,
+    frameBuilder: (context, child, frame, synchronouslyLoaded) =>
+        ColorCorrected(
+          item: widget.item,
+          analysisSource: provider,
+          child: child,
+        ),
+  );
 
   /// Whether this view fills a full-screen viewer page rather than a tile.
   ///
@@ -457,14 +463,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
                   cacheWidth: cacheWidth,
                 );
           if (remembered != null) {
-            return _corrected(
-              remembered,
-              Image(
-                image: remembered,
-                fit: widget.fit,
-                errorBuilder: _imageError,
-              ),
-            );
+            return _correctedImage(remembered);
           }
           return _loading();
         }
@@ -492,30 +491,28 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           FileData(isPoster: false) when widget.item.isVideo =>
             const _VideoThumbnailPlaceholder(),
           FileData(file: final f) => _fileImage(memo, f, cacheWidth),
-          NetworkData(url: final u, headers: final h) => _corrected(
-            CachedNetworkImageProvider(u.toString(), headers: h),
-            CachedNetworkImage(
-              imageUrl: u.toString(),
-              httpHeaders: h,
-              fit: widget.fit,
-              // The same decode bound as the file and bytes branches: without
-              // it a served original decodes at native size, and the viewers
-              // keep a neighbour built either side of the current page.
-              memCacheWidth: cacheWidth,
-              placeholder: (_, _) => _loading(),
-              errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
-                data: UnavailableData(kind: UnavailableKind.networkError),
-              ),
+          NetworkData(url: final u, headers: final h) => CachedNetworkImage(
+            imageUrl: u.toString(),
+            httpHeaders: h,
+            fit: widget.fit,
+            // The same decode bound as the file and bytes branches: without
+            // it a served original decodes at native size, and the viewers
+            // keep a neighbour built either side of the current page.
+            memCacheWidth: cacheWidth,
+            // Only the loaded image is colour corrected; the placeholder and
+            // the error tile below are drawn as they are (issue #3520).
+            imageBuilder: (context, provider) => ColorCorrected(
+              item: widget.item,
+              analysisSource: provider,
+              child: Image(image: provider, fit: widget.fit),
+            ),
+            placeholder: (_, _) => _loading(),
+            errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
+              data: UnavailableData(kind: UnavailableKind.networkError),
             ),
           ),
-          BytesData(bytes: final b) => _corrected(
-            MemoryImage(b),
-            Image.memory(
-              b,
-              fit: widget.fit,
-              cacheWidth: cacheWidth,
-              errorBuilder: _imageError,
-            ),
+          BytesData(bytes: final b) => _correctedImage(
+            ResizeImage.resizeIfNeeded(cacheWidth, null, MemoryImage(b)),
           ),
           UnavailableData(kind: UnavailableKind.stillFetching) =>
             GestureDetector(

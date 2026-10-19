@@ -76,6 +76,11 @@ void main() {
       colorStatsKey(a),
       isNot(colorStatsKey(a.copyWith(platformAssetId: 'asset-2'))),
     );
+    // A repair or re-upload can replace the pixels at the same path.
+    expect(
+      colorStatsKey(a.copyWith(contentHash: 'sha-1')),
+      isNot(colorStatsKey(a.copyWith(contentHash: 'sha-2'))),
+    );
   });
 
   testWidgets('effectiveAdjustment prefers the draft', (tester) async {

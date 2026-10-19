@@ -102,10 +102,11 @@ void main() {
       filtered.colorFilter,
       ColorFilter.matrix(composeCorrection(adjustment: _warm).values),
     );
+    // Only the decoded frame is filtered, inside the Image.
     expect(
       find.descendant(
         of: find.byType(ColorFiltered),
-        matching: find.byType(Image),
+        matching: find.byType(RawImage),
       ),
       findsOneWidget,
     );
@@ -179,6 +180,20 @@ void main() {
     );
     await tester.pump();
     expect(resolver.calls, 1);
+  });
+
+  testWidgets('a broken image tile is never filtered', (tester) async {
+    await pump(
+      tester,
+      BytesData(bytes: Uint8List.fromList([1, 2, 3, 4])),
+      _item(),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+    expect(find.byIcon(Icons.broken_image_outlined), findsOneWidget);
+    expect(find.byType(ColorFiltered), findsNothing);
   });
 
   testWidgets('a placeholder is never filtered', (tester) async {

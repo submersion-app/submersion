@@ -106,15 +106,20 @@ Future<void> applyPickedWhite(
     );
     return;
   }
-  final current = effectiveAdjustment(ref, item) ?? const ColorAdjustment();
+  final draft = ref.read(colorAdjustmentDraftProvider(item.id).notifier);
+  final previousDraft = ref.read(colorAdjustmentDraftProvider(item.id));
+  final current =
+      previousDraft ?? item.colorAdjustment ?? const ColorAdjustment();
   final next = current.copyWith(whitePoint: sample);
-  ref.read(colorAdjustmentDraftProvider(item.id).notifier).set(next);
+  draft.set(next);
   try {
     await ref
         .read(mediaColorAdjustmentRepositoryProvider)
         .setColorAdjustment(item.id, next);
   } catch (e, stackTrace) {
     _log.error('Saving a white point failed', error: e, stackTrace: stackTrace);
+    // Not saved, so not drawn: the photo goes back to what is stored.
+    draft.set(previousDraft);
     messenger?.showSnackBar(
       SnackBar(content: Text(l10n.media_color_saveFailed)),
     );

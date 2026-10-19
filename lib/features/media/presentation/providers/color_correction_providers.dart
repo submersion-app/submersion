@@ -76,8 +76,10 @@ class ColorPeekOriginal extends Notifier<String?> {
 ColorAdjustment? effectiveAdjustment(WidgetRef ref, MediaItem item) =>
     ref.watch(colorAdjustmentDraftProvider(item.id)) ?? item.colorAdjustment;
 
-/// Cache key for an item's colour statistics: the item and where its pixels
-/// come from, so relinking the file re-analyses it but saving an adjustment
-/// (which bumps updatedAt) does not.
+/// Cache key for an item's colour statistics: the item, where its pixels
+/// come from and their content hash, so relinking, repairing or re-uploading
+/// the file re-analyses it but saving an adjustment (which bumps updatedAt)
+/// does not.
 String colorStatsKey(MediaItem item) =>
-    '${item.id}|${item.filePath}|${item.localPath}|${item.platformAssetId}';
+    '${item.id}|${item.filePath}|${item.localPath}|${item.platformAssetId}'
+    '|${item.contentHash}';
