@@ -53405,6 +53405,41 @@ class AppLocalizationsHu extends AppLocalizations {
   String get rules_run_undo => 'Undo this run';
 
   @override
+  String rules_import_changedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rules changed $count of these dives',
+      one: 'Rules changed $count of these dives',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_import_changedSites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rules changed $count of these sites',
+      one: 'Rules changed $count of these sites',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rules_import_seeChanges => 'See changes';
+
+  @override
+  String get rules_import_undo => 'Undo rule changes';
+
+  @override
+  String get rules_import_undoNote => 'Undo keeps the imported dives.';
+
+  @override
+  String get rules_import_failed =>
+      'Dives imported, but your rules could not run.';
+
+  @override
   String get settings_manage_savedQueries => 'Mentett lekérdezések';
 
   @override

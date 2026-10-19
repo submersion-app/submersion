@@ -12,6 +12,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/rules/presentation/widgets/import_rules_box.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_diver_outcomes.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/undo_fills_button.dart';
@@ -334,6 +335,16 @@ class _SuccessView extends StatelessWidget {
               for (final outcome in fileOutcomes)
                 _FileOutcomeRow(outcome: outcome),
             ],
+            // What the diver's logbook rules changed (#3513).
+            Consumer(
+              builder: (context, ref, _) {
+                final state = ref.watch(importWizardNotifierProvider);
+                return ImportRulesBox(
+                  runs: state.ruleRuns,
+                  failed: state.rulesFailed,
+                );
+              },
+            ),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

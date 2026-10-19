@@ -967,6 +967,7 @@ class UniversalAdapter implements ImportSourceAdapter {
             isNew: newSourceKey != null,
             isActive: diverId == activeDiverId,
             diveIds: sliceResult.diveIds,
+            siteIds: sliceResult.siteIds,
           ),
         );
       } catch (e, stackTrace) {
@@ -1354,6 +1355,12 @@ class UniversalAdapter implements ImportSourceAdapter {
           : [
               for (final outcome in diverOutcomes)
                 if (outcome.isActive) ...outcome.diveIds,
+            ],
+      importedSiteIds: diverOutcomes.isEmpty
+          ? result.siteIds
+          : [
+              for (final outcome in diverOutcomes)
+                if (outcome.isActive) ...outcome.siteIds,
             ],
       fileOutcomes: fileOutcomes,
       attachedPhotoCount: attachedPhotos + resolvedPhotos + additional.attached,

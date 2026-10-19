@@ -106,6 +106,7 @@ UddfEntityImportResult addSliceResult(
     dives: total.dives + result.dives,
     courses: total.courses + result.courses,
     diveIds: [...total.diveIds, ...result.diveIds],
+    siteIds: [...total.siteIds, ...result.siteIds],
     diveIdByIndex: {
       ...total.diveIdByIndex,
       ...slice.toGlobalMap(ui.ImportEntityType.dives, result.diveIdByIndex),

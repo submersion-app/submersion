@@ -298,6 +298,10 @@ class UddfEntityImportResult {
   final int fills;
   final List<String> diveIds;
 
+  /// The sites this import created (not those it matched to existing
+  /// sites), so logbook rules can run on them afterwards (#3513).
+  final List<String> siteIds;
+
   /// The persisted dive id created for each imported source-dive index.
   ///
   /// Keyed by the index into the `dives` list passed to [import] (the same
@@ -324,6 +328,7 @@ class UddfEntityImportResult {
     this.courses = 0,
     this.fills = 0,
     this.diveIds = const [],
+    this.siteIds = const [],
     this.diveIdByIndex = const {},
     this.restoredDataSources = 0,
   });
@@ -774,6 +779,7 @@ class UddfEntityImporter {
             diverId,
           );
 
+    final createdSiteIds = <String>[];
     final sitesCount = stopped()
         ? 0
         : await _importSites(
@@ -784,6 +790,7 @@ class UddfEntityImporter {
             diverId,
             siteIdMapping,
             onProgress,
+            createdSiteIds: createdSiteIds,
             restoreSiteChildren: (siteData, siteId) async {
               // A library site this profile may not edit keeps the
               // library's lists (issue #2567).
@@ -897,6 +904,7 @@ class UddfEntityImporter {
       courses: coursesCount,
       fills: fillsCount,
       diveIds: divesResult.diveIds,
+      siteIds: createdSiteIds,
       diveIdByIndex: divesResult.diveIdByIndex,
       restoredDataSources: divesResult.restoredDataSources,
     );
@@ -1888,6 +1896,7 @@ class UddfEntityImporter {
     Future<void> Function(Map<String, dynamic> siteData, String siteId)?
     restoreSiteChildren,
     ImportCancellationToken? cancelToken,
+    List<String>? createdSiteIds,
   }) async {
     // For deselected sites (duplicates the user chose not to re-import),
     // resolve their UDDF IDs to existing database sites so that dives
@@ -2110,6 +2119,7 @@ class UddfEntityImporter {
       );
 
       final createdSite = await repository.createSite(newSite);
+      createdSiteIds?.add(createdSite.id);
 
       // Write MacDive site metadata columns that don't flow through the
       // DiveSite domain entity. Only set columns when source provides a value.

@@ -85268,6 +85268,42 @@ abstract class AppLocalizations {
   /// **'Undo this run'**
   String get rules_run_undo;
 
+  /// Import summary: how many imported dives the rules changed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Rules changed {count} of these dives} other{Rules changed {count} of these dives}}'**
+  String rules_import_changedDives(int count);
+
+  /// Import summary: how many imported sites the rules changed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Rules changed {count} of these sites} other{Rules changed {count} of these sites}}'**
+  String rules_import_changedSites(int count);
+
+  /// Import summary button that opens the rules' change list
+  ///
+  /// In en, this message translates to:
+  /// **'See changes'**
+  String get rules_import_seeChanges;
+
+  /// Import summary button that undoes the rules' changes
+  ///
+  /// In en, this message translates to:
+  /// **'Undo rule changes'**
+  String get rules_import_undo;
+
+  /// Note under the import summary's undo button
+  ///
+  /// In en, this message translates to:
+  /// **'Undo keeps the imported dives.'**
+  String get rules_import_undoNote;
+
+  /// Import summary warning when the rules failed
+  ///
+  /// In en, this message translates to:
+  /// **'Dives imported, but your rules could not run.'**
+  String get rules_import_failed;
+
   /// Settings > Manage entry
   ///
   /// In en, this message translates to:

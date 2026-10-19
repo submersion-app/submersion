@@ -310,6 +310,13 @@ List<Override> _fullOverrides({
 }) {
   final diveRepo = mockDiveRepo ?? MockDiveRepository();
   final siteRepo = mockSiteRepo ?? MockSiteRepository();
+  if (mockSiteRepo == null) {
+    // The importer reads a created site's id (#3513), so the default mock
+    // hands back the site it was given rather than an unstubbed fake.
+    when(siteRepo.createSite(any)).thenAnswer(
+      (invocation) async => invocation.positionalArguments[0] as DiveSite,
+    );
+  }
   final tripRepo = mockTripRepo ?? MockTripRepository();
   final equipmentRepo = mockEquipmentRepo ?? MockEquipmentRepository();
   final equipmentSetRepo = mockEquipmentSetRepo ?? MockEquipmentSetRepository();

@@ -18,6 +18,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_step_fail
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/domain/services/step_skip_calculator.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
@@ -85,6 +86,7 @@ class _UnifiedImportWizardState extends State<UnifiedImportWizard> {
               (ref) => ImportWizardNotifier(
                 _adapter,
                 tagRepository: ref.read(tagRepositoryProvider),
+                ruleEngine: ref.read(ruleEngineProvider),
               ),
         ),
       ],
