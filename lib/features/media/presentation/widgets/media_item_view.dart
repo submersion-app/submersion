@@ -156,8 +156,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       old.thumbnail != widget.thumbnail ||
       old.targetSize != widget.targetSize;
 
+  // The profile match does not choose the pixels either: a viewer page
+  // that hydrates a lean library row gains it a moment after opening.
   static MediaItem _resolutionInputs(MediaItem item) => item.copyWith(
     colorAdjustment: null,
+    enrichment: null,
     updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
   );
 

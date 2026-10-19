@@ -16,6 +16,7 @@ import 'package:submersion/features/media/presentation/providers/color_correctio
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
@@ -268,30 +269,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                     ),
                   ),
 
-                  if (_pickingWhite)
-                    Positioned(
-                      top: MediaQuery.paddingOf(context).top + 12,
-                      left: 16,
-                      right: 16,
-                      child: IgnorePointer(
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              context.l10n.media_color_pickWhiteHint,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  if (_pickingWhite) const PickWhiteHint(),
 
                   if (_showOverlay && !isFullscreen && !_pickingWhite) ...[
                     _TopOverlay(

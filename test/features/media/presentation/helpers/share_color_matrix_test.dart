@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
 import 'package:submersion/features/media/data/services/color_analysis_service.dart';
 import 'package:submersion/features/media/domain/color/auto_correction.dart';
 import 'package:submersion/features/media/domain/color/channel_stats.dart';
@@ -28,6 +29,7 @@ MediaItem item({
   MediaType type = MediaType.photo,
   ColorAdjustment? adjustment,
   String filename = 'reef.jpg',
+  bool lean = false,
 }) => MediaItem(
   id: 'm1',
   diveId: 'd1',
@@ -38,15 +40,17 @@ MediaItem item({
   createdAt: DateTime.utc(2026),
   updatedAt: DateTime.utc(2026),
   colorAdjustment: adjustment,
-  enrichment: MediaEnrichment(
-    id: 'e1',
-    mediaId: 'm1',
-    diveId: 'd1',
-    depthMeters: 18,
-    elapsedSeconds: 600,
-    matchConfidence: MatchConfidence.interpolated,
-    createdAt: DateTime.utc(2026),
-  ),
+  enrichment: lean
+      ? null
+      : MediaEnrichment(
+          id: 'e1',
+          mediaId: 'm1',
+          diveId: 'd1',
+          depthMeters: 18,
+          elapsedSeconds: 600,
+          matchConfidence: MatchConfidence.interpolated,
+          createdAt: DateTime.utc(2026),
+        ),
 );
 
 /// Issue #3520: a shared photo carries its correction; a video does not.
@@ -81,12 +85,16 @@ void main() {
     WidgetTester tester,
     Future<T> Function(WidgetRef ref) body, {
     bool diverAuto = false,
+    MediaEnrichment? stored,
   }) async {
     late WidgetRef widgetRef;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           diverAutoColorCorrectionProvider.overrideWithValue(diverAuto),
+          mediaColorAdjustmentRepositoryProvider.overrideWithValue(
+            _StoredEnrichment(stored),
+          ),
           colorAnalysisServiceProvider.overrideWithValue(
             ColorAnalysisService(decodeRgba: (_) async => _blueRgba),
           ),
@@ -139,6 +147,27 @@ void main() {
         depthMeters: 18,
       ).toMatrix(),
     );
+  });
+
+  testWidgets('a lean library row uses its stored match (surface shot)', (
+    tester,
+  ) async {
+    final m = await withRef(
+      tester,
+      (ref) => shareColorMatrixFor(ref, item(lean: true), _blue),
+      diverAuto: true,
+      stored: MediaEnrichment(
+        id: 'e1',
+        mediaId: 'm1',
+        diveId: 'd1',
+        depthMeters: 0.3,
+        elapsedSeconds: 3700,
+        matchConfidence: MatchConfidence.estimated,
+        timestampOffsetSeconds: 400,
+        createdAt: DateTime.utc(2026),
+      ),
+    );
+    expect(m.isIdentity, isTrue);
   });
 
   testWidgets('an adjusted photo is shared as a corrected JPEG', (
@@ -197,4 +226,17 @@ void main() {
     );
     expect(await read(tester, file.path), bytes);
   });
+}
+
+/// Answers the stored-match lookup with [stored]; nothing else is used.
+class _StoredEnrichment implements MediaColorAdjustmentRepository {
+  _StoredEnrichment(this.stored);
+
+  final MediaEnrichment? stored;
+
+  @override
+  Future<MediaEnrichment?> enrichmentFor(String mediaId) async => stored;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -143,6 +143,44 @@ void main() {
     expect(find.byType(ColorFiltered), findsOneWidget);
   });
 
+  testWidgets('hydrating a lean row with its enrichment does not reload', (
+    tester,
+  ) async {
+    final resolver = _StubResolver(BytesData(bytes: png));
+    Widget view(MediaItem item) => ProviderScope(
+      overrides: [
+        mediaSourceResolverRegistryProvider.overrideWithValue(
+          MediaSourceResolverRegistry({
+            MediaSourceType.platformGallery: resolver,
+          }),
+        ),
+        diverAutoColorCorrectionProvider.overrideWithValue(false),
+      ],
+      child: MaterialApp(home: MediaItemView(item: item)),
+    );
+    // The library hands the viewer a lean row; the page then reads the
+    // full row, which adds the profile match.
+    await tester.pumpWidget(view(_item(adjustment: null)));
+    await tester.pump();
+    await tester.pumpWidget(
+      view(
+        _item(adjustment: null).copyWith(
+          enrichment: MediaEnrichment(
+            id: 'e',
+            mediaId: 'x',
+            diveId: 'd',
+            depthMeters: 12,
+            elapsedSeconds: 300,
+            matchConfidence: MatchConfidence.interpolated,
+            createdAt: DateTime.utc(2024),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(resolver.calls, 1);
+  });
+
   testWidgets('a placeholder is never filtered', (tester) async {
     await pump(
       tester,

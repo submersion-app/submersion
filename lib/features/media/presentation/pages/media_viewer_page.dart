@@ -46,6 +46,7 @@ import 'package:submersion/features/media/presentation/helpers/color_pick_white.
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
@@ -592,30 +593,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         ),
                       ),
                     ),
-                  if (_pickingWhite)
-                    Positioned(
-                      top: MediaQuery.paddingOf(context).top + 12,
-                      left: 16,
-                      right: 16,
-                      child: IgnorePointer(
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              context.l10n.media_color_pickWhiteHint,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  if (_pickingWhite) const PickWhiteHint(),
 
                   // Overlay controls (app bar and metadata)
                   if (_showOverlay && !isFullscreen && !_pickingWhite) ...[
