@@ -78,6 +78,29 @@ public class SubmersionTranscoderPlugin: NSObject, FlutterPlugin, FlutterStreamH
           }
         }
       }
+    case "extractFrames":
+      guard let a = call.arguments as? [String: Any],
+        let path = a["path"] as? String,
+        let timesMs = a["timesMs"] as? [Int]
+      else {
+        result(nil)
+        return
+      }
+      let maxDimension = min(max(a["maxDimension"] as? Int ?? 160, 16), 2048)
+      let exact = a["exact"] as? Bool ?? false
+      // Seeking and decoding frames is slow on long clips; keep it off the
+      // platform (main) thread.
+      DispatchQueue.global(qos: .utility).async {
+        let frames = FrameExtractor.extract(
+          path: path, timesMs: timesMs, maxDimension: maxDimension, exact: exact)
+        let reply = frames.map { frame -> Any in
+          if let data = frame as? Data {
+            return FlutterStandardTypedData(bytes: data)
+          }
+          return NSNull()
+        }
+        DispatchQueue.main.async { result(reply) }
+      }
     default:
       result(FlutterMethodNotImplemented)
     }

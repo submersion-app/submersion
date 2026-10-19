@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
@@ -75,14 +76,33 @@ class PhotosMediaHubPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _header(context, l10n.settings_photosMedia_displayHeader),
           Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.sell_outlined),
-              title: Text(l10n.settings_media_provenanceBadges),
-              subtitle: Text(l10n.settings_media_provenanceBadgesSubtitle),
-              value: ref.watch(mediaProvenanceBadgesProvider),
-              onChanged: (value) => ref
-                  .read(mediaProvenanceBadgesProvider.notifier)
-                  .setEnabled(value),
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const Icon(Icons.sell_outlined),
+                  title: Text(l10n.settings_media_provenanceBadges),
+                  subtitle: Text(l10n.settings_media_provenanceBadgesSubtitle),
+                  value: ref.watch(mediaProvenanceBadgesProvider),
+                  onChanged: (value) => ref
+                      .read(mediaProvenanceBadgesProvider.notifier)
+                      .setEnabled(value),
+                ),
+                const Divider(height: 1),
+                // Display-only, per diver and synced (issue #3520).
+                SwitchListTile(
+                  secondary: const Icon(Icons.palette_outlined),
+                  title: Text(l10n.settings_media_autoColorCorrection),
+                  subtitle: Text(
+                    l10n.settings_media_autoColorCorrectionSubtitle,
+                  ),
+                  value: ref.watch(
+                    settingsProvider.select((s) => s.autoColorCorrection),
+                  ),
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAutoColorCorrection(value),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),

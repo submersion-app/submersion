@@ -18669,6 +18669,92 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoViewer_closeTooltip => 'Fotómegtekintő bezárása';
 
   @override
+  String get media_color_adjustAction => 'Szín beállítása';
+
+  @override
+  String get media_color_auto => 'Automatikus';
+
+  @override
+  String get media_color_pickWhite => 'Fehér kiválasztása';
+
+  @override
+  String get media_color_pickWhiteHint =>
+      'Koppints valamire, aminek fehérnek vagy szürkének kellene lennie';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'Ott nem sikerült színt olvasni. Próbálj egy világosabb pontot.';
+
+  @override
+  String get media_color_original => 'Eredeti';
+
+  @override
+  String get media_color_strength => 'Erősség';
+
+  @override
+  String get media_color_warmth => 'Melegség';
+
+  @override
+  String get media_color_tint => 'Árnyalat';
+
+  @override
+  String get media_color_brightness => 'Fényerő';
+
+  @override
+  String get media_color_contrast => 'Kontraszt';
+
+  @override
+  String get media_color_saturation => 'Telítettség';
+
+  @override
+  String get media_color_reset => 'Visszaállítás';
+
+  @override
+  String get media_color_applyToDive => 'Alkalmazás erre a merülésre';
+
+  @override
+  String get media_color_applyToDiveTitle => 'Alkalmazod erre a merülésre?';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Még $count fotó és videó kapja meg ezeket a beállításokat.',
+      one: 'Még $count fotó vagy videó kapja meg ezeket a beállításokat.',
+    );
+    return '$_temp0 A saját fehérpontjaik megmaradnak.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó és videó frissítve',
+      one: '$count fotó vagy videó frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'Visszavonás';
+
+  @override
+  String get media_color_undoFailed => 'A módosítást nem sikerült visszavonni';
+
+  @override
+  String get media_color_saveFailed => 'A színbeállítást nem sikerült menteni';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · automatikus';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'Módosítva';
+
+  @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
       'Merülési adatok írva a fotóra';
 
@@ -22488,6 +22574,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_cloudAssetId => 'Felhőben tárolt fotó';
+
+  @override
+  String get settings_conflict_field_colorAdjustment => 'Színbeállítás';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'Automatikus színkorrekció';
 
   @override
   String get settings_conflict_field_cns => 'CNS';
@@ -50001,6 +50094,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.';
+
+  @override
+  String get settings_media_autoColorCorrection => 'Automatikus színkorrekció';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'A képernyőn melegebbé teszi a kékes víz alatti fotókat és videókat a felvétel mélysége alapján. A fájljaid sosem változnak.';
 
   @override
   String get settings_photosMedia_cacheHeader => 'Gyorsítótár';

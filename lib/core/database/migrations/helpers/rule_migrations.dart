@@ -2,8 +2,8 @@ part of '../app_database_migrations.dart';
 
 /// Logbook rules and their run history (#3513).
 extension RuleMigrations on AppDatabase {
-  /// Idempotent creation of the v296 rules tables and their indexes. Called
-  /// from the v296 rung and the beforeOpen backstop. Skipped on a partial
+  /// Idempotent creation of the v297 rules tables and their indexes. Called
+  /// from the v297 rung and the beforeOpen backstop. Skipped on a partial
   /// migration-test fixture that lacks the divers table the foreign keys
   /// point at.
   Future<void> _assertRuleSchema() async {

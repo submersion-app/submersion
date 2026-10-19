@@ -3,7 +3,7 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
-import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
+import 'package:submersion/features/media/presentation/helpers/share_color_matrix.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -61,8 +61,9 @@ Future<bool> shareMediaItems(
         resolvedFullResolutionProvider(item).future,
       );
       if (resolved.isUnavailable || resolved.bytes == null) continue;
-      final file = await writeShareTempFile(item, resolved.bytes!);
-      files.add(XFile(file.path, mimeType: item.shareMimeType));
+      // A photo goes out with its colour correction; a video as it is
+      // (issue #3520).
+      files.add(await writeShareFileFor(ref, item, resolved.bytes!));
     }
 
     dismissDialog();

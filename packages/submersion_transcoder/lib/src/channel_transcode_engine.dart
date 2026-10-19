@@ -83,6 +83,36 @@ class ChannelTranscodeEngine implements TranscodeEngine {
   }
 
   @override
+  Future<List<Uint8List?>> extractFrames({
+    required File source,
+    required List<Duration> times,
+    int maxDimension = 160,
+    bool exact = false,
+  }) async {
+    final none = List<Uint8List?>.filled(times.length, null);
+    if (times.isEmpty) return none;
+    try {
+      final reply = await _methods.invokeListMethod<Object?>('extractFrames', {
+        'path': source.path,
+        'timesMs': [for (final t in times) t.inMilliseconds],
+        'maxDimension': maxDimension,
+        'exact': exact,
+      });
+      if (reply == null) return none;
+      return [
+        for (var i = 0; i < times.length; i++)
+          i < reply.length && reply[i] is Uint8List
+              ? reply[i] as Uint8List
+              : null,
+      ];
+    } on MissingPluginException {
+      return none;
+    } on PlatformException {
+      return none;
+    }
+  }
+
+  @override
   Future<void> transcode({
     required File source,
     required File output,

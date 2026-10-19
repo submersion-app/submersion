@@ -543,6 +543,10 @@ class AppSettings {
   /// card (issue #2326). Off by default.
   final bool showDiveFigure;
 
+  /// Warm up underwater photos and videos on screen from the depth each was
+  /// taken at (issue #3520). Off by default; files are never changed.
+  final bool autoColorCorrection;
+
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
@@ -751,6 +755,7 @@ class AppSettings {
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
     this.showDiveFigure = false,
+    this.autoColorCorrection = false,
     this.showProfilePanelInTableView = true,
     this.showDetailsPaneDives = false,
     this.showDetailsPaneSites = false,
@@ -944,6 +949,7 @@ class AppSettings {
     TimeOfDay? reminderTime,
     bool? showDataSourceBadges,
     bool? showDiveFigure,
+    bool? autoColorCorrection,
     bool? showProfilePanelInTableView,
     bool? showDetailsPaneDives,
     bool? showDetailsPaneSites,
@@ -1139,6 +1145,7 @@ class AppSettings {
       reminderTime: reminderTime ?? this.reminderTime,
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
       showDiveFigure: showDiveFigure ?? this.showDiveFigure,
+      autoColorCorrection: autoColorCorrection ?? this.autoColorCorrection,
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
@@ -2749,6 +2756,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setShowDiveFigure(bool value) async {
     state = state.copyWith(showDiveFigure: value);
+    await _saveSettings();
+  }
+
+  Future<void> setAutoColorCorrection(bool value) async {
+    state = state.copyWith(autoColorCorrection: value);
     await _saveSettings();
   }
 

@@ -280,7 +280,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 296;
+  static const int currentSchemaVersion = 297;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1275,10 +1275,15 @@ class AppDatabase extends _$AppDatabase {
     // v295: connected_accounts.nickname (issue #3522). Additive nullable
     // column, so the floor stays at 280.
     295,
-    // v296: logbook rules, rule_runs and rule_run_changes (issue #3513).
-    // Additive tables, so the floor stays at 280. Renumbered from 292 as
-    // #3481 and #3502 shipped 292 and 294, #3482 holds 293 and #3522 shipped 295.
+    // v296: media.color_adjustment and diver_settings.auto_color_correction
+    // (issue #3520). Additive nullable/defaulted columns, so the floor stays
+    // at 280. Renumbered from 292, claimed first by #3481.
     296,
+    // v297: logbook rules, rule_runs and rule_run_changes (issue #3513).
+    // Additive tables, so the floor stays at 280. Renumbered from 292 as
+    // #3481 and #3502 shipped 292 and 294, #3482 holds 293, #3522 shipped
+    // 295 and #3520 shipped 296.
+    297,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

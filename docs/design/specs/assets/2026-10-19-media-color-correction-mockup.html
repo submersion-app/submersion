@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Colour Correction: Viewer Panel Mockup (2026-10-19)</title>
+<style>body{background:#111418;color:#e6ebf0;font:14px system-ui;margin:16px}.cards{display:flex;gap:16px;flex-wrap:wrap}.card{flex:1;min-width:280px;background:#1a1e24;border-radius:12px;padding:12px}.subtitle{color:#9fb0c0}</style>
+</head>
+<body>
+<p class="subtitle">Layout A was chosen. B is kept for the record.</p>
+<style>
+  .ph { position:relative; background:#000; border-radius:10px; overflow:hidden; color:#fff; font:13px system-ui; }
+  .pic-blue { background:linear-gradient(160deg,#0b3a6b 0%,#0d5c8f 40%,#1b7fa8 70%,#3a9bb5 100%); }
+  .pic-warm { background:linear-gradient(160deg,#3a4f5e 0%,#5d7a76 35%,#b08a5a 70%,#d9b27a 100%); }
+  .fish { position:absolute; width:70px; height:34px; border-radius:50%; background:rgba(255,255,255,.18); }
+  .bar { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:rgba(0,0,0,.45); }
+  .ico { display:inline-block; width:22px; height:22px; border-radius:6px; background:rgba(255,255,255,.18); margin-left:6px; text-align:center; line-height:22px; font-size:12px; }
+  .ico.on { background:#f2a65a; color:#000; }
+  .panel { background:#1c1f24; padding:10px 12px; }
+  .row { display:flex; align-items:center; gap:8px; margin:7px 0; }
+  .row .n { width:78px; color:#cfd6de; font-size:12px; }
+  .track { flex:1; height:4px; background:#3a4049; border-radius:2px; position:relative; }
+  .track i { position:absolute; top:-5px; width:14px; height:14px; border-radius:50%; background:#fff; }
+  .track.tint { background:linear-gradient(90deg,#4caf50,#3a4049,#d04ad0); }
+  .track.warm { background:linear-gradient(90deg,#4a8be0,#3a4049,#f0a040); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+  .chip { padding:4px 9px; border-radius:14px; background:#2c323a; color:#e6ebf0; font-size:12px; }
+  .chip.on { background:#f2a65a; color:#111; }
+  .foot { display:flex; justify-content:space-between; margin-top:8px; color:#9fb0c0; font-size:12px; }
+  .side { display:flex; }
+  .side .main { flex:1; }
+  .side .panel { width:230px; }
+  .tag { position:absolute; left:10px; bottom:10px; background:rgba(0,0,0,.55); padding:3px 8px; border-radius:10px; font-size:11px; }
+</style>
+
+<h2>Where should the colour controls live?</h2>
+<p class="subtitle">Both open from a new "Adjust colour" icon in the photo viewer's toolbar (orange below). The photo updates live as you drag. Press and hold the photo to see the original.</p>
+
+<div class="cards">
+  <div class="card" data-choice="sheet">
+    <div class="card-image">
+      <div class="ph" style="width:260px;margin:auto">
+        <div class="bar"><span>&#10005;</span><span>12 / 48 <span class="ico">i</span><span class="ico on">&#9680;</span><span class="ico">&#8942;</span></span></div>
+        <div class="pic-warm" style="height:200px;position:relative"><div class="fish" style="left:90px;top:70px"></div><span class="tag">18 m &middot; auto</span></div>
+        <div class="panel">
+          <div class="chips"><span class="chip on">Auto</span><span class="chip">Pick white</span><span class="chip">Original</span></div>
+          <div class="row"><span class="n">Strength</span><div class="track"><i style="left:70%"></i></div></div>
+          <div class="row"><span class="n">Warmth</span><div class="track warm"><i style="left:55%"></i></div></div>
+          <div class="row"><span class="n">Tint</span><div class="track tint"><i style="left:58%"></i></div></div>
+          <div style="color:#7f8c99;font-size:11px">More: brightness, contrast, saturation &#9662;</div>
+          <div class="foot"><span>Reset</span><span style="color:#f2a65a">Done</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A. Panel under the photo</h3><p>Stays in the viewer. The photo shrinks to make room; swipe to the next photo still works while it's open. Brightness, contrast and saturation fold away under "More". On desktop the same panel docks to the right side.</p></div>
+  </div>
+
+  <div class="card" data-choice="editmode">
+    <div class="card-image">
+      <div class="ph" style="width:260px;margin:auto">
+        <div class="bar"><span>Cancel</span><span>Adjust colour</span><span style="color:#f2a65a">Done</span></div>
+        <div class="pic-warm" style="height:230px;position:relative"><div class="fish" style="left:90px;top:80px"></div><span class="tag">18 m &middot; auto</span></div>
+        <div class="panel">
+          <div class="chips"><span class="chip on">Auto</span><span class="chip">Strength</span><span class="chip">Warmth</span><span class="chip">Tint</span><span class="chip">Light</span><span class="chip">Pick white</span></div>
+          <div class="row"><span class="n">Strength</span><div class="track"><i style="left:70%"></i></div></div>
+          <div class="foot"><span>Reset</span><span>Hold photo for original</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B. Separate editing screen</h3><p>Like the phone's Photos "Edit": the viewer chrome goes away, one slider at a time, Cancel or Done. A bigger photo while you work, but you leave the viewer to adjust and can't swipe between photos.</p></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Desktop, layout A</h3>
+  <div class="ph side" style="max-width:640px">
+    <div class="main"><div class="bar"><span>&#10005;</span><span>12 / 48 <span class="ico">i</span><span class="ico on">&#9680;</span></span></div>
+      <div class="pic-warm" style="height:250px;position:relative"><div class="fish" style="left:160px;top:100px"></div><span class="tag">18 m &middot; auto</span></div></div>
+    <div class="panel">
+      <div class="chips"><span class="chip on">Auto</span><span class="chip">Pick white</span><span class="chip">Original</span></div>
+      <div class="row"><span class="n">Strength</span><div class="track"><i style="left:70%"></i></div></div>
+      <div class="row"><span class="n">Warmth</span><div class="track warm"><i style="left:55%"></i></div></div>
+      <div class="row"><span class="n">Tint</span><div class="track tint"><i style="left:58%"></i></div></div>
+      <div class="row"><span class="n">Brightness</span><div class="track"><i style="left:50%"></i></div></div>
+      <div class="row"><span class="n">Contrast</span><div class="track"><i style="left:55%"></i></div></div>
+      <div class="row"><span class="n">Saturation</span><div class="track"><i style="left:52%"></i></div></div>
+      <div class="foot"><span>Reset</span><span style="color:#f2a65a">Done</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>For comparison: the same shot as stored</h3>
+  <div class="ph" style="width:260px"><div class="pic-blue" style="height:120px;position:relative"><div class="fish" style="left:90px;top:40px"></div><span class="tag">Original</span></div></div>
+</div>
+</body>
+</html>

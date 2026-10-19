@@ -102,6 +102,10 @@ class Media extends Table {
 
   /// 'large' or 'tile' (issue #1039); null follows the category default.
   TextColumn get displaySize => text().nullable()();
+  // v296: the diver's hand colour adjustment for this photo or video, as
+  // ColorAdjustment JSON (issue #3520); null is none. Display-only: it is
+  // applied when the item is drawn and never written into the file.
+  TextColumn get colorAdjustment => text().nullable()();
   // v189: equipment attachment (issue #1517). Invoices, receipts and warranty
   // paperwork linked to a piece of gear, so an insurance claim after lost
   // luggage, theft or fire has the proof attached to the item it covers.

@@ -17838,6 +17838,88 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoViewer_closeTooltip => '关闭照片查看器';
 
   @override
+  String get media_color_adjustAction => '调整颜色';
+
+  @override
+  String get media_color_auto => '自动';
+
+  @override
+  String get media_color_pickWhite => '选取白色';
+
+  @override
+  String get media_color_pickWhiteHint => '点按一处本应为白色或灰色的地方';
+
+  @override
+  String get media_color_pickWhiteFailed => '无法读取该处的颜色。请尝试更亮的位置。';
+
+  @override
+  String get media_color_original => '原图';
+
+  @override
+  String get media_color_strength => '强度';
+
+  @override
+  String get media_color_warmth => '色温';
+
+  @override
+  String get media_color_tint => '色调';
+
+  @override
+  String get media_color_brightness => '亮度';
+
+  @override
+  String get media_color_contrast => '对比度';
+
+  @override
+  String get media_color_saturation => '饱和度';
+
+  @override
+  String get media_color_reset => '重置';
+
+  @override
+  String get media_color_applyToDive => '应用到此次潜水';
+
+  @override
+  String get media_color_applyToDiveTitle => '应用到此次潜水？';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另外 $count 张照片和视频将使用这些调整。',
+    );
+    return '$_temp0各自的白点会保留。';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更新 $count 张照片和视频',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => '撤销';
+
+  @override
+  String get media_color_undoFailed => '无法撤销更改';
+
+  @override
+  String get media_color_saveFailed => '无法保存颜色调整';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · 自动';
+  }
+
+  @override
+  String get media_color_labelAdjusted => '已调整';
+
+  @override
   String get media_photoViewer_diveDataWrittenToPhoto => '潜水数据已写入照片';
 
   @override
@@ -21411,6 +21493,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_cloudAssetId => '云端照片';
+
+  @override
+  String get settings_conflict_field_colorAdjustment => '颜色调整';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection => '自动色彩校正';
 
   @override
   String get settings_conflict_field_cns => 'CNS';
@@ -47206,6 +47294,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       '一个小图标，显示每个项目的来源。问题徽章始终显示。';
+
+  @override
+  String get settings_media_autoColorCorrection => '自动色彩校正';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      '根据每张照片和视频的拍摄深度，在屏幕上为偏蓝的水下画面增添暖色。您的文件不会被更改。';
 
   @override
   String get settings_photosMedia_cacheHeader => '缓存';

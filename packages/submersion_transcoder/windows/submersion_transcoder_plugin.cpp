@@ -1,11 +1,15 @@
 #include "submersion_transcoder_plugin.h"
 
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Graphics.Imaging.h>
+#include <winrt/Windows.Media.Editing.h>
 #include <winrt/Windows.Media.MediaProperties.h>
 #include <winrt/Windows.Media.Transcoding.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.FileProperties.h>
 #include <winrt/Windows.Storage.Search.h>
+#include <winrt/Windows.Storage.Streams.h>
 
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
@@ -19,6 +23,7 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include <vector>
 
 namespace submersion_transcoder {
 
@@ -88,6 +93,66 @@ void ProbeOnWorker(
   } catch (...) {
     result->Success(EncodableValue());
   }
+}
+
+// Reads JPEG frames at each time in `times_ms` on a worker thread, for the
+// app's per-moment colour correction (issue #3520). Read-only. Responds with
+// one entry per time: the JPEG bytes, or null for a time that failed (or for
+// every time when the file cannot be opened as a video).
+void ExtractFramesOnWorker(
+    std::string path, std::vector<int32_t> times_ms, int32_t max_dimension,
+    bool exact,
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> result) {
+  namespace WME = winrt::Windows::Media::Editing;
+  namespace WSS = winrt::Windows::Storage::Streams;
+  flutter::EncodableList frames(times_ms.size(), EncodableValue());
+  try {
+    winrt::init_apartment(winrt::apartment_type::multi_threaded);
+    auto file = winrt::Windows::Storage::StorageFile::GetFileFromPathAsync(
+                    winrt::hstring(Wide(path)))
+                    .get();
+    auto clip = WME::MediaClip::CreateFromFileAsync(file).get();
+    WME::MediaComposition composition;
+    composition.Clips().Append(clip);
+    // Only the width is asked for: with one dimension GetThumbnailAsync
+    // keeps the composition's own aspect ratio. The encoding properties are
+    // the stored (unrotated) size, so asking for both would squash a
+    // portrait phone clip stored landscape with a rotation tag. The width
+    // that fits the stored size inside max_dimension square; a frame that
+    // comes back portrait is taller than that, never distorted.
+    auto props = clip.GetVideoEncodingProperties();
+    const double w = props.Width() > 0 ? props.Width() : 16.0;
+    const double h = props.Height() > 0 ? props.Height() : 9.0;
+    const double scale = static_cast<double>(max_dimension) / (w > h ? w : h);
+    const int32_t out_w = static_cast<int32_t>(w * scale) > 0
+                              ? static_cast<int32_t>(w * scale)
+                              : 1;
+    for (size_t i = 0; i < times_ms.size(); ++i) {
+      try {
+        const winrt::Windows::Foundation::TimeSpan at{
+            std::chrono::milliseconds(times_ms[i])};
+        // A nearby keyframe is close enough for colour statistics, and far
+        // faster; a white-point pick needs the paused frame itself.
+        auto stream = composition
+                          .GetThumbnailAsync(
+                              at, out_w, 0,
+                              exact ? WME::VideoFramePrecision::NearestFrame
+                                    : WME::VideoFramePrecision::NearestKeyFrame)
+                          .get();
+        const auto size = static_cast<uint32_t>(stream.Size());
+        WSS::DataReader reader(stream);
+        reader.LoadAsync(size).get();
+        std::vector<uint8_t> bytes(size);
+        reader.ReadBytes(bytes);
+        frames[i] = EncodableValue(bytes);
+      } catch (...) {
+        frames[i] = EncodableValue();
+      }
+    }
+  } catch (...) {
+    // Not a readable video here: every frame stays null.
+  }
+  result->Success(EncodableValue(frames));
 }
 
 // Transcodes on a worker thread. Progress is routed through `dispatcher`, which
@@ -289,6 +354,51 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
     std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
         std::move(result));
     std::thread(ProbeOnWorker, *path, shared).detach();
+    return;
+  }
+  if (method == "extractFrames") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    const std::string* path = nullptr;
+    const flutter::EncodableList* times = nullptr;
+    int32_t max_dimension = 160;
+    bool exact = false;
+    if (args) {
+      auto e = args->find(EncodableValue("exact"));
+      if (e != args->end()) {
+        if (const auto* v = std::get_if<bool>(&e->second)) exact = *v;
+      }
+      auto p = args->find(EncodableValue("path"));
+      if (p != args->end()) path = std::get_if<std::string>(&p->second);
+      auto t = args->find(EncodableValue("timesMs"));
+      if (t != args->end()) {
+        times = std::get_if<flutter::EncodableList>(&t->second);
+      }
+      auto m = args->find(EncodableValue("maxDimension"));
+      if (m != args->end()) {
+        if (const auto* v = std::get_if<int32_t>(&m->second)) {
+          max_dimension = *v < 16 ? 16 : (*v > 2048 ? 2048 : *v);
+        }
+      }
+    }
+    if (!path || !times) {
+      result->Success(EncodableValue());
+      return;
+    }
+    std::vector<int32_t> times_ms;
+    for (const auto& value : *times) {
+      if (const auto* ms = std::get_if<int32_t>(&value)) {
+        times_ms.push_back(*ms);
+      } else if (const auto* ms64 = std::get_if<int64_t>(&value)) {
+        times_ms.push_back(static_cast<int32_t>(*ms64));
+      } else {
+        times_ms.push_back(0);
+      }
+    }
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
+        std::move(result));
+    std::thread(ExtractFramesOnWorker, *path, times_ms, max_dimension, exact,
+                shared)
+        .detach();
     return;
   }
   if (method == "transcode") {

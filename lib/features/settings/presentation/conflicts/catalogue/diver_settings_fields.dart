@@ -39,6 +39,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_ascentRateWarning,
     FieldKind.ascentRate,
   ),
+  'autoColorCorrection': ConflictField(
+    (l) => l.settings_conflict_field_autoColorCorrection,
+    FieldKind.boolean,
+  ),
   'autoTagImports': ConflictField(
     (l) => l.settings_conflict_field_autoTagImports,
     FieldKind.boolean,

@@ -111,6 +111,25 @@ class SubmersionTranscoderPlugin :
                     }
                 }
             }
+            "extractFrames" -> {
+                val path = call.argument<String>("path")
+                val timesMs = call.argument<List<Int>>("timesMs")
+                if (path == null || timesMs == null) {
+                    result.success(null)
+                    return
+                }
+                val maxDimension =
+                    (call.argument<Int>("maxDimension") ?: 160).coerceIn(16, 2048)
+                val exact = call.argument<Boolean>("exact") ?: false
+                // Decoding frames is slow on long clips; keep it off the main
+                // thread and answer back on it.
+                val mainHandler = Handler(Looper.getMainLooper())
+                Thread {
+                    val frames =
+                        FrameExtractor.extract(context, path, timesMs, maxDimension, exact)
+                    mainHandler.post { result.success(frames) }
+                }.start()
+            }
             else -> result.notImplemented()
         }
     }

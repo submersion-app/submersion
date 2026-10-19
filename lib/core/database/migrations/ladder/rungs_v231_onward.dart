@@ -428,12 +428,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertConnectedAccountsSchema();
     }
     if (from < 295) await reportProgress();
-    // v296: logbook rules and their run history (issue #3513). Tables
-    // only; re-asserted in beforeOpen through _assertRuleSchema.
-    // Renumbered from 292.
+    // v296: media.color_adjustment and diver_settings.auto_color_correction
+    // (issue #3520). Re-asserted in beforeOpen. Renumbered from 292,
+    // claimed first by #3481.
     if (from < 296) {
-      await _assertRuleSchema();
+      await _assertColorCorrectionColumns();
     }
     if (from < 296) await reportProgress();
+    // v297: logbook rules and their run history (issue #3513). Tables
+    // only; re-asserted in beforeOpen through _assertRuleSchema.
+    // Renumbered from 292, then from 296 when #3520 shipped it.
+    if (from < 297) {
+      await _assertRuleSchema();
+    }
+    if (from < 297) await reportProgress();
   }
 }

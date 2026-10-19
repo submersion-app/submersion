@@ -168,5 +168,20 @@ void main() {
     // Same bound as the file case above: 400 x 3.0 dpr x 2 = 2400.
     expect(image.memCacheWidth, 2400);
     expect(image.memCacheHeight, isNull);
+
+    // The imageBuilder is handed the package's UNRESIZED provider; what it
+    // draws must carry the same bound, or the original decodes at full
+    // size beside the bounded copy (issue #3520).
+    const raw = CachedNetworkImageProvider('https://example.invalid/photo.jpg');
+    final built =
+        image.imageBuilder!(
+              tester.element(find.byType(CachedNetworkImage)),
+              raw,
+            )
+            as Image;
+    final drawn = built.image as ResizeImage;
+    expect(drawn.width, 2400);
+    expect(drawn.imageProvider, raw);
+    expect(built.errorBuilder, isNotNull);
   });
 }

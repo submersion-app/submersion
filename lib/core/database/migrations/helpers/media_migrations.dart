@@ -134,6 +134,21 @@ extension MediaMigrations on AppDatabase {
     }
   }
 
+  /// v296: media.color_adjustment and diver_settings.auto_color_correction
+  /// (issue #3520). Both live here, beside the media columns, because
+  /// diver_migrations.dart is at its size cap. Idempotent; called from the
+  /// rung and the beforeOpen backstop. The adjustment is nullable (no
+  /// adjustment) and the switch defaults off, so nothing looks different
+  /// after upgrading.
+  Future<void> _assertColorCorrectionColumns() async {
+    await _addColumnIfMissing('media', 'color_adjustment', 'TEXT');
+    await _addColumnIfMissing(
+      'diver_settings',
+      'auto_color_correction',
+      'INTEGER NOT NULL DEFAULT 0 CHECK (auto_color_correction IN (0, 1))',
+    );
+  }
+
   /// v130: media_enrichment.hlc column. Self-guarding when the table is absent
   /// (partial-schema migration fixtures) and PRAGMA-guarded so it is safe to
   /// call from both onUpgrade and the beforeOpen backstop (parallel-branch

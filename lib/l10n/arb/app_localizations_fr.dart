@@ -18789,6 +18789,93 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_photoViewer_closeTooltip => 'Fermer la visionneuse';
 
   @override
+  String get media_color_adjustAction => 'Ajuster les couleurs';
+
+  @override
+  String get media_color_auto => 'Automatique';
+
+  @override
+  String get media_color_pickWhite => 'Choisir le blanc';
+
+  @override
+  String get media_color_pickWhiteHint =>
+      'Touchez un élément qui devrait être blanc ou gris';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'Impossible de lire une couleur à cet endroit. Essayez une zone plus claire.';
+
+  @override
+  String get media_color_original => 'Original';
+
+  @override
+  String get media_color_strength => 'Intensité';
+
+  @override
+  String get media_color_warmth => 'Chaleur';
+
+  @override
+  String get media_color_tint => 'Teinte';
+
+  @override
+  String get media_color_brightness => 'Luminosité';
+
+  @override
+  String get media_color_contrast => 'Contraste';
+
+  @override
+  String get media_color_saturation => 'Saturation';
+
+  @override
+  String get media_color_reset => 'Réinitialiser';
+
+  @override
+  String get media_color_applyToDive => 'Appliquer à cette plongée';
+
+  @override
+  String get media_color_applyToDiveTitle => 'Appliquer à cette plongée ?';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count autres photos et vidéos utiliseront ces réglages.',
+      one: '$count autre photo ou vidéo utilisera ces réglages.',
+    );
+    return '$_temp0 Leurs propres points blancs sont conservés.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos et vidéos mises à jour',
+      one: '$count photo ou vidéo mise à jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'Annuler';
+
+  @override
+  String get media_color_undoFailed => 'Impossible d\'annuler la modification';
+
+  @override
+  String get media_color_saveFailed =>
+      'Impossible d\'enregistrer le réglage des couleurs';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · automatique';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'Ajustée';
+
+  @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
       'Données de plongée écrites sur la photo';
 
@@ -22631,6 +22718,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_cloudAssetId => 'Photo dans le cloud';
+
+  @override
+  String get settings_conflict_field_colorAdjustment => 'Réglage des couleurs';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'Correction automatique des couleurs';
 
   @override
   String get settings_conflict_field_cns => 'CNS';
@@ -50398,6 +50492,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Une petite icône indiquant d\'où provient chaque élément. Les badges de problème restent toujours visibles.';
+
+  @override
+  String get settings_media_autoColorCorrection =>
+      'Correction automatique des couleurs';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Réchauffe à l\'écran les photos et vidéos sous-marines bleutées, selon la profondeur de chaque prise de vue. Vos fichiers ne sont jamais modifiés.';
 
   @override
   String get settings_photosMedia_cacheHeader => 'Cache';
