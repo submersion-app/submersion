@@ -20,29 +20,44 @@ bool isSurfaceShot(MediaEnrichment? e) {
   return depth != null && depth < 1.0;
 }
 
+/// Whether the automatic fix can apply to [item] at all: only photos and
+/// videos on a dive, so maps, receipts, signatures and library-only items
+/// are never touched.
+bool isAutoCorrectable(MediaItem item) =>
+    item.diveId != null &&
+    (item.mediaType == MediaType.photo || item.mediaType == MediaType.video);
+
 /// Whether the automatic fix is switched on for [item]: the item's own Auto
-/// switch, else the diver's setting. Only ever for photos and videos on a
-/// dive, so maps, receipts, signatures and library-only items are never
-/// touched.
+/// switch, else the diver's setting, for an [isAutoCorrectable] item.
 bool autoEnabledFor(
   MediaItem item, {
   ColorAdjustment? adjustment,
   required bool diverAutoEnabled,
 }) {
-  if (item.diveId == null) return false;
-  if (item.mediaType != MediaType.photo && item.mediaType != MediaType.video) {
-    return false;
-  }
+  if (!isAutoCorrectable(item)) return false;
   return adjustment?.autoOverride ?? diverAutoEnabled;
 }
 
-enum AutoNeed { none, stats }
+/// Whether [item] came without its profile match (the library reads lean
+/// rows) while the automatic fix is on for it, so the stored match must be
+/// read first: its depth and surface check decide the fix.
+bool needsStoredMatch(
+  MediaItem item, {
+  ColorAdjustment? adjustment,
+  required bool diverAutoEnabled,
+}) =>
+    item.enrichment == null &&
+    autoEnabledFor(
+      item,
+      adjustment: adjustment,
+      diverAutoEnabled: diverAutoEnabled,
+    );
 
-/// Whether drawing [item] needs its pixel statistics.
+/// Whether drawing [item] needs its pixel statistics for the automatic fix.
 ///
 /// A video is never skipped as a whole for starting at the surface: its
 /// correction follows the depth moment by moment instead.
-AutoNeed autoNeedFor(
+bool needsAutoStats(
   MediaItem item, {
   ColorAdjustment? adjustment,
   required bool diverAutoEnabled,
@@ -52,20 +67,30 @@ AutoNeed autoNeedFor(
     adjustment: adjustment,
     diverAutoEnabled: diverAutoEnabled,
   )) {
-    return AutoNeed.none;
+    return false;
   }
-  if (adjustment?.whitePoint != null) return AutoNeed.none;
-  if (!item.isVideo && isSurfaceShot(item.enrichment)) return AutoNeed.none;
-  return AutoNeed.stats;
+  if (adjustment?.whitePoint != null) return false;
+  return item.isVideo || !isSurfaceShot(item.enrichment);
+}
+
+/// The automatic fix for a photo or a video frame with these [stats] at
+/// [depthMeters], or null when there is none: no stats, or no depth and
+/// colours that do not look underwater. The one rule for both.
+AutoCorrectionParams? autoParamsFor(
+  ChannelStats? stats, {
+  double? depthMeters,
+}) {
+  if (stats == null) return null;
+  if (depthMeters == null && !stats.looksUnderwater) return null;
+  return computeAutoCorrection(stats, depthMeters: depthMeters);
 }
 
 /// The automatic fix for a photo with these [stats], or null when there is
-/// none: no stats, or no depth and colours that do not look underwater.
+/// none. Also guards a video drawn from its poster (no per-moment track):
+/// a boat or beach clip must not be warmed either.
 AutoCorrectionParams? autoParamsForPhoto(MediaItem item, ChannelStats? stats) {
-  if (stats == null) return null;
-  final depth = item.enrichment?.depthMeters;
-  if (depth == null && !stats.looksUnderwater) return null;
-  return computeAutoCorrection(stats, depthMeters: depth);
+  if (isSurfaceShot(item.enrichment)) return null;
+  return autoParamsFor(stats, depthMeters: item.enrichment?.depthMeters);
 }
 
 /// Gains that turn the picked white point [w] neutral grey.

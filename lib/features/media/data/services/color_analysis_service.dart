@@ -40,8 +40,24 @@ class ColorAnalysisService {
   var _active = 0;
 
   /// The cached stats for [key], without decoding. Null when not analysed
-  /// yet or when the image had no usable pixels.
-  ChannelStats? peek(String key) => _cache[key];
+  /// yet or when the image had no usable pixels. A peek is a use: a tile
+  /// drawn from it stays in the cache ahead of ones no longer drawn.
+  ChannelStats? peek(String key) {
+    if (!_cache.containsKey(key)) return null;
+    final hit = _cache.remove(key);
+    _cache[key] = hit;
+    return hit;
+  }
+
+  /// Whether [key] has an answer (stats, or none usable) or is being
+  /// analysed, so asking for it again would not start another decode.
+  bool isKnown(String key) => hasAnswer(key) || isPending(key);
+
+  /// Whether [key] was analysed (to stats, or to none usable).
+  bool hasAnswer(String key) => _cache.containsKey(key);
+
+  /// Whether [key] is being analysed now.
+  bool isPending(String key) => _inFlight.containsKey(key);
 
   Future<ChannelStats?> statsFor(String key, ImageProvider source) {
     if (_cache.containsKey(key)) {
@@ -54,20 +70,24 @@ class ColorAnalysisService {
 
   Future<ChannelStats?> _analyse(String key, ImageProvider source) async {
     await _acquire();
-    ChannelStats? stats;
+    Uint8List? rgba;
     try {
-      final rgba = await _decode(source).timeout(decodeTimeout);
-      stats = rgba == null ? null : ChannelStats.fromRgba(rgba);
+      rgba = await _decode(source).timeout(decodeTimeout);
     } catch (_) {
-      stats = null;
+      rgba = null;
     } finally {
       _release();
     }
+    _inFlight.remove(key);
+    // A decode that failed or timed out is not remembered: it may well work
+    // next time (a slow mount, an app sent to the background mid-decode).
+    // Only an image that decoded and had too few usable pixels is.
+    if (rgba == null) return null;
+    final stats = ChannelStats.fromRgba(rgba);
     _cache[key] = stats;
     while (_cache.length > capacity) {
       _cache.remove(_cache.keys.first);
     }
-    _inFlight.remove(key);
     return stats;
   }
 
@@ -109,8 +129,14 @@ Future<Uint8List?> decodeSmallRgba(ImageProvider source) async {
   final completer = Completer<ui.Image>();
   late final ImageStreamListener listener;
   listener = ImageStreamListener(
+    // Each listener is handed its own handle and must dispose it: the first
+    // is kept (and disposed once read), any later frame is let go at once.
     (info, _) {
-      if (!completer.isCompleted) completer.complete(info.image.clone());
+      if (completer.isCompleted) {
+        info.dispose();
+      } else {
+        completer.complete(info.image);
+      }
       stream.removeListener(listener);
     },
     onError: (error, stackTrace) {

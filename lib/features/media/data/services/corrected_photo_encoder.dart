@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/media/data/services/local_exif_loader.dart';
+import 'package:submersion/features/media_store/data/image_resize_job.dart';
+import 'package:submersion/features/media_store/data/native_image_resize.dart';
 import 'package:submersion/features/media/domain/color/color_matrix.dart';
 
 /// A photo re-encoded with its colour correction, for the share sheet.
@@ -33,37 +34,15 @@ Future<CorrectedPhoto?> encodeCorrectedPhoto({
   required String mime,
 }) async {
   try {
-    final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
-    ui.ImageDescriptor? descriptor;
-    ui.Codec? codec;
-    ui.Image? image;
-    final Uint8List rgba;
-    final int width, height;
-    try {
-      descriptor = await ui.ImageDescriptor.encoded(buffer);
-      codec = await descriptor.instantiateCodec();
-      image = (await codec.getNextFrame()).image;
-      final data = await image.toByteData(
-        format: ui.ImageByteFormat.rawStraightRgba,
-      );
-      if (data == null) return null;
-      rgba = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-      width = image.width;
-      height = image.height;
-    } finally {
-      image?.dispose();
-      codec?.dispose();
-      descriptor?.dispose();
-      buffer.dispose();
-    }
+    final decoded = await _decodeForIsolate(bytes);
+    if (decoded == null) return null;
     final exif = await _readExif(bytes, mime);
     final jpeg = await compute(
       _encodeCorrected,
       _EncodeJob(
-        // Handed over, not copied: a large photo is ~100 MB of RGBA.
-        rgba: TransferableTypedData.fromList([rgba]),
-        width: width,
-        height: height,
+        rgba: decoded.rgba,
+        width: decoded.width,
+        height: decoded.height,
         matrix: matrix.values,
         exif: exif,
       ),
@@ -77,6 +56,32 @@ Future<CorrectedPhoto?> encodeCorrectedPhoto({
   }
 }
 
+/// [bytes] decoded upright by the engine's codec (the shared decoder, at
+/// full size) and packed for the isolate. Its own function so the decoded
+/// buffer goes out of scope here: a large photo is ~100 MB of RGBA, and the
+/// caller must not keep that copy alive beside the packed one while the
+/// isolate works.
+Future<({TransferableTypedData rgba, int width, int height})?>
+_decodeForIsolate(Uint8List bytes) async {
+  final decoded = await decodeWithFlutterCodec(
+    ImageResizeRequest.fromBytes(
+      bytes: bytes,
+      // Decode only: nothing is written, and nothing is shrunk.
+      destinationPath: '',
+      maxDimension: 1 << 30,
+      jpegQuality: 92,
+    ),
+  );
+  final rgba = decoded.rgba;
+  if (rgba == null) return null;
+  return (
+    // Copied once into a buffer the isolate takes over without another.
+    rgba: TransferableTypedData.fromList([rgba]),
+    width: decoded.width,
+    height: decoded.height,
+  );
+}
+
 Future<img.ExifData?> _readExif(Uint8List bytes, String mime) async {
   if (mime == 'image/jpeg') {
     try {
@@ -85,11 +90,12 @@ Future<img.ExifData?> _readExif(Uint8List bytes, String mime) async {
       return null;
     }
   }
-  if (mime != 'image/heic' && mime != 'image/heif') return null;
-  // The HEIC reader walks a file; this scratch copy lives only for the read.
+  // Anything else through the shared loader, which decides what it can
+  // read (HEIC today). It walks a file; this scratch copy lives only for
+  // the read.
   final dir = await Directory.systemTemp.createTemp('share_exif');
   try {
-    final file = File(p.join(dir.path, 'source.heic'));
+    final file = File(p.join(dir.path, 'source'));
     await file.writeAsBytes(bytes);
     return readLocalExif(file, mime);
   } finally {
@@ -114,22 +120,41 @@ class _EncodeJob {
 }
 
 Uint8List _encodeCorrected(_EncodeJob job) {
-  final out = applyColorMatrixInPlace(
-    job.rgba.materialize().asUint8List(),
-    job.matrix,
-  );
+  // The image copies the pixels it is built from, and the matrix then runs
+  // over that copy in place: the handed-over buffer is unreferenced from
+  // here on, so only one full-size buffer outlives this line.
   final image = img.Image.fromBytes(
     width: job.width,
     height: job.height,
-    bytes: out.buffer,
+    bytes: job.rgba.materialize(),
     numChannels: 4,
   );
-  final exif = job.exif;
-  if (exif != null && !exif.isEmpty) {
-    image.exif = img.ExifData.from(exif);
-    image.exif.imageIfd.orientation = 1;
-  }
+  applyColorMatrixInPlace(image.toUint8List(), job.matrix);
+  final exif = shareableExif(job.exif);
+  if (exif != null) image.exif = exif;
   return Uint8List.fromList(img.encodeJpg(image, quality: 92));
+}
+
+/// The most EXIF one JPEG APP1 segment holds: its 16-bit length counts
+/// itself (2) and the "Exif\0\0" header (6) as well.
+const _maxApp1Exif = 0xffff - 8;
+
+/// [source]'s EXIF made safe to carry into the re-encoded copy, or null.
+///
+/// The embedded thumbnail (IFD1) and the maker notes are dropped: the image
+/// package copies their offsets but not the bytes they point at, so in the
+/// new file they would point at nothing. Orientation becomes 1, since the
+/// pixels are already upright. If what is left still does not fit one APP1
+/// segment, the copy goes without EXIF rather than as a broken file.
+@visibleForTesting
+img.ExifData? shareableExif(img.ExifData? source) {
+  if (source == null || source.isEmpty) return null;
+  final exif = img.ExifData.from(source)..directories.remove('ifd1');
+  exif.imageIfd.orientation = 1;
+  if (exif.imageIfd.sub.containsKey('exif')) exif.exifIfd[0x927c] = null;
+  final out = img.OutputBuffer();
+  exif.write(out);
+  return out.length <= _maxApp1Exif ? exif : null;
 }
 
 /// Applies the 4x5 colour matrix [m] to every pixel of straight RGBA

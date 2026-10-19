@@ -170,7 +170,11 @@ void main() {
     );
   });
 
-  testWidgets('holding the photo shows the original', (tester) async {
+  testWidgets('holding the photo does not take the gesture from pan and '
+      'swipe', (tester) async {
+    // A long press on the full-page overlay won the arena after 500 ms,
+    // so press-pause-drag stopped panning, swiping and closing. Comparing
+    // with the original is the panel's Original chip instead.
     await pump(
       tester,
       MediaViewerPage(
@@ -181,10 +185,9 @@ void main() {
     expect(find.byType(ColorFiltered), findsOneWidget);
     final gesture = await tester.startGesture(const Offset(200, 400));
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.byType(ColorFiltered), findsNothing);
+    expect(find.byType(ColorFiltered), findsOneWidget);
     await gesture.up();
     await tester.pump();
-    expect(find.byType(ColorFiltered), findsOneWidget);
   });
 
   testWidgets('each page draws the saved adjustment, not the opening list', (

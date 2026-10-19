@@ -10,12 +10,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
-import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
 import 'package:submersion/features/media/presentation/helpers/share_color_matrix.dart';
-import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
-import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
-import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
@@ -57,7 +54,9 @@ class SiteMediaViewerPage extends ConsumerStatefulWidget {
 }
 
 class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
-    with MediaFullscreenMixin<SiteMediaViewerPage> {
+    with
+        MediaFullscreenMixin<SiteMediaViewerPage>,
+        ColorAdjustViewerMixin<SiteMediaViewerPage> {
   late PageController _pageController;
   int _currentIndex = 0;
 
@@ -66,24 +65,6 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
-
-  /// The Adjust color panel (issue #3520) and its "Pick white" mode. Photos
-  /// only pick white here: this viewer shows a video's poster, not a player.
-  bool _colorPanelOpen = false;
-  bool _pickingWhite = false;
-  final GlobalKey _galleryBoundaryKey = GlobalKey();
-
-  Future<void> _pickWhiteAt(MediaItem item, Offset at) async {
-    setState(() => _pickingWhite = false);
-    final sample = await sampleWhiteFromPhoto(
-      ref,
-      _galleryBoundaryKey,
-      item,
-      at,
-    );
-    if (!mounted) return;
-    await applyPickedWhite(context, ref, item, sample);
-  }
 
   @override
   void onExitFullscreen() => _showOverlay = true;
@@ -167,15 +148,17 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
     final sourceAsync = widget.scope == SiteViewerScope.attachments
         ? ref.watch(mediaForSiteProvider(widget.siteId))
         : ref.watch(flatMediaFromDivesAtSiteProvider(widget.siteId));
-    final mediaAsync = sourceAsync.whenData(
-      (list) => list.where((m) => !m.isDocument).toList(),
-    );
-
     return fullscreenPopScope(
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: mediaAsync.when(
-          data: (mediaList) {
+        // A reload keeps drawing the list it has: every media write (a
+        // colour save from the panel below among them) reloads the
+        // dive-photo providers, and showing the spinner for it would tear
+        // down the gallery and the panel mid-edit (issue #3520).
+        body: sourceAsync.when(
+          skipLoadingOnReload: true,
+          data: (all) {
+            final mediaList = all.where((m) => !m.isDocument).toList();
             if (mediaList.isEmpty) {
               // Nothing left to tap means no exit button (a sync can empty the
               // list under the viewer).
@@ -222,7 +205,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
               child: Stack(
                 children: [
                   RepaintBoundary(
-                    key: _galleryBoundaryKey,
+                    key: galleryBoundaryKey,
                     child: _MediaGalleryPager(
                       mediaList: mediaList,
                       pageController: _pageController,
@@ -243,39 +226,28 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                       label: context.l10n.media_photoViewer_toggleOverlayLabel,
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
-                        onTap: _pickingWhite
+                        onTap: pickingWhite
                             ? null
                             : isFullscreen
                             ? toggleFullscreenControls
                             : () =>
                                   setState(() => _showOverlay = !_showOverlay),
-                        onTapUp: _pickingWhite
-                            ? (details) => _pickWhiteAt(
+                        onTapUp: pickingWhite
+                            ? (details) => pickWhiteOnPhoto(
                                 currentItem,
                                 details.localPosition,
                               )
                             : null,
-                        // Hold to compare with the original (issue #3520).
-                        onLongPressStart: (_) => ref
-                            .read(colorPeekOriginalProvider.notifier)
-                            .peek(currentItem.id),
-                        onLongPressEnd: (_) => ref
-                            .read(colorPeekOriginalProvider.notifier)
-                            .release(),
-                        onLongPressCancel: () => ref
-                            .read(colorPeekOriginalProvider.notifier)
-                            .release(),
                         child: const SizedBox.expand(),
                       ),
                     ),
                   ),
 
-                  if (_pickingWhite) const PickWhiteHint(),
+                  if (pickingWhite) const PickWhiteHint(),
 
-                  if (_showOverlay && !isFullscreen && !_pickingWhite) ...[
+                  if (_showOverlay && !isFullscreen && !pickingWhite) ...[
                     _TopOverlay(
-                      onAdjustColor: () =>
-                          setState(() => _colorPanelOpen = true),
+                      onAdjustColor: () => openColorPanel(),
                       currentIndex: currentIndex,
                       totalCount: mediaList.length,
                       onClose: () => Navigator.of(context).pop(),
@@ -327,20 +299,13 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
               autofocus: true,
               onKeyEvent: (node, event) =>
                   _handleKeyEvent(event, mediaList.length),
-              child: ColorAdjustLayout(
-                open: _colorPanelOpen && !isFullscreen,
-                panelBuilder: (layout) => ColorAdjustPanel(
-                  item: currentItem,
-                  layout: layout,
-                  pickWhiteAvailable: !currentItem.isVideo,
-                  // Tapping Pick white again cancels it.
-                  onPickWhite: () =>
-                      setState(() => _pickingWhite = !_pickingWhite),
-                  onDone: () => setState(() {
-                    _colorPanelOpen = false;
-                    _pickingWhite = false;
-                  }),
-                ),
+              // Adjust color (issue #3520). Photos only pick white here:
+              // this viewer shows a video's poster, not a player.
+              child: colorAdjustLayout(
+                item: currentItem,
+                fullscreen: isFullscreen,
+                pickWhiteAvailable: !currentItem.isVideo,
+                onPickWhite: togglePickWhite,
                 child: viewer,
               ),
             );

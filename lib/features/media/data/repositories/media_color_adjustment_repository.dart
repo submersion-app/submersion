@@ -5,6 +5,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
@@ -22,8 +24,13 @@ class MediaColorAdjustmentRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _log = LoggerService.forClass(MediaColorAdjustmentRepository);
 
-  static String? _encode(ColorAdjustment? a) =>
-      a == null || a.isNeutral ? null : a.toJsonString();
+  /// A cleared adjustment is stored as the neutral value, never NULL: media
+  /// rows merge through an upsert that leaves a null column unwritten (so a
+  /// peer on an older build cannot erase a column it does not know), which
+  /// would keep a Reset from ever reaching the diver's other devices. The
+  /// neutral value reads back as no adjustment.
+  static String _encode(ColorAdjustment? a) =>
+      (a ?? const ColorAdjustment()).toJsonString();
 
   /// Saves [adjustment] on media row [mediaId]; null or neutral clears it.
   ///
@@ -71,10 +78,13 @@ class MediaColorAdjustmentRepository {
         final previous = <String, ColorAdjustment?>{};
         for (final row in rows) {
           final before = ColorAdjustment.fromJsonString(row.colorAdjustment);
-          previous[row.id] = before;
           final after = (before ?? const ColorAdjustment()).withSlidersFrom(
             source,
           );
+          // A row that already matches is left alone: no write, no sync
+          // record, and not counted as changed.
+          if ((after.isNeutral ? null : after) == before) continue;
+          previous[row.id] = before;
           await _write(row.id, after, now);
         }
         return previous;
@@ -119,12 +129,17 @@ class MediaColorAdjustmentRepository {
   /// The profile match stored for [mediaId], for a tile drawn from a row
   /// that was read without it (the library's lean rows), so the automatic
   /// fix gets the same depth and surface check there as in the dive.
-  Future<domain.MediaEnrichment?> enrichmentFor(String mediaId) async {
-    final row = await (_db.select(
-      _db.mediaEnrichment,
-    )..where((t) => t.mediaId.equals(mediaId))).getSingleOrNull();
-    return row == null ? null : mediaEnrichmentFromRow(row);
-  }
+  Future<domain.MediaEnrichment?> enrichmentFor(String mediaId) =>
+      MediaRepository().getEnrichmentForMedia(mediaId);
+
+  /// Ticks when a profile match is written (a re-match, a backfill, a sync
+  /// pull), the only writes that change [enrichmentFor]'s answer. Narrower
+  /// than MediaRepository.watchMediaChanges, which also ticks on every
+  /// caption, upload stamp and colour save, each of which would re-query
+  /// the match of every library tile on screen.
+  Stream<void> watchEnrichmentChanges() => _db
+      .tableUpdates(TableUpdateQuery.onTable(_db.mediaEnrichment))
+      .debounce(MediaRepository.changeTickDebounce);
 
   /// How many photos and videos "Apply to this dive" would change.
   Future<int> countOtherMediaOnDive(

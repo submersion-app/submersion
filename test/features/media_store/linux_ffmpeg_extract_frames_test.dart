@@ -71,7 +71,8 @@ void main() {
     expect(File(first.last).parent.existsSync(), isFalse);
   });
 
-  test('exact decodes up to the frame (-ss after -i)', () async {
+  test('exact still seeks before -i (accurate, without decoding from the '
+      'start)', () async {
     final runner = _FrameRunner((_) => 0);
     await LinuxFfmpegEngine(runner: runner).extractFrames(
       source: File('/v/dive.mp4'),
@@ -79,7 +80,8 @@ void main() {
       exact: true,
     );
     final args = runner.calls.single;
-    expect(args.indexOf('-ss'), greaterThan(args.indexOf('-i')));
+    expect(args.indexOf('-ss'), lessThan(args.indexOf('-i')));
+    expect(args.where((a) => a == '-ss'), hasLength(1));
   });
 
   test('a failed seek is a null for that time only', () async {

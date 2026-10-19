@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
+import 'package:submersion/features/media/data/services/color_analysis_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -52,6 +53,9 @@ class FakeColorRepository implements MediaColorAdjustmentRepository {
   Future<MediaEnrichment?> enrichmentFor(String mediaId) async => null;
 
   @override
+  Stream<void> watchEnrichmentChanges() => const Stream.empty();
+
+  @override
   Future<void> restoreColorAdjustments(
     Map<String, ColorAdjustment?> prior,
   ) async => restores.add(prior);
@@ -89,11 +93,14 @@ ProviderContainer colorContainer(
   FakeColorRepository repo, {
   bool diverAuto = false,
   AppSettings settings = const AppSettings(),
+  ColorAnalysisService? analysis,
 }) => ProviderContainer(
   overrides: [
     mediaColorAdjustmentRepositoryProvider.overrideWithValue(repo),
     diverAutoColorCorrectionProvider.overrideWithValue(diverAuto),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
+    if (analysis != null)
+      colorAnalysisServiceProvider.overrideWithValue(analysis),
   ],
 );
 

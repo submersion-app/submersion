@@ -37,8 +37,11 @@ class ColorAdjustLayout extends StatelessWidget {
                 width: _dockedWidth,
                 child: Material(
                   color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  // Docked at the end edge, the side away from the viewer
+                  // (the left in a right-to-left locale) keeps its inset.
                   child: SafeArea(
-                    left: false,
+                    left: Directionality.of(context) == TextDirection.rtl,
+                    right: Directionality.of(context) == TextDirection.ltr,
                     child: SingleChildScrollView(
                       child: panelBuilder(Axis.vertical),
                     ),

@@ -26,14 +26,12 @@ class ColorCorrectionLabel extends ConsumerWidget {
     final String? text;
     if (handAdjusted) {
       text = l10n.media_color_labelAdjusted;
-    } else if (autoNeedFor(
+    } else if (needsAutoStats(
           item,
           adjustment: adjustment,
-          diverAutoEnabled:
-              item.diveId != null &&
-              ref.watch(diverAutoColorCorrectionProvider),
-        ) ==
-        AutoNeed.stats) {
+          diverAutoEnabled: diverAutoFor(ref, item),
+        ) &&
+        _autoDrawn(ref, item)) {
       final depth = item.enrichment?.depthMeters;
       text = depth == null
           ? l10n.media_color_auto
@@ -46,6 +44,23 @@ class ColorCorrectionLabel extends ConsumerWidget {
       text = null;
     }
     if (text == null) return const SizedBox.shrink();
+    return _pill(context, text);
+  }
+
+  /// Whether the automatic fix actually changes [item] as drawn. A photo
+  /// whose red survived (strobe-lit, a red subject), one with no depth that
+  /// does not look underwater, or one not analysed yet is drawn unchanged,
+  /// so it is not labelled. A video's fix follows the clip, so it is.
+  static bool _autoDrawn(WidgetRef ref, MediaItem item) {
+    if (item.isVideo) return true;
+    final params = autoParamsForPhoto(
+      item,
+      ref.read(colorAnalysisServiceProvider).peek(colorStatsKey(item)),
+    );
+    return params != null && !params.toMatrix().isIdentity;
+  }
+
+  static Widget _pill(BuildContext context, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

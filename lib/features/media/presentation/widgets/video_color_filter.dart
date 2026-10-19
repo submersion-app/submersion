@@ -35,17 +35,14 @@ class VideoColorFilter extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ref.watch(colorPeekOriginalProvider) == item.id) return child;
+    if (ref.watch(colorPeekOriginalNotifierProvider) == item.id) return child;
     final adjustment = effectiveAdjustment(ref, item);
-    final diverAuto =
-        item.diveId != null && ref.watch(diverAutoColorCorrectionProvider);
-    final needsAuto =
-        autoNeedFor(
-          item,
-          adjustment: adjustment,
-          diverAutoEnabled: diverAuto,
-        ) ==
-        AutoNeed.stats;
+    final diverAuto = diverAutoFor(ref, item);
+    final needsAuto = needsAutoStats(
+      item,
+      adjustment: adjustment,
+      diverAutoEnabled: diverAuto,
+    );
 
     final key = VideoTrackKey(item, path: path);
     final track = needsAuto

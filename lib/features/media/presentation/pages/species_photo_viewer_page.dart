@@ -24,6 +24,9 @@ class SpeciesPhotoViewerPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaAsync = ref.watch(mediaForSpeciesProvider(speciesId));
     return mediaAsync.when(
+      // A reload (any media write, a colour save in the viewer among them)
+      // keeps the viewer up rather than disposing it mid-edit (#3520).
+      skipLoadingOnReload: true,
       data: (mediaList) => MediaViewerPage(
         mediaList: mediaList,
         initialMediaId: initialMediaId,

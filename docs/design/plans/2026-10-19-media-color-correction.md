@@ -346,8 +346,8 @@ git commit -m "feat(media): color correction policy and per-moment video track"
   - `class ColorAnalysisService`: `Future<ChannelStats?> statsFor(String key, ImageProvider source)`: decodes `ResizeImage(source, width: 64, policy: ResizeImagePolicy.fit)`, reads `toByteData(format: rawStraightRgba)`, returns `ChannelStats.fromRgba`; memoizes by key (LRU, 1000 entries, also memoizes null); coalesces concurrent requests for one key; at most 2 decodes at once; never throws (a failed decode is null). `ChannelStats? peek(String key)`.
   - `final colorAnalysisServiceProvider = Provider<ColorAnalysisService>` (keep alive).
   - `final diverAutoColorCorrectionProvider = Provider<bool>` (`settingsProvider.select((s) => s.autoColorCorrection)`).
-  - `colorAdjustmentDraftProvider`: `NotifierProvider.family<ColorAdjustmentDraft, ColorAdjustment?, String>` (by media id) with `set(ColorAdjustment?)` and `clear()`. While non-null it wins over the stored value (live slider feedback).
-  - `colorPeekOriginalProvider`: `NotifierProvider<ColorPeekOriginal, String?>` with `peek(String mediaId)` and `release()`; the peeked item draws uncorrected.
+  - `colorAdjustmentDraftNotifierProvider`: `NotifierProvider.family<ColorAdjustmentDraft, ColorAdjustment?, String>` (by media id) with `set(ColorAdjustment?)` and `clear()`. While non-null it wins over the stored value (live slider feedback).
+  - `colorPeekOriginalNotifierProvider`: `NotifierProvider<ColorPeekOriginal, String?>` with `peek(String mediaId)` and `release()`; the peeked item draws uncorrected.
   - `ColorAdjustment? effectiveAdjustment(WidgetRef ref, MediaItem item)` helper: draft, else `item.colorAdjustment`.
   - `String colorStatsKey(MediaItem item)`: `'${item.id}|${item.updatedAt.millisecondsSinceEpoch}'`.
 

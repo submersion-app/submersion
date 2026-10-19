@@ -128,6 +128,11 @@ typedef _Resolution = ({
 class _MediaItemViewState extends ConsumerState<MediaItemView> {
   late Future<_Resolution> _future;
 
+  /// The item the last finished resolution was for. Rebuilt for another
+  /// item, the FutureBuilder keeps drawing the old answer until the new one
+  /// lands; that picture must not be analysed as the new item's colours.
+  String? _resolvedFor;
+
   @override
   void initState() {
     super.initState();
@@ -175,7 +180,9 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   /// phase: it happens after [_resolveInner] has completed, which is well
   /// past that method's own opening yield.
   Future<_Resolution> _resolve() async {
+    final forId = widget.item.id;
     final resolution = await _resolveInner();
+    _resolvedFor = forId;
     // A grid tile can scroll out and be disposed while its resolution is
     // still in flight. Riverpod's WidgetRef.read asserts the element is still
     // mounted and throws StateError otherwise (flutter_riverpod
@@ -367,23 +374,36 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       cacheWidth: cacheWidth,
       file: file,
     );
-    return _correctedImage(MediaTileImageMemo.providerFor(file, cacheWidth));
+    return _correctedImage(
+      MediaTileImageMemo.providerFor(file, cacheWidth),
+      resolved: true,
+    );
   }
 
   /// [provider]'s image drawn with the item's colour correction (issue
   /// #3520). Only the decoded frame goes through the filter: the broken-image
   /// tile from [Image.errorBuilder] replaces the frame and is drawn as is.
-  Widget _correctedImage(ImageProvider provider) => Image(
-    image: provider,
-    fit: widget.fit,
-    errorBuilder: _imageError,
-    frameBuilder: (context, child, frame, synchronouslyLoaded) =>
-        ColorCorrected(
-          item: widget.item,
-          analysisSource: provider,
-          child: child,
-        ),
-  );
+  ///
+  /// [resolved] marks [provider] as drawn from a resolution, which is this
+  /// item's only once one finished for it. Its colours are analysed only
+  /// then, and only once the frame has decoded: a tile flung past before it
+  /// draws asks for nothing.
+  Widget _correctedImage(ImageProvider provider, {required bool resolved}) {
+    final ownPixels = !resolved || _resolvedFor == widget.item.id;
+    return Image(
+      image: provider,
+      fit: widget.fit,
+      errorBuilder: _imageError,
+      frameBuilder: (context, child, frame, synchronouslyLoaded) =>
+          ColorCorrected(
+            item: widget.item,
+            analysisSource: ownPixels && (frame != null || synchronouslyLoaded)
+                ? provider
+                : null,
+            child: child,
+          ),
+    );
+  }
 
   /// Whether this view fills a full-screen viewer page rather than a tile.
   ///
@@ -463,7 +483,8 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
                   cacheWidth: cacheWidth,
                 );
           if (remembered != null) {
-            return _correctedImage(remembered);
+            // Remembered for this very item, so its pixels are its own.
+            return _correctedImage(remembered, resolved: false);
           }
           return _loading();
         }
@@ -500,11 +521,14 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             // keep a neighbour built either side of the current page.
             memCacheWidth: cacheWidth,
             // Only the loaded image is colour corrected; the placeholder and
-            // the error tile below are drawn as they are (issue #3520).
-            imageBuilder: (context, provider) => ColorCorrected(
-              item: widget.item,
-              analysisSource: provider,
-              child: Image(image: provider, fit: widget.fit),
+            // the error tile below are drawn as they are (issue #3520). The
+            // builder is handed the package's unresized provider, so it is
+            // bounded here the same way memCacheWidth bounds the package's
+            // own decode (the same cache entry): drawing it as handed over
+            // would decode every original at full size.
+            imageBuilder: (context, provider) => _correctedImage(
+              ResizeImage.resizeIfNeeded(cacheWidth, null, provider),
+              resolved: true,
             ),
             placeholder: (_, _) => _loading(),
             errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
@@ -513,6 +537,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           ),
           BytesData(bytes: final b) => _correctedImage(
             ResizeImage.resizeIfNeeded(cacheWidth, null, MemoryImage(b)),
+            resolved: true,
           ),
           UnavailableData(kind: UnavailableKind.stillFetching) =>
             GestureDetector(

@@ -24,7 +24,12 @@ Future<File> writeShareTempFile(
   String? filename,
 }) async {
   final tempDir = await getTemporaryDirectory();
-  final file = File(p.join(tempDir.path, filename ?? item.shareFilename));
+  // One folder per item, so two shared items with the same name (photos
+  // from two cameras, or a HEIC re-encoded as a .jpg beside a real .jpg)
+  // never overwrite each other's file before the share sheet reads it.
+  final file = File(
+    p.join(tempDir.path, 'share', item.id, filename ?? item.shareFilename),
+  );
   await file.parent.create(recursive: true);
   await file.writeAsBytes(bytes);
   return file;

@@ -114,16 +114,18 @@ void ExtractFramesOnWorker(
     auto clip = WME::MediaClip::CreateFromFileAsync(file).get();
     WME::MediaComposition composition;
     composition.Clips().Append(clip);
-    // Fit the frame inside max_dimension square, keeping the aspect ratio.
+    // Only the width is asked for: with one dimension GetThumbnailAsync
+    // keeps the composition's own aspect ratio. The encoding properties are
+    // the stored (unrotated) size, so asking for both would squash a
+    // portrait phone clip stored landscape with a rotation tag. The width
+    // that fits the stored size inside max_dimension square; a frame that
+    // comes back portrait is taller than that, never distorted.
     auto props = clip.GetVideoEncodingProperties();
     const double w = props.Width() > 0 ? props.Width() : 16.0;
     const double h = props.Height() > 0 ? props.Height() : 9.0;
     const double scale = static_cast<double>(max_dimension) / (w > h ? w : h);
     const int32_t out_w = static_cast<int32_t>(w * scale) > 0
                               ? static_cast<int32_t>(w * scale)
-                              : 1;
-    const int32_t out_h = static_cast<int32_t>(h * scale) > 0
-                              ? static_cast<int32_t>(h * scale)
                               : 1;
     for (size_t i = 0; i < times_ms.size(); ++i) {
       try {
@@ -133,7 +135,7 @@ void ExtractFramesOnWorker(
         // faster; a white-point pick needs the paused frame itself.
         auto stream = composition
                           .GetThumbnailAsync(
-                              at, out_w, out_h,
+                              at, out_w, 0,
                               exact ? WME::VideoFramePrecision::NearestFrame
                                     : WME::VideoFramePrecision::NearestKeyFrame)
                           .get();

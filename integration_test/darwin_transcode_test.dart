@@ -132,6 +132,8 @@ void main() {
     ]);
     expect(gen.exitCode, 0, reason: 'fixture generation: ${gen.stderr}');
 
+    final before = await input.readAsBytes();
+
     final frames = await engine.extractFrames(
       source: input,
       times: const [
@@ -141,21 +143,36 @@ void main() {
       ],
     );
     expect(frames, hasLength(3));
-    for (final frame in frames) {
-      final decoded = img.decodeJpg(frame!)!;
+    final decoded = [for (final frame in frames) img.decodeJpg(frame!)!];
+    for (final frame in decoded) {
       expect(
-        decoded.width > decoded.height ? decoded.width : decoded.height,
+        frame.width > frame.height ? frame.width : frame.height,
         lessThanOrEqualTo(160),
       );
     }
+    // testsrc moves every frame: three times, three different pictures (a
+    // reader that returned one frame for every time would pass the rest).
+    expect(decoded[0].getBytes(), isNot(decoded[1].getBytes()));
+    expect(decoded[1].getBytes(), isNot(decoded[2].getBytes()));
+
+    // The exact read a white-point pick makes on a paused frame, including
+    // at the very end, where a finished clip is parked.
+    final exact = await engine.extractFrames(
+      source: input,
+      times: const [Duration(milliseconds: 1500), Duration(seconds: 3)],
+      maxDimension: 640,
+      exact: true,
+    );
+    expect(exact, everyElement(isNotNull));
+    expect(img.decodeJpg(exact.first!)!.width, greaterThan(160));
 
     final missing = await engine.extractFrames(
       source: File(p.join(dir.path, 'missing.mp4')),
       times: const [Duration.zero],
     );
     expect(missing, [null]);
-    // Read-only: the clip is untouched.
-    expect(await input.exists(), isTrue);
+    // Read-only: the clip is byte for byte what it was.
+    expect(await input.readAsBytes(), before);
   });
 }
 

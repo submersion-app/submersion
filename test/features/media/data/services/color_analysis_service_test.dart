@@ -106,24 +106,48 @@ void main() {
     expect(decodes, 1);
   });
 
-  test('a failed decode is null, memoized, and never throws', () async {
+  test('a failed decode is null, never throws, and is tried again', () async {
+    // A failure may be passing (a slow mount, the app backgrounded
+    // mid-decode); remembering it would leave the photo uncorrected.
     var decodes = 0;
     final service = ColorAnalysisService(
       decodeRgba: (_) async {
         decodes++;
-        throw StateError('codec');
+        if (decodes == 1) throw StateError('codec');
+        return solidRgba(20, 100, 160);
+      },
+    );
+    expect(await service.statsFor('k', source), isNull);
+    expect(service.isKnown('k'), isFalse);
+    expect(await service.statsFor('k', source), isNotNull);
+    expect(decodes, 2);
+  });
+
+  test('a black frame is null stats, remembered', () async {
+    var decodes = 0;
+    final service = ColorAnalysisService(
+      decodeRgba: (_) async {
+        decodes++;
+        return solidRgba(0, 0, 0);
       },
     );
     expect(await service.statsFor('k', source), isNull);
     expect(await service.statsFor('k', source), isNull);
+    expect(service.isKnown('k'), isTrue);
     expect(decodes, 1);
   });
 
-  test('a black frame is null stats', () async {
+  test('a peek counts as a use, so drawn tiles outlive the rest', () async {
     final service = ColorAnalysisService(
-      decodeRgba: (_) async => solidRgba(0, 0, 0),
+      capacity: 2,
+      decodeRgba: (_) async => solidRgba(20, 100, 160),
     );
-    expect(await service.statsFor('k', source), isNull);
+    await service.statsFor('a', source);
+    await service.statsFor('b', source);
+    expect(service.peek('a'), isNotNull);
+    await service.statsFor('c', source);
+    expect(service.peek('a'), isNotNull);
+    expect(service.peek('b'), isNull);
   });
 
   test('at most two decodes run at once', () async {

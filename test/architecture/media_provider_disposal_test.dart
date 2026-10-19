@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 
 /// Per-item media families must auto-dispose (#1175).
 ///
@@ -40,6 +42,13 @@ void main() {
     'assetFullResolutionProvider': assetFullResolutionProvider,
     'mediaQueueFactsProvider': mediaQueueFactsProvider,
     'mediaProvenanceProvider': mediaProvenanceProvider,
+    // Colour correction (#3520): one entry per item every tile draws.
+    'colorAdjustmentDraftNotifierProvider':
+        colorAdjustmentDraftNotifierProvider,
+    'colorEnrichmentProvider': colorEnrichmentProvider,
+    'videoFrameStatsProvider': videoFrameStatsProvider,
+    'videoColorTrackProvider': videoColorTrackProvider,
+    'videoDepthAtProvider': videoDepthAtProvider,
   };
 
   for (final entry in mustAutoDispose.entries) {

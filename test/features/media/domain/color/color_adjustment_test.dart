@@ -49,10 +49,18 @@ void main() {
   test('wrongly typed values fall back to their defaults', () {
     expect(
       ColorAdjustment.fromJsonString(
-        '{"v":1,"warmth":"hot","auto":"yes","white":[1,"x"]}',
+        '{"v":1,"warmth":"hot","tint":0.1,"auto":"yes","white":[1,"x"]}',
       ),
-      const ColorAdjustment(),
+      const ColorAdjustment(tint: 0.1),
     );
+  });
+
+  test('the stored neutral value (a cleared adjustment) reads as none', () {
+    expect(
+      ColorAdjustment.fromJsonString(const ColorAdjustment().toJsonString()),
+      isNull,
+    );
+    expect(ColorAdjustment.fromJsonString('{"v":1,"warmth":"hot"}'), isNull);
   });
 
   test('out-of-range values clamp', () {

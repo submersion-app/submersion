@@ -164,7 +164,7 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'perdix',
           icon: Icons.watch,
           label: l10n.media_perdixOverlay_toggleTooltip,
-          priority: 4,
+          priority: 3,
           iconColor: perdixEnabled
               ? Theme.of(context).colorScheme.primary
               : null,
@@ -182,7 +182,7 @@ class MediaViewerToolbar extends StatelessWidget {
         id: 'species',
         icon: Icons.sell_outlined,
         label: l10n.media_species_actionTooltip,
-        priority: 5,
+        priority: 4,
         onPressed: (_) => onTagSpecies(),
       ),
       MediaViewerAction(
@@ -197,7 +197,9 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'adjust_color',
           icon: Icons.palette_outlined,
           label: l10n.media_color_adjustAction,
-          priority: 3,
+          // After the existing actions, so a phone keeps showing the ones
+          // it showed before this was added (issue #3520).
+          priority: 5,
           onPressed: (_) => onAdjustColor!(),
         ),
       MediaViewerAction(

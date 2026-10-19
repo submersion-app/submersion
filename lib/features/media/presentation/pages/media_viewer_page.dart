@@ -43,9 +43,7 @@ import 'package:submersion/features/media/presentation/widgets/media_species_she
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
-import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
-import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
@@ -85,7 +83,9 @@ class MediaViewerPage extends ConsumerStatefulWidget {
 }
 
 class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
-    with MediaFullscreenMixin<MediaViewerPage> {
+    with
+        MediaFullscreenMixin<MediaViewerPage>,
+        ColorAdjustViewerMixin<MediaViewerPage> {
   /// The pageable subset of [MediaViewerPage.mediaList].
   ///
   /// Documents (PDF, docx, ...) resolve to raw bytes the Image widgets cannot
@@ -107,43 +107,38 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
 
   bool _showOverlay = true;
 
-  /// The Adjust color panel (issue #3520) and its "Pick white" mode.
-  bool _colorPanelOpen = false;
-  bool _pickingWhite = false;
-
-  /// Wraps the gallery so "Pick white" can read the photo's pixels.
-  final GlobalKey _galleryBoundaryKey = GlobalKey();
-
   /// "Pick white" answered by a tap at [at] on the page: the photo's pixels
-  /// (with its correction off for a frame), or a paused video's frame.
-  Future<void> _pickWhiteAt(MediaItem item, Offset at, Size box) async {
-    setState(() => _pickingWhite = false);
+  /// (with its correction off for a frame), or a paused video's frame drawn
+  /// contain-fit in [box].
+  Future<void> _pickWhiteAt(MediaItem item, Offset at, Size box) {
+    if (!item.isVideo) return pickWhiteOnPhoto(item, at);
     final controller = _videoControllers[item.id];
-    final sample = item.isVideo
-        ? controller == null
-              ? null
-              : await sampleWhiteFromVideo(
-                  ref,
-                  item,
-                  controller.value.position,
-                  at,
-                  box,
-                )
-        : await sampleWhiteFromPhoto(ref, _galleryBoundaryKey, item, at);
-    if (!mounted) return;
-    await applyPickedWhite(context, ref, item, sample);
+    return pickWhiteWith(
+      item,
+      () async => controller == null
+          ? null
+          : sampleWhiteFromVideo(
+              ref,
+              item,
+              controller.value.position,
+              at,
+              box,
+              // The file the player has open (it plays from a file).
+              playing: controller.dataSourceType == DataSourceType.file
+                  ? Uri.parse(controller.dataSource).toFilePath()
+                  : null,
+            ),
+    );
   }
 
   /// Enters "Pick white"; a video is paused first so the tap reads the
   /// frame on screen.
   void _startPickingWhite(MediaItem item) {
     // Tapping Pick white again cancels it.
-    if (_pickingWhite) {
-      setState(() => _pickingWhite = false);
-      return;
+    if (!pickingWhite && item.isVideo) {
+      unawaited(_videoControllers[item.id]?.pause());
     }
-    if (item.isVideo) unawaited(_videoControllers[item.id]?.pause());
-    setState(() => _pickingWhite = true);
+    togglePickWhite();
   }
 
   /// Dives whose enrichment backfill has already been attempted this session,
@@ -516,7 +511,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 children: [
                   // Photo/video gallery
                   RepaintBoundary(
-                    key: _galleryBoundaryKey,
+                    key: galleryBoundaryKey,
                     child: _PhotoGallery(
                       mediaList: mediaList,
                       pageController: _pageController,
@@ -554,30 +549,20 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             context.l10n.media_photoViewer_toggleOverlayLabel,
                         child: GestureDetector(
                           behavior: HitTestBehavior.translucent,
-                          onTap: _pickingWhite
+                          onTap: pickingWhite
                               ? null
                               : isFullscreen
                               ? toggleFullscreenControls
                               : () => setState(
                                   () => _showOverlay = !_showOverlay,
                                 ),
-                          onTapUp: _pickingWhite
+                          onTapUp: pickingWhite
                               ? (details) => _pickWhiteAt(
                                   currentItem,
                                   details.localPosition,
                                   context.size ?? Size.zero,
                                 )
                               : null,
-                          // Hold to compare with the original (issue #3520).
-                          onLongPressStart: (_) => ref
-                              .read(colorPeekOriginalProvider.notifier)
-                              .peek(currentItem.id),
-                          onLongPressEnd: (_) => ref
-                              .read(colorPeekOriginalProvider.notifier)
-                              .release(),
-                          onLongPressCancel: () => ref
-                              .read(colorPeekOriginalProvider.notifier)
-                              .release(),
                           child: const SizedBox.expand(),
                         ),
                       ),
@@ -585,7 +570,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
 
                   // "Pick white" on a paused video: the player owns ordinary
                   // taps, so the pick gets its own catcher above it.
-                  if (_pickingWhite && currentItem.isVideo)
+                  if (pickingWhite && currentItem.isVideo)
                     Positioned.fill(
                       child: LayoutBuilder(
                         builder: (context, box) => GestureDetector(
@@ -598,10 +583,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         ),
                       ),
                     ),
-                  if (_pickingWhite) const PickWhiteHint(),
+                  if (pickingWhite) const PickWhiteHint(),
 
                   // Overlay controls (app bar and metadata)
-                  if (_showOverlay && !isFullscreen && !_pickingWhite) ...[
+                  if (_showOverlay && !isFullscreen && !pickingWhite) ...[
                     // Top app bar
                     MediaViewerToolbar(
                       item: currentItem,
@@ -620,8 +605,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
                       onTagSpecies: () =>
                           showMediaSpeciesSheet(context, currentItem),
-                      onAdjustColor: () =>
-                          setState(() => _colorPanelOpen = true),
+                      onAdjustColor: () => openColorPanel(),
                       // The viewer is deliberately NOT popped first: leaving it
                       // on the stack is what lets Back return the user to the
                       // photo they launched from, with its page index, zoom and
@@ -775,20 +759,14 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
             return Focus(
               autofocus: true,
               onKeyEvent: _handleKeyEvent,
-              child: ColorAdjustLayout(
-                open: _colorPanelOpen && !isFullscreen,
-                panelBuilder: (layout) => ColorAdjustPanel(
-                  item: currentItem,
-                  layout: layout,
-                  pickWhiteAvailable:
-                      !currentItem.isVideo ||
-                      _videoControllers[currentItem.id] != null,
-                  onPickWhite: () => _startPickingWhite(currentItem),
-                  onDone: () => setState(() {
-                    _colorPanelOpen = false;
-                    _pickingWhite = false;
-                  }),
-                ),
+              // Adjust color (issue #3520).
+              child: colorAdjustLayout(
+                item: currentItem,
+                fullscreen: isFullscreen,
+                pickWhiteAvailable:
+                    !currentItem.isVideo ||
+                    _videoControllers[currentItem.id] != null,
+                onPickWhite: () => _startPickingWhite(currentItem),
                 child: viewer,
               ),
             );
@@ -1051,6 +1029,21 @@ class _PhotoGallery extends ConsumerWidget {
 }
 
 /// Individual photo item that loads full-resolution image.
+/// [item], from the list the viewer opened with, drawn with the live row's
+/// colour adjustment and profile match (issue #3520): one saved since (the
+/// panel, Apply to this dive) shows on every page, not only the current
+/// one. Only those two: MediaItemView does not resolve the image again for
+/// them, so a caption or time pin arriving while the page is open does not
+/// reload the photo.
+MediaItem _withLiveColor(WidgetRef ref, MediaItem item) {
+  final live = ref.watch(mediaByIdProvider(item.id)).value;
+  if (live == null) return item;
+  return item.copyWith(
+    colorAdjustment: live.colorAdjustment,
+    enrichment: live.enrichment ?? item.enrichment,
+  );
+}
+
 class _PhotoItem extends ConsumerWidget {
   final MediaItem item;
 
@@ -1059,10 +1052,7 @@ class _PhotoItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MediaItemView(
-      // The live row, not the list the viewer opened with: a colour
-      // adjustment saved since (the panel, Apply to this dive) must show
-      // on every page, not only the current one (issue #3520).
-      item: ref.watch(mediaByIdProvider(item.id)).value ?? item,
+      item: _withLiveColor(ref, item),
       fit: BoxFit.contain,
       showAccessActions: true,
     );
@@ -1141,7 +1131,7 @@ class _ConnectorVideoItem extends ConsumerWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          MediaItemView(item: item, fit: BoxFit.contain),
+          MediaItemView(item: _withLiveColor(ref, item), fit: BoxFit.contain),
           if (!fullscreen)
             badge
           else if (showControls)
@@ -1191,6 +1181,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   /// The file [_controller] plays, for the colour track's frames.
   String? _playbackPath;
+
+  /// Whether this page has taken keyboard focus since it became current.
+  bool _focusTaken = false;
   bool _isInitialized = false;
   bool _isLoading = true;
   String? _error;
@@ -1258,9 +1251,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     bool stale() => !mounted || generation != _loadGeneration;
     try {
       final path = await ref.read(resolvedFilePathProvider(widget.item).future);
-      _playbackPath = path;
 
       if (stale()) return;
+      _playbackPath = path;
       if (path == null) {
         setState(() {
           _error = 'videoFileNotFound';
@@ -1382,7 +1375,15 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
     // Request focus when video is ready to enable keyboard controls. Only on
     // screen: a neighbour built ahead would otherwise take the space bar.
-    if (widget.isCurrent) _focusNode.requestFocus();
+    // Once per arrival on screen, not on every rebuild: a save from the
+    // Adjust color panel rebuilds this page, and taking focus back then
+    // would leave the slider's next arrow key turning the page (#3520).
+    if (!widget.isCurrent) {
+      _focusTaken = false;
+    } else if (!_focusTaken) {
+      _focusTaken = true;
+      _focusNode.requestFocus();
+    }
 
     return Focus(
       focusNode: _focusNode,

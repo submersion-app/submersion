@@ -121,50 +121,50 @@ void main() {
     });
   });
 
-  group('autoNeedFor', () {
+  group('needsAutoStats', () {
     test('needs stats for an underwater dive photo with auto on', () {
       expect(
-        autoNeedFor(item(enrichment: enrichment()), diverAutoEnabled: true),
-        AutoNeed.stats,
+        needsAutoStats(item(enrichment: enrichment()), diverAutoEnabled: true),
+        isTrue,
       );
     });
     test('none with auto off', () {
       expect(
-        autoNeedFor(item(enrichment: enrichment()), diverAutoEnabled: false),
-        AutoNeed.none,
+        needsAutoStats(item(enrichment: enrichment()), diverAutoEnabled: false),
+        isFalse,
       );
     });
     test('none when a white point replaces the automatic fix', () {
       expect(
-        autoNeedFor(
+        needsAutoStats(
           item(enrichment: enrichment()),
           adjustment: const ColorAdjustment(
             whitePoint: WhitePoint(0.5, 0.6, 0.7),
           ),
           diverAutoEnabled: true,
         ),
-        AutoNeed.none,
+        isFalse,
       );
     });
     test('none for a surface photo', () {
       expect(
-        autoNeedFor(
+        needsAutoStats(
           item(enrichment: enrichment(depth: 0.3)),
           diverAutoEnabled: true,
         ),
-        AutoNeed.none,
+        isFalse,
       );
     });
     test('a surface-starting video still needs stats (per moment)', () {
       expect(
-        autoNeedFor(
+        needsAutoStats(
           item(
             type: MediaType.video,
             enrichment: enrichment(confidence: MatchConfidence.estimated),
           ),
           diverAutoEnabled: true,
         ),
-        AutoNeed.stats,
+        isTrue,
       );
     });
   });
@@ -182,6 +182,19 @@ void main() {
         autoParamsForPhoto(item(enrichment: enrichment()), blue),
         computeAutoCorrection(blue, depthMeters: 18),
       );
+    });
+    test('a surface clip drawn from its poster is not warmed', () {
+      // A boat video with no per-moment track: the matcher clamped it to
+      // the profile's first sample (1.5 m) and recorded the offset.
+      final boat = item(
+        type: MediaType.video,
+        enrichment: enrichment(
+          depth: 1.5,
+          confidence: MatchConfidence.estimated,
+          offset: -310,
+        ),
+      );
+      expect(autoParamsForPhoto(boat, blue), isNull);
     });
   });
 

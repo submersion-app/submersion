@@ -22,18 +22,18 @@ Future<ColorMatrix> shareColorMatrixFor(
 ) async {
   if (item.mediaType != MediaType.photo) return ColorMatrix.identity;
   final adjustment =
-      ref.read(colorAdjustmentDraftProvider(item.id)) ?? item.colorAdjustment;
+      ref.read(colorAdjustmentDraftNotifierProvider(item.id)) ??
+      item.colorAdjustment;
   final diverAuto =
-      item.diveId != null && ref.read(diverAutoColorCorrectionProvider);
+      isAutoCorrectable(item) && ref.read(diverAutoColorCorrectionProvider);
   // A row shared from the library comes without its profile match; read it
   // so the shared copy gets the same depth and surface check as the tile.
   var placed = item;
-  if (item.enrichment == null &&
-      autoEnabledFor(
-        item,
-        adjustment: adjustment,
-        diverAutoEnabled: diverAuto,
-      )) {
+  if (needsStoredMatch(
+    item,
+    adjustment: adjustment,
+    diverAutoEnabled: diverAuto,
+  )) {
     placed = item.copyWith(
       enrichment: await ref
           .read(mediaColorAdjustmentRepositoryProvider)
@@ -41,12 +41,11 @@ Future<ColorMatrix> shareColorMatrixFor(
     );
   }
   AutoCorrectionParams? auto;
-  if (autoNeedFor(
-        placed,
-        adjustment: adjustment,
-        diverAutoEnabled: diverAuto,
-      ) ==
-      AutoNeed.stats) {
+  if (needsAutoStats(
+    placed,
+    adjustment: adjustment,
+    diverAutoEnabled: diverAuto,
+  )) {
     final stats = await ref
         .read(colorAnalysisServiceProvider)
         .statsFor(colorStatsKey(item), MemoryImage(bytes));

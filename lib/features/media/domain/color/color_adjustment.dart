@@ -50,16 +50,8 @@ class ColorAdjustment extends Equatable {
   /// This item with [source]'s Auto switch and sliders, keeping its own
   /// white point ("Apply to this dive": a white point only holds for the
   /// photo it was picked on).
-  ColorAdjustment withSlidersFrom(ColorAdjustment source) => ColorAdjustment(
-    autoOverride: source.autoOverride,
-    strength: source.strength,
-    warmth: source.warmth,
-    tint: source.tint,
-    brightness: source.brightness,
-    contrast: source.contrast,
-    saturation: source.saturation,
-    whitePoint: whitePoint,
-  );
+  ColorAdjustment withSlidersFrom(ColorAdjustment source) =>
+      source.copyWith(whitePoint: whitePoint);
 
   ColorAdjustment copyWith({
     Object? autoOverride = _undefined,
@@ -120,7 +112,7 @@ class ColorAdjustment extends Equatable {
     }
 
     final auto = map['auto'];
-    return ColorAdjustment(
+    final parsed = ColorAdjustment(
       autoOverride: auto is bool ? auto : null,
       strength: slider('strength', fallback: 1.0, min: 0),
       warmth: slider('warmth'),
@@ -130,6 +122,9 @@ class ColorAdjustment extends Equatable {
       saturation: slider('saturation'),
       whitePoint: _whitePointFrom(map['white']),
     );
+    // The neutral value is how a cleared adjustment is stored, so that the
+    // clear syncs; it means no adjustment.
+    return parsed.isNeutral ? null : parsed;
   }
 
   static WhitePoint? _whitePointFrom(Object? raw) {

@@ -66,6 +66,8 @@ void main() {
         colorAnalysisServiceProvider.overrideWithValue(
           ColorAnalysisService(decodeRgba: (_) async => blueRgba()),
         ),
+        if (track != null)
+          videoColorTrackProvider.overrideWith((ref, key) async => track),
       ],
     );
     addTearDown(container.dispose);
@@ -75,7 +77,6 @@ void main() {
         child: ColorCorrected(
           item: item,
           analysisSource: source,
-          track: track,
           child: const SizedBox(width: 10, height: 10),
         ),
       ),
@@ -230,10 +231,10 @@ void main() {
       tester,
       item(adjustment: const ColorAdjustment(warmth: 0.5)),
     );
-    container.read(colorPeekOriginalProvider.notifier).peek('m1');
+    container.read(colorPeekOriginalNotifierProvider.notifier).peek('m1');
     await tester.pump();
     expect(filter(tester), isNull);
-    container.read(colorPeekOriginalProvider.notifier).release();
+    container.read(colorPeekOriginalNotifierProvider.notifier).release();
     await tester.pump();
     expect(filter(tester), isNotNull);
   });
@@ -241,7 +242,9 @@ void main() {
   testWidgets('a draft is drawn live', (tester) async {
     final container = await pump(tester, item());
     const draft = ColorAdjustment(tint: -0.5);
-    container.read(colorAdjustmentDraftProvider('m1').notifier).set(draft);
+    container
+        .read(colorAdjustmentDraftNotifierProvider('m1').notifier)
+        .set(draft);
     await tester.pump();
     expect(
       filter(tester)!.colorFilter,

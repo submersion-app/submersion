@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/media/domain/color/auto_correction.dart';
 import 'package:submersion/features/media/domain/color/channel_stats.dart';
 import 'package:submersion/features/media/domain/color/color_correction_policy.dart';
-import 'package:submersion/features/media/domain/color/video_color_track.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
@@ -15,7 +14,7 @@ import 'package:submersion/features/media/presentation/providers/video_color_tra
 ///
 /// [analysisSource] is the image [child] draws, used for the automatic
 /// fix's colour statistics. A video tile uses its per-moment track's
-/// average ([track], else [videoColorTrackProvider]), falling back to the
+/// average ([videoColorTrackProvider]), falling back to the
 /// poster's own colour while the track is unknown.
 class ColorCorrected extends ConsumerStatefulWidget {
   const ColorCorrected({
@@ -23,13 +22,13 @@ class ColorCorrected extends ConsumerStatefulWidget {
     required this.item,
     required this.analysisSource,
     required this.child,
-    this.track,
   });
 
   final MediaItem item;
-  final ImageProvider analysisSource;
+
+  /// Null while [child] is not yet a decoded frame of [item] itself.
+  final ImageProvider? analysisSource;
   final Widget child;
-  final VideoColorTrack? track;
 
   @override
   ConsumerState<ColorCorrected> createState() => _ColorCorrectedState();
@@ -38,29 +37,46 @@ class ColorCorrected extends ConsumerStatefulWidget {
 class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
   String? _requestedKey;
 
-  /// Stats for [key], asking for them (once) when not analysed yet.
+  /// The last stats this tile drew, and for which item.
+  ({String id, ChannelStats stats})? _last;
+
+  /// Stats for [key], asking for them when the service has no answer.
+  ///
+  /// Asked again after an eviction or a failed decode, which the service
+  /// no longer knows; not while this tile's own request is under way or
+  /// once the image proved to have no usable pixels.
   ChannelStats? _stats(String key) {
     final service = ref.read(colorAnalysisServiceProvider);
     final cached = service.peek(key);
-    if (cached != null || _requestedKey == key) return cached;
-    _requestedKey = key;
-    service.statsFor(key, widget.analysisSource).then((stats) {
-      if (mounted && stats != null) setState(() {});
-    });
-    return null;
+    if (cached != null) {
+      _last = (id: widget.item.id, stats: cached);
+      return cached;
+    }
+    // Analysed, and too few usable pixels: nothing to correct with.
+    if (service.hasAnswer(key)) return null;
+    final source = widget.analysisSource;
+    if (source != null && !(_requestedKey == key && service.isPending(key))) {
+      _requestedKey = key;
+      service.statsFor(key, source).then((stats) {
+        if (mounted && stats != null) setState(() {});
+      });
+    }
+    // While a new key for the same item is analysed (a relink, an upload
+    // stamping the content hash), it keeps the colours it had rather than
+    // flashing uncorrected.
+    final last = _last;
+    return last != null && last.id == widget.item.id ? last.stats : null;
   }
 
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    if (ref.watch(colorPeekOriginalProvider) == item.id) return widget.child;
+    if (ref.watch(colorPeekOriginalNotifierProvider) == item.id) {
+      return widget.child;
+    }
 
     final adjustment = effectiveAdjustment(ref, item);
-    final onDive =
-        item.diveId != null &&
-        (item.mediaType == MediaType.photo ||
-            item.mediaType == MediaType.video);
-    final diverAuto = onDive && ref.watch(diverAutoColorCorrectionProvider);
+    final diverAuto = diverAutoFor(ref, item);
 
     // A dive photo or video read without its profile match (the library's
     // lean rows) gets it from the database before the automatic fix is
@@ -69,12 +85,11 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
     // answered: guessing without depth could warm a surface shot.
     var placed = item;
     var placementKnown = true;
-    if (item.enrichment == null &&
-        autoEnabledFor(
-          item,
-          adjustment: adjustment,
-          diverAutoEnabled: diverAuto,
-        )) {
+    if (needsStoredMatch(
+      item,
+      adjustment: adjustment,
+      diverAutoEnabled: diverAuto,
+    )) {
       final stored = ref.watch(colorEnrichmentProvider(item.id));
       placementKnown = stored.hasValue;
       placed = item.copyWith(enrichment: stored.value);
@@ -82,23 +97,21 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
 
     AutoCorrectionParams? auto;
     if (placementKnown &&
-        autoNeedFor(
-              placed,
-              adjustment: adjustment,
-              diverAutoEnabled: diverAuto,
-            ) ==
-            AutoNeed.stats) {
+        needsAutoStats(
+          placed,
+          adjustment: adjustment,
+          diverAutoEnabled: diverAuto,
+        )) {
       final track = item.isVideo
-          ? widget.track ??
-                ref
-                    .watch(
-                      // Only a file already on this device: a grid never
-                      // fetches a whole video to colour its tile.
-                      videoColorTrackProvider(
-                        VideoTrackKey(placed, path: item.localPath),
-                      ),
-                    )
-                    .value
+          ? ref
+                .watch(
+                  // Only a file already on this device: a grid never
+                  // fetches a whole video to colour its tile.
+                  videoColorTrackProvider(
+                    VideoTrackKey(placed, path: item.localPath),
+                  ),
+                )
+                .value
           : null;
       auto = track != null
           ? track.average

@@ -54,7 +54,7 @@ void main() {
     final gesture = await tester.startGesture(tester.getCenter(slider));
     await gesture.moveBy(const Offset(60, 0));
     await tester.pump();
-    final draft = h.container.read(colorAdjustmentDraftProvider('m1'));
+    final draft = h.container.read(colorAdjustmentDraftNotifierProvider('m1'));
     expect(draft!.warmth, greaterThan(0));
     expect(repo.saves, isEmpty);
 
@@ -130,10 +130,10 @@ void main() {
       tester.getCenter(find.text('Original')),
     );
     await tester.pump();
-    expect(h.container.read(colorPeekOriginalProvider), 'm1');
+    expect(h.container.read(colorPeekOriginalNotifierProvider), 'm1');
     await gesture.up();
     await tester.pump();
-    expect(h.container.read(colorPeekOriginalProvider), isNull);
+    expect(h.container.read(colorPeekOriginalNotifierProvider), isNull);
   });
 
   testWidgets('Pick white and Done call back', (tester) async {

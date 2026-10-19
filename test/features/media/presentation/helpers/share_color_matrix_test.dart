@@ -238,5 +238,8 @@ class _StoredEnrichment implements MediaColorAdjustmentRepository {
   Future<MediaEnrichment?> enrichmentFor(String mediaId) async => stored;
 
   @override
+  Stream<void> watchEnrichmentChanges() => const Stream.empty();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -82,11 +82,20 @@ void main() {
       expect(await isPending(id), isTrue);
     });
 
-    test('a neutral adjustment is stored as null', () async {
-      final id = await add('m1', adjustment: const ColorAdjustment(tint: 0.2));
-      await repository.setColorAdjustment(id, const ColorAdjustment());
-      expect(await rawColumn(id), isNull);
-    });
+    test(
+      'a neutral adjustment reads as none but is stored as a value',
+      () async {
+        // Not NULL: the media sync upsert never writes a null column, so a
+        // NULL could not clear a peer's copy (media_color_adjustment_sync_test).
+        final id = await add(
+          'm1',
+          adjustment: const ColorAdjustment(tint: 0.2),
+        );
+        await repository.setColorAdjustment(id, const ColorAdjustment());
+        expect(await read(id), isNull);
+        expect(await rawColumn(id), const ColorAdjustment().toJsonString());
+      },
+    );
 
     test('a missing row throws', () async {
       expect(
@@ -176,6 +185,31 @@ void main() {
       expect(await isPending(tuned), isTrue);
     });
 
+    test(
+      'a sibling that already matches is not rewritten or counted',
+      () async {
+        final src = await add('src', adjustment: source);
+        const copied = ColorAdjustment(
+          autoOverride: true,
+          warmth: 0.5,
+          contrast: 0.2,
+        );
+        final same = await add('same', adjustment: copied);
+        final plain = await add('plain');
+        await clearPending();
+
+        final prior = await repository.applySlidersToDive(
+          diveId: 'd1',
+          sourceMediaId: src,
+          source: source,
+        );
+
+        expect(prior.keys, [plain]);
+        expect(await isPending(same), isFalse);
+        expect(await read(same), copied);
+      },
+    );
+
     test('restore skips rows deleted since', () async {
       final src = await add('src', adjustment: source);
       final plain = await add('plain');
@@ -206,6 +240,26 @@ void main() {
     final stored = await repository.enrichmentFor(id);
     expect(stored!.depthMeters, 14);
     expect(stored.matchConfidence, MatchConfidence.interpolated);
+  });
+
+  test('enrichmentFor survives two stored matches for one photo', () async {
+    // Two devices each enriched the photo before seeing the other's row;
+    // sync keeps both (they differ by id).
+    final id = await add('m1');
+    for (final (rowId, depth, at) in [('e1', 10.0, 1), ('e2', 14.0, 2)]) {
+      await db
+          .into(db.mediaEnrichment)
+          .insert(
+            MediaEnrichmentCompanion.insert(
+              id: rowId,
+              mediaId: id,
+              diveId: 'd1',
+              depthMeters: Value(depth),
+              createdAt: at,
+            ),
+          );
+    }
+    expect((await repository.enrichmentFor(id))!.depthMeters, 14);
   });
 
   test('countOtherMediaOnDive skips the source and documents', () async {

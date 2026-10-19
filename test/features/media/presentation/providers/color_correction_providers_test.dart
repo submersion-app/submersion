@@ -25,21 +25,23 @@ void main() {
     addTearDown(container.dispose);
     const draft = ColorAdjustment(warmth: 0.5);
 
-    expect(container.read(colorAdjustmentDraftProvider('m1')), isNull);
-    container.read(colorAdjustmentDraftProvider('m1').notifier).set(draft);
-    expect(container.read(colorAdjustmentDraftProvider('m1')), draft);
-    expect(container.read(colorAdjustmentDraftProvider('m2')), isNull);
-    container.read(colorAdjustmentDraftProvider('m1').notifier).clear();
-    expect(container.read(colorAdjustmentDraftProvider('m1')), isNull);
+    expect(container.read(colorAdjustmentDraftNotifierProvider('m1')), isNull);
+    container
+        .read(colorAdjustmentDraftNotifierProvider('m1').notifier)
+        .set(draft);
+    expect(container.read(colorAdjustmentDraftNotifierProvider('m1')), draft);
+    expect(container.read(colorAdjustmentDraftNotifierProvider('m2')), isNull);
+    container.read(colorAdjustmentDraftNotifierProvider('m1').notifier).clear();
+    expect(container.read(colorAdjustmentDraftNotifierProvider('m1')), isNull);
   });
 
   test('peek holds one item and releases it', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
-    container.read(colorPeekOriginalProvider.notifier).peek('m1');
-    expect(container.read(colorPeekOriginalProvider), 'm1');
-    container.read(colorPeekOriginalProvider.notifier).release();
-    expect(container.read(colorPeekOriginalProvider), isNull);
+    container.read(colorPeekOriginalNotifierProvider.notifier).peek('m1');
+    expect(container.read(colorPeekOriginalNotifierProvider), 'm1');
+    container.read(colorPeekOriginalNotifierProvider.notifier).release();
+    expect(container.read(colorPeekOriginalNotifierProvider), isNull);
   });
 
   test('the diver switch follows the settings', () {
@@ -81,6 +83,11 @@ void main() {
       colorStatsKey(a.copyWith(contentHash: 'sha-1')),
       isNot(colorStatsKey(a.copyWith(contentHash: 'sha-2'))),
     );
+    // A feed pointing the same row at a new image.
+    expect(
+      colorStatsKey(a.copyWith(url: 'https://example.invalid/a.jpg')),
+      isNot(colorStatsKey(a.copyWith(url: 'https://example.invalid/b.jpg'))),
+    );
   });
 
   testWidgets('effectiveAdjustment prefers the draft', (tester) async {
@@ -100,7 +107,9 @@ void main() {
       ),
     );
     expect(seen.last, stored);
-    widgetRef.read(colorAdjustmentDraftProvider('m1').notifier).set(draft);
+    widgetRef
+        .read(colorAdjustmentDraftNotifierProvider('m1').notifier)
+        .set(draft);
     await tester.pump();
     expect(seen.last, draft);
   });

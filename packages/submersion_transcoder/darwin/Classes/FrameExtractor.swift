@@ -20,9 +20,13 @@ enum FrameExtractor {
     generator.maximumSize = CGSize(width: maxDimension, height: maxDimension)
     // Colour statistics do not need the exact frame and a nearby keyframe
     // is far faster; a white-point pick needs the paused frame itself.
-    let tolerance = exact ? CMTime.zero : CMTime(value: 500, timescale: 1000)
-    generator.requestedTimeToleranceBefore = tolerance
-    generator.requestedTimeToleranceAfter = tolerance
+    // Exact still allows a little before the time: a clip that played to the
+    // end is paused at the asset's duration, which can lie past the last
+    // video frame (audio running longer), and no frame starts after it.
+    let tolerance = CMTime(value: 500, timescale: 1000)
+    generator.requestedTimeToleranceBefore =
+      exact ? CMTime(value: 100, timescale: 1000) : tolerance
+    generator.requestedTimeToleranceAfter = exact ? CMTime.zero : tolerance
 
     return timesMs.map { ms -> Any in
       let time = CMTime(value: CMTimeValue(ms), timescale: 1000)

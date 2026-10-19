@@ -94,6 +94,41 @@ void main() {
     expect(rgba[7], 128); // alpha untouched
   });
 
+  group('shareableExif', () {
+    img.ExifData source() {
+      final exif = img.decodeJpgExif(jpegWithExif(orientation: 6))!;
+      // An embedded thumbnail's pointers and a maker note: offsets into
+      // bytes the re-encoded copy no longer has.
+      exif['ifd1'][0x0201] = img.IfdValueLong(4096);
+      exif['ifd1'][0x0202] = img.IfdValueLong(9000);
+      exif.exifIfd[0x927c] = img.IfdValueUndefined.list(List.filled(40, 1));
+      return exif;
+    }
+
+    test('keeps the capture details, uprights, drops the dead offsets', () {
+      final out = shareableExif(source())!;
+      expect(out.imageIfd.orientation, 1);
+      expect(
+        out.exifIfd['DateTimeOriginal']?.toString(),
+        '2026:07:01 10:20:00',
+      );
+      expect(out.gpsIfd['GPSLatitudeRef']?.toString(), 'N');
+      expect(out.containsKey('ifd1'), isFalse);
+      expect(out.exifIfd.containsKey(0x927c), isFalse);
+    });
+
+    test('EXIF too big for one JPEG segment is left out', () {
+      final big = source();
+      big.imageIfd[0x010e] = img.IfdValueAscii('x' * 70000);
+      expect(shareableExif(big), isNull);
+    });
+
+    test('none in, none out', () {
+      expect(shareableExif(null), isNull);
+      expect(shareableExif(img.ExifData()), isNull);
+    });
+  });
+
   test('a corrupt file gives null, so the original is shared', () async {
     expect(
       await encodeCorrectedPhoto(

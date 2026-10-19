@@ -50,18 +50,19 @@ class LinuxFfmpegEngine implements TranscodeEngine {
     try {
       final frames = <Uint8List?>[];
       for (var i = 0; i < times.length; i++) {
-        final out = File('${dir.path}${Platform.pathSeparator}frame_$i.jpg');
+        final out = File.fromUri(dir.uri.resolve('frame_$i.jpg'));
         final seconds = times[i].inMilliseconds / 1000;
         final at = seconds.toStringAsFixed(3);
         final result = await _runner.run('ffmpeg', [
           '-v',
           'error',
-          // Before -i: a fast keyframe seek, close enough for colour. After
-          // -i: decoded up to the very frame, for an exact pick.
-          if (!exact) ...['-ss', at],
+          // Before -i: seeks to the keyframe and decodes on to the very frame
+          // (-accurate_seek is on by default), so it serves an exact pick as
+          // well. After -i it would decode the clip from its start.
+          '-ss',
+          at,
           '-i',
           source.path,
-          if (exact) ...['-ss', at],
           '-frames:v',
           '1',
           '-vf',
