@@ -102,6 +102,7 @@ class MediaViewerToolbar extends StatelessWidget {
     this.onOpenInLightroom,
     this.onGoToDive,
     this.onReupload,
+    this.onAdjustColor,
   });
 
   final MediaItem item;
@@ -136,6 +137,9 @@ class MediaViewerToolbar extends StatelessWidget {
   /// Non-null when a media store is connected on this device.
   final void Function(BuildContext anchorContext)? onReupload;
 
+  /// Opens the Adjust color panel (issue #3520); null hides the action.
+  final VoidCallback? onAdjustColor;
+
   List<MediaViewerAction> _actions(BuildContext context) {
     final l10n = context.l10n;
     return [
@@ -152,7 +156,7 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'write_metadata',
           icon: Icons.edit_note,
           label: l10n.media_photoViewer_writeDiveDataTooltip,
-          priority: 5,
+          priority: 6,
           onPressed: (_) => onWriteMetadata(),
         ),
       if (showPerdixToggle)
@@ -171,7 +175,7 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'lightroom',
           icon: Icons.open_in_new,
           label: l10n.media_lightroom_openInLightroom,
-          priority: 6,
+          priority: 7,
           onPressed: (_) => onOpenInLightroom!(),
         ),
       MediaViewerAction(
@@ -188,6 +192,16 @@ class MediaViewerToolbar extends StatelessWidget {
         priority: 2,
         onPressed: (_) => onShowInfo(),
       ),
+      if (onAdjustColor != null)
+        MediaViewerAction(
+          id: 'adjust_color',
+          icon: Icons.palette_outlined,
+          label: l10n.media_color_adjustAction,
+          // After the existing actions, so a phone keeps showing the ones
+          // it showed before this was added (issue #3520).
+          priority: 5,
+          onPressed: (_) => onAdjustColor!(),
+        ),
       MediaViewerAction(
         id: 'share',
         icon: Icons.share,
@@ -202,7 +216,7 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'reupload',
           icon: Icons.tune,
           label: l10n.settings_mediaStorage_quality_section,
-          priority: 7,
+          priority: 8,
           onPressed: (anchor) => onReupload!(anchor),
         ),
     ];

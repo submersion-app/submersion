@@ -40,8 +40,12 @@ extension MediaMigrations on AppDatabase {
       'created_at INTEGER NOT NULL, '
       'updated_at INTEGER NOT NULL, '
       'hlc TEXT, '
+      'location TEXT, '
       'nickname TEXT)',
     );
+    // v293: connected_accounts.location (issue #3482); a table created
+    // before v293 gains it here.
+    await _addColumnIfMissing('connected_accounts', 'location', 'TEXT');
     // v295: connected_accounts.nickname (issue #3522); a table created
     // before v295 gains it here.
     await _addColumnIfMissing('connected_accounts', 'nickname', 'TEXT');
@@ -132,6 +136,21 @@ extension MediaMigrations on AppDatabase {
     if (!names.contains('display_size')) {
       await customStatement('ALTER TABLE media ADD COLUMN display_size TEXT');
     }
+  }
+
+  /// v296: media.color_adjustment and diver_settings.auto_color_correction
+  /// (issue #3520). Both live here, beside the media columns, because
+  /// diver_migrations.dart is at its size cap. Idempotent; called from the
+  /// rung and the beforeOpen backstop. The adjustment is nullable (no
+  /// adjustment) and the switch defaults off, so nothing looks different
+  /// after upgrading.
+  Future<void> _assertColorCorrectionColumns() async {
+    await _addColumnIfMissing('media', 'color_adjustment', 'TEXT');
+    await _addColumnIfMissing(
+      'diver_settings',
+      'auto_color_correction',
+      'INTEGER NOT NULL DEFAULT 0 CHECK (auto_color_correction IN (0, 1))',
+    );
   }
 
   /// v130: media_enrichment.hlc column. Self-guarding when the table is absent

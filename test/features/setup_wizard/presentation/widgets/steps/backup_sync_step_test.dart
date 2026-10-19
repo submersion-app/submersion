@@ -8,8 +8,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
-import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
-import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
@@ -210,7 +209,9 @@ void main() {
 
     await tester.tap(find.text('S3'));
     await tester.pumpAndSettle();
-    expect(find.byType(S3ConfigPage), findsOneWidget);
+    // The shared My own server form (#3482), S3 only.
+    expect(find.byType(OwnServerForm), findsOneWidget);
+    expect(find.byKey(const Key('account-s3-endpoint')), findsOneWidget);
 
     // Close the config page; the step reads the active provider and reflects
     // it as connected.
@@ -242,7 +243,8 @@ void main() {
     expect(find.text('WebDAV'), findsOneWidget);
     await tester.tap(find.text('WebDAV'));
     await tester.pumpAndSettle();
-    expect(find.byType(WebDavConfigPage), findsOneWidget);
+    expect(find.byType(OwnServerForm), findsOneWidget);
+    expect(find.byKey(const Key('account-webdav-server-url')), findsOneWidget);
 
     await tester.pageBack();
     await tester.pumpAndSettle();

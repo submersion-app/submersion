@@ -16324,7 +16324,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (צפיפות אוויר)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'צפיפות גז ב-0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'צפיפות גז ב-$temp';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'בדוק את צפיפות הגז בטמפרטורה אחרת';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'גז קר יותר צפוף יותר, כך שבדיקת הצפיפות מתבססת על הטמפרטורה שנבחרה כאן, לא על טמפרטורת הגז בפועל בעומק.';
 
   @override
   String get gasCalculators_mod_openDensity => 'פתח במחשבון צפיפות הגז';
@@ -16369,18 +16379,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: צפיפות הגז $density ג/ל מעל $limit ג/ל המומלצים.';
+    return '$where: צפיפות הגז $density ג/ל ב-$temp מעל $limit ג/ל המומלצים.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: צפיפות הגז $density ג/ל מעל הגבול המוחלט של $limit ג/ל.';
+    return '$where: צפיפות הגז $density ג/ל ב-$temp מעל הגבול המוחלט של $limit ג/ל.';
   }
 
   @override
@@ -18340,6 +18352,91 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_photoViewer_closeTooltip => 'סגור מציג תמונות';
+
+  @override
+  String get media_color_adjustAction => 'התאמת צבע';
+
+  @override
+  String get media_color_auto => 'אוטומטי';
+
+  @override
+  String get media_color_pickWhite => 'בחירת לבן';
+
+  @override
+  String get media_color_pickWhiteHint => 'הקש על משהו שאמור להיות לבן או אפור';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'לא ניתן היה לקרוא צבע במקום הזה. נסה נקודה בהירה יותר.';
+
+  @override
+  String get media_color_original => 'מקור';
+
+  @override
+  String get media_color_strength => 'עוצמה';
+
+  @override
+  String get media_color_warmth => 'חמימות';
+
+  @override
+  String get media_color_tint => 'גוון';
+
+  @override
+  String get media_color_brightness => 'בהירות';
+
+  @override
+  String get media_color_contrast => 'ניגודיות';
+
+  @override
+  String get media_color_saturation => 'רוויה';
+
+  @override
+  String get media_color_reset => 'איפוס';
+
+  @override
+  String get media_color_applyToDive => 'החלה על הצלילה הזו';
+
+  @override
+  String get media_color_applyToDiveTitle => 'להחיל על הצלילה הזו?';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות וסרטונים נוספים יקבלו את ההתאמות האלה.',
+      one: 'תמונה או סרטון נוסף אחד יקבלו את ההתאמות האלה.',
+    );
+    return '$_temp0 נקודות הלבן של כל אחד נשמרות.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עודכנו $count תמונות וסרטונים',
+      one: 'עודכנו תמונה או סרטון אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'ביטול';
+
+  @override
+  String get media_color_undoFailed => 'לא ניתן היה לבטל את השינוי';
+
+  @override
+  String get media_color_saveFailed => 'לא ניתן היה לשמור את התאמת הצבע';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · אוטומטי';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'מותאם';
 
   @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
@@ -20530,9 +20627,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
 
   @override
-  String get settings_cloudSync_autoSync => 'סנכרון אוטומטי';
-
-  @override
   String get settings_cloudSync_autoSync_subtitle =>
       'סנכרן אוטומטית לאחר שינויים';
 
@@ -20562,15 +20656,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_action => 'חיבור ספרייה';
-
-  @override
-  String get sharedLibrary_connect_addAccount => 'הוספת חשבון אחסון';
-
-  @override
-  String get sharedLibrary_connect_saveAccount => 'שמירת החשבון';
-
-  @override
-  String get sharedLibrary_connect_account_label => 'חשבון אחסון';
 
   @override
   String get sharedLibrary_connect_prefix_label => 'תיקייה (קידומת)';
@@ -20923,9 +21008,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_confirm => 'משפט הסיסמה שוב';
-
-  @override
-  String get sharedLibrary_connect_probe_action => 'בדיקה';
 
   @override
   String sharedLibrary_connect_join_action(String name) {
@@ -21295,12 +21377,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_adopt_notNow => 'לא עכשיו';
 
   @override
-  String get settings_cloudSync_dangerZone => 'אזור מסוכן';
-
-  @override
-  String get settings_cloudSync_replaceLibrary_tile => 'החלפת ספריית הענן';
-
-  @override
   String get settings_cloudSync_replaceLibrary_tileSubtitle =>
       'להפוך את הספרייה של מכשיר זה לספרייה שכל המכשירים משתמשים בה';
 
@@ -21382,9 +21458,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_dialogTitle => 'להחליף שירות סנכרון?';
-
-  @override
   String settings_cloudSync_switch_dialogContent(
     String fromName,
     String toName,
@@ -21393,14 +21466,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_confirm => 'החלף';
-
-  @override
   String settings_cloudSync_moved_banner(
     String deviceName,
     String destination,
   ) {
-    return '$deviceName העביר ספרייה זו אל $destination. שירות זה כבר אינו מתעדכן על ידיו. בחר $destination למטה כדי לעקוב אחר ההעברה.';
+    return '$deviceName העביר ספרייה זו אל $destination. שירות זה כבר אינו מתעדכן על ידיו. בחר שינוי ואז $destination כדי לעקוב אחר ההעברה.';
   }
 
   @override
@@ -21425,15 +21495,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבוי הענן יכובה והגיבויים יישמרו במיקום ברירת המחדל.';
 
   @override
-  String get settings_cloudSync_header_cloudProvider => 'ספק ענן';
-
-  @override
   String settings_cloudSync_header_conflicts(Object count) {
     return 'התנגשויות ($count)';
   }
-
-  @override
-  String get settings_cloudSync_header_syncBehavior => 'התנהגות סנכרון';
 
   @override
   String settings_cloudSync_lastSynced(Object time) {
@@ -21521,9 +21585,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע לגרסה הזו. ייתכן שהעדכון עדיין בבדיקה, או, אם המכשיר האחר מריץ גרסת בטא (TestFlight או בדיקת Google Play), שהוא עדיין לא פורסם: הצטרף לאותה בטא במכשיר זה, או המתן לגרסה הבאה.';
 
   @override
-  String get settings_cloudSync_provider_connected => 'מחובר';
-
-  @override
   String settings_cloudSync_provider_connectedTo(Object providerName) {
     return 'מחובר אל $providerName';
   }
@@ -21535,9 +21596,6 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return 'החיבור אל $providerName נכשל: $error';
   }
-
-  @override
-  String get settings_cloudSync_dropbox_account_title => 'חשבון Dropbox';
 
   @override
   String get settings_cloudSync_dropbox_connect_codeLabel => 'קוד הרשאה';
@@ -21566,33 +21624,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_title => 'התחבר ל-Dropbox';
 
   @override
-  String get settings_cloudSync_dropbox_connected => 'מחובר ל-Dropbox';
-
-  @override
-  String settings_cloudSync_dropbox_connectedAs(Object account) {
-    return 'מחובר בתור $account';
-  }
-
-  @override
-  String get settings_cloudSync_dropbox_disconnect => 'התנתק';
-
-  @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      'סנכרון באמצעות Dropbox (Apps/Submersion)';
-
-  @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
 
   @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
-
-  @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      'סנכרון באמצעות Google Drive';
-
-  @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
-      'לא זמין בגרסה זו';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title => 'המשך בדפדפן';
@@ -21610,23 +21645,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable => 'לא זמין בפלטפורמה זו';
-
-  @override
-  String get settings_cloudSync_provider_s3_edit => 'עריכת תצורת S3';
-
-  @override
-  String get settings_cloudSync_provider_s3_subtitle =>
-      'עובד עם כל שירות אחסון תואם S3';
-
-  @override
   String get settings_cloudSync_provider_s3_title => 'אחסון תואם S3';
-
-  @override
-  String get settings_cloudSync_provider_webdav_edit => 'עריכת תצורת WebDAV';
-
-  @override
-  String get settings_cloudSync_provider_webdav_subtitle => 'כל שרת WebDAV';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -21637,28 +21656,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_cloudSync_selectProviderHint =>
       'בחר ספק ענן כדי לאפשר סנכרון';
-
-  @override
-  String get settings_cloudSync_signOut => 'התנתק';
-
-  @override
-  String get settings_cloudSync_signOutDialog_cancel => 'ביטול';
-
-  @override
-  String get settings_cloudSync_signOutDialog_content =>
-      'פעולה זו תנתק מספק הענן. הנתונים המקומיים שלך יישארו ללא שינוי.';
-
-  @override
-  String get settings_cloudSync_signOutDialog_signOut => 'התנתק';
-
-  @override
-  String get settings_cloudSync_signOutDialog_title => 'להתנתק?';
-
-  @override
-  String get settings_cloudSync_signOutSuccess => 'התנתקת מספק הענן';
-
-  @override
-  String get settings_cloudSync_signOut_subtitle => 'התנתק מספק הענן';
 
   @override
   String get settings_cloudSync_status_conflictsDetected => 'זוהו התנגשויות';
@@ -21682,13 +21679,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_syncNow => 'סנכרן עכשיו';
 
   @override
-  String get settings_cloudSync_syncOnLaunch => 'סנכרון בהפעלה';
-
-  @override
   String get settings_cloudSync_syncOnLaunch_subtitle => 'בדוק עדכונים בהפעלה';
-
-  @override
-  String get settings_cloudSync_syncOnResume => 'סנכרון בחזרה';
 
   @override
   String get settings_cloudSync_syncOnResume_subtitle =>
@@ -22067,6 +22058,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'תמונה בענן';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'התאמת צבע';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection => 'תיקון צבע אוטומטי';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override
@@ -22117,6 +22114,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'שירות';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'מיקום החשבון';
 
   @override
   String get settings_conflict_field_connectedAccounts_nickname => 'שם';
@@ -25515,7 +25516,25 @@ class AppLocalizationsHe extends AppLocalizations {
       'סוגי אתרי צלילה מובנים ומותאמים';
 
   @override
-  String get settings_manage_header_manageData => 'ניהול נתונים';
+  String get settings_manage_header_equipment => 'ציוד';
+
+  @override
+  String get settings_manage_header_dives => 'צלילות';
+
+  @override
+  String get settings_manage_header_planning => 'תכנון';
+
+  @override
+  String get settings_manage_header_training => 'הכשרה';
+
+  @override
+  String get settings_manage_header_checklists => 'רשימות בדיקה';
+
+  @override
+  String get settings_manage_header_organization => 'ארגון';
+
+  @override
+  String get settings_manage_header_setup => 'הגדרה ראשונית';
 
   @override
   String get settings_manage_species => 'מינים';
@@ -25868,16 +25887,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_profileHub_switchDiver => 'החלף צולל';
 
   @override
-  String get settings_s3Config_action_remove => 'הסרת התצורה';
-
-  @override
   String get settings_s3Config_action_testConnection => 'בדיקת חיבור';
 
   @override
   String get settings_s3Config_advanced_title => 'מתקדם';
-
-  @override
-  String get settings_s3Config_appBar_title => 'אחסון תואם S3';
 
   @override
   String get settings_s3Config_error_secureStorage =>
@@ -25921,22 +25934,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'Secret Access Key';
 
   @override
-  String get settings_s3Config_remove_confirm_action => 'הסרה';
-
-  @override
-  String get settings_s3Config_remove_confirm_body =>
-      'הסנכרון דרך S3 ייפסק במכשיר זה. הנתונים שלכם ב-bucket לא יימחקו.';
-
-  @override
-  String get settings_s3Config_remove_confirm_title => 'להסיר את תצורת S3?';
-
-  @override
-  String get settings_s3Config_removed => 'תצורת S3 הוסרה';
-
-  @override
-  String get settings_s3Config_saved => 'תצורת S3 נשמרה';
-
-  @override
   String settings_s3Config_test_regionDetected(String region) {
     return 'זוהה אזור: $region';
   }
@@ -25963,13 +25960,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_webdavConfig_action_forgetCertificate => 'שכחה';
 
   @override
-  String get settings_webdavConfig_action_remove => 'הסרת התצורה';
-
-  @override
   String get settings_webdavConfig_action_testConnection => 'בדיקת חיבור';
-
-  @override
-  String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
   String get settings_webdavConfig_error_conflict =>
@@ -26059,23 +26050,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_field_username_label => 'שם משתמש';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_action => 'הסרה';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_body =>
-      'פרטי השרת והסיסמה יוסרו ממכשיר זה. הקבצים בשרת יישמרו.';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_title =>
-      'להסיר את תצורת WebDAV?';
-
-  @override
-  String get settings_webdavConfig_removed => 'תצורת WebDAV הוסרה';
-
-  @override
-  String get settings_webdavConfig_saved => 'תצורת WebDAV נשמרה';
 
   @override
   String get settings_webdavConfig_test_success => 'החיבור הצליח';
@@ -28664,7 +28638,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'בוקר, צהריים, ערב או לילה';
+      'שחר, בוקר, צהריים, דמדומים או לילה';
 
   @override
   String get insights_timePatterns_timeOfDay_title => 'צלילות לפי שעה ביום';
@@ -33820,6 +33794,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'בחר אזור';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'גרור כדי להזיז את המפה, צבוט או השתמש ב-+ / - לזום';
+
+  @override
+  String get maps_regionSelector_modeMove => 'הזזה';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'בחירה';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'הגדלה';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'הקטנה';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'האזור חוצה את קו התאריך. הישאר בצד אחד או צייר שני אזורים.';
+
+  @override
   String get tankPresets_addPreset => 'הוסף תבנית מיכל';
 
   @override
@@ -36024,17 +36018,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => 'מחובר';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn => 'נדרשת כניסה';
-
-  @override
   String get settings_connectedAccounts_status_unavailable =>
       'לא זמין במכשיר זה';
 
   @override
   String get settings_connectedAccounts_disconnectDevice => 'התנתק במכשיר זה';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary => 'הסר מהספרייה';
 
   @override
   String get settings_connectedAccounts_rename => 'שינוי שם';
@@ -36107,13 +36095,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_connectedAccounts_usage_none => 'לא בשימוש במכשיר זה';
 
   @override
-  String get settings_connectedAccounts_usage_databaseSync =>
-      'סנכרון מסד נתונים';
-
-  @override
-  String get settings_connectedAccounts_usage_mediaStorage => 'אחסון מדיה';
-
-  @override
   String settings_connectedAccounts_usage_sharedLibrary(String name) {
     return 'ספריית אתרים משותפת: $name';
   }
@@ -36141,6 +36122,140 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_connectedAccounts_usage_unknown =>
       'לא ניתן לבדוק למה משמש חשבון זה במכשיר זה. מה שמשתמש בו כאן עלול להפסיק לפעול.';
+
+  @override
+  String get settings_accounts_ownServer_title => 'השרת שלי';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'תואם S3';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'בדיקת חיבור';
+
+  @override
+  String get settings_accounts_save => 'שמירה';
+
+  @override
+  String get settings_accounts_saved => 'החשבון נשמר';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'התחברות אל $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'החשבונות שלך';
+
+  @override
+  String get settings_accounts_sheet_add => 'הוספת חשבון';
+
+  @override
+  String get settings_accounts_signInHere => 'יש להתחבר כדי להשתמש בו כאן';
+
+  @override
+  String get settings_accounts_state_notSignedIn => 'לא מחובר במכשיר זה';
+
+  @override
+  String get settings_accounts_continue => 'המשך';
+
+  @override
+  String get settings_accounts_add => 'הוספת חשבון';
+
+  @override
+  String get settings_accounts_signInAgain => 'התחברות מחדש';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'בשימוש במכשיר זה עבור $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'תיקיות';
+
+  @override
+  String get settings_accounts_removeEverywhere => 'הסרה מכל המכשירים';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'מנוהל באמצעות ה-Apple ID שלך בהגדרות המכשיר';
+
+  @override
+  String get settings_accounts_serverDetails => 'פרטי השרת';
+
+  @override
+  String get settings_accounts_usage_sync => 'סנכרון בין מכשירים';
+
+  @override
+  String get settings_accounts_usage_photos => 'תמונות וסרטונים';
+
+  @override
+  String get settings_accounts_folder_other => 'תיקייה אחרת';
+
+  @override
+  String get settings_accounts_notUsedYet => 'עדיין לא בשימוש';
+
+  @override
+  String settings_sync_using(String account) {
+    return 'בשימוש: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'שינוי';
+
+  @override
+  String get settings_sync_notSetUp => 'לא מוגדר';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'כבוי כל עוד מסד הנתונים בתיקייה מותאמת אישית';
+
+  @override
+  String get settings_sync_keepInStep => 'שמירה על סנכרון אוטומטי בין המכשירים';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'סנכרון גם בהפעלה';
+
+  @override
+  String get settings_sync_alsoOnReturn => 'סנכרון גם בחזרה לאפליקציה';
+
+  @override
+  String get settings_sync_encryption => 'הצפנה';
+
+  @override
+  String get settings_sync_devices => 'מכשירים שמשתמשים בספרייה זו';
+
+  @override
+  String get settings_sync_troubleshoot => 'פתרון בעיות';
+
+  @override
+  String get settings_sync_replaceLibrary => 'החלפת הספרייה בעותק של מכשיר זה';
+
+  @override
+  String get settings_sync_stop => 'הפסקת הסנכרון במכשיר זה';
+
+  @override
+  String get settings_sync_stop_subtitle => 'החשבון שלך נשאר מחובר';
+
+  @override
+  String get settings_sync_stop_confirmTitle => 'להפסיק את הסנכרון במכשיר זה?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'מכשיר זה מפסיק להסתנכרן. החשבון שלך נשאר מחובר, והצלילות שלך נשארות כאן ובענן.';
+
+  @override
+  String get settings_sync_stopped => 'הסנכרון הופסק במכשיר זה';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'למחוק את הנתונים הישנים?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'פעולה זו מוחקת את קובצי הסנכרון הישנים מ-$backend. הצלילות שלך נשארות במכשיר זה ובחשבון שאיתו אתה מסתנכרן כעת.';
+  }
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
@@ -45722,7 +45837,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'צהריים';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'ערב';
+  String get insights_timePatterns_timeOfDay_dawn => 'שחר';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ל-$count צלילות אין מיקום אתר והן משתמשות בזמני ברירת המחדל של הזריחה ($sunrise) והשקיעה ($sunset)',
+      one:
+          'לצלילה אחת אין מיקום אתר והיא משתמשת בזמני ברירת המחדל של הזריחה ($sunrise) והשקיעה ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'דמדומים';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'בוקר';
@@ -47194,10 +47329,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String autoUpdate_banner_packageManagerHint(String command) {
     return 'עדכן עם: $command';
   }
-
-  @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      'סנכרון באמצעות Apple iCloud';
 
   @override
   String get settings_debugLog_search_hint => 'חיפוש ביומנים...';
@@ -49161,6 +49292,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
+
+  @override
+  String get settings_media_autoColorCorrection => 'תיקון צבע אוטומטי';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'מחמם על המסך תמונות וסרטונים כחלחלים מתחת למים, לפי העומק שבו צולם כל אחד. הקבצים שלך לעולם אינם משתנים.';
 
   @override
   String get settings_photosMedia_cacheHeader => 'מטמון';

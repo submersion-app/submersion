@@ -140,6 +140,10 @@ class S3StorageProvider
     _invalidate();
   }
 
+  /// Drops the cached config, for when the stored blob was cleared or
+  /// rewritten outside this instance (an account sign-out).
+  void forgetCachedConfig() => _invalidate();
+
   @override
   Future<String?> getUserEmail() async {
     final config = await _loadConfig();

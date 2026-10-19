@@ -34,6 +34,7 @@ import 'package:submersion/features/insights/domain/entities/species_insights.da
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 
@@ -44,6 +45,7 @@ part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
 part 'insights_repository_tank_configuration.dart';
+part 'insights_repository_time_of_day.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
@@ -2380,67 +2382,6 @@ class InsightsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dives by day of week',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Get dives by time of day (morning, afternoon, evening, night).
-  ///
-  /// The bucket names are stable keys, not display text: the same literals
-  /// are the ORDER BY sort keys below, so translating them in SQL would
-  /// reorder the chart per locale (and break the fixed colour order in the
-  /// legend). The presentation layer translates them instead, through
-  /// `timeOfDayDistributionLabel`.
-  Future<List<DistributionSegment>> getDivesByTimeOfDay({
-    String? diverId,
-    DiveFilterState filter = const DiveFilterState(),
-  }) async {
-    try {
-      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'dives');
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-
-      final results = await _db.customSelect('''
-        SELECT
-          CASE
-            WHEN CAST(strftime('%H', COALESCE(entry_time, dive_date_time) / 1000, 'unixepoch') AS INTEGER) < 6 THEN 'Night'
-            WHEN CAST(strftime('%H', COALESCE(entry_time, dive_date_time) / 1000, 'unixepoch') AS INTEGER) < 12 THEN 'Morning'
-            WHEN CAST(strftime('%H', COALESCE(entry_time, dive_date_time) / 1000, 'unixepoch') AS INTEGER) < 18 THEN 'Afternoon'
-            ELSE 'Evening'
-          END AS time_of_day,
-          COUNT(*) AS count
-        FROM dives
-        WHERE 1=1 $diverFilter ${df.clause}
-        GROUP BY time_of_day
-        ORDER BY
-          CASE time_of_day
-            WHEN 'Morning' THEN 1
-            WHEN 'Afternoon' THEN 2
-            WHEN 'Evening' THEN 3
-            WHEN 'Night' THEN 4
-          END
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
-
-      final total = results.fold<int>(
-        0,
-        (sum, row) => sum + row.read<int>('count'),
-      );
-      if (total == 0) return [];
-
-      return results.map((row) {
-        final count = row.read<int>('count');
-        return DistributionSegment(
-          label: row.read<String>('time_of_day'),
-          count: count,
-          percentage: count / total * 100,
-        );
-      }).toList();
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get dives by time of day',
         error: e,
         stackTrace: stackTrace,
       );

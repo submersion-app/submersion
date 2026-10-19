@@ -102,6 +102,10 @@ class Media extends Table {
 
   /// 'large' or 'tile' (issue #1039); null follows the category default.
   TextColumn get displaySize => text().nullable()();
+  // v296: the diver's hand colour adjustment for this photo or video, as
+  // ColorAdjustment JSON (issue #3520); null is none. Display-only: it is
+  // applied when the item is drawn and never written into the file.
+  TextColumn get colorAdjustment => text().nullable()();
   // v189: equipment attachment (issue #1517). Invoices, receipts and warranty
   // paperwork linked to a piece of gear, so an insurance claim after lost
   // luggage, theft or fire has the proof attached to the item it covers.
@@ -364,6 +368,12 @@ class ConnectedAccounts extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
+
+  /// v293: secret-free JSON describing where an S3 or WebDAV row points,
+  /// including its own folder (AccountLocation), so a second device signs
+  /// in by typing only the secret (issue #3482). Null for OAuth kinds and
+  /// for rows written before v293.
+  TextColumn get location => text().nullable()();
 
   /// v295: the short name the diver gave the account (issue #3522). Null
   /// until they choose one; the account then reads as its label with a

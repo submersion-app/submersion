@@ -37,6 +37,10 @@ final Map<String, ConflictField> mediaLibraryFields = {
     (l) => l.settings_conflict_field_cloudAssetId,
     FieldKind.opaque,
   ),
+  'colorAdjustment': ConflictField(
+    (l) => l.settings_conflict_field_colorAdjustment,
+    FieldKind.opaque,
+  ),
   'compressedLevel': ConflictField(
     (l) => l.settings_conflict_field_compressedLevel,
     FieldKind.shortText,
@@ -248,6 +252,11 @@ final Map<String, ConflictField> mediaLibraryOverrides = {
   'connectedAccounts.kind': ConflictField(
     (l) => l.settings_conflict_field_connectedAccounts_kind,
     FieldKind.shortText,
+  ),
+  // Secret-free JSON (AccountLocation); shown as changed, never inline.
+  'connectedAccounts.location': ConflictField(
+    (l) => l.settings_conflict_field_connectedAccounts_location,
+    FieldKind.opaque,
   ),
   'connectedAccounts.nickname': ConflictField(
     (l) => l.settings_conflict_field_connectedAccounts_nickname,

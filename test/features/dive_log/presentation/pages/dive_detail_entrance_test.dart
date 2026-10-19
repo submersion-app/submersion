@@ -5,18 +5,15 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-/// Issue #3489: building every section in the opening frames of the push
-/// made the slide into Dive Details stutter on a phone. The header card
-/// slides in with the page, the sections' data starts loading during the
-/// slide, and the sections themselves follow once the page has all but
-/// slid in.
+/// Issue #3538: on a phone the sections below the header used to wait for
+/// the slide into Dive Details before they were built, so the page filled in
+/// late. They now build with the header, the way they do in the desktop
+/// pane, and their data starts loading as the page slides in.
 void main() {
   const phone = Size(390, 844);
   const notes = 'Drifted along the wall past two turtles.';
@@ -82,9 +79,7 @@ void main() {
     return router;
   }
 
-  testWidgets('the header slides in; the sections follow the slide', (
-    tester,
-  ) async {
+  testWidgets('the sections slide in with the header', (tester) async {
     final router = await pumpRouter(tester);
     // Load the dive once so the push below finds it ready, the way a tap
     // from the list does when the dive was opened before.
@@ -100,9 +95,14 @@ void main() {
 
     expect(find.text('#7'), findsOneWidget, reason: 'header card is up');
     expect(
-      find.text(notes, skipOffstage: false),
-      findsNothing,
-      reason: 'sections wait for the slide to finish',
+      ModalRoute.of(tester.element(find.text('#7')))!.animation!.status,
+      AnimationStatus.forward,
+      reason: 'the page is still sliding in',
+    );
+    expect(
+      find.text(notes),
+      findsOneWidget,
+      reason: 'sections are up while the page is still sliding in',
     );
 
     await tester.pumpAndSettle();
@@ -121,17 +121,9 @@ void main() {
     final router = await pumpRouter(
       tester,
       extraOverrides: [
-        weeklyOtuProvider('b').overrideWith((ref) async {
-          started.add('weekly OTU');
-          return 0;
-        }),
         surfaceIntervalProvider('b').overrideWith((ref) async {
           started.add('surface interval');
           return null;
-        }),
-        hasGasSwitchesProvider('b').overrideWith((ref) async {
-          started.add('gas switches');
-          return false;
         }),
         // Read by a section widget of its own, not by the page.
         incidentsForDiveProvider('b').overrideWith((ref) async {
@@ -146,21 +138,16 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.text(notes, skipOffstage: false), findsNothing);
+    expect(find.text(notes), findsOneWidget);
     expect(
       started,
-      unorderedEquals([
-        'weekly OTU',
-        'surface interval',
-        'gas switches',
-        'incidents',
-      ]),
+      unorderedEquals(['surface interval', 'incidents']),
       reason: 'loading started while the page was still sliding in',
     );
 
     await tester.pumpAndSettle();
     expect(find.text(notes), findsOneWidget);
-    expect(started, hasLength(4), reason: 'the sections reuse what loaded');
+    expect(started, hasLength(2), reason: 'each provider loaded once');
 
     router.pop();
     await tester.pumpAndSettle();

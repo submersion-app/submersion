@@ -72,6 +72,31 @@ void main() {
     expect(all.where((a) => a.kind == AccountKind.icloud).length, 1);
   });
 
+  // Review of #3527: a sync row persisted before locations returns early,
+  // so it never got one and other devices listed the server twice.
+  test('a persisted sync row without a location gets one', () async {
+    await s3Credentials.save(config);
+    final row = await repo.ensureById(
+      id: accountIdFor(kind: AccountKind.s3, naturalKey: s3NaturalKey(config)),
+      kind: AccountKind.s3,
+      label: 'dive-sync @ minio.local',
+    );
+    await SyncRepository().setSyncAccount(
+      accountId: row.id,
+      providerType: CloudProviderType.s3,
+    );
+    expect((await repo.getById(row.id))!.location, isNull);
+
+    final derived = await ensureAccountForProviderType(
+      CloudProviderType.s3,
+      repo,
+      s3Credentials: s3Credentials,
+    );
+
+    expect(derived.id, row.id);
+    expect((await repo.getById(row.id))!.location, isNotNull);
+  });
+
   test('the S3 account uses the deterministic id', () async {
     await s3Credentials.save(config);
     final account = await ensureAccountForProviderType(

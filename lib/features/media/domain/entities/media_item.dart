@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
@@ -140,6 +141,10 @@ class MediaItem extends Equatable {
   /// [siteCategory]'s default (issue #1039).
   final AttachmentDisplaySize? displaySizeOverride;
 
+  /// The diver's hand colour adjustment (issue #3520), or null for none.
+  /// Display-only: applied when the item is drawn, never written to a file.
+  final ColorAdjustment? colorAdjustment;
+
   final DateTime createdAt;
   final DateTime updatedAt;
   final MediaEnrichment? enrichment;
@@ -189,6 +194,7 @@ class MediaItem extends Equatable {
     this.manualElapsedSeconds,
     this.siteCategory,
     this.displaySizeOverride,
+    this.colorAdjustment,
     required this.createdAt,
     required this.updatedAt,
     this.enrichment,
@@ -347,6 +353,7 @@ class MediaItem extends Equatable {
     Object? manualElapsedSeconds = _undefined,
     Object? siteCategory = _undefined,
     Object? displaySizeOverride = _undefined,
+    Object? colorAdjustment = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? enrichment = _undefined,
@@ -450,6 +457,9 @@ class MediaItem extends Equatable {
       displaySizeOverride: displaySizeOverride == _undefined
           ? this.displaySizeOverride
           : displaySizeOverride as AttachmentDisplaySize?,
+      colorAdjustment: colorAdjustment == _undefined
+          ? this.colorAdjustment
+          : colorAdjustment as ColorAdjustment?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       enrichment: enrichment == _undefined
@@ -504,6 +514,7 @@ class MediaItem extends Equatable {
     manualElapsedSeconds,
     siteCategory,
     displaySizeOverride,
+    colorAdjustment,
     createdAt,
     updatedAt,
     enrichment,

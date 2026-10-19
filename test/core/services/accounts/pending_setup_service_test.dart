@@ -9,6 +9,8 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 
 import '../../../helpers/test_database.dart';
@@ -44,6 +46,14 @@ void main() {
   });
 
   tearDown(() => tearDownTestDatabase());
+
+  /// Makes [account] this device's sync account, a use that needs it signed
+  /// in here.
+  Future<void> useForSync(domain.ConnectedAccount account) =>
+      SyncRepository().setSyncAccount(
+        accountId: account.id,
+        providerType: CloudProviderType.s3,
+      );
 
   PendingSetupService service({
     AccountStatus s3Status = AccountStatus.needsSignIn,
@@ -146,23 +156,26 @@ void main() {
     },
   );
 
-  test(
-    'accounts needing sign-in yield items; unavailable kinds are skipped',
-    () async {
-      await accounts.create(kind: AccountKind.s3, label: 'MinIO');
-      await accounts.create(kind: AccountKind.icloud, label: 'iCloud');
-      final items = await service().compute();
-      expect(items, hasLength(1));
-      expect(items.single.kind, SetupItemKind.accountSignIn);
-      expect(items.single.label, 'MinIO');
-      expect(items.single.accountKind, AccountKind.s3);
-      expect(
-        items.single.route,
-        '/settings/cloud-sync',
-        reason: 'no store announced and not the sync account: default route',
-      );
-    },
-  );
+  test('accounts this device uses yield sign-in items; unavailable kinds are '
+      'skipped', () async {
+    await useForSync(
+      await accounts.create(kind: AccountKind.s3, label: 'MinIO'),
+    );
+    await accounts.create(kind: AccountKind.icloud, label: 'iCloud');
+    final items = await service().compute();
+    expect(items, hasLength(1));
+    expect(items.single.kind, SetupItemKind.accountSignIn);
+    expect(items.single.label, 'MinIO');
+    expect(items.single.accountKind, AccountKind.s3);
+    expect(items.single.route, '/settings/cloud-sync');
+  });
+
+  // Issue #3482 phase 2: reminders only for accounts this device needs
+  // (spec section 7.2): another device's server asks for nothing here.
+  test('a roster row nothing here uses raises no sign-in item', () async {
+    await accounts.create(kind: AccountKind.s3, label: 'Another device');
+    expect(await service().compute(), isEmpty);
+  });
 
   // Issue #3522: prompts name accounts and stores by their short names.
   group('names', () {
@@ -172,9 +185,16 @@ void main() {
     test('a sign-in item uses the nickname, else the short label', () async {
       final named = await accounts.create(kind: AccountKind.s3, label: r2);
       await accounts.setNickname(named.id, 'Club bucket');
-      await accounts.create(
+      await useForSync(named);
+      final photos = await accounts.create(
         kind: AccountKind.s3,
         label: 'photos @ s3.eu-west-1.amazonaws.com',
+      );
+      // Only accounts this device uses ask for a sign-in (#3482).
+      await MediaStoreAttachState(prefs: prefs).setAttached(
+        'store-x',
+        providerType: CloudProviderType.s3,
+        accountId: photos.id,
       );
       final items = await service().compute();
       expect(items.map((i) => i.label).toSet(), {
@@ -195,7 +215,9 @@ void main() {
   });
 
   test('signed-in accounts yield no items', () async {
-    await accounts.create(kind: AccountKind.s3, label: 'MinIO');
+    await useForSync(
+      await accounts.create(kind: AccountKind.s3, label: 'MinIO'),
+    );
     final items = await service(s3Status: AccountStatus.signedIn).compute();
     expect(items, isEmpty);
   });
@@ -219,10 +241,12 @@ void main() {
       providerType: 's3',
       displayHint: 'hint',
     );
-    // Attach so only the sign-in items remain.
-    await MediaStoreAttachState(
-      prefs: prefs,
-    ).setAttached('store-1', providerType: CloudProviderType.s3);
+    // Attach through the media account so only the sign-in items remain.
+    await MediaStoreAttachState(prefs: prefs).setAttached(
+      'store-1',
+      providerType: CloudProviderType.s3,
+      accountId: mediaAccount.id,
+    );
 
     final svc = PendingSetupService(
       prefs: prefs,
@@ -244,6 +268,22 @@ void main() {
   // Issue #3388: routing reads the same usage map as the Connected Accounts
   // page, so the account this device is attached through goes to Media
   // Storage even when the announced store has since moved to another kind.
+  // Review of #3527: a library's account was sent to Media Storage when the
+  // announced store was of the same kind; its own account page signs it in.
+  test('a library\'s account routes to its account page', () async {
+    final account = await accounts.create(kind: AccountKind.s3, label: 'Club');
+    await SharedLibraryStore().upsertLibrary(
+      SharedLibrary(
+        id: 'lib',
+        name: 'Reef',
+        connectedAccountId: account.id,
+        prefix: 'submersion-sites/reef',
+      ),
+    );
+    final items = await service().compute();
+    expect(items.single.route, '/settings/connected-accounts/${account.id}');
+  });
+
   test('the attached media account routes to media storage', () async {
     final mediaAccount = await accounts.create(
       kind: AccountKind.s3,
@@ -269,6 +309,7 @@ void main() {
 
   test('dismissal is per key and sticks', () async {
     final account = await accounts.create(kind: AccountKind.s3, label: 'M');
+    await useForSync(account);
     final svc = service();
     expect(await svc.compute(), hasLength(1));
 
@@ -276,7 +317,9 @@ void main() {
     expect((await svc.compute()).where((i) => !i.dismissed), isEmpty);
 
     // A different object (new key) still surfaces.
-    await accounts.create(kind: AccountKind.s3, label: 'Other');
+    await useForSync(
+      await accounts.create(kind: AccountKind.s3, label: 'Other'),
+    );
     expect((await svc.compute()).where((i) => !i.dismissed), hasLength(1));
   });
 
@@ -285,6 +328,7 @@ void main() {
   // keep saying so instead of listing it as fine.
   test('a dismissed sign-in stays listed, flagged as dismissed', () async {
     final account = await accounts.create(kind: AccountKind.s3, label: 'M');
+    await useForSync(account);
     final svc = service();
     expect((await svc.compute()).single.dismissed, isFalse);
 

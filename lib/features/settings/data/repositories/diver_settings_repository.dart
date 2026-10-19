@@ -394,6 +394,7 @@ class DiverSettingsRepository {
                 reminderTime: Value(_formatReminderTime(s.reminderTime)),
                 showDataSourceBadges: Value(s.showDataSourceBadges),
                 showDiveFigure: Value(s.showDiveFigure),
+                autoColorCorrection: Value(s.autoColorCorrection),
                 showProfilePanelInTableView: Value(
                   s.showProfilePanelInTableView,
                 ),
@@ -701,6 +702,7 @@ class DiverSettingsRepository {
       reminderTime: Value(_formatReminderTime(settings.reminderTime)),
       showDataSourceBadges: Value(settings.showDataSourceBadges),
       showDiveFigure: Value(settings.showDiveFigure),
+      autoColorCorrection: Value(settings.autoColorCorrection),
       showProfilePanelInTableView: Value(settings.showProfilePanelInTableView),
       showDetailsPaneDives: Value(settings.showDetailsPaneDives),
       showDetailsPaneSites: Value(settings.showDetailsPaneSites),
@@ -935,6 +937,7 @@ class DiverSettingsRepository {
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showDiveFigure: row.showDiveFigure,
+      autoColorCorrection: row.autoColorCorrection,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
       showDetailsPaneDives: row.showDetailsPaneDives,
       showDetailsPaneSites: row.showDetailsPaneSites,

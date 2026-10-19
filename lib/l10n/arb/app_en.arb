@@ -9957,7 +9957,16 @@
   "gasCalculators_mod_rowEad": "EAD (N₂ narcotic)",
   "gasCalculators_mod_rowEnd": "END (N₂ + O₂ narcotic)",
   "gasCalculators_mod_rowEadd": "EADD (air density)",
-  "gasCalculators_mod_rowDensity": "Gas density at 0 °C",
+  "gasCalculators_mod_rowDensity": "Gas density at {temp}",
+  "@gasCalculators_mod_rowDensity": {
+    "placeholders": {
+      "temp": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_checkTemperature": "Check gas density at a different temperature",
+  "gasCalculators_mod_temperatureHint": "Colder gas is denser. The density check assumes the temperature chosen here, not the actual gas temperature at depth.",
   "gasCalculators_mod_openDensity": "Open in the gas density calculator",
   "gasCalculators_mod_assessmentTitle": "Assessment",
   "gasCalculators_mod_recBeyondLimit": "The MOD lies deeper than the recreational limit of {limit}. Down there narcosis and gas density, not oxygen, set the limit.",
@@ -10007,7 +10016,7 @@
       }
     }
   },
-  "gasCalculators_mod_densityWarn": "{where}: gas density {density} g/L is above the recommended {limit} g/L.",
+  "gasCalculators_mod_densityWarn": "{where}: gas density {density} g/L at {temp} is above the recommended {limit} g/L.",
   "@gasCalculators_mod_densityWarn": {
     "placeholders": {
       "where": {
@@ -10016,18 +10025,24 @@
       "density": {
         "type": "String"
       },
+      "temp": {
+        "type": "String"
+      },
       "limit": {
         "type": "String"
       }
     }
   },
-  "gasCalculators_mod_densityCritical": "{where}: gas density {density} g/L is above the hard limit of {limit} g/L.",
+  "gasCalculators_mod_densityCritical": "{where}: gas density {density} g/L at {temp} is above the hard limit of {limit} g/L.",
   "@gasCalculators_mod_densityCritical": {
     "placeholders": {
       "where": {
         "type": "String"
       },
       "density": {
+        "type": "String"
+      },
+      "temp": {
         "type": "String"
       },
       "limit": {
@@ -11202,6 +11217,31 @@
   "media_photoViewer_cannotShare": "Cannot share this photo",
   "media_photoViewer_cannotWriteMetadata": "Cannot write metadata - media not linked to library",
   "media_photoViewer_closeTooltip": "Close photo viewer",
+  "media_color_adjustAction": "Adjust color",
+  "media_color_auto": "Auto",
+  "media_color_pickWhite": "Pick white",
+  "media_color_pickWhiteHint": "Tap something that should be white or gray",
+  "media_color_pickWhiteFailed": "Couldn't read a color there. Try a brighter spot.",
+  "media_color_original": "Original",
+  "media_color_strength": "Strength",
+  "media_color_warmth": "Warmth",
+  "media_color_tint": "Tint",
+  "media_color_brightness": "Brightness",
+  "media_color_contrast": "Contrast",
+  "media_color_saturation": "Saturation",
+  "media_color_reset": "Reset",
+  "media_color_applyToDive": "Apply to this dive",
+  "media_color_applyToDiveTitle": "Apply to this dive?",
+  "media_color_applyToDiveBody": "{count, plural, =1{{count} other photo or video will use these adjustments.} other{{count} other photos and videos will use these adjustments.}} Their own white points are kept.",
+  "@media_color_applyToDiveBody": {"placeholders": {"count": {"type": "int"}}},
+  "media_color_appliedToDive": "{count, plural, =1{Updated {count} photo or video} other{Updated {count} photos and videos}}",
+  "@media_color_appliedToDive": {"placeholders": {"count": {"type": "int"}}},
+  "media_color_undo": "Undo",
+  "media_color_undoFailed": "Couldn't undo the change",
+  "media_color_saveFailed": "Couldn't save the color adjustment",
+  "media_color_labelAutoDepth": "{depth} · auto",
+  "@media_color_labelAutoDepth": {"placeholders": {"depth": {"type": "String"}}},
+  "media_color_labelAdjusted": "Adjusted",
   "media_photoViewer_diveDataWrittenToPhoto": "Dive data written to photo",
   "media_photoViewer_errorLoadingPhotos": "Error loading photos: {error}",
   "media_photoViewer_failedToLoadVideo": "Failed to load video",
@@ -13147,7 +13187,6 @@
     "description": "Picker group header for settings pages and tools such as the emergency card."
   },
   "settings_backToSettings_tooltip": "Back to settings",
-  "settings_cloudSync_autoSync": "Auto Sync",
   "settings_cloudSync_autoSync_subtitle": "Sync automatically after changes",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item needs attention} other{{count} items need attention}}",
   "settings_cloudSync_disabledBanner_content": "App-managed cloud sync is disabled because you're using a custom storage folder. Your folder's sync service (Dropbox, Google Drive, OneDrive, etc.) handles synchronization.",
@@ -13155,9 +13194,6 @@
   "sharedLibrary_settings_title": "Shared site libraries",
   "sharedLibrary_list_empty": "No shared site library connected yet.",
   "sharedLibrary_connect_action": "Connect a library",
-  "sharedLibrary_connect_addAccount": "Add storage account",
-  "sharedLibrary_connect_saveAccount": "Save account",
-  "sharedLibrary_connect_account_label": "Storage account",
   "sharedLibrary_connect_prefix_label": "Folder (prefix)",
   "sharedLibrary_connect_prefix_help": "A folder inside submersion-sites, at the top of the bucket or server, such as site-sync.",
   "sharedLibrary_connect_reservedFolder": "A library folder cannot start with sites, members, suggestions or backups.",
@@ -13270,7 +13306,6 @@
   "sharedLibrary_encryption_changeHelp": "Makes a new key and a new recovery code. A new recovery code replaces the old one for every owner. Share the new passphrase only with the members who stay.",
   "sharedLibrary_encryption_passphrase": "Passphrase",
   "sharedLibrary_encryption_confirm": "Passphrase again",
-  "sharedLibrary_connect_probe_action": "Check",
   "sharedLibrary_connect_join_action": "Join {name}",
   "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_connect_create_action": "Create library",
@@ -13394,8 +13429,6 @@
   },
   "settings_cloudSync_adopt_dialogTitle": "Adopt Restored Library?",
   "settings_cloudSync_adopt_notNow": "Not Now",
-  "settings_cloudSync_dangerZone": "Danger Zone",
-  "settings_cloudSync_replaceLibrary_tile": "Replace cloud library",
   "settings_cloudSync_replaceLibrary_tileSubtitle": "Make this device's library the one every device uses",
   "settings_cloudSync_replaceLibrary_dialogTitle": "Replace Cloud Library?",
   "settings_cloudSync_replaceLibrary_dialogIntro": "This device's library becomes the one every device uses.",
@@ -13432,7 +13465,6 @@
       }
     }
   },
-  "settings_cloudSync_switch_dialogTitle": "Switch sync backend?",
   "settings_cloudSync_switch_dialogContent": "Your data will not be moved off {fromName} -- it stays there until you delete it. After switching, this device's next sync combines its data with whatever already exists on {toName}. Your other devices keep using {fromName} until you switch each of them too.",
   "@settings_cloudSync_switch_dialogContent": {
     "placeholders": {
@@ -13444,8 +13476,7 @@
       }
     }
   },
-  "settings_cloudSync_switch_confirm": "Switch",
-  "settings_cloudSync_moved_banner": "{deviceName} moved this library to {destination}. This backend is no longer being updated by it. Select {destination} below to follow the move.",
+  "settings_cloudSync_moved_banner": "{deviceName} moved this library to {destination}. This backend is no longer being updated by it. Choose Change, then {destination}, to follow the move.",
   "@settings_cloudSync_moved_banner": {
     "placeholders": {
       "deviceName": {
@@ -13469,9 +13500,7 @@
   "settings_cloudSync_cleanup_keep": "Keep",
   "settings_cloudSync_header_advanced": "Advanced",
   "settings_cloudSync_signOut_backupWarning": "Cloud backup will be turned off and backups will be saved to the default location.",
-  "settings_cloudSync_header_cloudProvider": "Cloud Provider",
   "settings_cloudSync_header_conflicts": "Conflicts ({count})",
-  "settings_cloudSync_header_syncBehavior": "Sync Behavior",
   "settings_cloudSync_lastSynced": "Last synced: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 pending change} other{{count} pending changes}}",
   "settings_cloudSync_peerBehind_action": "Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.",
@@ -13492,10 +13521,8 @@
   "settings_cloudSync_peerRequiresUpdate_updateAction": "Update this device to receive them.",
   "settings_cloudSync_peerRequiresUpdate_stableAction": "They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.",
   "settings_cloudSync_peerRequiresUpdate_storeAction": "They apply automatically once this device's app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.",
-  "settings_cloudSync_provider_connected": "Connected",
   "settings_cloudSync_provider_connectedTo": "Connected to {providerName}",
   "settings_cloudSync_provider_connectionFailed": "{providerName} connection failed: {error}",
-  "settings_cloudSync_dropbox_account_title": "Dropbox account",
   "settings_cloudSync_dropbox_connect_codeLabel": "Authorization code",
   "settings_cloudSync_dropbox_connect_emptyCode": "Enter the authorization code shown in your browser",
   "settings_cloudSync_dropbox_connect_failed": "Could not connect to Dropbox: {error}",
@@ -13503,34 +13530,16 @@
   "settings_cloudSync_dropbox_connect_reopenBrowser": "Reopen browser",
   "settings_cloudSync_dropbox_connect_submit": "Connect",
   "settings_cloudSync_dropbox_connect_title": "Connect Dropbox",
-  "settings_cloudSync_dropbox_connected": "Connected to Dropbox",
-  "settings_cloudSync_dropbox_connectedAs": "Connected as {account}",
-  "settings_cloudSync_dropbox_disconnect": "Disconnect",
-  "settings_cloudSync_provider_dropbox_subtitle": "Sync via Dropbox (Apps/Submersion)",
   "settings_cloudSync_provider_dropbox_title": "Dropbox",
   "settings_cloudSync_provider_googleDrive": "Google Drive",
-  "settings_cloudSync_provider_googleDrive_subtitle": "Sync via Google Drive",
-  "settings_cloudSync_googleDrive_desktopNotConfigured": "Not available in this build",
   "settings_cloudSync_googleDrive_browserWait_title": "Continue in your browser",
   "settings_cloudSync_googleDrive_browserWait_message": "Finish signing in to Google in your web browser, then return to Submersion.",
   "settings_cloudSync_provider_icloud": "iCloud",
   "settings_cloudSync_provider_initFailed": "Failed to initialize {providerName} provider",
-  "settings_cloudSync_provider_notAvailable": "Not available on this platform",
-  "settings_cloudSync_provider_s3_edit": "Edit S3 configuration",
-  "settings_cloudSync_provider_s3_subtitle": "Works with any S3-compatible storage service",
   "settings_cloudSync_provider_s3_title": "S3-Compatible Storage",
-  "settings_cloudSync_provider_webdav_edit": "Edit WebDAV configuration",
-  "settings_cloudSync_provider_webdav_subtitle": "Any WebDAV server",
   "settings_cloudSync_provider_webdav_title": "WebDAV",
   "settings_cloudSync_resolveConflicts": "Resolve Conflicts",
   "settings_cloudSync_selectProviderHint": "Select a cloud provider to enable sync",
-  "settings_cloudSync_signOut": "Sign Out",
-  "settings_cloudSync_signOutDialog_cancel": "Cancel",
-  "settings_cloudSync_signOutDialog_content": "This will disconnect from the cloud provider. Your local data will remain intact.",
-  "settings_cloudSync_signOutDialog_signOut": "Sign Out",
-  "settings_cloudSync_signOutDialog_title": "Sign Out?",
-  "settings_cloudSync_signOutSuccess": "Signed out from cloud provider",
-  "settings_cloudSync_signOut_subtitle": "Disconnect from cloud provider",
   "settings_cloudSync_status_conflictsDetected": "Conflicts detected",
   "settings_cloudSync_status_readyToSync": "Ready to sync",
   "settings_cloudSync_status_syncComplete": "Sync complete",
@@ -13538,9 +13547,7 @@
   "settings_cloudSync_status_syncing": "Syncing...",
   "settings_cloudSync_storageSettings": "Storage Settings",
   "settings_cloudSync_syncNow": "Sync Now",
-  "settings_cloudSync_syncOnLaunch": "Sync on Launch",
   "settings_cloudSync_syncOnLaunch_subtitle": "Check for updates at startup",
-  "settings_cloudSync_syncOnResume": "Sync on Resume",
   "settings_cloudSync_syncOnResume_subtitle": "Check for updates when app becomes active",
   "settings_cloudSync_syncProgressPercent": "Sync progress: {percent} percent",
   "settings_cloudSync_time_daysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
@@ -13640,6 +13647,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "Category",
   "settings_conflict_field_city": "City",
   "settings_conflict_field_cloudAssetId": "Cloud photo",
+  "settings_conflict_field_colorAdjustment": "Color adjustment",
+  "settings_conflict_field_autoColorCorrection": "Automatic color correction",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "CNS warning threshold",
   "settings_conflict_field_codecVersion": "Format version",
@@ -13656,6 +13665,7 @@
   "settings_conflict_field_conditionEngineEnabled": "Gear condition checks",
   "settings_conflict_field_configJson": "Configuration",
   "settings_conflict_field_connectedAccounts_kind": "Service",
+  "settings_conflict_field_connectedAccounts_location": "Account location",
   "settings_conflict_field_connectedAccounts_nickname": "Name",
   "settings_conflict_field_connectionType": "Connection",
   "settings_conflict_field_contentHash": "Content fingerprint",
@@ -14885,7 +14895,13 @@
   "settings_manage_diveTypes_subtitle": "Manage custom dive types",
   "settings_manage_siteTypes": "Site Types",
   "settings_manage_siteTypes_subtitle": "Built-in and custom dive site types",
-  "settings_manage_header_manageData": "Manage Data",
+  "settings_manage_header_equipment": "Equipment",
+  "settings_manage_header_dives": "Dives",
+  "settings_manage_header_planning": "Planning",
+  "settings_manage_header_training": "Training",
+  "settings_manage_header_checklists": "Checklists",
+  "settings_manage_header_organization": "Organization",
+  "settings_manage_header_setup": "Setup",
   "settings_manage_species": "Species",
   "settings_manage_species_subtitle": "Manage the species catalog",
   "settings_manage_tags": "Tags",
@@ -15116,10 +15132,8 @@
   "settings_profileHub_personalInfo": "Personal Info",
   "settings_profileHub_saved": "Changes saved",
   "settings_profileHub_switchDiver": "Switch Diver",
-  "settings_s3Config_action_remove": "Remove Configuration",
   "settings_s3Config_action_testConnection": "Test Connection",
   "settings_s3Config_advanced_title": "Advanced",
-  "settings_s3Config_appBar_title": "S3-Compatible Storage",
   "settings_s3Config_error_secureStorage": "Could not access secure storage",
   "settings_s3Config_field_accessKeyId_label": "Access Key ID",
   "settings_s3Config_field_bucket_label": "Bucket",
@@ -15138,11 +15152,6 @@
   },
   "settings_s3Config_field_region_label": "Region",
   "settings_s3Config_field_secretAccessKey_label": "Secret Access Key",
-  "settings_s3Config_remove_confirm_action": "Remove",
-  "settings_s3Config_remove_confirm_body": "Sync via S3 will stop on this device. Your data in the bucket is not deleted.",
-  "settings_s3Config_remove_confirm_title": "Remove S3 configuration?",
-  "settings_s3Config_removed": "S3 configuration removed",
-  "settings_s3Config_saved": "S3 configuration saved",
   "settings_s3Config_test_regionDetected": "Region detected: {region}",
   "@settings_s3Config_test_regionDetected": {
     "placeholders": {
@@ -15157,9 +15166,7 @@
   "settings_s3Config_validation_required": "Required",
   "settings_s3Config_warning_http": "This endpoint uses plain HTTP. Credentials and dive data will travel unencrypted; use only on a trusted network.",
   "settings_webdavConfig_action_forgetCertificate": "Forget",
-  "settings_webdavConfig_action_remove": "Remove configuration",
   "settings_webdavConfig_action_testConnection": "Test connection",
-  "settings_webdavConfig_appBar_title": "WebDAV",
   "settings_webdavConfig_error_conflict": "The folder could not be created on the server.",
   "settings_webdavConfig_error_forbidden": "You do not have permission to use this folder on the server.",
   "settings_webdavConfig_error_insufficientStorage": "The server is out of storage.",
@@ -15204,11 +15211,6 @@
   "settings_webdavConfig_field_serverUrl_hintDav": "https://example.com/dav",
   "settings_webdavConfig_field_serverUrl_label": "WebDAV address",
   "settings_webdavConfig_field_username_label": "Username",
-  "settings_webdavConfig_remove_confirm_action": "Remove",
-  "settings_webdavConfig_remove_confirm_body": "The server details and password are removed from this device. Files on the server are kept.",
-  "settings_webdavConfig_remove_confirm_title": "Remove WebDAV configuration?",
-  "settings_webdavConfig_removed": "WebDAV configuration removed",
-  "settings_webdavConfig_saved": "WebDAV configuration saved",
   "settings_webdavConfig_test_success": "Connection successful",
   "settings_webdavConfig_trust_action": "Trust this certificate",
   "settings_webdavConfig_trust_body": "{host} presented a certificate that no trusted authority signed. Home servers with a self-signed certificate do this. Trust it only if the fingerprint matches the one your server shows.",
@@ -15541,13 +15543,6 @@
   "@settings_cloudSync_dropbox_connect_failed": {
     "placeholders": {
       "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@settings_cloudSync_dropbox_connectedAs": {
-    "placeholders": {
-      "account": {
         "type": "Object"
       }
     }
@@ -16533,7 +16528,7 @@
   "insights_timePatterns_surfaceInterval_subtitle": "Time between dives",
   "insights_timePatterns_surfaceInterval_title": "Surface Interval Statistics",
   "insights_timePatterns_timeOfDay_error": "Failed to load time of day data",
-  "insights_timePatterns_timeOfDay_subtitle": "Morning, afternoon, evening, or night",
+  "insights_timePatterns_timeOfDay_subtitle": "Dawn, morning, afternoon, dusk or night",
   "insights_timePatterns_timeOfDay_title": "Dives by Time of Day",
   "insights_tooltip_diveRecords": "Dive Records",
   "insights_tooltip_filter": "Filter insights",
@@ -20795,6 +20790,12 @@
   "maps_regionSelector_dragToSelect": "Drag on the map to select a region",
   "maps_regionSelector_selectRegion": "Select region on map",
   "maps_regionSelector_selectRegionButton": "Select Region",
+  "maps_regionSelector_dragToMove": "Drag to move the map, pinch or use + / - to zoom",
+  "maps_regionSelector_modeMove": "Move",
+  "maps_regionSelector_modeSelect": "Select",
+  "maps_regionSelector_zoomIn": "Zoom in",
+  "maps_regionSelector_zoomOut": "Zoom out",
+  "maps_regionSelector_dateLine": "The box crosses the date line. Keep it on one side, or draw two boxes.",
   "tankPresets_addPreset": "Add tank preset",
   "tankPresets_builtInPresets": "Built-in Presets",
   "tankPresets_builtInPresets_description": "Switch off the presets you don't use to hide them from the tank pickers. The default preset is always shown.",
@@ -22533,10 +22534,9 @@
   "settings_connectedAccounts_title": "Connected accounts",
   "settings_connectedAccounts_empty": "No accounts connected yet",
   "settings_connectedAccounts_status_signedIn": "Signed in",
-  "settings_connectedAccounts_status_needsSignIn": "Needs sign-in",
   "settings_connectedAccounts_status_unavailable": "Unavailable on this device",
   "settings_connectedAccounts_disconnectDevice": "Sign out on this device",
-  "settings_connectedAccounts_removeFromLibrary": "Remove from library",
+
   "settings_connectedAccounts_rename": "Rename",
   "settings_connectedAccounts_renameTitle": "Rename account",
   "settings_connectedAccounts_renameField": "Name",
@@ -22573,8 +22573,6 @@
     }
   },
   "settings_connectedAccounts_usage_none": "Not used on this device",
-  "settings_connectedAccounts_usage_databaseSync": "Database sync",
-  "settings_connectedAccounts_usage_mediaStorage": "Media storage",
   "settings_connectedAccounts_usage_sharedLibrary": "Shared site library: {name}",
   "@settings_connectedAccounts_usage_sharedLibrary": {
     "description": "Connected account usage: a shared site library by name.",
@@ -22598,6 +22596,51 @@
   "settings_connectedAccounts_removeConfirmUsedHere": "On this device it is used for the features below, which stop working here:",
   "settings_connectedAccounts_removeConfirmOtherDevices": "Other devices may also use this account.",
   "settings_connectedAccounts_usage_unknown": "Could not check what this account is used for on this device. Anything that uses it here may stop working.",
+  "settings_accounts_ownServer_title": "My own server",
+  "settings_accounts_ownServer_s3": "S3-compatible",
+  "settings_accounts_ownServer_webdav": "WebDAV",
+  "settings_accounts_checkConnection": "Check connection",
+  "settings_accounts_save": "Save",
+  "settings_accounts_saved": "Account saved",
+  "settings_accounts_signInTo": "Sign in to {account}",
+  "@settings_accounts_signInTo": {"placeholders": {"account": {"type": "String"}}},
+  "settings_accounts_sheet_yours": "Your accounts",
+  "settings_accounts_sheet_add": "Add an account",
+  "settings_accounts_signInHere": "Sign in to use it here",
+  "settings_accounts_state_notSignedIn": "Not signed in on this device",
+  "settings_accounts_continue": "Continue",
+  "settings_accounts_add": "Add account",
+  "settings_accounts_signInAgain": "Sign in again",
+  "settings_accounts_usedHere": "Used on this device for {features}",
+  "@settings_accounts_usedHere": {"placeholders": {"features": {"type": "String"}}},
+  "settings_accounts_folders": "Folders",
+  "settings_accounts_removeEverywhere": "Remove from all devices",
+  "settings_accounts_icloudManaged": "Managed by your Apple ID in device settings",
+  "settings_accounts_serverDetails": "Server details",
+  "settings_accounts_usage_sync": "Sync between devices",
+  "settings_accounts_usage_photos": "Photos & videos",
+  "settings_accounts_folder_other": "Other folder",
+  "settings_accounts_notUsedYet": "Not used yet",
+  "settings_sync_using": "Using: {account}",
+  "@settings_sync_using": {"placeholders": {"account": {"type": "String"}}},
+  "settings_sync_change": "Change",
+  "settings_sync_notSetUp": "Not set up",
+  "settings_sync_offCustomFolder": "Off while the database is in a custom folder",
+  "settings_sync_keepInStep": "Keep devices in step automatically",
+  "settings_sync_alsoAtLaunch": "Also sync at launch",
+  "settings_sync_alsoOnReturn": "Also sync when the app returns",
+  "settings_sync_encryption": "Encryption",
+  "settings_sync_devices": "Devices using this library",
+  "settings_sync_troubleshoot": "Troubleshoot",
+  "settings_sync_replaceLibrary": "Replace the library with this device's copy",
+  "settings_sync_stop": "Stop syncing on this device",
+  "settings_sync_stop_subtitle": "Your account stays signed in",
+  "settings_sync_stop_confirmTitle": "Stop syncing on this device?",
+  "settings_sync_stop_confirmBody": "This device stops syncing. Your account stays signed in, and your dives stay here and in the cloud.",
+  "settings_sync_stopped": "Sync stopped on this device",
+  "settings_sync_cleanup_confirmTitle": "Delete old data?",
+  "settings_sync_cleanup_confirmBody": "This deletes the old sync files from {backend}. Your dives stay on this device and in the account you sync with now.",
+  "@settings_sync_cleanup_confirmBody": {"placeholders": {"backend": {"type": "String"}}},
   "media_unavailablePlaceholder_volumeOffline": "Volume not mounted",
   "media_unavailablePlaceholder_stillFetching": "Still loading. Tap to retry.",
   "media_unavailablePlaceholder_accessDenied": "No photo library access",
@@ -26493,7 +26536,9 @@
   "insights_timePatterns_seasonal_semanticLabel": "Bar chart. Dives by month. {description}",
   "insights_timePatterns_surfaceInterval_statLabel": "{label} surface interval: {value}",
   "insights_timePatterns_timeOfDay_afternoon": "Afternoon",
-  "insights_timePatterns_timeOfDay_evening": "Evening",
+  "insights_timePatterns_timeOfDay_dawn": "Dawn",
+  "insights_timePatterns_timeOfDay_defaultSunTimes": "{count, plural, =1{1 dive has no site location and uses default sunrise ({sunrise}) and sunset ({sunset}) times} other{{count} dives have no site location and use default sunrise ({sunrise}) and sunset ({sunset}) times}}",
+  "insights_timePatterns_timeOfDay_dusk": "Dusk",
   "insights_timePatterns_timeOfDay_morning": "Morning",
   "insights_timePatterns_timeOfDay_night": "Night",
   "insights_timePatterns_timeOfDay_semanticLabel": "Pie chart. Dives by time of day. {description}",
@@ -27088,6 +27133,23 @@
       "value": {
         "type": "String",
         "example": "1h 20m"
+      }
+    }
+  },
+  "@insights_timePatterns_timeOfDay_defaultSunTimes": {
+    "description": "Footnote under the dives-by-time-of-day pie chart, shown when some dives have no site coordinates and were bucketed on fixed clock times. The two times are already formatted in the diver's 12-hour or 24-hour setting.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "sunrise": {
+        "type": "String",
+        "example": "6:00 AM"
+      },
+      "sunset": {
+        "type": "String",
+        "example": "6:00 PM"
       }
     }
   },
@@ -27803,7 +27865,6 @@
       }
     }
   },
-  "settings_cloudSync_provider_icloud_subtitle": "Sync via Apple iCloud",
   "settings_debugLog_search_hint": "Search logs...",
   "settings_debugLog_appBar_title": "Debug Logs",
   "settings_debugLog_disableDebugMode": "Disable Debug Mode",
@@ -28098,9 +28159,6 @@
         "type": "Object"
       }
     }
-  },
-  "@settings_cloudSync_provider_icloud_subtitle": {
-    "description": "Subtitle of the iCloud provider tile on the Cloud Sync page."
   },
   "@settings_debugLog_search_hint": {
     "description": "Hint text of the search field in the debug log viewer app bar."
@@ -29638,6 +29696,8 @@
   "media_servedFrom_embedded": "Stored in this logbook",
   "settings_media_provenanceBadges": "Show source badges on thumbnails",
   "settings_media_provenanceBadgesSubtitle": "A small glyph showing where each item is served from. Problem badges always show.",
+  "settings_media_autoColorCorrection": "Automatic color correction",
+  "settings_media_autoColorCorrectionSubtitle": "Warms up blue underwater photos and videos on screen, using the depth each was taken at. Your files are never changed.",
   "settings_photosMedia_cacheHeader": "Cache",
   "settings_mediaCache_memory_title": "In-memory image cache",
   "settings_mediaCache_memory_subtitle": "Decoded images kept in memory for the galleries and the full-screen viewer. Applies immediately, on this device only.",

@@ -9,7 +9,7 @@ part of '../app_database_migrations.dart';
 /// column-exists guard on the final DROP COLUMN), so it is called from both
 /// its onUpgrade rung and the beforeOpen backstop.
 extension ChecklistSectionMigrations on AppDatabase {
-  /// v296: trip_checklist_sections + trip_checklist_items.section_id,
+  /// v297: trip_checklist_sections + trip_checklist_items.section_id,
   /// backfilled from category, which is then dropped.
   Future<void> _assertAndBackfillTripChecklistSections() async {
     if (!await _tableExists('trips')) return;
@@ -34,7 +34,7 @@ extension ChecklistSectionMigrations on AppDatabase {
     await _dropColumnIfExists('trip_checklist_items', 'category');
   }
 
-  /// v297: checklist_template_sections + checklist_template_items.section_id,
+  /// v298: checklist_template_sections + checklist_template_items.section_id,
   /// backfilled from category, which is then dropped.
   Future<void> _assertAndBackfillChecklistTemplateSections() async {
     if (!await _tableExists('checklist_templates')) return;
@@ -59,7 +59,7 @@ extension ChecklistSectionMigrations on AppDatabase {
     await _dropColumnIfExists('checklist_template_items', 'category');
   }
 
-  /// v298: pre_dive_checklist_template_sections +
+  /// v299: pre_dive_checklist_template_sections +
   /// pre_dive_checklist_template_items.section_id, backfilled from
   /// section, which is then dropped. Built-in templates get stable section
   /// ids via kSeedBuiltInPreDiveTemplateSectionsSql /
@@ -94,9 +94,9 @@ extension ChecklistSectionMigrations on AppDatabase {
     await _dropColumnIfExists('pre_dive_checklist_template_items', 'section');
   }
 
-  /// v299: pre_dive_session_sections + pre_dive_session_items.section_id,
+  /// v300: pre_dive_session_sections + pre_dive_session_items.section_id,
   /// backfilled from section, which is then dropped. No built-in exclusion
-  /// needed here (unlike v298): sessions are always diver-owned instances,
+  /// needed here (unlike v299): sessions are always diver-owned instances,
   /// never re-seeded, regardless of which template they came from.
   Future<void> _assertAndBackfillPreDiveSessionSections() async {
     if (!await _tableExists('pre_dive_sessions')) return;

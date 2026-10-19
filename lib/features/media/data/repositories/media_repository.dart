@@ -356,6 +356,7 @@ class MediaRepository {
               manualElapsedSeconds: Value(item.manualElapsedSeconds),
               siteCategory: Value(item.siteCategory?.storageKey),
               displaySize: Value(item.displaySizeOverride?.storageKey),
+              colorAdjustment: Value(item.colorAdjustment?.toJsonString()),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -498,6 +499,8 @@ class MediaRepository {
             manualElapsedSeconds: Value(item.manualElapsedSeconds),
             siteCategory: Value(item.siteCategory?.storageKey),
             displaySize: Value(item.displaySizeOverride?.storageKey),
+            // colorAdjustment is left out: MediaColorAdjustmentRepository owns it,
+            // so a stale snapshot written back here cannot roll it back (#3520).
             updatedAt: Value(now),
           ),
         );
@@ -1425,8 +1428,14 @@ class MediaRepository {
   /// Get enrichment data for media
   Future<domain.MediaEnrichment?> getEnrichmentForMedia(String mediaId) async {
     try {
+      // Newest first, one row: media_id is not unique, and two devices that
+      // each enrich a synced photo before seeing the other's row leave two
+      // (both survive sync, which applies by id). getSingleOrNull would
+      // then throw for that photo on every read.
       final query = _db.select(_db.mediaEnrichment)
-        ..where((t) => t.mediaId.equals(mediaId));
+        ..where((t) => t.mediaId.equals(mediaId))
+        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+        ..limit(1);
 
       final row = await query.getSingleOrNull();
       return row != null ? mediaEnrichmentFromRow(row) : null;

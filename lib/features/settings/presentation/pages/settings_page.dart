@@ -7,16 +7,14 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
-import 'package:submersion/features/settings/presentation/widgets/equipment_default_view_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
+import 'package:submersion/features/settings/presentation/pages/manage_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/data_settings_pane.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
@@ -186,7 +184,7 @@ class SettingsPage extends ConsumerWidget {
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
-        return const _ManageSectionContent();
+        return const ManageSectionContent();
       case 'data':
         return const DataSettingsPane();
       case 'dataSources':
@@ -356,7 +354,7 @@ class SettingsSectionDetailPage extends ConsumerWidget {
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
-        return const _ManageSectionContent();
+        return const ManageSectionContent();
       case 'data':
         return const DataSectionContent();
       case 'dataSources':
@@ -1587,205 +1585,6 @@ class _NotificationsSectionContent extends ConsumerWidget {
     if (time != null) {
       ref.read(settingsProvider.notifier).setReminderTime(time);
     }
-  }
-}
-
-/// Manage section content
-class _ManageSectionContent extends StatelessWidget {
-  const _ManageSectionContent();
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildSettingsSectionHeader(
-            context,
-            context.l10n.settings_manage_header_manageData,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.label),
-                  title: Text(context.l10n.settings_manage_diveTypes),
-                  subtitle: Text(
-                    context.l10n.settings_manage_diveTypes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-types'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.category),
-                  title: Text(context.l10n.settings_manage_siteTypes),
-                  subtitle: Text(
-                    context.l10n.settings_manage_siteTypes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/site-types'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.groups),
-                  title: Text(context.l10n.settings_manage_diveRoles),
-                  subtitle: Text(
-                    context.l10n.settings_manage_diveRoles_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-roles'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.workspace_premium_outlined),
-                  title: Text(
-                    context.l10n.settings_manage_certificationAgencies,
-                  ),
-                  subtitle: Text(
-                    context.l10n.settings_manage_certificationAgencies_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/certification-agencies'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(MdiIcons.divingScubaTank),
-                  title: Text(context.l10n.settings_manage_tankPresets),
-                  subtitle: Text(
-                    context.l10n.settings_manage_tankPresets_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/tank-presets'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.sensors),
-                  title: Text(context.l10n.settings_manage_transmitters),
-                  subtitle: Text(
-                    context.l10n.settings_manage_transmitters_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/transmitters'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.fitness_center),
-                  title: Text(context.l10n.settings_manage_weightPresets),
-                  subtitle: Text(
-                    context.l10n.settings_manage_weightPresets_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/weight-presets'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.gas_meter),
-                  title: Text(context.l10n.settings_section_trimixMixer_title),
-                  subtitle: Text(
-                    context.l10n.settings_section_trimixMixer_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(kTrimixMixerSettingsRoute),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.build_circle_outlined),
-                  title: Text(context.l10n.settings_manage_serviceTypes),
-                  subtitle: Text(
-                    context.l10n.settings_manage_serviceTypes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/equipment/service-types'),
-                ),
-                const Divider(height: 1),
-                // Refresher and renewal rules (issue #2267)
-                ListTile(
-                  leading: const Icon(Icons.event_repeat_outlined),
-                  title: Text(context.l10n.settings_manage_currencyRules),
-                  subtitle: Text(
-                    context.l10n.settings_manage_currencyRules_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/currency-rules'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  key: const ValueKey('settings_manage_locations'),
-                  leading: const Icon(Icons.place_outlined),
-                  title: Text(context.l10n.settings_manage_locations),
-                  subtitle: Text(
-                    context.l10n.settings_manage_locations_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/equipment/locations'),
-                ),
-                const Divider(height: 1),
-                const EquipmentDefaultViewTile(),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.auto_fix_high),
-                  title: Text(context.l10n.settings_manage_setupAssistant),
-                  subtitle: Text(
-                    context.l10n.settings_manage_setupAssistant_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/setup-assistant'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.checklist),
-                  title: Text(context.l10n.settings_manage_checklistTemplates),
-                  subtitle: Text(
-                    context.l10n.settings_manage_checklistTemplates_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/checklist-templates'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.fact_check),
-                  title: Text(context.l10n.settings_manage_preDiveChecklists),
-                  subtitle: Text(
-                    context.l10n.settings_manage_preDiveChecklists_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/pre-dive-checklists'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(MdiIcons.fish),
-                  title: Text(context.l10n.settings_manage_species),
-                  subtitle: Text(context.l10n.settings_manage_species_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/species/manage'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.sell),
-                  title: Text(context.l10n.settings_manage_tags),
-                  subtitle: Text(context.l10n.settings_manage_tags_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/tags'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.bookmarks_outlined),
-                  title: Text(context.l10n.settings_manage_savedQueries),
-                  subtitle: Text(
-                    context.l10n.settings_manage_savedQueries_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/saved-queries'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

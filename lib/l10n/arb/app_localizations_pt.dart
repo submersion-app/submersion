@@ -16684,7 +16684,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_mod_rowEadd => 'EADD (densidade do ar)';
 
   @override
-  String get gasCalculators_mod_rowDensity => 'Densidade do gás a 0 °C';
+  String gasCalculators_mod_rowDensity(String temp) {
+    return 'Densidade do gás a $temp';
+  }
+
+  @override
+  String get gasCalculators_mod_checkTemperature =>
+      'Verificar a densidade do gás a outra temperatura';
+
+  @override
+  String get gasCalculators_mod_temperatureHint =>
+      'Gás mais frio é mais denso, por isso a verificação de densidade segue a temperatura escolhida aqui, não a temperatura real do gás na profundidade.';
 
   @override
   String get gasCalculators_mod_openDensity =>
@@ -16730,18 +16740,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String gasCalculators_mod_densityWarn(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a densidade do gás $density g/L está acima dos $limit g/L recomendados.';
+    return '$where: a densidade do gás $density g/L a $temp está acima dos $limit g/L recomendados.';
   }
 
   @override
   String gasCalculators_mod_densityCritical(
     String where,
     String density,
+    String temp,
     String limit,
   ) {
-    return '$where: a densidade do gás $density g/L está acima do limite máximo de $limit g/L.';
+    return '$where: a densidade do gás $density g/L a $temp está acima do limite máximo de $limit g/L.';
   }
 
   @override
@@ -18752,6 +18764,93 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_photoViewer_closeTooltip => 'Fechar visualizador de fotos';
+
+  @override
+  String get media_color_adjustAction => 'Ajustar cor';
+
+  @override
+  String get media_color_auto => 'Automático';
+
+  @override
+  String get media_color_pickWhite => 'Escolher branco';
+
+  @override
+  String get media_color_pickWhiteHint =>
+      'Toque em algo que deveria ser branco ou cinza';
+
+  @override
+  String get media_color_pickWhiteFailed =>
+      'Não foi possível ler uma cor ali. Tente um ponto mais claro.';
+
+  @override
+  String get media_color_original => 'Original';
+
+  @override
+  String get media_color_strength => 'Intensidade';
+
+  @override
+  String get media_color_warmth => 'Calor';
+
+  @override
+  String get media_color_tint => 'Matiz';
+
+  @override
+  String get media_color_brightness => 'Brilho';
+
+  @override
+  String get media_color_contrast => 'Contraste';
+
+  @override
+  String get media_color_saturation => 'Saturação';
+
+  @override
+  String get media_color_reset => 'Redefinir';
+
+  @override
+  String get media_color_applyToDive => 'Aplicar a este mergulho';
+
+  @override
+  String get media_color_applyToDiveTitle => 'Aplicar a este mergulho?';
+
+  @override
+  String media_color_applyToDiveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mais $count fotos e vídeos usarão estes ajustes.',
+      one: 'Mais $count foto ou vídeo usará estes ajustes.',
+    );
+    return '$_temp0 Os pontos de branco de cada um são mantidos.';
+  }
+
+  @override
+  String media_color_appliedToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos e vídeos atualizados',
+      one: '$count foto ou vídeo atualizado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_color_undo => 'Desfazer';
+
+  @override
+  String get media_color_undoFailed => 'Não foi possível desfazer a alteração';
+
+  @override
+  String get media_color_saveFailed =>
+      'Não foi possível salvar o ajuste de cor';
+
+  @override
+  String media_color_labelAutoDepth(String depth) {
+    return '$depth · automático';
+  }
+
+  @override
+  String get media_color_labelAdjusted => 'Ajustada';
 
   @override
   String get media_photoViewer_diveDataWrittenToPhoto =>
@@ -20995,9 +21094,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Voltar para configurações';
 
   @override
-  String get settings_cloudSync_autoSync => 'Sincronização Automática';
-
-  @override
   String get settings_cloudSync_autoSync_subtitle =>
       'Sincronizar automaticamente após alterações';
 
@@ -21030,16 +21126,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_action => 'Ligar uma biblioteca';
-
-  @override
-  String get sharedLibrary_connect_addAccount =>
-      'Adicionar conta de armazenamento';
-
-  @override
-  String get sharedLibrary_connect_saveAccount => 'Guardar conta';
-
-  @override
-  String get sharedLibrary_connect_account_label => 'Conta de armazenamento';
 
   @override
   String get sharedLibrary_connect_prefix_label => 'Pasta (prefixo)';
@@ -21402,9 +21488,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_confirm => 'Repita a frase-passe';
-
-  @override
-  String get sharedLibrary_connect_probe_action => 'Verificar';
 
   @override
   String sharedLibrary_connect_join_action(String name) {
@@ -21781,13 +21864,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_cloudSync_adopt_notNow => 'Agora não';
 
   @override
-  String get settings_cloudSync_dangerZone => 'Zona de perigo';
-
-  @override
-  String get settings_cloudSync_replaceLibrary_tile =>
-      'Substituir biblioteca na nuvem';
-
-  @override
   String get settings_cloudSync_replaceLibrary_tileSubtitle =>
       'Tornar a biblioteca deste dispositivo a que todos os dispositivos usam';
 
@@ -21875,10 +21951,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_dialogTitle =>
-      'Trocar de provedor de sincronização?';
-
-  @override
   String settings_cloudSync_switch_dialogContent(
     String fromName,
     String toName,
@@ -21887,14 +21959,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_confirm => 'Trocar';
-
-  @override
   String settings_cloudSync_moved_banner(
     String deviceName,
     String destination,
   ) {
-    return '$deviceName moveu esta biblioteca para $destination. Este provedor não está mais sendo atualizado por ele. Selecione $destination abaixo para acompanhar a mudança.';
+    return '$deviceName moveu esta biblioteca para $destination. Este provedor não está mais sendo atualizado por ele. Escolha Alterar e depois $destination para acompanhar a mudança.';
   }
 
   @override
@@ -21919,16 +21988,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'O backup na nuvem será desativado e os backups serão salvos no local padrão.';
 
   @override
-  String get settings_cloudSync_header_cloudProvider => 'Provedor de Nuvem';
-
-  @override
   String settings_cloudSync_header_conflicts(Object count) {
     return 'Conflitos ($count)';
   }
-
-  @override
-  String get settings_cloudSync_header_syncBehavior =>
-      'Comportamento de Sincronização';
 
   @override
   String settings_cloudSync_lastSynced(Object time) {
@@ -22016,9 +22078,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Serão aplicadas automaticamente quando a atualização da loja de aplicações deste dispositivo alcançar essa versão. Ela pode ainda estar em revisão ou, se o outro dispositivo usar uma beta (TestFlight ou teste do Google Play), ainda não ter sido lançada: entre na mesma beta neste dispositivo, ou aguarde a próxima versão.';
 
   @override
-  String get settings_cloudSync_provider_connected => 'Conectado';
-
-  @override
   String settings_cloudSync_provider_connectedTo(Object providerName) {
     return 'Conectado a $providerName';
   }
@@ -22030,9 +22089,6 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return 'Falha na conexão com $providerName: $error';
   }
-
-  @override
-  String get settings_cloudSync_dropbox_account_title => 'Conta do Dropbox';
 
   @override
   String get settings_cloudSync_dropbox_connect_codeLabel =>
@@ -22062,33 +22118,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_title => 'Conectar Dropbox';
 
   @override
-  String get settings_cloudSync_dropbox_connected => 'Conectado ao Dropbox';
-
-  @override
-  String settings_cloudSync_dropbox_connectedAs(Object account) {
-    return 'Conectado como $account';
-  }
-
-  @override
-  String get settings_cloudSync_dropbox_disconnect => 'Desconectar';
-
-  @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      'Sincronizar via Dropbox (Apps/Submersion)';
-
-  @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
 
   @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
-
-  @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      'Sincronizar via Google Drive';
-
-  @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
-      'Indisponível nesta versão';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title =>
@@ -22107,27 +22140,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable =>
-      'Não disponível nesta plataforma';
-
-  @override
-  String get settings_cloudSync_provider_s3_edit => 'Editar configuração do S3';
-
-  @override
-  String get settings_cloudSync_provider_s3_subtitle =>
-      'Funciona com qualquer serviço de armazenamento compatível com S3';
-
-  @override
   String get settings_cloudSync_provider_s3_title =>
       'Armazenamento compatível com S3';
-
-  @override
-  String get settings_cloudSync_provider_webdav_edit =>
-      'Editar a configuração do WebDAV';
-
-  @override
-  String get settings_cloudSync_provider_webdav_subtitle =>
-      'Qualquer servidor WebDAV';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -22138,30 +22152,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_cloudSync_selectProviderHint =>
       'Selecione um provedor de nuvem para ativar a sincronização';
-
-  @override
-  String get settings_cloudSync_signOut => 'Sair';
-
-  @override
-  String get settings_cloudSync_signOutDialog_cancel => 'Cancelar';
-
-  @override
-  String get settings_cloudSync_signOutDialog_content =>
-      'Isso desconectará do provedor de nuvem. Seus dados locais permanecerão intactos.';
-
-  @override
-  String get settings_cloudSync_signOutDialog_signOut => 'Sair';
-
-  @override
-  String get settings_cloudSync_signOutDialog_title => 'Sair?';
-
-  @override
-  String get settings_cloudSync_signOutSuccess =>
-      'Desconectado do provedor de nuvem';
-
-  @override
-  String get settings_cloudSync_signOut_subtitle =>
-      'Desconectar do provedor de nuvem';
 
   @override
   String get settings_cloudSync_status_conflictsDetected =>
@@ -22188,14 +22178,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_cloudSync_syncNow => 'Sincronizar Agora';
 
   @override
-  String get settings_cloudSync_syncOnLaunch => 'Sincronizar ao Iniciar';
-
-  @override
   String get settings_cloudSync_syncOnLaunch_subtitle =>
       'Verificar atualizações na inicialização';
-
-  @override
-  String get settings_cloudSync_syncOnResume => 'Sincronizar ao Retomar';
 
   @override
   String get settings_cloudSync_syncOnResume_subtitle =>
@@ -22586,6 +22570,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'Foto na nuvem';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'Ajuste de cor';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'Correção automática de cor';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override
@@ -22640,6 +22631,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Serviço';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'Localização da conta';
 
   @override
   String get settings_conflict_field_connectedAccounts_nickname => 'Nome';
@@ -26170,7 +26165,25 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tipos de ponto de mergulho integrados e personalizados';
 
   @override
-  String get settings_manage_header_manageData => 'Gerenciar Dados';
+  String get settings_manage_header_equipment => 'Equipamentos';
+
+  @override
+  String get settings_manage_header_dives => 'Mergulhos';
+
+  @override
+  String get settings_manage_header_planning => 'Planejamento';
+
+  @override
+  String get settings_manage_header_training => 'Treinamento';
+
+  @override
+  String get settings_manage_header_checklists => 'Listas de verificação';
+
+  @override
+  String get settings_manage_header_organization => 'Organização';
+
+  @override
+  String get settings_manage_header_setup => 'Configuração inicial';
 
   @override
   String get settings_manage_species => 'Espécies';
@@ -26533,17 +26546,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_profileHub_switchDiver => 'Trocar de Mergulhador';
 
   @override
-  String get settings_s3Config_action_remove => 'Remover configuração';
-
-  @override
   String get settings_s3Config_action_testConnection => 'Testar conexão';
 
   @override
   String get settings_s3Config_advanced_title => 'Avançado';
-
-  @override
-  String get settings_s3Config_appBar_title =>
-      'Armazenamento compatível com S3';
 
   @override
   String get settings_s3Config_error_secureStorage =>
@@ -26586,23 +26592,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Secret Access Key';
 
   @override
-  String get settings_s3Config_remove_confirm_action => 'Remover';
-
-  @override
-  String get settings_s3Config_remove_confirm_body =>
-      'A sincronização via S3 será interrompida neste dispositivo. Seus dados no bucket não são excluídos.';
-
-  @override
-  String get settings_s3Config_remove_confirm_title =>
-      'Remover a configuração do S3?';
-
-  @override
-  String get settings_s3Config_removed => 'Configuração do S3 removida';
-
-  @override
-  String get settings_s3Config_saved => 'Configuração do S3 salva';
-
-  @override
   String settings_s3Config_test_regionDetected(String region) {
     return 'Região detectada: $region';
   }
@@ -26629,13 +26618,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_webdavConfig_action_forgetCertificate => 'Esquecer';
 
   @override
-  String get settings_webdavConfig_action_remove => 'Remover configuração';
-
-  @override
   String get settings_webdavConfig_action_testConnection => 'Testar conexão';
-
-  @override
-  String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
   String get settings_webdavConfig_error_conflict =>
@@ -26727,23 +26710,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_field_username_label => 'Usuário';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_action => 'Remover';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_body =>
-      'Os dados do servidor e a senha são removidos deste dispositivo. Os arquivos no servidor são mantidos.';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_title =>
-      'Remover a configuração do WebDAV?';
-
-  @override
-  String get settings_webdavConfig_removed => 'Configuração do WebDAV removida';
-
-  @override
-  String get settings_webdavConfig_saved => 'Configuração do WebDAV salva';
 
   @override
   String get settings_webdavConfig_test_success => 'Conexão bem-sucedida';
@@ -29411,7 +29377,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_timePatterns_timeOfDay_subtitle =>
-      'Manhã, tarde, entardecer ou noite';
+      'Amanhecer, manhã, tarde, entardecer ou noite';
 
   @override
   String get insights_timePatterns_timeOfDay_title =>
@@ -34667,6 +34633,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Selecionar Região';
 
   @override
+  String get maps_regionSelector_dragToMove =>
+      'Arraste para mover o mapa; use pinça ou + / - para dar zoom';
+
+  @override
+  String get maps_regionSelector_modeMove => 'Mover';
+
+  @override
+  String get maps_regionSelector_modeSelect => 'Selecionar';
+
+  @override
+  String get maps_regionSelector_zoomIn => 'Aproximar';
+
+  @override
+  String get maps_regionSelector_zoomOut => 'Afastar';
+
+  @override
+  String get maps_regionSelector_dateLine =>
+      'A área cruza a linha internacional de data. Mantenha-a de um lado ou desenhe duas áreas.';
+
+  @override
   String get tankPresets_addPreset => 'Adicionar preset de cilindro';
 
   @override
@@ -36932,19 +36918,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => 'Conectado';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn => 'Requer login';
-
-  @override
   String get settings_connectedAccounts_status_unavailable =>
       'Indisponível neste dispositivo';
 
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Sair neste dispositivo';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary =>
-      'Remover da biblioteca';
 
   @override
   String get settings_connectedAccounts_rename => 'Mudar o nome';
@@ -37018,14 +36997,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não usado neste dispositivo';
 
   @override
-  String get settings_connectedAccounts_usage_databaseSync =>
-      'Sincronização do banco de dados';
-
-  @override
-  String get settings_connectedAccounts_usage_mediaStorage =>
-      'Armazenamento de mídia';
-
-  @override
   String settings_connectedAccounts_usage_sharedLibrary(String name) {
     return 'Biblioteca de locais partilhada: $name';
   }
@@ -37053,6 +37024,146 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_connectedAccounts_usage_unknown =>
       'Não foi possível verificar para que esta conta é usada neste dispositivo. O que a usa aqui pode deixar de funcionar.';
+
+  @override
+  String get settings_accounts_ownServer_title => 'Meu próprio servidor';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'Compatível com S3';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'Verificar conexão';
+
+  @override
+  String get settings_accounts_save => 'Salvar';
+
+  @override
+  String get settings_accounts_saved => 'Conta salva';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'Entrar em $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'Suas contas';
+
+  @override
+  String get settings_accounts_sheet_add => 'Adicionar uma conta';
+
+  @override
+  String get settings_accounts_signInHere => 'Entre para usá-la aqui';
+
+  @override
+  String get settings_accounts_state_notSignedIn =>
+      'Não conectada neste dispositivo';
+
+  @override
+  String get settings_accounts_continue => 'Continuar';
+
+  @override
+  String get settings_accounts_add => 'Adicionar conta';
+
+  @override
+  String get settings_accounts_signInAgain => 'Entrar novamente';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'Usada neste dispositivo para $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'Pastas';
+
+  @override
+  String get settings_accounts_removeEverywhere =>
+      'Remover de todos os dispositivos';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'Gerenciado pelo seu ID Apple nos ajustes do dispositivo';
+
+  @override
+  String get settings_accounts_serverDetails => 'Detalhes do servidor';
+
+  @override
+  String get settings_accounts_usage_sync => 'Sincronização entre dispositivos';
+
+  @override
+  String get settings_accounts_usage_photos => 'Fotos e vídeos';
+
+  @override
+  String get settings_accounts_folder_other => 'Outra pasta';
+
+  @override
+  String get settings_accounts_notUsedYet => 'Ainda não usada';
+
+  @override
+  String settings_sync_using(String account) {
+    return 'Em uso: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Alterar';
+
+  @override
+  String get settings_sync_notSetUp => 'Não configurado';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Desativada enquanto o banco de dados estiver em uma pasta personalizada';
+
+  @override
+  String get settings_sync_keepInStep =>
+      'Manter os dispositivos sincronizados automaticamente';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Sincronizar também ao abrir';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Sincronizar também ao voltar ao app';
+
+  @override
+  String get settings_sync_encryption => 'Criptografia';
+
+  @override
+  String get settings_sync_devices => 'Dispositivos que usam esta biblioteca';
+
+  @override
+  String get settings_sync_troubleshoot => 'Solucionar problemas';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'Substituir a biblioteca pela cópia deste dispositivo';
+
+  @override
+  String get settings_sync_stop => 'Parar de sincronizar neste dispositivo';
+
+  @override
+  String get settings_sync_stop_subtitle => 'Sua conta continua conectada';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'Parar de sincronizar neste dispositivo?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Este dispositivo para de sincronizar. Sua conta continua conectada, e seus mergulhos ficam aqui e na nuvem.';
+
+  @override
+  String get settings_sync_stopped => 'Sincronização parada neste dispositivo';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'Excluir os dados antigos?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Isso exclui os arquivos de sincronização antigos de $backend. Seus mergulhos ficam neste dispositivo e na conta com a qual você sincroniza agora.';
+  }
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume não montado';
@@ -46724,13 +46835,33 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_timePatterns_timeOfDay_afternoon => 'Tarde';
 
   @override
-  String get insights_timePatterns_timeOfDay_evening => 'Noite';
+  String get insights_timePatterns_timeOfDay_dawn => 'Amanhecer';
+
+  @override
+  String insights_timePatterns_timeOfDay_defaultSunTimes(
+    int count,
+    String sunrise,
+    String sunset,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos não têm localização do ponto de mergulho e usam os horários padrão de nascer ($sunrise) e pôr do sol ($sunset)',
+      one:
+          '$count mergulho não tem localização do ponto de mergulho e usa os horários padrão de nascer ($sunrise) e pôr do sol ($sunset)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_timePatterns_timeOfDay_dusk => 'Entardecer';
 
   @override
   String get insights_timePatterns_timeOfDay_morning => 'Manhã';
 
   @override
-  String get insights_timePatterns_timeOfDay_night => 'Madrugada';
+  String get insights_timePatterns_timeOfDay_night => 'Noite';
 
   @override
   String insights_timePatterns_timeOfDay_semanticLabel(String description) {
@@ -48201,10 +48332,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String autoUpdate_banner_packageManagerHint(String command) {
     return 'Atualize com: $command';
   }
-
-  @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      'Sincronizar via Apple iCloud';
 
   @override
   String get settings_debugLog_search_hint => 'Buscar nos logs...';
@@ -50219,6 +50346,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_media_provenanceBadgesSubtitle =>
       'Um pequeno ícone que mostra de onde cada item vem. Os selos de problema sempre aparecem.';
+
+  @override
+  String get settings_media_autoColorCorrection => 'Correção automática de cor';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Aquece na tela as fotos e vídeos subaquáticos azulados, de acordo com a profundidade em que cada um foi feito. Seus arquivos nunca são alterados.';
 
   @override
   String get settings_photosMedia_cacheHeader => 'Cache';

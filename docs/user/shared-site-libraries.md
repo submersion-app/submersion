@@ -52,9 +52,10 @@ and photos never leave your personal logbook.
    `submersion-sites` at the top of your bucket or server, beside the
    `submersion-sync` and `submersion-media` folders. A folder name cannot start
    with `sites`, `members`, `suggestions` or `backups`.
-3. Choose the storage account, or **Add storage account** with the bucket or
+3. Choose the server the library lives on with **Change** (S3-compatible or
+   WebDAV accounts only), or add one with **My own server** and the bucket or
    server details and the key you were given.
-4. Tap **Check**. Submersion looks in the folder and offers to **Join** the
+4. Tap **Check location**. Submersion looks in the folder and offers to **Join** the
    library that is there. If the folder is empty, it offers to
    **Create library**, or to **Restore from a backup file** (see
    [Backups](#backups)).

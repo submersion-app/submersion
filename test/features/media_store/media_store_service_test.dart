@@ -9,6 +9,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
 import 'package:submersion/core/services/media_store/icloud_media_platform.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
@@ -122,6 +123,17 @@ void main() {
     expect(
       accounts.single.id,
       accountIdFor(kind: AccountKind.s3, naturalKey: s3NaturalKey(config)),
+    );
+  });
+
+  // Issue #3482: the media account's row carries where it points.
+  test('connectS3 records the account location', () async {
+    await service.connectS3(config);
+    final account = (await accountsRepository.getAll()).single;
+    expect(account.location, isA<S3AccountLocation>());
+    expect(
+      account.location!.toJsonString(),
+      isNot(contains(config.secretAccessKey)),
     );
   });
 

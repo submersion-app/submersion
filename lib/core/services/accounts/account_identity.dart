@@ -50,3 +50,7 @@ String? naturalKeyForKind(AccountKind kind) => switch (kind) {
 /// merge.
 String accountIdFor({required AccountKind kind, required String naturalKey}) =>
     const Uuid().v5(kConnectedAccountNamespace, '${kind.name}:$naturalKey');
+
+/// Whether [id] was made by [accountIdFor] (a name-based UUIDv5) rather than
+/// at random (the UUIDv4 rows from before deterministic ids).
+bool isDeterministicAccountId(String id) => id.length == 36 && id[14] == '5';

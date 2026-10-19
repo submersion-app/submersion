@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -81,6 +82,7 @@ domain.MediaItem mediaItemFromRow(
     manualElapsedSeconds: row.manualElapsedSeconds,
     siteCategory: SiteAttachmentCategory.fromStorageKey(row.siteCategory),
     displaySizeOverride: AttachmentDisplaySize.fromStorageKey(row.displaySize),
+    colorAdjustment: ColorAdjustment.fromJsonString(row.colorAdjustment),
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     enrichment: enrichmentRow != null

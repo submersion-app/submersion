@@ -46,7 +46,6 @@ import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
-import 'package:submersion/core/router/route_entrance.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_text_section.dart';
@@ -74,7 +73,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_detail_section_preload.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segments_availability.dart';
@@ -199,8 +197,7 @@ class DiveDetailPage extends ConsumerStatefulWidget {
   ConsumerState<DiveDetailPage> createState() => _DiveDetailPageState();
 }
 
-class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
-    with RouteEntranceSettled<DiveDetailPage> {
+class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
 
@@ -1129,9 +1126,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
     final layout = settings.diveDetailLayout;
 
-    // The sections below wait out the slide; their data need not (#3489).
-    if (!isRouteEntranceSettled) preloadDiveDetailSections(ref, dive.id);
-
     final builders = _sectionBuilders(
       context: context,
       ref: ref,
@@ -1193,20 +1187,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             // when the pane is wide enough. Gauge dives hide
             // gas/deco sections (deco status, tissue loading, SAC segments,
             // cylinders). The list layout folds each section to a header row.
-            // They wait until the page has all but slid in: built in the
-            // slide's opening frames they made it stutter on a phone, while
-            // the header alone slides in smoothly (#3489).
-            if (isRouteEntranceSettled)
-              ..._buildOrderedSections(
-                context: context,
-                ref: ref,
-                dive: dive,
-                units: units,
-                computerReadingsAsync: computerReadingsAsync,
-                settings: settings,
-                layout: layout,
-                builders: builders,
-              ),
+            // They build in the same frame as the header, on a phone as in
+            // the desktop pane, so the visible page appears at once (#3538).
+            ..._buildOrderedSections(
+              context: context,
+              ref: ref,
+              dive: dive,
+              units: units,
+              computerReadingsAsync: computerReadingsAsync,
+              settings: settings,
+              layout: layout,
+              builders: builders,
+            ),
             const SizedBox(height: 32),
           ],
         ),

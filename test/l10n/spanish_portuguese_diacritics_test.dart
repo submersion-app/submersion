@@ -142,6 +142,9 @@ void main() {
       'la': _Homograph('the pronoun suffix -la, and lá meaning there'),
       'tem': _Homograph('the singular tem, and the plural têm'),
       'pode': _Homograph('the present pode, and the past pôde'),
+      'por': _Homograph(
+        'the preposition por, and the verb pôr, as in pôr do sol (sunset)',
+      ),
       'min': _Homograph('min, the minutes unit, and mín. for mínimo'),
       'max': _Homograph('Max in untranslated labels, and máx. for máximo'),
       'oxigenio': _Homograph(
@@ -180,6 +183,8 @@ void main() {
       'continua': _Homograph(
         'the verb continua, and the adjective contínua',
         keys: {
+          'settings_sync_stop_confirmBody',
+          'settings_sync_stop_subtitle',
           'surfaceInterval_result_beyondHorizon',
           'startup_interruptedRestore_bodyWithDate',
           'startup_interruptedRestore_body',

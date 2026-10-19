@@ -62,7 +62,7 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
-    // Section tables for checklists/pre-dive (v296-299, issue #3360), fully
+    // Section tables for checklists/pre-dive (v297-300, issue #3360), fully
     // wired for sync (SyncData, mergeOrder, parentRefs, conflict_reference
     // labels) alongside their item tables.
     'tripChecklistSections': (table: 'trip_checklist_sections', pk: 'id'),
@@ -466,6 +466,27 @@ class SyncRepository {
     )..where((t) => t.id.equals(_globalMetadataId))).write(
       SyncMetadataCompanion(
         lastSyncProvider: Value(providerId),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
+  /// Retires the cursor minted against [providerId], for a switch to another
+  /// account of the same kind: its time still reads as the last sync, but
+  /// `getLastSyncTime(forProvider: providerId)` reads null, so the new
+  /// account's first sync is first contact (the Combine check runs, and no
+  /// cursor from the old account is reused).
+  Future<void> retireCursor(String providerId) async {
+    final metadata = await getOrCreateMetadata();
+    if (metadata.lastSyncTimestamp == null) return;
+    final stamped = metadata.lastSyncProvider;
+    if (stamped != null && stamped != providerId) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.syncMetadata,
+    )..where((t) => t.id.equals(_globalMetadataId))).write(
+      SyncMetadataCompanion(
+        lastSyncProvider: Value('$providerId:retired'),
         updatedAt: Value(now),
       ),
     );
