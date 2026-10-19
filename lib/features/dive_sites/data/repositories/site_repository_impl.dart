@@ -495,6 +495,31 @@ class SiteRepository {
     }
   }
 
+  /// Appends [text] to [siteId]'s description, on a new line when the
+  /// description already holds text (logbook rules, #3513). Marks the site
+  /// pending; the caller notifies.
+  Future<void> appendDescription(String siteId, String text) async {
+    if (text.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.customUpdate(
+      "UPDATE dive_sites SET description = CASE WHEN description = '' "
+      "THEN ? ELSE description || char(10) || ? END, updated_at = ? "
+      'WHERE id = ?',
+      variables: [
+        Variable.withString(text),
+        Variable.withString(text),
+        Variable.withInt(now),
+        Variable.withString(siteId),
+      ],
+      updates: {_db.diveSites},
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'diveSites',
+      recordId: siteId,
+      localUpdatedAt: now,
+    );
+  }
+
   /// Only columns set on [patch] are written; others are left untouched.
   /// Marks the row pending for sync.
   Future<void> applyImportedMetadata(
