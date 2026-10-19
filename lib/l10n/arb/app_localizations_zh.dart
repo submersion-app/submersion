@@ -46914,6 +46914,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '一个小图标，显示每个项目的来源。问题徽章始终显示。';
 
   @override
+  String get settings_media_autoColorCorrection => '自动色彩校正';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      '根据每张照片和视频的拍摄深度，在屏幕上为偏蓝的水下画面增添暖色。您的文件不会被更改。';
+
+  @override
   String get settings_photosMedia_cacheHeader => '缓存';
 
   @override

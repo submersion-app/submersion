@@ -14811,6 +14811,8 @@
   "media_servedFrom_embedded": "Opgeslagen in dit logboek",
   "settings_media_provenanceBadges": "Bronbadges op miniaturen tonen",
   "settings_media_provenanceBadgesSubtitle": "Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.",
+  "settings_media_autoColorCorrection": "Automatische kleurcorrectie",
+  "settings_media_autoColorCorrectionSubtitle": "Maakt blauwe onderwaterfoto's en -video's op het scherm warmer, op basis van de diepte waarop elk is gemaakt. Je bestanden worden nooit gewijzigd.",
   "settings_photosMedia_cacheHeader": "Cache",
   "settings_mediaCache_memory_title": "Afbeeldingscache in het geheugen",
   "settings_mediaCache_memory_subtitle": "Gedecodeerde afbeeldingen die in het geheugen blijven voor de galerijen en de weergave op volledig scherm. Geldt direct, alleen op dit apparaat.",

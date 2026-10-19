@@ -14811,6 +14811,8 @@
   "media_servedFrom_embedded": "Enregistré dans ce carnet",
   "settings_media_provenanceBadges": "Afficher les badges de source sur les vignettes",
   "settings_media_provenanceBadgesSubtitle": "Une petite icône indiquant d'où provient chaque élément. Les badges de problème restent toujours visibles.",
+  "settings_media_autoColorCorrection": "Correction automatique des couleurs",
+  "settings_media_autoColorCorrectionSubtitle": "Réchauffe à l'écran les photos et vidéos sous-marines bleutées, selon la profondeur de chaque prise de vue. Vos fichiers ne sont jamais modifiés.",
   "settings_photosMedia_cacheHeader": "Cache",
   "settings_mediaCache_memory_title": "Cache d’images en mémoire",
   "settings_mediaCache_memory_subtitle": "Images décodées conservées en mémoire pour les galeries et la visionneuse plein écran. S’applique immédiatement, sur cet appareil uniquement.",

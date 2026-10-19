@@ -79223,6 +79223,18 @@ abstract class AppLocalizations {
   /// **'A small glyph showing where each item is served from. Problem badges always show.'**
   String get settings_media_provenanceBadgesSubtitle;
 
+  /// No description provided for @settings_media_autoColorCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic color correction'**
+  String get settings_media_autoColorCorrection;
+
+  /// No description provided for @settings_media_autoColorCorrectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warms up blue underwater photos and videos on screen, using the depth each was taken at. Your files are never changed.'**
+  String get settings_media_autoColorCorrectionSubtitle;
+
   /// No description provided for @settings_photosMedia_cacheHeader.
   ///
   /// In en, this message translates to:

@@ -50097,6 +50097,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une petite icône indiquant d\'où provient chaque élément. Les badges de problème restent toujours visibles.';
 
   @override
+  String get settings_media_autoColorCorrection =>
+      'Correction automatique des couleurs';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Réchauffe à l\'écran les photos et vidéos sous-marines bleutées, selon la profondeur de chaque prise de vue. Vos fichiers ne sont jamais modifiés.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Cache';
 
   @override

@@ -50623,6 +50623,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
 
   @override
+  String get settings_media_autoColorCorrection => 'تصحيح الألوان التلقائي';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'يدفّئ ألوان الصور ومقاطع الفيديو الزرقاء تحت الماء على الشاشة، بحسب العمق الذي التُقطت فيه كل منها. لا تتغير ملفاتك أبدًا.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'التخزين المؤقت';
 
   @override

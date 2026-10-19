@@ -49660,6 +49660,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.';
 
   @override
+  String get settings_media_autoColorCorrection =>
+      'Automatische kleurcorrectie';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Maakt blauwe onderwaterfoto\'s en -video\'s op het scherm warmer, op basis van de diepte waarop elk is gemaakt. Je bestanden worden nooit gewijzigd.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Cache';
 
   @override

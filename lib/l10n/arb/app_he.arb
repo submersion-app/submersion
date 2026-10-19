@@ -14811,6 +14811,8 @@
   "media_servedFrom_embedded": "שמור ביומן הזה",
   "settings_media_provenanceBadges": "הצגת תגי מקור על תמונות ממוזערות",
   "settings_media_provenanceBadgesSubtitle": "סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.",
+  "settings_media_autoColorCorrection": "תיקון צבע אוטומטי",
+  "settings_media_autoColorCorrectionSubtitle": "מחמם על המסך תמונות וסרטונים כחלחלים מתחת למים, לפי העומק שבו צולם כל אחד. הקבצים שלך לעולם אינם משתנים.",
   "settings_photosMedia_cacheHeader": "מטמון",
   "settings_mediaCache_memory_title": "מטמון תמונות בזיכרון",
   "settings_mediaCache_memory_subtitle": "תמונות מפוענחות שנשמרות בזיכרון עבור הגלריות והצגת מסך מלא. חל מיד, במכשיר זה בלבד.",

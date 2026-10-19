@@ -14811,6 +14811,8 @@
   "media_servedFrom_embedded": "Guardado en este cuaderno",
   "settings_media_provenanceBadges": "Mostrar distintivos de origen en las miniaturas",
   "settings_media_provenanceBadgesSubtitle": "Un pequeño icono que indica de dónde procede cada elemento. Los distintivos de problemas siempre se muestran.",
+  "settings_media_autoColorCorrection": "Corrección automática del color",
+  "settings_media_autoColorCorrectionSubtitle": "Calienta en pantalla las fotos y vídeos submarinos azulados según la profundidad a la que se tomó cada uno. Tus archivos nunca se modifican.",
   "settings_photosMedia_cacheHeader": "Caché",
   "settings_mediaCache_memory_title": "Caché de imágenes en memoria",
   "settings_mediaCache_memory_subtitle": "Imágenes decodificadas que se conservan en memoria para las galerías y el visor a pantalla completa. Se aplica de inmediato y solo en este dispositivo.",

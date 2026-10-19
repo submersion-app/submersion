@@ -48925,6 +48925,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
 
   @override
+  String get settings_media_autoColorCorrection => 'תיקון צבע אוטומטי';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'מחמם על המסך תמונות וסרטונים כחלחלים מתחת למים, לפי העומק שבו צולם כל אחד. הקבצים שלך לעולם אינם משתנים.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'מטמון';
 
   @override

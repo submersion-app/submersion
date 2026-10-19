@@ -49195,6 +49195,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A small glyph showing where each item is served from. Problem badges always show.';
 
   @override
+  String get settings_media_autoColorCorrection => 'Automatic color correction';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Warms up blue underwater photos and videos on screen, using the depth each was taken at. Your files are never changed.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Cache';
 
   @override

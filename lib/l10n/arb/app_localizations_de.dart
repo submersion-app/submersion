@@ -49873,6 +49873,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein kleines Symbol, das zeigt, woher jedes Element geladen wird. Problem-Badges werden immer angezeigt.';
 
   @override
+  String get settings_media_autoColorCorrection => 'Automatische Farbkorrektur';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Wärmt blaustichige Unterwasserfotos und -videos auf dem Bildschirm auf, anhand der Tiefe, in der sie aufgenommen wurden. Ihre Dateien werden nie verändert.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Cache';
 
   @override

@@ -49980,6 +49980,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una piccola icona che indica da dove proviene ogni elemento. I badge di problema sono sempre visibili.';
 
   @override
+  String get settings_media_autoColorCorrection =>
+      'Correzione automatica del colore';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Riscalda sullo schermo le foto e i video subacquei bluastri in base alla profondità di ciascuno scatto. I tuoi file non vengono mai modificati.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Cache';
 
   @override

@@ -14811,6 +14811,8 @@
   "media_servedFrom_embedded": "Ebben a naplóban tárolva",
   "settings_media_provenanceBadges": "Forrásjelvények megjelenítése a bélyegképeken",
   "settings_media_provenanceBadgesSubtitle": "Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.",
+  "settings_media_autoColorCorrection": "Automatikus színkorrekció",
+  "settings_media_autoColorCorrectionSubtitle": "A képernyőn melegebbé teszi a kékes víz alatti fotókat és videókat a felvétel mélysége alapján. A fájljaid sosem változnak.",
   "settings_photosMedia_cacheHeader": "Gyorsítótár",
   "settings_mediaCache_memory_title": "Memóriában tartott képek",
   "settings_mediaCache_memory_subtitle": "A galériákhoz és a teljes képernyős megjelenítőhöz memóriában tartott, dekódolt képek. Azonnal érvénybe lép, csak ezen az eszközön.",

@@ -49701,6 +49701,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.';
 
   @override
+  String get settings_media_autoColorCorrection => 'Automatikus színkorrekció';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'A képernyőn melegebbé teszi a kékes víz alatti fotókat és videókat a felvétel mélysége alapján. A fájljaid sosem változnak.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Gyorsítótár';
 
   @override

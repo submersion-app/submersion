@@ -14811,6 +14811,8 @@
   "media_servedFrom_embedded": "محفوظ في سجل الغوص هذا",
   "settings_media_provenanceBadges": "إظهار شارات المصدر على الصور المصغرة",
   "settings_media_provenanceBadgesSubtitle": "رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.",
+  "settings_media_autoColorCorrection": "تصحيح الألوان التلقائي",
+  "settings_media_autoColorCorrectionSubtitle": "يدفّئ ألوان الصور ومقاطع الفيديو الزرقاء تحت الماء على الشاشة، بحسب العمق الذي التُقطت فيه كل منها. لا تتغير ملفاتك أبدًا.",
   "settings_photosMedia_cacheHeader": "التخزين المؤقت",
   "settings_mediaCache_memory_title": "ذاكرة الصور المؤقتة",
   "settings_mediaCache_memory_subtitle": "الصور المفكوكة المحفوظة في الذاكرة للمعارض والعارض بملء الشاشة. يسري فورا وعلى هذا الجهاز فقط.",

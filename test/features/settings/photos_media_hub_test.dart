@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
@@ -30,6 +30,23 @@ class _FixedStatusAdapter extends AccountProviderAdapter {
 
   @override
   Future<void> disconnect(domain.ConnectedAccount account) async {}
+}
+
+/// Records the automatic color correction switch (issue #3520); every other
+/// SettingsNotifier member is unused here.
+class _ColorSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _ColorSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> get initialLoad async {}
+
+  @override
+  Future<void> setAutoColorCorrection(bool value) async =>
+      state = state.copyWith(autoColorCorrection: value);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -82,6 +99,48 @@ void main() {
       home: home,
     ),
   );
+
+  testWidgets('the automatic color correction switch is off and turns on', (
+    tester,
+  ) async {
+    final notifier = _ColorSettingsNotifier();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => notifier),
+          mediaCacheSettingsProvider.overrideWith(
+            (ref) => MediaCacheSettingsNotifier(
+              prefs,
+              applyMemoryCap: appliedMemoryBytes.add,
+              onEmptyDiskCache: () => emptyDiskCache(),
+            ),
+          ),
+          accountProviderRegistryProvider.overrideWithValue(
+            AccountProviderRegistry(const []),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PhotosMediaHubPage(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final tile = find.widgetWithText(
+      SwitchListTile,
+      'Automatic color correction',
+    );
+    await tester.scrollUntilVisible(tile, 200);
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+    await tester.tap(tile);
+    await tester.pump();
+    expect(notifier.state.autoColorCorrection, isTrue);
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+  });
 
   testWidgets('hub shows the two layer groups', (tester) async {
     await tester.pumpWidget(app(const PhotosMediaHubPage()));

@@ -14959,6 +14959,8 @@
   "media_servedFrom_embedded": "In diesem Logbuch gespeichert",
   "settings_media_provenanceBadges": "Quellen-Badges auf Miniaturen anzeigen",
   "settings_media_provenanceBadgesSubtitle": "Ein kleines Symbol, das zeigt, woher jedes Element geladen wird. Problem-Badges werden immer angezeigt.",
+  "settings_media_autoColorCorrection": "Automatische Farbkorrektur",
+  "settings_media_autoColorCorrectionSubtitle": "Wärmt blaustichige Unterwasserfotos und -videos auf dem Bildschirm auf, anhand der Tiefe, in der sie aufgenommen wurden. Ihre Dateien werden nie verändert.",
   "settings_photosMedia_cacheHeader": "Cache",
   "settings_mediaCache_memory_title": "Bild-Cache im Arbeitsspeicher",
   "settings_mediaCache_memory_subtitle": "Dekodierte Bilder, die für die Galerien und die Vollbildansicht im Arbeitsspeicher bleiben. Gilt sofort und nur auf diesem Gerät.",

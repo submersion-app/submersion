@@ -49983,6 +49983,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um pequeno ícone que mostra de onde cada item vem. Os selos de problema sempre aparecem.';
 
   @override
+  String get settings_media_autoColorCorrection => 'Correção automática de cor';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Aquece na tela as fotos e vídeos subaquáticos azulados, de acordo com a profundidade em que cada um foi feito. Seus arquivos nunca são alterados.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Cache';
 
   @override

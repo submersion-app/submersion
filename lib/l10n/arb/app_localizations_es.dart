@@ -50034,6 +50034,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Un pequeño icono que indica de dónde procede cada elemento. Los distintivos de problemas siempre se muestran.';
 
   @override
+  String get settings_media_autoColorCorrection =>
+      'Corrección automática del color';
+
+  @override
+  String get settings_media_autoColorCorrectionSubtitle =>
+      'Calienta en pantalla las fotos y vídeos submarinos azulados según la profundidad a la que se tomó cada uno. Tus archivos nunca se modifican.';
+
+  @override
   String get settings_photosMedia_cacheHeader => 'Caché';
 
   @override
