@@ -1187,8 +1187,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             // when the pane is wide enough. Gauge dives hide
             // gas/deco sections (deco status, tissue loading, SAC segments,
             // cylinders). The list layout folds each section to a header row.
-            // They build with the header on a phone too, as they do in the
-            // desktop pane, rather than waiting for the slide in (#3538).
+            // They build in the same frame as the header, on a phone as in
+            // the desktop pane, so the visible page appears at once (#3538).
             ..._buildOrderedSections(
               context: context,
               ref: ref,

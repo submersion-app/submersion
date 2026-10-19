@@ -95,6 +95,11 @@ void main() {
 
     expect(find.text('#7'), findsOneWidget, reason: 'header card is up');
     expect(
+      ModalRoute.of(tester.element(find.text('#7')))!.animation!.status,
+      AnimationStatus.forward,
+      reason: 'the page is still sliding in',
+    );
+    expect(
       find.text(notes),
       findsOneWidget,
       reason: 'sections are up while the page is still sliding in',
