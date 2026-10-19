@@ -90,6 +90,15 @@ void main() {
         isFalse,
       );
     });
+    test('never for signatures', () {
+      expect(
+        autoEnabledFor(
+          item(type: MediaType.instructorSignature),
+          diverAutoEnabled: true,
+        ),
+        isFalse,
+      );
+    });
     test('never for documents', () {
       expect(
         autoEnabledFor(item(type: MediaType.document), diverAutoEnabled: true),

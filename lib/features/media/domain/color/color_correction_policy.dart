@@ -17,13 +17,17 @@ bool isSurfaceShot(MediaEnrichment? e) {
 
 /// Whether the automatic fix is switched on for [item]: the item's own Auto
 /// switch, else the diver's setting. Only ever for photos and videos on a
-/// dive, so maps, receipts and library-only items are never touched.
+/// dive, so maps, receipts, signatures and library-only items are never
+/// touched.
 bool autoEnabledFor(
   MediaItem item, {
   ColorAdjustment? adjustment,
   required bool diverAutoEnabled,
 }) {
-  if (item.diveId == null || item.isDocument) return false;
+  if (item.diveId == null) return false;
+  if (item.mediaType != MediaType.photo && item.mediaType != MediaType.video) {
+    return false;
+  }
   return adjustment?.autoOverride ?? diverAutoEnabled;
 }
 
