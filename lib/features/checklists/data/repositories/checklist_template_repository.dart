@@ -156,25 +156,30 @@ class ChecklistTemplateRepository {
           for (final e in existing) e.id: e.createdAt.millisecondsSinceEpoch,
         };
 
-        await (_db.delete(
-          _db.checklistTemplateSections,
-        )..where((s) => s.templateId.equals(templateId))).go();
+        // Only the removed sections are deleted; kept ones are upserted
+        // in place. Deleting a kept section, even to reinsert it a moment
+        // later, fires ON DELETE SET NULL on every item that references it,
+        // and the items only regain their section if the separate saveItems
+        // call that follows succeeds.
+        if (removed.isNotEmpty) {
+          await (_db.delete(
+            _db.checklistTemplateSections,
+          )..where((s) => s.id.isIn([for (final r in removed) r.id]))).go();
+        }
+        // An upsert, not insertOrReplace: REPLACE deletes the old row
+        // first and so fires the same ON DELETE SET NULL.
         await _db.batch((batch) {
-          for (var i = 0; i < resolved.length; i++) {
-            final entry = resolved[i];
-            batch.insert(
-              _db.checklistTemplateSections,
+          batch.insertAllOnConflictUpdate(_db.checklistTemplateSections, [
+            for (var i = 0; i < resolved.length; i++)
               ChecklistTemplateSectionsCompanion(
-                id: Value(entry.id),
+                id: Value(resolved[i].id),
                 templateId: Value(templateId),
-                title: Value(entry.section.title),
+                title: Value(resolved[i].section.title),
                 sortOrder: Value(i),
-                createdAt: Value(existingCreatedAt[entry.id] ?? now),
+                createdAt: Value(existingCreatedAt[resolved[i].id] ?? now),
                 updatedAt: Value(now),
               ),
-              mode: InsertMode.insertOrReplace,
-            );
-          }
+          ]);
         });
       });
 

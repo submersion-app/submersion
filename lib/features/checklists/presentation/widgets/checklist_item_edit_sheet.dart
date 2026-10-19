@@ -110,11 +110,18 @@ class _ChecklistItemEditSheetState
     if (!_formKey.currentState!.validate()) return;
     final repository = ref.read(tripChecklistRepositoryProvider);
     final category = _canonicalCategory(_categoryController.text.trim());
-    final sectionId = await repository.findOrCreateSectionId(
-      widget.tripId,
-      category,
-    );
     final existing = widget.item;
+    // An unchanged section title keeps the item's own section rather than
+    // re-resolving it by title: two sections may share a title (two
+    // "New section" rows), and the lookup returns the first of them.
+    final currentTitle = widget.currentSectionTitle?.trim();
+    final keepsSection =
+        existing != null &&
+        currentTitle != null &&
+        currentTitle.toLowerCase() == category.toLowerCase();
+    final sectionId = keepsSection
+        ? existing.sectionId
+        : await repository.findOrCreateSectionId(widget.tripId, category);
     if (existing == null) {
       await repository.createItem(
         TripChecklistItem(

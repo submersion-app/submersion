@@ -210,19 +210,22 @@ class _ChecklistTemplateEditPageState
         ),
     ]);
 
-    // sortOrder reassigned from list position at save time.
+    // sortOrder reassigned at save time from the order the editor shows
+    // (section by section), not from the order items were added in, so a
+    // trip the template is applied to lists them the same way.
+    final ordered = _itemsInDisplayOrder();
     await repository.saveItems(templateId, [
-      for (var i = 0; i < _items.length; i++)
+      for (var i = 0; i < ordered.length; i++)
         ChecklistTemplateItem(
-          id: _items[i].id,
+          id: ordered[i].id,
           templateId: templateId,
-          title: _items[i].title,
-          sectionId: _items[i].sectionId,
-          notes: _items[i].notes,
-          dueOffsetDays: _items[i].dueOffsetDays,
+          title: ordered[i].title,
+          sectionId: ordered[i].sectionId,
+          notes: ordered[i].notes,
+          dueOffsetDays: ordered[i].dueOffsetDays,
           sortOrder: i,
-          createdAt: _items[i].createdAt,
-          updatedAt: _items[i].updatedAt,
+          createdAt: ordered[i].createdAt,
+          updatedAt: ordered[i].updatedAt,
         ),
     ]);
     if (mounted) navigator.pop();
@@ -284,6 +287,19 @@ class _ChecklistTemplateEditPageState
               ),
             ),
     );
+  }
+
+  /// [_items] in the order the editor shows them: each section's items in
+  /// section order, then the unsectioned ones (a dangling sectionId counts
+  /// as unsectioned, as it does on screen).
+  List<_EditableTemplateItem> _itemsInDisplayOrder() {
+    final sectionIds = {for (final s in _sections) s.id};
+    return [
+      for (final s in _sections) ..._items.where((i) => i.sectionId == s.id),
+      ..._items.where(
+        (i) => i.sectionId == null || !sectionIds.contains(i.sectionId),
+      ),
+    ];
   }
 
   void _removeItem(_EditableTemplateItem item) {

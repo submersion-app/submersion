@@ -87,10 +87,19 @@ class TripChecklistSectionRepository {
 
   /// Persists a new section order. [orderedIds] must list every section of
   /// the trip exactly once; sort order is the list position.
+  ///
+  /// Only sections whose position changes are written and queued for sync,
+  /// the same reasoning as TripChecklistRepository.moveItem.
   Future<void> reorderSections(String tripId, List<String> orderedIds) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
+    final changedIds = await _db.transaction(() async {
+      final sortOrderById = {
+        for (final s in await getSectionsForTrip(tripId)) s.id: s.sortOrder,
+      };
+      final changed = <String>[];
       for (var i = 0; i < orderedIds.length; i++) {
+        final current = sortOrderById[orderedIds[i]];
+        if (current == null || current == i) continue;
         await (_db.update(_db.tripChecklistSections)..where(
               (s) => s.id.equals(orderedIds[i]) & s.tripId.equals(tripId),
             ))
@@ -100,9 +109,12 @@ class TripChecklistSectionRepository {
                 updatedAt: Value(now),
               ),
             );
+        changed.add(orderedIds[i]);
       }
+      return changed;
     });
-    for (final id in orderedIds) {
+    if (changedIds.isEmpty) return;
+    for (final id in changedIds) {
       await _syncRepository.markRecordPending(
         entityType: 'tripChecklistSections',
         recordId: id,
@@ -116,41 +128,50 @@ class TripChecklistSectionRepository {
   /// reassigned there first; otherwise they are deleted with it. There is no
   /// third "leave items without a section" option here -- the diver already
   /// chose between these two in the delete confirmation dialog.
+  ///
+  /// The read and the writes share one transaction, so a failure part-way
+  /// cannot delete the items but keep the section, and an item a sync merge
+  /// adds to the section cannot slip in between the read and the delete
+  /// without a tombstone. Sync bookkeeping runs after it commits.
   Future<void> deleteSection(String id, {String? moveItemsToSectionId}) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final items = await (_db.select(
-      _db.tripChecklistItems,
-    )..where((t) => t.sectionId.equals(id))).get();
-    if (moveItemsToSectionId != null) {
-      await (_db.update(
+    final items = await _db.transaction(() async {
+      final items = await (_db.select(
         _db.tripChecklistItems,
-      )..where((t) => t.sectionId.equals(id))).write(
-        TripChecklistItemsCompanion(
-          sectionId: Value(moveItemsToSectionId),
-          updatedAt: Value(now),
-        ),
-      );
-      for (final item in items) {
+      )..where((t) => t.sectionId.equals(id))).get();
+      if (moveItemsToSectionId != null) {
+        await (_db.update(
+          _db.tripChecklistItems,
+        )..where((t) => t.sectionId.equals(id))).write(
+          TripChecklistItemsCompanion(
+            sectionId: Value(moveItemsToSectionId),
+            updatedAt: Value(now),
+          ),
+        );
+      } else if (items.isNotEmpty) {
+        await (_db.delete(
+          _db.tripChecklistItems,
+        )..where((t) => t.sectionId.equals(id))).go();
+      }
+      await (_db.delete(
+        _db.tripChecklistSections,
+      )..where((s) => s.id.equals(id))).go();
+      return items;
+    });
+    for (final item in items) {
+      if (moveItemsToSectionId != null) {
         await _syncRepository.markRecordPending(
           entityType: 'tripChecklistItems',
           recordId: item.id,
           localUpdatedAt: now,
         );
-      }
-    } else if (items.isNotEmpty) {
-      await (_db.delete(
-        _db.tripChecklistItems,
-      )..where((t) => t.sectionId.equals(id))).go();
-      for (final item in items) {
+      } else {
         await _syncRepository.logDeletion(
           entityType: 'tripChecklistItems',
           recordId: item.id,
         );
       }
     }
-    await (_db.delete(
-      _db.tripChecklistSections,
-    )..where((s) => s.id.equals(id))).go();
     await _syncRepository.logDeletion(
       entityType: 'tripChecklistSections',
       recordId: id,

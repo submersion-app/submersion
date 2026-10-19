@@ -519,6 +519,34 @@ void main() {
       expect(sections.single.title, 'Prep');
     });
 
+    testWidgets('renaming a section back to its original title persists it', (
+      tester,
+    ) async {
+      await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await pumpSection(tester);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Assembly'),
+        'Prep',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      // Committed by leaving the field (a blur, not Enter): the blur path is
+      // the one that used to compare against the title from the first build.
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Prep'),
+        'Assembly',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      expect(sections.single.title, 'Assembly');
+    });
+
     testWidgets('the delete icon is disabled for the only remaining section', (
       tester,
     ) async {

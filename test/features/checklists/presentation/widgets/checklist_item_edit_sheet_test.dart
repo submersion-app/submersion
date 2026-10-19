@@ -152,6 +152,46 @@ void main() {
     expect(items.single.id, existing.id);
   });
 
+  testWidgets('editing an item in the second of two same-titled sections '
+      'keeps it there', (tester) async {
+    await checklistRepository.createSection(
+      tripId: trip.id,
+      title: 'New section',
+    );
+    final second = await checklistRepository.createSection(
+      tripId: trip.id,
+      title: 'New section',
+    );
+    final existing = await checklistRepository.createItem(
+      TripChecklistItem(
+        id: '',
+        tripId: trip.id,
+        title: 'Fins',
+        sectionId: second.id,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    await _openSheet(
+      tester,
+      tripId: trip.id,
+      item: existing,
+      categorySuggestions: const ['New section'],
+      currentSectionTitle: 'New section',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Title'),
+      'Split fins',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    final items = await checklistRepository.getByTripId(trip.id);
+    expect(items.single.title, 'Split fins');
+    expect(items.single.sectionId, second.id);
+  });
+
   testWidgets('clearing an existing due date removes it on save', (
     tester,
   ) async {

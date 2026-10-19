@@ -75,16 +75,33 @@ class TripChecklistRepository {
     required List<String> orderedIds,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
-      await (_db.update(
-        _db.tripChecklistItems,
-      )..where((t) => t.id.equals(itemId) & t.tripId.equals(tripId))).write(
-        TripChecklistItemsCompanion(
-          sectionId: Value(targetSectionId),
-          updatedAt: Value(now),
-        ),
-      );
+    // Only rows whose section or position actually changes are written and
+    // queued for sync. Restamping every item in the trip on each nudge would
+    // queue a record per item, and its fresh clock could win a merge over a
+    // concurrent edit made to an untouched item on another device.
+    final changedIds = await _db.transaction(() async {
+      final current = {
+        for (final row in await (_db.select(
+          _db.tripChecklistItems,
+        )..where((t) => t.tripId.equals(tripId))).get())
+          row.id: row,
+      };
+      final changed = <String>{};
+      final moved = current[itemId];
+      if (moved != null && moved.sectionId != targetSectionId) {
+        await (_db.update(
+          _db.tripChecklistItems,
+        )..where((t) => t.id.equals(itemId) & t.tripId.equals(tripId))).write(
+          TripChecklistItemsCompanion(
+            sectionId: Value(targetSectionId),
+            updatedAt: Value(now),
+          ),
+        );
+        changed.add(itemId);
+      }
       for (var i = 0; i < orderedIds.length; i++) {
+        final row = current[orderedIds[i]];
+        if (row == null || row.sortOrder == i) continue;
         await (_db.update(_db.tripChecklistItems)..where(
               (t) => t.id.equals(orderedIds[i]) & t.tripId.equals(tripId),
             ))
@@ -94,9 +111,12 @@ class TripChecklistRepository {
                 updatedAt: Value(now),
               ),
             );
+        changed.add(orderedIds[i]);
       }
+      return changed;
     });
-    for (final id in {itemId, ...orderedIds}) {
+    if (changedIds.isEmpty) return;
+    for (final id in changedIds) {
       await _syncRepository.markRecordPending(
         entityType: 'tripChecklistItems',
         recordId: id,
@@ -394,10 +414,18 @@ class TripChecklistRepository {
           }
           var sectionId = matchedSectionId;
           if (sectionId == null && hasSectionTitle) {
+            // One past the highest sortOrder, not the section count:
+            // deleting a section leaves a gap rather than renumbering, so
+            // the count can equal a sortOrder already in use.
             final created = await _sections.createSectionRow(
               trip.id,
               trimmedSectionTitle,
-              knownSections.length,
+              knownSections.fold<int>(
+                    -1,
+                    (highest, s) =>
+                        s.sortOrder > highest ? s.sortOrder : highest,
+                  ) +
+                  1,
             );
             knownSections = [...knownSections, created];
             pendingSectionIds.add(created.id);

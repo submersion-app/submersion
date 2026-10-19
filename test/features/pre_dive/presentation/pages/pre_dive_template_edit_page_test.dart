@@ -18,10 +18,16 @@ import '../../../../helpers/test_app.dart';
 /// Fake repository that stubs the reads the page performs and captures the
 /// writes so save/create/update/saveItems can be asserted without a database.
 class _FakeTemplateRepo implements PreDiveTemplateRepository {
-  _FakeTemplateRepo({this.template, this.items = const [], this.gate});
+  _FakeTemplateRepo({
+    this.template,
+    this.items = const [],
+    this.sections = const [],
+    this.gate,
+  });
 
   final PreDiveChecklistTemplate? template;
   final List<PreDiveChecklistTemplateItem> items;
+  final List<PreDiveChecklistTemplateSection> sections;
 
   /// When set, the reads block until it completes, so a test can inspect the
   /// frame the page renders while the template is still in flight.
@@ -36,7 +42,7 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   @override
   Future<List<PreDiveChecklistTemplateSection>> getSectionsForTemplate(
     String templateId,
-  ) async => const [];
+  ) async => sections;
 
   /// Fake find-or-create: deterministic by title, no real persistence.
   /// None of this file's save-path tests type a section title, so this is
@@ -986,4 +992,92 @@ void main() {
       );
     },
   );
+
+  group('sections', () {
+    PreDiveChecklistTemplateSection sectionFixture(
+      String id,
+      String title,
+      int order,
+    ) => PreDiveChecklistTemplateSection(
+      id: id,
+      templateId: 'tpl-1',
+      title: title,
+      sortOrder: order,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    PreDiveChecklistTemplateItem sectioned(
+      String id,
+      String sectionId,
+      int order, {
+      PreDiveItemType type = PreDiveItemType.check,
+      String? sourceItemId,
+    }) => PreDiveChecklistTemplateItem(
+      id: id,
+      templateId: 'tpl-1',
+      sectionId: sectionId,
+      title: id,
+      sortOrder: order,
+      itemType: type,
+      sourceItemId: sourceItemId,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    testWidgets('save orders items section by section, as they are shown, '
+        'so strict order matches the screen', (tester) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        sections: [sectionFixture('a', 'A', 0), sectionFixture('b', 'B', 1)],
+        // Stored order puts the B item first; on screen A comes first.
+        items: [sectioned('b-item', 'b', 0), sectioned('a-item', 'a', 1)],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.savedItems!.map((i) => i.title), ['a-item', 'b-item']);
+      expect(repo.savedItems!.map((i) => i.sortOrder), [0, 1]);
+    });
+
+    testWidgets('deleting a section with its items clears a kept linearity '
+        'item\'s link to a deleted source', (tester) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        sections: [
+          sectionFixture('air', 'Air', 0),
+          sectionFixture('o2', 'O2', 1),
+        ],
+        items: [
+          sectioned('air1', 'air', 0, type: PreDiveItemType.value),
+          sectioned(
+            'o2-1',
+            'o2',
+            1,
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      // The first delete icon is the Air section header's.
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete items too'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('no longer has an air reading'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.savedItems!.single.id, 'o2-1');
+      expect(repo.savedItems!.single.sourceItemId, isNull);
+    });
+  });
 }

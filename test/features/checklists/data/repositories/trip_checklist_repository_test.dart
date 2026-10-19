@@ -635,5 +635,83 @@ void main() {
       expect(await repository.findOrCreateSectionId(testTrip.id, '  '), isNull);
       expect(await repository.getSectionsForTrip(testTrip.id), isEmpty);
     });
+
+    test('applyTemplate places a new section after the highest sortOrder, '
+        'not at the section count, once a section was deleted', () async {
+      await repository.createSection(tripId: testTrip.id, title: 'A');
+      final b = await repository.createSection(tripId: testTrip.id, title: 'B');
+      final c = await repository.createSection(tripId: testTrip.id, title: 'C');
+      await repository.deleteSection(b.id);
+      expect(c.sortOrder, 2);
+
+      final template = await templateRepository.createTemplate(
+        ChecklistTemplate(
+          id: '',
+          name: 'New section',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final sectionId = await templateRepository.findOrCreateSectionId(
+        template.id,
+        'Documents',
+      );
+      await templateRepository.saveItems(template.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: template.id,
+          title: 'Passport',
+          sectionId: sectionId,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      await repository.applyTemplate(templateId: template.id, trip: testTrip);
+
+      final sections = await repository.getSectionsForTrip(testTrip.id);
+      expect(sections.map((s) => s.title), ['A', 'C', 'Documents']);
+      expect(sections.map((s) => s.sortOrder).toSet(), hasLength(3));
+    });
+
+    test('moveItem rewrites only the rows whose position changes', () async {
+      final section = await repository.createSection(
+        tripId: testTrip.id,
+        title: 'Gear',
+      );
+      final created = <TripChecklistItem>[];
+      for (final title in ['One', 'Two', 'Three']) {
+        created.add(
+          await repository.createItem(
+            TripChecklistItem(
+              id: '',
+              tripId: testTrip.id,
+              title: title,
+              sectionId: section.id,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+          ),
+        );
+      }
+      final before = await repository.getByTripId(testTrip.id);
+      final third = before.firstWhere((i) => i.title == 'Three');
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+
+      // Swap the first two; the third keeps its position.
+      await repository.moveItem(
+        tripId: testTrip.id,
+        itemId: created[1].id,
+        targetSectionId: section.id,
+        orderedIds: [created[1].id, created[0].id, created[2].id],
+      );
+
+      final after = await repository.getByTripId(testTrip.id);
+      expect(after.map((i) => i.title), ['Two', 'One', 'Three']);
+      expect(
+        after.firstWhere((i) => i.title == 'Three').updatedAt,
+        third.updatedAt,
+      );
+    });
   });
 }

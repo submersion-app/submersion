@@ -332,6 +332,32 @@ void main() {
       },
     );
 
+    test('saveSections leaves the items of a kept section pointing at it, '
+        'without needing a following saveItems', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      await repository.saveItems(tpl.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: tpl.id,
+          title: 'Check O-rings',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      await repository.saveSections(tpl.id, [
+        section.copyWith(title: 'Assembly checks'),
+      ]);
+
+      final items = await repository.getItemsForTemplate(tpl.id);
+      expect(items.single.sectionId, section.id);
+    });
+
     test('deleteSection sets item.sectionId to null, not delete', () async {
       final tpl = await repository.createTemplate(template());
       final section = await repository.createSection(

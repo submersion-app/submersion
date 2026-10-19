@@ -155,9 +155,25 @@ class _PreDiveTemplateEditPageState
     if (item.itemType != PreDiveItemType.cellLinearity) return false;
     final sourceId = item.sourceItemId;
     if (sourceId == null) return false;
-    final index = _items.indexOf(item);
-    final sourceIndex = _items.indexWhere((i) => i.id == sourceId);
+    final ordered = _itemsInDisplayOrder();
+    final index = ordered.indexOf(item);
+    final sourceIndex = ordered.indexWhere((i) => i.id == sourceId);
     return sourceIndex >= 0 && sourceIndex > index;
+  }
+
+  /// [_items] in the order the editor shows them: each section's items in
+  /// section order, then the unsectioned ones (a dangling sectionId counts
+  /// as unsectioned, as it does on screen). [_save] assigns sortOrder from
+  /// this order, so a strict-order session enforces the order the diver
+  /// saw rather than the order items happened to be added in.
+  List<EditablePreDiveItem> _itemsInDisplayOrder() {
+    final sectionIds = {for (final s in _sections) s.id};
+    return [
+      for (final s in _sections) ..._items.where((i) => i.sectionId == s.id),
+      ..._items.where(
+        (i) => i.sectionId == null || !sectionIds.contains(i.sectionId),
+      ),
+    ];
   }
 
   /// Removes [removed], clearing the link on any item that sourced it and
@@ -167,18 +183,24 @@ class _PreDiveTemplateEditPageState
   /// mid-restructure and about to add a replacement, and a modal refusal in
   /// the middle of reordering a checklist would be worse than a broken link
   /// the composer already degrades gracefully.
-  void _removeItem(EditablePreDiveItem removed) {
+  void _removeItem(EditablePreDiveItem removed) => _removeItems({removed.id});
+
+  /// [_removeItem] for several items at once (a section deleted together
+  /// with its items). An item that sourced one of the removed items but is
+  /// itself kept has its link cleared and is named in a snackbar.
+  void _removeItems(Set<String> removedIds) {
     final dependants = [
       for (final i in _items)
-        if (i.sourceItemId == removed.id) i,
+        if (!removedIds.contains(i.id) && removedIds.contains(i.sourceItemId))
+          i,
     ];
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     setState(() {
       _items = [
         for (final i in _items)
-          if (i.id != removed.id)
-            if (i.sourceItemId == removed.id)
+          if (!removedIds.contains(i.id))
+            if (removedIds.contains(i.sourceItemId))
               i.copyWith(sourceItemId: null)
             else
               i,
@@ -238,25 +260,26 @@ class _PreDiveTemplateEditPageState
     ]);
 
     // sortOrder reassigned from list position at save time.
+    final ordered = _itemsInDisplayOrder();
     await repository.saveItems(templateId, [
-      for (var i = 0; i < _items.length; i++)
+      for (var i = 0; i < ordered.length; i++)
         PreDiveChecklistTemplateItem(
-          id: _items[i].id,
+          id: ordered[i].id,
           templateId: templateId,
-          sectionId: _items[i].sectionId,
-          title: _items[i].title,
-          notes: _items[i].notes,
+          sectionId: ordered[i].sectionId,
+          title: ordered[i].title,
+          notes: ordered[i].notes,
           sortOrder: i,
-          itemType: _items[i].itemType,
-          valueLabel: _items[i].valueLabel,
-          valueUnit: _items[i].valueUnit,
-          valueMin: _items[i].valueMin,
-          valueMax: _items[i].valueMax,
-          isRequired: _items[i].isRequired,
-          equipmentId: _items[i].equipmentId,
-          sourceItemId: _items[i].sourceItemId,
-          createdAt: _items[i].createdAt,
-          updatedAt: _items[i].updatedAt,
+          itemType: ordered[i].itemType,
+          valueLabel: ordered[i].valueLabel,
+          valueUnit: ordered[i].valueUnit,
+          valueMin: ordered[i].valueMin,
+          valueMax: ordered[i].valueMax,
+          isRequired: ordered[i].isRequired,
+          equipmentId: ordered[i].equipmentId,
+          sourceItemId: ordered[i].sourceItemId,
+          createdAt: ordered[i].createdAt,
+          updatedAt: ordered[i].updatedAt,
         ),
     ]);
     if (mounted) navigator.pop();
@@ -453,11 +476,17 @@ class _PreDiveTemplateEditPageState
                 else
                   i,
             ];
-          } else {
-            _items = _items.where((i) => i.sectionId != id).toList();
           }
           _sections = _sections.where((s) => s.id != id).toList();
         });
+        // Through _removeItems so a linearity item kept in another section
+        // loses its link to a deleted source, as a single-item delete does.
+        if (moveItemsToSectionId == null) {
+          _removeItems({
+            for (final i in _items)
+              if (i.sectionId == id) i.id,
+          });
+        }
       },
       onMoveItem: (itemId, targetSectionId, orderedIds) async {
         setState(() {

@@ -133,18 +133,27 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
         () => TextEditingController(text: section.title),
       );
 
+  // The listener captures only the id: the SectionGroup it was created from
+  // goes stale after the first rename, and comparing against that stale
+  // title would drop a rename back to it.
   FocusNode _focusNodeFor(SectionGroup<T> section) =>
       _titleFocusNodes.putIfAbsent(section.id, () {
+        final sectionId = section.id;
         final node = FocusNode();
         node.addListener(() {
-          if (!node.hasFocus) _commitRename(section);
+          if (!node.hasFocus) _commitRename(sectionId);
         });
         return node;
       });
 
-  void _commitRename(SectionGroup<T> section) {
-    final controller = _titleControllers[section.id];
-    if (controller == null) return;
+  /// The single commit path for a title edit, run when the field loses
+  /// focus. Submitting the field only unfocuses it, so Enter followed by the
+  /// resulting blur cannot send the same rename twice.
+  void _commitRename(String sectionId) {
+    if (!mounted) return;
+    final controller = _titleControllers[sectionId];
+    final section = widget.sections.where((s) => s.id == sectionId).firstOrNull;
+    if (controller == null || section == null) return;
     final trimmed = controller.text.trim();
     if (trimmed.isEmpty || trimmed == section.title) {
       controller.text = section.title;
@@ -365,7 +374,8 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                             child: TextField(
                               controller: _controllerFor(section),
                               focusNode: _focusNodeFor(section),
-                              onSubmitted: (_) => _commitRename(section),
+                              onSubmitted: (_) =>
+                                  _titleFocusNodes[section.id]?.unfocus(),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),

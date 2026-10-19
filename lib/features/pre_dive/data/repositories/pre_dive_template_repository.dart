@@ -163,25 +163,31 @@ class PreDiveTemplateRepository {
           for (final e in existing) e.id: e.createdAt.millisecondsSinceEpoch,
         };
 
-        await (_db.delete(
-          _db.preDiveChecklistTemplateSections,
-        )..where((s) => s.templateId.equals(templateId))).go();
+        // Only the removed sections are deleted; kept ones are upserted
+        // in place. Deleting a kept section, even to reinsert it a moment
+        // later, fires ON DELETE SET NULL on every item that references it,
+        // and the items only regain their section if the separate saveItems
+        // call that follows succeeds.
+        if (removed.isNotEmpty) {
+          await (_db.delete(
+            _db.preDiveChecklistTemplateSections,
+          )..where((s) => s.id.isIn([for (final r in removed) r.id]))).go();
+        }
+        // An upsert, not insertOrReplace: REPLACE deletes the old row
+        // first and so fires the same ON DELETE SET NULL.
         await _db.batch((batch) {
-          for (var i = 0; i < resolved.length; i++) {
-            final entry = resolved[i];
-            batch.insert(
-              _db.preDiveChecklistTemplateSections,
-              PreDiveChecklistTemplateSectionsCompanion(
-                id: Value(entry.id),
-                templateId: Value(templateId),
-                title: Value(entry.section.title),
-                sortOrder: Value(i),
-                createdAt: Value(existingCreatedAt[entry.id] ?? now),
-                updatedAt: Value(now),
-              ),
-              mode: InsertMode.insertOrReplace,
-            );
-          }
+          batch
+              .insertAllOnConflictUpdate(_db.preDiveChecklistTemplateSections, [
+                for (var i = 0; i < resolved.length; i++)
+                  PreDiveChecklistTemplateSectionsCompanion(
+                    id: Value(resolved[i].id),
+                    templateId: Value(templateId),
+                    title: Value(resolved[i].section.title),
+                    sortOrder: Value(i),
+                    createdAt: Value(existingCreatedAt[resolved[i].id] ?? now),
+                    updatedAt: Value(now),
+                  ),
+              ]);
         });
       });
 

@@ -69,7 +69,7 @@ class TripChecklistSection extends ConsumerWidget {
         // section at all, since the only "+ Add section" affordance lives
         // inside the editor this would otherwise hide.
         if (items.isEmpty && sections.isEmpty) _buildEmptyState(context),
-        _buildGroupedItems(context, ref, items, sections),
+        _buildGroupedItems(context, ref, items, sections, sectionTitles),
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
@@ -218,15 +218,9 @@ class TripChecklistSection extends ConsumerWidget {
     WidgetRef ref,
     List<TripChecklistItem> items,
     List<domain.TripChecklistSection> sections,
+    List<String> sectionTitles,
   ) {
     final repository = ref.read(tripChecklistRepositoryProvider);
-    // Folded case-insensitively so two differently-cased section titles
-    // don't both show up in the add/edit sheet's suggestions.
-    final seenSectionTitles = <String>{};
-    final sectionTitles = [
-      for (final s in sections)
-        if (seenSectionTitles.add(s.title.toLowerCase())) s.title,
-    ];
     final itemsBySection = <String, List<TripChecklistItem>>{
       for (final s in sections) s.id: [],
     };
