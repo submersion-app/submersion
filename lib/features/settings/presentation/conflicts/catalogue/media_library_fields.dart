@@ -37,6 +37,10 @@ final Map<String, ConflictField> mediaLibraryFields = {
     (l) => l.settings_conflict_field_cloudAssetId,
     FieldKind.opaque,
   ),
+  'colorAdjustment': ConflictField(
+    (l) => l.settings_conflict_field_colorAdjustment,
+    FieldKind.opaque,
+  ),
   'compressedLevel': ConflictField(
     (l) => l.settings_conflict_field_compressedLevel,
     FieldKind.shortText,

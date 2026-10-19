@@ -6340,6 +6340,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "Categoria",
   "settings_conflict_field_city": "Città",
   "settings_conflict_field_cloudAssetId": "Foto nel cloud",
+  "settings_conflict_field_colorAdjustment": "Regolazione del colore",
+  "settings_conflict_field_autoColorCorrection": "Correzione automatica del colore",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "Soglia di avviso CNS",
   "settings_conflict_field_codecVersion": "Versione del formato",

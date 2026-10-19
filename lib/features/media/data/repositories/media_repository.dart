@@ -356,6 +356,7 @@ class MediaRepository {
               manualElapsedSeconds: Value(item.manualElapsedSeconds),
               siteCategory: Value(item.siteCategory?.storageKey),
               displaySize: Value(item.displaySizeOverride?.storageKey),
+              colorAdjustment: Value(item.colorAdjustment?.toJsonString()),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -498,6 +499,7 @@ class MediaRepository {
             manualElapsedSeconds: Value(item.manualElapsedSeconds),
             siteCategory: Value(item.siteCategory?.storageKey),
             displaySize: Value(item.displaySizeOverride?.storageKey),
+            colorAdjustment: Value(item.colorAdjustment?.toJsonString()),
             updatedAt: Value(now),
           ),
         );

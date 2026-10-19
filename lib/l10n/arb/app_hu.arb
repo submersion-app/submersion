@@ -6340,6 +6340,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "Kategória",
   "settings_conflict_field_city": "Város",
   "settings_conflict_field_cloudAssetId": "Felhőben tárolt fotó",
+  "settings_conflict_field_colorAdjustment": "Színbeállítás",
+  "settings_conflict_field_autoColorCorrection": "Automatikus színkorrekció",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "CNS figyelmeztetési küszöb",
   "settings_conflict_field_codecVersion": "Formátum verziója",

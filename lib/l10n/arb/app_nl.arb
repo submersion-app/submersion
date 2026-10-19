@@ -6440,6 +6440,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "Categorie",
   "settings_conflict_field_city": "Plaats",
   "settings_conflict_field_cloudAssetId": "Foto in de cloud",
+  "settings_conflict_field_colorAdjustment": "Kleuraanpassing",
+  "settings_conflict_field_autoColorCorrection": "Automatische kleurcorrectie",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "CNS-waarschuwingsdrempel",
   "settings_conflict_field_codecVersion": "Formaatversie",

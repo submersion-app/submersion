@@ -6592,6 +6592,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "类别",
   "settings_conflict_field_city": "城市",
   "settings_conflict_field_cloudAssetId": "云端照片",
+  "settings_conflict_field_colorAdjustment": "颜色调整",
+  "settings_conflict_field_autoColorCorrection": "自动色彩校正",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "CNS 警告阈值",
   "settings_conflict_field_codecVersion": "格式版本",

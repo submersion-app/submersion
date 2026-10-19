@@ -6440,6 +6440,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "Categoría",
   "settings_conflict_field_city": "Ciudad",
   "settings_conflict_field_cloudAssetId": "Foto en la nube",
+  "settings_conflict_field_colorAdjustment": "Ajuste de color",
+  "settings_conflict_field_autoColorCorrection": "Corrección automática del color",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "Umbral de aviso de CNS",
   "settings_conflict_field_codecVersion": "Versión del formato",

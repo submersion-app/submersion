@@ -22460,6 +22460,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'Cloud-Foto';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'Farbanpassung';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'Automatische Farbkorrektur';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override

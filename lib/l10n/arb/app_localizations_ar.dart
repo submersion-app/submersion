@@ -22752,6 +22752,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'صورة في السحابة';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'ضبط الألوان';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'تصحيح الألوان التلقائي';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override

@@ -22485,6 +22485,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'Foto na nuvem';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'Ajuste de cor';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'Correção automática de cor';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override

@@ -6440,6 +6440,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "الفئة",
   "settings_conflict_field_city": "المدينة",
   "settings_conflict_field_cloudAssetId": "صورة في السحابة",
+  "settings_conflict_field_colorAdjustment": "ضبط الألوان",
+  "settings_conflict_field_autoColorCorrection": "تصحيح الألوان التلقائي",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "حد تحذير CNS",
   "settings_conflict_field_codecVersion": "إصدار التنسيق",

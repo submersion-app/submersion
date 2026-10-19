@@ -21333,6 +21333,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => '云端照片';
 
   @override
+  String get settings_conflict_field_colorAdjustment => '颜色调整';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection => '自动色彩校正';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override

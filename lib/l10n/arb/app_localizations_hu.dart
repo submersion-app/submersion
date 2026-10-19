@@ -22412,6 +22412,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'Felhőben tárolt fotó';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'Színbeállítás';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'Automatikus színkorrekció';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override

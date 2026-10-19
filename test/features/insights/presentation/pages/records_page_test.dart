@@ -636,6 +636,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowDiveFigure(bool value) async =>
       state = state.copyWith(showDiveFigure: value);
   @override
+  Future<void> setAutoColorCorrection(bool value) async =>
+      state = state.copyWith(autoColorCorrection: value);
+  @override
   Future<void> acceptPlanningDisclaimer() async =>
       state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
   @override

@@ -22554,6 +22554,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'Photo dans le cloud';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'Réglage des couleurs';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection =>
+      'Correction automatique des couleurs';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override

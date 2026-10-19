@@ -6571,6 +6571,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "Kategorie",
   "settings_conflict_field_city": "Stadt",
   "settings_conflict_field_cloudAssetId": "Cloud-Foto",
+  "settings_conflict_field_colorAdjustment": "Farbanpassung",
+  "settings_conflict_field_autoColorCorrection": "Automatische Farbkorrektur",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "CNS-Warnschwelle",
   "settings_conflict_field_codecVersion": "Formatversion",

@@ -21965,6 +21965,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_cloudAssetId => 'תמונה בענן';
 
   @override
+  String get settings_conflict_field_colorAdjustment => 'התאמת צבע';
+
+  @override
+  String get settings_conflict_field_autoColorCorrection => 'תיקון צבע אוטומטי';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override

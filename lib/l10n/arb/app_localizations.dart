@@ -35854,6 +35854,18 @@ abstract class AppLocalizations {
   /// **'Cloud photo'**
   String get settings_conflict_field_cloudAssetId;
 
+  /// No description provided for @settings_conflict_field_colorAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Color adjustment'**
+  String get settings_conflict_field_colorAdjustment;
+
+  /// No description provided for @settings_conflict_field_autoColorCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic color correction'**
+  String get settings_conflict_field_autoColorCorrection;
+
   /// No description provided for @settings_conflict_field_cns.
   ///
   /// In en, this message translates to:

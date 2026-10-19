@@ -517,6 +517,17 @@ void main() {
       expect(container.read(settingsProvider).showDiveFigure, isTrue);
     });
 
+    test('setAutoColorCorrection toggles value', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).autoColorCorrection, isFalse);
+      await container
+          .read(settingsProvider.notifier)
+          .setAutoColorCorrection(true);
+      expect(container.read(settingsProvider).autoColorCorrection, isTrue);
+    });
+
     test('acceptPlanningDisclaimer persists the confirmation', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

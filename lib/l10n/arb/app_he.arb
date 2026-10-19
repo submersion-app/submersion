@@ -6444,6 +6444,8 @@
   "settings_conflict_field_checklistTemplateItems_category": "קטגוריה",
   "settings_conflict_field_city": "עיר",
   "settings_conflict_field_cloudAssetId": "תמונה בענן",
+  "settings_conflict_field_colorAdjustment": "התאמת צבע",
+  "settings_conflict_field_autoColorCorrection": "תיקון צבע אוטומטי",
   "settings_conflict_field_cns": "CNS",
   "settings_conflict_field_cnsWarningThreshold": "סף אזהרת CNS",
   "settings_conflict_field_codecVersion": "גרסת הפורמט",
