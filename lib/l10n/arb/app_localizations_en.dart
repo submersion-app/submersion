@@ -36351,6 +36351,81 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not check what this account is used for on this device. Anything that uses it here may stop working.';
 
   @override
+  String get settings_accounts_ownServer_title => 'My own server';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'S3-compatible';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'Check connection';
+
+  @override
+  String get settings_accounts_save => 'Save';
+
+  @override
+  String get settings_accounts_saved => 'Account saved';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'Sign in to $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'Your accounts';
+
+  @override
+  String get settings_accounts_sheet_add => 'Add an account';
+
+  @override
+  String get settings_accounts_signInHere => 'Sign in to use it here';
+
+  @override
+  String get settings_accounts_state_notSignedIn =>
+      'Not signed in on this device';
+
+  @override
+  String get settings_accounts_continue => 'Continue';
+
+  @override
+  String get settings_accounts_add => 'Add account';
+
+  @override
+  String get settings_accounts_signInAgain => 'Sign in again';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'Used on this device for $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'Folders';
+
+  @override
+  String get settings_accounts_removeEverywhere => 'Remove from all devices';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'Managed by your Apple ID in device settings';
+
+  @override
+  String get settings_accounts_serverDetails => 'Server details';
+
+  @override
+  String get settings_accounts_usage_sync => 'Sync between devices';
+
+  @override
+  String get settings_accounts_usage_photos => 'Photos & videos';
+
+  @override
+  String get settings_accounts_folder_other => 'Other folder';
+
+  @override
+  String get settings_accounts_notUsedYet => 'Not used yet';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
 
   @override

@@ -37011,6 +37011,83 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo comprobar para qué se usa esta cuenta en este dispositivo. Lo que la use aquí podría dejar de funcionar.';
 
   @override
+  String get settings_accounts_ownServer_title => 'Mi propio servidor';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'Compatible con S3';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'Comprobar conexión';
+
+  @override
+  String get settings_accounts_save => 'Guardar';
+
+  @override
+  String get settings_accounts_saved => 'Cuenta guardada';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'Iniciar sesión en $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'Tus cuentas';
+
+  @override
+  String get settings_accounts_sheet_add => 'Añadir una cuenta';
+
+  @override
+  String get settings_accounts_signInHere => 'Inicia sesión para usarla aquí';
+
+  @override
+  String get settings_accounts_state_notSignedIn =>
+      'Sin sesión iniciada en este dispositivo';
+
+  @override
+  String get settings_accounts_continue => 'Continuar';
+
+  @override
+  String get settings_accounts_add => 'Añadir cuenta';
+
+  @override
+  String get settings_accounts_signInAgain => 'Volver a iniciar sesión';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'Se usa en este dispositivo para $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'Carpetas';
+
+  @override
+  String get settings_accounts_removeEverywhere =>
+      'Quitar de todos los dispositivos';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'Se gestiona con tu Apple ID en los ajustes del dispositivo';
+
+  @override
+  String get settings_accounts_serverDetails => 'Detalles del servidor';
+
+  @override
+  String get settings_accounts_usage_sync =>
+      'Sincronización entre dispositivos';
+
+  @override
+  String get settings_accounts_usage_photos => 'Fotos y vídeos';
+
+  @override
+  String get settings_accounts_folder_other => 'Otra carpeta';
+
+  @override
+  String get settings_accounts_notUsedYet => 'Aún no se usa';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volumen no montado';
 
   @override

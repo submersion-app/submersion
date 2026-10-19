@@ -58220,6 +58220,144 @@ abstract class AppLocalizations {
   /// **'Could not check what this account is used for on this device. Anything that uses it here may stop working.'**
   String get settings_connectedAccounts_usage_unknown;
 
+  /// No description provided for @settings_accounts_ownServer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'My own server'**
+  String get settings_accounts_ownServer_title;
+
+  /// No description provided for @settings_accounts_ownServer_s3.
+  ///
+  /// In en, this message translates to:
+  /// **'S3-compatible'**
+  String get settings_accounts_ownServer_s3;
+
+  /// No description provided for @settings_accounts_ownServer_webdav.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV'**
+  String get settings_accounts_ownServer_webdav;
+
+  /// No description provided for @settings_accounts_checkConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Check connection'**
+  String get settings_accounts_checkConnection;
+
+  /// No description provided for @settings_accounts_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get settings_accounts_save;
+
+  /// No description provided for @settings_accounts_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Account saved'**
+  String get settings_accounts_saved;
+
+  /// No description provided for @settings_accounts_signInTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to {account}'**
+  String settings_accounts_signInTo(String account);
+
+  /// No description provided for @settings_accounts_sheet_yours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your accounts'**
+  String get settings_accounts_sheet_yours;
+
+  /// No description provided for @settings_accounts_sheet_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an account'**
+  String get settings_accounts_sheet_add;
+
+  /// No description provided for @settings_accounts_signInHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use it here'**
+  String get settings_accounts_signInHere;
+
+  /// No description provided for @settings_accounts_state_notSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in on this device'**
+  String get settings_accounts_state_notSignedIn;
+
+  /// No description provided for @settings_accounts_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get settings_accounts_continue;
+
+  /// No description provided for @settings_accounts_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get settings_accounts_add;
+
+  /// No description provided for @settings_accounts_signInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again'**
+  String get settings_accounts_signInAgain;
+
+  /// No description provided for @settings_accounts_usedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Used on this device for {features}'**
+  String settings_accounts_usedHere(String features);
+
+  /// No description provided for @settings_accounts_folders.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get settings_accounts_folders;
+
+  /// No description provided for @settings_accounts_removeEverywhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from all devices'**
+  String get settings_accounts_removeEverywhere;
+
+  /// No description provided for @settings_accounts_icloudManaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Managed by your Apple ID in device settings'**
+  String get settings_accounts_icloudManaged;
+
+  /// No description provided for @settings_accounts_serverDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Server details'**
+  String get settings_accounts_serverDetails;
+
+  /// No description provided for @settings_accounts_usage_sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync between devices'**
+  String get settings_accounts_usage_sync;
+
+  /// No description provided for @settings_accounts_usage_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos & videos'**
+  String get settings_accounts_usage_photos;
+
+  /// No description provided for @settings_accounts_folder_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other folder'**
+  String get settings_accounts_folder_other;
+
+  /// No description provided for @settings_accounts_notUsedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used yet'**
+  String get settings_accounts_notUsedYet;
+
   /// No description provided for @media_unavailablePlaceholder_volumeOffline.
   ///
   /// In en, this message translates to:

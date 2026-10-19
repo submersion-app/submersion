@@ -34827,6 +34827,79 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法确认此账户在此设备上的用途。此处使用它的功能可能会停止工作。';
 
   @override
+  String get settings_accounts_ownServer_title => '我自己的服务器';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'S3 兼容';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => '检查连接';
+
+  @override
+  String get settings_accounts_save => '保存';
+
+  @override
+  String get settings_accounts_saved => '账户已保存';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return '登录 $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => '您的账户';
+
+  @override
+  String get settings_accounts_sheet_add => '添加账户';
+
+  @override
+  String get settings_accounts_signInHere => '登录后即可在此使用';
+
+  @override
+  String get settings_accounts_state_notSignedIn => '未在此设备上登录';
+
+  @override
+  String get settings_accounts_continue => '继续';
+
+  @override
+  String get settings_accounts_add => '添加账户';
+
+  @override
+  String get settings_accounts_signInAgain => '重新登录';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return '在此设备上用于$features';
+  }
+
+  @override
+  String get settings_accounts_folders => '文件夹';
+
+  @override
+  String get settings_accounts_removeEverywhere => '从所有设备中移除';
+
+  @override
+  String get settings_accounts_icloudManaged => '由设备设置中的 Apple ID 管理';
+
+  @override
+  String get settings_accounts_serverDetails => '服务器详情';
+
+  @override
+  String get settings_accounts_usage_sync => '设备间同步';
+
+  @override
+  String get settings_accounts_usage_photos => '照片和视频';
+
+  @override
+  String get settings_accounts_folder_other => '其他文件夹';
+
+  @override
+  String get settings_accounts_notUsedYet => '尚未使用';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
 
   @override

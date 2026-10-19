@@ -36724,6 +36724,83 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kon niet nagaan waarvoor dit account op dit apparaat wordt gebruikt. Wat het hier gebruikt, werkt mogelijk niet meer.';
 
   @override
+  String get settings_accounts_ownServer_title => 'Mijn eigen server';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'S3-compatibel';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'Verbinding controleren';
+
+  @override
+  String get settings_accounts_save => 'Opslaan';
+
+  @override
+  String get settings_accounts_saved => 'Account opgeslagen';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'Aanmelden bij $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'Je accounts';
+
+  @override
+  String get settings_accounts_sheet_add => 'Een account toevoegen';
+
+  @override
+  String get settings_accounts_signInHere =>
+      'Meld je aan om het hier te gebruiken';
+
+  @override
+  String get settings_accounts_state_notSignedIn =>
+      'Niet aangemeld op dit apparaat';
+
+  @override
+  String get settings_accounts_continue => 'Doorgaan';
+
+  @override
+  String get settings_accounts_add => 'Account toevoegen';
+
+  @override
+  String get settings_accounts_signInAgain => 'Opnieuw aanmelden';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'Op dit apparaat gebruikt voor $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'Mappen';
+
+  @override
+  String get settings_accounts_removeEverywhere =>
+      'Verwijderen van alle apparaten';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'Beheerd via je Apple ID in de apparaatinstellingen';
+
+  @override
+  String get settings_accounts_serverDetails => 'Servergegevens';
+
+  @override
+  String get settings_accounts_usage_sync => 'Synchronisatie tussen apparaten';
+
+  @override
+  String get settings_accounts_usage_photos => 'Foto\'s en video\'s';
+
+  @override
+  String get settings_accounts_folder_other => 'Andere map';
+
+  @override
+  String get settings_accounts_notUsedYet => 'Nog niet gebruikt';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'Volume niet gekoppeld';
 

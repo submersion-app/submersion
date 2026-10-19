@@ -37467,6 +37467,81 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر التحقق مما يُستخدم له هذا الحساب على هذا الجهاز. قد يتوقف ما يستخدمه هنا عن العمل.';
 
   @override
+  String get settings_accounts_ownServer_title => 'خادمي الخاص';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'متوافق مع S3';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'التحقق من الاتصال';
+
+  @override
+  String get settings_accounts_save => 'حفظ';
+
+  @override
+  String get settings_accounts_saved => 'تم حفظ الحساب';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'تسجيل الدخول إلى $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'حساباتك';
+
+  @override
+  String get settings_accounts_sheet_add => 'إضافة حساب';
+
+  @override
+  String get settings_accounts_signInHere => 'سجّل الدخول لاستخدامه هنا';
+
+  @override
+  String get settings_accounts_state_notSignedIn =>
+      'لم يتم تسجيل الدخول على هذا الجهاز';
+
+  @override
+  String get settings_accounts_continue => 'متابعة';
+
+  @override
+  String get settings_accounts_add => 'إضافة حساب';
+
+  @override
+  String get settings_accounts_signInAgain => 'تسجيل الدخول مرة أخرى';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'مستخدم على هذا الجهاز لـ $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'المجلدات';
+
+  @override
+  String get settings_accounts_removeEverywhere => 'إزالة من جميع الأجهزة';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'تتم إدارته بواسطة Apple ID في إعدادات الجهاز';
+
+  @override
+  String get settings_accounts_serverDetails => 'تفاصيل الخادم';
+
+  @override
+  String get settings_accounts_usage_sync => 'المزامنة بين الأجهزة';
+
+  @override
+  String get settings_accounts_usage_photos => 'الصور ومقاطع الفيديو';
+
+  @override
+  String get settings_accounts_folder_other => 'مجلد آخر';
+
+  @override
+  String get settings_accounts_notUsedYet => 'غير مستخدم بعد';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'وحدة التخزين غير مثبتة';
 

@@ -36056,6 +36056,80 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לבדוק למה משמש חשבון זה במכשיר זה. מה שמשתמש בו כאן עלול להפסיק לפעול.';
 
   @override
+  String get settings_accounts_ownServer_title => 'השרת שלי';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'תואם S3';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'בדיקת חיבור';
+
+  @override
+  String get settings_accounts_save => 'שמירה';
+
+  @override
+  String get settings_accounts_saved => 'החשבון נשמר';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'התחברות אל $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'החשבונות שלך';
+
+  @override
+  String get settings_accounts_sheet_add => 'הוספת חשבון';
+
+  @override
+  String get settings_accounts_signInHere => 'יש להתחבר כדי להשתמש בו כאן';
+
+  @override
+  String get settings_accounts_state_notSignedIn => 'לא מחובר במכשיר זה';
+
+  @override
+  String get settings_accounts_continue => 'המשך';
+
+  @override
+  String get settings_accounts_add => 'הוספת חשבון';
+
+  @override
+  String get settings_accounts_signInAgain => 'התחברות מחדש';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'בשימוש במכשיר זה עבור $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'תיקיות';
+
+  @override
+  String get settings_accounts_removeEverywhere => 'הסרה מכל המכשירים';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'מנוהל באמצעות ה-Apple ID שלך בהגדרות המכשיר';
+
+  @override
+  String get settings_accounts_serverDetails => 'פרטי השרת';
+
+  @override
+  String get settings_accounts_usage_sync => 'סנכרון בין מכשירים';
+
+  @override
+  String get settings_accounts_usage_photos => 'תמונות וסרטונים';
+
+  @override
+  String get settings_accounts_folder_other => 'תיקייה אחרת';
+
+  @override
+  String get settings_accounts_notUsedYet => 'עדיין לא בשימוש';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
 
   @override

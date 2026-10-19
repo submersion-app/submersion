@@ -36755,6 +36755,83 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült ellenőrizni, mire szolgál ez a fiók ezen az eszközön. Ami itt használja, leállhat.';
 
   @override
+  String get settings_accounts_ownServer_title => 'Saját szerver';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'S3-kompatibilis';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'Kapcsolat ellenőrzése';
+
+  @override
+  String get settings_accounts_save => 'Mentés';
+
+  @override
+  String get settings_accounts_saved => 'Fiók mentve';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'Bejelentkezés: $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'Fiókjaid';
+
+  @override
+  String get settings_accounts_sheet_add => 'Fiók hozzáadása';
+
+  @override
+  String get settings_accounts_signInHere =>
+      'Jelentkezz be, hogy itt használhasd';
+
+  @override
+  String get settings_accounts_state_notSignedIn =>
+      'Ezen az eszközön nincs bejelentkezve';
+
+  @override
+  String get settings_accounts_continue => 'Tovább';
+
+  @override
+  String get settings_accounts_add => 'Fiók hozzáadása';
+
+  @override
+  String get settings_accounts_signInAgain => 'Bejelentkezés újra';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'Ezen az eszközön használva: $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'Mappák';
+
+  @override
+  String get settings_accounts_removeEverywhere =>
+      'Eltávolítás minden eszközről';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'Az Apple ID-d kezeli az eszköz beállításaiban';
+
+  @override
+  String get settings_accounts_serverDetails => 'Szerver adatai';
+
+  @override
+  String get settings_accounts_usage_sync => 'Szinkronizálás eszközök között';
+
+  @override
+  String get settings_accounts_usage_photos => 'Fotók és videók';
+
+  @override
+  String get settings_accounts_folder_other => 'Másik mappa';
+
+  @override
+  String get settings_accounts_notUsedYet => 'Még nincs használatban';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'A kötet nincs csatlakoztatva';
 
