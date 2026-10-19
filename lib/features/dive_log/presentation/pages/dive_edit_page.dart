@@ -151,7 +151,7 @@ import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
-import 'package:submersion/features/dive_log/presentation/pages/bulk_edit_field_set.dart';
+import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_tank_specs_editor.dart';

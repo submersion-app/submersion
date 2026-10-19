@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_log/presentation/pages/bulk_edit_field_set.dart';
+import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 
 void main() {
   test('buildScalarCompanion includes only enabled fields', () {
