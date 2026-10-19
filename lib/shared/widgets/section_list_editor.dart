@@ -167,23 +167,26 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
     String? targetSectionId,
     String? beforeItemId,
   ) {
-    final buckets = <String?, List<String>>{
-      for (final s in widget.sections)
-        s.id: [for (final item in s.items) widget.itemId(item)],
-      null: [for (final item in widget.unsectionedItems) widget.itemId(item)],
-    };
-    for (final bucket in buckets.values) {
-      bucket.remove(itemId);
+    List<String> idsOf(List<T> items) => [
+      for (final item in items)
+        if (widget.itemId(item) != itemId) widget.itemId(item),
+    ];
+    // Each bucket without the moved item; the target bucket then gets it
+    // back before beforeItemId (or at its end), all as new lists.
+    List<String> withMoved(List<String> bucket) {
+      final at = beforeItemId == null ? -1 : bucket.indexOf(beforeItemId);
+      final insertAt = at < 0 ? bucket.length : at;
+      return [...bucket.take(insertAt), itemId, ...bucket.skip(insertAt)];
     }
-    final target = buckets[targetSectionId] ??= [];
-    final insertAt = beforeItemId == null
-        ? target.length
-        : target.indexOf(beforeItemId);
-    target.insert(insertAt < 0 ? target.length : insertAt, itemId);
 
     return [
-      for (final s in widget.sections) ...buckets[s.id]!,
-      ...buckets[null]!,
+      for (final s in widget.sections)
+        ...(s.id == targetSectionId
+            ? withMoved(idsOf(s.items))
+            : idsOf(s.items)),
+      ...(targetSectionId == null
+          ? withMoved(idsOf(widget.unsectionedItems))
+          : idsOf(widget.unsectionedItems)),
     ];
   }
 
@@ -235,9 +238,17 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
     final fromIdx = ids.indexOf(draggedId);
     final toIdx = ids.indexOf(targetId);
     if (fromIdx < 0 || toIdx < 0) return;
-    final moved = ids.removeAt(fromIdx);
-    ids.insert(toIdx, moved);
-    await widget.onReorderSections(ids);
+    // The dragged id takes the target's index, shifting the rest: the same
+    // result as removeAt(fromIdx) then insert(toIdx), built as a new list.
+    final without = [
+      for (final id in ids)
+        if (id != draggedId) id,
+    ];
+    await widget.onReorderSections([
+      ...without.take(toIdx),
+      draggedId,
+      ...without.skip(toIdx),
+    ]);
   }
 
   void _nudgeSection(SectionGroup<T> section, int direction) {
@@ -389,6 +400,9 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).deleteButtonTooltip,
                             onPressed: canDelete
                                 ? () => _confirmDeleteSection(section)
                                 : null,
@@ -475,6 +489,7 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
               Expanded(child: widget.itemBuilder(context, item)),
               IconButton(
                 icon: const Icon(Icons.delete_outline),
+                tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
                 onPressed: () => widget.onDeleteItem(item),
               ),
               _ReorderArrows(
@@ -527,16 +542,19 @@ class _ReorderArrows extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = WidgetsLocalizations.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_up),
+          tooltip: localizations.reorderItemUp,
           visualDensity: VisualDensity.compact,
           onPressed: canMoveUp ? onMoveUp : null,
         ),
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_down),
+          tooltip: localizations.reorderItemDown,
           visualDensity: VisualDensity.compact,
           onPressed: canMoveDown ? onMoveDown : null,
         ),

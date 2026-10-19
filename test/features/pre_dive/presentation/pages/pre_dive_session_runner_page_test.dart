@@ -279,6 +279,35 @@ void main() {
     expect(find.text('Item 0'), findsOneWidget);
   });
 
+  testWidgets('strict order follows the rows as drawn: an unsectioned item '
+      'drawn last is unlocked last, whatever its sortOrder', (tester) async {
+    await pumpRunner(
+      tester,
+      s: session(),
+      // Item 0 has no section, so it is drawn after the Cells group even
+      // though it sorts first.
+      items: [
+        item(0),
+        item(1, sectionId: 'cells'),
+      ],
+      sections: [
+        PreDiveSessionSection(
+          id: 'cells',
+          sessionId: 's1',
+          title: 'Cells',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
+    );
+
+    ListTile tileOf(String title) => tester.widget<ListTile>(
+      find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
+    );
+    expect(tileOf('Item 1').enabled, isTrue);
+    expect(tileOf('Item 0').enabled, isFalse);
+  });
+
   testWidgets('error from session provider surfaces error text', (
     tester,
   ) async {

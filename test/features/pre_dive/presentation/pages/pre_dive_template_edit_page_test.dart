@@ -1025,6 +1025,35 @@ void main() {
       updatedAt: now,
     );
 
+    testWidgets('editing an equipment item keeps its remembered device', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          PreDiveChecklistTemplateItem(
+            id: 'reg',
+            templateId: 'tpl-1',
+            title: 'Regulator',
+            itemType: PreDiveItemType.equipment,
+            equipmentId: 'eq-1',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.text('Regulator'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.savedItems!.single.equipmentId, 'eq-1');
+    });
+
     testWidgets('save orders items section by section, as they are shown, '
         'so strict order matches the screen', (tester) async {
       final repo = _FakeTemplateRepo(

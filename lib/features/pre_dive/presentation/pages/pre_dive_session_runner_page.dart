@@ -310,6 +310,10 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     }
     if (unsectioned.isNotEmpty) grouped[null] = unsectioned;
     final sectionTitleById = {for (final s in sessionSections) s.id: s.title};
+    // Strict order follows the rows as drawn, not raw sortOrder: the two
+    // differ once items are grouped by section (unsectioned rows move to the
+    // end), and a diver can only work the list in the order they see it.
+    final displayOrdered = [for (final bucket in grouped.values) ...bucket];
 
     return Scaffold(
       appBar: AppBar(
@@ -393,7 +397,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
                   for (final item in entry.value)
                     SessionItemTile(
                       session: session,
-                      sortedItems: items,
+                      sortedItems: displayOrdered,
                       item: item,
                       onDone: () => _resolve(ref, item, PreDiveItemState.done),
                       onSkip: () =>

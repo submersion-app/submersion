@@ -28,11 +28,18 @@ extension SupportMigrations on AppDatabase {
     return (row.data.values.first as int?) ?? 0;
   }
 
+  /// True when [table] has a column named [column] right now. Self-guards
+  /// when the table is absent (minimal migration-test fixtures), mirroring
+  /// [_tableExists].
+  Future<bool> _columnExists(String table, String column) async {
+    final cols = await customSelect("PRAGMA table_info('$table')").get();
+    return cols.any((c) => c.read<String>('name') == column);
+  }
+
   /// Idempotent and a no-op when the table or column is absent, so it is
   /// safe to call from both onUpgrade and the beforeOpen backstop.
   Future<void> _dropColumnIfExists(String table, String column) async {
-    final cols = await customSelect("PRAGMA table_info('$table')").get();
-    if (!cols.any((c) => c.read<String>('name') == column)) return;
+    if (!await _columnExists(table, column)) return;
     await customStatement('ALTER TABLE $table DROP COLUMN $column');
   }
 

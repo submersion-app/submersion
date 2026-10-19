@@ -297,7 +297,8 @@ void main() {
     expect(item.data['section_id'], isNotNull);
   });
 
-  test('a fixture without sessions skips the table and the column', () async {
+  test('a fixture without sessions gets the sections table from the same '
+      'self-heal that creates its sessions table', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA user_version = 298'),
@@ -305,7 +306,12 @@ void main() {
     );
     addTearDown(db.close);
 
-    expect(await columnsOf(db, 'pre_dive_session_sections'), isEmpty);
+    // The v299 backstop runs before beforeOpen's pre-dive self-heal and
+    // skips a database with no pre_dive_sessions yet; the self-heal then
+    // creates pre_dive_sessions, and must create its sections table with it
+    // rather than leave starting a session to fail with "no such table".
+    expect(await columnsOf(db, 'pre_dive_sessions'), isNotEmpty);
+    expect(await columnsOf(db, 'pre_dive_session_sections'), isNotEmpty);
   });
 
   test('a fresh database matches the upgraded one', () async {

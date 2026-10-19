@@ -52,9 +52,13 @@ class _ApplyTemplateSheet extends ConsumerWidget {
         for (final s in templateSections) s.id: s.title,
       };
       final sections = await repository.getSectionsForTrip(trip.id);
-      final sectionIdByTitle = {
-        for (final s in sections) s.title.toLowerCase(): s.id,
-      };
+      // First match wins, as TripChecklistRepository.matchSectionByTitle
+      // resolves it, so two same-titled sections count the way the apply
+      // itself will.
+      final sectionIdByTitle = <String, String>{};
+      for (final s in sections) {
+        sectionIdByTitle.putIfAbsent(s.title.toLowerCase(), () => s.id);
+      }
       Object? resolveSectionKey(String? sectionId) {
         final title = sectionId == null
             ? null

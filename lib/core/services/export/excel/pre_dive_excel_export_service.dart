@@ -195,9 +195,7 @@ class PreDiveExcelExportService {
         _writeRow(sheet, row++, [
           session.templateName,
           _dateTime(session.startedAt, dateFormat),
-          item.sectionId == null
-              ? ''
-              : (sectionTitleById[item.sectionId] ?? ''),
+          sectionTitleById[item.sectionId] ?? '',
           item.title,
           _typeLabel(item.itemType),
           _stateLabel(item.state),

@@ -7,9 +7,16 @@ extension PreDiveMigrations on AppDatabase {
   /// (parallel-branch version-collision self-heal).
   Future<void> _assertPreDiveChecklistSchema() async {
     final m = Migrator(this);
+    // The section tables (issue #3360) are created here with their parents,
+    // not only by the v298/v299 backstops: this self-heal builds the item
+    // tables from the current definitions, and the beforeOpen backstop for
+    // session sections runs before it, so a session table created here would
+    // otherwise be left without its sections table for the rest of the open.
     await m.createTable(preDiveChecklistTemplates);
+    await m.createTable(preDiveChecklistTemplateSections);
     await m.createTable(preDiveChecklistTemplateItems);
     await m.createTable(preDiveSessions);
+    await m.createTable(preDiveSessionSections);
     await m.createTable(preDiveSessionItems);
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_pre_dive_template_items_template_id '
@@ -69,14 +76,6 @@ extension PreDiveMigrations on AppDatabase {
     await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
     await customStatement(kRenumberCcrTailItemsSql);
     await customStatement(kAssignBuiltInPreDiveSectionIdsSql);
-  }
-
-  /// True when [table] has a column named [column] right now. Self-guards
-  /// when the table is absent (minimal migration-test fixtures), mirroring
-  /// [_tableExists].
-  Future<bool> _columnExists(String table, String column) async {
-    final cols = await customSelect("PRAGMA table_info('$table')").get();
-    return cols.any((c) => c.read<String>('name') == column);
   }
 
   /// Idempotent DDL for the v181 pre_dive_checklist_template_items

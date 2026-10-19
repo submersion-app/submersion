@@ -164,6 +164,13 @@ class _PreDiveItemDialogState extends State<PreDiveItemDialog> {
         valueMin: isValue ? _validatedNumber(_valueMinController) : null,
         valueMax: isValue ? _validatedNumber(_valueMaxController) : null,
         isRequired: _isRequired,
+        // Not edited here: the start-session flow remembers the device an
+        // 'equipment' item last used. Carried through so an edit to the
+        // title or notes does not forget it; dropped once the item is
+        // retyped, since only that type reads it.
+        equipmentId: _itemType == PreDiveItemType.equipment
+            ? widget.item?.equipmentId
+            : null,
         sourceItemId: _itemType == PreDiveItemType.cellLinearity
             ? _selectedSourceId
             : null,
