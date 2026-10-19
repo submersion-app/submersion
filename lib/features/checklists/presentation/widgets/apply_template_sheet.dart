@@ -45,9 +45,9 @@ class _ApplyTemplateSheet extends ConsumerWidget {
       final templateItems = await ref.read(
         checklistTemplateItemsProvider(templateId).future,
       );
-      final templateSections = await ref
-          .read(checklistTemplateRepositoryProvider)
-          .getSectionsForTemplate(templateId);
+      final templateSections = await ref.read(
+        checklistTemplateSectionsProvider(templateId).future,
+      );
       final templateSectionTitleById = {
         for (final s in templateSections) s.id: s.title,
       };

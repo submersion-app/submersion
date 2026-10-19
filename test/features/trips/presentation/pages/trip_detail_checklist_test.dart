@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -112,6 +113,9 @@ void main() {
             tripChecklistProvider(
               liveaboardTrip.id,
             ).overrideWith((ref) async => <TripChecklistItem>[]),
+            tripChecklistSectionsProvider(
+              liveaboardTrip.id,
+            ).overrideWith((ref) async => <TripChecklistSection>[]),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
@@ -174,6 +178,9 @@ void main() {
             tripChecklistProvider(
               liveaboardTrip.id,
             ).overrideWith((ref) async => <TripChecklistItem>[]),
+            tripChecklistSectionsProvider(
+              liveaboardTrip.id,
+            ).overrideWith((ref) async => <TripChecklistSection>[]),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),

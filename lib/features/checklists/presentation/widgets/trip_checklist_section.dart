@@ -52,7 +52,11 @@ class TripChecklistSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildHeader(context, ref, items),
-        if (items.isEmpty)
+        // A diver may lay out empty sections before adding any items (the
+        // whole point of issue #3360's "create a section empty" case), so
+        // the planning invitation only replaces the section editor when
+        // there is truly nothing -- no items AND no sections -- to manage.
+        if (items.isEmpty && sections.isEmpty)
           _buildEmptyState(context)
         else
           _buildGroupedItems(context, ref, items, sections),

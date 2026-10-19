@@ -23,6 +23,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -60,6 +62,9 @@ List<Override> _tabOverrides(String tripId) => [
   tripChecklistProvider(
     tripId,
   ).overrideWith((ref) async => const <TripChecklistItem>[]),
+  tripChecklistSectionsProvider(
+    tripId,
+  ).overrideWith((ref) async => const <domain.TripChecklistSection>[]),
   tripChecklistProgressProvider(
     tripId,
   ).overrideWith((ref) async => (done: 0, total: 0)),

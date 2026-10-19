@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -36,6 +37,10 @@ class _FakeTripChecklistRepository extends TripChecklistRepository {
   @override
   Future<List<TripChecklistItem>> getByTripId(String tripId) async =>
       existingItems;
+
+  @override
+  Future<List<TripChecklistSection>> getSectionsForTrip(String tripId) async =>
+      const [];
 
   @override
   Future<({int added, int skipped})> applyTemplate({
@@ -155,6 +160,9 @@ void main() {
               ),
             ],
           ),
+          checklistTemplateSectionsProvider(
+            'tpl1',
+          ).overrideWith((ref) async => []),
           tripChecklistRepositoryProvider.overrideWithValue(fakeRepository),
         ],
         child: Builder(
@@ -223,6 +231,9 @@ void main() {
               ),
             ],
           ),
+          checklistTemplateSectionsProvider(
+            'tpl1',
+          ).overrideWith((ref) async => []),
           tripChecklistRepositoryProvider.overrideWithValue(fakeRepository),
         ],
         child: Builder(

@@ -3,6 +3,8 @@ import 'package:submersion/features/checklists/data/repositories/checklist_templ
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as domain;
+import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
@@ -47,6 +49,17 @@ final checklistTemplateItemsProvider =
       final repository = ref.watch(checklistTemplateRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTemplatesChanges());
       return repository.getItemsForTemplate(templateId);
+    });
+
+/// Sections of a template, ordered by sortOrder.
+final checklistTemplateSectionsProvider =
+    FutureProvider.family<List<domain.ChecklistTemplateSection>, String>((
+      ref,
+      templateId,
+    ) async {
+      final repository = ref.watch(checklistTemplateRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTemplatesChanges());
+      return repository.getSectionsForTemplate(templateId);
     });
 
 /// A trip's checklist items, ordered by sortOrder. Self-invalidates on

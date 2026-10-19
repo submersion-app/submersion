@@ -486,7 +486,12 @@ void main() {
       await pumpSection(tester);
 
       final deleteButton = tester.widget<IconButton>(
-        find.byIcon(Icons.delete_outline).first,
+        find
+            .ancestor(
+              of: find.byIcon(Icons.delete_outline).first,
+              matching: find.byType(IconButton),
+            )
+            .first,
       );
       expect(deleteButton.onPressed, isNull);
     });
