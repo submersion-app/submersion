@@ -258,25 +258,42 @@ void main() {
         },
       ),
     );
+    // Scoped to the custom template: the built-in CCR Build template's six
+    // stable-id sections seed unconditionally on first open too, and are not
+    // what this test is pinning.
     final before = await first
-        .customSelect('SELECT * FROM pre_dive_checklist_template_sections')
+        .customSelect(
+          'SELECT * FROM pre_dive_checklist_template_sections '
+          "WHERE template_id = 'tpl1'",
+        )
         .get();
     expect(before, hasLength(1));
-
-    await first.customStatement(
-      "UPDATE pre_dive_checklist_template_items "
-      "SET section_id = NULL WHERE id = 'i1'",
-    );
+    final sectionId = before.single.data['id'];
     await first.close();
 
+    // The real risk this guards against: the old free-text section is gone
+    // by now (dropped in the same upgrade that created the row), so a
+    // second open has nothing left to backfill from and must leave the
+    // existing section and link alone rather than duplicate or lose either.
     final reopened = AppDatabase(NativeDatabase(File(path)));
     addTearDown(reopened.close);
 
     final after = await reopened
-        .customSelect('SELECT * FROM pre_dive_checklist_template_sections')
+        .customSelect(
+          'SELECT * FROM pre_dive_checklist_template_sections '
+          "WHERE template_id = 'tpl1'",
+        )
         .get();
     expect(after, hasLength(1), reason: 'no duplicate section row');
-    expect(after.single.data['id'], before.single.data['id']);
+    expect(after.single.data['id'], sectionId);
+
+    final item = await reopened
+        .customSelect(
+          "SELECT section_id FROM pre_dive_checklist_template_items "
+          "WHERE id = 'i1'",
+        )
+        .getSingle();
+    expect(item.data['section_id'], sectionId);
   });
 
   test('a database stamped v295 without the migration ever having run heals '
@@ -308,19 +325,30 @@ void main() {
     expect(item.data['section_id'], isNotNull);
   });
 
-  test('a fixture without templates skips the table and the column', () async {
-    final db = AppDatabase(
-      NativeDatabase.memory(
-        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 294'),
-      ),
-    );
-    addTearDown(db.close);
+  test(
+    'a fixture with nothing at all still gets the table via the unconditional '
+    'pre-dive schema self-heal',
+    () async {
+      // Unlike the trip-checklist/checklist-template rungs, pre-dive's own
+      // _assertPreDiveChecklistSchema (v128, parallel-branch self-heal) is
+      // unconditional: every beforeOpen recreates
+      // pre_dive_checklist_templates/items regardless of what the fixture
+      // started with. This backstop runs right after that self-heal (issue
+      // #3360), so "no templates table" is not a reachable fixture for
+      // pre-dive the way it is for the other three table groups.
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) => rawDb.execute('PRAGMA user_version = 294'),
+        ),
+      );
+      addTearDown(db.close);
 
-    expect(
-      await columnsOf(db, 'pre_dive_checklist_template_sections'),
-      isEmpty,
-    );
-  });
+      expect(
+        await columnsOf(db, 'pre_dive_checklist_template_sections'),
+        isNotEmpty,
+      );
+    },
+  );
 
   test('a fresh database matches the upgraded one', () async {
     final upgraded = AppDatabase(setupDb());

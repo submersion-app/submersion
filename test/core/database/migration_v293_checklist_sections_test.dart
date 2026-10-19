@@ -237,18 +237,14 @@ void main() {
         .customSelect('SELECT * FROM trip_checklist_sections')
         .get();
     expect(before, hasLength(1));
-
-    // Simulates the ladder's own rerun-from-scratch behaviour (the
-    // migration-safety section: user_version is only stamped after the
-    // whole onUpgrade call returns, so a crash replays every statement)
-    // by clearing the link before closing, then reopening the same file;
-    // beforeOpen re-asserts schema and backfill on every open regardless
-    // of whether onUpgrade ran this time.
-    await first.customStatement(
-      "UPDATE trip_checklist_items SET section_id = NULL WHERE id = 'i1'",
-    );
+    final sectionId = before.single.data['id'];
     await first.close();
 
+    // The real risk this guards against: category is gone by now (dropped
+    // in the same upgrade that created the section), so a second open has
+    // nothing left to backfill from and must leave the existing section and
+    // link alone rather than duplicate or lose either. beforeOpen
+    // re-asserts schema and backfill on every open regardless.
     final reopened = AppDatabase(NativeDatabase(File(path)));
     addTearDown(reopened.close);
 
@@ -256,14 +252,14 @@ void main() {
         .customSelect('SELECT * FROM trip_checklist_sections')
         .get();
     expect(after, hasLength(1), reason: 'no duplicate section row');
-    expect(after.single.data['id'], before.single.data['id']);
+    expect(after.single.data['id'], sectionId);
 
     final item = await reopened
         .customSelect(
           "SELECT section_id FROM trip_checklist_items WHERE id = 'i1'",
         )
         .getSingle();
-    expect(item.data['section_id'], before.single.data['id']);
+    expect(item.data['section_id'], sectionId);
   });
 
   test('a database stamped v293 without the migration ever having run heals '

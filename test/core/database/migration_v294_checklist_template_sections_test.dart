@@ -240,12 +240,13 @@ void main() {
         .customSelect('SELECT * FROM checklist_template_sections')
         .get();
     expect(before, hasLength(1));
-
-    await first.customStatement(
-      "UPDATE checklist_template_items SET section_id = NULL WHERE id = 'i1'",
-    );
+    final sectionId = before.single.data['id'];
     await first.close();
 
+    // The real risk this guards against: category is gone by now (dropped
+    // in the same upgrade that created the section), so a second open has
+    // nothing left to backfill from and must leave the existing section and
+    // link alone rather than duplicate or lose either.
     final reopened = AppDatabase(NativeDatabase(File(path)));
     addTearDown(reopened.close);
 
@@ -253,14 +254,14 @@ void main() {
         .customSelect('SELECT * FROM checklist_template_sections')
         .get();
     expect(after, hasLength(1), reason: 'no duplicate section row');
-    expect(after.single.data['id'], before.single.data['id']);
+    expect(after.single.data['id'], sectionId);
 
     final item = await reopened
         .customSelect(
           "SELECT section_id FROM checklist_template_items WHERE id = 'i1'",
         )
         .getSingle();
-    expect(item.data['section_id'], before.single.data['id']);
+    expect(item.data['section_id'], sectionId);
   });
 
   test('a database stamped v294 without the migration ever having run heals '
