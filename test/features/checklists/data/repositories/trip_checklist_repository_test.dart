@@ -424,12 +424,23 @@ void main() {
       expect(await repository.getProgressForTrips([]), isEmpty);
     });
 
-    test('deleteByTripId removes all items', () async {
+    test('deleteByTripId removes all items and sections', () async {
       await repository.createItem(await item(title: 'A'));
       await repository.createItem(await item(title: 'B'));
+      await repository.createSection(tripId: testTrip.id, title: 'Gear');
       await repository.deleteByTripId(testTrip.id);
       expect(await repository.getByTripId(testTrip.id), isEmpty);
+      expect(await repository.getSectionsForTrip(testTrip.id), isEmpty);
     });
+
+    test(
+      'deleteByTripId removes sections even when there are no items',
+      () async {
+        await repository.createSection(tripId: testTrip.id, title: 'Gear');
+        await repository.deleteByTripId(testTrip.id);
+        expect(await repository.getSectionsForTrip(testTrip.id), isEmpty);
+      },
+    );
   });
 
   group('sections', () {
