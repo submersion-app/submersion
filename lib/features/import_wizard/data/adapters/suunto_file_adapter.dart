@@ -24,6 +24,7 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
     required super.diverId,
     super.routeWriter,
     super.buddyWriter,
+    super.journalWriter,
     super.ref,
     super.connectionRepository,
     this.initialFiles = const [],

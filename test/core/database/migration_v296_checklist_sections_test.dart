@@ -7,7 +7,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
-/// Schema v293: trip_checklist_sections, replacing the free-text
+/// Schema v296: trip_checklist_sections, replacing the free-text
 /// trip_checklist_items.category column with a section_id reference
 /// (issue #3360). Add + backfill + drop all land in this one rung (no
 /// separate "stage B"; see docs/design/plans/2026-10-18-checklist-sections-
@@ -72,12 +72,12 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v293 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(293));
-    expect(AppDatabase.migrationVersions, contains(293));
+  test('v296 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(296));
+    expect(AppDatabase.migrationVersions, contains(296));
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
-      greaterThanOrEqualTo(293),
+      greaterThanOrEqualTo(296),
     );
   });
 
@@ -262,11 +262,11 @@ void main() {
     expect(item.data['section_id'], sectionId);
   });
 
-  test('a database stamped v293 without the migration ever having run heals '
+  test('a database stamped v296 without the migration ever having run heals '
       'in beforeOpen (parallel-branch version collision)', () async {
     final db = AppDatabase(
       setupDb(
-        userVersion: 293,
+        userVersion: 296,
         seed: (raw) => insertItem(
           raw,
           id: 'i1',

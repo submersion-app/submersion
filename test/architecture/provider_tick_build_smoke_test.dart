@@ -861,16 +861,16 @@ void main() {
       read: (c) => c.read(setupGuideStatusProvider.future),
     ),
     (
-      name: 'syncAccountLabelProvider',
-      read: (c) => c.read(syncAccountLabelProvider.future),
+      name: 'lastBackupCloudAccountLabelProvider',
+      read: (c) => c.read(lastBackupCloudAccountLabelProvider.future),
     ),
     (
       name: 'attachedStoreHintProvider',
       read: (c) => c.read(attachedStoreHintProvider.future),
     ),
     (
-      name: 'accountsSummaryProvider',
-      read: (c) => c.read(accountsSummaryProvider.future),
+      name: 'accountLabelsProvider',
+      read: (c) => c.read(accountLabelsProvider.future),
     ),
     (
       name: 'shareByDefaultProvider',

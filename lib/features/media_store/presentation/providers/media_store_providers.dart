@@ -8,9 +8,11 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -627,16 +629,47 @@ final mediaStoreResolverProvider = Provider<MediaStoreResolver?>((ref) {
   return ref.watch(mediaStoreRuntimeProvider).value?.resolver;
 });
 
-/// Display hint for the connected store ("bucket @ host"), or null when
-/// this device has no store attached.
+/// Name of the connected store, or null when this device has no store
+/// attached: the nickname of the account it was attached through, else its
+/// display hint ("bucket @ host") with a well-known service's host named
+/// (issue #3522).
 final mediaStoreStatusHintProvider = FutureProvider<String?>((ref) async {
   final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
   if (runtime == null) return null;
   final storesRepository = ref.watch(mediaStoresRepositoryProvider);
-  ref.invalidateSelfWhen(storesRepository.watchStoresChanges());
+  final accounts = ref.watch(connectedAccountsRepositoryProvider);
+  ref
+    ..invalidateSelfWhen(storesRepository.watchStoresChanges())
+    // A rename ticks the roster.
+    ..invalidateSelfWhen(accounts.watchAccountsChanges());
   final active = await storesRepository.getActive();
-  return active?.displayHint ?? runtime.storeId;
+  if (active == null) return runtime.storeId;
+  return mediaStoreName(
+    active,
+    attachState: ref.watch(mediaStoreAttachStateProvider),
+    accounts: accounts,
+  );
 });
+
+/// The name [store] is shown under (issue #3522): the nickname of the
+/// account this device attached it through, else its display hint with a
+/// well-known service's host named. The nickname applies only while this
+/// device is attached to [store] itself: after another device switches
+/// stores, the account it attached through points somewhere else.
+Future<String> mediaStoreName(
+  MediaStoreDescriptor store, {
+  required MediaStoreAttachState attachState,
+  required ConnectedAccountsRepository accounts,
+}) async {
+  String? nickname;
+  if (await attachState.attachedStoreId() == store.id) {
+    final accountId = await attachState.attachedAccountId();
+    if (accountId != null) {
+      nickname = (await accounts.getById(accountId))?.nickname;
+    }
+  }
+  return accountDisplayName(label: store.displayHint, nickname: nickname);
+}
 
 /// Implementation behind mediaStoreEnqueueProvider: with a runtime
 /// attached, imports feed the queue and kick the worker; without one this

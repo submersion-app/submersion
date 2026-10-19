@@ -365,6 +365,11 @@ class ConnectedAccounts extends Table {
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
 
+  /// v295: the short name the diver gave the account (issue #3522). Null
+  /// until they choose one; the account then reads as its label with a
+  /// well-known service's host replaced by the service's name.
+  TextColumn get nickname => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

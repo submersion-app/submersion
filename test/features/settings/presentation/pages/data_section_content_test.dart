@@ -57,6 +57,7 @@ void main() {
     List<String> peers = const [],
     Size size = const Size(400, 2400),
     double textScale = 1,
+    bool storeAttachedHere = false,
   }) async {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
@@ -98,6 +99,7 @@ void main() {
             dataHealth: dataHealth,
             lastSync: lastSync,
             syncPeerNames: peers,
+            mediaStoreAttachedHere: storeAttachedHere,
           ),
           logFileServiceProvider.overrideWithValue(
             LogFileService(logDirectory: logDir.path),
@@ -384,5 +386,28 @@ void main() {
     expect(find.text('page /settings/import-options'), findsOneWidget);
     expect(router.canPop(), isTrue);
     expect(find.text('Your data'), findsNothing);
+  });
+
+  testWidgets('a Lightroom-only photos row draws no healthy mark', (
+    tester,
+  ) async {
+    // Lightroom alone makes media health healthy, but no copies are kept;
+    // a tick beside "Copies are not kept in the cloud" would contradict it.
+    await pumpData(
+      tester,
+      dataHealth: [
+        health[0],
+        health[1],
+        health[2],
+        const FeatureHealth(
+          feature: DataFeature.media,
+          level: HealthLevel.healthy,
+          reason: HealthReason.ok,
+        ),
+      ],
+    );
+
+    expect(find.text('Copies are not kept in the cloud'), findsOneWidget);
+    expect(markBeside('Photos & videos'), findsNothing);
   });
 }

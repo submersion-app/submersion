@@ -4132,6 +4132,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Certificering toevoegen';
 
   @override
+  String get certifications_list_groupBy => 'Groeperen op';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Organisatie';
+
+  @override
+  String get certifications_list_groupBy_none => 'Geen';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Verlopen';
 
   @override
@@ -4232,6 +4244,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_share_title => 'Certificering delen';
 
   @override
+  String get certifications_sortSheet_view_list => 'Lijst';
+
+  @override
+  String get certifications_sortSheet_view_wallet =>
+      'Certificeringsportemonnee';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Selecteer een certificering uit de lijst om details te bekijken';
 
@@ -4290,6 +4309,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Certificering delen';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Sorteren';
 
   @override
   String get checklists_section_title => 'Checklist';
@@ -20683,6 +20705,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alleen pictogrammen, ook als er ruimte is voor labels';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Beginstatus van de zijbalk; het pijltje kan deze voor deze sessie nog steeds in- of uitklappen';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.';
 
@@ -22472,6 +22498,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Dienst';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Naam';
 
   @override
   String get settings_conflict_field_connectionType => 'Verbinding';
@@ -25343,8 +25372,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_data_sync_status_off => 'Alleen op dit apparaat';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Gesynchroniseerd $when, tot nu toe alleen dit apparaat';
+  String settings_data_sync_status_synced(String when) {
+    return 'Gesynchroniseerd $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Bijgehouden door de synchronisatiedienst van je map';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Back-up $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '$feature instellen';
   }
 
   @override
@@ -36660,6 +36703,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Uit bibliotheek verwijderen';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Naam wijzigen';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Accountnaam wijzigen';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Naam';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Laat leeg om $name te gebruiken';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>

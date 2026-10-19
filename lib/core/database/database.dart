@@ -196,14 +196,14 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripItineraryDays,
     TripDayWeather,
     ChecklistTemplates,
-    // Checklist sections (v293-294, issue #3360)
+    // Checklist sections (v296-297, issue #3360)
     TripChecklistSections,
     TripChecklistItems,
     ChecklistTemplateSections,
     ChecklistTemplateItems,
     // Pre-dive checklists (spec 2026-07-16-pre-dive-checklist)
     PreDiveChecklistTemplates,
-    // Checklist sections (v295, issue #3360)
+    // Checklist sections (v298, issue #3360)
     PreDiveChecklistTemplateSections,
     PreDiveChecklistTemplateItems,
     PreDiveSessions,
@@ -280,7 +280,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 296;
+  static const int currentSchemaVersion = 299;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -384,32 +384,35 @@ class AppDatabase extends _$AppDatabase {
   /// the accounts repository skips unknown kinds, so later kinds need no
   /// floor bump of their own.
   ///
-  /// Raised 280 -> 293 by checklist sections (#3360): v293 drops the synced
+  /// Raised 280 -> 296 by checklist sections (#3360): v296 drops the synced
   /// column trip_checklist_items.category, replacing it with a reference to
   /// a new trip_checklist_sections row, which the first rule above
   /// classifies as breaking (a dropped column, not a rename an older reader
-  /// could still decode). Peers below 293 are held until they update. Their
+  /// could still decode). Peers below 296 are held until they update. Their
   /// own payloads still arrive here, carrying `category` and no
   /// `sectionId`; the existing #474 overlay (see above) refills the omitted
   /// `sectionId` key from the local row before merging, so an old peer's
   /// edit cannot null out a section this device already backfilled. See
   /// cross_version_roundtrip_test.dart for the matching projection.
-  /// (v292 is shared_libraries.removals_json from #3481, additive and
-  /// nullable, so it does not raise the floor on its own.)
+  /// (v292 is shared_libraries.removals_json from #3481, v294 clears
+  /// duplicated certification photos, and v295 is
+  /// connected_accounts.nickname from #3522 -- all additive or non-synced,
+  /// so none of them raise the floor on their own. v293 is claimed by the
+  /// accounts work, #3482.)
   ///
-  /// Raised 293 -> 294 by the same change applied to
+  /// Raised 296 -> 297 by the same change applied to
   /// checklist_template_items.category (issue #3360), one rung later for
   /// the template side of the same concept. Same reasoning, same overlay
   /// protection, one rung per table group rather than one combined bump.
   ///
-  /// Raised 294 -> 295 by the same change applied to
+  /// Raised 297 -> 298 by the same change applied to
   /// pre_dive_checklist_template_items.section (issue #3360), one rung
   /// later for the pre-dive template side.
   ///
-  /// Raised 295 -> 296 by the same change applied to
+  /// Raised 298 -> 299 by the same change applied to
   /// pre_dive_session_items.section (issue #3360), the last of the four
   /// checklist-sections table groups.
-  static const int minimumCompatibleSchemaVersion = 296;
+  static const int minimumCompatibleSchemaVersion = 299;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1297,23 +1300,27 @@ class AppDatabase extends _$AppDatabase {
     // v292: shared_libraries.removals_json (issue #3481). Additive nullable
     // column, so the floor stays at 280.
     292,
-    // v293: trip_checklist_sections table + trip_checklist_items.section_id,
-    // backfilled from category, which is then dropped (issue #3360). Raises
-    // the floor to 293.
-    293,
-    // v294: checklist_template_sections table +
-    // checklist_template_items.section_id, backfilled from category, which
-    // is then dropped (issue #3360). Raises the floor to 294.
     294,
-    // v295: pre_dive_checklist_template_sections table +
+    // v295: connected_accounts.nickname (issue #3522). Additive nullable
+    // column, so the floor stays at 280.
+    295,
+    // v296: trip_checklist_sections table + trip_checklist_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // the floor to 296. (v293 is claimed by the accounts work, #3482.)
+    296,
+    // v297: checklist_template_sections table +
+    // checklist_template_items.section_id, backfilled from category, which
+    // is then dropped (issue #3360). Raises the floor to 297.
+    297,
+    // v298: pre_dive_checklist_template_sections table +
     // pre_dive_checklist_template_items.section_id, backfilled from
     // section, which is then dropped (issue #3360). Raises the floor to
-    // 295.
-    295,
-    // v296: pre_dive_session_sections table +
+    // 298.
+    298,
+    // v299: pre_dive_session_sections table +
     // pre_dive_session_items.section_id, backfilled from section, which
-    // is then dropped (issue #3360). Raises the floor to 296.
-    296,
+    // is then dropped (issue #3360). Raises the floor to 299.
+    299,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

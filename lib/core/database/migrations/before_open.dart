@@ -206,7 +206,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // built-in templates (same rationale as the dive-types re-seed).
     await _assertPreDiveChecklistSchema();
 
-    // v295 backstop: pre_dive_checklist_template_sections,
+    // v298 backstop: pre_dive_checklist_template_sections,
     // pre_dive_checklist_template_items.section_id and the section
     // backfill+drop (idempotent; issue #3360). Must run after
     // _assertPreDiveChecklistSchema and before _seedBuiltInPreDiveTemplates:

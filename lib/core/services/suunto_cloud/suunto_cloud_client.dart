@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/suunto_cloud/suunto_api_exception.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_crypto.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_journal.dart';
 
 /// A single scuba/freediving workout summary from the `workouts` listing
 /// endpoint -- not yet the full dive profile (see [SuuntoCloudClient.fetchSmlJson]
@@ -19,7 +20,7 @@ class SuuntoWorkoutSummary {
     this.diveTimeSeconds,
     this.totalTimeSeconds,
     this.notes,
-    this.buddies = const [],
+    this.journal = SuuntoJournal.empty,
   });
 
   /// Opaque workout identifier used to fetch the full SML export.
@@ -42,15 +43,15 @@ class SuuntoWorkoutSummary {
   /// Overall workout elapsed time in seconds.
   final int? totalTimeSeconds;
 
-  /// The notes the diver wrote in the Suunto app (`description`), trimmed;
-  /// null when there are none. The dive export never carries them
-  /// (issue #2410).
+  /// The notes the diver wrote in the Suunto app (`description`), with any
+  /// private notes from the journal below them, trimmed; null when there are
+  /// none. The dive export never carries them (issues #2410 and #3491).
   final String? notes;
 
-  /// The people the diver logged as dive buddies in the Suunto app
-  /// (`journal.diveBuddy`), trimmed and each named once. Like [notes], the
-  /// dive export never carries them (issue #3266).
-  final List<String> buddies;
+  /// The dive details the diver logged in the Suunto app (`journal`): the
+  /// buddies (issue #3266), dive center, conditions and the rest (issue
+  /// #3491). Like [notes], the dive export never carries them.
+  final SuuntoJournal journal;
 
   /// [diveTimeSeconds] when available, else [totalTimeSeconds].
   int? get durationSeconds => diveTimeSeconds ?? totalTimeSeconds;
@@ -270,6 +271,7 @@ class SuuntoCloudClient {
   ) {
     final startMs = (item['startTime'] as num).toInt();
     final ext = _diveHeaderExtension(item);
+    final journal = SuuntoJournal.parse(item['journal']);
     return SuuntoWorkoutSummary(
       key: item['key'] as String,
       startTime: DateTime.fromMillisecondsSinceEpoch(startMs, isUtc: true),
@@ -277,36 +279,16 @@ class SuuntoCloudClient {
       maxDepth: (ext?['maxDepth'] as num?)?.toDouble(),
       diveTimeSeconds: (ext?['diveTime'] as num?)?.round(),
       totalTimeSeconds: (item['totalTime'] as num?)?.round(),
-      notes: _notesOf(item['description']),
-      buddies: _buddiesOf(item['journal']),
+      notes: _notesOf(item['description'], journal.privateNotes),
+      journal: journal,
     );
   }
 
-  /// The names in the workout journal's `diveBuddy` list, each an
-  /// `{id, value}` entry. The journal is absent on a workout logged without
-  /// dive details, and anything that is not a non-blank name is passed over
-  /// rather than failing the whole listing page. A name repeated in another
-  /// case is kept once, since buddies are matched by name ignoring case.
-  static List<String> _buddiesOf(Object? journal) {
-    if (journal is! Map) return const [];
-    final entries = journal['diveBuddy'];
-    if (entries is! List) return const [];
-    final seen = <String>{};
-    final names = <String>[];
-    for (final entry in entries) {
-      final value = entry is Map ? entry['value'] : null;
-      if (value is! String) continue;
-      final name = value.trim();
-      if (name.isEmpty || !seen.add(name.toLowerCase())) continue;
-      names.add(name);
-    }
-    return List.unmodifiable(names);
-  }
-
   /// "No notes" can arrive as an absent key, a null or an empty string.
-  static String? _notesOf(Object? description) {
-    if (description is! String) return null;
-    final text = description.trim();
+  /// Private notes go below the shared ones, after a blank line.
+  static String? _notesOf(Object? description, String? privateNotes) {
+    final shared = description is String ? description.trim() : '';
+    final text = [if (shared.isNotEmpty) shared, ?privateNotes].join('\n\n');
     return text.isEmpty ? null : text;
   }
 

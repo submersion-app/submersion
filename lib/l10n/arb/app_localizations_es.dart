@@ -4157,6 +4157,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Agregar certificación';
 
   @override
+  String get certifications_list_groupBy => 'Agrupar por';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Agencia';
+
+  @override
+  String get certifications_list_groupBy_none => 'Ninguno';
+
+  @override
+  String get certifications_list_groupBy_status => 'Estado';
+
+  @override
   String get certifications_list_section_expired => 'Vencidas';
 
   @override
@@ -4257,6 +4269,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_share_title => 'Compartir certificación';
 
   @override
+  String get certifications_sortSheet_view_list => 'Lista';
+
+  @override
+  String get certifications_sortSheet_view_wallet =>
+      'Cartera de certificaciones';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Selecciona una certificación de la lista para ver detalles';
 
@@ -4314,6 +4333,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Compartir certificación';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Ordenar';
 
   @override
   String get checklists_section_title => 'Lista de verificación';
@@ -20820,6 +20842,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Solo iconos, incluso cuando las etiquetas cabrían';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Estado inicial de la barra lateral; la flecha aún puede expandirla o contraerla durante esta sesión';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Arrastra los elementos para reordenar la barra lateral. Inicio siempre permanece arriba.';
 
@@ -22624,6 +22650,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Servicio';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Nombre';
 
   @override
   String get settings_conflict_field_connectionType => 'Conexión';
@@ -25528,8 +25557,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_data_sync_status_off => 'Solo en este dispositivo';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Sincronizado $when, de momento solo este dispositivo';
+  String settings_data_sync_status_synced(String when) {
+    return 'Sincronizado $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'La mantiene al día el servicio de sincronización de tu carpeta';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Copia de seguridad $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'Configurar $feature';
   }
 
   @override
@@ -36947,6 +36990,21 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Quitar de la biblioteca';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Cambiar nombre';
+
+  @override
+  String get settings_connectedAccounts_renameTitle =>
+      'Cambiar nombre de la cuenta';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Nombre';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Déjalo vacío para usar $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>

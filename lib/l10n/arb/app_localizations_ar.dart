@@ -4223,6 +4223,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_list_fab_addCertification => 'إضافة شهادة';
 
   @override
+  String get certifications_list_groupBy => 'التجميع حسب';
+
+  @override
+  String get certifications_list_groupBy_agency => 'الجهة';
+
+  @override
+  String get certifications_list_groupBy_none => 'بلا';
+
+  @override
+  String get certifications_list_groupBy_status => 'الحالة';
+
+  @override
   String get certifications_list_section_expired => 'منتهية الصلاحية';
 
   @override
@@ -4320,6 +4332,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_share_title => 'مشاركة الشهادة';
 
   @override
+  String get certifications_sortSheet_view_list => 'قائمة';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'محفظة الشهادات';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'اختر شهادة من القائمة لعرض التفاصيل';
 
@@ -4376,6 +4394,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'مشاركة الشهادة';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'ترتيب';
 
   @override
   String get checklists_section_title => 'قائمة التحقق';
@@ -21084,6 +21105,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أيقونات فقط، حتى عند توفر مساحة للتسميات';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'الحالة الابتدائية للشريط الجانبي؛ لا يزال بإمكان السهم توسيعه أو طيّه لهذه الجلسة';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
 
@@ -22878,6 +22903,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'الخدمة';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'الاسم';
 
   @override
   String get settings_conflict_field_connectionType => 'الاتصال';
@@ -25707,8 +25735,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_sync_status_off => 'على هذا الجهاز فقط';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'تمت المزامنة $when، هذا الجهاز فقط حتى الآن';
+  String settings_data_sync_status_synced(String when) {
+    return 'تمت المزامنة $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'تُبقيها خدمة المزامنة الخاصة بمجلدك محدّثة';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'تم النسخ الاحتياطي $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'إعداد $feature';
   }
 
   @override
@@ -37405,6 +37447,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_removeFromLibrary => 'إزالة من المكتبة';
+
+  @override
+  String get settings_connectedAccounts_rename => 'إعادة التسمية';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'إعادة تسمية الحساب';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'الاسم';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'اتركه فارغًا لاستخدام $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle => 'إزالة الحساب؟';

@@ -43,8 +43,12 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   /// materialization and the swap, issue #1344).
   Object? restoreError;
 
+  /// Runs while the backup is being written, to change settings mid-write.
+  Future<void> Function()? duringBackup;
+
   @override
   Future<void> backup(String destinationPath, {String? note}) async {
+    await duringBackup?.call();
     backupCallCount++;
     lastBackupPath = destinationPath;
     lastBackupNote = note;
@@ -135,6 +139,15 @@ class _CaptureFailSyncRepository extends SyncRepository {
 }
 
 /// Fake cloud storage provider for testing
+/// Names the connected account driving sync, without a database.
+class _SyncAccountRepository extends Fake implements SyncRepository {
+  _SyncAccountRepository(this.accountId);
+  String? accountId;
+
+  @override
+  Future<String?> getSyncAccountId() async => accountId;
+}
+
 class FakeCloudStorageProvider implements CloudStorageProvider {
   final List<String> uploadedFiles = [];
   final List<String> deletedFiles = [];
@@ -149,6 +162,9 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
   bool shouldFailCreateFolder = false;
   String? createdFolder;
   int uploadCallCount = 0;
+
+  /// Runs while a file uploads, to change state mid-upload.
+  void Function()? duringUpload;
 
   @override
   String get providerName => 'Fake';
@@ -173,6 +189,7 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
     String? folderId,
   }) async {
     uploadCallCount++;
+    duringUpload?.call();
     if (shouldFailUpload) {
       throw const CloudStorageException('Upload failed');
     }
@@ -1160,6 +1177,12 @@ void main() {
           expect(fakeDb.backupCallCount, 1);
           expect(record.localPath, destPath);
           expect(record.filename, 'my_backup.db');
+          // A saved file is a copy the app does not track, so Settings >
+          // Data claims no cloud or folder copy for it.
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.file,
+          );
         } finally {
           await tempDir.delete(recursive: true);
         }
@@ -1315,10 +1338,42 @@ void main() {
           await service.performBackup();
 
           expect(fakeDb.lastBackupPath, startsWith(tempDir.path));
+          // Settings > Data says where the last backup went (issue #3482).
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.folder,
+          );
         } finally {
           await tempDir.delete(recursive: true);
         }
       });
+
+      // PR #3500 review: the destination is the target the write went to,
+      // not whatever the settings say once the write finishes.
+      test(
+        'a folder cleared during the write still reads as the folder',
+        () async {
+          BackupBookmarkService.debugSupportedOverride = false;
+          addTearDown(
+            () => BackupBookmarkService.debugSupportedOverride = null,
+          );
+          final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+          addTearDown(() => tempDir.delete(recursive: true));
+          await preferences.setBackupLocation(tempDir.path);
+          fakeDb.duringBackup = () => preferences.setBackupLocation(null);
+
+          await BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          ).performBackup();
+
+          expect(fakeDb.lastBackupPath, startsWith(tempDir.path));
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.folder,
+          );
+        },
+      );
 
       test('falls back to default location when no custom location', () async {
         final service = BackupService(
@@ -1331,6 +1386,10 @@ void main() {
         // Default location uses the _localBackupFolder path
         expect(fakeDb.lastBackupPath, contains('Submersion'));
         expect(fakeDb.lastBackupPath, contains('Backups'));
+        expect(
+          preferences.getSettings().lastBackupDestination,
+          LastBackupDestination.device,
+        );
       });
     });
 
@@ -1349,6 +1408,61 @@ void main() {
         expect(fakeCloud.uploadedFiles, hasLength(1));
         expect(record.location, BackupLocation.both);
         expect(record.cloudFileId, isNotNull);
+        expect(
+          preferences.getSettings().lastBackupDestination,
+          LastBackupDestination.cloud,
+        );
+      });
+
+      // PR #3500 review: the Data row names the account the copy went to,
+      // so the backup remembers it rather than reading today's sync account.
+      test('remembers the sync account the cloud copy went to', () async {
+        await preferences.setCloudBackupEnabled(true);
+
+        await BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          cloudProvider: fakeCloud,
+          syncRepository: _SyncAccountRepository('acct-drive'),
+        ).performBackup();
+
+        expect(
+          preferences.getSettings().lastBackupCloudAccountId,
+          'acct-drive',
+        );
+      });
+
+      // PR #3500 review: the provider uploads through the account it was
+      // built with, so a switch during the upload must not be recorded.
+      test('a sync account switch during the upload is not recorded', () async {
+        await preferences.setCloudBackupEnabled(true);
+        final sync = _SyncAccountRepository('acct-old');
+        fakeCloud.duringUpload = () => sync.accountId = 'acct-new';
+
+        await BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          cloudProvider: fakeCloud,
+          syncRepository: sync,
+        ).performBackup();
+
+        expect(fakeCloud.uploadedFiles, hasLength(1));
+        expect(preferences.getSettings().lastBackupCloudAccountId, 'acct-old');
+      });
+
+      test('a backup that stays local forgets the cloud account', () async {
+        await preferences.setLastBackupDestination(
+          LastBackupDestination.cloud,
+          cloudAccountId: 'acct-drive',
+        );
+
+        await BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          syncRepository: _SyncAccountRepository('acct-drive'),
+        ).performBackup();
+
+        expect(preferences.getSettings().lastBackupCloudAccountId, isNull);
       });
 
       test(
@@ -1369,6 +1483,10 @@ void main() {
           expect(fakeCloud.uploadedFiles, isEmpty);
           expect(record.cloudFileId, isNull);
           expect(record.location, BackupLocation.local);
+          expect(
+            preferences.getSettings().lastBackupDestination,
+            LastBackupDestination.device,
+          );
         },
       );
     });

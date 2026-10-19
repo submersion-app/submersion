@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 
 /// What the one-sentence subtitle under a Settings > Data row says.
@@ -14,10 +15,20 @@ enum DataRowStatusKind {
   backupsLocal,
   backupsCloud,
   backupsFolder,
+
+  /// Backed up, with no claim about where: a file the diver saved, or a
+  /// backup made before the app recorded destinations.
+  backupsPlain,
   backupsFailed,
   syncOff,
   syncNever,
-  syncAlone,
+
+  /// Synced, with no peer names known. Not "only this device": a peer on an
+  /// older build publishes no name.
+  syncSynced,
+
+  /// The database lives in a folder another service keeps in step.
+  syncFolder,
   syncWithOne,
   syncWithMany,
   syncAttention,
@@ -31,6 +42,9 @@ enum DataRowStatusKind {
   accountsNone,
   accountsListed,
   accountsNeedSignIn,
+
+  /// The roster could not be read.
+  accountsUnavailable,
 }
 
 class DataRowStatus extends Equatable {
@@ -57,20 +71,26 @@ class DataRowStatus extends Equatable {
   /// Set for the kinds whose text is the health reason line.
   final FeatureHealth? health;
 
-  /// The row shows a trailing "Set up" button.
+  /// The row offers a "Set up" action under its status.
   final bool offersSetUp;
+
+  /// Whether the row draws its feature's health mark beside the title.
+  /// Lightroom alone reads healthy, but a photos-off row says no copies are
+  /// kept and offers Set up; a healthy mark beside that would contradict it.
+  bool get showsHealthMark => kind != DataRowStatusKind.photosOff;
 
   @override
   List<Object?> get props => [kind, when, name, count, health, offersSetUp];
 }
 
+/// The Backups row says where the LAST backup went ([destination]), never
+/// where the current settings would send the next one: turning cloud backup
+/// on writes nothing until a backup runs.
 DataRowStatus backupsRowStatus({
   required FeatureHealth health,
   required DateTime? lastBackup,
-  required bool cloudCopyOn,
+  required LastBackupDestination? destination,
   required String? cloudAccountLabel,
-  required bool customFolder,
-  required bool cloudCopyMissing,
 }) {
   final offersSetUp = health.reason == HealthReason.backupAutoOff;
   if (health.reason == HealthReason.backupFailed) {
@@ -86,28 +106,29 @@ DataRowStatus backupsRowStatus({
       offersSetUp: offersSetUp,
     );
   }
-  // The flag, not the winning health reason: the evaluator stops at the
-  // first gate, so a missing copy hides behind "auto off" or "overdue".
-  if (cloudCopyOn && !cloudCopyMissing) {
-    return DataRowStatus(
+  return switch (destination) {
+    LastBackupDestination.cloud => DataRowStatus(
       DataRowStatusKind.backupsCloud,
       when: lastBackup,
       name: cloudAccountLabel ?? '',
       offersSetUp: offersSetUp,
-    );
-  }
-  if (customFolder) {
-    return DataRowStatus(
+    ),
+    LastBackupDestination.folder => DataRowStatus(
       DataRowStatusKind.backupsFolder,
       when: lastBackup,
       offersSetUp: offersSetUp,
-    );
-  }
-  return DataRowStatus(
-    DataRowStatusKind.backupsLocal,
-    when: lastBackup,
-    offersSetUp: offersSetUp,
-  );
+    ),
+    LastBackupDestination.device => DataRowStatus(
+      DataRowStatusKind.backupsLocal,
+      when: lastBackup,
+      offersSetUp: offersSetUp,
+    ),
+    LastBackupDestination.file || null => DataRowStatus(
+      DataRowStatusKind.backupsPlain,
+      when: lastBackup,
+      offersSetUp: offersSetUp,
+    ),
+  };
 }
 
 /// Reasons whose strip line is the row's status: sync is paused, or "in
@@ -122,13 +143,22 @@ const _syncAttentionReasons = {
   HealthReason.syncOffline,
 };
 
+/// [customFolderIsDeviceOnly] is true where a custom database folder cannot
+/// be a synced cloud folder (Android), so it means sync is simply off.
 DataRowStatus syncRowStatus({
   required FeatureHealth health,
   required DateTime? lastSync,
   required List<String> peerNames,
+  bool customFolderIsDeviceOnly = false,
 }) {
   if (_syncAttentionReasons.contains(health.reason)) {
     return DataRowStatus(DataRowStatusKind.syncAttention, health: health);
+  }
+  // Dropbox, OneDrive or iCloud Drive keeps the folder in step on desktop
+  // and iOS; the Sync page says the same.
+  if (health.reason == HealthReason.syncCustomFolder &&
+      !customFolderIsDeviceOnly) {
+    return const DataRowStatus(DataRowStatusKind.syncFolder);
   }
   if (health.level == HealthLevel.notSetUp ||
       health.reason == HealthReason.syncOff) {
@@ -142,7 +172,7 @@ DataRowStatus syncRowStatus({
   }
   final names = peerNames.where((n) => n.trim().isNotEmpty).toList();
   if (names.isEmpty) {
-    return DataRowStatus(DataRowStatusKind.syncAlone, when: lastSync);
+    return DataRowStatus(DataRowStatusKind.syncSynced, when: lastSync);
   }
   if (names.length == 1) {
     return DataRowStatus(

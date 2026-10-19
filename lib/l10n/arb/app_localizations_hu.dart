@@ -4137,6 +4137,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tanúsítvány hozzáadása';
 
   @override
+  String get certifications_list_groupBy => 'Csoportosítás';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Szervezet';
+
+  @override
+  String get certifications_list_groupBy_none => 'Nincs';
+
+  @override
+  String get certifications_list_groupBy_status => 'Állapot';
+
+  @override
   String get certifications_list_section_expired => 'Lejárt';
 
   @override
@@ -4237,6 +4249,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_share_title => 'Tanúsítvány megosztása';
 
   @override
+  String get certifications_sortSheet_view_list => 'Lista';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Tanúsítvány tárca';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Válasszon egy tanúsítványt a listából a részletek megtekintéséhez';
 
@@ -4296,6 +4314,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Tanúsítvány megosztása';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Rendezés';
 
   @override
   String get checklists_section_title => 'Ellenőrzőlista';
@@ -20748,6 +20769,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csak ikonok, még akkor is, ha elférne a címke';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Az oldalsáv kezdőállapota; a nyíl ebben a munkamenetben továbbra is kinyithatja vagy összecsukhatja';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Húzza az elemeket az oldalsáv átrendezéséhez. A Kezdőlap mindig felül marad.';
 
@@ -22539,6 +22564,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Szolgáltatás';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Név';
 
   @override
   String get settings_conflict_field_connectionType => 'Kapcsolat';
@@ -25391,8 +25419,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_data_sync_status_off => 'Csak ezen az eszközön';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Szinkronizálva $when, eddig csak ez az eszköz';
+  String settings_data_sync_status_synced(String when) {
+    return 'Szinkronizálva $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'A mappád szinkronizálási szolgáltatása tartja naprakészen';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Mentve $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '$feature beállítása';
   }
 
   @override
@@ -36692,6 +36734,20 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Eltávolítás a könyvtárból';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Átnevezés';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Fiók átnevezése';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Név';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Hagyja üresen, és ez lesz a neve: $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>

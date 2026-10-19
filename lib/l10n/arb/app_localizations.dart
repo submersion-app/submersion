@@ -6464,6 +6464,30 @@ abstract class AppLocalizations {
   /// **'Add Certification'**
   String get certifications_list_fab_addCertification;
 
+  /// No description provided for @certifications_list_groupBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get certifications_list_groupBy;
+
+  /// No description provided for @certifications_list_groupBy_agency.
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get certifications_list_groupBy_agency;
+
+  /// No description provided for @certifications_list_groupBy_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get certifications_list_groupBy_none;
+
+  /// No description provided for @certifications_list_groupBy_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get certifications_list_groupBy_status;
+
   /// No description provided for @certifications_list_section_expired.
   ///
   /// In en, this message translates to:
@@ -6632,6 +6656,18 @@ abstract class AppLocalizations {
   /// **'Share Certification'**
   String get certifications_share_title;
 
+  /// No description provided for @certifications_sortSheet_view_list.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get certifications_sortSheet_view_list;
+
+  /// No description provided for @certifications_sortSheet_view_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification Wallet'**
+  String get certifications_sortSheet_view_wallet;
+
   /// No description provided for @certifications_summary_header_subtitle.
   ///
   /// In en, this message translates to:
@@ -6745,6 +6781,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share certification'**
   String get certifications_wallet_tooltip_share;
+
+  /// No description provided for @certifications_wallet_tooltip_sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get certifications_wallet_tooltip_sort;
 
   /// No description provided for @checklists_section_title.
   ///
@@ -33301,17 +33343,23 @@ abstract class AppLocalizations {
   /// **'Drag items to reorder. The items at the top appear in your bottom navigation bar; how many depends on your screen size, not its orientation.'**
   String get settings_navCustomization_description;
 
-  /// Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424).
+  /// Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424). Shared by the phone and desktop tabs; only the value and the subtitle below it differ by scope (#3222).
   ///
   /// In en, this message translates to:
   /// **'Always hide labels'**
   String get settings_navCustomization_alwaysHideLabels_title;
 
-  /// Subtitle under the always-hide-labels switch.
+  /// Subtitle under the always-hide-labels switch on the phone tab: a hard setting with no override.
   ///
   /// In en, this message translates to:
   /// **'Icons only, even where labels would normally fit'**
   String get settings_navCustomization_alwaysHideLabels_subtitle;
+
+  /// Subtitle under the always-hide-labels switch on the desktop tab: unlike the phone switch, this only sets the rail's initial state and can be overridden for the session by the rail's own collapse arrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session'**
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop;
 
   /// Help text shown when arranging the wide-screen navigation rail.
   ///
@@ -36063,6 +36111,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Service'**
   String get settings_conflict_field_connectedAccounts_kind;
+
+  /// No description provided for @settings_conflict_field_connectedAccounts_nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get settings_conflict_field_connectedAccounts_nickname;
 
   /// No description provided for @settings_conflict_field_connectionType.
   ///
@@ -41056,11 +41110,29 @@ abstract class AppLocalizations {
   /// **'Only on this device'**
   String get settings_data_sync_status_off;
 
-  /// No description provided for @settings_data_sync_status_alone.
+  /// No description provided for @settings_data_sync_status_synced.
   ///
   /// In en, this message translates to:
-  /// **'Synced {when}, only this device so far'**
-  String settings_data_sync_status_alone(String when);
+  /// **'Synced {when}'**
+  String settings_data_sync_status_synced(String when);
+
+  /// No description provided for @settings_data_sync_status_folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept in step by your folder\'s sync service'**
+  String get settings_data_sync_status_folder;
+
+  /// No description provided for @settings_data_backups_status_plain.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up {when}'**
+  String settings_data_backups_status_plain(String when);
+
+  /// Screen-reader label of the Set up action under a Settings > Data row, naming the row.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up {feature}'**
+  String settings_data_setUpFeature(String feature);
 
   /// No description provided for @settings_data_sync_status_one.
   ///
@@ -58111,6 +58183,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from library'**
   String get settings_connectedAccounts_removeFromLibrary;
+
+  /// No description provided for @settings_connectedAccounts_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get settings_connectedAccounts_rename;
+
+  /// No description provided for @settings_connectedAccounts_renameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename account'**
+  String get settings_connectedAccounts_renameTitle;
+
+  /// No description provided for @settings_connectedAccounts_renameField.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get settings_connectedAccounts_renameField;
+
+  /// Helper under the account name field; name is the short name the account gets when the field is left empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to use {name}'**
+  String settings_connectedAccounts_renameDefault(String name);
 
   /// No description provided for @settings_connectedAccounts_removeConfirmTitle.
   ///

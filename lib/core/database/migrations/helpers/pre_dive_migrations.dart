@@ -45,7 +45,7 @@ extension PreDiveMigrations on AppDatabase {
     // foreign key to pre_dive_checklist_template_sections, regardless of how
     // far the ladder has otherwise progressed. Without this, the DELETE in
     // kRetireLegacyGueEdgeItemsSql below fails with "no such table" the
-    // moment that happens before this function's own v295 rung has run
+    // moment that happens before this function's own v298 rung has run
     // (issue #3360). createTable is idempotent, so this is a no-op once the
     // real rung creates the table properly.
     await Migrator(this).createTable(preDiveChecklistTemplateSections);
@@ -53,10 +53,10 @@ extension PreDiveMigrations on AppDatabase {
     await customStatement(kRetireLegacyGueEdgeItemsSql);
     // kSeedBuiltInPreDiveTemplateItemsSql's column list names section_id
     // (issue #3360). This function is also called from the v127 rung,
-    // mid-ladder, before the v295 rung that adds that column has run in the
+    // mid-ladder, before the v298 rung that adds that column has run in the
     // same upgrade -- so on that path section_id does not exist yet. Skip
     // the items/sections seed entirely rather than fail; beforeOpen calls
-    // this function again once the whole ladder (including v295) has run,
+    // this function again once the whole ladder (including v298) has run,
     // and seeds correctly then.
     final hasSectionId = await _columnExists(
       'pre_dive_checklist_template_items',

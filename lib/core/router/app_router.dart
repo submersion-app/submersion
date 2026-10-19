@@ -29,6 +29,8 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
@@ -221,6 +223,7 @@ import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_ada
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_buddy_writer.dart';
+import 'package:submersion/features/import_wizard/data/adapters/suunto_journal_writer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -2278,6 +2281,11 @@ class _SuuntoCloudImportWizardRoute extends ConsumerWidget {
         ),
         buddyWriter: SuuntoBuddyWriter(
           repository: ref.watch(buddyRepositoryProvider),
+        ),
+        journalWriter: SuuntoJournalWriter(
+          centers: ref.watch(diveCenterRepositoryProvider),
+          dives: diveRepo,
+          species: ref.watch(speciesRepositoryProvider),
         ),
         ref: ref,
       ),

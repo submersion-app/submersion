@@ -48,16 +48,16 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();
 
-    // v293 backstop: trip_checklist_sections, trip_checklist_items.section_id
+    // v296 backstop: trip_checklist_sections, trip_checklist_items.section_id
     // and the category backfill+drop (idempotent; issue #3360).
     await _assertAndBackfillTripChecklistSections();
 
-    // v294 backstop: checklist_template_sections,
+    // v297 backstop: checklist_template_sections,
     // checklist_template_items.section_id and the category backfill+drop
     // (idempotent; issue #3360).
     await _assertAndBackfillChecklistTemplateSections();
 
-    // v295 backstop: pre_dive_checklist_template_sections,
+    // v298 backstop: pre_dive_checklist_template_sections,
     // pre_dive_checklist_template_items.section_id and the section
     // backfill+drop (idempotent; issue #3360). NOT called here: unlike the
     // other three table groups, pre_dive_checklist_templates/items can be
@@ -70,7 +70,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // reference. Called from before_open.dart instead, right after
     // _seedBuiltInPreDiveTemplates.
 
-    // v296 backstop: pre_dive_session_sections,
+    // v299 backstop: pre_dive_session_sections,
     // pre_dive_session_items.section_id and the section backfill+drop
     // (idempotent; issue #3360).
     await _assertAndBackfillPreDiveSessionSections();

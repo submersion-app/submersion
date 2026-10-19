@@ -4152,6 +4152,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicionar Certificação';
 
   @override
+  String get certifications_list_groupBy => 'Agrupar por';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Certificadora';
+
+  @override
+  String get certifications_list_groupBy_none => 'Nenhum';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Expirada';
 
   @override
@@ -4254,6 +4266,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_share_title => 'Compartilhar Certificação';
 
   @override
+  String get certifications_sortSheet_view_list => 'Lista';
+
+  @override
+  String get certifications_sortSheet_view_wallet =>
+      'Carteira de Certificações';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Selecione uma certificação da lista para ver detalhes';
 
@@ -4312,6 +4331,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Compartilhar certificação';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Ordenar';
 
   @override
   String get checklists_section_title => 'Lista de Verificação';
@@ -5117,7 +5139,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições > Dados > Ferramentas de dados.';
+      'Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Configurações > Dados > Ferramentas de dados.';
 
   @override
   String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';
@@ -20818,6 +20840,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Apenas ícones, mesmo quando os rótulos caberiam';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Estado inicial da barra lateral; a seta ainda pode expandi-la ou recolhê-la durante esta sessão';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Arraste os itens para reordenar a barra lateral. O Início fica sempre no topo.';
 
@@ -21829,7 +21855,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_replaceHint =>
-      'Se, em vez disso, a biblioteca deste dispositivo deve substituir a que está na nuvem, cancele e use Definições > Dados > Sincronização entre dispositivos > Substituir biblioteca na nuvem.';
+      'Se, em vez disso, a biblioteca deste dispositivo deve substituir a que está na nuvem, cancele e use Configurações > Dados > Sincronização entre dispositivos > Substituir biblioteca na nuvem.';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
@@ -22614,6 +22640,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Serviço';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Nome';
 
   @override
   String get settings_conflict_field_connectionType => 'Conexão';
@@ -25501,8 +25530,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_data_sync_status_off => 'Apenas neste dispositivo';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Sincronizado $when, por enquanto só este dispositivo';
+  String settings_data_sync_status_synced(String when) {
+    return 'Sincronizado $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Mantido em dia pelo serviço de sincronização da sua pasta';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Backup $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'Configurar $feature';
   }
 
   @override
@@ -27097,7 +27140,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_body =>
-      'Isso exclui permanentemente todos os dados DESTE dispositivo, incluindo mergulhos, pontos, equipamentos e configurações. Um backup é criado automaticamente antes da redefinição.\n\nA sua biblioteca na nuvem não é excluída e os outros dispositivos mantêm os seus dados. A sincronização na nuvem será desconectada para que a redefinição não seja desfeita; pode reconectá-la em Definições > Dados > Sincronização entre dispositivos.';
+      'Isso exclui permanentemente todos os dados DESTE dispositivo, incluindo mergulhos, pontos, equipamentos e configurações. Um backup é criado automaticamente antes da redefinição.\n\nA sua biblioteca na nuvem não é excluída e os outros dispositivos mantêm os seus dados. A sincronização na nuvem será desconectada para que a redefinição não seja desfeita; pode reconectá-la em Configurações > Dados > Sincronização entre dispositivos.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'Excluir';
@@ -27120,7 +27163,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_storage_resetComplete_description =>
-      'Os dados deste dispositivo foram apagados e um backup foi salvo. A sincronização na nuvem está agora desconectada para que a redefinição não seja desfeita; pode reconectá-la em Definições > Dados > Sincronização entre dispositivos. Toque em continuar para recarregar o app.';
+      'Os dados deste dispositivo foram apagados e um backup foi salvo. A sincronização na nuvem está agora desconectada para que a redefinição não seja desfeita; pode reconectá-la em Configurações > Dados > Sincronização entre dispositivos. Toque em continuar para recarregar o app.';
 
   @override
   String get settings_summary_activeDiver => 'Mergulhador Ativo';
@@ -36902,6 +36945,20 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Remover da biblioteca';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Mudar o nome';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Mudar o nome da conta';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Nome';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Deixe vazio para usar $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle => 'Remover conta?';
@@ -48887,7 +48944,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String startup_recovery_useDefault_body(Object folder) {
-    return 'A partir de agora, o Submersion abre o registo de mergulho na sua própria pasta, ou cria lá um vazio se não existir nenhum. Nada em $folder é movido ou eliminado. Para voltar a usar essa pasta, escolha-a nas Definições, em Armazenamento do Banco de Dados.';
+    return 'A partir de agora, o Submersion abre o registo de mergulho na sua própria pasta, ou cria lá um vazio se não existir nenhum. Nada em $folder é movido ou eliminado. Para voltar a usar essa pasta, escolha-a nas Configurações, em Armazenamento do Banco de Dados.';
   }
 
   @override
@@ -51183,14 +51240,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'O ficheiro que está agora no seu lugar é guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Definições > Dados > Backups.';
+      'O ficheiro que está agora no seu lugar é guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Configurações > Dados > Backups.';
 
   @override
   String get startup_interruptedRestore_keepAction => 'Manter o que está agora';
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'O seu diário de mergulho anterior fica guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Definições > Dados > Backups.';
+      'O seu diário de mergulho anterior fica guardado, não eliminado. Pode restaurá-lo ou eliminá-lo mais tarde em Configurações > Dados > Backups.';
 
   @override
   String get startup_interruptedRestore_failed =>

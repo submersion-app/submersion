@@ -435,7 +435,7 @@ void main() {
 
       testWidgets('reflects a stored on value', (tester) async {
         final repo = FakeAppSettingsRepository();
-        await repo.setNavAlwaysHideLabels(true);
+        await repo.setNavAlwaysHideLabelsPhone(true);
         await pumpPage(tester, repo: repo);
 
         final tile = tester.widget<SwitchListTile>(
@@ -452,7 +452,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(await repo.getNavAlwaysHideLabels(), isTrue);
+        expect(await repo.getNavAlwaysHideLabelsPhone(), isTrue);
         final tile = tester.widget<SwitchListTile>(
           find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
         );
@@ -494,6 +494,85 @@ void main() {
         );
         // The rest of the page is unaffected by the failed read.
         expect(find.byKey(const ValueKey('navScopeSegments')), findsOneWidget);
+      });
+
+      group('phone and desktop are independent (#3222)', () {
+        testWidgets('each tab shows its own stored value', (tester) async {
+          final repo = FakeAppSettingsRepository();
+          await repo.setNavAlwaysHideLabelsPhone(true);
+          await repo.setNavAlwaysHideLabelsDesktop(false);
+          await pumpPage(tester, repo: repo);
+
+          expect(
+            tester
+                .widget<SwitchListTile>(
+                  find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+                )
+                .value,
+            isTrue,
+          );
+
+          await tester.tap(find.text('Desktop'));
+          await tester.pumpAndSettle();
+
+          expect(
+            tester
+                .widget<SwitchListTile>(
+                  find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+                )
+                .value,
+            isFalse,
+          );
+        });
+
+        testWidgets('toggling on the phone tab leaves desktop untouched', (
+          tester,
+        ) async {
+          final repo = await pumpPage(tester);
+
+          await tester.tap(
+            find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+          );
+          await tester.pumpAndSettle();
+
+          expect(await repo.getNavAlwaysHideLabelsPhone(), isTrue);
+          expect(await repo.getNavAlwaysHideLabelsDesktop(), isFalse);
+        });
+
+        testWidgets('toggling on the desktop tab leaves phone untouched', (
+          tester,
+        ) async {
+          final repo = await pumpPage(tester, wide: true);
+
+          await tester.tap(
+            find.byKey(const ValueKey('navAlwaysHideLabelsSwitch')),
+          );
+          await tester.pumpAndSettle();
+
+          expect(await repo.getNavAlwaysHideLabelsDesktop(), isTrue);
+          expect(await repo.getNavAlwaysHideLabelsPhone(), isFalse);
+        });
+
+        testWidgets('the subtitle differs between phone and desktop', (
+          tester,
+        ) async {
+          await pumpPage(tester);
+          expect(
+            find.text('Icons only, even where labels would normally fit'),
+            findsOneWidget,
+          );
+
+          await tester.tap(find.text('Desktop'));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.text(
+              'Starting state of the sidebar; the collapse arrow can still '
+              'expand or collapse it for this session',
+            ),
+            findsOneWidget,
+          );
+        });
       });
     });
 
@@ -753,11 +832,15 @@ class _WriteFailsRepo extends FakeAppSettingsRepository {
       throw StateError('write failed');
 }
 
-/// Fake whose always-hide-labels write always fails, so the switch's error
-/// path runs.
+/// Fake whose always-hide-labels writes always fail, so the switch's error
+/// path runs on either tab.
 class _AlwaysHideLabelsWriteFailsRepo extends FakeAppSettingsRepository {
   @override
-  Future<void> setNavAlwaysHideLabels(bool value) async =>
+  Future<void> setNavAlwaysHideLabelsPhone(bool value) async =>
+      throw StateError('write failed');
+
+  @override
+  Future<void> setNavAlwaysHideLabelsDesktop(bool value) async =>
       throw StateError('write failed');
 }
 

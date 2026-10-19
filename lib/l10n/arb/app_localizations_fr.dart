@@ -4164,6 +4164,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter une certification';
 
   @override
+  String get certifications_list_groupBy => 'Grouper par';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Organisme';
+
+  @override
+  String get certifications_list_groupBy_none => 'Aucun';
+
+  @override
+  String get certifications_list_groupBy_status => 'Statut';
+
+  @override
   String get certifications_list_section_expired => 'Expirée';
 
   @override
@@ -4267,6 +4279,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_share_title => 'Partager la certification';
 
   @override
+  String get certifications_sortSheet_view_list => 'Liste';
+
+  @override
+  String get certifications_sortSheet_view_wallet =>
+      'Portefeuille de certifications';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Sélectionnez une certification dans la liste pour voir les détails';
 
@@ -4326,6 +4345,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Partager la certification';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Trier';
 
   @override
   String get checklists_section_title => 'Liste de contrôle';
@@ -20876,6 +20898,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Icônes uniquement, même si les libellés auraient de la place';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'État initial de la barre latérale ; la flèche peut toujours la développer ou la réduire pour cette session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Faites glisser les éléments pour réorganiser la barre latérale. Accueil reste toujours en haut.';
 
@@ -22683,6 +22709,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Service';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Nom';
 
   @override
   String get settings_conflict_field_connectionType => 'Connexion';
@@ -25581,8 +25610,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_data_sync_status_off => 'Sur cet appareil seulement';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Synchronisé $when, cet appareil seulement pour l\'instant';
+  String settings_data_sync_status_synced(String when) {
+    return 'Synchronisé $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Tenu à jour par le service de synchronisation de votre dossier';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Sauvegardé $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'Configurer $feature';
   }
 
   @override
@@ -37021,6 +37064,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Retirer de la bibliothèque';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Renommer';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Renommer le compte';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Nom';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Laissez vide pour utiliser $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>

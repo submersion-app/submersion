@@ -2,6 +2,7 @@
 // derived from the same inputs as the health strip, by pure functions.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 
@@ -13,130 +14,93 @@ FeatureHealth _h(
 }) => FeatureHealth(feature: feature, level: level, reason: reason, when: when);
 
 void main() {
+  // Issue #3482 review: Lightroom alone reads healthy, but the row says no
+  // copies are kept; a healthy mark beside that would contradict it.
+  test('only a photos-off status hides the health mark', () {
+    expect(
+      const DataRowStatus(DataRowStatusKind.photosOff).showsHealthMark,
+      isFalse,
+    );
+    expect(
+      const DataRowStatus(DataRowStatusKind.photosOn).showsHealthMark,
+      isTrue,
+    );
+    expect(
+      const DataRowStatus(DataRowStatusKind.backupsLocal).showsHealthMark,
+      isTrue,
+    );
+  });
+
   final at = DateTime(2026, 10, 18, 9);
 
   group('backupsRowStatus', () {
     FeatureHealth backup(HealthLevel level, HealthReason reason) =>
         _h(DataFeature.backup, level, reason, when: at);
+    final healthy = backup(HealthLevel.healthy, HealthReason.ok);
+
+    DataRowStatus row({
+      FeatureHealth? health,
+      DateTime? lastBackup,
+      LastBackupDestination? destination,
+      String? label = 'Google Drive',
+    }) => backupsRowStatus(
+      health: health ?? healthy,
+      lastBackup: lastBackup,
+      destination: destination,
+      cloudAccountLabel: label,
+    );
 
     test('a failed scheduled backup wins over everything', () {
-      final s = backupsRowStatus(
+      final s = row(
         health: backup(HealthLevel.failing, HealthReason.backupFailed),
         lastBackup: at,
-        cloudCopyOn: true,
-        cloudAccountLabel: 'Google Drive',
-        customFolder: true,
-        cloudCopyMissing: false,
+        destination: LastBackupDestination.cloud,
       );
       expect((s.kind, s.when), (DataRowStatusKind.backupsFailed, at));
     });
 
     test('no backup yet', () {
-      final s = backupsRowStatus(
-        health: backup(HealthLevel.attention, HealthReason.backupNever),
-        lastBackup: null,
-        cloudCopyOn: false,
-        cloudAccountLabel: null,
-        customFolder: false,
-        cloudCopyMissing: false,
-      );
-      expect(s.kind, DataRowStatusKind.backupsNever);
+      expect(row().kind, DataRowStatusKind.backupsNever);
     });
 
-    test('a cloud copy names the account', () {
-      final s = backupsRowStatus(
-        health: backup(HealthLevel.healthy, HealthReason.ok),
-        lastBackup: at,
-        cloudCopyOn: true,
-        cloudAccountLabel: 'Google Drive',
-        customFolder: false,
-        cloudCopyMissing: false,
-      );
+    // Issue #3482 review: the row says where the LAST backup went, not where
+    // the current settings would send the next one.
+    test('a backup that reached the cloud names the account', () {
+      final s = row(lastBackup: at, destination: LastBackupDestination.cloud);
       expect(
         (s.kind, s.when, s.name),
         (DataRowStatusKind.backupsCloud, at, 'Google Drive'),
       );
     });
 
-    test('a cloud copy that did not upload does not claim a copy', () {
-      final s = backupsRowStatus(
-        health: backup(
-          HealthLevel.attention,
-          HealthReason.backupCloudCopyMissing,
-        ),
-        lastBackup: at,
-        cloudCopyOn: true,
-        cloudAccountLabel: 'Google Drive',
-        customFolder: false,
-        cloudCopyMissing: true,
-      );
-      expect(s.kind, DataRowStatusKind.backupsLocal);
-    });
-
-    // The health evaluator stops at the first gate, so a missing cloud copy
-    // hides behind "automatic backups off" and behind "overdue"; the row
-    // must read the flag itself, not the winning reason.
-    for (final reason in [
-      HealthReason.backupAutoOff,
-      HealthReason.backupOverdue,
-    ]) {
-      test('a missing cloud copy is not claimed behind $reason', () {
-        final s = backupsRowStatus(
-          health: backup(HealthLevel.attention, reason),
-          lastBackup: at,
-          cloudCopyOn: true,
-          cloudAccountLabel: 'Google Drive',
-          customFolder: false,
-          cloudCopyMissing: true,
-        );
-        expect(s.kind, DataRowStatusKind.backupsLocal);
-      });
-    }
-
-    test('a custom folder counts as a copy', () {
-      final s = backupsRowStatus(
-        health: backup(HealthLevel.healthy, HealthReason.ok),
-        lastBackup: at,
-        cloudCopyOn: false,
-        cloudAccountLabel: null,
-        customFolder: true,
-        cloudCopyMissing: false,
-      );
+    test('a backup written to the chosen folder says so', () {
+      final s = row(lastBackup: at, destination: LastBackupDestination.folder);
       expect((s.kind, s.when), (DataRowStatusKind.backupsFolder, at));
     });
 
-    test('otherwise the backup is on this device only', () {
-      final s = backupsRowStatus(
-        health: backup(
-          HealthLevel.attention,
-          HealthReason.backupNoOffDeviceCopy,
-        ),
-        lastBackup: at,
-        cloudCopyOn: false,
-        cloudAccountLabel: null,
-        customFolder: false,
-        cloudCopyMissing: false,
-      );
+    test('a backup that stayed on the device says so', () {
+      final s = row(lastBackup: at, destination: LastBackupDestination.device);
       expect((s.kind, s.when), (DataRowStatusKind.backupsLocal, at));
     });
 
+    test('an exported file or an unknown destination claims no place', () {
+      for (final destination in [LastBackupDestination.file, null]) {
+        final s = row(lastBackup: at, destination: destination);
+        expect(
+          (s.kind, s.when),
+          (DataRowStatusKind.backupsPlain, at),
+          reason: '$destination',
+        );
+      }
+    });
+
     test('set up is offered only while automatic backups are off', () {
-      final off = backupsRowStatus(
+      final off = row(
         health: backup(HealthLevel.attention, HealthReason.backupAutoOff),
         lastBackup: at,
-        cloudCopyOn: false,
-        cloudAccountLabel: null,
-        customFolder: false,
-        cloudCopyMissing: false,
+        destination: LastBackupDestination.device,
       );
-      final on = backupsRowStatus(
-        health: backup(HealthLevel.healthy, HealthReason.ok),
-        lastBackup: at,
-        cloudCopyOn: false,
-        cloudAccountLabel: null,
-        customFolder: false,
-        cloudCopyMissing: false,
-      );
+      final on = row(lastBackup: at, destination: LastBackupDestination.device);
       expect((off.offersSetUp, on.offersSetUp), (true, false));
     });
   });
@@ -171,11 +135,21 @@ void main() {
       expect((s.kind, s.offersSetUp), (DataRowStatusKind.syncOff, true));
     });
 
-    test('custom folder reads off and offers no set up', () {
+    test('a synced custom folder credits the folder service', () {
       final s = syncRowStatus(
         health: sync(HealthLevel.notSetUp, HealthReason.syncCustomFolder),
         lastSync: at,
-        peerNames: const ['Eric\'s iPhone'],
+        peerNames: const [],
+      );
+      expect((s.kind, s.offersSetUp), (DataRowStatusKind.syncFolder, false));
+    });
+
+    test('custom folder on a device-only volume reads off', () {
+      final s = syncRowStatus(
+        health: sync(HealthLevel.notSetUp, HealthReason.syncCustomFolder),
+        lastSync: at,
+        peerNames: const [],
+        customFolderIsDeviceOnly: true,
       );
       expect((s.kind, s.offersSetUp), (DataRowStatusKind.syncOff, false));
     });
@@ -205,7 +179,7 @@ void main() {
         lastSync: at,
         peerNames: const ['Eric\'s iPhone', 'Dive Laptop', 'iPad'],
       );
-      expect((alone.kind, alone.when), (DataRowStatusKind.syncAlone, at));
+      expect((alone.kind, alone.when), (DataRowStatusKind.syncSynced, at));
       expect(
         (one.kind, one.when, one.name),
         (DataRowStatusKind.syncWithOne, at, 'Eric\'s iPhone'),
@@ -222,7 +196,7 @@ void main() {
         lastSync: at,
         peerNames: const ['', ' '],
       );
-      expect(s.kind, DataRowStatusKind.syncAlone);
+      expect(s.kind, DataRowStatusKind.syncSynced);
     });
 
     test(
@@ -382,12 +356,5 @@ void main() {
         (DataRowStatusKind.accountsListed, 'Google Drive, nas.home'),
       );
     });
-  });
-
-  test('statuses are value objects', () {
-    expect(
-      const DataRowStatus(DataRowStatusKind.accountsNone),
-      const DataRowStatus(DataRowStatusKind.accountsNone),
-    );
   });
 }

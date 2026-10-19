@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_api_exception.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_journal.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
@@ -589,7 +590,7 @@ void main() {
             startTime: DateTime.utc(2026, 5, 1, 10),
             activityId: 78,
             notes: 'Turtle at the mooring',
-            buddies: ['Buddy 1', 'Buddy 2'],
+            journal: const SuuntoJournal(buddies: ['Buddy 1', 'Buddy 2']),
           ),
         ],
         smlByKey: {'w1': _diveJson()},
@@ -610,7 +611,7 @@ void main() {
 
       expect(fetched!.single.notes, 'Turtle at the mooring');
       // Issue #3266: the people logged on the workout, never in the export.
-      expect(fetched!.single.buddies, ['Buddy 1', 'Buddy 2']);
+      expect(fetched!.single.journal.buddies, ['Buddy 1', 'Buddy 2']);
     });
 
     testWidgets('skips a single unreadable dive rather than aborting', (

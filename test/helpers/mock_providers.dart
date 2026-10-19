@@ -806,7 +806,7 @@ Future<List<Override>> getBaseOverrides({
   DataFacts dataFacts = DataFacts.empty,
   DateTime? lastSync,
   List<String> syncPeerNames = const [],
-  String? syncAccountLabel,
+  String? backupCloudAccountLabel,
   String? attachedStoreHint,
   bool? mediaStoreAttachedHere = false,
   List<String> accountLabels = const [],
@@ -860,12 +860,14 @@ Future<List<Override>> getBaseOverrides({
     // attached store, the account roster and the joined libraries; stub
     // their leaf inputs so pages under test never reach a database.
     syncPeerNamesProvider.overrideWithValue(syncPeerNames),
-    syncAccountLabelProvider.overrideWith((ref) async => syncAccountLabel),
+    lastBackupCloudAccountLabelProvider.overrideWith(
+      (ref) async => backupCloudAccountLabel,
+    ),
     attachedStoreHintProvider.overrideWith((ref) async => attachedStoreHint),
     mediaStoreAttachedHereProvider.overrideWithValue(mediaStoreAttachedHere),
-    accountsSummaryProvider.overrideWith(
-      (ref) async => (labels: accountLabels, needSignIn: accountsNeedingSignIn),
-    ),
+    accountLabelsProvider.overrideWith((ref) async => accountLabels),
+    accountSignInsNeededProvider.overrideWithValue(accountsNeedingSignIn),
+    libraryHealthSettledProvider.overrideWithValue(true),
     sharedLibrarySummaryProvider.overrideWithValue((
       count: sharedLibraryCount,
       lastSync: sharedLibraryLastSync,

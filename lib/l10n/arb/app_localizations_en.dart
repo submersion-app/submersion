@@ -4092,6 +4092,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_list_fab_addCertification => 'Add Certification';
 
   @override
+  String get certifications_list_groupBy => 'Group by';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Agency';
+
+  @override
+  String get certifications_list_groupBy_none => 'None';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Expired';
 
   @override
@@ -4192,6 +4204,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_share_title => 'Share Certification';
 
   @override
+  String get certifications_sortSheet_view_list => 'List';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Certification Wallet';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Select a certification from the list to view details';
 
@@ -4249,6 +4267,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Share certification';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Sort';
 
   @override
   String get checklists_section_title => 'Checklist';
@@ -20510,6 +20531,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Icons only, even where labels would normally fit';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Drag items to reorder the sidebar. Home always stays at the top.';
 
@@ -22270,6 +22295,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Service';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Name';
 
   @override
   String get settings_conflict_field_connectionType => 'Connection';
@@ -25075,8 +25103,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_sync_status_off => 'Only on this device';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return 'Synced $when, only this device so far';
+  String settings_data_sync_status_synced(String when) {
+    return 'Synced $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'Kept in step by your folder\'s sync service';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Backed up $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return 'Set up $feature';
   }
 
   @override
@@ -36290,6 +36332,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Remove from library';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Rename';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Rename account';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Name';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Leave empty to use $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle => 'Remove account?';

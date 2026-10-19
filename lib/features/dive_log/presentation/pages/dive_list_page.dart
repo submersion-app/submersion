@@ -653,8 +653,13 @@ class DiveListTile extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final profileCache = ref.watch(batchProfileCacheProvider);
-    final profile = profileCache[diveId] ?? const [];
+    // This dive's entry only: every page load writes the cache once, and
+    // watching the whole map re-rendered every card on screen for it (#3506).
+    // The merge keeps existing entries' lists, so an unchanged entry selects
+    // the identical list and the card stays put.
+    final profile =
+        ref.watch(batchProfileCacheProvider.select((cache) => cache[diveId])) ??
+        const [];
 
     // Check if attribute-colored cards are enabled
     final colorAttribute = ref.watch(cardColorAttributeProvider);

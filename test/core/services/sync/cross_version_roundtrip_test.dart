@@ -726,7 +726,7 @@ void main() {
   // table group locks that in; see docs/design/plans/2026-10-18-checklist-
   // sections-plan.md's migration-safety section for the full reasoning.
 
-  group('pre-v293 peer editing a trip checklist item (checklist sections)', () {
+  group('pre-v296 peer editing a trip checklist item (checklist sections)', () {
     late FakeCloudStorageProvider cloud;
 
     setUp(() async {
@@ -782,7 +782,7 @@ void main() {
         ..['hlc'] = Hlc(
           Hlc.parse(row['hlc'] as String).physicalTime + 60000,
           0,
-          'peer-pre293',
+          'peer-pre296',
         ).toString()
         ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
 
@@ -790,14 +790,14 @@ void main() {
       final payload = SyncPayload(
         version: syncFormatVersion,
         exportedAt: 9000,
-        deviceId: 'peer-pre293',
+        deviceId: 'peer-pre296',
         checksum: sha256
             .convert(utf8.encode(jsonEncode(data.toJson())))
             .toString(),
         data: data,
         deletions: const {},
       );
-      await seedPeerBaseFromPayload(cloud, 'peer-pre293', payload);
+      await seedPeerBaseFromPayload(cloud, 'peer-pre296', payload);
       final result = await buildService().performSync();
       expect(result.status, isNot(SyncResultStatus.error));
 
@@ -815,7 +815,7 @@ void main() {
   });
 
   group(
-    'pre-v294 peer editing a checklist template item (checklist sections)',
+    'pre-v297 peer editing a checklist template item (checklist sections)',
     () {
       late FakeCloudStorageProvider cloud;
 
@@ -872,7 +872,7 @@ void main() {
           ..['hlc'] = Hlc(
             Hlc.parse(row['hlc'] as String).physicalTime + 60000,
             0,
-            'peer-pre294',
+            'peer-pre297',
           ).toString()
           ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
 
@@ -880,14 +880,14 @@ void main() {
         final payload = SyncPayload(
           version: syncFormatVersion,
           exportedAt: 9000,
-          deviceId: 'peer-pre294',
+          deviceId: 'peer-pre297',
           checksum: sha256
               .convert(utf8.encode(jsonEncode(data.toJson())))
               .toString(),
           data: data,
           deletions: const {},
         );
-        await seedPeerBaseFromPayload(cloud, 'peer-pre294', payload);
+        await seedPeerBaseFromPayload(cloud, 'peer-pre297', payload);
         final result = await buildService().performSync();
         expect(result.status, isNot(SyncResultStatus.error));
 
@@ -902,7 +902,7 @@ void main() {
   );
 
   group(
-    'pre-v295 peer editing a pre-dive template item (checklist sections)',
+    'pre-v298 peer editing a pre-dive template item (checklist sections)',
     () {
       late FakeCloudStorageProvider cloud;
 
@@ -959,7 +959,7 @@ void main() {
           ..['hlc'] = Hlc(
             Hlc.parse(row['hlc'] as String).physicalTime + 60000,
             0,
-            'peer-pre295',
+            'peer-pre298',
           ).toString()
           ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
 
@@ -967,14 +967,14 @@ void main() {
         final payload = SyncPayload(
           version: syncFormatVersion,
           exportedAt: 9000,
-          deviceId: 'peer-pre295',
+          deviceId: 'peer-pre298',
           checksum: sha256
               .convert(utf8.encode(jsonEncode(data.toJson())))
               .toString(),
           data: data,
           deletions: const {},
         );
-        await seedPeerBaseFromPayload(cloud, 'peer-pre295', payload);
+        await seedPeerBaseFromPayload(cloud, 'peer-pre298', payload);
         final result = await buildService().performSync();
         expect(result.status, isNot(SyncResultStatus.error));
 
@@ -989,7 +989,7 @@ void main() {
   );
 
   group(
-    'pre-v296 peer editing a pre-dive session item (checklist sections)',
+    'pre-v299 peer editing a pre-dive session item (checklist sections)',
     () {
       late FakeCloudStorageProvider cloud;
 
@@ -1063,7 +1063,7 @@ void main() {
           ..['hlc'] = Hlc(
             Hlc.parse(row['hlc'] as String).physicalTime + 60000,
             0,
-            'peer-pre296',
+            'peer-pre299',
           ).toString()
           ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
 
@@ -1071,14 +1071,14 @@ void main() {
         final payload = SyncPayload(
           version: syncFormatVersion,
           exportedAt: 9000,
-          deviceId: 'peer-pre296',
+          deviceId: 'peer-pre299',
           checksum: sha256
               .convert(utf8.encode(jsonEncode(data.toJson())))
               .toString(),
           data: data,
           deletions: const {},
         );
-        await seedPeerBaseFromPayload(cloud, 'peer-pre296', payload);
+        await seedPeerBaseFromPayload(cloud, 'peer-pre299', payload);
         final result = await buildService().performSync();
         expect(result.status, isNot(SyncResultStatus.error));
 

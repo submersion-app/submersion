@@ -39,6 +39,9 @@ String dataRowStatusText(
     DataRowStatusKind.backupsFolder => l10n.settings_data_backups_status_folder(
       ago(),
     ),
+    DataRowStatusKind.backupsPlain => l10n.settings_data_backups_status_plain(
+      ago(),
+    ),
     // After a colon, like the strip's line, so the standalone form.
     DataRowStatusKind.backupsFailed => l10n.dataHealth_backup_failed(
       status.when == null
@@ -47,7 +50,10 @@ String dataRowStatusText(
     ),
     DataRowStatusKind.syncOff => l10n.settings_data_sync_status_off,
     DataRowStatusKind.syncNever => l10n.dataHealth_sync_neverSynced,
-    DataRowStatusKind.syncAlone => l10n.settings_data_sync_status_alone(ago()),
+    DataRowStatusKind.syncSynced => l10n.settings_data_sync_status_synced(
+      ago(),
+    ),
+    DataRowStatusKind.syncFolder => l10n.settings_data_sync_status_folder,
     DataRowStatusKind.syncWithOne => l10n.settings_data_sync_status_one(
       name,
       ago(),
@@ -77,5 +83,7 @@ String dataRowStatusText(
     ),
     DataRowStatusKind.accountsNeedSignIn =>
       l10n.settings_data_accounts_status_needSignIn(count),
+    DataRowStatusKind.accountsUnavailable =>
+      l10n.settings_connectedAccounts_loadError,
   };
 }

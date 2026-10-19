@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_journal.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -19,7 +20,7 @@ SuuntoParsedDive _parsed(List<String> buddies) => SuuntoParsedDive(
   ),
   deviceName: 'Suunto Nautic',
   serialNumber: 'NS-1',
-  buddies: buddies,
+  journal: SuuntoJournal(buddies: buddies),
 );
 
 /// Issue #3266: the people logged on a Suunto workout become the dive's
