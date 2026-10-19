@@ -78,7 +78,9 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       title: title,
       subtitle: dataRowStatusText(l10n, status, now),
       route: route,
-      health: healthOf == null ? null : health[healthOf],
+      health: healthOf == null || !status.showsHealthMark
+          ? null
+          : health[healthOf],
       offersSetUp: status.offersSetUp,
     );
 

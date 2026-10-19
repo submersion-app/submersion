@@ -2032,6 +2032,7 @@ final syncInitializerProvider = Provider<SyncInitializer>((ref) {
     syncRepository: ref.watch(syncRepositoryProvider),
     prefs: prefs,
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
+    peerNames: ref.watch(peerDeviceNameStoreProvider),
   );
 });
 

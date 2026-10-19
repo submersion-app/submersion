@@ -112,4 +112,25 @@ void main() {
     expect(find.byIcon(Icons.chevron_right), findsOneWidget);
     expect(find.text('Set up'), findsNothing);
   });
+
+  testWidgets('the Set up action names its feature for screen readers', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pumpTile(
+      tester,
+      const DataRowTile(
+        icon: Icons.sync,
+        title: 'Sync between devices',
+        subtitle: 'Only on this device',
+        route: '/feature',
+        offersSetUp: true,
+      ),
+    );
+    expect(
+      find.bySemanticsLabel('Set up Sync between devices'),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
 }

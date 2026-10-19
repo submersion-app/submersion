@@ -68,9 +68,22 @@ void main() {
       text(const DataRowStatus(DataRowStatusKind.syncNever)),
       'Not synced yet',
     );
+    // No peer names known: say when it synced, never that it is alone.
     expect(
-      text(DataRowStatus(DataRowStatusKind.syncAlone, when: when)),
-      'Synced 12m ago, only this device so far',
+      text(DataRowStatus(DataRowStatusKind.syncSynced, when: when)),
+      'Synced 12m ago',
+    );
+    expect(
+      text(const DataRowStatus(DataRowStatusKind.syncFolder)),
+      "Kept in step by your folder's sync service",
+    );
+    expect(
+      text(DataRowStatus(DataRowStatusKind.backupsPlain, when: when)),
+      'Backed up 12m ago',
+    );
+    expect(
+      text(const DataRowStatus(DataRowStatusKind.accountsUnavailable)),
+      'Could not load accounts',
     );
     expect(
       text(

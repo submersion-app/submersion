@@ -3932,6 +3932,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_fab_addCertification => '添加证书';
 
   @override
+  String get certifications_list_groupBy => '分组方式';
+
+  @override
+  String get certifications_list_groupBy_agency => '机构';
+
+  @override
+  String get certifications_list_groupBy_none => '无';
+
+  @override
+  String get certifications_list_groupBy_status => '状态';
+
+  @override
   String get certifications_list_section_expired => '已过期';
 
   @override
@@ -4026,6 +4038,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_share_title => '分享证书';
 
   @override
+  String get certifications_sortSheet_view_list => '列表';
+
+  @override
+  String get certifications_sortSheet_view_wallet => '证书卡包';
+
+  @override
   String get certifications_summary_header_subtitle => '从列表中选择证书以查看详情';
 
   @override
@@ -4081,6 +4099,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => '分享证书';
+
+  @override
+  String get certifications_wallet_tooltip_sort => '排序';
 
   @override
   String get checklists_section_title => '清单';
@@ -19769,6 +19790,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '仅显示图标,即使有空间显示标签';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      '侧边栏的初始状态,该箭头仍可在本次会话中将其展开或折叠。';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       '拖动项目以重新排列侧边栏。主页始终位于顶部。';
 
@@ -21434,6 +21459,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => '服务';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => '名称';
 
   @override
   String get settings_conflict_field_connectionType => '连接';
@@ -24041,17 +24069,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_data_backups_status_local(String when) {
-    return '已于$when备份，仅在此设备上';
+    return '$when备份，仅在此设备上';
   }
 
   @override
   String settings_data_backups_status_cloud(String when, String account) {
-    return '已于$when备份，副本在$account';
+    return '$when备份，副本在$account';
   }
 
   @override
   String settings_data_backups_status_cloudUnknown(String when) {
-    return '已于$when备份，副本在云端';
+    return '$when备份，副本在云端';
   }
 
   @override
@@ -24067,15 +24095,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_data_backups_status_folder(String when) {
-    return '已于$when备份，副本在您的备份文件夹中';
+    return '$when备份，副本在您的备份文件夹中';
   }
 
   @override
   String get settings_data_sync_status_off => '仅在此设备上';
 
   @override
-  String settings_data_sync_status_alone(String when) {
-    return '已于$when同步，目前仅此设备';
+  String settings_data_sync_status_synced(String when) {
+    return '$when同步';
+  }
+
+  @override
+  String get settings_data_sync_status_folder => '由您文件夹的同步服务保持同步';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return '$when备份';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '设置$feature';
   }
 
   @override
@@ -34733,6 +34774,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_removeFromLibrary => '从库中移除';
+
+  @override
+  String get settings_connectedAccounts_rename => '重命名';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => '重命名账户';
+
+  @override
+  String get settings_connectedAccounts_renameField => '名称';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return '留空则使用 $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle => '移除账户？';

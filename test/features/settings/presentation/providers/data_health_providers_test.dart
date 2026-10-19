@@ -198,6 +198,21 @@ void main() {
         4,
       );
     });
+
+    test('a dismissed sign-in does not count against photos', () {
+      expect(
+        countMediaSetupItems([
+          const PendingSetupItem(
+            kind: SetupItemKind.accountSignIn,
+            key: 'account_1',
+            label: 'x',
+            route: '/settings/media-storage',
+            dismissed: true,
+          ),
+        ]),
+        0,
+      );
+    });
   });
 
   group('mediaHealthInputsProvider', () {

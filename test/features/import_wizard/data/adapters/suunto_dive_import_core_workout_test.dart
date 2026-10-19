@@ -1,12 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_journal.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_buddy_writer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/suunto_journal_writer.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -25,6 +28,21 @@ class _RecordingBuddyWriter implements SuuntoBuddyWriter {
     SuuntoParsedDive parsed,
     String diverId,
   ) async {
+    attached.add((diveId, parsed, diverId));
+  }
+}
+
+/// Records which dive each workout's journal was written onto (issue #3491).
+class _RecordingJournalWriter implements SuuntoJournalWriter {
+  final attached = <(String, SuuntoParsedDive, String)>[];
+
+  @override
+  Future<void> attach(
+    String diveId,
+    SuuntoParsedDive parsed,
+    String diverId, {
+    required VisibilityScale scale,
+  }) async {
     attached.add((diveId, parsed, diverId));
   }
 }
@@ -49,7 +67,7 @@ SuuntoParsedDive _parsedWithBuddies() => SuuntoParsedDive(
   ),
   deviceName: 'Suunto Nautic',
   serialNumber: 'SN-1',
-  buddies: const ['Buddy 1', 'Buddy 2'],
+  journal: const SuuntoJournal(buddies: ['Buddy 1', 'Buddy 2']),
 );
 
 void main() {
@@ -58,6 +76,7 @@ void main() {
   late MockDiveRepository mockDiveRepo;
   late MockDiveConsolidationService mockConsolidationService;
   late _RecordingBuddyWriter recorder;
+  late _RecordingJournalWriter journalRecorder;
   late SuuntoCloudAdapter adapter;
   late SuuntoParsedDive parsed;
 
@@ -72,6 +91,7 @@ void main() {
         diverId: diverId,
         routeWriter: _NoRouteWriter(),
         buddyWriter: writer,
+        journalWriter: journalRecorder,
       );
 
   setUp(() {
@@ -80,6 +100,7 @@ void main() {
     mockDiveRepo = MockDiveRepository();
     mockConsolidationService = MockDiveConsolidationService();
     recorder = _RecordingBuddyWriter();
+    journalRecorder = _RecordingJournalWriter();
     adapter = buildAdapter(recorder);
     parsed = _parsedWithBuddies();
 
@@ -154,16 +175,18 @@ void main() {
         },
       );
 
-  test('a new dive gets the workout buddies', () async {
+  test('a new dive gets the workout buddies and journal', () async {
     await importWith(await plainBundle(adapter), null);
 
     expect(recorder.attached, [('new-dive-id', parsed, diverId)]);
+    expect(journalRecorder.attached, [('new-dive-id', parsed, diverId)]);
   });
 
   test('replace source brings them onto the matched dive', () async {
     await importWith(await bundleWithMatch(), DuplicateAction.replaceSource);
 
     expect(recorder.attached, [('existing-dive', parsed, diverId)]);
+    expect(journalRecorder.attached, [('existing-dive', parsed, diverId)]);
   });
 
   test('a folded consolidation brings them onto the target', () async {
@@ -174,6 +197,7 @@ void main() {
     await importWith(await bundleWithMatch(), DuplicateAction.consolidate);
 
     expect(recorder.attached, [('existing-dive', parsed, diverId)]);
+    expect(journalRecorder.attached, [('existing-dive', parsed, diverId)]);
   });
 
   test('a dive kept standalone gets them on itself', () async {
@@ -190,12 +214,14 @@ void main() {
     await importWith(await bundleWithMatch(), DuplicateAction.consolidate);
 
     expect(recorder.attached, [('new-dive-id', parsed, diverId)]);
+    expect(journalRecorder.attached, [('new-dive-id', parsed, diverId)]);
   });
 
   test('a skipped duplicate is left untouched', () async {
     await importWith(await bundleWithMatch(), DuplicateAction.skip);
 
     expect(recorder.attached, isEmpty);
+    expect(journalRecorder.attached, isEmpty);
   });
 
   test('a same-computer consolidation is left untouched', () async {
@@ -206,5 +232,6 @@ void main() {
     await importWith(await bundleWithMatch(), DuplicateAction.consolidate);
 
     expect(recorder.attached, isEmpty);
+    expect(journalRecorder.attached, isEmpty);
   });
 }

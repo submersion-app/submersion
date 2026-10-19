@@ -36,6 +36,7 @@ import 'package:submersion/features/backup/data/services/backup_database_adapter
 import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
@@ -181,11 +182,16 @@ class BackupService {
       _preferences,
       saf: _safPort,
     );
+    // Read right after resolving, so a dead folder grant the resolver just
+    // reset counts as the default, and a folder change during the write
+    // cannot relabel the copy this target receives.
+    final toChosenFolder = _preferences.getSettings().backupLocation != null;
     try {
       return await _performBackupInto(
         lease.target,
         isAutomatic: isAutomatic,
         note: isAutomatic ? null : normalizeBackupNote(note),
+        toChosenFolder: toChosenFolder,
       );
     } finally {
       await lease.release();
@@ -195,6 +201,7 @@ class BackupService {
   Future<BackupRecord> _performBackupInto(
     BackupTarget target, {
     required bool isAutomatic,
+    required bool toChosenFolder,
     String? note,
   }) async {
     final filename = await _generateFilename();
@@ -259,7 +266,11 @@ class BackupService {
     var location = BackupLocation.local;
 
     final settings = _preferences.getSettings();
+    // The account the provider uploads through, read before the upload: a
+    // switch while it runs must not be recorded as this copy's account.
+    String? uploadAccountId;
     if (settings.cloudBackupEnabled && _cloudProvider != null) {
+      uploadAccountId = await _syncAccountIdOrNull();
       try {
         cloudFileId = await _uploadToCloud(ref, storedName);
         // Only a real file id means a cloud copy exists: the upload also
@@ -304,6 +315,14 @@ class BackupService {
     // get. Every backup overwrites it, so one that uploads clears it.
     await _preferences.setLastCloudCopyMissing(
       settings.cloudBackupEnabled && location == BackupLocation.local,
+    );
+    await _preferences.setLastBackupDestination(
+      location == BackupLocation.both
+          ? LastBackupDestination.cloud
+          : toChosenFolder
+          ? LastBackupDestination.folder
+          : LastBackupDestination.device,
+      cloudAccountId: location == BackupLocation.both ? uploadAccountId : null,
     );
 
     // Prune old backups
@@ -375,6 +394,7 @@ class BackupService {
 
     await _preferences.addRecord(record);
     await _preferences.setLastBackupTime(record.timestamp);
+    await _preferences.setLastBackupDestination(LastBackupDestination.file);
 
     _log.info('Export completed: $filename');
     return record;
@@ -1544,6 +1564,21 @@ class BackupService {
   // ===========================================================================
   // Private Helpers
   // ===========================================================================
+
+  /// The connected account driving sync, or null when it cannot be read: a
+  /// missing name only makes Settings > Data say "the cloud".
+  Future<String?> _syncAccountIdOrNull() async {
+    try {
+      return await _syncRepository.getSyncAccountId();
+    } catch (e, stack) {
+      _log.warning(
+        'Could not read the sync account for the backup record',
+        error: e,
+        stackTrace: stack,
+      );
+      return null;
+    }
+  }
 
   /// Names a new backup, tagging it with the device that wrote it.
   ///

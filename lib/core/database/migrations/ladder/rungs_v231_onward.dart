@@ -414,5 +414,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 292) await reportProgress();
+    // v294: clears certifications.photo_front / photo_back wherever the
+    // v277 copy put the card in the documents store (issue #3502). Data
+    // step, rung only. 293 is claimed by the accounts work (#3482).
+    if (from < 294) {
+      await _clearCopiedCardPhotoColumns();
+    }
+    if (from < 294) await reportProgress();
+    // v295: connected_accounts.nickname (issue #3522). Column only, written
+    // when the diver renames an account; re-asserted in beforeOpen through
+    // _assertConnectedAccountsSchema.
+    if (from < 295) {
+      await _assertConnectedAccountsSchema();
+    }
+    if (from < 295) await reportProgress();
   }
 }

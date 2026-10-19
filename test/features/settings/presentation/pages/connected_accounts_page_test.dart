@@ -14,11 +14,13 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -249,6 +251,35 @@ void main() {
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(dropbox.disconnected, [account.id]);
+  });
+
+  // Issue #3482 review: a sign-out touches only the keychain, so nothing in
+  // the database ticks; the Settings > Data rows under this pushed page read
+  // the setup items and would keep calling the account signed in.
+  testWidgets('signing out refreshes the setup items', (tester) async {
+    await addDropbox(tester);
+    var builds = 0;
+    await pumpPage(
+      tester,
+      overrides: [
+        pendingSetupItemsProvider.overrideWith((ref) async {
+          builds++;
+          return const <PendingSetupItem>[];
+        }),
+      ],
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ConnectedAccountsPage)),
+    );
+    final sub = container.listen(pendingSetupItemsProvider, (_, _) {});
+    addTearDown(sub.close);
+    await settle(tester);
+    final before = builds;
+
+    await openMenu(tester, 'Sign out on this device');
+    await settle(tester);
+
+    expect(builds, greaterThan(before));
   });
 
   testWidgets('signing out a used account names its features first', (

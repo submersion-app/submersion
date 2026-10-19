@@ -278,8 +278,14 @@ class DistributionPieChart extends StatelessWidget {
                           : '${segment.count}',
                       color: color,
                       radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
+                      // White on a dark slice, near-black on a light one:
+                      // white alone is unreadable on a pale colour.
+                      titleStyle: TextStyle(
+                        color:
+                            ThemeData.estimateBrightnessForColor(color) ==
+                                Brightness.dark
+                            ? Colors.white
+                            : Colors.black87,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),

@@ -48,10 +48,10 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
         .toList();
     if (uncached.isNotEmpty) {
       final profiles = await repository.getBatchProfileSummaries(uncached);
-      ref.read(batchProfileCacheProvider.notifier).state = {
-        ...cache,
-        ...profiles,
-      };
+      mergeIntoBatchProfileCache(
+        ref.read(batchProfileCacheProvider.notifier),
+        profiles,
+      );
     }
   }
 

@@ -28,6 +28,9 @@ class BackupPreferences {
       'backup_last_scheduled_failure_message';
   static const String _lastCloudCopyMissingKey =
       'backup_last_cloud_copy_missing';
+  static const String _lastBackupDestinationKey = 'backup_last_destination';
+  static const String _lastBackupCloudAccountIdKey =
+      'backup_last_cloud_account_id';
 
   final SharedPreferences _prefs;
 
@@ -58,6 +61,9 @@ class BackupPreferences {
         _lastScheduledFailureMessageKey,
       ),
       lastCloudCopyMissing: _prefs.getBool(_lastCloudCopyMissingKey) ?? false,
+      lastBackupDestination: LastBackupDestination.values
+          .asNameMap()[_prefs.getString(_lastBackupDestinationKey)],
+      lastBackupCloudAccountId: _prefs.getString(_lastBackupCloudAccountIdKey),
     );
   }
 
@@ -93,6 +99,21 @@ class BackupPreferences {
   /// Whether the most recent backup's requested cloud copy is missing.
   Future<void> setLastCloudCopyMissing(bool value) async {
     await _prefs.setBool(_lastCloudCopyMissingKey, value);
+  }
+
+  /// Where the most recent backup went (Settings > Data, #3482), and for a
+  /// cloud copy the sync account it went to. Any other destination drops the
+  /// account, so an old cloud account is never named for a local backup.
+  Future<void> setLastBackupDestination(
+    LastBackupDestination value, {
+    String? cloudAccountId,
+  }) async {
+    await _prefs.setString(_lastBackupDestinationKey, value.name);
+    if (value == LastBackupDestination.cloud && cloudAccountId != null) {
+      await _prefs.setString(_lastBackupCloudAccountIdKey, cloudAccountId);
+    } else {
+      await _prefs.remove(_lastBackupCloudAccountIdKey);
+    }
   }
 
   Future<void> setCloudBackupEnabled(bool value) async {
