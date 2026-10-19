@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/site_suggestion_actions.dart';
@@ -91,21 +93,36 @@ class SiteSuggestionCard extends ConsumerWidget {
       recommendedDistanceMeters: recommended?.distanceMeters,
       onAssign: recommended == null
           ? null
-          : () => _run(context, ref, (l10n) async {
-              await actions.assign(recommended.id);
-              // The candidate id is NOT necessarily the id the dive ends up
-              // with: a bundled candidate materialises a new row, and the
-              // coincidence guard can link an existing site nearby instead.
-              // Re-read the dive so the form gets the real, fully hydrated
-              // site rather than a partial entity built from the candidate.
-              final linked = await actions.linkedSite();
-              return (
-                linked,
-                l10n.siteSuggestion_assignedSnack(
-                  linked?.name ?? recommended.name,
-                ),
-              );
-            }),
+          : () async {
+              var createdIds = const <String>[];
+              await _run(context, ref, (l10n) async {
+                final applied = await actions.assign(recommended.id);
+                createdIds = applied.createdSiteIds;
+                // The candidate id is NOT necessarily the id the dive ends up
+                // with: a bundled candidate materialises a new row, and the
+                // coincidence guard can link an existing site nearby instead.
+                // Re-read the dive so the form gets the real, fully hydrated
+                // site rather than a partial entity built from the candidate.
+                final linked = await actions.linkedSite();
+                return (
+                  linked,
+                  l10n.siteSuggestion_assignedSnack(
+                    linked?.name ?? recommended.name,
+                  ),
+                );
+              });
+              // A bundled candidate materialises a site the diver chose:
+              // created by hand for the logbook rules (#3513), run once the
+              // assignment has been reported.
+              if (createdIds.isNotEmpty && context.mounted) {
+                await runRulesAfterCreate(
+                  context,
+                  ref,
+                  subject: RuleSubject.sites,
+                  ids: createdIds,
+                );
+              }
+            },
       onChooseNearby: () => context.push('/dives/match-sites', extra: [diveId]),
       onCreate: () => _create(context, ref, actions, suggestion),
       onAddLocation: !hasSite
@@ -142,10 +159,23 @@ class SiteSuggestionCard extends ConsumerWidget {
       longitude: suggestion.point.longitude,
     );
     if (draft == null || !context.mounted) return;
+    String? createdId;
     await _run(context, ref, (l10n) async {
       final created = await actions.create(draft);
+      createdId = created.id;
       return (created, l10n.diveLog_edit_createdSite(created.name));
     });
+    // Logbook rules for the site created by hand (#3513), after the
+    // creation was reported.
+    final id = createdId;
+    if (id != null && context.mounted) {
+      await runRulesAfterCreate(
+        context,
+        ref,
+        subject: RuleSubject.sites,
+        ids: [id],
+      );
+    }
   }
 
   /// Runs a write, then refreshes what depends on it and reports the result:

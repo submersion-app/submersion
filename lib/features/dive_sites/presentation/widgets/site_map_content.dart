@@ -4,6 +4,8 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -593,14 +595,19 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
   }
 
   Future<void> _addBuiltInSite(ExternalDiveSite site) async {
+    final String addedId;
     try {
-      await ref
-          .read(siteListNotifierProvider.notifier)
-          .addSite(
-            site.toDiveSite(),
-            // Its bundled features as site types (issue #1765).
-            classification: SiteClassification(typeIds: site.siteTypeIds),
-          );
+      addedId =
+          (await ref
+                  .read(siteListNotifierProvider.notifier)
+                  .addSite(
+                    site.toDiveSite(),
+                    // Its bundled features as site types (issue #1765).
+                    classification: SiteClassification(
+                      typeIds: site.siteTypeIds,
+                    ),
+                  ))
+              .id;
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -618,6 +625,13 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     setState(() => _selectedBuiltInId = null);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
+    );
+    // Adding a built-in site is creating a site by hand (#3513).
+    await runRulesAfterCreate(
+      context,
+      ref,
+      subject: RuleSubject.sites,
+      ids: [addedId],
     );
   }
 

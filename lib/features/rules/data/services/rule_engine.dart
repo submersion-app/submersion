@@ -52,6 +52,12 @@ class RuleEngine {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// This device's name, asked of the platform once and only when a run
+  /// records history (a hand-saved dive with no rule changes asks nothing).
+  Future<String?>? _deviceName;
+
+  Future<String?> _device() => _deviceName ??= _deviceLabel();
+
   /// What [request] would change, without changing anything.
   Future<RuleRunResult> preview(RuleRunRequest request) async {
     try {
@@ -66,7 +72,6 @@ class RuleEngine {
   /// Applies [request] and records it in the history when it changed
   /// something.
   Future<RuleRunResult> run(RuleRunRequest request) async {
-    final device = await _deviceLabel();
     final result = await _db.transaction(() async {
       final pass = await _pass(request);
       if (!pass.changedAnything) return pass;
@@ -74,7 +79,7 @@ class RuleEngine {
         diverId: request.diverId,
         trigger: request.trigger,
         sourceLabel: request.sourceLabel,
-        deviceLabel: device,
+        deviceLabel: await _device(),
         changes: pass.changes,
       );
       return RuleRunResult(

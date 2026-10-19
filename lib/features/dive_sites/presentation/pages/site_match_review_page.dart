@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
@@ -41,6 +43,14 @@ class SiteMatchReviewPage extends ConsumerWidget {
           ),
         ),
       );
+      // Sites the diver confirmed into being are created by hand (#3513).
+      await runRulesAfterCreate(
+        context,
+        ref,
+        subject: RuleSubject.sites,
+        ids: result.createdSiteIds,
+      );
+      if (!context.mounted) return;
       Navigator.of(context).pop();
     }
 
@@ -89,6 +99,15 @@ class SiteMatchReviewPage extends ConsumerWidget {
           ),
         ),
       );
+      // Logbook rules for the site created by hand (#3513).
+      if (created != null) {
+        await runRulesAfterCreate(
+          context,
+          ref,
+          subject: RuleSubject.sites,
+          ids: [created.id],
+        );
+      }
     }
 
     return Scaffold(

@@ -3,6 +3,8 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb, setEquals;
 import 'package:flutter/material.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -2136,6 +2138,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         await speciesNotifier.setSpecies(currentIds.toList());
         ref.invalidate(siteExpectedSpeciesProvider(savedId));
         ref.invalidate(siteSpottedSpeciesProvider(savedId));
+      }
+
+      // Logbook rules for a site created by hand (#3513), once its types,
+      // tags and species are saved. Edits and merges never run them.
+      if (mounted && !widget.isEditing && !widget.isMerging) {
+        await runRulesAfterCreate(
+          context,
+          ref,
+          subject: RuleSubject.sites,
+          ids: [savedId],
+        );
       }
 
       ref.invalidate(sitesWithCountsProvider);

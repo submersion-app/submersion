@@ -53773,6 +53773,24 @@ class AppLocalizationsEs extends AppLocalizations {
       'Dives imported, but your rules could not run.';
 
   @override
+  String rules_create_changedDive(String rules) {
+    return 'Rules changed this dive: $rules';
+  }
+
+  @override
+  String rules_create_changedSite(String rules) {
+    return 'Rules changed this site: $rules';
+  }
+
+  @override
+  String rules_create_changedSites(String rules) {
+    return 'Rules changed these sites: $rules';
+  }
+
+  @override
+  String get rules_create_details => 'Details';
+
+  @override
   String get settings_manage_savedQueries => 'Consultas guardadas';
 
   @override

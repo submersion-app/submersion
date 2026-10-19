@@ -85304,6 +85304,30 @@ abstract class AppLocalizations {
   /// **'Dives imported, but your rules could not run.'**
   String get rules_import_failed;
 
+  /// Snackbar after rules changed a dive logged by hand
+  ///
+  /// In en, this message translates to:
+  /// **'Rules changed this dive: {rules}'**
+  String rules_create_changedDive(String rules);
+
+  /// Snackbar after rules changed a site created by hand
+  ///
+  /// In en, this message translates to:
+  /// **'Rules changed this site: {rules}'**
+  String rules_create_changedSite(String rules);
+
+  /// Snackbar after rules changed several sites created by hand
+  ///
+  /// In en, this message translates to:
+  /// **'Rules changed these sites: {rules}'**
+  String rules_create_changedSites(String rules);
+
+  /// Snackbar action that opens what the rules changed
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get rules_create_details;
+
   /// Settings > Manage entry
   ///
   /// In en, this message translates to:

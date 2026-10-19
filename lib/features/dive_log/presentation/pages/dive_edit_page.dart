@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -6348,6 +6350,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Save using the notifier
       final notifier = ref.read(paginatedDiveListProvider.notifier);
       String? savedDiveId;
+      // A plan the diver just turned into a dive counts as logged by hand
+      // for the logbook rules (#3513).
+      final promotedPlan =
+          widget.isEditing &&
+          (_existingDive?.isPlanned ?? false) &&
+          !_isPlanned;
       if (widget.isEditing) {
         await notifier.updateDive(dive);
         savedDiveId = widget.diveId;
@@ -6543,6 +6551,22 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         scheduleQualityScan([savedDiveId]);
         scheduleSensorSummaryRefresh([savedDiveId]);
         scheduleDerivedMetricsRefresh([savedDiveId]);
+      }
+
+      // Logbook rules for a dive logged by hand (#3513): its first save, or
+      // a plan just turned into a dive, once its children are saved so the
+      // rules see the whole dive. Later edits never run them.
+      if (mounted &&
+          savedDiveId != null &&
+          !_isPlanned &&
+          !widget.isBulk &&
+          (!widget.isEditing || promotedPlan)) {
+        await runRulesAfterCreate(
+          context,
+          ref,
+          subject: RuleSubject.dives,
+          ids: [savedDiveId],
+        );
       }
 
       // Offer to log the dive for linked buddies (issue #2002). Runs before

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -68,6 +70,13 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             },
           ),
         ),
+      );
+      // Importing a site from the search is creating it by hand (#3513).
+      await runRulesAfterCreate(
+        context,
+        ref,
+        subject: RuleSubject.sites,
+        ids: [importedSite.id],
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

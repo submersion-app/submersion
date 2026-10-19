@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -1753,6 +1755,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.diveLog_planned_markedLogged)),
+    );
+    // A plan marked as logged is a dive logged by hand for the logbook
+    // rules (#3513).
+    await runRulesAfterCreate(
+      context,
+      ref,
+      subject: RuleSubject.dives,
+      ids: [dive.id],
     );
   }
 

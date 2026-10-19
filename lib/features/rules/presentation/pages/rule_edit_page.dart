@@ -20,6 +20,7 @@ import 'package:submersion/features/rules/presentation/widgets/rule_action_picke
 import 'package:submersion/features/rules/presentation/widgets/rules_page_menus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 final _log = LoggerService.forClass(RuleEditPage);
 
@@ -108,10 +109,10 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
         ),
         actions: [
           if (!_readOnly)
-            TextButton(
+            AppBarTextAction(
               key: const ValueKey('rule_save'),
+              label: l10n.common_action_save,
               onPressed: _canSave ? _save : null,
-              child: Text(l10n.common_action_save),
             ),
         ],
       ),

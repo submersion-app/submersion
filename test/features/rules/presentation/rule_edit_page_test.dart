@@ -10,6 +10,7 @@ import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/pages/rule_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -124,7 +125,7 @@ void main() {
     await pumpEditor(tester);
     await tester.enterText(find.byKey(const ValueKey('rule_name')), 'Empty');
     await tester.pump();
-    final button = tester.widget<TextButton>(
+    final button = tester.widget<AppBarTextAction>(
       find.byKey(const ValueKey('rule_save')),
     );
     expect(button.onPressed, isNull);

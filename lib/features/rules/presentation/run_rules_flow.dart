@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -117,5 +118,58 @@ Future<bool> runRulesOnDemand(
     _log.error('Failed to run rules', error: e, stackTrace: st);
     if (context.mounted) showRulesError(context);
     return false;
+  }
+}
+
+/// Runs the diver's "after creating by hand" rules on a dive or site just
+/// saved for the first time (#3513). Silent when nothing changes; otherwise
+/// a snackbar names the rules, with Details opening the run (undo lives
+/// there). Never blocks the save: a failure is logged and reported.
+Future<void> runRulesAfterCreate(
+  BuildContext context,
+  WidgetRef ref, {
+  required RuleSubject subject,
+  required List<String> ids,
+}) async {
+  if (ids.isEmpty) return;
+  final l = context.l10n;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final router = GoRouter.maybeOf(context);
+  // Read before the first await: the saving page may be gone by then.
+  final engine = ref.read(ruleEngineProvider);
+  final diverIdFuture = ref.read(validatedCurrentDiverIdProvider.future);
+  try {
+    final diverId = await diverIdFuture;
+    if (diverId == null) return;
+    final result = await engine.run(
+      RuleRunRequest(
+        diverId: diverId,
+        trigger: RuleRunTrigger.createdByHand,
+        targets: {subject: ids.toSet()},
+      ),
+    );
+    if (!result.changedAnything) return;
+    final rules = result.changedCountByRule.keys.join(', ');
+    final runId = result.runId!;
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(
+          subject == RuleSubject.dives
+              ? l.rules_create_changedDive(rules)
+              : ids.length == 1
+              ? l.rules_create_changedSite(rules)
+              : l.rules_create_changedSites(rules),
+        ),
+        action: router == null
+            ? null
+            : SnackBarAction(
+                label: l.rules_create_details,
+                onPressed: () => router.push('/rules/history/$runId'),
+              ),
+      ),
+    );
+  } catch (e, st) {
+    _log.error('Rules could not run after a save', error: e, stackTrace: st);
+    messenger?.showSnackBar(SnackBar(content: Text(l.common_error_tryAgain)));
   }
 }
