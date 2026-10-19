@@ -7,6 +7,7 @@ import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_confirm_dialog.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/accou
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -64,6 +66,9 @@ class _Details extends ConsumerWidget {
         group.kind != AccountKind.adobeLightroom &&
         group.status != AccountStatus.unavailable;
     final usages = group.usages;
+    final isSyncAccount = usages.any(
+      (u) => u.kind == AccountUsageKind.databaseSync,
+    );
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
@@ -98,7 +103,17 @@ class _Details extends ConsumerWidget {
           OwnServerForm(
             key: ValueKey(group.key),
             existing: group,
-            onSaved: (_) => _refresh(context),
+            // The sync account's folder stays editable, as on today's S3
+            // and WebDAV settings pages; a new folder is a new row, and
+            // sync follows it there.
+            showSyncFolder: isSyncAccount,
+            onSaved: (row) async {
+              if (isSyncAccount &&
+                  row.id != group.rowFor(AccountRole.sync)?.id) {
+                await switchSyncToRow(context, ref, row);
+              }
+              if (context.mounted) _refresh(context);
+            },
           ),
           _Header(l10n.settings_accounts_folders),
           for (final row in group.rows)

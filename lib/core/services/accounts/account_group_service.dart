@@ -228,6 +228,13 @@ class AccountGroupService {
     return null;
   }
 
+  /// The S3 config this device holds for the row [rowId], or null.
+  Future<S3Config?> storedS3ForRow(String rowId) => _storedS3(rowId);
+
+  /// The WebDAV config this device holds for the row [rowId], or null.
+  Future<WebDavConfig?> storedWebDavForRow(String rowId) =>
+      _storedWebDav(rowId);
+
   AccountProviderAdapter? _adapterFor(ConnectedAccount row) =>
       _registry.capabilityFor<AccountProviderAdapter>(row.kind);
 

@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
-import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -27,7 +26,7 @@ import 'package:submersion/features/settings/presentation/widgets/read_failed_pe
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/skipped_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
-import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
@@ -35,46 +34,8 @@ import 'package:submersion/features/settings/presentation/widgets/webdav_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Localized connection-failure message for a cloud provider. For iCloud the
-/// wording reflects the real [iCloudAvailability] state; other providers (and a
-/// genuinely-available iCloud that still failed) get the generic message.
-///
-/// Pure (no `BuildContext`/`ref`) so it is unit-testable on any host.
-@visibleForTesting
-String connectionErrorMessage(
-  AppLocalizations l10n,
-  CloudProviderType provider,
-  ICloudAvailability? iCloudAvailability,
-  String providerName,
-  String error,
-) {
-  if (provider == CloudProviderType.icloud) {
-    switch (iCloudAvailability) {
-      case ICloudAvailability.unsupported:
-        return l10n.settings_cloudSync_error_icloudUnsupported;
-      case ICloudAvailability.signedOut:
-        return l10n.settings_cloudSync_error_icloudSignedOut;
-      case ICloudAvailability.unknown:
-      case null:
-        return l10n.settings_cloudSync_error_icloudUnknown;
-      case ICloudAvailability.available:
-        break; // genuine failure despite availability — use the generic message
-    }
-  }
-  return l10n.settings_cloudSync_provider_connectionFailed(providerName, error);
-}
-
-/// Snackbar-safe text for a connection failure.
-///
-/// [CloudStorageException.displayMessage] exists for this: its `toString`
-/// prefixes the class name, which reached users as "Google Drive connection
-/// failed: CloudStorageException: ...". The cause is kept either way, since
-/// that is where the actionable detail lives.
-///
-/// Pure (no `BuildContext`/`ref`) so it is unit-testable on any host.
-@visibleForTesting
-String errorDisplayText(Object error) =>
-    error is CloudStorageException ? error.displayMessage : error.toString();
+export 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart'
+    show connectionErrorMessage, errorDisplayText;
 
 class CloudSyncPage extends ConsumerStatefulWidget {
   const CloudSyncPage({super.key});
@@ -552,7 +513,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
         WebDavProviderTile(
           isSelected: selectedProvider == CloudProviderType.webdav,
           onSelect: () =>
-              _selectProvider(context, ref, CloudProviderType.webdav),
+              selectProvider(context, ref, CloudProviderType.webdav),
           onEdit: () =>
               context.pushSettingsPage('/settings/cloud-sync/webdav-config'),
         ),
@@ -597,7 +558,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
             : null,
         enabled: isAvailable,
         onTap: isAvailable
-            ? () => _selectProvider(context, ref, provider)
+            ? () => selectProvider(context, ref, provider)
             : null,
       ),
     );
@@ -636,7 +597,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
             : null,
         enabled: isAvailable,
         onTap: isAvailable
-            ? () => _selectProvider(context, ref, CloudProviderType.googledrive)
+            ? () => selectProvider(context, ref, CloudProviderType.googledrive)
             : null,
       ),
     );
@@ -681,7 +642,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
         ),
         onTap: () {
           if (isConfigured) {
-            _selectProvider(context, ref, CloudProviderType.s3);
+            selectProvider(context, ref, CloudProviderType.s3);
           } else {
             context.pushSettingsPage('/settings/cloud-sync/s3-config');
           }
@@ -729,7 +690,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
         ),
         onTap: () async {
           if (isConnected) {
-            await _selectProvider(context, ref, CloudProviderType.dropbox);
+            await selectProvider(context, ref, CloudProviderType.dropbox);
             return;
           }
           final connected = await showDialog<bool>(
@@ -741,7 +702,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
           if (!context.mounted) return;
           ref.invalidate(dropboxAuthDataProvider);
           if (connected == true) {
-            await _selectProvider(context, ref, CloudProviderType.dropbox);
+            await selectProvider(context, ref, CloudProviderType.dropbox);
             // Guard: the tile may be disposed while _selectProvider is in
             // flight; using ref after disposal throws.
             if (!context.mounted) return;
@@ -822,187 +783,6 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
     await provider.signOut();
     if (!context.mounted) return;
     ref.invalidate(dropboxAuthDataProvider);
-  }
-
-  Future<void> _selectProvider(
-    BuildContext context,
-    WidgetRef ref,
-    CloudProviderType provider,
-  ) async {
-    // Switching AWAY from a backend this device has synced with is a
-    // consequential, easy-to-misunderstand action (data is not migrated, peers
-    // do not follow automatically, the next sync combines with whatever lives
-    // on the new backend). Confirm first, and record the departure so the old
-    // backend is marked moved-from and armed for cleanup.
-    final current = ref.read(selectedCloudProviderTypeProvider);
-    final currentProvider = ref.read(cloudStorageProviderProvider);
-    final hasHistory = ref.read(syncStateProvider).lastSync != null;
-    if (current != null &&
-        current != provider &&
-        currentProvider != null &&
-        hasHistory) {
-      // Resolve the display name before the first await so context is not used
-      // across an async gap.
-      final toName = _providerDisplayName(context, provider);
-      final confirmed = await _confirmBackendSwitch(
-        context,
-        ref,
-        from: current,
-        to: provider,
-      );
-      if (confirmed != true) return;
-      await ref
-          .read(syncStateProvider.notifier)
-          .recordBackendDeparture(
-            oldProvider: currentProvider,
-            toProviderId: provider.name,
-            toProviderName: toName,
-          );
-      if (!context.mounted) return;
-    }
-
-    // Set the provider first so cloudStorageProviderProvider returns the correct instance
-    ref.read(selectedCloudProviderTypeProvider.notifier).state = provider;
-
-    // Get the cloud storage provider instance
-    final cloudProvider = ref.read(cloudStorageProviderProvider);
-    if (cloudProvider == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.l10n.settings_cloudSync_provider_initFailed(provider.name),
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    try {
-      // Authenticate with the provider
-      await authenticateWithBrowserWait(context, cloudProvider, provider);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.settings_cloudSync_provider_connectedTo(
-                cloudProvider.providerName,
-              ),
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-
-      // Persist the provider selection to SharedPreferences
-      await ref.read(syncInitializerProvider).saveProvider(provider);
-
-      // Refresh sync state after successful authentication
-      ref.read(syncStateProvider.notifier).refreshState();
-    } on CloudAuthCancelled {
-      // The user backed out of the browser sign-in deliberately. Clear the
-      // half-made selection, but do not dress a decision up as a failure.
-      ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
-    } catch (e) {
-      // Clear the provider selection on failure
-      ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _connectionErrorMessage(
-                context,
-                ref,
-                provider,
-                cloudProvider.providerName,
-                e,
-              ),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  /// Localized connection-failure message. For iCloud, the wording reflects
-  /// the real availability state instead of leaking the raw exception.
-  String _connectionErrorMessage(
-    BuildContext context,
-    WidgetRef ref,
-    CloudProviderType provider,
-    String providerName,
-    Object error,
-  ) {
-    final iCloudAvailability = provider == CloudProviderType.icloud
-        ? ref.read(iCloudAvailabilityProvider).valueOrNull
-        : null;
-    return connectionErrorMessage(
-      context.l10n,
-      provider,
-      iCloudAvailability,
-      providerName,
-      errorDisplayText(error),
-    );
-  }
-
-  /// Display name for a provider type, for dialogs and banners.
-  String _providerDisplayName(BuildContext context, CloudProviderType type) {
-    final l10n = context.l10n;
-    switch (type) {
-      case CloudProviderType.icloud:
-        return l10n.settings_cloudSync_provider_icloud;
-      case CloudProviderType.googledrive:
-        return l10n.settings_cloudSync_provider_googleDrive;
-      case CloudProviderType.s3:
-        return l10n.settings_cloudSync_provider_s3_title;
-      case CloudProviderType.dropbox:
-        return l10n.settings_cloudSync_provider_dropbox_title;
-      case CloudProviderType.webdav:
-        return l10n.settings_cloudSync_provider_webdav_title;
-    }
-  }
-
-  /// Map a stored providerId back to a display name (for the cleanup banner,
-  /// which only has the id of the old backend).
-  String _providerDisplayNameForId(BuildContext context, String providerId) {
-    final type = CloudProviderType.values
-        .where((t) => t.name == providerId)
-        .firstOrNull;
-    return type == null ? providerId : _providerDisplayName(context, type);
-  }
-
-  Future<bool?> _confirmBackendSwitch(
-    BuildContext context,
-    WidgetRef ref, {
-    required CloudProviderType from,
-    required CloudProviderType to,
-  }) {
-    final l10n = context.l10n;
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.settings_cloudSync_switch_dialogTitle),
-        content: Text(
-          l10n.settings_cloudSync_switch_dialogContent(
-            _providerDisplayName(context, from),
-            _providerDisplayName(context, to),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.settings_cloudSync_switch_confirm),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildSyncActions(
@@ -1241,7 +1021,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
             children: [
               Text(
                 context.l10n.settings_cloudSync_cleanup_banner(
-                  _providerDisplayNameForId(context, oldProviderId),
+                  providerDisplayNameForId(context, oldProviderId),
                 ),
                 style: theme.textTheme.bodyMedium,
               ),

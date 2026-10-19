@@ -1,0 +1,316 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/core/data/repositories/sync_repository.dart'
+    show CloudProviderType;
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Localized connection-failure message for a cloud provider. For iCloud the
+/// wording reflects the real [iCloudAvailability] state; other providers (and a
+/// genuinely-available iCloud that still failed) get the generic message.
+///
+/// Pure (no `BuildContext`/`ref`) so it is unit-testable on any host.
+@visibleForTesting
+String connectionErrorMessage(
+  AppLocalizations l10n,
+  CloudProviderType provider,
+  ICloudAvailability? iCloudAvailability,
+  String providerName,
+  String error,
+) {
+  if (provider == CloudProviderType.icloud) {
+    switch (iCloudAvailability) {
+      case ICloudAvailability.unsupported:
+        return l10n.settings_cloudSync_error_icloudUnsupported;
+      case ICloudAvailability.signedOut:
+        return l10n.settings_cloudSync_error_icloudSignedOut;
+      case ICloudAvailability.unknown:
+      case null:
+        return l10n.settings_cloudSync_error_icloudUnknown;
+      case ICloudAvailability.available:
+        break; // genuine failure despite availability — use the generic message
+    }
+  }
+  return l10n.settings_cloudSync_provider_connectionFailed(providerName, error);
+}
+
+/// Snackbar-safe text for a connection failure.
+///
+/// [CloudStorageException.displayMessage] exists for this: its `toString`
+/// prefixes the class name, which reached users as "Google Drive connection
+/// failed: CloudStorageException: ...". The cause is kept either way, since
+/// that is where the actionable detail lives.
+///
+/// Pure (no `BuildContext`/`ref`) so it is unit-testable on any host.
+@visibleForTesting
+String errorDisplayText(Object error) =>
+    error is CloudStorageException ? error.displayMessage : error.toString();
+
+/// Display name for a provider type, for dialogs and banners.
+String providerDisplayName(BuildContext context, CloudProviderType type) {
+  final l10n = context.l10n;
+  return switch (type) {
+    CloudProviderType.icloud => l10n.settings_cloudSync_provider_icloud,
+    CloudProviderType.googledrive =>
+      l10n.settings_cloudSync_provider_googleDrive,
+    CloudProviderType.s3 => l10n.settings_cloudSync_provider_s3_title,
+    CloudProviderType.dropbox => l10n.settings_cloudSync_provider_dropbox_title,
+    CloudProviderType.webdav => l10n.settings_cloudSync_provider_webdav_title,
+  };
+}
+
+/// Maps a stored providerId back to a display name (for the cleanup banner,
+/// which only has the id of the old backend).
+String providerDisplayNameForId(BuildContext context, String providerId) {
+  final type = CloudProviderType.values
+      .where((t) => t.name == providerId)
+      .firstOrNull;
+  return type == null ? providerId : providerDisplayName(context, type);
+}
+
+Future<bool?> _confirmBackendSwitch(
+  BuildContext context, {
+  required CloudProviderType from,
+  required CloudProviderType to,
+}) {
+  final l10n = context.l10n;
+  return showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(l10n.settings_cloudSync_switch_dialogTitle),
+      content: Text(
+        l10n.settings_cloudSync_switch_dialogContent(
+          providerDisplayName(context, from),
+          providerDisplayName(context, to),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(l10n.settings_cloudSync_switch_confirm),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Points sync at [provider], authenticating it (today's provider tile tap).
+///
+/// Switching AWAY from a backend this device has synced with is a
+/// consequential, easy-to-misunderstand action (data is not migrated, peers
+/// do not follow automatically, the next sync combines with whatever lives
+/// on the new backend), so it is confirmed first and the departure recorded
+/// so the old backend is marked moved-from and armed for cleanup. With
+/// [confirmed] the caller has already done both (the account sheet asks
+/// inside itself), and neither happens here.
+Future<void> selectProvider(
+  BuildContext context,
+  WidgetRef ref,
+  CloudProviderType provider, {
+  bool confirmed = false,
+}) async {
+  final current = ref.read(selectedCloudProviderTypeProvider);
+  final currentProvider = ref.read(cloudStorageProviderProvider);
+  final hasHistory = ref.read(syncStateProvider).lastSync != null;
+  if (!confirmed &&
+      current != null &&
+      current != provider &&
+      currentProvider != null &&
+      hasHistory) {
+    // Resolved before the first await so context is not used across a gap.
+    final toName = providerDisplayName(context, provider);
+    final ok = await _confirmBackendSwitch(
+      context,
+      from: current,
+      to: provider,
+    );
+    if (ok != true) return;
+    await ref
+        .read(syncStateProvider.notifier)
+        .recordBackendDeparture(
+          oldProvider: currentProvider,
+          toProviderId: provider.name,
+          toProviderName: toName,
+        );
+    if (!context.mounted) return;
+  }
+
+  // Set the provider first so cloudStorageProviderProvider returns the
+  // correct instance.
+  ref.read(selectedCloudProviderTypeProvider.notifier).state = provider;
+  final cloudProvider = ref.read(cloudStorageProviderProvider);
+  if (cloudProvider == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          context.l10n.settings_cloudSync_provider_initFailed(provider.name),
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  try {
+    await authenticateWithBrowserWait(context, cloudProvider, provider);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.settings_cloudSync_provider_connectedTo(
+              cloudProvider.providerName,
+            ),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+    await ref.read(syncInitializerProvider).saveProvider(provider);
+    ref.read(syncStateProvider.notifier).refreshState();
+  } on CloudAuthCancelled {
+    // The user backed out of the browser sign-in deliberately. Clear the
+    // half-made selection, but do not dress a decision up as a failure.
+    ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
+  } catch (e) {
+    ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
+    if (context.mounted) {
+      final iCloudAvailability = provider == CloudProviderType.icloud
+          ? ref.read(iCloudAvailabilityProvider).value
+          : null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            connectionErrorMessage(
+              context.l10n,
+              provider,
+              iCloudAvailability,
+              cloudProvider.providerName,
+              errorDisplayText(e),
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+/// The account sync uses on this device, or null.
+AccountGroup? currentSyncGroup(List<AccountGroup> groups) => groups
+    .where((g) => g.usages.any((u) => u.kind == AccountUsageKind.databaseSync))
+    .firstOrNull;
+
+/// What choosing [choice] for sync will do, for the account sheet to show
+/// before it returns: today's "Switch sync backend?" text when this device
+/// has synced and [choice] is not the account sync already uses; null
+/// otherwise, so choosing the current account asks nothing.
+String? syncSwitchConsequence(
+  BuildContext context,
+  WidgetRef ref,
+  AccountGroup choice, {
+  AccountGroup? current,
+}) {
+  if (current == null || current.key == choice.key) return null;
+  if (ref.read(syncStateProvider).lastSync == null) return null;
+  return context.l10n.settings_cloudSync_switch_dialogContent(
+    current.label,
+    choice.label,
+  );
+}
+
+/// Points sync at [group], chosen from the account sheet (which has already
+/// shown [syncSwitchConsequence] when there was one). An own server without
+/// a sync-role row gets one first, on the server's credentials.
+Future<void> useAccountForSync(
+  BuildContext context,
+  WidgetRef ref,
+  AccountGroup group, {
+  AccountGroup? current,
+}) async {
+  final type = group.kind.cloudProviderType;
+  if (type == null) return;
+  if (current != null && current.key == group.key) return;
+  // Recorded before the switch, while the provider still names the old
+  // backend.
+  final oldProvider = ref.read(cloudStorageProviderProvider);
+  if (current != null &&
+      oldProvider != null &&
+      ref.read(syncStateProvider).lastSync != null) {
+    await ref
+        .read(syncStateProvider.notifier)
+        .recordBackendDeparture(
+          oldProvider: oldProvider,
+          toProviderId: type.name,
+          toProviderName: group.label,
+        );
+  }
+  if (!context.mounted) return;
+  if (group.isOwnServer) {
+    final row = await ref
+        .read(accountGroupServiceProvider)
+        .ensureRole(group, AccountRole.sync);
+    if (!context.mounted) return;
+    await switchSyncToRow(context, ref, row);
+    return;
+  }
+  await selectProvider(context, ref, type, confirmed: true);
+}
+
+/// Points sync at an own server's row [row]: its stored config becomes the
+/// sync settings (the legacy store sync still reads), then today's provider
+/// selection runs, as the S3 and WebDAV settings pages did on save.
+Future<void> switchSyncToRow(
+  BuildContext context,
+  WidgetRef ref,
+  ConnectedAccount row,
+) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  final service = ref.read(accountGroupServiceProvider);
+  switch (row.kind) {
+    case AccountKind.s3:
+      final config = await service.storedS3ForRow(row.id);
+      if (config == null) return;
+      await ref.read(s3StorageProviderInstanceProvider).saveConfig(config);
+      container.invalidate(s3ConfigProvider);
+    case AccountKind.webdav:
+      final config = await service.storedWebDavForRow(row.id);
+      if (config == null) return;
+      await ref.read(webdavStorageProviderInstanceProvider).saveConfig(config);
+      container.invalidate(webdavConfigProvider);
+    default:
+      return;
+  }
+  if (!context.mounted) return;
+  await selectProvider(
+    context,
+    ref,
+    row.kind.cloudProviderType!,
+    confirmed: true,
+  );
+  // Re-derive the sync account so its per-account credential mirror picks
+  // up the new config; editing while already on the kind does not re-fire
+  // the provider-type change.
+  container
+    ..invalidate(selectedSyncAccountProvider)
+    ..invalidate(connectedAccountUsageProvider)
+    ..invalidate(accountGroupsProvider)
+    ..invalidate(pendingSetupItemsProvider);
+  await container.read(selectedSyncAccountProvider.future);
+}
