@@ -90,7 +90,10 @@ class RuleUndoService {
     }
     final result = await _db.transaction(() async {
       final byTarget = <String, Set<_Outcome>>{};
-      for (final c in changes) {
+      // Newest first: a later rule's change to the same field or list sits
+      // on top of an earlier one's, so it must come off before the earlier
+      // change can find its own value still in place.
+      for (final c in changes.reversed) {
         final outcome = await _undoInSavepoint(c);
         byTarget
             .putIfAbsent('${c.subject.name}:${c.targetId}', () => {})
@@ -249,9 +252,14 @@ class RuleUndoService {
     final current = _items(
       (await _dives.members(collection, [c.targetId]))[c.targetId],
     );
+    // An added link comes off only while it is as the run left it: a buddy
+    // whose role the diver changed since stays.
     final removeNow = [
       for (final id in after.keys)
-        if (!before.containsKey(id) && current.containsKey(id)) id,
+        if (!before.containsKey(id) &&
+            current.containsKey(id) &&
+            current[id] == after[id])
+          id,
     ];
     final addBack = [
       for (final id in before.keys)

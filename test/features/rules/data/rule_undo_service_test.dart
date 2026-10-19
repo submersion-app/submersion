@@ -151,6 +151,45 @@ void main() {
     expect(result.skippedEditedTargets, 1);
   });
 
+  test('two rules appending to the same notes both undo', () async {
+    await rules.create(
+      diverId: 'me',
+      subject: RuleSubject.dives,
+      name: 'First',
+      triggers: const {RuleTrigger.afterImport},
+      condition: depthOver(30),
+      actions: const [AppendDiveNotesAction('A')],
+    );
+    final run = await runRule(const AppendDiveNotesAction('B'), name: 'Second');
+    expect(await column('d40', 'notes'), 'Wall\nA\nB');
+    final result = await undo.undo(run);
+    expect(await column('d40', 'notes'), 'Wall');
+    expect(await column('d35', 'notes'), '');
+    expect(result.skippedEditedTargets, 0);
+  });
+
+  test('a buddy whose role changed since is left alone', () async {
+    await db.customStatement(
+      "INSERT INTO buddies (id, name, created_at, updated_at) "
+      "VALUES ('ann', 'Ann', 0, 0)",
+    );
+    final run = await runRule(
+      const DiveMembershipAction(DiveCollection.buddies, MembershipMode.add, [
+        'ann',
+      ], buddyRoleId: 'instructor'),
+    );
+    await db.customStatement(
+      "UPDATE dive_buddies SET role = 'buddy' WHERE dive_id = 'd40'",
+    );
+    final result = await undo.undo(run);
+    final left = await db
+        .customSelect('SELECT dive_id FROM dive_buddies ORDER BY dive_id')
+        .get();
+    expect([for (final r in left) r.read<String>('dive_id')], ['d40']);
+    expect(result.restoredTargets, 1);
+    expect(result.skippedEditedTargets, 1);
+  });
+
   test('a deleted dive counts as skipped', () async {
     final run = await runRule(
       const SetDiveFieldAction(BulkField.waterType, {'waterType': 'salt'}),

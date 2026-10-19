@@ -93,6 +93,26 @@ void main() {
     expect(pushed, ['/rules/history/${run.runId}']);
   });
 
+  testWidgets('See changes on a multi-profile import opens the history', (
+    tester,
+  ) async {
+    const other = RuleRunResult(
+      runId: 'other-run',
+      changes: [],
+      changedTargetCount: 1,
+      changedCountByRule: {'Shallow': 1},
+      skippedRuleNames: [],
+      skippedActionRuleNames: [],
+      targetCount: 1,
+      outOfScopeCount: 0,
+      ruleCount: 1,
+    );
+    final pushed = await pump(tester, runs: [run, other]);
+    await tester.tap(find.text('See changes'));
+    await tester.pumpAndSettle();
+    expect(pushed, ['/rules/history']);
+  });
+
   testWidgets('Undo reverts the rules and keeps the dives', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Undo rule changes'));

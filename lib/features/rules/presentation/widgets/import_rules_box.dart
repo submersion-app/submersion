@@ -95,8 +95,13 @@ class _ImportRulesBoxState extends ConsumerState<ImportRulesBox> {
               runSpacing: 8,
               children: [
                 OutlinedButton(
-                  onPressed: () =>
-                      context.push('/rules/history/${widget.runs.first.runId}'),
+                  // One run opens its change list; a multi-profile import
+                  // made one run per profile, all listed in the history.
+                  onPressed: () => context.push(
+                    widget.runs.length == 1
+                        ? '/rules/history/${widget.runs.single.runId}'
+                        : '/rules/history',
+                  ),
                   child: Text(l.rules_import_seeChanges),
                 ),
                 if (!_undone)
