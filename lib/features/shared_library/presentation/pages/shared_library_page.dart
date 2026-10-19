@@ -51,6 +51,11 @@ class SharedLibraryPage extends ConsumerWidget {
         ref.watch(libraryRoleProvider(libraryId)).value ??
         SharedLibraryRole.reader;
     final membership = ref.watch(currentMembershipProvider(libraryId)).value;
+    final removedHere =
+        membership != null &&
+        (ref.watch(libraryRemovalsProvider(libraryId)).value ?? const []).any(
+          (r) => r.memberId == membership.memberId,
+        );
     final names = ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull;
     final pending =
         ref.watch(pendingIncomingSuggestionCountProvider(libraryId)).value ?? 0;
@@ -66,6 +71,11 @@ class SharedLibraryPage extends ConsumerWidget {
         children: [
           PendingResetBanner(library: library, names: names ?? const {}),
           LockedLibraryBanner(library: library, membership: membership),
+          if (removedHere)
+            _Banner(
+              icon: Icons.person_remove_outlined,
+              text: l10n.sharedLibrary_library_removedBanner,
+            ),
           if (library.readOnlyDetected)
             _Banner(
               icon: Icons.lock_outline,

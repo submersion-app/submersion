@@ -35,6 +35,11 @@ final _markerMismatchTickProvider = StreamProvider.autoDispose<int>((ref) {
 /// (autoDispose), so reopening Settings after a sync always reflects newly
 /// arrived descriptors and a mismatch found while it is open shows at once;
 /// dismiss actions invalidate explicitly for an immediate refresh.
+///
+/// Not retried: Riverpod retries a thrown Exception (a keychain
+/// PlatformException) for about 38 seconds, and every Settings > Data row
+/// that waits on these items would read "Checking..." all that time. The
+/// next tick or visit computes them again anyway.
 final pendingSetupItemsProvider =
     FutureProvider.autoDispose<List<PendingSetupItem>>((ref) async {
       ref.watch(_syncBusTickProvider);
@@ -44,7 +49,7 @@ final pendingSetupItemsProvider =
         registry: ref.watch(accountProviderRegistryProvider),
       );
       return service.compute();
-    });
+    }, retry: (_, _) => null);
 
 /// Dismissible "finish setting up this device" card, fed by the synced
 /// descriptors (store announcement, account roster). Renders nothing when
@@ -60,7 +65,12 @@ class PendingSetupCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(pendingSetupItemsProvider).value ?? const [];
+    final items = [
+      for (final item
+          in ref.watch(pendingSetupItemsProvider).value ??
+              const <PendingSetupItem>[])
+        if (!item.dismissed) item,
+    ];
     if (items.isEmpty) return const SizedBox.shrink();
 
     final l10n = context.l10n;

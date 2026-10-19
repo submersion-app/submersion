@@ -48,7 +48,8 @@ extension DocumentMigrations on AppDatabase {
   /// deterministic and the inserts are OR IGNORE, so a second device that
   /// upgrades the same library produces the same rows, and they merge.
   ///
-  /// The source columns are left as they are and never written again.
+  /// The source columns are left as they are; v294 clears the card photo
+  /// columns this copy made redundant ([_clearCopiedCardPhotoColumns]).
   ///
   /// Each row takes its source row's created/updated time, identical on
   /// every device, rather than this device's migration time: a peer's edit
@@ -175,6 +176,53 @@ extension DocumentMigrations on AppDatabase {
       }
     }
     await _requestRebaseIfDocumentsMigrated();
+  }
+
+  /// v294 data step (issue #3502): clears certifications.photo_front and
+  /// photo_back where the v277 copy is known to have run, which left every
+  /// card photo stored twice and nearly doubled a backup. Nothing has read
+  /// those columns since v277, and every peer that can apply this device's
+  /// payloads is past the sync floor, so past v277 too.
+  ///
+  /// The copy ran for a certification when its card document exists, or
+  /// when the deletion log shows the diver deleted that card since. Photos
+  /// v277 never copied (it skips a library with no diver) are the only copy
+  /// left, so they stay.
+  ///
+  /// Not a sync change: the columns no longer sync (deviceLocalSyncColumns),
+  /// so the rows keep their clocks.
+  Future<void> _clearCopiedCardPhotoColumns() async {
+    if (!await _tableExists('certifications')) return;
+    if (!await _tableExists('documents')) return;
+    final withPhotos = await customSelect(
+      'SELECT id FROM certifications '
+      'WHERE photo_front IS NOT NULL OR photo_back IS NOT NULL',
+    ).get();
+    if (withPhotos.isEmpty) return;
+    final cards = {
+      for (final r in await customSelect(
+        "SELECT id FROM documents WHERE type = 'certificationCard'",
+      ).get())
+        r.read<String>('id'),
+      if (await _tableExists('deletion_log'))
+        for (final r in await customSelect(
+          'SELECT record_id FROM deletion_log '
+          "WHERE entity_type = 'documents'",
+        ).get())
+          r.read<String>('record_id'),
+    };
+    final copied = [
+      for (final r in withPhotos)
+        if (cards.contains(documentCertificationCardId(r.read<String>('id'))))
+          r.read<String>('id'),
+    ];
+    for (final chunk in copied.slices(500)) {
+      await customStatement(
+        'UPDATE certifications SET photo_front = NULL, photo_back = NULL '
+        'WHERE id IN (${List.filled(chunk.length, '?').join(', ')})',
+        chunk,
+      );
+    }
   }
 
   /// The migrated rows carry no clock, so no changeset ever selects them;

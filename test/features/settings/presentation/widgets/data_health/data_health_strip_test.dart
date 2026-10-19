@@ -88,13 +88,13 @@ void main() {
     final handle = tester.ensureSemantics();
     await pump(tester, _mixed);
 
-    for (final label in ['Backup', 'Sync', 'Libraries', 'Media']) {
+    for (final label in ['Backups', 'Sync', 'Libraries', 'Photos']) {
       expect(find.text(label), findsOneWidget, reason: label);
     }
-    expect(find.bySemanticsLabel('Backup: Needs attention'), findsOneWidget);
+    expect(find.bySemanticsLabel('Backups: Needs attention'), findsOneWidget);
     expect(find.bySemanticsLabel('Sync: Healthy'), findsOneWidget);
     expect(find.bySemanticsLabel('Libraries: Failing'), findsOneWidget);
-    expect(find.bySemanticsLabel('Media: Not set up'), findsOneWidget);
+    expect(find.bySemanticsLabel('Photos: Not set up'), findsOneWidget);
     handle.dispose();
   });
 
@@ -144,10 +144,10 @@ void main() {
     await pump(tester, _mixed);
 
     for (final label in [
-      'Backup: Needs attention',
+      'Backups: Needs attention',
       'Sync: Healthy',
       'Libraries: Failing',
-      'Media: Not set up',
+      'Photos: Not set up',
     ]) {
       expect(
         tester.getSemantics(find.bySemanticsLabel(label)),

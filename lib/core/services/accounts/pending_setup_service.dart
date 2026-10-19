@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
@@ -34,12 +35,18 @@ class PendingSetupItem {
   /// store descriptor, connector) - the card just navigates.
   final String route;
 
+  /// The diver dismissed this prompt on this device. Only sign-ins are kept
+  /// once dismissed: the card hides them, but the account still needs a
+  /// sign-in, and the Settings > Data accounts row must keep saying so.
+  final bool dismissed;
+
   const PendingSetupItem({
     required this.kind,
     required this.key,
     required this.label,
     required this.route,
     this.accountKind,
+    this.dismissed = false,
   });
 }
 
@@ -101,7 +108,7 @@ class PendingSetupService {
           PendingSetupItem(
             kind: SetupItemKind.mediaStoreAttach,
             key: key,
-            label: store.displayHint,
+            label: shortStorageLabel(store.displayHint),
             route: '/settings/media-storage',
           ),
         );
@@ -121,7 +128,7 @@ class PendingSetupService {
           PendingSetupItem(
             kind: SetupItemKind.mediaStoreReconnect,
             key: key,
-            label: store.displayHint,
+            label: shortStorageLabel(store.displayHint),
             route: '/settings/media-storage',
           ),
         );
@@ -141,14 +148,14 @@ class PendingSetupService {
         continue;
       }
       final key = 'account_${account.id}';
-      if (_isDismissed(key)) continue;
       items.add(
         PendingSetupItem(
           kind: SetupItemKind.accountSignIn,
           key: key,
-          label: account.label,
+          label: account.displayName,
           accountKind: account.kind,
           route: _routeFor(account, usage: usage, store: store),
+          dismissed: _isDismissed(key),
         ),
       );
     }

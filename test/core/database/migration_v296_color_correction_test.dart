@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v292: media.color_adjustment (a photo or video's hand colour
+/// Schema v296: media.color_adjustment (a photo or video's hand colour
 /// adjustment) and diver_settings.auto_color_correction (issue #3520).
 void main() {
   NativeDatabase dbAt(int version) => NativeDatabase.memory(
@@ -26,12 +26,12 @@ void main() {
     },
   );
 
-  test('v292 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(292));
-    expect(AppDatabase.migrationVersions, contains(292));
+  test('v296 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(296));
+    expect(AppDatabase.migrationVersions, contains(296));
     expect(
-      AppDatabase.migrationStepCount(291),
-      AppDatabase.migrationStepCount(292) + 1,
+      AppDatabase.migrationStepCount(295),
+      AppDatabase.migrationStepCount(296) + 1,
     );
   });
 
@@ -39,8 +39,8 @@ void main() {
     expect(AppDatabase.minimumCompatibleSchemaVersion, 280);
   });
 
-  test('upgrading from v291 adds both columns and keeps the rows', () async {
-    final db = AppDatabase(dbAt(291));
+  test('upgrading from v295 adds both columns and keeps the rows', () async {
+    final db = AppDatabase(dbAt(295));
     addTearDown(db.close);
     final media = await db
         .customSelect('SELECT original_filename, color_adjustment FROM media')
@@ -54,8 +54,8 @@ void main() {
     expect(settings.read<int>('v'), 0);
   });
 
-  test('beforeOpen heals a database already at v292 that lacks them', () async {
-    final db = AppDatabase(dbAt(292));
+  test('beforeOpen heals a database already at v296 that lacks them', () async {
+    final db = AppDatabase(dbAt(296));
     addTearDown(db.close);
     Future<Set<String>> columns(String table) async =>
         (await db.customSelect("PRAGMA table_info('$table')").get())

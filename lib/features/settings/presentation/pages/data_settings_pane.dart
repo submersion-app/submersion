@@ -9,6 +9,8 @@ import 'package:submersion/features/media/presentation/pages/media_sources_page.
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
+import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
+import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
@@ -96,6 +98,8 @@ Widget? dataPanePage(Uri location) {
     ['storage-usage', 'unrecognized-backups'] =>
       const UnrecognizedBackupsPage(),
     ['offline-maps'] => const OfflineMapsPage(),
+    ['import-options'] => const ImportOptionsPage(),
+    ['data-tools'] => const DataToolsPage(),
     ['fix-dive-times'] => const FixDiveTimesPage(),
     ['link-buddy-names'] => const LinkBuddyNamesPage(),
     ['retype-other-gear'] => const RetypeOtherGearPage(),

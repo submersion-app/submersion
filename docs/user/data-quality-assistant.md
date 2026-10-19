@@ -163,7 +163,7 @@ original download is kept as its own revision you can switch back to (see
 
 ## Choosing Which Checks Run
 
-**Settings > Data > Data Tools > Data quality** lists all thirteen checks with a
+**Settings > Data > Advanced > Data tools > Data quality** lists all thirteen checks with a
 switch each. Turning one off stops it running on future scans and
 leaves the findings it already produced untouched.
 

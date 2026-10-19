@@ -91,15 +91,31 @@ class FakeAppSettingsRepository implements AppSettingsRepository {
     navRailIds = List<String>.from(ids);
   }
 
-  @override
-  Future<bool> getNavAlwaysHideLabels() async {
-    final raw = await getRawSetting('nav_always_hide_labels');
-    return raw == 'true';
+  /// Mirrors [AppSettingsRepository]'s fallback to the pre-#3222 shared key
+  /// `nav_always_hide_labels` while [key] has never been written, so widget
+  /// tests can exercise the migration path too.
+  Future<bool> _getAlwaysHideLabelsFor(String key) async {
+    final raw = await getRawSetting(key);
+    if (raw != null) return raw == 'true';
+    final legacy = await getRawSetting('nav_always_hide_labels');
+    return legacy == 'true';
   }
 
   @override
-  Future<void> setNavAlwaysHideLabels(bool value) =>
-      setRawSetting('nav_always_hide_labels', value ? 'true' : 'false');
+  Future<bool> getNavAlwaysHideLabelsPhone() =>
+      _getAlwaysHideLabelsFor('nav_always_hide_labels_phone');
+
+  @override
+  Future<void> setNavAlwaysHideLabelsPhone(bool value) =>
+      setRawSetting('nav_always_hide_labels_phone', value ? 'true' : 'false');
+
+  @override
+  Future<bool> getNavAlwaysHideLabelsDesktop() =>
+      _getAlwaysHideLabelsFor('nav_always_hide_labels_desktop');
+
+  @override
+  Future<void> setNavAlwaysHideLabelsDesktop(bool value) =>
+      setRawSetting('nav_always_hide_labels_desktop', value ? 'true' : 'false');
 
   @override
   Future<bool> getEquipmentGroupByLocation() async =>

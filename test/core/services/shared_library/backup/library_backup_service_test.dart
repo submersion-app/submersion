@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
@@ -341,5 +342,20 @@ void main() {
         expect(all.where((r) => r.pinned).single.backupId, first.backupId);
       },
     );
+  });
+
+  test('the member count leaves removal records out (issue #3481)', () async {
+    final t = await memberships.transportForLibrary(lib);
+    await t.writeRemoval(
+      MemberRemoval(
+        memberId: 'x',
+        displayName: 'Xan',
+        removedAt: DateTime.utc(2026, 10, 18),
+        removedBy: 'm1',
+        signature: 'sig',
+      ),
+    );
+    final record = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+    expect(record.memberCount, 1);
   });
 }

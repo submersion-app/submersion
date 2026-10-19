@@ -146,12 +146,14 @@ extension _SuggestionSync on SharedLibraryService {
   }
 
   /// Takes in the suggestions their authors provably wrote, with a key an
-  /// owner approved. Others stay in the folder and are read again next
-  /// time (an approval may come).
+  /// owner approved, or before an owner removed them with the key they had
+  /// then ([removals], issue #3481). Others stay in the folder and are read
+  /// again next time (an approval may come).
   Future<void> _pullSuggestions(
     SharedLibraryTransport t,
     String libraryId, {
     required SharedLibraryRoles roles,
+    List<MemberRemoval> removals = const [],
   }) async {
     final files = await t.listSuggestions();
     final remoteIds = {
@@ -173,9 +175,15 @@ extension _SuggestionSync on SharedLibraryService {
     // The keys on members' own signed cards: a suggestion signed by one
     // whose owner has not approved it yet is held, not dropped, so the
     // owner learns it is waiting.
+    // Someone removed is never waiting for approval, whatever card an
+    // older app of theirs wrote again: their removal decides.
+    final removed = {for (final r in removals) r.memberId};
     final cardKeys = {
       for (final m in await _store.getMembers(libraryId))
-        if (m.cardVerified && m.publicKey != null) m.memberId: m.publicKey!,
+        if (m.cardVerified &&
+            m.publicKey != null &&
+            !removed.contains(m.memberId))
+          m.memberId: m.publicKey!,
     };
     for (final f in files) {
       final id = SharedLibraryTransport.suggestionIdOf(f);
@@ -191,7 +199,11 @@ extension _SuggestionSync on SharedLibraryService {
         }
         final author = json['memberId'];
         if (author is! String) continue;
-        final approved = roles.approvedKeys[author];
+        // A removal outweighs an approval the roles may still hold (an
+        // older owner app, a restore race): only its cut-off decides.
+        final approved = removed.contains(author)
+            ? null
+            : roles.approvedKeys[author];
         final String status;
         if (approved != null) {
           if (!await verifySuggestion(json, approved, libraryId: libraryId)) {
@@ -204,6 +216,13 @@ extension _SuggestionSync on SharedLibraryService {
           libraryId: libraryId,
         )) {
           status = SharedSiteSuggestion.held;
+        } else if (await _madeBeforeRemoval(
+          json,
+          author,
+          removals,
+          libraryId,
+        )) {
+          status = SharedSiteSuggestion.pending;
         } else {
           // Its author was rejected or left: nothing is waiting any more.
           await _store.deleteSuggestion(

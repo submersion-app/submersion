@@ -438,7 +438,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'network' => context.l10n.settings_section_network_subtitle,
       'notifications' => context.l10n.settings_section_notifications_subtitle,
       'manage' => context.l10n.settings_section_manage_subtitle,
-      'data' => context.l10n.settings_section_data_subtitle,
+      'data' => context.l10n.settings_section_data_tagline,
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
       'safety' => context.l10n.settings_section_safety_subtitle,

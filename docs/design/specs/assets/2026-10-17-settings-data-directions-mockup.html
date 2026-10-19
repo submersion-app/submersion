@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings > Data: four directions</title>
+<style>
+:root{--bg-primary:#f5f5f7;--bg-secondary:#ffffff;--bg-tertiary:#e5e5e7;--border:#d1d1d6;--text-primary:#1d1d1f;--text-secondary:#86868b;--text-tertiary:#aeaeb2;--accent:#0071e3;--success:#34c759;--warning:#ff9f0a;--error:#ff3b30;}
+@media (prefers-color-scheme: dark){:root{--bg-primary:#1d1d1f;--bg-secondary:#2d2d2f;--bg-tertiary:#3d3d3f;--border:#424245;--text-primary:#f5f5f7;--text-secondary:#86868b;--text-tertiary:#636366;--accent:#0a84ff;}}
+*{box-sizing:border-box;margin:0;padding:0} body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);padding:2rem;line-height:1.5}
+h2{font-size:1.5rem;font-weight:600;margin-bottom:.5rem} h3{font-size:1.1rem;font-weight:600;margin-bottom:.25rem} .subtitle{color:var(--text-secondary);margin-bottom:1.5rem}
+.label{font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+.mockup{background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem} .mockup-header{background:var(--bg-tertiary);padding:.5rem 1rem;font-size:.75rem;color:var(--text-secondary);border-bottom:1px solid var(--border)} .mockup-body{padding:1.5rem}
+.options{display:flex;flex-direction:column;gap:.75rem} .option{background:var(--bg-secondary);border:2px solid var(--border);border-radius:12px;padding:1rem 1.25rem;display:flex;gap:1rem;align-items:flex-start} .option .letter{background:var(--bg-tertiary);color:var(--text-secondary);width:1.75rem;height:1.75rem;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.85rem;flex-shrink:0} .option .content{flex:1} .option .content h3{font-size:.95rem} .option .content p{color:var(--text-secondary);font-size:.85rem;margin:0}
+</style>
+</head>
+<body>
+<p class="label">Brainstorming mockup, 2026-10-17. Companion to docs/design/specs/2026-10-17-settings-data-setup-and-accounts-design.md</p>
+<style>
+.ph { width: 300px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; font-size: 11.5px; line-height: 1.3; flex-shrink: 0; }
+.ph-bar { padding: 10px 14px; font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.ph-bar small { font-weight: 400; color: var(--text-secondary); font-size: 10px; }
+.ph-body { padding: 8px 14px 14px; }
+.ph-strip { display: flex; justify-content: space-around; padding: 6px 0 6px; }
+.ph-strip div { text-align: center; font-size: 10px; color: var(--text-secondary); }
+.ph-strip .sym { display: block; font-size: 18px; line-height: 1.1; }
+.ok { color: var(--success); } .warn { color: var(--warning); } .bad { color: var(--error); } .off { color: var(--text-tertiary); }
+.ph-line { font-size: 10.5px; color: var(--text-secondary); padding: 2px 0; display: flex; align-items: center; gap: 6px; }
+.ph-line .grow { flex: 1; }
+.ph-facts { font-size: 10px; color: var(--text-tertiary); padding: 4px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.ph-h { font-size: 9.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin: 10px 0 2px; font-weight: 600; }
+.ph-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--bg-tertiary); }
+.ph-row.dim { opacity: .55; }
+.ph-row .ic { width: 18px; text-align: center; color: var(--text-secondary); flex-shrink: 0; }
+.ph-row .t { flex: 1; min-width: 0; }
+.ph-row .t b { font-weight: 500; display: block; }
+.ph-row .t span { color: var(--text-secondary); font-size: 10px; display: block; }
+.ph-row .tr { color: var(--text-tertiary); flex-shrink: 0; font-size: 12px; }
+.ph-btn { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 10px; background: var(--accent); color: #fff; white-space: nowrap; }
+.ph-btn.ghost { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+.ph-card { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin: 6px 0 8px; background: var(--bg-primary); }
+.ph-card b { display: block; font-weight: 600; margin-bottom: 2px; }
+.ph-sw { width: 22px; height: 12px; border-radius: 999px; background: var(--border); position: relative; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+.ph-sw.on { background: var(--success); }
+.ph-sw::after { content: ''; position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; border-radius: 50%; background: #fff; }
+.ph-sw.on::after { left: 11px; }
+.ph-step { display: flex; gap: 8px; align-items: flex-start; padding: 3px 0; font-size: 11px; }
+.ph-step .n { width: 14px; text-align: center; flex-shrink: 0; }
+.ph-acct { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; margin: 4px 0; }
+.ph-acct.sel { border-color: var(--success); }
+.ph-acct .t { flex: 1; }
+.ph-acct .t span { display: block; color: var(--text-secondary); font-size: 10px; }
+.ph-field { border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; margin: 4px 0; display: flex; justify-content: space-between; align-items: center; }
+.ph-field span { color: var(--text-secondary); font-size: 10px; }
+.opt-grid { display: grid; grid-template-columns: 300px 1fr; gap: 18px; align-items: start; }
+.opt-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.opt-screens { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+.badge { display: inline-block; font-size: 10px; padding: 1px 8px; border-radius: 999px; background: var(--bg-tertiary); color: var(--text-secondary); margin-left: 8px; vertical-align: middle; font-weight: 500; }
+.fixes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12.5px; }
+.fixes h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.fixes .f h4 { color: var(--success); } .fixes .l h4 { color: var(--warning); }
+.fixes ul { margin-left: 16px; color: var(--text-secondary); }
+.fixes li { margin-bottom: 2px; }
+.rename { width: 100%; border-collapse: collapse; font-size: 12px; }
+.rename td { padding: 3px 6px; border-bottom: 1px solid var(--bg-tertiary); vertical-align: top; }
+.rename td:first-child { color: var(--text-secondary); width: 46%; }
+.steps-today { font-size: 12.5px; color: var(--text-secondary); }
+.steps-today b { color: var(--text-primary); font-weight: 600; display: block; margin-top: 8px; }
+.option .content h3 { font-size: 1.05rem; }
+.option .content p.lead { color: var(--text-primary); font-size: 0.9rem; margin: 0 0 12px; }
+.combo { background: var(--bg-secondary); border: 1px dashed var(--border); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--text-secondary); margin-top: 1rem; }
+</style>
+
+<h2>Four ways to simplify Settings &gt; Data</h2>
+<p class="subtitle">A diver with a new phone and a laptop wants their dives safe and on both. Which direction feels right? Click one to select; they combine, so pick the one that matters most and say so in the terminal. Everything below keeps every control that exists today, just placed and worded differently.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Today, for reference (from the inventory, phone width)</div>
+  <div class="mockup-body">
+    <div class="opt-grid">
+      <div class="ph">
+        <div class="ph-bar">Data</div>
+        <div class="ph-body">
+          <div class="ph-strip">
+            <div><span class="sym ok">&#10003;</span>Backup</div>
+            <div><span class="sym warn">!</span>Sync</div>
+            <div><span class="sym off">&#9675;</span>Libraries</div>
+            <div><span class="sym off">&#9675;</span>Media</div>
+          </div>
+          <div class="ph-line"><span class="warn">!</span> Recommended: turn on automatic sync</div>
+          <div class="ph-facts">412 dives &middot; 97 sites &middot; 1,240 photos and videos &middot; 48 MB</div>
+          <div class="ph-h">Backup &amp; Sync</div>
+          <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backup &amp; Restore <span class="ok" style="display:inline">&#10003;</span></b><span>Last backup: 3h ago</span></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Database Cloud Sync <span class="warn" style="display:inline">!</span></b><span>Synced: 12m ago &middot; 2 devices</span></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared Site Libraries</b><span>Dive sites kept together with other divers</span></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; Media</b><span>Sources &amp; storage</span></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Connected Accounts</b><span>Sign-ins used by sync, media storage and shared libraries</span></div><span class="tr">&#8250;</span></div>
+          <div class="ph-h">Storage</div>
+          <div class="ph-row"><span class="ic">&#9636;</span><div class="t"><b>Database Storage</b><span>App default location</span></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><span class="ic">&#9660;</span><div class="t"><b>Offline Maps</b><span>Map tiles and 3D terrain data</span></div><span class="tr">&#8250;</span></div>
+          <div class="ph-h">Import</div>
+          <div class="ph-row"><div class="t"><b>Auto site matching</b><span>How aggressively downloaded dives are matched to sites</span></div><span class="tr">Balanced &#9662;</span></div>
+          <div class="ph-row"><div class="t"><b>Tank pressure at surfacing</b></div><span class="ph-sw"></span></div>
+          <div class="ph-row"><div class="t"><b>Tag imports automatically</b></div><span class="ph-sw on"></span></div>
+          <div class="ph-h">Data Tools</div>
+          <div class="ph-row"><div class="t"><b>Fix Dive Times</b></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><div class="t"><b>Link buddy names</b></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><div class="t"><b>Retype gear marked Other</b></div><span class="tr">&#8250;</span></div>
+          <div class="ph-row"><div class="t"><b>Data quality</b></div><span class="tr">&#8250;</span></div>
+        </div>
+      </div>
+      <div class="steps-today">
+        <p>What the first-timer actually has to do today, from the inventory:</p>
+        <b>Dives on both devices</b>
+        Data &rarr; Database Cloud Sync &rarr; tap one of five provider tiles &rarr; sign in &rarr; tap Sync Now &rarr; answer "Combine Libraries?" &rarr; scroll down and find the Auto Sync switch (nothing turns it on) &rarr; repeat the provider tap and sign-in on the laptop.
+        <b>A copy somewhere safe</b>
+        Data &rarr; Backup &amp; Restore &rarr; Automatic backups on &rarr; Frequency &rarr; Keep backups &rarr; the Cloud backup switch, which only exists once a sync provider was chosen and silently follows that provider.
+        <b>Photos on both devices</b>
+        Data &rarr; Photos &amp; Media &rarr; the checklist icon nobody finds &rarr; Media storage &rarr; a different provider chooser in a different order &rarr; retype the same S3 details or "Connect" &rarr; the page closes itself &rarr; reopen it to tap Upload existing library &rarr; on the laptop, a "Finish setting up this device" card asks for the same details again.
+        <p style="margin-top:10px">Five surfaces pick a cloud place in four different ways, the sync feature has six names, and three different rules decide whether photos count as "set up".</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+
+  <div class="option" data-choice="a">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Plain words, same pages <span class="badge">Small</span></h3>
+      <p class="lead">Keep every page. Regroup the Data page around what the diver wants, say status in plain language, put the one next action on the row, and fold the rarely used rows under Advanced. One vocabulary pass across all the pages.</p>
+      <div class="opt-grid">
+        <div class="ph">
+          <div class="ph-bar">Data</div>
+          <div class="ph-body">
+            <div class="ph-strip">
+              <div><span class="sym ok">&#10003;</span>Backups</div>
+              <div><span class="sym warn">!</span>Sync</div>
+              <div><span class="sym off">&#9675;</span>Photos</div>
+              <div><span class="sym off">&#9675;</span>Libraries</div>
+            </div>
+            <div class="ph-line"><span class="warn">!</span><span class="grow">Automatic sync is off</span><span class="ph-btn">Turn on</span></div>
+            <div class="ph-facts">412 dives &middot; 97 sites &middot; 1,240 photos and videos &middot; 48 MB</div>
+            <div class="ph-h">Your data</div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Backed up 3 hours ago, copy in Google Drive</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Sync between devices</b><span>In step with 2 devices, 12 minutes ago</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; videos</b><span>Copies are not kept in the cloud yet</span></div><span class="ph-btn ghost">Set up</span></div>
+            <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared site libraries</b><span>None joined</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Accounts</div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Connected accounts</b><span>Google Drive, signed in</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Advanced</div>
+            <div class="ph-row dim"><div class="t"><b>Database storage</b><span>App default location</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row dim"><div class="t"><b>Offline maps</b></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row dim"><div class="t"><b>Import options</b><span>Site matching, surfacing pressure, auto tags</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row dim"><div class="t"><b>Data tools</b><span>Fix dive times, link buddies, retype gear, data quality</span></div><span class="tr">&#8250;</span></div>
+          </div>
+        </div>
+        <div class="opt-side">
+          <div>
+            <div class="label">The vocabulary pass, applied everywhere</div>
+            <table class="rename">
+              <tr><td>Database Cloud Sync, Cloud Sync, Cloud sync, Sync, Database sync, App-managed cloud sync</td><td>Sync between devices</td></tr>
+              <tr><td>Cloud Provider, provider, backend, sync backend, cloud storage, storage service, bucket</td><td>cloud account</td></tr>
+              <tr><td>Media Storage, media store, cloud store, "Where copies are kept"</td><td>Photo copies in the cloud</td></tr>
+              <tr><td>Transfers, uploads, "Back up now" on a photo</td><td>Uploads</td></tr>
+              <tr><td>Sign Out, Disconnect, Remove configuration, Remove from library</td><td>Stop using (this device) and Sign out (the account)</td></tr>
+              <tr><td>Test Connection, Test connection, Check, Test credentials</td><td>Check connection</td></tr>
+              <tr><td>Title Case buttons next to sentence case</td><td>Sentence case everywhere</td></tr>
+            </table>
+          </div>
+          <div class="fixes">
+            <div class="f"><h4>Fixes</h4><ul><li>Rows read as outcomes with a status a non-diver could parse</li><li>The next step is on the row, not three screens down</li><li>Eleven rows become six, with the rest under Advanced</li><li>One name for each thing across all pages</li></ul></div>
+            <div class="l"><h4>Still true afterwards</h4><ul><li>Five different ways to pick a cloud place</li><li>Sync and photo setup remain separate journeys</li><li>Second device still retypes S3 or WebDAV details</li><li>Three "is it set up" rules keep disagreeing</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>One guided setup for this device <span class="badge">Medium</span></h3>
+      <p class="lead">A single re-runnable flow at the top of Data: choose a cloud account once, then sync, backup and photos become three switches on the same account. It replaces the Photos guided setup, the Setup assistant's backup step and the first-run wizard's Backups &amp; Sync step with one set of steps. The detail pages stay for the rare case.</p>
+      <div class="opt-grid">
+        <div class="ph">
+          <div class="ph-bar">Data</div>
+          <div class="ph-body">
+            <div class="ph-strip">
+              <div><span class="sym ok">&#10003;</span>Backups</div>
+              <div><span class="sym ok">&#10003;</span>Sync</div>
+              <div><span class="sym off">&#9675;</span>Photos</div>
+              <div><span class="sym off">&#9675;</span>Libraries</div>
+            </div>
+            <div class="ph-card">
+              <b>Set up this device <span style="float:right;font-weight:400;color:var(--text-secondary)">2 of 4</span></b>
+              <div class="ph-step"><span class="n ok">&#10003;</span><span>Cloud account: Google Drive</span></div>
+              <div class="ph-step"><span class="n ok">&#10003;</span><span>Dives on every device</span></div>
+              <div class="ph-step"><span class="n warn">3</span><span>A backup that survives a lost phone</span></div>
+              <div class="ph-step"><span class="n off">4</span><span>Photos on every device (optional)</span></div>
+              <div style="text-align:right;margin-top:6px"><span class="ph-btn">Continue</span></div>
+            </div>
+            <div class="ph-facts">412 dives &middot; 97 sites &middot; 1,240 photos and videos &middot; 48 MB</div>
+            <div class="ph-h">Your data</div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Backups</b><span>Backed up 3 hours ago, on this device only</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#8635;</span><div class="t"><b>Sync between devices</b><span>In step with 2 devices, automatic</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; videos</b><span>Copies are not kept in the cloud</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared site libraries</b><span>None joined</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9786;</span><div class="t"><b>Connected accounts</b><span>Google Drive, signed in</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Advanced</div>
+            <div class="ph-row dim"><div class="t"><b>Database storage, Offline maps, Import options, Data tools</b></div><span class="tr">&#8250;</span></div>
+          </div>
+        </div>
+        <div class="opt-side">
+          <div class="opt-screens">
+            <div class="ph" style="width:260px">
+              <div class="ph-bar">Set up this device <small>Step 1 of 4</small></div>
+              <div class="ph-body">
+                <p style="margin:4px 0 8px"><b>Where should Submersion keep your data?</b><br><span style="color:var(--text-secondary);font-size:10.5px">One account is used for sync, backups and photos. You can change any of them later.</span></p>
+                <div class="ph-acct sel"><span class="ic">&#9729;</span><div class="t">Google Drive<span>Signed in on this device</span></div><span class="ok">&#10003;</span></div>
+                <div class="ph-acct"><span class="ic">&#9729;</span><div class="t">iCloud<span>Uses your Apple ID</span></div></div>
+                <div class="ph-acct"><span class="ic">&#9729;</span><div class="t">Dropbox<span>Sign in with Dropbox</span></div></div>
+                <div class="ph-acct"><span class="ic">&#9636;</span><div class="t">My own server<span>S3-compatible storage or WebDAV</span></div></div>
+                <div style="display:flex;justify-content:space-between;margin-top:10px"><span class="ph-btn ghost">Not now</span><span class="ph-btn">Next</span></div>
+              </div>
+            </div>
+            <div class="ph" style="width:260px">
+              <div class="ph-bar">Set up this device <small>Step 3 of 4</small></div>
+              <div class="ph-body">
+                <p style="margin:4px 0 8px"><b>A backup that survives a lost phone</b></p>
+                <div class="ph-field"><div>Back up automatically<span>Weekly, keeps the last 10</span></div><span class="ph-sw on"></span></div>
+                <div class="ph-field"><div>Also keep a copy in Google Drive<span>Same account as sync</span></div><span class="ph-sw on"></span></div>
+                <div class="ph-field"><div>Protect backups with a password<span>Optional. A lost password cannot be recovered.</span></div><span class="ph-sw"></span></div>
+                <div style="display:flex;justify-content:space-between;margin-top:10px"><span class="ph-btn ghost">Back</span><span class="ph-btn">Next</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="fixes">
+            <div class="f"><h4>Fixes</h4><ul><li>Sync and photo setup become the same kind of step on the same account</li><li>One starting point, one order, a visible "how far along am I"</li><li>Automatic sync and the cloud copy are turned on as part of the flow</li><li>The second device gets the same flow with the account already known</li><li>Reuses the setup wizard, the pending card and the health model</li></ul></div>
+            <div class="l"><h4>Still true afterwards</h4><ul><li>The detail pages keep their own provider pickers unless paired with C</li><li>A photo store on a different account than sync is an advanced path</li><li>The first-run wizard changes too, outside Settings</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Sign in once, then every feature picks an account <span class="badge">Medium to large</span></h3>
+      <p class="lead">Connected accounts becomes the only place to sign in, with an Add account button. Sync, photo copies, the backup copy and shared libraries each start with the same row: "Using: Google Drive, Change". The duplicated S3 and WebDAV forms exist once. This is the model the media program spec promised and the shared libraries page already has.</p>
+      <div class="opt-grid">
+        <div class="ph">
+          <div class="ph-bar">Connected accounts <small>+ Add account</small></div>
+          <div class="ph-body">
+            <div class="ph-acct sel"><span class="ic">&#9729;</span><div class="t">Google Drive<span>Signed in &middot; used for sync, backups</span></div><span class="tr">&#8943;</span></div>
+            <div class="ph-acct"><span class="ic">&#9636;</span><div class="t">nas.home (WebDAV)<span>Signed in &middot; used for photo copies</span></div><span class="tr">&#8943;</span></div>
+            <div class="ph-acct"><span class="ic">&#9729;</span><div class="t">iCloud<span>Not signed in on this device &middot; used by your laptop</span></div><span class="ph-btn ghost">Sign in</span></div>
+            <div class="ph-h" style="margin-top:14px">Add account</div>
+            <div class="ph-row"><div class="t"><b>iCloud</b><span>Uses your Apple ID</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><div class="t"><b>Google Drive</b><span>Sign in with Google</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><div class="t"><b>Dropbox</b><span>Sign in with Dropbox</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><div class="t"><b>S3-compatible storage</b><span>Address, bucket and keys</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><div class="t"><b>WebDAV server</b><span>Address, user name and password</span></div><span class="tr">&#8250;</span></div>
+          </div>
+        </div>
+        <div class="opt-side">
+          <div class="opt-screens">
+            <div class="ph" style="width:250px">
+              <div class="ph-bar">Sync between devices</div>
+              <div class="ph-body">
+                <div class="ph-field"><div>Using<span>Google Drive, signed in</span></div><span class="ph-btn ghost">Change</span></div>
+                <div class="ph-line ok" style="padding:6px 0">&#10003; In step with 2 devices, 12 minutes ago</div>
+                <div class="ph-field"><div>Automatic sync</div><span class="ph-sw on"></span></div>
+                <div style="text-align:right"><span class="ph-btn ghost">Sync now</span></div>
+                <div class="ph-h">Advanced</div>
+                <div class="ph-row dim"><div class="t"><b>Encryption, devices, conflicts, troubleshoot</b></div><span class="tr">&#8250;</span></div>
+              </div>
+            </div>
+            <div class="ph" style="width:250px">
+              <div class="ph-bar">Photo copies in the cloud</div>
+              <div class="ph-body">
+                <div class="ph-field"><div>Using<span>nas.home (WebDAV)</span></div><span class="ph-btn ghost">Change</span></div>
+                <div class="ph-line ok" style="padding:6px 0">&#10003; 1,240 of 1,240 copied</div>
+                <div class="ph-field"><div>Upload new photos automatically</div><span class="ph-sw on"></span></div>
+                <div class="ph-field"><div>Use cellular data</div><span class="ph-sw"></span></div>
+                <div class="ph-h">Advanced</div>
+                <div class="ph-row dim"><div class="t"><b>Upload quality, uploads, verify library</b></div><span class="tr">&#8250;</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="fixes">
+            <div class="f"><h4>Fixes</h4><ul><li>Every feature page opens the same way: one "Using" row, one status line, the switches, Advanced below</li><li>Sign-in, sign out and re-sign-in live in one place, with one set of words</li><li>No duplicated S3 and WebDAV forms, no "Copy settings from Sync"</li><li>Dropbox for photos stops depending on a hidden step on another page</li><li>The second device signs in to a row it can already see</li></ul></div>
+            <div class="l"><h4>Still true afterwards</h4><ul><li>Three features still have to be visited and turned on one by one unless paired with B</li><li>Plumbing: the media store and the backup copy must learn to take an account instead of a provider type</li><li>The Data page itself changes least of all</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="d">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>One Cloud page <span class="badge">Large</span></h3>
+      <p class="lead">Merge the cloud half of sync, the cloud copy of backups and photo copies into one page with one account and three switches. Data shrinks to Cloud, Backups, Photos, Libraries and Advanced. Setup is the same for everything because it is the same page.</p>
+      <div class="opt-grid">
+        <div class="ph">
+          <div class="ph-bar">Data</div>
+          <div class="ph-body">
+            <div class="ph-strip">
+              <div><span class="sym ok">&#10003;</span>Cloud</div>
+              <div><span class="sym ok">&#10003;</span>Backups</div>
+              <div><span class="sym off">&#9675;</span>Photos</div>
+              <div><span class="sym off">&#9675;</span>Libraries</div>
+            </div>
+            <div class="ph-facts">412 dives &middot; 97 sites &middot; 1,240 photos and videos &middot; 48 MB</div>
+            <div class="ph-row"><span class="ic">&#9729;</span><div class="t"><b>Cloud</b><span>Google Drive: dives synced with 2 devices, backup copy on, photo copies off</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9636;</span><div class="t"><b>Backups</b><span>Weekly, last one 3 hours ago, 10 kept</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9635;</span><div class="t"><b>Photos &amp; videos</b><span>Where photos come from, cache</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-row"><span class="ic">&#9679;</span><div class="t"><b>Shared site libraries</b><span>None joined</span></div><span class="tr">&#8250;</span></div>
+            <div class="ph-h">Advanced</div>
+            <div class="ph-row dim"><div class="t"><b>Database storage, Offline maps, Import options, Data tools</b></div><span class="tr">&#8250;</span></div>
+          </div>
+        </div>
+        <div class="opt-side">
+          <div class="opt-screens">
+            <div class="ph" style="width:280px">
+              <div class="ph-bar">Cloud</div>
+              <div class="ph-body">
+                <div class="ph-field"><div>Account<span>Google Drive, signed in</span></div><span class="ph-btn ghost">Change</span></div>
+                <div class="ph-h">What is kept there</div>
+                <div class="ph-field"><div>Dives on every device<span>In step with 2 devices, 12 minutes ago</span></div><span class="ph-sw on"></span></div>
+                <div class="ph-field" style="margin-left:14px"><div>Automatic</div><span class="ph-sw on"></span></div>
+                <div class="ph-field"><div>A copy of each backup<span>Last copy 3 hours ago</span></div><span class="ph-sw on"></span></div>
+                <div class="ph-field"><div>Photo and video copies<span>So every device can show them</span></div><span class="ph-sw"></span></div>
+                <div style="text-align:right;margin:8px 0"><span class="ph-btn ghost">Sync now</span></div>
+                <div class="ph-h">Advanced</div>
+                <div class="ph-row dim"><div class="t"><b>Encryption</b><span>Off</span></div><span class="tr">&#8250;</span></div>
+                <div class="ph-row dim"><div class="t"><b>Devices and conflicts</b></div><span class="tr">&#8250;</span></div>
+                <div class="ph-row dim"><div class="t"><b>Photo uploads</b></div><span class="tr">&#8250;</span></div>
+                <div class="ph-row dim"><div class="t"><b>Troubleshoot, replace library</b></div><span class="tr">&#8250;</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="fixes">
+            <div class="f"><h4>Fixes</h4><ul><li>One account, one page, one way to turn each thing on</li><li>The mental model matches how most people already think: "my stuff is in Google Drive"</li><li>Photo copies stop looking like a separate product</li></ul></div>
+            <div class="l"><h4>Still true afterwards</h4><ul><li>Largest rebuild: the 1,500-line Cloud Sync page plus Media Storage become one surface</li><li>A different account for photos than for dives becomes an advanced path</li><li>Divers who know "Database Cloud Sync" lose a page they have learned</li><li>Shared libraries keep their own account picker</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="combo">
+  <b>These combine.</b> A is a wording and layout pass any of the others would include. B's first step is C's account picker, so B plus C is one coherent build: sign in once, one guided flow, and every page opening with "Using: &hellip;". D is what B plus C looks like if the three features also share one page. My lean, marked as my guess: B plus C, built in that order, with A's vocabulary throughout.
+</div>
+
+</body>
+</html>

@@ -210,34 +210,46 @@ The reusable lists and rules Submersion offers throughout the app:
 
 ## Data
 
-### Backup & Sync
+The top of the page shows four status marks (Backups, Sync, Libraries and
+Photos) with a line for anything that needs attention, then a count of your
+dives, sites and photos.
+
+### Your data
+
+Each row says in one sentence where things stand, for example "Backed up
+3 hours ago, copy in Google Drive" or "In step with Eric's iPhone, 12m ago".
+A feature that is not set up shows a **Set up** action under its status.
 
 | Item | What it does |
 |------|--------------|
-| **Backup & Restore** | Back up and restore your whole log; see [Backup & Restore](backup-and-restore.md) |
-| **Database Cloud Sync** | Keep your devices in step through cloud storage; see [Multi-Device Sync](multi-device-sync.md) |
-| **Photos & Media** | Where photos come from, and where copies are kept; see [Media Sync](media-sync.md) |
-| **Connected Accounts** | The sign-ins used by sync, media storage and shared site libraries |
+| **Backups** | Back up and restore your whole log; see [Backups](backup-and-restore.md) |
+| **Sync between devices** | Keep your devices in step through cloud storage; see [Multi-Device Sync](multi-device-sync.md) |
+| **Photos & videos** | Where photos come from, and where copies are kept; see [Media Sync](media-sync.md) |
+| **Shared site libraries** | Dive sites kept together with other divers; see [Shared site libraries](shared-site-libraries.md) |
+| **Connected accounts** | The sign-ins used by sync, media storage and shared site libraries |
 
-### Storage
+### Advanced
 
 | Item | What it does |
 |------|--------------|
-| **Database Storage** | Where the database file lives: the app's default location or a folder you choose |
-| **Offline Maps** | Map tiles and 3D terrain data for use without a connection |
+| **Database storage** | Where the database file lives: the app's default location or a folder you choose |
+| **Offline maps** | Map tiles and 3D terrain data for use without a connection |
+| **Import options** | How incoming dive data is read (see below) |
+| **Data tools** | One-off repairs for imported data (see below) |
 
-### Import
+**Import options**
 
 | Setting | What it does |
 |---------|--------------|
 | **Auto site matching** | How readily downloaded dives are matched to your existing sites: **Strict**, **Balanced** or **Relaxed** |
 | **Tank pressure at surfacing** | Read the end pressure from when you reached the surface, not from when the computer stopped recording |
+| **Tag imports automatically** | Start every new import with a tag naming its source and date |
 
-### Data Tools
+**Data tools**
 
 | Tool | What it does |
 |------|--------------|
-| **Fix Dive Times** | Shift the times of imported dives, for example a batch that came in an hour out because the computer's clock was wrong |
+| **Fix dive times** | Shift the times of imported dives, for example a batch that came in an hour out because the computer's clock was wrong |
 | **Link buddy names** | Turn buddy names on imported dives into buddy records |
 | **Retype gear marked Other** | Give imported gear the type its name states |
 | **Data quality** | Choose which checks the [Data Quality Assistant](data-quality-assistant.md) runs |
@@ -285,5 +297,5 @@ in the Health app. See [Dive Computers](dive-computer.md).
 
 - [Diver Profile & Multi-Diver](diver-profile.md): the profiles these settings belong to
 - [Dive Profiles & Deco](dive-profiles.md): how the decompression and overlay settings shape the chart
-- [Backup & Restore](backup-and-restore.md): protect your dive log
+- [Backups](backup-and-restore.md): protect your dive log
 - [Multi-Device Sync](multi-device-sync.md): keep every device in step

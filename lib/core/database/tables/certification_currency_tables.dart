@@ -126,13 +126,13 @@ class CertificationCurrencyEvents extends Table {
 /// lead_days is the amber window before lapse_days, so "amber at 6 months,
 /// red at 12" is lapse_days 365 with lead_days 185.
 ///
-/// The four refresher rules cover every rung of their agencies' ladders in
-/// CertificationLevelCatalog, professional rungs included, resolved to level
-/// names here so a later change to the catalog never moves a diver's rules.
-/// currency_seed_catalog_test pins the two together, and fails when a new
-/// agency is covered by no refresher (ACUC joined with issue #690). DAN's
-/// provider credentials renew with first aid, its instructors with
-/// membership.
+/// The activity-clock refresher rules cover every rung of their agencies'
+/// ladders in CertificationLevelCatalog, professional rungs included,
+/// resolved to level names here so a later change to the catalog never
+/// moves a diver's rules. currency_seed_catalog_test pins the two together,
+/// and fails when a new agency is covered by no refresher (ACUC joined with
+/// issue #690, IART with issue #3357). DAN's provider credentials renew
+/// with first aid, its instructors with membership.
 ///
 /// tdi_refresher's levels (issue #3072) also name 'cave', 'rebreather' and
 /// 'instructor': the three old generic TDI ladder rungs the migration
@@ -173,6 +173,10 @@ const String kSeedBuiltInCurrencyRulesSql = '''
       'activity', '["tdi"]',
       '["tdiNitroxDiver","tdiAdvancedNitroxDiver","tdiDecompressionProceduresDiver","tdiHelitroxDiver","tdiExtendedRangeDiver","tdiTrimixDiver","tdiAdvancedTrimixDiver","tdiTechnicalDivemaster","tdiInstructor","tdiInstructorTrainer","cave","rebreather","instructor"]',
       365, 185, '[]', '[]', 'currencyRule_tdi_refresher_advisory'
+    UNION ALL SELECT 'iart_refresher', 'IART refresher',
+      'activity', '["iart"]',
+      '["iartOpenWaterNitroxDiver","iartAdvancedNitroxDiver","iartRecreationalTrimix","iartExtendedRangeNormoxicTrimix"]',
+      365, 185, '[]', '[]', 'currencyRule_iart_refresher_advisory'
     UNION ALL SELECT 'first_aid_24mo', 'First aid and CPR renewal',
       'date', '[]',
       '["firstAid","oxygenProvider","danBls","danEmergencyOxygen","danDfaPro","danDemp","danAdvancedOxygen","danNeurologicalAssessment","danMarineLifeInjuries"]',

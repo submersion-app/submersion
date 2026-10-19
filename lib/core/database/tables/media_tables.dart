@@ -102,7 +102,7 @@ class Media extends Table {
 
   /// 'large' or 'tile' (issue #1039); null follows the category default.
   TextColumn get displaySize => text().nullable()();
-  // v292: the diver's hand colour adjustment for this photo or video, as
+  // v296: the diver's hand colour adjustment for this photo or video, as
   // ColorAdjustment JSON (issue #3520); null is none. Display-only: it is
   // applied when the item is drawn and never written into the file.
   TextColumn get colorAdjustment => text().nullable()();
@@ -368,6 +368,11 @@ class ConnectedAccounts extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
+
+  /// v295: the short name the diver gave the account (issue #3522). Null
+  /// until they choose one; the account then reads as its label with a
+  /// well-known service's host replaced by the service's name.
+  TextColumn get nickname => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -45,7 +45,7 @@ class BackupSettingsPage extends ConsumerWidget {
         operationState.status == BackupOperationStatus.inProgress;
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.backup_appBar_title)),
+      appBar: AppBar(title: Text(context.l10n.settings_backups_title)),
       body: ListView(
         children: [
           const SizedBox(height: 8),

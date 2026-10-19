@@ -507,7 +507,7 @@ class DiverSettings extends Table {
   // #2628), a JSON array of EquipmentStatus names. Null reads as the factory
   // default, everything but retired, sold and wanted gear.
   TextColumn get equipmentDefaultStatuses => text().nullable()();
-  // v292: the automatic underwater colour correction (issue #3520). Off by
+  // v296: the automatic underwater colour correction (issue #3520). Off by
   // default, so existing divers' photos look the same after upgrading.
   // Codegen input, never executed.
   // coverage:ignore-start

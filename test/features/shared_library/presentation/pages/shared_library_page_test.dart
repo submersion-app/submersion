@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
@@ -35,6 +36,7 @@ Future<Widget> _page(
   int held = 0,
   bool fakeSync = false,
   bool inShell = false,
+  List<MemberRemoval> removed = const [],
 }) async => (inShell ? testAppInShell : testApp)(
   overrides: [
     ...await getBaseOverrides(),
@@ -87,6 +89,7 @@ Future<Widget> _page(
     libraryMemberNamesProvider('L').overrideWith((ref) async => {'m': 'Ann'}),
     pendingIncomingSuggestionCountProvider('L').overrideWith((ref) async => 2),
     heldIncomingSuggestionCountProvider('L').overrideWith((ref) async => held),
+    libraryRemovalsProvider('L').overrideWith((ref) async => removed),
     if (fakeSync) sharedLibrarySyncProvider.overrideWith(_RecordingSync.new),
     sitesProvider.overrideWith(
       (ref) async => const [
@@ -101,6 +104,37 @@ Future<Widget> _page(
 );
 
 void main() {
+  group('a removed member (issue #3481)', () {
+    MemberRemoval removal(String memberId) => MemberRemoval(
+      memberId: memberId,
+      displayName: 'Ann',
+      removedAt: DateTime.utc(2026, 10, 18),
+      removedBy: 'o',
+    );
+
+    testWidgets('sees the removal notice', (tester) async {
+      await tester.pumpWidget(
+        await _page(SharedLibraryRole.reader, removed: [removal('m')]),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('An owner removed you from this library'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets("someone else's removal shows nothing", (tester) async {
+      await tester.pumpWidget(
+        await _page(SharedLibraryRole.owner, removed: [removal('x')]),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('An owner removed you from this library'),
+        findsNothing,
+      );
+    });
+  });
+
   testWidgets(
     'an owner sees Members, Suggestions with a badge, Add my sites, Leave',
     (tester) async {

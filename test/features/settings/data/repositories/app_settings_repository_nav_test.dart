@@ -70,16 +70,19 @@ void main() {
     test('nav layout writes queue nothing', () async {
       await repo.setNavPrimaryIds(['dives']);
       await repo.setNavRailIds(['dives']);
-      await repo.setNavAlwaysHideLabels(true);
+      await repo.setNavAlwaysHideLabelsPhone(true);
+      await repo.setNavAlwaysHideLabelsDesktop(true);
       expect(
         (await pendingSettingsKeys()).intersection({
           'nav_primary_ids',
           'nav_rail_ids',
-          'nav_always_hide_labels',
+          'nav_always_hide_labels_phone',
+          'nav_always_hide_labels_desktop',
         }),
         isEmpty,
       );
-      expect(await repo.getNavAlwaysHideLabels(), isTrue);
+      expect(await repo.getNavAlwaysHideLabelsPhone(), isTrue);
+      expect(await repo.getNavAlwaysHideLabelsDesktop(), isTrue);
     });
 
     test('a synced key is still queued', () async {

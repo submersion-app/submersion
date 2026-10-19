@@ -335,6 +335,22 @@ final profileSeriesHistoryProvider =
 final batchProfileCacheProvider =
     StateProvider<Map<String, List<domain.DiveProfilePoint>>>((ref) => {});
 
+/// Adds [profiles] to the batch profile cache behind [cache].
+///
+/// Merges into the cache as it is when the batch lands, never into a copy
+/// read before the fetch was awaited. Batches overlap: a list page's profiles
+/// can still be summarising when the next page's land, and writing the older
+/// snapshot back would drop the newer page's entries and blank those cards'
+/// mini charts (#3506). Existing entries keep their list instances, which is
+/// what lets a card watching only its own entry skip the rebuild.
+void mergeIntoBatchProfileCache(
+  StateController<Map<String, List<domain.DiveProfilePoint>>> cache,
+  Map<String, List<domain.DiveProfilePoint>> profiles,
+) {
+  if (profiles.isEmpty) return;
+  cache.state = {...cache.state, ...profiles};
+}
+
 /// Statistics provider (filtered by current diver).
 ///
 /// Feeds the dashboard HeroHeader headline totals (total dives, etc.).
@@ -1025,11 +1041,10 @@ class PaginatedDiveListNotifier
 
     final profiles = await _repository.getBatchProfileSummaries(uncached);
     if (!mounted) return;
-    // Merge into cache (immutable update)
-    _ref.read(batchProfileCacheProvider.notifier).state = {
-      ...cache,
-      ...profiles,
-    };
+    mergeIntoBatchProfileCache(
+      _ref.read(batchProfileCacheProvider.notifier),
+      profiles,
+    );
   }
 
   Future<void> refresh() async {

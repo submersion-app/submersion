@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
@@ -11,7 +12,7 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The members of a shared site library with their roles; owners change roles
-/// here (issue #2567).
+/// here (issue #2567) and remove members or allow them back (issue #3481).
 class SharedLibraryMembersPage extends ConsumerWidget {
   const SharedLibraryMembersPage({super.key, required this.libraryId});
 
@@ -30,6 +31,11 @@ class SharedLibraryMembersPage extends ConsumerWidget {
       if (l.id == libraryId) roles = l.roles;
     }
     final owner = canManageLibrary(myRole);
+    final me = ref.watch(currentMembershipProvider(libraryId)).value?.memberId;
+    final removals =
+        ref.watch(libraryRemovalsProvider(libraryId)).value ??
+        const <MemberRemoval>[];
+    final removed = {for (final r in removals) r.memberId};
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sharedLibrary_library_members)),
       body: members.when(
@@ -38,23 +44,34 @@ class SharedLibraryMembersPage extends ConsumerWidget {
         data: (list) {
           // Approved: a genuine card whose key the owners approved. Only
           // those members' edits count, so only they are listed to all.
+          // Someone removed is listed only under Removed, whatever card
+          // or role is still about.
           final approved = [
             for (final m in list)
-              if (isApprovedMember(m, roles)) m,
+              if (isApprovedMember(m, roles) && !removed.contains(m.memberId))
+                m,
           ];
           final pending = [
             for (final m in list)
-              if (!isApprovedMember(m, roles)) m,
+              if (!isApprovedMember(m, roles) && !removed.contains(m.memberId))
+                m,
           ];
           final cards = {for (final m in list) m.memberId};
           final departed = [
             for (final id in {...roles.owners, ...roles.editors})
-              if (!cards.contains(id)) id,
+              if (!cards.contains(id) && !removed.contains(id)) id,
           ]..sort();
           return ListView(
             children: [
               for (final m in approved) ...[
-                _memberTile(context, ref, m, roles.roleOf(m.memberId), owner),
+                _memberTile(
+                  context,
+                  ref,
+                  m,
+                  roles.roleOf(m.memberId),
+                  owner,
+                  removable: owner && me != null && m.memberId != me,
+                ),
                 const Divider(height: 1),
               ],
               if (owner && pending.isNotEmpty) ...[
@@ -78,6 +95,10 @@ class SharedLibraryMembersPage extends ConsumerWidget {
                     ),
                   ),
               ],
+              if (owner && removals.isNotEmpty) ...[
+                _Header(l10n.sharedLibrary_members_removedHeader),
+                for (final r in removals) _removedTile(context, ref, r),
+              ],
             ],
           );
         },
@@ -90,27 +111,112 @@ class SharedLibraryMembersPage extends ConsumerWidget {
     WidgetRef ref,
     SharedLibraryMember m,
     SharedLibraryRole role,
-    bool owner,
-  ) {
+    bool owner, {
+    required bool removable,
+  }) {
     final l10n = context.l10n;
+    final name = m.displayName.isEmpty ? m.memberId : m.displayName;
     return ListTile(
       leading: const Icon(Icons.person_outline),
-      title: Text(m.displayName.isEmpty ? m.memberId : m.displayName),
+      title: Text(name),
       subtitle: Text(libraryDateLabel(ref, m.joinedAt)),
       trailing: owner
-          ? PopupMenuButton<SharedLibraryRole>(
+          // A role, or [_removeChoice]: one menu for everything an owner
+          // does to an approved member.
+          ? PopupMenuButton<Object>(
               tooltip: l10n.sharedLibrary_members_setRole,
               icon: LibraryRoleChip(role: role),
-              onSelected: (r) => _setRole(context, m.memberId, r),
+              onSelected: (choice) => choice is SharedLibraryRole
+                  ? _setRole(context, m.memberId, choice)
+                  : _confirmRemove(context, m.memberId, name),
               itemBuilder: (ctx) => [
                 for (final r in SharedLibraryRole.values)
-                  PopupMenuItem(
+                  PopupMenuItem<Object>(
                     value: r,
                     child: Text(libraryRoleLabel(ctx, r)),
                   ),
+                if (removable) ...[
+                  const PopupMenuDivider(),
+                  PopupMenuItem<Object>(
+                    value: _removeChoice,
+                    child: Text(l10n.sharedLibrary_members_remove),
+                  ),
+                ],
               ],
             )
           : LibraryRoleChip(role: role),
+    );
+  }
+
+  /// The [_memberTile] menu's value for Remove.
+  static const _removeChoice = #remove;
+
+  /// Someone an owner removed: when, and Allow back, which lets their next
+  /// sync bring them back to wait for approval.
+  Widget _removedTile(BuildContext context, WidgetRef ref, MemberRemoval r) {
+    final l10n = context.l10n;
+    return ListTile(
+      leading: const Icon(Icons.person_remove_outlined),
+      title: Text(r.displayName.isEmpty ? r.memberId : r.displayName),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.sharedLibrary_members_removedOn(
+              libraryDateLabel(ref, r.removedAt),
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              onPressed: () => _act(
+                context,
+                (service, me) => service.allowBack(
+                  libraryId: libraryId,
+                  memberId: r.memberId,
+                  actingMemberId: me,
+                ),
+              ),
+              child: Text(l10n.sharedLibrary_members_allowBack),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Asks first: what stays, and what a removal cannot stop.
+  Future<void> _confirmRemove(
+    BuildContext context,
+    String memberId,
+    String name,
+  ) async {
+    final l10n = context.l10n;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.sharedLibrary_members_removeTitle(name)),
+        content: Text(l10n.sharedLibrary_members_removeBody(name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.sharedLibrary_members_removeConfirm),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    await _act(
+      context,
+      (service, me) => service.removeMember(
+        libraryId: libraryId,
+        memberId: memberId,
+        actingMemberId: me,
+      ),
     );
   }
 

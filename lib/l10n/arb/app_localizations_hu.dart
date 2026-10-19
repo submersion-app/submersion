@@ -2442,9 +2442,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get backup_appBar_title => 'Biztonsági Mentés és Visszaállítás';
-
-  @override
   String get backup_backingUp => 'Mentés folyamatban...';
 
   @override
@@ -3384,6 +3381,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get currencyRule_tdi_refresher_name => 'TDI felfrissítés';
 
   @override
+  String get currencyRule_iart_refresher_name => 'IART felfrissítés';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Elsősegély és újraélesztés megújítása';
 
@@ -3425,6 +3425,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get currencyRule_tdi_refresher_advisory =>
       'A TDI hat-tizenkét hónap technikai merülés nélkül felfrissítést javasol.';
+
+  @override
+  String get currencyRule_iart_refresher_advisory =>
+      'Az IART hat-tizenkét hónap technikai merülés nélkül felfrissítést javasol.';
 
   @override
   String get currencyRule_first_aid_advisory =>
@@ -3861,6 +3865,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_group_tdiProfessional => 'Szakmai';
 
   @override
+  String get certifications_edit_group_iartOpenCircuit => 'Nyílt kör';
+
+  @override
+  String get certifications_edit_group_iartRebreather => 'Rebreather';
+
+  @override
+  String get certifications_edit_group_iartOverhead => 'Zárt terek';
+
+  @override
+  String get certifications_edit_group_iartService => 'Szerviz';
+
+  @override
+  String get certifications_edit_group_iartProfessional => 'Szakmai';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'Hagyja üresen a le nem járó képesítéseknél';
 
@@ -4118,6 +4137,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tanúsítvány hozzáadása';
 
   @override
+  String get certifications_list_groupBy => 'Csoportosítás';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Szervezet';
+
+  @override
+  String get certifications_list_groupBy_none => 'Nincs';
+
+  @override
+  String get certifications_list_groupBy_status => 'Állapot';
+
+  @override
   String get certifications_list_section_expired => 'Lejárt';
 
   @override
@@ -4218,6 +4249,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_share_title => 'Tanúsítvány megosztása';
 
   @override
+  String get certifications_sortSheet_view_list => 'Lista';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Tanúsítvány tárca';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Válasszon egy tanúsítványt a listából a részletek megtekintéséhez';
 
@@ -4277,6 +4314,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Tanúsítvány megosztása';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Rendezés';
 
   @override
   String get checklists_section_title => 'Ellenőrzőlista';
@@ -5054,7 +5094,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get connections_empty_buddies =>
-      'Még nincs merüléshez kapcsolt búvártárs. Adj búvártársakat a merüléseidhez, vagy alakítsd át a régi neveket a Beállítások, Adateszközök menüben.';
+      'Még nincs merüléshez kapcsolt búvártárs. Adj búvártársakat a merüléseidhez, vagy alakítsd át a régi neveket a Beállítások > Adatok > Adateszközök menüben.';
 
   @override
   String get connections_empty_sites =>
@@ -12308,6 +12348,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_tdi => 'TDI';
+
+  @override
+  String get enum_certificationAgency_iart => 'IART';
 
   @override
   String get enum_certificationLevel_advancedNitrox => 'Haladó Nitrox';
@@ -20778,6 +20821,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csak ikonok, még akkor is, ha elférne a címke';
 
   @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Az oldalsáv kezdőállapota; a nyíl ebben a munkamenetben továbbra is kinyithatja vagy összecsukhatja';
+
+  @override
   String get settings_navCustomization_descriptionDesktop =>
       'Húzza az elemeket az oldalsáv átrendezéséhez. A Kezdőlap mindig felül marad.';
 
@@ -20929,10 +20976,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Vissza a beállításokhoz';
 
   @override
-  String get settings_cloudSync_appBar_title =>
-      'Adatbázis felhő szinkronizálás';
-
-  @override
   String get settings_cloudSync_autoSync => 'Automatikus szinkronizálás';
 
   @override
@@ -20959,15 +21002,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felhő szinkronizálás letiltva';
 
   @override
-  String get settings_cloudSync_entry_subtitle =>
-      'Szinkronizálás felhőtárhelyen keresztül';
-
-  @override
   String get sharedLibrary_settings_title => 'Megosztott merülőhely-könyvtárak';
-
-  @override
-  String get sharedLibrary_settings_subtitle =>
-      'Más búvárokkal közösen vezetett merülőhelyek';
 
   @override
   String get sharedLibrary_list_empty =>
@@ -21076,6 +21111,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedLibrary_members_removeRole => 'Szerepkör eltávolítása';
+
+  @override
+  String get sharedLibrary_members_remove => 'Eltávolítás a könyvtárból';
+
+  @override
+  String sharedLibrary_members_removeTitle(String name) {
+    return 'Eltávolítod: $name?';
+  }
+
+  @override
+  String sharedLibrary_members_removeBody(String name) {
+    return '$name ezután nem szerkeszthet helyszíneket, és nem javasolhat módosításokat. Az általa már hozzáadott helyszínek és módosítások a könyvtárban maradnak.\n\nA könyvtárat továbbra is olvashatja, amíg meg nem változtatod a tárhelykulcsait, és a jelmondatát, ha titkosított.';
+  }
+
+  @override
+  String get sharedLibrary_members_removeConfirm => 'Eltávolítás';
+
+  @override
+  String get sharedLibrary_members_removedHeader => 'Eltávolítva';
+
+  @override
+  String sharedLibrary_members_removedOn(String date) {
+    return 'Eltávolítva: $date';
+  }
+
+  @override
+  String get sharedLibrary_members_allowBack => 'Visszaengedés';
 
   @override
   String get sharedLibrary_owner_onlyOne =>
@@ -21383,6 +21445,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get sharedLibrary_library_readOnlyBanner =>
       'A hitelesítő adataid csak olvasást engednek. Javasolhatsz módosításokat, egy felelős alkalmazza őket.';
+
+  @override
+  String get sharedLibrary_library_removedBanner =>
+      'Egy felelős eltávolított ebből a könyvtárból. A helyszínei ezen az eszközön maradnak, de már nem módosíthatod őket. Ha kilépsz a könyvtárból, megtartod azoknak a helyszíneknek a saját másolatát, ahol merültél.';
 
   @override
   String sharedLibrary_library_errorBanner(String error) {
@@ -21765,7 +21831,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_firstSync_replaceHint =>
-      'Ha ehelyett ennek az eszköznek a könyvtára írja felül a felhőben lévőt, szakítsa meg, és használja a Beállítások > Felhőszinkronizálás > Felhőkönyvtár cseréje lehetőséget.';
+      'Ha ehelyett ennek az eszköznek a könyvtára írja felül a felhőben lévőt, szakítsa meg, és használja a Beállítások > Adatok > Szinkronizálás eszközök között > Felhőkönyvtár cseréje lehetőséget.';
 
   @override
   String settings_cloudSync_firstSync_dialogContent(
@@ -22557,6 +22623,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'Szolgáltatás';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Név';
 
   @override
   String get settings_conflict_field_connectionType => 'Kapcsolat';
@@ -25182,13 +25251,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alkalmazás alapértelmezett helye';
 
   @override
-  String get settings_data_backup => 'Biztonsági mentés és visszaállítás';
-
-  @override
-  String get settings_data_backup_subtitle =>
-      'Biztonsági mentés készítése az adatokról';
-
-  @override
   String get settings_data_customFolder => 'Egyedi mappa';
 
   @override
@@ -25198,16 +25260,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_data_export_failed(Object error) {
     return 'Exportálás sikertelen: $error';
   }
-
-  @override
-  String get settings_data_header_backupSync =>
-      'Biztonsági mentés és szinkronizálás';
-
-  @override
-  String get settings_data_header_import => 'Importálás';
-
-  @override
-  String get settings_data_header_storage => 'Tárolás';
 
   @override
   String get settings_data_offlineMaps => 'Offline térképek';
@@ -25235,16 +25287,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Mentés';
+  String get dataHealth_feature_backup => 'Mentések';
 
   @override
   String get dataHealth_feature_sync => 'Szinkronizálás';
 
   @override
   String get dataHealth_feature_libraries => 'Könyvtárak';
-
-  @override
-  String get dataHealth_feature_media => 'Média';
 
   @override
   String get dataHealth_level_healthy => 'Rendben';
@@ -25336,16 +25385,164 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataHealth_sync_neverSynced => 'Még nincs szinkronizálva';
 
   @override
-  String dataHealth_sync_rowSubtitle(String when) {
-    return 'Szinkronizálva: $when';
+  String get settings_data_header_yourData => 'Az adataid';
+
+  @override
+  String get settings_data_header_advanced => 'Speciális';
+
+  @override
+  String get settings_data_setUp => 'Beállítás';
+
+  @override
+  String get settings_data_importOptions => 'Importálási beállítások';
+
+  @override
+  String get settings_data_importOptions_subtitle =>
+      'Helyszín-egyeztetés, nyomás felszínre éréskor, automatikus címkék';
+
+  @override
+  String get settings_data_dataTools => 'Adateszközök';
+
+  @override
+  String get settings_data_dataTools_subtitle =>
+      'Merülési idők javítása, búvártársak összekapcsolása, felszerelés átsorolása, adatminőség';
+
+  @override
+  String get settings_sync_title => 'Szinkronizálás eszközök között';
+
+  @override
+  String get settings_backups_title => 'Biztonsági mentések';
+
+  @override
+  String get settings_photosVideos_title => 'Fotók és videók';
+
+  @override
+  String get settings_section_data_tagline =>
+      'Biztonsági mentések, szinkronizálás és fotók';
+
+  @override
+  String get dataHealth_feature_photos => 'Fotók';
+
+  @override
+  String get settings_data_backups_status_never =>
+      'Még nincs biztonsági mentés';
+
+  @override
+  String settings_data_backups_status_local(String when) {
+    return 'Mentve $when, csak ezen az eszközön';
   }
 
   @override
-  String dataHealth_sync_rowSubtitleDevices(String when, int count) {
+  String settings_data_backups_status_cloud(String when, String account) {
+    return 'Mentve $when, másolat itt: $account';
+  }
+
+  @override
+  String settings_data_backups_status_cloudUnknown(String when) {
+    return 'Mentve $when, másolat a felhőben';
+  }
+
+  @override
+  String get settings_data_time_justNow => 'épp most';
+
+  @override
+  String get settings_data_status_checking => 'Ellenőrzés…';
+
+  @override
+  String settings_data_accounts_status_list(String accounts) {
+    return '$accounts';
+  }
+
+  @override
+  String settings_data_backups_status_folder(String when) {
+    return 'Mentve $when, másolat a mentési mappádban';
+  }
+
+  @override
+  String get settings_data_sync_status_off => 'Csak ezen az eszközön';
+
+  @override
+  String settings_data_sync_status_synced(String when) {
+    return 'Szinkronizálva $when';
+  }
+
+  @override
+  String get settings_data_sync_status_folder =>
+      'A mappád szinkronizálási szolgáltatása tartja naprakészen';
+
+  @override
+  String settings_data_backups_status_plain(String when) {
+    return 'Mentve $when';
+  }
+
+  @override
+  String settings_data_setUpFeature(String feature) {
+    return '$feature beállítása';
+  }
+
+  @override
+  String settings_data_sync_status_one(String device, String when) {
+    return 'Egyezik ezzel: $device, $when';
+  }
+
+  @override
+  String settings_data_sync_status_many(int count, String when) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Szinkronizálva: $when · $count eszköz',
+      other: 'Egyezik $count eszközzel, $when',
+      one: 'Egyezik $count eszközzel, $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_photos_status_off =>
+      'Nincsenek másolatok a felhőben';
+
+  @override
+  String settings_data_photos_status_on(String store) {
+    return 'Másolatok itt: $store';
+  }
+
+  @override
+  String get settings_data_photos_status_onUnknown => 'Másolatok a felhőben';
+
+  @override
+  String get settings_data_libraries_status_none => 'Nincs csatlakozás';
+
+  @override
+  String settings_data_libraries_status_some(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count könyvtár, utolsó szinkronizálás $when',
+      one: '$count könyvtár, utolsó szinkronizálás $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_data_libraries_status_someNever(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count könyvtár, még nincs szinkronizálva',
+      one: '$count könyvtár, még nincs szinkronizálva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_data_accounts_status_none => 'Még nincs';
+
+  @override
+  String settings_data_accounts_status_needSignIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fiókhoz bejelentkezés szükséges',
+      one: '$count fiókhoz bejelentkezés szükséges',
     );
     return '$_temp0';
   }
@@ -26548,10 +26745,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_section_appearance_title => 'Megjelenés';
 
   @override
-  String get settings_section_data_subtitle =>
-      'Biztonsági mentés, visszaállítás és tárolás';
-
-  @override
   String get settings_section_data_title => 'Adatok';
 
   @override
@@ -26803,7 +26996,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_storage_customFolder_deviceOnly_noCloudSync =>
-      'Az alkalmazás által kezelt felhőszinkronizálás ki van kapcsolva, amíg az adatbázis az eszköz tárhelyén van. Android rendszeren egyetlen szinkronizálási szolgáltatás sem éri el ezt a mappát, ezért a Biztonsági Mentés és Visszaállítás segítségével tartson máshol másolatokat.';
+      'Az alkalmazás által kezelt felhőszinkronizálás ki van kapcsolva, amíg az adatbázis az eszköz tárhelyén van. Android rendszeren egyetlen szinkronizálási szolgáltatás sem éri el ezt a mappát, ezért a Biztonsági mentések segítségével tartson máshol másolatokat.';
 
   @override
   String get settings_storage_dismissError_tooltip => 'Hibaüzenet elvetése';
@@ -26867,7 +27060,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_body =>
-      'Ez véglegesen törli az EZEN az eszközön lévő összes adatot, beleértve a merüléseket, helyszíneket, felszereléseket és beállításokat. A visszaállítás előtt automatikusan biztonsági mentés készül.\n\nA felhőkönyvtár nem törlődik, és a többi eszköz megtartja az adatait. A felhőszinkronizálás leválasztásra kerül, hogy a visszaállítás ne vonódjon vissza; a Beállítások > Felhőszinkronizálás menüben csatlakoztathatja újra.';
+      'Ez véglegesen törli az EZEN az eszközön lévő összes adatot, beleértve a merüléseket, helyszíneket, felszereléseket és beállításokat. A visszaállítás előtt automatikusan biztonsági mentés készül.\n\nA felhőkönyvtár nem törlődik, és a többi eszköz megtartja az adatait. A felhőszinkronizálás leválasztásra kerül, hogy a visszaállítás ne vonódjon vissza; a Beállítások > Adatok > Szinkronizálás eszközök között menüben csatlakoztathatja újra.';
 
   @override
   String get settings_storage_resetDialog_confirmWord => 'Törlés';
@@ -26889,7 +27082,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_storage_resetComplete_description =>
-      'Ennek az eszköznek az adatai törölve lettek és biztonsági mentés készült. A felhőszinkronizálás most le van választva, hogy a visszaállítás ne vonódjon vissza; a Beállítások > Felhőszinkronizálás menüben csatlakoztathatja újra. Koppintson a Tovább gombra az alkalmazás újratöltéséhez.';
+      'Ennek az eszköznek az adatai törölve lettek és biztonsági mentés készült. A felhőszinkronizálás most le van választva, hogy a visszaállítás ne vonódjon vissza; a Beállítások > Adatok > Szinkronizálás eszközök között menüben csatlakoztathatja újra. Koppintson a Tovább gombra az alkalmazás újratöltéséhez.';
 
   @override
   String get settings_summary_activeDiver => 'Aktív merülő';
@@ -30462,10 +30655,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Merülési adatok exportálása különböző formátumokban. A PDF nyomtatható naplókönyvet készít. Az UDDF egy univerzális formátum, amely kompatibilis a legtöbb merülési napló szoftverrel. A CSV- és Excel-fájlokat táblázatkezelő alkalmazásokban nyithatja meg. A teljes adatbázisról biztonsági mentést is készíthet a Beállítások > Biztonsági mentés és visszaállítás menüben.';
+      'Merülési adatok exportálása különböző formátumokban. A PDF nyomtatható naplókönyvet készít. Az UDDF egy univerzális formátum, amely kompatibilis a legtöbb merülési napló szoftverrel. A CSV- és Excel-fájlokat táblázatkezelő alkalmazásokban nyithatja meg. A teljes adatbázisról biztonsági mentést is készíthet a Beállítások > Adatok > Biztonsági mentések menüben.';
 
   @override
-  String get transfer_export_backupLink => 'Mentés és visszaállítás';
+  String get transfer_export_backupLink => 'Biztonsági mentések';
 
   @override
   String get transfer_export_aboutTitle => 'Az exportálásról';
@@ -35734,7 +35927,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get db_location_backup_note =>
-      'Az Android nem tudja az adatbázist felhőben szinkronizált mappából futtatni. Ha másolatot szeretne tartani a Dropboxban, a Nextcloudban vagy a Google Drive-on, állítsa be a Mentés helyét a Biztonsági Mentés és Visszaállítás alatt.';
+      'Az Android nem tudja az adatbázist felhőben szinkronizált mappából futtatni. Ha másolatot szeretne tartani a Dropboxban, a Nextcloudban vagy a Google Drive-on, állítson be egy mentési mappát a Biztonsági mentések alatt.';
 
   @override
   String diveLog_bulkEdit_membership_onAll(int count) {
@@ -35935,7 +36128,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>
-      'A felhőszinkronizálás Dropbox-kapcsolatát használja. A média a Dropbox alkalmazásmappájában tárolódik.';
+      'A Szinkronizálás eszközök között Dropbox-kapcsolatát használja. A média a Dropbox alkalmazásmappájában tárolódik.';
 
   @override
   String get settings_mediaStorage_connect_gdrive_hint =>
@@ -36534,12 +36727,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_setup_dismiss => 'Elvetés';
 
   @override
-  String get settings_photosMedia_title => 'Fotók és média';
-
-  @override
-  String get settings_photosMedia_subtitle => 'Források és tárolás';
-
-  @override
   String get settings_photosMedia_sourcesHeader => 'Honnan érkeznek a fotók';
 
   @override
@@ -36569,10 +36756,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_connectedAccounts_title => 'Csatlakoztatott fiókok';
 
   @override
-  String get settings_connectedAccounts_subtitle =>
-      'A szinkronizálás, a médiatárhely és a megosztott könyvtárak által használt fiókok';
-
-  @override
   String get settings_connectedAccounts_empty =>
       'Még nincs csatlakoztatott fiók';
 
@@ -36594,6 +36777,20 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeFromLibrary =>
       'Eltávolítás a könyvtárból';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Átnevezés';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Fiók átnevezése';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Név';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Hagyja üresen, és ez lesz a neve: $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>
@@ -46865,9 +47062,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Elakadt szinkronizálás javítása vagy felhőtárhely felszabadítása';
 
   @override
-  String get settings_data_header_dataTools => 'Adateszközök';
-
-  @override
   String get settings_decompression_ascentGasLabel =>
       'Emelkedés tervezése ezzel';
 
@@ -48500,7 +48694,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_recovery_encryptedBackup_body =>
-      'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállításokban, a Biztonsági mentés és visszaállítás résznél.';
+      'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállítások > Adatok > Biztonsági mentések résznél.';
 
   @override
   String get startup_recovery_useDefault_title =>
@@ -50812,7 +51006,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_recoverNote =>
-      'A most a helyén lévő fájl megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások Biztonsági mentés és visszaállítás részében.';
+      'A most a helyén lévő fájl megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások > Adatok > Biztonsági mentések részben.';
 
   @override
   String get startup_interruptedRestore_keepAction =>
@@ -50820,7 +51014,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_interruptedRestore_keepNote =>
-      'Az előző merülési naplód megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások Biztonsági mentés és visszaállítás részében.';
+      'Az előző merülési naplód megmarad, nem törlődik. Később visszaállíthatod vagy törölheted a Beállítások > Adatok > Biztonsági mentések részben.';
 
   @override
   String get startup_interruptedRestore_failed =>

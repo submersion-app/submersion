@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/iart_course_category.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/tdi_course_category.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/agency_swatch.dart';
@@ -68,12 +69,15 @@ class CertificationAgencyEditPage extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
-          // TDI groups its own course names into five categories on its own
-          // website, not into a progression/specialties split (issue #3072).
-          // Display-only: the stored value and the ladder/specialty split
-          // behind ladderFor/specialtiesFor are unaffected.
+          // TDI and IART each group their own course names into their own
+          // categories on their own websites, not into a progression/
+          // specialties split (issues #3072, #3357). Display-only: the
+          // stored value and the ladder/specialty split behind
+          // ladderFor/specialtiesFor are unaffected.
           if (agencyId == CertificationAgency.tdi.name)
             ..._tdiLevelSections(l10n, catalog)
+          else if (agencyId == CertificationAgency.iart.name)
+            ..._iartLevelSections(l10n, catalog)
           else ...[
             _LevelSection(
               title: l10n.certifications_edit_group_progression,
@@ -113,28 +117,63 @@ class CertificationAgencyEditPage extends ConsumerWidget {
 
 /// TDI's ladder and specialties, as five section widgets grouped by course
 /// category instead of the generic progression/specialties split (issue
-/// #3072). A diver's own custom level under TDI has no category; unlike the
-/// certification dropdown's single Specialties catch-all, it renders under
-/// a Progression or Specialties catch-all depending on its own progression
-/// flag, so a draggable custom rung keeps working -- see the comment below.
+/// #3072). Delegates to [_levelSectionsByCategory]; see its comment for why
+/// the uncategorized catch-all is split by progression flag rather than
+/// shown as a single Specialties group.
 List<Widget> _tdiLevelSections(
   AppLocalizations l10n,
   CertificationCatalog catalog,
-) {
-  final agencyId = CertificationAgency.tdi.name;
-  final grouped = groupTdiCatalog(catalog);
-  // Every category section holds only built-in TDI courses (the category
-  // map keys off entry.builtIn, which custom levels never have), so none of
-  // them ever has a diver's own rung to drag -- not reorderable, same as
-  // every other agency's non-ladder sections.
-  //
-  // The catch-all is the one place a custom TDI level can land, and it
-  // mixes progression- and specialty-type custom entries. Reordering only
-  // persists for progression ones (CertificationCatalog.ladderFor sorts
-  // custom rungs by sortOrder; specialtiesFor always sorts alphabetically),
-  // so the two are split the same way every other agency splits them into
-  // Progression/Specialties, rather than offering a drag handle that
-  // silently does nothing for a specialty-type entry.
+) => _levelSectionsByCategory(
+  categories: TdiCourseCategory.values,
+  grouped: groupTdiCatalog(catalog),
+  categoryLabel: (c) => c.label(l10n),
+  agencyId: CertificationAgency.tdi.name,
+  catalog: catalog,
+  l10n: l10n,
+);
+
+/// IART's ladder and specialties, as section widgets grouped by course
+/// category instead of the generic progression/specialties split (issue
+/// #3357). Delegates to [_levelSectionsByCategory]; see its comment for why
+/// the uncategorized catch-all is split by progression flag rather than
+/// shown as a single Specialties group.
+List<Widget> _iartLevelSections(
+  AppLocalizations l10n,
+  CertificationCatalog catalog,
+) => _levelSectionsByCategory(
+  categories: IartCourseCategory.values,
+  grouped: groupIartCatalog(catalog),
+  categoryLabel: (c) => c.label(l10n),
+  agencyId: CertificationAgency.iart.name,
+  catalog: catalog,
+  l10n: l10n,
+);
+
+/// Shared shape behind [_tdiLevelSections] and [_iartLevelSections]: one
+/// section per non-empty category, in order, then a diver's own custom
+/// level under this agency -- which [grouped] never assigns a category,
+/// since the category map keys off entry.builtIn -- split into a
+/// Progression or Specialties catch-all by its own progression flag so a
+/// draggable custom rung keeps working. Every category section holds only
+/// built-in courses, so none of them is ever reorderable, same as every
+/// other agency's non-ladder sections. Reordering only persists for
+/// progression-type custom entries (CertificationCatalog.ladderFor sorts
+/// them by sortOrder; specialtiesFor always sorts alphabetically), so the
+/// catch-all is split the same way every other agency splits its own
+/// Progression/Specialties, rather than offering a drag handle that
+/// silently does nothing for a specialty-type entry.
+List<Widget> _levelSectionsByCategory<C>({
+  required Iterable<C> categories,
+  required ({
+    Map<C, List<LevelEntry>> byCategory,
+    List<LevelEntry> uncategorized,
+  })
+  grouped,
+  required String Function(C category) categoryLabel,
+  required String agencyId,
+  required CertificationCatalog catalog,
+  required AppLocalizations l10n,
+}) {
   final uncategorizedProgression = [
     for (final l in grouped.uncategorized)
       if (l.isProgression) l,
@@ -144,11 +183,11 @@ List<Widget> _tdiLevelSections(
       if (!l.isProgression) l,
   ];
   return [
-    for (final category in TdiCourseCategory.values)
+    for (final category in categories)
       if (grouped.byCategory[category] case final entries?
           when entries.isNotEmpty)
         _LevelSection(
-          title: category.label(l10n),
+          title: categoryLabel(category),
           agencyId: agencyId,
           catalog: catalog,
           levels: entries,

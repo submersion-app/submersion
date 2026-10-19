@@ -1,11 +1,11 @@
-# Backup and Restore
+# Backups
 
 A backup is a point-in-time snapshot of your whole dive logbook in a single
 file. Keep the file wherever you like, share it, or use it to roll back to an
 earlier state of your data.
 
 > [!NOTE]
-> **Where to find it:** **Settings > Data > Backup & Restore**.
+> **Where to find it:** **Settings > Data > Backups**.
 
 <!-- screenshot: images/backup-and-restore/backup.png: backup and restore page -->
 
