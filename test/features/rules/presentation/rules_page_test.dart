@@ -119,4 +119,24 @@ void main() {
     expect(find.textContaining('that action is skipped'), findsOneWidget);
     expect(find.textContaining('Made by a newer version'), findsOneWidget);
   });
+
+  testWidgets('Run on all from a row opens the preview', (tester) async {
+    await tester.runAsync(() async {
+      await seedRuleDive(db, 'd40', maxDepth: 40);
+      await make('Deep', condition: depthOver(30));
+      await pumpRulesApp(tester, home: (_) => const RulesPage());
+    });
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Rule actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run on all dives'));
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 60)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('1 dive will change.'), findsOneWidget);
+  });
 }

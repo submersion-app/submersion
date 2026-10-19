@@ -42,6 +42,7 @@ class RulesPage extends ConsumerWidget {
           tooltip: l10n.common_action_back,
         ),
         actions: [
+          if (hasRules) const RunRulesMenuButton(),
           IconButton(
             icon: const Icon(Icons.history),
             tooltip: l10n.rules_action_history,

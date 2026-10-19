@@ -85017,6 +85017,155 @@ abstract class AppLocalizations {
   /// **'Choose {field}'**
   String rules_actionEditor_choose(String field);
 
+  /// Snackbar action that undoes a rule run
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get rules_action_undo;
+
+  /// Title of the preview before running rules on dives
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply rules to {count} dive?} other{Apply rules to {count} dives?}}'**
+  String rules_preview_titleDives(int count);
+
+  /// Title of the preview before running rules on sites
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply rules to {count} site?} other{Apply rules to {count} sites?}}'**
+  String rules_preview_titleSites(int count);
+
+  /// Preview subtitle: how many dives change
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive will change.} other{{count} dives will change.}}'**
+  String rules_preview_willChangeDives(int count);
+
+  /// Preview subtitle: how many sites change
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} site will change.} other{{count} sites will change.}}'**
+  String rules_preview_willChangeSites(int count);
+
+  /// Preview note about selected items a rule may not change (library sites, another profile's sites, planned dives)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} selected item is not yours to change and was left out.} other{{count} selected items are not yours to change and were left out.}}'**
+  String rules_preview_outOfScope(int count);
+
+  /// Preview note listing rules that could not run
+  ///
+  /// In en, this message translates to:
+  /// **'These rules can\'t run and were skipped: {names}'**
+  String rules_preview_skippedRules(String names);
+
+  /// Preview note listing rules with a skipped action
+  ///
+  /// In en, this message translates to:
+  /// **'Some actions name deleted items and were skipped: {names}'**
+  String rules_preview_skippedActions(String names);
+
+  /// Change list grouping: one block per dive or site
+  ///
+  /// In en, this message translates to:
+  /// **'By item'**
+  String get rules_preview_groupByTarget;
+
+  /// Change list grouping: one block per rule
+  ///
+  /// In en, this message translates to:
+  /// **'By rule'**
+  String get rules_preview_groupByRule;
+
+  /// Button that applies previewed rule changes to dives
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply to {count} dive} other{Apply to {count} dives}}'**
+  String rules_preview_applyDives(int count);
+
+  /// Button that applies previewed rule changes to sites
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply to {count} site} other{Apply to {count} sites}}'**
+  String rules_preview_applySites(int count);
+
+  /// Snackbar when an on-demand run would change no dive
+  ///
+  /// In en, this message translates to:
+  /// **'No changes: these dives already match your rules.'**
+  String get rules_run_noChangesDives;
+
+  /// Snackbar when an on-demand run would change no site
+  ///
+  /// In en, this message translates to:
+  /// **'No changes: these sites already match your rules.'**
+  String get rules_run_noChangesSites;
+
+  /// Snackbar after rules changed dives
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Rules changed {count} dive} other{Rules changed {count} dives}}'**
+  String rules_run_doneDives(int count);
+
+  /// Snackbar after rules changed sites
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Rules changed {count} site} other{Rules changed {count} sites}}'**
+  String rules_run_doneSites(int count);
+
+  /// Message after undoing a rule run
+  ///
+  /// In en, this message translates to:
+  /// **'Undone.'**
+  String get rules_undo_done;
+
+  /// Message after undoing a rule run that skipped later edits
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Undone. {count} item was edited after this run; its changes were left alone.} other{Undone. {count} items were edited after this run; their changes were left alone.}}'**
+  String rules_undo_doneSkipped(int count);
+
+  /// Message when an undo finds nothing to revert yet
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to undo on this device yet. Try again after syncing.'**
+  String get rules_undo_nothingYet;
+
+  /// Message when a rule run was already undone
+  ///
+  /// In en, this message translates to:
+  /// **'Already undone.'**
+  String get rules_undo_alreadyUndone;
+
+  /// One change in a change list grouped by item
+  ///
+  /// In en, this message translates to:
+  /// **'{rule}: {field} {before} → {after}'**
+  String rules_change_line(
+    String rule,
+    String field,
+    String before,
+    String after,
+  );
+
+  /// An append change in a change list
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: appended \"{text}\"'**
+  String rules_change_appended(String field, String text);
+
+  /// Shown for a dive without a site in a change list
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get rules_target_noSite;
+
+  /// Lower-case dive site field name used in rule change lists
+  ///
+  /// In en, this message translates to:
+  /// **'description'**
+  String get rules_siteField_description;
+
   /// Settings > Manage entry
   ///
   /// In en, this message translates to:

@@ -54120,6 +54120,176 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get rules_action_undo => 'Undo';
+
+  @override
+  String rules_preview_titleDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply rules to $count dives?',
+      one: 'Apply rules to $count dive?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_preview_titleSites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply rules to $count sites?',
+      one: 'Apply rules to $count site?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_preview_willChangeDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives will change.',
+      one: '$count dive will change.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_preview_willChangeSites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites will change.',
+      one: '$count site will change.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_preview_outOfScope(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected items are not yours to change and were left out.',
+      one: '$count selected item is not yours to change and was left out.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_preview_skippedRules(String names) {
+    return 'These rules can\'t run and were skipped: $names';
+  }
+
+  @override
+  String rules_preview_skippedActions(String names) {
+    return 'Some actions name deleted items and were skipped: $names';
+  }
+
+  @override
+  String get rules_preview_groupByTarget => 'By item';
+
+  @override
+  String get rules_preview_groupByRule => 'By rule';
+
+  @override
+  String rules_preview_applyDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply to $count dives',
+      one: 'Apply to $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_preview_applySites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply to $count sites',
+      one: 'Apply to $count site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rules_run_noChangesDives =>
+      'No changes: these dives already match your rules.';
+
+  @override
+  String get rules_run_noChangesSites =>
+      'No changes: these sites already match your rules.';
+
+  @override
+  String rules_run_doneDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rules changed $count dives',
+      one: 'Rules changed $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rules_run_doneSites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rules changed $count sites',
+      one: 'Rules changed $count site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rules_undo_done => 'Undone.';
+
+  @override
+  String rules_undo_doneSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Undone. $count items were edited after this run; their changes were left alone.',
+      one:
+          'Undone. $count item was edited after this run; its changes were left alone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rules_undo_nothingYet =>
+      'Nothing to undo on this device yet. Try again after syncing.';
+
+  @override
+  String get rules_undo_alreadyUndone => 'Already undone.';
+
+  @override
+  String rules_change_line(
+    String rule,
+    String field,
+    String before,
+    String after,
+  ) {
+    return '$rule: $field $before → $after';
+  }
+
+  @override
+  String rules_change_appended(String field, String text) {
+    return '$field: appended \"$text\"';
+  }
+
+  @override
+  String get rules_target_noSite => 'No site';
+
+  @override
+  String get rules_siteField_description => 'description';
+
+  @override
   String get settings_manage_savedQueries => 'الاستعلامات المحفوظة';
 
   @override

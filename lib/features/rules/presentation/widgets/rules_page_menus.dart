@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(RuleRowMenu);
@@ -19,9 +21,9 @@ void showRulesError(BuildContext context) {
   );
 }
 
-enum _RowAction { duplicate, delete }
+enum _RowAction { runOnAll, duplicate, delete }
 
-/// A rule row's menu: duplicate or delete it.
+/// A rule row's menu: run it on everything, duplicate or delete it.
 class RuleRowMenu extends ConsumerWidget {
   const RuleRowMenu({super.key, required this.rule});
 
@@ -33,10 +35,25 @@ class RuleRowMenu extends ConsumerWidget {
     return PopupMenuButton<_RowAction>(
       tooltip: l10n.rules_row_menuTooltip,
       onSelected: (action) => switch (action) {
+        _RowAction.runOnAll => runRulesOnDemand(
+          context,
+          ref,
+          subject: rule.subject,
+          onlyRuleIds: [rule.id],
+        ),
         _RowAction.duplicate => _duplicate(context, ref),
         _RowAction.delete => _delete(context, ref),
       },
       itemBuilder: (_) => [
+        PopupMenuItem(
+          value: _RowAction.runOnAll,
+          enabled: rule.isRunnable,
+          child: Text(
+            rule.subject == RuleSubject.dives
+                ? l10n.rules_row_runOnAllDives
+                : l10n.rules_row_runOnAllSites,
+          ),
+        ),
         PopupMenuItem(
           value: _RowAction.duplicate,
           child: Text(l10n.rules_row_duplicate),
@@ -95,5 +112,32 @@ class RuleRowMenu extends ConsumerWidget {
       _log.error('Failed to delete rule', error: e, stackTrace: st);
       if (context.mounted) showRulesError(context);
     }
+  }
+}
+
+/// The Rules page's "Run rules" menu: every enabled dive rule over all
+/// dives, or every enabled site rule over all sites.
+class RunRulesMenuButton extends ConsumerWidget {
+  const RunRulesMenuButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return PopupMenuButton<RuleSubject>(
+      key: const ValueKey('rules_run_all'),
+      icon: const Icon(Icons.play_arrow_outlined),
+      tooltip: l10n.rules_action_runAll,
+      onSelected: (subject) => runRulesOnDemand(context, ref, subject: subject),
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: RuleSubject.dives,
+          child: Text(l10n.rules_action_runAllDives),
+        ),
+        PopupMenuItem(
+          value: RuleSubject.sites,
+          child: Text(l10n.rules_action_runAllSites),
+        ),
+      ],
+    );
   }
 }
