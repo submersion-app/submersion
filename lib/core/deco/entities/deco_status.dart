@@ -53,6 +53,13 @@ class DecoStatus extends Equatable {
   /// Inspired He partial pressure in bar, as [inspiredN2Bar].
   final double? inspiredHeBar;
 
+  /// Deepest GF-low ceiling (meters) reached so far in the dive at this
+  /// sample: the running anchor BuhlmannAlgorithm interpolates gradient
+  /// factors from. Together with [compartments] it is the complete restorable
+  /// mid-dive state (`BuhlmannAlgorithm.restoreState`). Null when the status
+  /// was not produced by a profile walk (hand-built statuses, older callers).
+  final double? gfLowCeilingAnchor;
+
   const DecoStatus({
     required this.compartments,
     required this.ndlSeconds,
@@ -67,6 +74,7 @@ class DecoStatus extends Equatable {
     this.surfacePressureBar = 1.0,
     this.inspiredN2Bar,
     this.inspiredHeBar,
+    this.gfLowCeilingAnchor,
   });
 
   /// Rate noise floor, in bar/min, below which [isOffgassing]'s net rate is
@@ -234,6 +242,7 @@ class DecoStatus extends Equatable {
     double? surfacePressureBar,
     double? inspiredN2Bar,
     double? inspiredHeBar,
+    double? gfLowCeilingAnchor,
   }) {
     return DecoStatus(
       compartments: compartments ?? this.compartments,
@@ -249,6 +258,7 @@ class DecoStatus extends Equatable {
       surfacePressureBar: surfacePressureBar ?? this.surfacePressureBar,
       inspiredN2Bar: inspiredN2Bar ?? this.inspiredN2Bar,
       inspiredHeBar: inspiredHeBar ?? this.inspiredHeBar,
+      gfLowCeilingAnchor: gfLowCeilingAnchor ?? this.gfLowCeilingAnchor,
     );
   }
 
@@ -267,6 +277,7 @@ class DecoStatus extends Equatable {
     surfacePressureBar,
     inspiredN2Bar,
     inspiredHeBar,
+    gfLowCeilingAnchor,
   ];
 }
 
