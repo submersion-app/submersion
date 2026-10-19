@@ -151,10 +151,7 @@ void main() {
   testWidgets('paging moves the panel to the next item', (tester) async {
     await pump(
       tester,
-      MediaViewerPage(
-        mediaList: [photo('a'), photo('b')],
-        initialMediaId: 'a',
-      ),
+      MediaViewerPage(mediaList: [photo('a'), photo('b')], initialMediaId: 'a'),
       size: const Size(1200, 800),
     );
     await openPanel(tester);
@@ -205,12 +202,12 @@ void main() {
         scope: SiteViewerScope.attachments,
       ),
       overrides: [
-        mediaForSiteProvider('site-1').overrideWith(
-          (ref) async => [photo('a', siteId: 'site-1')],
-        ),
-        flatMediaFromDivesAtSiteProvider('site-1').overrideWith(
-          (ref) async => const <MediaItem>[],
-        ),
+        mediaForSiteProvider(
+          'site-1',
+        ).overrideWith((ref) async => [photo('a', siteId: 'site-1')]),
+        flatMediaFromDivesAtSiteProvider(
+          'site-1',
+        ).overrideWith((ref) async => const <MediaItem>[]),
       ],
     );
     await tester.tap(find.byTooltip('Adjust color'));

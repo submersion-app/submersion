@@ -32,7 +32,8 @@ Future<WhitePoint?> sampleWhiteFromPhoto(
   try {
     await WidgetsBinding.instance.endOfFrame;
     final boundary =
-        boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        boundaryKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
     if (boundary == null) return null;
     final image = await boundary.toImage();
     try {

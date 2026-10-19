@@ -19,8 +19,16 @@ WhitePoint? averageWhiteAround(
   final cx = at.dx.floor(), cy = at.dy.floor();
   if (cx < 0 || cy < 0 || cx >= width || cy >= height) return null;
   var sumR = 0, sumG = 0, sumB = 0, n = 0;
-  for (var y = math.max(0, cy - radius); y <= math.min(height - 1, cy + radius); y++) {
-    for (var x = math.max(0, cx - radius); x <= math.min(width - 1, cx + radius); x++) {
+  for (
+    var y = math.max(0, cy - radius);
+    y <= math.min(height - 1, cy + radius);
+    y++
+  ) {
+    for (
+      var x = math.max(0, cx - radius);
+      x <= math.min(width - 1, cx + radius);
+      x++
+    ) {
       final o = (y * width + x) * 4;
       sumR += rgba.getUint8(o);
       sumG += rgba.getUint8(o + 1);
