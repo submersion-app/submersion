@@ -1,6 +1,6 @@
 # Display-only media color correction
 
-Status: draft for approval, 2026-10-19. Release: v1.8.3.
+Status: approved, 2026-10-19. Issue #3520. Release: v1.8.3.
 
 ## Why
 
@@ -39,7 +39,7 @@ changing a file.
 - A cache of pre-rendered corrected previews. Considered and rejected by the
   user: correction is computed at draw time only.
 - Sharing a corrected video. Shared videos go out as the original file. Re-
-  encoding with the adjustments is a separate follow-up issue (see Follow-ups).
+  encoding with the adjustments is follow-up #3521.
 - Cropping, rotation, filters or any other photo editing.
 
 ## Anti-goals (would be a failure even if it works)
@@ -204,7 +204,7 @@ splitting photos and video into two PRs).
 
 ## Follow-ups
 
-- Separate GitHub issue: share corrected videos by re-encoding the clip with
+- #3521: share corrected videos by re-encoding the clip with
   the per-moment adjustments.
 
 ## Out of scope reminders
