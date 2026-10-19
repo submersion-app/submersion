@@ -6289,6 +6289,18 @@ class DiveRepository {
         recordId: diveId,
         localUpdatedAt: now,
       );
+      // A dive that moves to another trip, or leaves its trip, keeps no
+      // tank link into the old trip's slots, as with [bulkUpdateTrip] (bulk
+      // edit's Trip row and a logbook rule both set the trip here).
+      if (partial.tripId.present) {
+        await clearForeignTripCylinderLinks(
+          _db,
+          _syncRepository,
+          diveId,
+          tripId: partial.tripId.value,
+          now: now,
+        );
+      }
     }
   }
 

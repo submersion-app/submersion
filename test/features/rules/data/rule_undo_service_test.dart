@@ -328,6 +328,32 @@ void main() {
     expect((await RuleRunRepository().getRun(run))!.isUndone, isFalse);
   });
 
+  test('undoing a trip change drops tank links into the trip left', () async {
+    await db.customStatement(
+      "INSERT INTO trips (id, name, start_date, end_date, created_at, "
+      "updated_at) VALUES ('t1', 'Old', 0, 0, 0, 0), ('t2', 'New', 0, 0, 0, 0)",
+    );
+    await db.customStatement(
+      'INSERT INTO trip_cylinders (id, trip_id, created_at, updated_at) '
+      "VALUES ('slot2', 't2', 0, 0)",
+    );
+    await db.customStatement("UPDATE dives SET trip_id = 't1'");
+    final run = await runRule(
+      const SetDiveFieldAction(BulkField.trip, {'tripId': 't2'}),
+    );
+    // On the new trip, the diver links a tank to one of its cylinders.
+    await db.customStatement(
+      'INSERT INTO dive_tanks (id, dive_id, trip_cylinder_id) '
+      "VALUES ('tank1', 'd35', 'slot2')",
+    );
+    await undo.undo(run);
+    expect(await column('d35', 'trip_id'), 't1');
+    final link = await db
+        .customSelect("SELECT trip_cylinder_id AS v FROM dive_tanks")
+        .getSingle();
+    expect(link.data['v'], isNull);
+  });
+
   test('a change that can no longer be written is skipped, not fatal', () async {
     await db.customStatement(
       "INSERT INTO trips (id, name, start_date, end_date, created_at, "

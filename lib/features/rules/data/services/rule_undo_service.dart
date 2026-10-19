@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/existing_row_ids.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
 import 'package:submersion/features/rules/data/services/dive_rule_applier.dart';
@@ -273,6 +274,17 @@ class RuleUndoService {
       recordId: id,
       localUpdatedAt: now,
     );
+    // A dive put back on its old trip keeps no tank link into the trip it
+    // leaves, as every other trip change does.
+    if (s == RuleSubject.dives && values.containsKey('trip_id')) {
+      await clearForeignTripCylinderLinks(
+        _db,
+        _sync,
+        id,
+        tripId: values['trip_id'] as String?,
+        now: now,
+      );
+    }
   }
 
   Future<_Outcome> _undoColumns(RuleChange c) async {
