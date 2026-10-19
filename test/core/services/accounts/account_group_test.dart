@@ -77,6 +77,39 @@ void main() {
     expect(g.isOwnServer, isTrue);
   });
 
+  // Issue #3522: accounts read by a short name, the address kept below.
+  test('a well-known host reads as its service, the address kept', () {
+    final g = _group([
+      _row(
+        'r2',
+        AccountKind.s3,
+        location: _s3(
+          'submersion-sync/',
+          host: 'abc123.r2.cloudflarestorage.com',
+        ),
+      ),
+    ]).single;
+    expect(g.label, 'dives @ Cloudflare R2');
+    expect(g.address, 'dives @ abc123.r2.cloudflarestorage.com');
+  });
+
+  test('a nickname on any row names the account', () {
+    final g = _group([
+      _row('sync', AccountKind.s3, location: _s3('submersion-sync/')),
+      ConnectedAccount(
+        id: 'lib',
+        kind: AccountKind.s3,
+        label: 'x',
+        createdAt: _t,
+        updatedAt: _t,
+        location: _s3('submersion-sites/reef/'),
+        nickname: 'Home NAS',
+      ),
+    ]).single;
+    expect(g.label, 'Home NAS');
+    expect(g.address, 'dives @ minio.home');
+  });
+
   test('the same bucket on two hosts is two accounts', () {
     final groups = _group([
       _row('a', AccountKind.s3, location: _s3('submersion-sync/')),

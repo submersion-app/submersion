@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
@@ -26,13 +27,25 @@ class AccountGroup {
     required this.roles,
     this.identifier,
     this.usagesKnown = true,
-  });
+    String? address,
+    this.nickname,
+  }) : address = address ?? label;
 
   /// Stable across rebuilds: kind and server for own servers, kind and row
   /// for everything else, `row|<id>` for a row nothing here can place.
   final String key;
   final AccountKind kind;
+
+  /// The name the account is shown under: the diver's nickname, else its
+  /// address with a well-known service's host named (issue #3522).
   final String label;
+
+  /// The account's full address ("bucket @ host"), shown under a short
+  /// [label] so two accounts on one service can still be told apart.
+  final String address;
+
+  /// The nickname the diver gave the account, or null.
+  final String? nickname;
 
   /// The account email or similar, where the roster holds one.
   final String? identifier;
@@ -127,12 +140,18 @@ AccountGroup _group(
   }
 
   final location = locations.values.firstOrNull;
-  final label = switch (location) {
+  final address = switch (location) {
     S3AccountLocation(:final bucket, :final displayHost) =>
       '$bucket @ $displayHost',
     WebDavAccountLocation(:final username, :final host) => '$username @ $host',
     null => _withoutFolderNote(first.label),
   };
+  // A nickname on any row names the account; the sync-role row's wins.
+  final named =
+      [...members.where((r) => roles[r.id] == AccountRole.sync), ...members]
+          .map((r) => r.nickname?.trim())
+          .firstWhereOrNull((n) => n != null && n.isNotEmpty);
+  final label = accountDisplayName(label: address, nickname: named);
 
   return AccountGroup(
     key: key,
@@ -147,6 +166,8 @@ AccountGroup _group(
     locations: Map.unmodifiable(locations),
     roles: Map.unmodifiable(roles),
     usagesKnown: usagesKnown,
+    address: address,
+    nickname: named,
   );
 }
 

@@ -1,25 +1,37 @@
 // Issue #3522: storage accounts read by a short name. A row shows the
 // diver's nickname or the shortened label, keeps the full address below,
-// and Rename sets or clears the nickname.
+// and Rename, on the account's detail view (#3482), sets or clears it.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../support/fake_keychain_storage.dart';
 
 const _r2Label =
     'submersion-sync @ 149b84f66d5479265f3e4d4ad4740926.r2.cloudflarestorage.com';
+
+/// The rename dialog's field; the detail view behind it has fields too.
+final _dialogField = find.descendant(
+  of: find.byType(AlertDialog),
+  matching: find.byType(TextField),
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -44,13 +56,33 @@ void main() {
           accountProviderRegistryProvider.overrideWithValue(
             AccountProviderRegistry(const []),
           ),
+          // The account detail view's server form reads stored settings.
+          accountCredentialsStoreProvider.overrideWithValue(
+            AccountCredentialsStore(storage: InMemoryKeychain()),
+          ),
         ],
-        child: const MaterialApp(
+        child: MaterialApp.router(
           // Pinned: the assertions match English strings.
-          locale: Locale('en'),
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: ConnectedAccountsPage(),
+          routerConfig: GoRouter(
+            initialLocation: '/settings/connected-accounts',
+            routes: [
+              GoRoute(
+                path: '/settings/connected-accounts',
+                builder: (_, _) => const ConnectedAccountsPage(),
+                routes: [
+                  GoRoute(
+                    path: ':accountId',
+                    builder: (_, state) => AccountDetailPage(
+                      accountId: state.pathParameters['accountId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -69,13 +101,24 @@ void main() {
     return account;
   }
 
+  /// Opens the account's detail view, then its Rename dialog.
+  Future<void> openRename(WidgetTester tester) async {
+    await tester.tap(find.byType(AccountGroupTile));
+    await settle(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rename'));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> rename(WidgetTester tester, String name) async {
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename').last);
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), name);
-    await tester.tap(find.text('Save'));
+    await openRename(tester);
+    await tester.enterText(_dialogField, name);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Save'),
+      ),
+    );
     await tester.pumpAndSettle();
     await settle(tester);
   }
@@ -122,12 +165,9 @@ void main() {
     await addR2(tester, nickname: 'Club bucket');
     await pumpPage(tester);
 
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename').last);
-    await tester.pumpAndSettle();
+    await openRename(tester);
 
-    final field = tester.widget<TextField>(find.byType(TextField));
+    final field = tester.widget<TextField>(_dialogField);
     expect(field.controller!.text, 'Club bucket');
     expect(
       find.text('Leave empty to use submersion-sync @ Cloudflare R2'),
@@ -149,11 +189,8 @@ void main() {
     final account = await addR2(tester);
     await pumpPage(tester);
 
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename').last);
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Club bucket');
+    await openRename(tester);
+    await tester.enterText(_dialogField, 'Club bucket');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     await settle(tester);
@@ -162,15 +199,43 @@ void main() {
     expect(await nicknameOf(tester, account.id), 'Club bucket');
   });
 
+  // Issue #3482: an account may be several roster rows on one server; the
+  // name goes on every one, so whichever row a device sees reads the same.
+  testWidgets('Rename names every row of the account', (tester) async {
+    late List<domain.ConnectedAccount> rows;
+    await tester.runAsync(() async {
+      rows = [
+        for (final prefix in ['submersion-sync/', 'submersion-sites/reef/'])
+          await accounts.ensure(
+            kind: AccountKind.s3,
+            naturalKey: 'minio|dives|$prefix',
+            label: 'dives @ minio.home',
+            location: S3AccountLocation(
+              displayHost: 'minio.home',
+              endpoint: 'https://minio.home',
+              bucket: 'dives',
+              region: 'us-east-1',
+              prefix: prefix,
+              pathStyle: true,
+            ),
+          ),
+      ];
+    });
+    await pumpPage(tester);
+
+    await rename(tester, 'Home NAS');
+
+    for (final row in rows) {
+      expect(await nicknameOf(tester, row.id), 'Home NAS');
+    }
+  });
+
   testWidgets('Cancel leaves the name alone', (tester) async {
     final account = await addR2(tester, nickname: 'Club bucket');
     await pumpPage(tester);
 
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename').last);
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Other');
+    await openRename(tester);
+    await tester.enterText(_dialogField, 'Other');
     await tester.tap(find.text('Cancel'));
     await settle(tester);
 

@@ -183,9 +183,16 @@ void main() {
     test('a sign-in item uses the nickname, else the short label', () async {
       final named = await accounts.create(kind: AccountKind.s3, label: r2);
       await accounts.setNickname(named.id, 'Club bucket');
-      await accounts.create(
+      await useForSync(named);
+      final photos = await accounts.create(
         kind: AccountKind.s3,
         label: 'photos @ s3.eu-west-1.amazonaws.com',
+      );
+      // Only accounts this device uses ask for a sign-in (#3482).
+      await MediaStoreAttachState(prefs: prefs).setAttached(
+        'store-x',
+        providerType: CloudProviderType.s3,
+        accountId: photos.id,
       );
       final items = await service().compute();
       expect(items.map((i) => i.label).toSet(), {

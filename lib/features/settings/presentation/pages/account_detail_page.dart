@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/webdav_provi
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_confirm_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
+import 'package:submersion/features/settings/presentation/widgets/account_rename_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
@@ -87,6 +88,11 @@ class _Details extends ConsumerWidget {
                     ),
             ),
           ),
+        ListTile(
+          leading: const Icon(Icons.edit_outlined),
+          title: Text(l10n.settings_connectedAccounts_rename),
+          onTap: () => _rename(context, ref),
+        ),
         if (isICloud)
           ListTile(
             leading: const Icon(Icons.info_outline),
@@ -152,6 +158,21 @@ class _Details extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// Gives the account a short name (issue #3522). The name goes on every
+  /// row of the account, so whichever row a device sees reads the same.
+  Future<void> _rename(BuildContext context, WidgetRef ref) async {
+    final shown = group.rowFor(AccountRole.sync) ?? group.rows.first;
+    final nickname = await showAccountRenameDialog(
+      context,
+      shown.copyWith(label: group.address, nickname: group.nickname),
+    );
+    if (nickname == null) return;
+    final repository = ref.read(connectedAccountsRepositoryProvider);
+    for (final row in group.rows) {
+      await repository.setNickname(row.id, nickname);
+    }
   }
 
   /// Signing out breaks nothing when nothing here uses the account, so it

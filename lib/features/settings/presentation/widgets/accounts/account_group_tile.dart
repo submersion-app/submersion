@@ -83,6 +83,14 @@ class AccountGroupTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // The full address stays visible under a short name (#3522).
+          if (group.address != group.label)
+            Text(
+              group.address,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
           Text(
             identifier == null ? state : '$identifier - $state',
             style: TextStyle(color: stateColor),
