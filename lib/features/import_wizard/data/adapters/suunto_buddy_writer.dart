@@ -29,7 +29,7 @@ class SuuntoBuddyWriter {
     SuuntoParsedDive parsed,
     String diverId,
   ) async {
-    if (parsed.buddies.isEmpty) return;
+    if (parsed.journal.buddies.isEmpty) return;
     final Set<String> onDive;
     final Set<String> namesOnDive;
     try {
@@ -48,7 +48,7 @@ class SuuntoBuddyWriter {
       return;
     }
     // One person failing to save must not cost the dive the others.
-    for (final name in parsed.buddies) {
+    for (final name in parsed.journal.buddies) {
       // Someone of that name is already on the dive, possibly a person
       // findOrCreateByName would not pick (another profile's namesake, or
       // one of two people sharing the name): adding ours would list the

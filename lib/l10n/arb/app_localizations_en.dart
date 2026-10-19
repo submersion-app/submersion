@@ -4092,6 +4092,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_list_fab_addCertification => 'Add Certification';
 
   @override
+  String get certifications_list_groupBy => 'Group by';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Agency';
+
+  @override
+  String get certifications_list_groupBy_none => 'None';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Expired';
 
   @override
@@ -4192,6 +4204,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_share_title => 'Share Certification';
 
   @override
+  String get certifications_sortSheet_view_list => 'List';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Certification Wallet';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Select a certification from the list to view details';
 
@@ -4249,6 +4267,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Share certification';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Sort';
 
   @override
   String get checklists_section_title => 'Checklist';
@@ -20474,6 +20495,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
       'Icons only, even where labels would normally fit';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

@@ -4152,6 +4152,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicionar Certificação';
 
   @override
+  String get certifications_list_groupBy => 'Agrupar por';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Certificadora';
+
+  @override
+  String get certifications_list_groupBy_none => 'Nenhum';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Expirada';
 
   @override
@@ -4254,6 +4266,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_share_title => 'Compartilhar Certificação';
 
   @override
+  String get certifications_sortSheet_view_list => 'Lista';
+
+  @override
+  String get certifications_sortSheet_view_wallet =>
+      'Carteira de Certificações';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Selecione uma certificação da lista para ver detalhes';
 
@@ -4312,6 +4331,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Compartilhar certificação';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Ordenar';
 
   @override
   String get checklists_section_title => 'Lista de Verificação';
@@ -20782,6 +20804,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
       'Apenas ícones, mesmo quando os rótulos caberiam';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Estado inicial da barra lateral; a seta ainda pode expandi-la ou recolhê-la durante esta sessão';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

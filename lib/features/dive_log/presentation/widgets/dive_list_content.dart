@@ -109,6 +109,15 @@ const double kGroupingPausedNoticeHeight = 56;
 /// Trailing spacer that keeps the last row clear of the FAB.
 const double _kListBottomSpacer = 80;
 
+/// How far ahead of the end of the loaded rows the next page is asked for,
+/// in viewport heights.
+///
+/// A fling crosses a viewport in a few frames. The old margin of 200 px, about
+/// one card, let a fast scroll reach the end of the loaded rows and stop dead
+/// while the page query ran (#3506). Three viewports give the query that long
+/// to land before the scroll gets there.
+const double _kPrefetchViewports = 3;
+
 /// Below this width, Sort folds into the overflow menu instead of sitting
 /// as its own app bar icon (#3076): four icons (map, search, sort, overflow)
 /// otherwise squeeze the title down to a few characters. Comfortably above
@@ -265,23 +274,38 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // thumb again and again, and put a failing query behind each one.
     final paginated = ref.read(paginatedDiveListProvider).value;
     if (paginated?.loadMoreFailed ?? false) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-    // Load next page when within 200px of bottom
-    if (maxScroll - currentScroll <= 200) {
+    if (_isNearLoadedEnd) {
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     }
   }
 
+  /// Whether the end of the loaded rows is within [_kPrefetchViewports] of
+  /// the bottom of the viewport.
+  bool get _isNearLoadedEnd {
+    if (!_scrollController.hasClients) return false;
+    final position = _scrollController.position;
+    if (!position.hasContentDimensions || !position.hasViewportDimension) {
+      return false;
+    }
+    return position.maxScrollExtent - position.pixels <=
+        position.viewportDimension * _kPrefetchViewports;
+  }
+
   /// Load the next page when the trailing loader row is built with nothing in
-  /// flight to resolve it.
+  /// flight to resolve it and the end of the loaded rows is near.
   ///
   /// [_onScroll] only fires on scroll activity, and when the list shrinks under
   /// a position that is already at the bottom -- a reload, a bulk delete --
   /// Flutter clamps the offset during layout without notifying scroll
   /// listeners. The spinner then sits there until the diver scrolls by hand
-  /// (#1610). Building the row is itself the signal that it is on screen, so
-  /// that is where the load gets kicked.
+  /// (#1610). So every build of the row checks, once the frame is laid out,
+  /// whether the end is within reach.
+  ///
+  /// Building the row is not by itself a sign that it is on screen: it sits in
+  /// a [SliverToBoxAdapter], which builds its child however far below the
+  /// viewport it is. Kicking on the build alone made each appended page ask
+  /// for the next, so the whole log streamed in page after page from the
+  /// moment the list opened, every page a hitch under a fast scroll (#3506).
   ///
   /// A page load that failed is left alone: the row shows a retry affordance
   /// instead of a spinner, so there is nothing stranded to rescue. [_onScroll]
@@ -310,8 +334,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       final latest = ref.read(paginatedDiveListProvider).value;
       if (latest == null || !latest.hasMore) return;
       if (latest.isLoadingMore || latest.loadMoreFailed) return;
+      if (!_isNearLoadedEnd) return;
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     });
+  }
+
+  /// [state] with `isLoadingMore` cleared, so that flag alone never counts as
+  /// a change to the list body.
+  static AsyncValue<PaginatedDiveListState> _withoutLoadingFlag(
+    AsyncValue<PaginatedDiveListState> state,
+  ) {
+    if (state case AsyncData(:final value) when value.isLoadingMore) {
+      return AsyncData(value.copyWith(isLoadingMore: false));
+    }
+    return state;
   }
 
   @override
@@ -1148,7 +1184,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       return _buildTableModeScaffold(context, filter);
     }
 
-    final paginatedAsync = ref.watch(paginatedDiveListProvider);
+    // isLoadingMore is left out: only the trailing loader row shows it, and
+    // that row watches the provider itself. Watching it here re-rendered every
+    // card on screen each time a page load started (#3506).
+    final paginatedAsync = ref.watch(
+      paginatedDiveListProvider.select(_withoutLoadingFlag),
+    );
 
     final loadedDives = paginatedAsync.value?.dives ?? [];
     final visibleIds = loadedDives.map((d) => d.id).toList();
@@ -1825,9 +1866,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   ) {
     final dives = paginatedState.dives;
 
-    // Calculate value range for card coloring based on active attribute
-    final settings = ref.read(settingsProvider);
-    final colorAttribute = settings.cardColorAttribute;
+    // Calculate value range for card coloring based on active attribute.
+    // Watched rather than read: the list no longer rebuilds while a page
+    // loads (#3506), so a changed setting would otherwise wait for the next
+    // change to the dives themselves.
+    final (colorAttribute, gradientPreset, gradientStart, gradientEnd) = ref
+        .watch(
+          settingsProvider.select(
+            (s) => (
+              s.cardColorAttribute,
+              s.cardColorGradientPreset,
+              s.cardColorGradientStart,
+              s.cardColorGradientEnd,
+            ),
+          ),
+        );
     final colorValues = dives
         .map((d) => getCardColorValue(d, colorAttribute))
         .whereType<double>();
@@ -1838,9 +1891,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ? colorValues.reduce((a, b) => a > b ? a : b)
         : null;
     final gradientColors = resolveGradientColors(
-      presetName: settings.cardColorGradientPreset,
-      customStart: settings.cardColorGradientStart,
-      customEnd: settings.cardColorGradientEnd,
+      presetName: gradientPreset,
+      customStart: gradientStart,
+      customEnd: gradientEnd,
     );
 
     // Built once for the whole list, not per row: the lookup map is shared by
@@ -1943,9 +1996,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       );
     }
 
-    final showTrailingRow =
-        paginatedState.hasMore || paginatedState.isLoadingMore;
-
     return RefreshIndicator(
       onRefresh: () => ref.read(paginatedDiveListProvider.notifier).refresh(),
       child: Column(
@@ -2007,10 +2057,22 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                       )
                     else
                       sliverForEntries(section.entries),
-                  if (showTrailingRow)
-                    SliverToBoxAdapter(
-                      child: _buildTrailingRow(context, paginatedState),
+                  // Its own consumer, so a page load starting or finishing
+                  // rebuilds this row alone rather than every card (#3506).
+                  SliverToBoxAdapter(
+                    child: Consumer(
+                      builder: (context, ref, _) {
+                        final latest = ref
+                            .watch(paginatedDiveListProvider)
+                            .value;
+                        if (latest == null ||
+                            !(latest.hasMore || latest.isLoadingMore)) {
+                          return const SizedBox.shrink();
+                        }
+                        return _buildTrailingRow(context, latest);
+                      },
                     ),
+                  ),
                   // Clears the FAB, matching the old list's bottom padding.
                   const SliverToBoxAdapter(
                     child: SizedBox(height: _kListBottomSpacer),
@@ -2116,11 +2178,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   /// The trailing loader or retry row.
   ///
-  /// Deliberately a built widget rather than a scroll-offset check: when the
+  /// Deliberately a built widget rather than a scroll listener alone: when the
   /// list shrinks under a position already at the bottom, or when collapsed
   /// trips leave a freshly loaded page almost entirely invisible, Flutter
   /// clamps the offset during layout without notifying scroll listeners.
-  /// Building this row is the only signal that survives (#1610).
+  /// Building this row is the only signal that survives (#1610), and the kick
+  /// it schedules still checks the offset once layout is done (#3506).
   Widget _buildTrailingRow(
     BuildContext context,
     PaginatedDiveListState paginatedState,

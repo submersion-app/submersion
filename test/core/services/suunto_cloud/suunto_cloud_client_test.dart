@@ -187,7 +187,7 @@ void main() {
 
       final dives = await client.listDives();
 
-      expect(dives.single.buddies, ['Buddy 1', 'Buddy 2', 'Buddy 3']);
+      expect(dives.single.journal.buddies, ['Buddy 1', 'Buddy 2', 'Buddy 3']);
     });
 
     test(
@@ -242,7 +242,7 @@ void main() {
 
         final dives = await client.listDives();
 
-        expect(dives.map((d) => d.buddies).toList(), [
+        expect(dives.map((d) => d.journal.buddies).toList(), [
           ['Ann', 'Ben'],
           isEmpty,
           isEmpty,
@@ -251,6 +251,42 @@ void main() {
         ]);
       },
     );
+
+    // Issue #3491: private notes ride on the journal and go below the
+    // notes the diver shares.
+    test('joins private notes below the notes', () async {
+      final client = SuuntoCloudClient(
+        httpClient: MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'payload': [
+                {
+                  'key': 'both',
+                  'activityId': 78,
+                  'startTime': 2000,
+                  'description': 'Night dive',
+                  'journal': {'privateNotes': ' Cold '},
+                },
+                {
+                  'key': 'private-only',
+                  'activityId': 78,
+                  'startTime': 1000,
+                  'journal': {'privateNotes': 'Cold'},
+                },
+              ],
+            }),
+            200,
+          );
+        }),
+      )..sessionKey = 'sk-abc';
+
+      final dives = await client.listDives();
+
+      expect(dives.map((d) => d.notes).toList(), [
+        'Night dive\n\nCold',
+        'Cold',
+      ]);
+    });
 
     test('paginates until a short page is returned', () async {
       final offsetsSeen = <int>[];

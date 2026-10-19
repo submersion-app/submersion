@@ -2596,6 +2596,10 @@
   "certifications_list_empty_title": "No certifications added yet",
   "certifications_list_error_loading": "Error loading certifications: {error}",
   "certifications_list_fab_addCertification": "Add Certification",
+  "certifications_list_groupBy": "Group by",
+  "certifications_list_groupBy_agency": "Agency",
+  "certifications_list_groupBy_none": "None",
+  "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Expired",
   "certifications_list_section_expiringSoon": "Expiring Soon",
   "certifications_list_section_valid": "Valid",
@@ -2627,6 +2631,8 @@
   "certifications_share_option_certificate_subtitle": "Formal certificate document",
   "certifications_share_option_certificate_title": "Share as Certificate",
   "certifications_share_title": "Share Certification",
+  "certifications_sortSheet_view_list": "List",
+  "certifications_sortSheet_view_wallet": "Certification Wallet",
   "certifications_summary_header_subtitle": "Select a certification from the list to view details",
   "certifications_summary_header_title": "Certifications",
   "certifications_summary_overview_title": "Overview",
@@ -2646,6 +2652,7 @@
   "certifications_wallet_tooltip_add": "Add certification",
   "certifications_wallet_tooltip_moreOptions": "More options",
   "certifications_wallet_tooltip_share": "Share certification",
+  "certifications_wallet_tooltip_sort": "Sort",
   "@certifications_detail_dialog_deleteContent": {
     "placeholders": {
       "name": {
@@ -12900,11 +12907,15 @@
   },
   "settings_navCustomization_alwaysHideLabels_title": "Always hide labels",
   "@settings_navCustomization_alwaysHideLabels_title": {
-    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424)."
+    "description": "Switch title: forces nav destinations to icon-only, hiding the text label next to the icon even where the phone bottom bar or the expanded desktop sidebar would otherwise show one (#1424). Shared by the phone and desktop tabs; only the value and the subtitle below it differ by scope (#3222)."
   },
   "settings_navCustomization_alwaysHideLabels_subtitle": "Icons only, even where labels would normally fit",
   "@settings_navCustomization_alwaysHideLabels_subtitle": {
-    "description": "Subtitle under the always-hide-labels switch."
+    "description": "Subtitle under the always-hide-labels switch on the phone tab: a hard setting with no override."
+  },
+  "settings_navCustomization_alwaysHideLabels_subtitleDesktop": "Starting state of the sidebar; the collapse arrow can still expand or collapse it for this session",
+  "@settings_navCustomization_alwaysHideLabels_subtitleDesktop": {
+    "description": "Subtitle under the always-hide-labels switch on the desktop tab: unlike the phone switch, this only sets the rail's initial state and can be overridden for the session by the rail's own collapse arrow."
   },
   "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
   "@settings_navCustomization_descriptionDesktop": {

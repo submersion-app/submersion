@@ -21,7 +21,14 @@ class AppSettingsRepository {
   static const _shareByDefaultKey = 'share_new_records_by_default';
   static const _navPrimaryIdsKey = 'nav_primary_ids';
   static const _navRailIdsKey = 'nav_rail_ids';
-  static const _navAlwaysHideLabelsKey = 'nav_always_hide_labels';
+  static const _navAlwaysHideLabelsPhoneKey = 'nav_always_hide_labels_phone';
+  static const _navAlwaysHideLabelsDesktopKey =
+      'nav_always_hide_labels_desktop';
+
+  /// Pre-#3222 key shared by both surfaces. No longer written; kept only so
+  /// [_getNavAlwaysHideLabelsFor] can fall back to it for a device that had
+  /// the setting on before the split, instead of silently resetting it.
+  static const _legacyNavAlwaysHideLabelsKey = 'nav_always_hide_labels';
   static const _blenderPrefsKey = 'gas_blender_prefs';
   static const _equipmentArrangementKey = 'equipment_arrangement';
   static const _equipmentGroupByLocationKey = 'equipment_group_by_location';
@@ -63,22 +70,49 @@ class AppSettingsRepository {
   Future<void> setNavRailIds(List<String> ids) =>
       _setIdList(_navRailIdsKey, ids);
 
-  /// Whether nav destinations are forced to icon-only, hiding their text
-  /// label even where the layout would otherwise show one (phone bottom bar,
-  /// extended desktop rail) (#1424).
+  /// Whether the phone bottom bar is forced to icon-only, hiding its text
+  /// labels even where the bar would otherwise show one (#1424, split by
+  /// surface in #3222).
   ///
-  /// Defaults to `false` -- today's behavior -- when the key has never been
+  /// Falls back to the pre-split [_legacyNavAlwaysHideLabelsKey] value while
+  /// this surface's own key has never been written, so a device upgrading
+  /// from before the split keeps its chosen behavior instead of silently
+  /// resetting to `false`. Defaults to `false` when neither key was ever
   /// written or on a read error, matching [getShareByDefault]'s
   /// degrade-to-default contract.
-  Future<bool> getNavAlwaysHideLabels() async {
-    final raw = await getRawSetting(_navAlwaysHideLabelsKey);
-    return raw == 'true';
-  }
+  Future<bool> getNavAlwaysHideLabelsPhone() =>
+      _getNavAlwaysHideLabelsFor(_navAlwaysHideLabelsPhoneKey);
 
-  /// Persists the always-hide-labels toggle. Rethrows so a failed save is
-  /// visible, matching [setNavPrimaryIds].
-  Future<void> setNavAlwaysHideLabels(bool value) =>
-      setRawSetting(_navAlwaysHideLabelsKey, value ? 'true' : 'false');
+  /// Persists the phone always-hide-labels toggle. Rethrows so a failed save
+  /// is visible, matching [setNavPrimaryIds].
+  Future<void> setNavAlwaysHideLabelsPhone(bool value) =>
+      setRawSetting(_navAlwaysHideLabelsPhoneKey, value ? 'true' : 'false');
+
+  /// Whether the desktop navigation rail starts collapsed to icon-only
+  /// (#1424, split by surface in #3222). Only the starting state: the
+  /// collapse arrow can still override it for the rest of the session
+  /// without persisting that override.
+  ///
+  /// Falls back to the pre-split [_legacyNavAlwaysHideLabelsKey] value while
+  /// this surface's own key has never been written; see
+  /// [getNavAlwaysHideLabelsPhone] for why.
+  Future<bool> getNavAlwaysHideLabelsDesktop() =>
+      _getNavAlwaysHideLabelsFor(_navAlwaysHideLabelsDesktopKey);
+
+  /// Persists the desktop always-hide-labels toggle. Rethrows so a failed
+  /// save is visible, matching [setNavPrimaryIds].
+  Future<void> setNavAlwaysHideLabelsDesktop(bool value) =>
+      setRawSetting(_navAlwaysHideLabelsDesktopKey, value ? 'true' : 'false');
+
+  /// Shared read path for [getNavAlwaysHideLabelsPhone] and
+  /// [getNavAlwaysHideLabelsDesktop]: reads [key], or -- key never written --
+  /// the legacy shared key both surfaces fell back to before the split.
+  Future<bool> _getNavAlwaysHideLabelsFor(String key) async {
+    final raw = await getRawSetting(key);
+    if (raw != null) return raw == 'true';
+    final legacy = await getRawSetting(_legacyNavAlwaysHideLabelsKey);
+    return legacy == 'true';
+  }
 
   /// Whether the Equipment page groups its list under one heading per
   /// location (v268). The Equipment page's own switch: the shared gear

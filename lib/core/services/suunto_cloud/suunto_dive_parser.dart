@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_route.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_journal.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_tissue_parser.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -17,7 +18,7 @@ class SuuntoParsedDive {
     this.serialNumber,
     this.firmwareVersion,
     this.notes,
-    this.buddies = const [],
+    this.journal = SuuntoJournal.empty,
     this.route,
   });
 
@@ -38,9 +39,9 @@ class SuuntoParsedDive {
   /// rather than the dive export (issue #2410).
   final String? notes;
 
-  /// The people the diver logged as dive buddies in the Suunto app, from the
-  /// workout listing's journal rather than the dive export (issue #3266).
-  final List<String> buddies;
+  /// The dive details the diver logged in the Suunto app, from the workout
+  /// listing's journal rather than the dive export (issues #3266, #3491).
+  final SuuntoJournal journal;
 
   /// The recorded underwater route (`DiveRoute`), when the export carries
   /// one (issue #1445). Linked to the dive as a nav track at import.
@@ -52,7 +53,7 @@ class SuuntoParsedDive {
     String? serialNumber,
     String? firmwareVersion,
     String? notes,
-    List<String>? buddies,
+    SuuntoJournal? journal,
     SuuntoDiveRoute? route,
   }) => SuuntoParsedDive(
     dive: dive ?? this.dive,
@@ -60,7 +61,7 @@ class SuuntoParsedDive {
     serialNumber: serialNumber ?? this.serialNumber,
     firmwareVersion: firmwareVersion ?? this.firmwareVersion,
     notes: notes ?? this.notes,
-    buddies: buddies ?? this.buddies,
+    journal: journal ?? this.journal,
     route: route ?? this.route,
   );
 }

@@ -4152,6 +4152,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Aggiungi certificazione';
 
   @override
+  String get certifications_list_groupBy => 'Raggruppa per';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Agenzia';
+
+  @override
+  String get certifications_list_groupBy_none => 'Nessuno';
+
+  @override
+  String get certifications_list_groupBy_status => 'Stato';
+
+  @override
   String get certifications_list_section_expired => 'Scadute';
 
   @override
@@ -4253,6 +4265,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_share_title => 'Condividi certificazione';
 
   @override
+  String get certifications_sortSheet_view_list => 'Elenco';
+
+  @override
+  String get certifications_sortSheet_view_wallet =>
+      'Portafoglio certificazioni';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Seleziona una certificazione dalla lista per visualizzare i dettagli';
 
@@ -4311,6 +4330,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Condividi certificazione';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Ordina';
 
   @override
   String get checklists_section_title => 'Lista di controllo';
@@ -20780,6 +20802,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
       'Solo icone, anche quando ci sarebbe spazio per le etichette';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Stato iniziale della barra laterale; la freccia può comunque espanderla o comprimerla per questa sessione';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

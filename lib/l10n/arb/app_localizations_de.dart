@@ -4156,6 +4156,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zertifizierung hinzufügen';
 
   @override
+  String get certifications_list_groupBy => 'Gruppieren nach';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Verband';
+
+  @override
+  String get certifications_list_groupBy_none => 'Keine';
+
+  @override
+  String get certifications_list_groupBy_status => 'Status';
+
+  @override
   String get certifications_list_section_expired => 'Abgelaufen';
 
   @override
@@ -4258,6 +4270,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_share_title => 'Zertifizierung teilen';
 
   @override
+  String get certifications_sortSheet_view_list => 'Liste';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'Zertifizierungskartei';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Wählen Sie eine Zertifizierung aus der Liste, um Details anzuzeigen';
 
@@ -4316,6 +4334,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Zertifizierung teilen';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Sortieren';
 
   @override
   String get checklists_section_title => 'Checkliste';
@@ -20755,6 +20776,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
       'Nur Icons, auch wenn Platz für Beschriftungen wäre';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'Startzustand der Seitenleiste; der Pfeil kann sie für diese Sitzung weiterhin ein- oder ausklappen';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

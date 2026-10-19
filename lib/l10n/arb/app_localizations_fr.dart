@@ -4164,6 +4164,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter une certification';
 
   @override
+  String get certifications_list_groupBy => 'Grouper par';
+
+  @override
+  String get certifications_list_groupBy_agency => 'Organisme';
+
+  @override
+  String get certifications_list_groupBy_none => 'Aucun';
+
+  @override
+  String get certifications_list_groupBy_status => 'Statut';
+
+  @override
   String get certifications_list_section_expired => 'Expirée';
 
   @override
@@ -4267,6 +4279,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_share_title => 'Partager la certification';
 
   @override
+  String get certifications_sortSheet_view_list => 'Liste';
+
+  @override
+  String get certifications_sortSheet_view_wallet =>
+      'Portefeuille de certifications';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'Sélectionnez une certification dans la liste pour voir les détails';
 
@@ -4326,6 +4345,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'Partager la certification';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'Trier';
 
   @override
   String get checklists_section_title => 'Liste de contrôle';
@@ -20840,6 +20862,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
       'Icônes uniquement, même si les libellés auraient de la place';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'État initial de la barre latérale ; la flèche peut toujours la développer ou la réduire pour cette session';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

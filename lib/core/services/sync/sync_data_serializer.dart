@@ -925,7 +925,7 @@ class SyncDataSerializer {
   /// Ordered table descriptors for a base snapshot, matching SyncData.toJson.
   /// `table != null` => keyset-page by `id`; otherwise `full` loads the whole
   /// (small, composite-key) table once. `blob` selects the base64 BLOB
-  /// serializer (media / certifications / diveDataSources).
+  /// serializer (media / diveDataSources).
   List<
     ({
       String key,
@@ -1019,7 +1019,9 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'diveBuddies', table: _db.diveBuddies, blob: false, full: null),
-    (key: 'certifications', table: _db.certifications, blob: true, full: null),
+    // The retired card photo BLOBs are stripped before emit (#3502), so the
+    // rows page by count, not by byte budget.
+    (key: 'certifications', table: _db.certifications, blob: false, full: null),
     (key: 'documents', table: _db.documents, blob: false, full: null),
     (key: 'documentPages', table: _db.documentPages, blob: true, full: null),
     (key: 'courses', table: _db.courses, blob: false, full: null),
@@ -3044,7 +3046,9 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.certifications,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson(serializer: _syncBlobSerializer);
+        return row == null
+            ? null
+            : withoutDeviceLocalColumns('certifications', row.toJson());
       case 'documents':
         final row = await (_db.select(
           _db.documents,
@@ -3950,7 +3954,8 @@ class SyncDataSerializer {
           _db.certifications,
         )..where((t) => t.id.isIn(idList))).get();
         return {
-          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+          for (final r in rows)
+            r.id: withoutDeviceLocalColumns('certifications', r.toJson()),
         };
       case 'documents':
         final rows = await (_db.select(
@@ -8880,8 +8885,10 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    // Certifications carry photoFront/photoBack BLOBs; base64-encode them.
-    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+    // The retired photoFront/photoBack BLOBs stay off the wire (#3502).
+    return rows
+        .map((r) => withoutDeviceLocalColumns('certifications', r.toJson()))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDocuments(String? hlcSince) async {

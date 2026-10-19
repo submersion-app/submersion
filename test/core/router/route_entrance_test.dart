@@ -26,7 +26,7 @@ void main() {
     expect(find.text('SETTLED'), findsOneWidget);
   });
 
-  testWidgets('a pushed page is entering until its slide completes', (
+  testWidgets('a pushed page is entering while its slide starts', (
     tester,
   ) async {
     final navigator = GlobalKey<NavigatorState>();
@@ -48,6 +48,36 @@ void main() {
     expect(find.text('ENTERING'), findsOneWidget);
 
     await tester.pumpAndSettle();
+    expect(find.text('SETTLED'), findsOneWidget);
+  });
+
+  testWidgets('a pushed page settles halfway through its slide', (
+    tester,
+  ) async {
+    final navigator = GlobalKey<NavigatorState>();
+    late Animation<double> entrance;
+    await tester.pumpWidget(
+      MaterialApp(navigatorKey: navigator, home: const Text('HOME')),
+    );
+    navigator.currentState!.push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (_, animation, _) {
+          entrance = animation;
+          return const _Probe();
+        },
+      ),
+    );
+    await tester.pump();
+
+    // A quarter of the way through its time: still on the move.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('ENTERING'), findsOneWidget);
+
+    // Past halfway the slide's curves have the page all but across, so the
+    // page builds the rest while the slide finishes.
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(entrance.status, AnimationStatus.forward);
     expect(find.text('SETTLED'), findsOneWidget);
   });
 

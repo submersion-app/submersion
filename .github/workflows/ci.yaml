@@ -797,6 +797,12 @@ jobs:
         # reviewer the app has no accounts.
         run: ./scripts/release/app_review_notes_test.sh
 
+      - name: Run DMG notarization test
+        # Drives the macOS Notarize DMG step with a stub xcrun. A failed staple
+        # must be retried without uploading the DMG again: an unretried staple
+        # failed four Beta macOS builds in a row (issue #3488).
+        run: ./scripts/release/notarize_dmg_test.sh
+
       - name: Run pre-push hook test
         # Guards two hook bugs that both rejected pushes for reasons unrelated
         # to the change being pushed: running the checks against the main

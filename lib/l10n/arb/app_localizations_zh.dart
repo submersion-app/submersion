@@ -3932,6 +3932,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_fab_addCertification => '添加证书';
 
   @override
+  String get certifications_list_groupBy => '分组方式';
+
+  @override
+  String get certifications_list_groupBy_agency => '机构';
+
+  @override
+  String get certifications_list_groupBy_none => '无';
+
+  @override
+  String get certifications_list_groupBy_status => '状态';
+
+  @override
   String get certifications_list_section_expired => '已过期';
 
   @override
@@ -4026,6 +4038,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_share_title => '分享证书';
 
   @override
+  String get certifications_sortSheet_view_list => '列表';
+
+  @override
+  String get certifications_sortSheet_view_wallet => '证书卡包';
+
+  @override
   String get certifications_summary_header_subtitle => '从列表中选择证书以查看详情';
 
   @override
@@ -4081,6 +4099,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => '分享证书';
+
+  @override
+  String get certifications_wallet_tooltip_sort => '排序';
 
   @override
   String get checklists_section_title => '清单';
@@ -19756,6 +19777,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
       '仅显示图标,即使有空间显示标签';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      '侧边栏的初始状态,该箭头仍可在本次会话中将其展开或折叠。';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>

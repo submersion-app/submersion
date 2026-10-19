@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/import_wizard/data/adapters/import_connection_recorder.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_buddy_writer.dart';
+import 'package:submersion/features/import_wizard/data/adapters/suunto_journal_writer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
@@ -57,8 +58,9 @@ typedef _ConsolidateResult = ({_ConsolidateOutcome outcome, String? diveId});
 /// computers, so the owning [DiveComputer] is resolved per dive (by device
 /// model + serial number) instead of once per session. A dive's recorded
 /// route (DiveRoute, issue #1445) is linked to whichever dive each write
-/// path settles on, through [SuuntoRouteWriter], and the people logged on
-/// the workout (issue #3266) through [SuuntoBuddyWriter].
+/// path settles on, through [SuuntoRouteWriter], the people logged on the
+/// workout (issue #3266) through [SuuntoBuddyWriter], and the rest of its
+/// dive details (issue #3491) through [SuuntoJournalWriter].
 abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   static final _log = LoggerService.forClass(SuuntoDiveImportCore);
 
@@ -70,6 +72,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     required String diverId,
     SuuntoRouteWriter? routeWriter,
     SuuntoBuddyWriter? buddyWriter,
+    SuuntoJournalWriter? journalWriter,
     WidgetRef? ref,
     DiveComputerConnectionRepository? connectionRepository,
   }) : _importService = importService,
@@ -80,6 +83,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
        _diverId = diverId,
        _routeWriter = routeWriter ?? SuuntoRouteWriter(),
        _buddyWriter = buddyWriter ?? SuuntoBuddyWriter(),
+       _journalWriter = journalWriter ?? SuuntoJournalWriter(),
        _ref = ref;
 
   final DiveImportService _importService;
@@ -89,6 +93,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   final String _diverId;
   final SuuntoRouteWriter _routeWriter;
   final SuuntoBuddyWriter _buddyWriter;
+  final SuuntoJournalWriter _journalWriter;
   final WidgetRef? _ref;
 
   /// Where each computer's connection is recorded (issue #3106); read from
@@ -440,10 +445,18 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   }
 
   /// Brings what the diver logged on the Suunto workout, but the dive export
-  /// leaves out, onto [diveId]: the notes and the buddies.
+  /// leaves out, onto [diveId]: the notes, the buddies and the rest of the
+  /// journal.
   Future<void> _fillFromWorkout(String diveId, SuuntoParsedDive parsed) async {
     await _fillNotes(diveId, parsed);
     await _buddyWriter.attach(diveId, parsed, _diverId);
+    final settings = _ref?.read(settingsProvider) ?? const AppSettings();
+    await _journalWriter.attach(
+      diveId,
+      parsed,
+      _diverId,
+      scale: settings.visibilityScale,
+    );
   }
 
   /// Brings the notes the diver wrote in the Suunto app onto [diveId]

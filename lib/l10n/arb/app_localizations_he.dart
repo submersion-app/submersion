@@ -4070,6 +4070,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_list_fab_addCertification => 'הוסף הסמכה';
 
   @override
+  String get certifications_list_groupBy => 'קיבוץ לפי';
+
+  @override
+  String get certifications_list_groupBy_agency => 'ארגון';
+
+  @override
+  String get certifications_list_groupBy_none => 'ללא';
+
+  @override
+  String get certifications_list_groupBy_status => 'סטטוס';
+
+  @override
   String get certifications_list_section_expired => 'פג תוקף';
 
   @override
@@ -4167,6 +4179,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_share_title => 'שיתוף הסמכה';
 
   @override
+  String get certifications_sortSheet_view_list => 'רשימה';
+
+  @override
+  String get certifications_sortSheet_view_wallet => 'ארנק הסמכות';
+
+  @override
   String get certifications_summary_header_subtitle =>
       'בחר הסמכה מהרשימה כדי לצפות בפרטים';
 
@@ -4223,6 +4241,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get certifications_wallet_tooltip_share => 'שתף הסמכה';
+
+  @override
+  String get certifications_wallet_tooltip_sort => 'מיון';
 
   @override
   String get checklists_section_title => 'רשימת משימות';
@@ -20321,6 +20342,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_navCustomization_alwaysHideLabels_subtitle =>
       'סמלים בלבד, גם כשיש מקום לתוויות';
+
+  @override
+  String get settings_navCustomization_alwaysHideLabels_subtitleDesktop =>
+      'מצב ההתחלה של סרגל הצד; החץ עדיין יכול להרחיב או לכווץ אותו עבור הפעלה זו';
 
   @override
   String get settings_navCustomization_descriptionDesktop =>
