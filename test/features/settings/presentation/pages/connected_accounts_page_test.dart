@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -18,7 +19,10 @@ import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
+import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
@@ -73,12 +77,28 @@ void main() {
           ),
           ...overrides,
         ],
-        child: const MaterialApp(
+        child: MaterialApp.router(
           // Pinned: the assertions match English strings.
-          locale: Locale('en'),
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: ConnectedAccountsPage(),
+          routerConfig: GoRouter(
+            initialLocation: '/settings/connected-accounts',
+            routes: [
+              GoRoute(
+                path: '/settings/connected-accounts',
+                builder: (_, _) => const ConnectedAccountsPage(),
+                routes: [
+                  GoRoute(
+                    path: ':accountId',
+                    builder: (_, state) => AccountDetailPage(
+                      accountId: state.pathParameters['accountId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -106,9 +126,26 @@ void main() {
         );
       });
 
+  /// Opens the (first) account's detail view and taps [item] there; the
+  /// account actions moved off the list row into the detail view (#3482).
   Future<void> openMenu(WidgetTester tester, String item) async {
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
+    if (find.byType(AccountDetailPage).evaluate().isEmpty) {
+      await tester.tap(find.byType(AccountGroupTile).first);
+      await settle(tester);
+      await tester.pumpAndSettle();
+    }
+    if (find.text(item).hitTestable().evaluate().isEmpty) {
+      await tester.scrollUntilVisible(
+        find.text(item).last,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(AccountDetailPage),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+    }
     await tester.tap(find.text(item).last);
     await tester.pumpAndSettle();
   }
@@ -127,7 +164,7 @@ void main() {
       await SharedLibraryStore().upsertLibrary(
         SharedLibrary(
           id: 'lib-1',
-          name: 'Club Sites',
+          name: 'Reef Sites',
           connectedAccountId: account.id,
           prefix: '',
         ),
@@ -138,8 +175,8 @@ void main() {
 
     expect(
       find.text(
-        'Used for: Database sync, Media storage, '
-        'Shared site library: Club Sites',
+        'Used for: Sync between devices, Photos & videos, '
+        'Shared site library: Reef Sites',
       ),
       findsOneWidget,
     );
@@ -198,7 +235,7 @@ void main() {
       ],
     );
 
-    await openMenu(tester, 'Remove from library');
+    await openMenu(tester, 'Remove from all devices');
     await settle(tester);
 
     expect(
@@ -219,7 +256,7 @@ void main() {
     await useForSync(tester, account.id);
     await settle(tester);
 
-    expect(find.text('Used for: Database sync'), findsOneWidget);
+    expect(find.text('Used for: Sync between devices'), findsOneWidget);
   });
 
   testWidgets('the row follows a media store attach made while it is open', (
@@ -238,7 +275,7 @@ void main() {
     );
     await settle(tester);
 
-    expect(find.text('Used for: Media storage'), findsOneWidget);
+    expect(find.text('Used for: Photos & videos'), findsOneWidget);
   });
 
   testWidgets('signing out an unused account needs no confirmation', (
@@ -271,6 +308,7 @@ void main() {
     );
     final container = ProviderScope.containerOf(
       tester.element(find.byType(ConnectedAccountsPage)),
+      listen: false,
     );
     final sub = container.listen(pendingSetupItemsProvider, (_, _) {});
     addTearDown(sub.close);
@@ -296,13 +334,14 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.text('Database sync'),
+        matching: find.text('Sync between devices'),
       ),
       findsOneWidget,
     );
     expect(dropbox.disconnected, isEmpty);
 
     await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
     await settle(tester);
     expect(dropbox.disconnected, isEmpty);
 
@@ -324,11 +363,11 @@ void main() {
     await useForSync(tester, account.id);
     await pumpPage(tester);
 
-    await openMenu(tester, 'Remove from library');
+    await openMenu(tester, 'Remove from all devices');
 
     final dialog = find.byType(AlertDialog);
     expect(
-      find.descendant(of: dialog, matching: find.text('Database sync')),
+      find.descendant(of: dialog, matching: find.text('Sync between devices')),
       findsOneWidget,
     );
     expect(
@@ -346,13 +385,74 @@ void main() {
     await addDropbox(tester);
     await pumpPage(tester);
 
-    await openMenu(tester, 'Remove from library');
+    await openMenu(tester, 'Remove from all devices');
 
     expect(
       find.text('Other devices may also use this account.'),
       findsOneWidget,
     );
     expect(find.textContaining('On this device it is used for'), findsNothing);
+  });
+
+  // Issue #3482 phase 2: an account is a sign-in to one server; sync and a
+  // library on one bucket are two roster rows but one account.
+  testWidgets('two rows on one server show as one account', (tester) async {
+    await tester.runAsync(() async {
+      for (final prefix in ['submersion-sync/', 'submersion-sites/reef/']) {
+        final a = await accounts.create(kind: AccountKind.s3, label: 'x');
+        await accounts.setLocation(
+          a.id,
+          S3AccountLocation(
+            displayHost: 'minio.home',
+            endpoint: 'https://minio.home',
+            bucket: 'dives',
+            region: 'us-east-1',
+            prefix: prefix,
+            pathStyle: true,
+          ),
+        );
+      }
+    });
+    await pumpPage(tester);
+    expect(find.byType(AccountGroupTile), findsOneWidget);
+    expect(find.text('dives @ minio.home'), findsOneWidget);
+  });
+
+  testWidgets('tapping an account opens its detail', (tester) async {
+    await addDropbox(tester);
+    await pumpPage(tester);
+    await tester.tap(find.byType(AccountGroupTile));
+    await settle(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(AccountDetailPage), findsOneWidget);
+    expect(find.text('Sign in again'), findsOneWidget);
+  });
+
+  testWidgets('Add account opens the add section of the sheet', (tester) async {
+    await pumpPage(tester);
+    expect(find.text('No accounts connected yet'), findsOneWidget);
+    await tester.tap(find.byTooltip('Add account'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add an account'), findsOneWidget);
+    expect(find.text('My own server'), findsOneWidget);
+  });
+
+  testWidgets('iCloud is managed by the Apple ID and offers no sign-out', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => accounts.create(kind: AccountKind.icloud, label: 'iCloud'),
+    );
+    await pumpPage(tester);
+    await tester.tap(find.byType(AccountGroupTile));
+    await settle(tester);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Managed by your Apple ID in device settings'),
+      findsOneWidget,
+    );
+    expect(find.text('Sign out on this device'), findsNothing);
+    expect(find.text('Sign in again'), findsNothing);
   });
 }
 

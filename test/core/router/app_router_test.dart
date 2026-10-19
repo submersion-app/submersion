@@ -2105,6 +2105,7 @@ void main() {
       '/settings/media-storage',
       '/settings/media-storage/transfers',
       '/settings/connected-accounts',
+      '/settings/connected-accounts/acct1',
       '/settings/storage',
       '/settings/storage-usage',
       '/settings/storage-usage/unrecognized-backups',
@@ -2113,6 +2114,8 @@ void main() {
       '/settings/link-buddy-names',
       '/settings/retype-other-gear',
       '/settings/data-quality',
+      '/settings/import-options',
+      '/settings/data-tools',
     ];
 
     testWidgets('each location builds the page its route builds', (

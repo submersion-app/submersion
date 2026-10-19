@@ -25,6 +25,7 @@ class AccountGroup {
     required this.locations,
     required this.roles,
     this.identifier,
+    this.usagesKnown = true,
   });
 
   /// Stable across rebuilds: kind and server for own servers, kind and row
@@ -38,6 +39,10 @@ class AccountGroup {
   final List<ConnectedAccount> rows;
   final AccountStatus status;
   final List<AccountUsage> usages;
+
+  /// False when what uses the account could not be read: [usages] is then
+  /// empty but must not be taken as unused (a sign-out still asks first).
+  final bool usagesKnown;
 
   /// Each row's location, from the roster or this device's stored config.
   final Map<String, AccountLocation> locations;
@@ -63,6 +68,7 @@ List<AccountGroup> groupAccounts({
   required Map<String, AccountStatus> statusById,
   required Map<String, AccountLocation> localLocationById,
   required List<AccountUsage> Function(ConnectedAccount) usagesOf,
+  bool usagesKnown = true,
 }) {
   final byKey = <String, List<ConnectedAccount>>{};
   final locations = <String, AccountLocation>{};
@@ -79,7 +85,7 @@ List<AccountGroup> groupAccounts({
 
   final groups = [
     for (final MapEntry(:key, value: members) in byKey.entries)
-      _group(key, members, statusById, locations, usagesOf),
+      _group(key, members, statusById, locations, usagesOf, usagesKnown),
   ];
   groups.sort((a, b) {
     final byKind = _kindOrder(a.kind).compareTo(_kindOrder(b.kind));
@@ -94,6 +100,7 @@ AccountGroup _group(
   Map<String, AccountStatus> statusById,
   Map<String, AccountLocation> allLocations,
   List<AccountUsage> Function(ConnectedAccount) usagesOf,
+  bool usagesKnown,
 ) {
   final first = members.first;
   final statuses = [
@@ -139,6 +146,7 @@ AccountGroup _group(
     usages: List.unmodifiable(usages),
     locations: Map.unmodifiable(locations),
     roles: Map.unmodifiable(roles),
+    usagesKnown: usagesKnown,
   );
 }
 

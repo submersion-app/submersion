@@ -120,6 +120,7 @@ import 'package:submersion/features/shared_library/presentation/pages/suggestion
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
@@ -1660,6 +1661,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'connected-accounts',
                 name: 'connectedAccounts',
                 builder: (context, state) => const ConnectedAccountsPage(),
+                routes: [
+                  GoRoute(
+                    path: ':accountId',
+                    name: 'connectedAccount',
+                    builder: (context, state) => AccountDetailPage(
+                      accountId: state.pathParameters['accountId']!,
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'fix-dive-times',

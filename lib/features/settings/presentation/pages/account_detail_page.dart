@@ -1,0 +1,235 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_group_service.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_confirm_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// One account (spec section 7.6): its sign-in state, what it is used for
+/// here, Sign in again, an own server's details and folders, then Sign out
+/// on this device and Remove from all devices. [accountId] is any roster row
+/// of the account.
+class AccountDetailPage extends ConsumerWidget {
+  const AccountDetailPage({super.key, required this.accountId});
+
+  final String accountId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final groupsAsync = ref.watch(accountGroupsProvider);
+    final group = groupsAsync.value?.holding(accountId);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(group?.label ?? l10n.settings_connectedAccounts_title),
+      ),
+      body: switch ((groupsAsync, group)) {
+        (_, final AccountGroup g) => _Details(group: g),
+        (AsyncError(), _) => Center(
+          child: Text(l10n.settings_connectedAccounts_loadError),
+        ),
+        (AsyncData(), null) => Center(
+          child: Text(l10n.settings_connectedAccounts_loadError),
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
+    );
+  }
+}
+
+class _Details extends ConsumerWidget {
+  const _Details({required this.group});
+
+  final AccountGroup group;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final isICloud = group.kind == AccountKind.icloud;
+    final canSignIn =
+        !isICloud &&
+        group.kind != AccountKind.adobeLightroom &&
+        group.status != AccountStatus.unavailable;
+    final usages = group.usages;
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        ListTile(
+          leading: Icon(accountKindIcon(group.kind)),
+          title: Text(accountStateText(l10n, group.status)),
+          subtitle: group.identifier == null ? null : Text(group.identifier!),
+        ),
+        if (group.usagesKnown)
+          ListTile(
+            title: Text(
+              usages.isEmpty
+                  ? l10n.settings_connectedAccounts_usage_none
+                  : l10n.settings_accounts_usedHere(
+                      usages.map((u) => accountUsageName(l10n, u)).join(', '),
+                    ),
+            ),
+          ),
+        if (isICloud)
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(l10n.settings_accounts_icloudManaged),
+          ),
+        if (canSignIn && !group.isOwnServer)
+          ListTile(
+            leading: const Icon(Icons.login),
+            title: Text(l10n.settings_accounts_signInAgain),
+            onTap: () => signInToGroup(context, ref, group),
+          ),
+        if (group.isOwnServer) ...[
+          _Header(l10n.settings_accounts_serverDetails),
+          OwnServerForm(
+            key: ValueKey(group.key),
+            existing: group,
+            onSaved: (_) => _refresh(context),
+          ),
+          _Header(l10n.settings_accounts_folders),
+          for (final row in group.rows)
+            ListTile(
+              dense: true,
+              title: Text(_folderOf(group.locationOf(row.id)) ?? row.label),
+              subtitle: Text(_roleName(l10n, group, row.id)),
+            ),
+        ],
+        const Divider(),
+        if (canSignIn && group.status == AccountStatus.signedIn)
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: Text(l10n.settings_connectedAccounts_disconnectDevice),
+            onTap: () => _signOut(context, ref),
+          ),
+        ListTile(
+          leading: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+          title: Text(
+            l10n.settings_accounts_removeEverywhere,
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
+          onTap: () => _remove(context, ref),
+        ),
+      ],
+    );
+  }
+
+  /// Signing out breaks nothing when nothing here uses the account, so it
+  /// acts at once, as it always has; used, or unknown, asks first.
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final service = ref.read(accountGroupServiceProvider);
+    if (!group.usagesKnown || group.usages.isNotEmpty) {
+      final confirmed = await confirmAccountAction(
+        context,
+        title: l10n.settings_connectedAccounts_signOutConfirmTitle,
+        paragraphs: [
+          group.usagesKnown
+              ? l10n.settings_connectedAccounts_signOutConfirmBody(group.label)
+              : l10n.settings_connectedAccounts_usage_unknown,
+        ],
+        usages: group.usages,
+        action: l10n.settings_connectedAccounts_disconnectDevice,
+      );
+      if (!confirmed) return;
+    }
+    if (!context.mounted) return;
+    final container = ProviderScope.containerOf(context, listen: false);
+    await service.signOut(group);
+    _refreshWith(container);
+  }
+
+  Future<void> _remove(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final service = ref.read(accountGroupServiceProvider);
+    final confirmed = await confirmAccountAction(
+      context,
+      title: l10n.settings_connectedAccounts_removeConfirmTitle,
+      paragraphs: [
+        l10n.settings_connectedAccounts_removeConfirmBody,
+        if (!group.usagesKnown)
+          l10n.settings_connectedAccounts_usage_unknown
+        else if (group.usages.isNotEmpty)
+          l10n.settings_connectedAccounts_removeConfirmUsedHere,
+      ],
+      usages: group.usages,
+      // The roster row goes from every device, and what other devices use
+      // it for is not known here.
+      footer: l10n.settings_connectedAccounts_removeConfirmOtherDevices,
+      action: l10n.settings_accounts_removeEverywhere,
+    );
+    if (!confirmed || !context.mounted) return;
+    final container = ProviderScope.containerOf(context, listen: false);
+    final navigator = Navigator.of(context);
+    await service.remove(group);
+    _refreshWith(container);
+    navigator.maybePop();
+  }
+
+  void _refresh(BuildContext context) =>
+      _refreshWith(ProviderScope.containerOf(context, listen: false));
+
+  /// A sign-out touches only the keychain, so nothing in the database ticks;
+  /// every reader of the account's state must recompute, including the
+  /// setup items behind the Settings > Data rows.
+  void _refreshWith(ProviderContainer container) {
+    container
+      ..invalidate(connectedAccountsWithStatusProvider)
+      ..invalidate(connectedAccountUsageProvider)
+      ..invalidate(accountGroupsProvider)
+      ..invalidate(pendingSetupItemsProvider);
+    // Signing out of the WebDAV sync account clears the sync settings too.
+    if (group.kind == AccountKind.webdav) {
+      container.invalidate(webdavConfigProvider);
+    }
+  }
+}
+
+String? _folderOf(AccountLocation? location) => switch (location) {
+  S3AccountLocation(:final prefix) => prefix,
+  WebDavAccountLocation(:final folder) => folder,
+  null => null,
+};
+
+String _roleName(AppLocalizations l10n, AccountGroup group, String rowId) =>
+    switch (group.roles[rowId]) {
+      AccountRole.sync => l10n.settings_accounts_usage_sync,
+      AccountRole.media => l10n.settings_accounts_usage_photos,
+      AccountRole.library =>
+        l10n.settings_connectedAccounts_usage_sharedLibrary(
+          (_folderOf(group.locationOf(rowId)) ?? '')
+              .replaceAll(RegExp(r'/+$'), '')
+              .split('/')
+              .last,
+        ),
+      null => l10n.settings_accounts_folder_other,
+    };
+
+class _Header extends StatelessWidget {
+  const _Header(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    ),
+  );
+}

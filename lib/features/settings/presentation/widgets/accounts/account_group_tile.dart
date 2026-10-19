@@ -73,7 +73,9 @@ class AccountGroupTile extends StatelessWidget {
     final identifier = group.identifier;
     final usages = group.usages;
     return ListTile(
-      enabled: group.status != AccountStatus.unavailable,
+      // In the sheet an account this device cannot use cannot be chosen; on
+      // the accounts page it still opens, to read why or remove it.
+      enabled: !inSheet || group.status != AccountStatus.unavailable,
       selected: selected,
       leading: Icon(accountKindIcon(group.kind)),
       title: Text(group.label),
@@ -85,18 +87,19 @@ class AccountGroupTile extends StatelessWidget {
             identifier == null ? state : '$identifier - $state',
             style: TextStyle(color: stateColor),
           ),
-          Text(
-            usages.isEmpty
-                ? (group.isOwnServer
-                      ? l10n.settings_accounts_notUsedYet
-                      : l10n.settings_connectedAccounts_usage_none)
-                : l10n.settings_connectedAccounts_usage_label(
-                    usages.map((u) => accountUsageName(l10n, u)).join(', '),
-                  ),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.onSurfaceVariant,
+          if (group.usagesKnown)
+            Text(
+              usages.isEmpty
+                  ? (group.isOwnServer
+                        ? l10n.settings_accounts_notUsedYet
+                        : l10n.settings_connectedAccounts_usage_none)
+                  : l10n.settings_connectedAccounts_usage_label(
+                      usages.map((u) => accountUsageName(l10n, u)).join(', '),
+                    ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
             ),
-          ),
         ],
       ),
       trailing: selected ? const Icon(Icons.check) : trailing,

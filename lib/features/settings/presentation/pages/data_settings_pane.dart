@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/pages/data_tools_page.
 import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
@@ -93,6 +94,7 @@ Widget? dataPanePage(Uri location) {
     ['media-storage'] => const MediaStoragePage(),
     ['media-storage', 'transfers'] => const TransfersPage(),
     ['connected-accounts'] => const ConnectedAccountsPage(),
+    ['connected-accounts', final id] => AccountDetailPage(accountId: id),
     ['storage'] => const StorageSettingsPage(),
     ['storage-usage'] => const StorageUsagePage(),
     ['storage-usage', 'unrecognized-backups'] =>

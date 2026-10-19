@@ -78,7 +78,14 @@ final accountGroupsProvider = FutureProvider.autoDispose<List<AccountGroup>>((
   final withStatus = await ref.watch(
     connectedAccountsWithStatusProvider.future,
   );
-  final usage = await ref.watch(connectedAccountUsageProvider.future);
+  // A failed usage read still lists the accounts; they say their usage is
+  // unknown, and a sign-out asks first as it always has.
+  AccountUsageSnapshot? usage;
+  try {
+    usage = await ref.watch(connectedAccountUsageProvider.future);
+  } on Object {
+    usage = null;
+  }
   final registry = ref.watch(accountProviderRegistryProvider);
   final s3 = registry.capabilityFor<S3AccountAdapter>(AccountKind.s3);
   final webdav = registry.capabilityFor<WebDavAccountAdapter>(
@@ -111,7 +118,8 @@ final accountGroupsProvider = FutureProvider.autoDispose<List<AccountGroup>>((
       for (final (account, status) in withStatus) account.id: status,
     },
     localLocationById: local,
-    usagesOf: usage.usagesOf,
+    usagesOf: usage?.usagesOf ?? (_) => const [],
+    usagesKnown: usage != null,
   );
 });
 
