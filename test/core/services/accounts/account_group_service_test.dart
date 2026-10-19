@@ -14,6 +14,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -59,13 +60,18 @@ void main() {
     location: S3AccountLocation.fromConfig(config),
   );
 
-  Future<AccountGroup> groupOf(List<ConnectedAccount> rows) async {
+  Future<AccountGroup> groupOf(
+    List<ConnectedAccount> rows, {
+    String? syncRowId,
+  }) async {
     final fresh = [for (final r in rows) (await accounts.getById(r.id))!];
     return groupAccounts(
       rows: fresh,
       statusById: {for (final r in fresh) r.id: AccountStatus.needsSignIn},
       localLocationById: const {},
-      usagesOf: (_) => const [],
+      usagesOf: (r) => r.id == syncRowId
+          ? const [AccountUsage(AccountUsageKind.databaseSync)]
+          : const [],
     ).single;
   }
 
@@ -206,6 +212,54 @@ void main() {
     await service.signOut(group);
 
     expect(await accounts.getAll(), hasLength(1));
+    expect(await credentials.read(sync.id), isNull);
+  });
+
+  test('an edit form starts from the sync row, not a library row', () async {
+    // The library row comes first, and a folder the sync role's default
+    // would not name, so only the usage marks the sync row.
+    final lib = await rowFor(s3('submersion-sites/reef-team/'));
+    final sync = await rowFor(s3('dive-log/'));
+    await credentials.write(
+      lib.id,
+      jsonEncode(s3('submersion-sites/reef-team/').toJson()),
+    );
+    await credentials.write(sync.id, jsonEncode(s3('dive-log/').toJson()));
+    final group = await groupOf([lib, sync], syncRowId: sync.id);
+
+    expect((await service.storedS3For(group))!.prefix, 'dive-log/');
+  });
+
+  test('saving an edit keeps the region and addressing, per folder', () async {
+    final sync = await rowFor(s3('submersion-sync/'));
+    final lib = await rowFor(s3('submersion-sites/reef-team/'));
+    final group = await groupOf([sync, lib]);
+
+    final edited = s3(
+      'submersion-sync/',
+      key: 'AKIA2',
+    ).copyWith(region: 'eu-west-1', pathStyle: false);
+    final written = await service.storeServerConfig(group, s3: edited);
+
+    expect(written, 2);
+    for (final (id, prefix) in [
+      (sync.id, 'submersion-sync/'),
+      (lib.id, 'submersion-sites/reef-team/'),
+    ]) {
+      final config = (await stored(id))!;
+      expect(config.prefix, prefix);
+      expect(config.region, 'eu-west-1');
+      expect(config.pathStyle, isFalse);
+      expect(config.accessKeyId, 'AKIA2');
+    }
+  });
+
+  test('an edit that moves the server writes no row', () async {
+    final sync = await rowFor(s3('submersion-sync/'));
+    final group = await groupOf([sync]);
+
+    final moved = s3('submersion-sync/').copyWith(bucket: 'other');
+    expect(await service.storeServerConfig(group, s3: moved), 0);
     expect(await credentials.read(sync.id), isNull);
   });
 }

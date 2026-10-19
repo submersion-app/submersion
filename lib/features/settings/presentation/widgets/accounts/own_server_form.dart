@@ -192,13 +192,9 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
     final existing = widget.existing;
     if (existing != null &&
         S3AccountLocation.fromConfig(config).serverKey == existing.key) {
-      final signedIn = await service.storeServerSecret(
-        existing,
-        S3Secret(
-          accessKeyId: config.accessKeyId,
-          secretAccessKey: config.secretAccessKey,
-        ),
-      );
+      // The submitted settings, not only the keys: an edit of the region or
+      // the addressing must survive the save.
+      final signedIn = await service.storeServerConfig(existing, s3: config);
       final sync = existing.rowFor(AccountRole.sync);
       final sameFolder =
           sync == null ||
@@ -216,12 +212,9 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
     final existing = widget.existing;
     if (existing != null &&
         WebDavAccountLocation.fromConfig(config).serverKey == existing.key) {
-      final signedIn = await service.storeServerSecret(
+      final signedIn = await service.storeServerConfig(
         existing,
-        WebDavSecret(
-          password: config.password,
-          pinnedCertSha256: config.pinnedCertSha256,
-        ),
+        webdav: config,
       );
       final sync = existing.rowFor(AccountRole.sync);
       final sameFolder =

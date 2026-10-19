@@ -116,6 +116,9 @@ void main() {
       '{"v":1,"kind":"ftp"}',
       '{"v":2,"kind":"s3"}',
       '{"v":1,"kind":"s3","bucket":7}',
+      // An address that does not parse would throw when grouped.
+      '{"v":1,"kind":"webdav","serverUrl":"http://[::1","username":"u",'
+          '"folder":"f"}',
     ]) {
       expect(AccountLocation.tryParse(j), isNull, reason: '$j');
     }

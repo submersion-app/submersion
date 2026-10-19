@@ -2,6 +2,8 @@
 // "Switch sync backend?" explanation shows inside the sheet, and choosing the
 // account sync already uses changes nothing.
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateNotifier;
@@ -18,6 +20,9 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
@@ -44,6 +49,18 @@ class _Notifier extends StateNotifier<SyncState> implements SyncNotifier {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Records each sync account write, with what it saw when it ran.
+class _RecordingRepository extends SyncRepository {
+  _RecordingRepository(this.onSet);
+  final void Function(String accountId, CloudProviderType type) onSet;
+
+  @override
+  Future<void> setSyncAccount({
+    required String accountId,
+    required CloudProviderType providerType,
+  }) async => onSet(accountId, providerType);
 }
 
 final _t = DateTime.utc(2026);
@@ -79,7 +96,10 @@ void main() {
   Future<(BuildContext, WidgetRef)> pumpHost(
     WidgetTester tester, {
     DateTime? lastSync,
+    InMemoryKeychain? keychain,
+    SyncRepository? repository,
   }) async {
+    final keys = keychain ?? InMemoryKeychain();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     notifier = _Notifier(SyncState(lastSync: lastSync));
@@ -93,8 +113,13 @@ void main() {
             FakeCloudStorageProvider(),
           ),
           accountCredentialsStoreProvider.overrideWithValue(
-            AccountCredentialsStore(storage: InMemoryKeychain()),
+            AccountCredentialsStore(storage: keys),
           ),
+          s3StorageProviderInstanceProvider.overrideWithValue(
+            S3StorageProvider(store: S3CredentialsStore(storage: keys)),
+          ),
+          if (repository != null)
+            syncRepositoryProvider.overrideWithValue(repository),
           syncInitializerProvider.overrideWithValue(
             SyncInitializer(syncRepository: SyncRepository(), prefs: prefs),
           ),
@@ -197,6 +222,51 @@ void main() {
     expect(notifier.departures, 0);
     expect(tester.takeException(), isNull);
     expect(find.text('Sign in to dives @ minio'), findsOneWidget);
+  });
+
+  // Review: the sync account derivation prefers the persisted account of a
+  // kind, so moving S3 sync to another folder must persist the new row
+  // before S3 is selected, or the old row takes the new settings.
+  testWidgets('a switch persists the new row before selecting its kind', (
+    tester,
+  ) async {
+    final keychain = InMemoryKeychain();
+    final log = <String>[];
+    late WidgetRef hostRef;
+    final repository = _RecordingRepository(
+      (id, type) => log.add(
+        '$id ${type.name} ${hostRef.read(selectedCloudProviderTypeProvider)}',
+      ),
+    );
+    final (context, ref) = await pumpHost(
+      tester,
+      keychain: keychain,
+      repository: repository,
+    );
+    hostRef = ref;
+    final config = S3Config(
+      endpoint: 'https://minio.home',
+      bucket: 'dives',
+      prefix: 'dive-log/',
+      accessKeyId: 'AKIA1',
+      secretAccessKey: 'shh',
+    );
+    await AccountCredentialsStore(
+      storage: keychain,
+    ).write('s3row', jsonEncode(config.toJson()));
+    final row = ConnectedAccount(
+      id: 's3row',
+      kind: AccountKind.s3,
+      label: 'dives @ minio.home',
+      createdAt: _t,
+      updatedAt: _t,
+    );
+
+    await switchSyncToRow(context, ref, row);
+    await tester.pump();
+
+    expect(log, ['s3row s3 null']);
+    expect(ref.read(selectedCloudProviderTypeProvider), CloudProviderType.s3);
   });
 
   test('the account sync uses is the one whose usage says so', () {

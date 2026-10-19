@@ -14,6 +14,7 @@ import 'package:submersion/core/services/accounts/account_credentials_store.dart
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
@@ -185,6 +186,9 @@ void main() {
           kind: AccountKind.s3,
           naturalKey: s3NaturalKey(existing),
           label: existing.bucket,
+          // As the detail view has it: the row's location groups it by
+          // server, so a save of the same server edits it in place.
+          location: S3AccountLocation.fromConfig(existing),
         );
         await credentials.write(row.id, jsonEncode(existing.toJson()));
         credentials.lastWritten = null;
@@ -561,5 +565,34 @@ void main() {
     await expandAdvanced(tester);
     expect(find.text('auto'), findsOneWidget);
     expect(find.textContaining('Auto-detected'), findsNothing);
+  });
+
+  // Review: saving an edit of the same server wrote only the keys, so a new
+  // region or addressing silently reverted.
+  testWidgets('an edited region survives saving the same server', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      existing: S3Config(
+        endpoint: 'https://s3.example.com',
+        region: 'auto',
+        bucket: 'dive-sync',
+        accessKeyId: 'ak',
+        secretAccessKey: 'sk',
+      ),
+    );
+    await expandAdvanced(tester);
+    await tester.enterText(
+      find.byKey(const Key('account-s3-region')),
+      'eu-west-2',
+    );
+    await tester.ensureVisible(find.byKey(const Key('own-server-save')));
+    await tester.tap(find.byKey(const Key('own-server-save')));
+    await settle(tester);
+
+    final saved = (await savedConfig(tester))!;
+    expect(saved.region, 'eu-west-2');
+    expect(saved.bucket, 'dive-sync');
   });
 }

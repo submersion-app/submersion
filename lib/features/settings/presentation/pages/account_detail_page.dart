@@ -7,6 +7,7 @@ import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_confirm_dialog.dart';
@@ -120,10 +121,9 @@ class _Details extends ConsumerWidget {
             // sync follows it there.
             showSyncFolder: isSyncAccount,
             onSaved: (row) async {
-              if (isSyncAccount &&
-                  row.id != group.rowFor(AccountRole.sync)?.id) {
-                await switchSyncToRow(context, ref, row);
-              }
+              // Also for the same row: sync reads the legacy settings, which
+              // only the switch rewrites from the saved ones.
+              if (isSyncAccount) await switchSyncToRow(context, ref, row);
               if (context.mounted) _refresh(context);
             },
           ),
@@ -188,6 +188,7 @@ class _Details extends ConsumerWidget {
           group.usagesKnown
               ? l10n.settings_connectedAccounts_signOutConfirmBody(group.label)
               : l10n.settings_connectedAccounts_usage_unknown,
+          ?_backupWarning(ref, l10n),
         ],
         usages: group.usages,
         action: l10n.settings_connectedAccounts_disconnectDevice,
@@ -196,6 +197,7 @@ class _Details extends ConsumerWidget {
     }
     if (!context.mounted) return;
     final container = ProviderScope.containerOf(context, listen: false);
+    if (_runsSync) await leaveSyncForAccount(ref, group.kind);
     await service.signOut(group);
     _refreshWith(container);
   }
@@ -212,6 +214,7 @@ class _Details extends ConsumerWidget {
           l10n.settings_connectedAccounts_usage_unknown
         else if (group.usages.isNotEmpty)
           l10n.settings_connectedAccounts_removeConfirmUsedHere,
+        ?_backupWarning(ref, l10n),
       ],
       usages: group.usages,
       // The roster row goes from every device, and what other devices use
@@ -222,10 +225,21 @@ class _Details extends ConsumerWidget {
     if (!confirmed || !context.mounted) return;
     final container = ProviderScope.containerOf(context, listen: false);
     final navigator = Navigator.of(context);
+    if (_runsSync) await leaveSyncForAccount(ref, group.kind);
     await service.remove(group);
     _refreshWith(container);
     navigator.maybePop();
   }
+
+  /// Cloud backups ride on sync, so losing the sync account stops them; the
+  /// diver hears that before agreeing, as Stop syncing says it.
+  String? _backupWarning(WidgetRef ref, AppLocalizations l10n) =>
+      _runsSync && ref.read(backupSettingsProvider).cloudBackupEnabled
+      ? l10n.settings_cloudSync_signOut_backupWarning
+      : null;
+
+  /// Whether this device syncs through the account.
+  bool get _runsSync => group.rowFor(AccountRole.sync) != null;
 
   void _refresh(BuildContext context) =>
       _refreshWith(ProviderScope.containerOf(context, listen: false));

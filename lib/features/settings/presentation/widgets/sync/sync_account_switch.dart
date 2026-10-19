@@ -10,6 +10,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
@@ -229,6 +230,20 @@ Future<void> useAccountForSync(
 /// Points sync at an own server's row [row]: its stored config becomes the
 /// sync settings (the legacy store sync still reads), then today's provider
 /// selection runs, as the S3 and WebDAV settings pages did on save.
+/// Takes sync off an account that is being signed out or removed, so
+/// nothing brings it back: the sync selection and its metadata are cleared
+/// (and a Dropbox legacy key, by the sync sign-out), an S3 sync account's
+/// legacy settings go too (the account derivation would mirror them back),
+/// and cloud backups, which ride on sync, stop. WebDAV's adapter clears its
+/// own legacy settings on sign-out.
+Future<void> leaveSyncForAccount(WidgetRef ref, AccountKind kind) async {
+  await ref.read(syncStateProvider.notifier).signOut();
+  if (kind == AccountKind.s3) {
+    await ref.read(s3StorageProviderInstanceProvider).signOut();
+  }
+  await ref.read(backupSettingsProvider.notifier).disableCloudBackup();
+}
+
 Future<void> switchSyncToRow(
   BuildContext context,
   WidgetRef ref,
@@ -256,6 +271,16 @@ Future<void> switchSyncToRow(
     default:
       return;
   }
+  if (!context.mounted) return;
+  // Persist the row first: the sync account derivation prefers the persisted
+  // account of a kind, so selecting S3 while it still names the old S3 row
+  // would mirror the new settings onto the old account.
+  await ref
+      .read(syncRepositoryProvider)
+      .setSyncAccount(
+        accountId: row.id,
+        providerType: row.kind.cloudProviderType!,
+      );
   if (!context.mounted) return;
   await selectProvider(context, ref, row.kind.cloudProviderType!);
   // Re-derive the sync account so its per-account credential mirror picks

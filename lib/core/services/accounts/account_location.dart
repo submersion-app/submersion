@@ -45,11 +45,14 @@ sealed class AccountLocation {
           prefix: decoded['prefix']! as String,
           pathStyle: decoded['pathStyle']! as bool,
         ),
-        'webdav' => WebDavAccountLocation(
-          serverUrl: decoded['serverUrl']! as String,
-          username: decoded['username']! as String,
-          folder: decoded['folder']! as String,
-        ),
+        // A synced address that does not parse would throw later, while
+        // the accounts are grouped; it reads as no location instead.
+        'webdav' when Uri.tryParse('${decoded['serverUrl']}/') != null =>
+          WebDavAccountLocation(
+            serverUrl: decoded['serverUrl']! as String,
+            username: decoded['username']! as String,
+            folder: decoded['folder']! as String,
+          ),
         _ => null,
       };
     } on Object {

@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateNotifier;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -20,11 +21,13 @@ import 'package:submersion/core/services/media_store/media_store_attach_state.da
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -45,6 +48,23 @@ class _RecordingAdapter extends AccountProviderAdapter {
   Future<void> disconnect(domain.ConnectedAccount account) async {
     disconnected.add(account.id);
   }
+}
+
+/// Records sync sign-outs, with whether the account was still signed in.
+class _SyncNotifier extends StateNotifier<SyncState> implements SyncNotifier {
+  _SyncNotifier(this.adapter) : super(const SyncState());
+  final _RecordingAdapter adapter;
+  final signOutsBeforeDisconnect = <bool>[];
+
+  @override
+  Future<void> signOut() async =>
+      signOutsBeforeDisconnect.add(adapter.disconnected.isEmpty);
+
+  @override
+  Future<void> refreshState() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -354,6 +374,81 @@ void main() {
     );
     await settle(tester);
     expect(dropbox.disconnected, [account.id]);
+  });
+
+  // Review: signing out of the sync account must take sync off it first, or
+  // Sync still shows it active and a legacy key mirrors it back; cloud
+  // backups, which ride on sync, stop with it, and the dialog says so.
+  testWidgets('signing out the sync account stops sync and backups first', (
+    tester,
+  ) async {
+    final account = await addDropbox(tester);
+    await useForSync(tester, account.id);
+    await BackupPreferences(prefs).setCloudBackupEnabled(true);
+    final sync = _SyncNotifier(dropbox);
+    await pumpPage(
+      tester,
+      overrides: [syncStateProvider.overrideWith((ref) => sync)],
+    );
+
+    await openMenu(tester, 'Sign out on this device');
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('backup', findRichText: true),
+      ),
+      findsWidgets,
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Sign out on this device'),
+      ),
+    );
+    await settle(tester);
+
+    expect(sync.signOutsBeforeDisconnect, [true]);
+    expect(dropbox.disconnected, [account.id]);
+    expect(BackupPreferences(prefs).getSettings().cloudBackupEnabled, isFalse);
+  });
+
+  testWidgets('removing the sync account stops sync first', (tester) async {
+    final account = await addDropbox(tester);
+    await useForSync(tester, account.id);
+    final sync = _SyncNotifier(dropbox);
+    await pumpPage(
+      tester,
+      overrides: [syncStateProvider.overrideWith((ref) => sync)],
+    );
+
+    await openMenu(tester, 'Remove from all devices');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Remove from all devices'),
+      ),
+    );
+    await settle(tester);
+
+    expect(sync.signOutsBeforeDisconnect, [true]);
+    expect(dropbox.disconnected, [account.id]);
+  });
+
+  testWidgets('signing out an account sync does not use leaves sync', (
+    tester,
+  ) async {
+    await addDropbox(tester);
+    final sync = _SyncNotifier(dropbox);
+    await pumpPage(
+      tester,
+      overrides: [syncStateProvider.overrideWith((ref) => sync)],
+    );
+
+    await openMenu(tester, 'Sign out on this device');
+    await settle(tester);
+
+    expect(dropbox.disconnected, hasLength(1));
+    expect(sync.signOutsBeforeDisconnect, isEmpty);
   });
 
   testWidgets('removing a used account names its features and other devices', (

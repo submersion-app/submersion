@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/own_s
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(OwnServerForm);
@@ -38,6 +39,11 @@ Future<bool> signInToGroup(
       ok = await _signInDropbox(context, ref, group.rows.first.id);
     case AccountKind.s3 || AccountKind.webdav:
       ok = await showOwnServerPage(context, existing: group) != null;
+      // Sync reads the legacy settings, which only the switch rewrites.
+      final syncRow = group.rowFor(AccountRole.sync);
+      if (ok && syncRow != null && context.mounted) {
+        await switchSyncToRow(context, ref, syncRow);
+      }
     case AccountKind.icloud || AccountKind.adobeLightroom:
       ok = false;
   }

@@ -218,9 +218,10 @@ class AccountGroupService {
     }
   }
 
-  /// The server config this device holds for any row of [group], or null.
+  /// The server config this device holds for [group]: its sync-role row's
+  /// first, so an edit form never starts from a library or photos folder.
   Future<S3Config?> storedS3For(AccountGroup group) async {
-    for (final row in group.rows) {
+    for (final row in _syncFirst(group)) {
       final config = await _storedS3(row.id);
       if (config != null) return config;
     }
@@ -228,7 +229,7 @@ class AccountGroupService {
   }
 
   Future<WebDavConfig?> storedWebDavFor(AccountGroup group) async {
-    for (final row in group.rows) {
+    for (final row in _syncFirst(group)) {
       final config = await _storedWebDav(row.id);
       if (config != null) return config;
     }
@@ -241,6 +242,58 @@ class AccountGroupService {
   /// The WebDAV config this device holds for the row [rowId], or null.
   Future<WebDavConfig?> storedWebDavForRow(String rowId) =>
       _storedWebDav(rowId);
+
+  static List<ConnectedAccount> _syncFirst(AccountGroup group) => [
+    ...group.rows.where((r) => group.roles[r.id] == AccountRole.sync),
+    ...group.rows.where((r) => group.roles[r.id] != AccountRole.sync),
+  ];
+
+  /// Saves an edit of [group]'s server: every row takes the submitted
+  /// settings (keys, region, addressing, certificate) with its own folder,
+  /// and only when the result still hashes to that row's id. Returns how
+  /// many rows were written.
+  Future<int> storeServerConfig(
+    AccountGroup group, {
+    S3Config? s3,
+    WebDavConfig? webdav,
+  }) async {
+    var written = 0;
+    for (final row in group.rows) {
+      final folder =
+          group.locationOf(row.id)?.folder ??
+          switch (row.kind) {
+            AccountKind.s3 => (await _storedS3(
+              row.id,
+            ))?.prefix.replaceAll(RegExp(r'/+$'), ''),
+            AccountKind.webdav => (await _storedWebDav(row.id))?.folder,
+            _ => null,
+          };
+      if (folder == null) continue;
+      switch (row.kind) {
+        case AccountKind.s3 when s3 != null:
+          final config = s3.copyWith(prefix: folder.isEmpty ? '' : '$folder/');
+          if (_s3Id(config) != row.id) continue;
+          await _credentials.write(row.id, jsonEncode(config.toJson()));
+          await _accounts.setLocation(
+            row.id,
+            S3AccountLocation.fromConfig(config),
+          );
+          written++;
+        case AccountKind.webdav when webdav != null:
+          final config = webdav.copyWith(folder: folder);
+          if (_webDavId(config) != row.id) continue;
+          await _credentials.write(row.id, jsonEncode(config.toJson()));
+          await _accounts.setLocation(
+            row.id,
+            WebDavAccountLocation.fromConfig(config),
+          );
+          written++;
+        default:
+          continue;
+      }
+    }
+    return written;
+  }
 
   AccountProviderAdapter? _adapterFor(ConnectedAccount row) =>
       _registry.capabilityFor<AccountProviderAdapter>(row.kind);
