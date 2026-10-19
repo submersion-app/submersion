@@ -36801,6 +36801,70 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Nog niet gebruikt';
 
   @override
+  String settings_sync_using(String account) {
+    return 'In gebruik: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Wijzigen';
+
+  @override
+  String get settings_sync_notSetUp => 'Niet ingesteld';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Uit zolang de database in een eigen map staat';
+
+  @override
+  String get settings_sync_keepInStep => 'Apparaten automatisch gelijk houden';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Ook synchroniseren bij het starten';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Ook synchroniseren bij terugkeer naar de app';
+
+  @override
+  String get settings_sync_encryption => 'Versleuteling';
+
+  @override
+  String get settings_sync_devices =>
+      'Apparaten die deze bibliotheek gebruiken';
+
+  @override
+  String get settings_sync_troubleshoot => 'Problemen oplossen';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'De bibliotheek vervangen door de kopie van dit apparaat';
+
+  @override
+  String get settings_sync_stop => 'Stoppen met synchroniseren op dit apparaat';
+
+  @override
+  String get settings_sync_stop_subtitle => 'Je account blijft aangemeld';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'Stoppen met synchroniseren op dit apparaat?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Dit apparaat stopt met synchroniseren. Je account blijft aangemeld en je duiken blijven hier en in de cloud.';
+
+  @override
+  String get settings_sync_stopped => 'Synchronisatie gestopt op dit apparaat';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'Oude gegevens verwijderen?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Hiermee worden de oude synchronisatiebestanden van $backend verwijderd. Je duiken blijven op dit apparaat en in het account waarmee je nu synchroniseert.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'Volume niet gekoppeld';
 

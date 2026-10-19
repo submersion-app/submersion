@@ -2089,8 +2089,6 @@ void main() {
     const locations = [
       '/settings/backup',
       '/settings/cloud-sync',
-      '/settings/cloud-sync/s3-config',
-      '/settings/cloud-sync/webdav-config',
       '/settings/shared-libraries',
       '/settings/shared-libraries/connect?prefix=club',
       '/settings/shared-libraries/lib1',

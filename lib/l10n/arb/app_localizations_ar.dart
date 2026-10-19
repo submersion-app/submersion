@@ -37542,6 +37542,68 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'غير مستخدم بعد';
 
   @override
+  String settings_sync_using(String account) {
+    return 'قيد الاستخدام: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'تغيير';
+
+  @override
+  String get settings_sync_notSetUp => 'غير مُعد';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'متوقف أثناء وجود قاعدة البيانات في مجلد مخصص';
+
+  @override
+  String get settings_sync_keepInStep => 'إبقاء الأجهزة متزامنة تلقائيًا';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'المزامنة أيضًا عند التشغيل';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'المزامنة أيضًا عند العودة إلى التطبيق';
+
+  @override
+  String get settings_sync_encryption => 'التشفير';
+
+  @override
+  String get settings_sync_devices => 'الأجهزة التي تستخدم هذه المكتبة';
+
+  @override
+  String get settings_sync_troubleshoot => 'استكشاف الأخطاء وإصلاحها';
+
+  @override
+  String get settings_sync_replaceLibrary => 'استبدال المكتبة بنسخة هذا الجهاز';
+
+  @override
+  String get settings_sync_stop => 'إيقاف المزامنة على هذا الجهاز';
+
+  @override
+  String get settings_sync_stop_subtitle => 'يبقى حسابك مسجّل الدخول';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'إيقاف المزامنة على هذا الجهاز؟';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'يتوقف هذا الجهاز عن المزامنة. يبقى حسابك مسجّل الدخول، وتبقى غطساتك هنا وفي السحابة.';
+
+  @override
+  String get settings_sync_stopped => 'توقفت المزامنة على هذا الجهاز';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'حذف البيانات القديمة؟';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'يحذف هذا ملفات المزامنة القديمة من $backend. تبقى غطساتك على هذا الجهاز وفي الحساب الذي تزامن معه الآن.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'وحدة التخزين غير مثبتة';
 

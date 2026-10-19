@@ -37042,6 +37042,70 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Ainda não usada';
 
   @override
+  String settings_sync_using(String account) {
+    return 'Em uso: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Alterar';
+
+  @override
+  String get settings_sync_notSetUp => 'Não configurado';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Desativada enquanto o banco de dados estiver em uma pasta personalizada';
+
+  @override
+  String get settings_sync_keepInStep =>
+      'Manter os dispositivos sincronizados automaticamente';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Sincronizar também ao abrir';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Sincronizar também ao voltar ao app';
+
+  @override
+  String get settings_sync_encryption => 'Criptografia';
+
+  @override
+  String get settings_sync_devices => 'Dispositivos que usam esta biblioteca';
+
+  @override
+  String get settings_sync_troubleshoot => 'Solucionar problemas';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'Substituir a biblioteca pela cópia deste dispositivo';
+
+  @override
+  String get settings_sync_stop => 'Parar de sincronizar neste dispositivo';
+
+  @override
+  String get settings_sync_stop_subtitle => 'Sua conta continua conectada';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'Parar de sincronizar neste dispositivo?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Este dispositivo para de sincronizar. Sua conta continua conectada, e seus mergulhos ficam aqui e na nuvem.';
+
+  @override
+  String get settings_sync_stopped => 'Sincronização parada neste dispositivo';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'Excluir os dados antigos?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Isso exclui os arquivos de sincronização antigos de $backend. Seus mergulhos ficam neste dispositivo e na conta com a qual você sincroniza agora.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume não montado';
 
   @override

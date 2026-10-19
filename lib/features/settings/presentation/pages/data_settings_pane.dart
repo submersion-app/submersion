@@ -21,10 +21,8 @@ import 'package:submersion/features/settings/presentation/pages/link_buddy_names
 import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
-import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
-import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/pages/change_library_connection_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
@@ -65,8 +63,6 @@ Widget? dataPanePage(Uri location) {
   return switch (segments.sublist(1)) {
     ['backup'] => const BackupSettingsPage(),
     ['cloud-sync'] => const CloudSyncPage(),
-    ['cloud-sync', 's3-config'] => const S3ConfigPage(),
-    ['cloud-sync', 'webdav-config'] => const WebDavConfigPage(),
     ['shared-libraries'] => const SharedLibrariesPage(),
     ['shared-libraries', 'connect'] => ConnectSharedLibraryPage(
       initialPrefix: location.queryParameters['prefix'],

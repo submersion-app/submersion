@@ -58358,6 +58358,114 @@ abstract class AppLocalizations {
   /// **'Not used yet'**
   String get settings_accounts_notUsedYet;
 
+  /// No description provided for @settings_sync_using.
+  ///
+  /// In en, this message translates to:
+  /// **'Using: {account}'**
+  String settings_sync_using(String account);
+
+  /// No description provided for @settings_sync_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get settings_sync_change;
+
+  /// No description provided for @settings_sync_notSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up'**
+  String get settings_sync_notSetUp;
+
+  /// No description provided for @settings_sync_offCustomFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Off while the database is in a custom folder'**
+  String get settings_sync_offCustomFolder;
+
+  /// No description provided for @settings_sync_keepInStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep devices in step automatically'**
+  String get settings_sync_keepInStep;
+
+  /// No description provided for @settings_sync_alsoAtLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Also sync at launch'**
+  String get settings_sync_alsoAtLaunch;
+
+  /// No description provided for @settings_sync_alsoOnReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Also sync when the app returns'**
+  String get settings_sync_alsoOnReturn;
+
+  /// No description provided for @settings_sync_encryption.
+  ///
+  /// In en, this message translates to:
+  /// **'Encryption'**
+  String get settings_sync_encryption;
+
+  /// No description provided for @settings_sync_devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices using this library'**
+  String get settings_sync_devices;
+
+  /// No description provided for @settings_sync_troubleshoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Troubleshoot'**
+  String get settings_sync_troubleshoot;
+
+  /// No description provided for @settings_sync_replaceLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the library with this device\'s copy'**
+  String get settings_sync_replaceLibrary;
+
+  /// No description provided for @settings_sync_stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop syncing on this device'**
+  String get settings_sync_stop;
+
+  /// No description provided for @settings_sync_stop_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account stays signed in'**
+  String get settings_sync_stop_subtitle;
+
+  /// No description provided for @settings_sync_stop_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop syncing on this device?'**
+  String get settings_sync_stop_confirmTitle;
+
+  /// No description provided for @settings_sync_stop_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device stops syncing. Your account stays signed in, and your dives stay here and in the cloud.'**
+  String get settings_sync_stop_confirmBody;
+
+  /// No description provided for @settings_sync_stopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync stopped on this device'**
+  String get settings_sync_stopped;
+
+  /// No description provided for @settings_sync_cleanup_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete old data?'**
+  String get settings_sync_cleanup_confirmTitle;
+
+  /// No description provided for @settings_sync_cleanup_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the old sync files from {backend}. Your dives stay on this device and in the account you sync with now.'**
+  String settings_sync_cleanup_confirmBody(String backend);
+
   /// No description provided for @media_unavailablePlaceholder_volumeOffline.
   ///
   /// In en, this message translates to:

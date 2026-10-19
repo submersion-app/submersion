@@ -36130,6 +36130,66 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'עדיין לא בשימוש';
 
   @override
+  String settings_sync_using(String account) {
+    return 'בשימוש: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'שינוי';
+
+  @override
+  String get settings_sync_notSetUp => 'לא מוגדר';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'כבוי כל עוד מסד הנתונים בתיקייה מותאמת אישית';
+
+  @override
+  String get settings_sync_keepInStep => 'שמירה על סנכרון אוטומטי בין המכשירים';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'סנכרון גם בהפעלה';
+
+  @override
+  String get settings_sync_alsoOnReturn => 'סנכרון גם בחזרה לאפליקציה';
+
+  @override
+  String get settings_sync_encryption => 'הצפנה';
+
+  @override
+  String get settings_sync_devices => 'מכשירים שמשתמשים בספרייה זו';
+
+  @override
+  String get settings_sync_troubleshoot => 'פתרון בעיות';
+
+  @override
+  String get settings_sync_replaceLibrary => 'החלפת הספרייה בעותק של מכשיר זה';
+
+  @override
+  String get settings_sync_stop => 'הפסקת הסנכרון במכשיר זה';
+
+  @override
+  String get settings_sync_stop_subtitle => 'החשבון שלך נשאר מחובר';
+
+  @override
+  String get settings_sync_stop_confirmTitle => 'להפסיק את הסנכרון במכשיר זה?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'מכשיר זה מפסיק להסתנכרן. החשבון שלך נשאר מחובר, והצלילות שלך נשארות כאן ובענן.';
+
+  @override
+  String get settings_sync_stopped => 'הסנכרון הופסק במכשיר זה';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'למחוק את הנתונים הישנים?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'פעולה זו מוחקת את קובצי הסנכרון הישנים מ-$backend. הצלילות שלך נשארות במכשיר זה ובחשבון שאיתו אתה מסתנכרן כעת.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
 
   @override

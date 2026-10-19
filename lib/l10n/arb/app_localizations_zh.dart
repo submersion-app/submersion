@@ -34900,6 +34900,65 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_accounts_notUsedYet => '尚未使用';
 
   @override
+  String settings_sync_using(String account) {
+    return '正在使用：$account';
+  }
+
+  @override
+  String get settings_sync_change => '更改';
+
+  @override
+  String get settings_sync_notSetUp => '未设置';
+
+  @override
+  String get settings_sync_offCustomFolder => '数据库位于自定义文件夹时关闭';
+
+  @override
+  String get settings_sync_keepInStep => '自动保持设备同步';
+
+  @override
+  String get settings_sync_alsoAtLaunch => '启动时也同步';
+
+  @override
+  String get settings_sync_alsoOnReturn => '返回应用时也同步';
+
+  @override
+  String get settings_sync_encryption => '加密';
+
+  @override
+  String get settings_sync_devices => '使用此资料库的设备';
+
+  @override
+  String get settings_sync_troubleshoot => '故障排除';
+
+  @override
+  String get settings_sync_replaceLibrary => '用此设备的副本替换资料库';
+
+  @override
+  String get settings_sync_stop => '停止在此设备上同步';
+
+  @override
+  String get settings_sync_stop_subtitle => '您的账户保持登录';
+
+  @override
+  String get settings_sync_stop_confirmTitle => '停止在此设备上同步？';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      '此设备将停止同步。您的账户保持登录，您的潜水记录仍保留在此设备和云端。';
+
+  @override
+  String get settings_sync_stopped => '已停止在此设备上同步';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => '删除旧数据？';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return '这将从 $backend 删除旧的同步文件。您的潜水记录仍保留在此设备和您当前同步的账户中。';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
 
   @override

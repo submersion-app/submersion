@@ -37058,6 +37058,72 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Non ancora usato';
 
   @override
+  String settings_sync_using(String account) {
+    return 'In uso: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Cambia';
+
+  @override
+  String get settings_sync_notSetUp => 'Non configurato';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Disattivata finché il database è in una cartella personalizzata';
+
+  @override
+  String get settings_sync_keepInStep =>
+      'Mantieni i dispositivi allineati automaticamente';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Sincronizza anche all\'avvio';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Sincronizza anche quando torni all\'app';
+
+  @override
+  String get settings_sync_encryption => 'Crittografia';
+
+  @override
+  String get settings_sync_devices => 'Dispositivi che usano questa libreria';
+
+  @override
+  String get settings_sync_troubleshoot => 'Risoluzione dei problemi';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'Sostituisci la libreria con la copia di questo dispositivo';
+
+  @override
+  String get settings_sync_stop =>
+      'Interrompi la sincronizzazione su questo dispositivo';
+
+  @override
+  String get settings_sync_stop_subtitle => 'Il tuo account resta connesso';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'Interrompere la sincronizzazione su questo dispositivo?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Questo dispositivo smette di sincronizzarsi. Il tuo account resta connesso e le tue immersioni restano qui e nel cloud.';
+
+  @override
+  String get settings_sync_stopped =>
+      'Sincronizzazione interrotta su questo dispositivo';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'Eliminare i dati vecchi?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Questo elimina i vecchi file di sincronizzazione da $backend. Le tue immersioni restano su questo dispositivo e nell\'account con cui sincronizzi ora.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume non montato';
 
   @override

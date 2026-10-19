@@ -37088,6 +37088,73 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Aún no se usa';
 
   @override
+  String settings_sync_using(String account) {
+    return 'En uso: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Cambiar';
+
+  @override
+  String get settings_sync_notSetUp => 'Sin configurar';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Desactivada mientras la base de datos esté en una carpeta personalizada';
+
+  @override
+  String get settings_sync_keepInStep =>
+      'Mantener los dispositivos sincronizados automáticamente';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Sincronizar también al abrir';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Sincronizar también al volver a la app';
+
+  @override
+  String get settings_sync_encryption => 'Cifrado';
+
+  @override
+  String get settings_sync_devices => 'Dispositivos que usan esta biblioteca';
+
+  @override
+  String get settings_sync_troubleshoot => 'Solucionar problemas';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'Reemplazar la biblioteca con la copia de este dispositivo';
+
+  @override
+  String get settings_sync_stop => 'Dejar de sincronizar en este dispositivo';
+
+  @override
+  String get settings_sync_stop_subtitle =>
+      'Tu cuenta sigue con la sesión iniciada';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      '¿Dejar de sincronizar en este dispositivo?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Este dispositivo deja de sincronizar. Tu cuenta sigue con la sesión iniciada y tus inmersiones se quedan aquí y en la nube.';
+
+  @override
+  String get settings_sync_stopped =>
+      'Sincronización detenida en este dispositivo';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle =>
+      '¿Eliminar los datos antiguos?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Esto elimina los archivos de sincronización antiguos de $backend. Tus inmersiones se quedan en este dispositivo y en la cuenta con la que sincronizas ahora.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volumen no montado';
 
   @override

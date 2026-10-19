@@ -285,10 +285,12 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
               runSpacing: 8,
               children: [
                 OutlinedButton(
+                  key: const Key('own-server-check'),
                   onPressed: _busy ? null : _check,
                   child: Text(l10n.settings_accounts_checkConnection),
                 ),
                 FilledButton(
+                  key: const Key('own-server-save'),
                   onPressed: _busy ? null : _save,
                   child: Text(l10n.settings_accounts_save),
                 ),
@@ -303,27 +305,33 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
 
 /// Pushes the form on its own page and returns the row it saved, or null
 /// when the diver backs out.
+///
+/// [rootNavigator] pushes over everything, as the first-run wizard needs:
+/// with no diver yet, a go_router push would bounce back to the welcome
+/// page.
 Future<ConnectedAccount?> showOwnServerPage(
   BuildContext context, {
   AccountGroup? existing,
   Set<AccountKind> kinds = const {AccountKind.s3, AccountKind.webdav},
-}) => Navigator.of(context).push<ConnectedAccount>(
-  MaterialPageRoute(
-    builder: (context) => Scaffold(
-      appBar: AppBar(
-        title: Text(
-          existing == null
-              ? context.l10n.settings_accounts_ownServer_title
-              : context.l10n.settings_accounts_signInTo(existing.label),
+  bool rootNavigator = false,
+}) =>
+    Navigator.of(context, rootNavigator: rootNavigator).push<ConnectedAccount>(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: Text(
+              existing == null
+                  ? context.l10n.settings_accounts_ownServer_title
+                  : context.l10n.settings_accounts_signInTo(existing.label),
+            ),
+          ),
+          body: SingleChildScrollView(
+            child: OwnServerForm(
+              existing: existing,
+              kinds: kinds,
+              onSaved: (row) => Navigator.of(context).pop(row),
+            ),
+          ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: OwnServerForm(
-          existing: existing,
-          kinds: kinds,
-          onSaved: (row) => Navigator.of(context).pop(row),
-        ),
-      ),
-    ),
-  ),
-);
+    );

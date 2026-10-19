@@ -37163,6 +37163,73 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Pas encore utilisé';
 
   @override
+  String settings_sync_using(String account) {
+    return 'Utilisé : $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Modifier';
+
+  @override
+  String get settings_sync_notSetUp => 'Non configuré';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Désactivée tant que la base de données est dans un dossier personnalisé';
+
+  @override
+  String get settings_sync_keepInStep =>
+      'Garder les appareils synchronisés automatiquement';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Synchroniser aussi au lancement';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Synchroniser aussi au retour dans l\'app';
+
+  @override
+  String get settings_sync_encryption => 'Chiffrement';
+
+  @override
+  String get settings_sync_devices => 'Appareils utilisant cette bibliothèque';
+
+  @override
+  String get settings_sync_troubleshoot => 'Dépanner';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'Remplacer la bibliothèque par la copie de cet appareil';
+
+  @override
+  String get settings_sync_stop =>
+      'Arrêter la synchronisation sur cet appareil';
+
+  @override
+  String get settings_sync_stop_subtitle => 'Votre compte reste connecté';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'Arrêter la synchronisation sur cet appareil ?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Cet appareil arrête de se synchroniser. Votre compte reste connecté, et vos plongées restent ici et dans le cloud.';
+
+  @override
+  String get settings_sync_stopped =>
+      'Synchronisation arrêtée sur cet appareil';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle =>
+      'Supprimer les anciennes données ?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Cela supprime les anciens fichiers de synchronisation de $backend. Vos plongées restent sur cet appareil et dans le compte avec lequel vous synchronisez maintenant.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume non monté';
 
   @override

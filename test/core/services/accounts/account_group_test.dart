@@ -151,10 +151,16 @@ void main() {
       ],
       usages: {
         'a': const [
-          AccountUsage(AccountUsageKind.sharedLibrary, libraryName: 'Reef team'),
+          AccountUsage(
+            AccountUsageKind.sharedLibrary,
+            libraryName: 'Reef team',
+          ),
         ],
         'b': const [
-          AccountUsage(AccountUsageKind.sharedLibrary, libraryName: 'Reef team'),
+          AccountUsage(
+            AccountUsageKind.sharedLibrary,
+            libraryName: 'Reef team',
+          ),
         ],
       },
     ).single;

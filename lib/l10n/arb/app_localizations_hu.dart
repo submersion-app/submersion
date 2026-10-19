@@ -36832,6 +36832,71 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Még nincs használatban';
 
   @override
+  String settings_sync_using(String account) {
+    return 'Használatban: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Módosítás';
+
+  @override
+  String get settings_sync_notSetUp => 'Nincs beállítva';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Kikapcsolva, amíg az adatbázis egyéni mappában van';
+
+  @override
+  String get settings_sync_keepInStep =>
+      'Eszközök automatikus szinkronban tartása';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Szinkronizálás indításkor is';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Szinkronizálás az alkalmazásba visszatéréskor is';
+
+  @override
+  String get settings_sync_encryption => 'Titkosítás';
+
+  @override
+  String get settings_sync_devices => 'A könyvtárat használó eszközök';
+
+  @override
+  String get settings_sync_troubleshoot => 'Hibaelhárítás';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'A könyvtár cseréje az eszköz példányára';
+
+  @override
+  String get settings_sync_stop => 'Szinkronizálás leállítása ezen az eszközön';
+
+  @override
+  String get settings_sync_stop_subtitle => 'A fiókod bejelentkezve marad';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'Leállítod a szinkronizálást ezen az eszközön?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Ez az eszköz leállítja a szinkronizálást. A fiókod bejelentkezve marad, a merüléseid itt és a felhőben maradnak.';
+
+  @override
+  String get settings_sync_stopped =>
+      'A szinkronizálás leállt ezen az eszközön';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'Törlöd a régi adatokat?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Ez törli a régi szinkronizálási fájlokat innen: $backend. A merüléseid ezen az eszközön és abban a fiókban maradnak, amellyel most szinkronizálsz.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'A kötet nincs csatlakoztatva';
 

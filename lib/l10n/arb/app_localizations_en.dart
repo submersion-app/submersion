@@ -36426,6 +36426,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Not used yet';
 
   @override
+  String settings_sync_using(String account) {
+    return 'Using: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Change';
+
+  @override
+  String get settings_sync_notSetUp => 'Not set up';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Off while the database is in a custom folder';
+
+  @override
+  String get settings_sync_keepInStep => 'Keep devices in step automatically';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Also sync at launch';
+
+  @override
+  String get settings_sync_alsoOnReturn => 'Also sync when the app returns';
+
+  @override
+  String get settings_sync_encryption => 'Encryption';
+
+  @override
+  String get settings_sync_devices => 'Devices using this library';
+
+  @override
+  String get settings_sync_troubleshoot => 'Troubleshoot';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'Replace the library with this device\'s copy';
+
+  @override
+  String get settings_sync_stop => 'Stop syncing on this device';
+
+  @override
+  String get settings_sync_stop_subtitle => 'Your account stays signed in';
+
+  @override
+  String get settings_sync_stop_confirmTitle => 'Stop syncing on this device?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'This device stops syncing. Your account stays signed in, and your dives stay here and in the cloud.';
+
+  @override
+  String get settings_sync_stopped => 'Sync stopped on this device';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'Delete old data?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'This deletes the old sync files from $backend. Your dives stay on this device and in the account you sync with now.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
 
   @override

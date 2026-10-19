@@ -36979,6 +36979,70 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_accounts_notUsedYet => 'Noch nicht genutzt';
 
   @override
+  String settings_sync_using(String account) {
+    return 'Verwendet: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'Ändern';
+
+  @override
+  String get settings_sync_notSetUp => 'Nicht eingerichtet';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'Aus, solange die Datenbank in einem eigenen Ordner liegt';
+
+  @override
+  String get settings_sync_keepInStep => 'Geräte automatisch abgleichen';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'Auch beim Start synchronisieren';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'Auch bei Rückkehr zur App synchronisieren';
+
+  @override
+  String get settings_sync_encryption => 'Verschlüsselung';
+
+  @override
+  String get settings_sync_devices => 'Geräte, die diese Bibliothek nutzen';
+
+  @override
+  String get settings_sync_troubleshoot => 'Fehlerbehebung';
+
+  @override
+  String get settings_sync_replaceLibrary =>
+      'Bibliothek durch die Kopie dieses Geräts ersetzen';
+
+  @override
+  String get settings_sync_stop => 'Synchronisierung auf diesem Gerät beenden';
+
+  @override
+  String get settings_sync_stop_subtitle => 'Dein Konto bleibt angemeldet';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'Synchronisierung auf diesem Gerät beenden?';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'Dieses Gerät synchronisiert nicht mehr. Dein Konto bleibt angemeldet, und deine Tauchgänge bleiben hier und in der Cloud.';
+
+  @override
+  String get settings_sync_stopped =>
+      'Synchronisierung auf diesem Gerät beendet';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'Alte Daten löschen?';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'Dies löscht die alten Sync-Dateien von $backend. Deine Tauchgänge bleiben auf diesem Gerät und in dem Konto, mit dem du jetzt synchronisierst.';
+  }
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'Volume nicht eingebunden';
 

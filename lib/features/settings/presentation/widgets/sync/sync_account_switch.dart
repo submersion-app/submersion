@@ -81,77 +81,14 @@ String providerDisplayNameForId(BuildContext context, String providerId) {
   return type == null ? providerId : providerDisplayName(context, type);
 }
 
-Future<bool?> _confirmBackendSwitch(
-  BuildContext context, {
-  required CloudProviderType from,
-  required CloudProviderType to,
-}) {
-  final l10n = context.l10n;
-  return showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(l10n.settings_cloudSync_switch_dialogTitle),
-      content: Text(
-        l10n.settings_cloudSync_switch_dialogContent(
-          providerDisplayName(context, from),
-          providerDisplayName(context, to),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(l10n.settings_cloudSync_switch_confirm),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Points sync at [provider], authenticating it (today's provider tile tap).
-///
-/// Switching AWAY from a backend this device has synced with is a
-/// consequential, easy-to-misunderstand action (data is not migrated, peers
-/// do not follow automatically, the next sync combines with whatever lives
-/// on the new backend), so it is confirmed first and the departure recorded
-/// so the old backend is marked moved-from and armed for cleanup. With
-/// [confirmed] the caller has already done both (the account sheet asks
-/// inside itself), and neither happens here.
+/// Points sync at [provider] and authenticates it (today's provider tile
+/// tap). The caller has already explained a switch and recorded the
+/// departure from the old backend (the account sheet asks inside itself).
 Future<void> selectProvider(
   BuildContext context,
   WidgetRef ref,
-  CloudProviderType provider, {
-  bool confirmed = false,
-}) async {
-  final current = ref.read(selectedCloudProviderTypeProvider);
-  final currentProvider = ref.read(cloudStorageProviderProvider);
-  final hasHistory = ref.read(syncStateProvider).lastSync != null;
-  if (!confirmed &&
-      current != null &&
-      current != provider &&
-      currentProvider != null &&
-      hasHistory) {
-    // Resolved before the first await so context is not used across a gap.
-    final toName = providerDisplayName(context, provider);
-    final ok = await _confirmBackendSwitch(
-      context,
-      from: current,
-      to: provider,
-    );
-    if (ok != true) return;
-    await ref
-        .read(syncStateProvider.notifier)
-        .recordBackendDeparture(
-          oldProvider: currentProvider,
-          toProviderId: provider.name,
-          toProviderName: toName,
-        );
-    if (!context.mounted) return;
-  }
-
+  CloudProviderType provider,
+) async {
   // Set the provider first so cloudStorageProviderProvider returns the
   // correct instance.
   ref.read(selectedCloudProviderTypeProvider.notifier).state = provider;
@@ -270,7 +207,7 @@ Future<void> useAccountForSync(
     await switchSyncToRow(context, ref, row);
     return;
   }
-  await selectProvider(context, ref, type, confirmed: true);
+  await selectProvider(context, ref, type);
 }
 
 /// Points sync at an own server's row [row]: its stored config becomes the
@@ -298,12 +235,7 @@ Future<void> switchSyncToRow(
       return;
   }
   if (!context.mounted) return;
-  await selectProvider(
-    context,
-    ref,
-    row.kind.cloudProviderType!,
-    confirmed: true,
-  );
+  await selectProvider(context, ref, row.kind.cloudProviderType!);
   // Re-derive the sync account so its per-account credential mirror picks
   // up the new config; editing while already on the kind does not re-fire
   // the provider-type change.
