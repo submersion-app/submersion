@@ -17,7 +17,7 @@ const List<(String, String)> _knownStorageHosts = [
   ('wasabisys.com', 'Wasabi'),
   ('digitaloceanspaces.com', 'DigitalOcean Spaces'),
   ('storage.googleapis.com', 'Google Cloud Storage'),
-  ('linodeobjects.com', 'Akamai Object Storage'),
+  ('linodeobjects.com', 'Akamai (Linode) Object Storage'),
   ('scw.cloud', 'Scaleway'),
 ];
 

@@ -39,6 +39,14 @@ void main() {
         shortStorageLabel('dives @ storage.googleapis.com'),
         'dives @ Google Cloud Storage',
       );
+      expect(
+        shortStorageLabel('dives @ us-east-1.linodeobjects.com'),
+        'dives @ Akamai (Linode) Object Storage',
+      );
+      expect(
+        shortStorageLabel('dives @ s3.fr-par.scw.cloud'),
+        'dives @ Scaleway',
+      );
     });
 
     test('keeps a trailing folder note', () {
