@@ -36,7 +36,7 @@ final lastBackupCloudAccountIdProvider = Provider.autoDispose<String?>(
   ),
 );
 
-/// Label of the account the last cloud backup went to, not of the account
+/// Name of the account the last cloud backup went to, not of the account
 /// that syncs today: after a switch, the older copy is still in the old
 /// one. Null when the account has since been removed, which reads as "the
 /// cloud". A pure read: nothing here creates or re-stamps the row.
@@ -47,24 +47,33 @@ final lastBackupCloudAccountLabelProvider = FutureProvider.autoDispose<String?>(
     ref.invalidateSelfWhen(accounts.watchAccountsChanges());
     final id = ref.watch(lastBackupCloudAccountIdProvider);
     if (id == null) return null;
-    return (await accounts.getById(id))?.label;
+    return (await accounts.getById(id))?.displayName;
   },
 );
 
-/// Display hint of the store this device is attached to ("bucket @ host"),
-/// or null when none is attached. The attached store, not the one the
-/// library announces: after another device switches stores, this device
-/// still keeps its copies in the old one until it reattaches.
+/// Name of the store this device is attached to, or null when none is
+/// attached: the nickname of the account it was attached through, else its
+/// display hint ("bucket @ host") with a well-known service's host named
+/// (issue #3522). The attached store, not the one the library announces:
+/// after another device switches stores, this device still keeps its copies
+/// in the old one until it reattaches.
 final attachedStoreHintProvider = FutureProvider.autoDispose<String?>((
   ref,
 ) async {
   final stores = ref.watch(mediaStoresRepositoryProvider);
-  ref.invalidateSelfWhen(stores.watchStoresChanges());
+  final accounts = ref.watch(connectedAccountsRepositoryProvider);
+  ref
+    ..invalidateSelfWhen(stores.watchStoresChanges())
+    // A rename ticks the roster.
+    ..invalidateSelfWhen(accounts.watchAccountsChanges());
   // The attach and detach flows invalidate this, so a change shows here.
   if (!await ref.watch(mediaStoreAttachedProvider.future)) return null;
-  final id = await ref.watch(mediaStoreAttachStateProvider).attachedStoreId();
+  final attachState = ref.watch(mediaStoreAttachStateProvider);
+  final id = await attachState.attachedStoreId();
   if (id == null) return null;
-  return (await stores.getById(id))?.displayHint;
+  final store = await stores.getById(id);
+  if (store == null) return null;
+  return mediaStoreName(store, attachState: attachState, accounts: accounts);
 });
 
 /// Where the most recent backup went.
@@ -132,14 +141,14 @@ final libraryHealthSettledProvider = Provider.autoDispose<bool>((ref) {
   return inputs.hasValue || inputs.hasError;
 });
 
-/// The roster's account labels.
+/// The roster's account names: nicknames, else short labels.
 final accountLabelsProvider = FutureProvider.autoDispose<List<String>>((
   ref,
 ) async {
   final repository = ref.watch(connectedAccountsRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchAccountsChanges());
   final accounts = await repository.getAll();
-  return [for (final account in accounts) account.label];
+  return [for (final account in accounts) account.displayName];
 });
 
 /// How many accounts need a sign-in on this device, from the pending setup

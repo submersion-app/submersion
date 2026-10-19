@@ -22420,6 +22420,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_connectedAccounts_location => 'Fiók helye';
 
   @override
+  String get settings_conflict_field_connectedAccounts_nickname => 'Név';
+
+  @override
   String get settings_conflict_field_connectionType => 'Kapcsolat';
 
   @override
@@ -36515,6 +36518,24 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'Kijelentkezés ezen az eszközön';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary =>
+      'Eltávolítás a könyvtárból';
+
+  @override
+  String get settings_connectedAccounts_rename => 'Átnevezés';
+
+  @override
+  String get settings_connectedAccounts_renameTitle => 'Fiók átnevezése';
+
+  @override
+  String get settings_connectedAccounts_renameField => 'Név';
+
+  @override
+  String settings_connectedAccounts_renameDefault(String name) {
+    return 'Hagyja üresen, és ez lesz a neve: $name';
+  }
 
   @override
   String get settings_connectedAccounts_removeConfirmTitle =>

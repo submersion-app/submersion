@@ -33,6 +33,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 
+const _r2Host = '149b84f66d5479265f3e4d4ad4740926.r2.cloudflarestorage.com';
+
 const _healthy = [
   FeatureHealth(
     feature: DataFeature.backup,
@@ -88,8 +90,9 @@ class _FakeStores extends Fake implements MediaStoresRepository {
 }
 
 class _FakeAccounts extends Fake implements ConnectedAccountsRepository {
-  _FakeAccounts(this.labels);
+  _FakeAccounts(this.labels, {this.nicknames = const {}});
   final Map<String, String> labels;
+  final Map<String, String> nicknames;
 
   @override
   Stream<void> watchAccountsChanges() => const Stream.empty();
@@ -111,6 +114,7 @@ class _FakeAccounts extends Fake implements ConnectedAccountsRepository {
       id: id,
       kind: AccountKind.googledrive,
       label: label,
+      nickname: nicknames[id],
       createdAt: at,
       updatedAt: at,
     );
@@ -228,6 +232,36 @@ void main() {
       },
     );
 
+    // Issue #3522: the backup account reads by its short name.
+    test('names the backup account by its short name or nickname', () async {
+      final c = container([
+        lastBackupCloudAccountIdProvider.overrideWithValue('acct-r2'),
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts({'acct-r2': 'backups @ $_r2Host'}),
+        ),
+      ]);
+      keep(c, lastBackupCloudAccountLabelProvider);
+      expect(
+        await c.read(lastBackupCloudAccountLabelProvider.future),
+        'backups @ Cloudflare R2',
+      );
+
+      final named = container([
+        lastBackupCloudAccountIdProvider.overrideWithValue('acct-r2'),
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts(
+            {'acct-r2': 'backups @ $_r2Host'},
+            nicknames: {'acct-r2': 'Backups'},
+          ),
+        ),
+      ]);
+      keep(named, lastBackupCloudAccountLabelProvider);
+      expect(
+        await named.read(lastBackupCloudAccountLabelProvider.future),
+        'Backups',
+      );
+    });
+
     test('a removed account falls back to the generic cloud wording', () async {
       final c = container([
         lastBackupCloudAccountIdProvider.overrideWithValue('acct-gone'),
@@ -297,9 +331,64 @@ void main() {
             'store-b': 'dive @ minio',
           }, active: 'store-b'),
         ),
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts({}),
+        ),
       ]);
       keep(c, attachedStoreHintProvider);
       expect(await c.read(attachedStoreHintProvider.future), 'photos @ nas');
+    });
+
+    // Issue #3522: the store reads by a short name, not its endpoint host.
+    test('shortens the attached store of a well-known service', () async {
+      SharedPreferences.setMockInitialValues({
+        MediaStoreAttachState.storeIdKey: 'store-a',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final c = container([
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        mediaStoreAttachStateProvider.overrideWithValue(
+          MediaStoreAttachState(prefs: prefs),
+        ),
+        mediaStoreAttachedProvider.overrideWith((ref) async => true),
+        mediaStoresRepositoryProvider.overrideWithValue(
+          _FakeStores({'store-a': 'submersion-sync @ $_r2Host'}),
+        ),
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts({}),
+        ),
+      ]);
+      keep(c, attachedStoreHintProvider);
+      expect(
+        await c.read(attachedStoreHintProvider.future),
+        'submersion-sync @ Cloudflare R2',
+      );
+    });
+
+    test('names the attached store by its account\'s nickname', () async {
+      SharedPreferences.setMockInitialValues({
+        MediaStoreAttachState.storeIdKey: 'store-a',
+        MediaStoreAttachState.accountIdKey: 'acct-r2',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final c = container([
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        mediaStoreAttachStateProvider.overrideWithValue(
+          MediaStoreAttachState(prefs: prefs),
+        ),
+        mediaStoreAttachedProvider.overrideWith((ref) async => true),
+        mediaStoresRepositoryProvider.overrideWithValue(
+          _FakeStores({'store-a': 'submersion-sync @ $_r2Host'}),
+        ),
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts(
+            {'acct-r2': 'submersion-sync @ $_r2Host'},
+            nicknames: {'acct-r2': 'Dive photos'},
+          ),
+        ),
+      ]);
+      keep(c, attachedStoreHintProvider);
+      expect(await c.read(attachedStoreHintProvider.future), 'Dive photos');
     });
 
     test('reads as checking while the store state loads', () {
@@ -413,6 +502,23 @@ void main() {
       expect(await c.read(accountLabelsProvider.future), [
         'Google Drive',
         'nas.home',
+      ]);
+    });
+
+    // Issue #3522: the roster reads by short names, not endpoint hosts.
+    test('labels read by nickname or short name', () async {
+      final c = container([
+        connectedAccountsRepositoryProvider.overrideWithValue(
+          _FakeAccounts(
+            {'a': 'submersion-sync @ $_r2Host', 'b': 'photos @ $_r2Host'},
+            nicknames: {'b': 'Dive photos'},
+          ),
+        ),
+      ]);
+      keep(c, accountLabelsProvider);
+      expect(await c.read(accountLabelsProvider.future), [
+        'submersion-sync @ Cloudflare R2',
+        'Dive photos',
       ]);
     });
 
