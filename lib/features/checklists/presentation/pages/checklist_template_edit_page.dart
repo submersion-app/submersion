@@ -210,18 +210,19 @@ class _ChecklistTemplateEditPageState
         ),
     ]);
 
+    // sortOrder reassigned from list position at save time.
     await repository.saveItems(templateId, [
-      for (final item in _items)
+      for (var i = 0; i < _items.length; i++)
         ChecklistTemplateItem(
-          id: item.id,
+          id: _items[i].id,
           templateId: templateId,
-          title: item.title,
-          sectionId: item.sectionId,
-          notes: item.notes,
-          dueOffsetDays: item.dueOffsetDays,
-          sortOrder: item.sortOrder,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
+          title: _items[i].title,
+          sectionId: _items[i].sectionId,
+          notes: _items[i].notes,
+          dueOffsetDays: _items[i].dueOffsetDays,
+          sortOrder: i,
+          createdAt: _items[i].createdAt,
+          updatedAt: _items[i].updatedAt,
         ),
     ]);
     if (mounted) navigator.pop();
