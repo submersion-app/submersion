@@ -122,11 +122,17 @@ void main() {
   testWidgets('the gas temperature toggle is collapsed behind a switch, '
       'Tec-only, and updates the density row', (tester) async {
     await _pump(tester);
-    expect(find.text('Check gas density at a different temperature'), findsNothing);
+    expect(
+      find.text('Check gas density at a different temperature'),
+      findsNothing,
+    );
 
     await tester.tap(find.text('OC Tec'));
     await _settle(tester);
-    expect(find.text('Check gas density at a different temperature'), findsOneWidget);
+    expect(
+      find.text('Check gas density at a different temperature'),
+      findsOneWidget,
+    );
     // Collapsed by default: no temperature picker or hint yet, but the
     // density row still assumes the default (0 C) temperature.
     expect(find.text('Gas temperature'), findsNothing);
