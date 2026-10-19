@@ -414,6 +414,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 292) await reportProgress();
+    // v293: connected_accounts.location (issue #3482). Column only, written
+    // when a device saves or signs in to an S3 or WebDAV account;
+    // re-asserted in beforeOpen through _assertConnectedAccountsSchema.
+    if (from < 293) {
+      await _assertConnectedAccountsSchema();
+    }
+    if (from < 293) await reportProgress();
     // v294: clears certifications.photo_front / photo_back wherever the
     // v277 copy put the card in the documents store (issue #3502). Data
     // step, rung only. 293 is claimed by the accounts work (#3482).
@@ -435,12 +442,49 @@ extension RungsFromV231 on AppDatabase {
       await _assertColorCorrectionColumns();
     }
     if (from < 296) await reportProgress();
-    // v297: logbook rules and their run history (issue #3513). Tables
-    // only; re-asserted in beforeOpen through _assertRuleSchema.
-    // Renumbered from 292, then from 296 when #3520 shipped it.
+
+    // v297: trip_checklist_sections + trip_checklist_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 297 (see database.dart).
     if (from < 297) {
-      await _assertRuleSchema();
+      await _assertAndBackfillTripChecklistSections();
     }
     if (from < 297) await reportProgress();
+
+    // v298: checklist_template_sections + checklist_template_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 298 (see database.dart).
+    if (from < 298) {
+      await _assertAndBackfillChecklistTemplateSections();
+    }
+    if (from < 298) await reportProgress();
+
+    // v299: pre_dive_checklist_template_sections +
+    // pre_dive_checklist_template_items.section_id, backfilled from
+    // section (non-built-in templates only; built-ins get stable ids via
+    // the seed, re-asserted in beforeOpen), which is then dropped (issue
+    // #3360). Raises minimumCompatibleSchemaVersion to 299 (see
+    // database.dart).
+    if (from < 299) {
+      await _assertAndBackfillPreDiveTemplateSections();
+    }
+    if (from < 299) await reportProgress();
+
+    // v300: pre_dive_session_sections + pre_dive_session_items.section_id,
+    // backfilled from section, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 300 (see database.dart) -- the
+    // last of the four checklist-sections table groups.
+    if (from < 300) {
+      await _assertAndBackfillPreDiveSessionSections();
+    }
+    if (from < 300) await reportProgress();
+
+    // v301: logbook rules and their run history (issue #3513). Tables
+    // only; re-asserted in beforeOpen through _assertRuleSchema.
+    // Renumbered from 292, then 296, then 297 as main took each.
+    if (from < 301) {
+      await _assertRuleSchema();
+    }
+    if (from < 301) await reportProgress();
   }
 }

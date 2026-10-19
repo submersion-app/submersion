@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
-import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
-import 'package:submersion/features/settings/presentation/widgets/s3_server_fields.dart';
-import 'package:submersion/features/settings/presentation/widgets/webdav_server_fields.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_sheet.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
-import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/storage_setup_sheet.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -28,36 +35,115 @@ String? libraryFolderProblem(AppLocalizations l10n, String folder) {
   return null;
 }
 
-/// The folder and storage account a library is reached through, as the
-/// connect page and the change-connection page pick them.
+/// The folder and the server a library is reached through, as the connect
+/// page and the change-connection page pick them. The server is an account
+/// from the account sheet (issue #3482); the library's own roster row, which
+/// carries the folder, is resolved from both when a check or join runs.
 class LibraryLocationController extends ChangeNotifier {
-  LibraryLocationController({String initialPrefix = '', this.selectedAccountId})
-    : prefix = TextEditingController(text: initialPrefix);
+  LibraryLocationController({String initialPrefix = ''})
+    : prefix = TextEditingController(text: initialPrefix),
+      _initialFolder = initialPrefix.trim();
 
   final TextEditingController prefix;
 
-  /// The account chosen by id: the list rebuilds with new instances
-  /// whenever an account changes, so the choice is kept by id.
-  String? selectedAccountId;
+  /// The library row a change of connection starts from ([seed]), used as
+  /// is while its server and folder stay chosen (it may hold keys of its
+  /// own).
+  String? initialAccountId;
+  String _initialFolder;
 
-  /// The chosen account as last resolved against the eligible accounts.
+  /// The chosen server, or null before one is.
+  AccountGroup? server;
+
+  /// The row the last check went through ([probeAccount]), or the library's
+  /// own row once [resolveAccount] has made it.
   ConnectedAccount? account;
-
-  /// Whether the inline form for a new account is open.
-  bool addingAccount = false;
 
   String get folder => prefix.text.trim();
 
-  void selectAccount(ConnectedAccount? a) {
-    account = a;
-    selectedAccountId = a?.id;
+  /// Starts a change of connection from [library]'s row and folder.
+  void seed({required String folder, required String? accountId}) {
+    prefix.text = folder;
+    _initialFolder = folder.trim();
+    initialAccountId = accountId;
+  }
+
+  void selectServer(AccountGroup? group) {
+    server = group;
+    account = null;
     notifyListeners();
   }
 
-  void setAddingAccount(bool adding) {
-    addingAccount = adding;
-    notifyListeners();
+  /// A row to check the chosen server and folder through, without saving
+  /// anything: the library's own row while nothing changed, a row already
+  /// there for this folder that is signed in here, else any signed-in row
+  /// of the server (a check reads the folder it is given, not the row's
+  /// own). A row nothing here can place is used as is, as the old picker
+  /// did. Throws [StateError] when nothing on the server is signed in here.
+  ConnectedAccount? probeAccount() {
+    final group = server;
+    if (group == null) return account = null;
+    final unchanged = _unchangedRow(group);
+    if (unchanged != null) return account = unchanged;
+    if (group.rows.every((r) => group.locationOf(r.id) == null)) {
+      return account = group.rows.first;
+    }
+    bool signedIn(ConnectedAccount r) =>
+        group.statusOf(r.id) == AccountStatus.signedIn;
+    final existing = _rowInFolder(group);
+    if (existing != null && signedIn(existing)) return account = existing;
+    final any = group.rows.firstWhereOrNull(signedIn);
+    if (any != null) return account = any;
+    throw StateError('not signed in');
   }
+
+  /// The library's own row, made only when the diver joins, creates or
+  /// saves: the library's own row while nothing changed, a row already there
+  /// for this folder (with whatever keys it holds), else a new library row
+  /// on the server's keys.
+  Future<ConnectedAccount?> resolveAccount(AccountGroupService service) async {
+    final group = server;
+    if (group == null) return account = null;
+    final unchanged = _unchangedRow(group);
+    if (unchanged != null) return account = unchanged;
+    final existing = _rowInFolder(group);
+    // A row nothing on this device can place (written before locations,
+    // signed in elsewhere) cannot lend its server to a new folder; it is
+    // used as is, as the account picker did before.
+    if (existing == null &&
+        group.rows.every((r) => group.locationOf(r.id) == null)) {
+      return account = group.rows.first;
+    }
+    return account =
+        existing ??
+        await service.ensureRole(
+          group,
+          AccountRole.library,
+          libraryFolder: folder,
+        );
+  }
+
+  ConnectedAccount? _unchangedRow(AccountGroup group) {
+    final initial = group.rows.firstWhereOrNull(
+      (r) => r.id == initialAccountId,
+    );
+    return initial != null && folder == _initialFolder ? initial : null;
+  }
+
+  /// The row already on the server for the typed folder, compared as the
+  /// stored folders are written (segments trimmed, empty ones dropped).
+  ConnectedAccount? _rowInFolder(AccountGroup group) {
+    final where = _normalized(LibraryAccountSetup.libraryFolder(folder));
+    return group.rows.firstWhereOrNull(
+      (r) => _normalized(group.locationOf(r.id)?.folder ?? '') == where,
+    );
+  }
+
+  static String _normalized(String folder) => folder
+      .split('/')
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .join('/');
 
   @override
   void dispose() {
@@ -66,25 +152,36 @@ class LibraryLocationController extends ChangeNotifier {
   }
 }
 
-/// The folder field (with the storage setup guide), the account picker
-/// and the inline form adding an S3 or WebDAV account (issue #2567).
+/// The server accounts a library can live on: S3 and WebDAV, as today.
+const libraryAccountKinds = {AccountKind.s3, AccountKind.webdav};
+
+/// The [accountGroupsOfKindsProvider] key for [libraryAccountKinds].
+final libraryKindsKey = accountKindsKey(libraryAccountKinds);
+
+/// The S3 and WebDAV accounts among [groups].
+List<AccountGroup> libraryServers(List<AccountGroup> groups) => [
+  for (final g in groups)
+    if (libraryAccountKinds.contains(g.kind)) g,
+];
+
+/// The folder field (with the storage setup guide) and the server the
+/// library lives on, picked through the account sheet (issue #3482).
 /// [onEdited] runs whenever the location changes, so a caller can drop a
 /// check made against the old one.
 class LibraryLocationFields extends ConsumerStatefulWidget {
   const LibraryLocationFields({
     super.key,
     required this.controller,
-    required this.accounts,
+    required this.servers,
     required this.onEdited,
     this.enabled = true,
   });
 
   final LibraryLocationController controller;
 
-  /// False while the caller is busy (checking, joining): the location and
-  /// the account form wait.
+  /// False while the caller is busy (checking, joining): the location waits.
   final bool enabled;
-  final List<ConnectedAccount> accounts;
+  final List<AccountGroup> servers;
   final VoidCallback onEdited;
 
   @override
@@ -93,93 +190,62 @@ class LibraryLocationFields extends ConsumerStatefulWidget {
 }
 
 class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
-  // An account set up right here (issue #2567): its own folder,
-  // submersion-sites, is fixed by LibraryAccountSetup.
-  AccountKind _newKind = AccountKind.s3;
-  final _accountFormKey = GlobalKey<FormState>();
-  final _s3 = S3FormController(
-    defaultPrefix: '${SharedLibraryLayout.librariesDir}/',
-  );
-  final _webdav = WebDavFormController(
-    defaultFolder: SharedLibraryLayout.librariesDir,
-  );
-  bool _saving = false;
-  String? _error;
-
   LibraryLocationController get _c => widget.controller;
-
-  @override
-  void dispose() {
-    _s3.dispose();
-    _webdav.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final list = widget.accounts;
-    if (list.isEmpty) {
-      _c.account = null;
-    } else {
-      final wanted = _c.selectedAccountId ?? _c.account?.id;
-      _c.account = list.firstWhere(
-        (a) => a.id == wanted,
-        orElse: () => list.first,
-      );
+    // The chosen server as the latest accounts list has it (a sign-in
+    // changes its state); first pick the library's own, else the first.
+    final list = widget.servers;
+    final key = _c.server?.key;
+    // A server signed in here first, so Check has keys to use.
+    final current =
+        list.firstWhereOrNull((g) => g.key == key) ??
+        list.holding(_c.initialAccountId) ??
+        list.firstWhereOrNull((g) => g.signedInHere) ??
+        list.firstOrNull;
+    if (key != null && current?.key != key) {
+      // The chosen server is gone (removed elsewhere): what was checked
+      // against it no longer holds, so the page drops it after this frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _c.selectServer(current);
+        widget.onEdited();
+      });
     }
+    _c.server = current;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // The folder first: an account added below is saved for it.
         _folderField(),
         const SizedBox(height: 12),
-        if (list.isNotEmpty)
-          DropdownButtonFormField<ConnectedAccount>(
-            initialValue: _c.account,
-            // Library account labels name the bucket, host and folder: too
-            // long for a phone without an ellipsis.
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.sharedLibrary_connect_account_label,
-            ),
-            items: [
-              for (final a in list)
-                DropdownMenuItem(
-                  value: a,
-                  child: Text(a.displayName, overflow: TextOverflow.ellipsis),
-                ),
-            ],
-            onChanged: widget.enabled
-                ? (a) {
-                    _c.selectAccount(a);
-                    widget.onEdited();
-                  }
-                : null,
-          ),
-        if (_c.addingAccount) ...[
-          if (list.isNotEmpty) const SizedBox(height: 12),
-          _accountForm(),
-        ] else if (list.isNotEmpty)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              icon: const Icon(Icons.add),
-              label: Text(l10n.sharedLibrary_connect_addAccount),
-              onPressed: widget.enabled
-                  ? () => _c.setAddingAccount(true)
-                  : null,
+        if (current != null)
+          ListTile(
+            key: const Key('library-server'),
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(accountKindIcon(current.kind)),
+            title: Text(l10n.settings_sync_using(current.label)),
+            subtitle: TileSubtitleAction(
+              actionKey: const Key('library-server-change'),
+              label: l10n.settings_sync_change,
+              onPressed: widget.enabled ? _change : null,
             ),
           ),
-        if (_error != null) ...[
-          const SizedBox(height: 12),
-          Text(
-            _error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
       ],
     );
+  }
+
+  Future<void> _change() async {
+    final choice = await showAccountSheet(
+      context,
+      allowedKinds: libraryAccountKinds,
+      currentKey: _c.server?.key,
+      webdavCheck: ref.read(libraryAccountSetupProvider).reachWebDav,
+    );
+    if (choice == null || !mounted) return;
+    _c.selectServer(choice);
+    widget.onEdited();
   }
 
   Widget _folderField() {
@@ -206,8 +272,7 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
             icon: const Icon(Icons.help_outline),
             label: Text(l10n.sharedLibrary_setup_title),
             onPressed: () async {
-              final bucket = await _bucketForGuide();
-              if (!mounted) return;
+              final bucket = _bucketForGuide();
               await showStorageSetupSheet(
                 context,
                 bucket: bucket,
@@ -220,127 +285,27 @@ class _LibraryLocationFieldsState extends ConsumerState<LibraryLocationFields> {
     );
   }
 
-  /// The bucket the example policies name: the one being typed in, or the
-  /// selected S3 account's own (from its stored settings: an account made
-  /// for personal sync carries a label of its own), else a placeholder.
-  Future<String> _bucketForGuide() async {
-    if (_c.addingAccount && _newKind == AccountKind.s3) {
-      final typed = _s3.bucket.text.trim();
-      if (typed.isNotEmpty) return typed;
-    }
-    final account = _c.account;
-    if (account != null && account.kind == AccountKind.s3) {
-      final stored = await ref
-          .read(libraryAccountSetupProvider)
-          .s3Bucket(account.id);
-      if (stored != null) return stored;
-    }
-    return 'your-bucket';
-  }
-
-  /// An S3 or WebDAV account, set up here: server and keys only, as the
-  /// library's folder comes from the field above.
-  Widget _accountForm() {
-    final l10n = context.l10n;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _accountFormKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SegmentedButton<AccountKind>(
-                segments: [
-                  ButtonSegment(
-                    value: AccountKind.s3,
-                    label: Text(l10n.settings_cloudSync_provider_s3_title),
-                  ),
-                  ButtonSegment(
-                    value: AccountKind.webdav,
-                    label: Text(l10n.settings_mediaStorage_provider_webdav),
-                  ),
-                ],
-                selected: {_newKind},
-                onSelectionChanged: (kinds) =>
-                    setState(() => _newKind = kinds.first),
-              ),
-              const SizedBox(height: 12),
-              if (_newKind == AccountKind.s3)
-                S3ServerFields(
-                  controller: _s3,
-                  showPrefix: false,
-                  keyPrefix: 'library-s3',
-                )
-              else
-                WebDavServerFields(
-                  controller: _webdav,
-                  showFolder: false,
-                  keyPrefix: 'library-webdav',
-                ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: _saving || !widget.enabled
-                        ? null
-                        : () => _c.setAddingAccount(false),
-                    child: Text(
-                      MaterialLocalizations.of(context).cancelButtonLabel,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _saving || !widget.enabled ? null : _saveAccount,
-                    child: Text(l10n.sharedLibrary_connect_saveAccount),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _saveAccount() async {
-    if (!(_accountFormKey.currentState?.validate() ?? false)) return;
-    final problem = libraryFolderProblem(context.l10n, _c.folder);
-    if (problem != null) {
-      setState(() => _error = problem);
-      return;
-    }
-    final folder = _c.folder;
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-    try {
-      final setup = ref.read(libraryAccountSetupProvider);
-      final account = _newKind == AccountKind.s3
-          ? await setup.saveS3(_s3.build(), folder: folder)
-          // A self-signed server is offered for trust, as in the WebDAV
-          // settings, before its pin is saved with the account.
-          : await setup.saveWebDav(
-              await runWithCertificateTrust(
-                context,
-                _webdav,
-                setup.reachWebDav,
-              ),
-              folder: folder,
-            );
-      if (!mounted) return;
-      ref.invalidate(eligibleLibraryAccountsProvider);
-      _c
-        ..selectedAccountId = account.id
-        ..setAddingAccount(false);
-      widget.onEdited();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = libraryErrorText(context.l10n, e));
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
+  /// The bucket the example policies name: the chosen S3 server's own (its
+  /// locations include this device's stored settings), else a placeholder.
+  String _bucketForGuide() =>
+      _c.server?.locations.values
+          .whereType<S3AccountLocation>()
+          .firstOrNull
+          ?.bucket ??
+      'your-bucket';
 }
+
+/// Opens the account sheet's add section for a library server and returns
+/// the account added, or null.
+/// A library may hand out WebDAV logins that cannot write, so the server is
+/// reached read only, never with the sync settings' write probe.
+Future<AccountGroup?> addLibraryServer(BuildContext context) =>
+    showAccountSheet(
+      context,
+      allowedKinds: libraryAccountKinds,
+      addOnly: true,
+      webdavCheck: ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).read(libraryAccountSetupProvider).reachWebDav,
+    );

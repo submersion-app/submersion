@@ -117,6 +117,14 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_checklistTemplate;
     case 'preDiveChecklistTemplates':
       return l10n.settings_conflict_ref_preDiveChecklistTemplate;
+    case 'tripChecklistSections':
+      return l10n.settings_conflict_ref_tripChecklistSection;
+    case 'checklistTemplateSections':
+      return l10n.settings_conflict_ref_checklistTemplateSection;
+    case 'preDiveChecklistTemplateSections':
+      return l10n.settings_conflict_ref_preDiveChecklistTemplateSection;
+    case 'preDiveSessionSections':
+      return l10n.settings_conflict_ref_preDiveSessionSection;
     default:
       return humanizeEntityType(reference.targetType);
   }

@@ -284,7 +284,7 @@ and the change list in its three places.
 ## Data and sync
 
 Three new tables (one schema rung; next free number at merge time: written as
-292, shipped as 297 after main took 292, 294, 295 and 296), each in its own library under
+292, shipped as 301 after main took 292 and 294 to 300), each in its own library under
 `lib/core/database/tables/`, migrations in a helper part file, a backstop,
 and indexes, following `saved_queries`:
 

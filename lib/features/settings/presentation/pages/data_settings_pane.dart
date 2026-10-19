@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/pages/data_tools_page.
 import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
@@ -20,10 +21,8 @@ import 'package:submersion/features/settings/presentation/pages/link_buddy_names
 import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
-import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
-import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/pages/change_library_connection_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
@@ -64,8 +63,6 @@ Widget? dataPanePage(Uri location) {
   return switch (segments.sublist(1)) {
     ['backup'] => const BackupSettingsPage(),
     ['cloud-sync'] => const CloudSyncPage(),
-    ['cloud-sync', 's3-config'] => const S3ConfigPage(),
-    ['cloud-sync', 'webdav-config'] => const WebDavConfigPage(),
     ['shared-libraries'] => const SharedLibrariesPage(),
     ['shared-libraries', 'connect'] => ConnectSharedLibraryPage(
       initialPrefix: location.queryParameters['prefix'],
@@ -93,6 +90,7 @@ Widget? dataPanePage(Uri location) {
     ['media-storage'] => const MediaStoragePage(),
     ['media-storage', 'transfers'] => const TransfersPage(),
     ['connected-accounts'] => const ConnectedAccountsPage(),
+    ['connected-accounts', final id] => AccountDetailPage(accountId: id),
     ['storage'] => const StorageSettingsPage(),
     ['storage-usage'] => const StorageUsagePage(),
     ['storage-usage', 'unrecognized-backups'] =>

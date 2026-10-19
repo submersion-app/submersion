@@ -7,9 +7,16 @@ extension PreDiveMigrations on AppDatabase {
   /// (parallel-branch version-collision self-heal).
   Future<void> _assertPreDiveChecklistSchema() async {
     final m = Migrator(this);
+    // The section tables (issue #3360) are created here with their parents,
+    // not only by the v299/v300 backstops: this self-heal builds the item
+    // tables from the current definitions, and the beforeOpen backstop for
+    // session sections runs before it, so a session table created here would
+    // otherwise be left without its sections table for the rest of the open.
     await m.createTable(preDiveChecklistTemplates);
+    await m.createTable(preDiveChecklistTemplateSections);
     await m.createTable(preDiveChecklistTemplateItems);
     await m.createTable(preDiveSessions);
+    await m.createTable(preDiveSessionSections);
     await m.createTable(preDiveSessionItems);
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_pre_dive_template_items_template_id '
@@ -38,10 +45,37 @@ extension PreDiveMigrations on AppDatabase {
       "SELECT name FROM sqlite_master WHERE type='table' AND name='divers'",
     ).get();
     if (diversTable.isEmpty) return;
+    // _assertPreDiveChecklistSchema (called just before this, both from the
+    // v128 rung and from beforeOpen) always creates
+    // pre_dive_checklist_template_items from the CURRENT table definition
+    // when it (re)creates the table -- which already bakes in section_id's
+    // foreign key to pre_dive_checklist_template_sections, regardless of how
+    // far the ladder has otherwise progressed. Without this, the DELETE in
+    // kRetireLegacyGueEdgeItemsSql below fails with "no such table" the
+    // moment that happens before this function's own v299 rung has run
+    // (issue #3360). createTable is idempotent, so this is a no-op once the
+    // real rung creates the table properly.
+    await Migrator(this).createTable(preDiveChecklistTemplateSections);
     await customStatement(kSeedBuiltInPreDiveTemplatesSql);
     await customStatement(kRetireLegacyGueEdgeItemsSql);
+    // kSeedBuiltInPreDiveTemplateItemsSql's column list names section_id
+    // (issue #3360). This function is also called from the v127 rung,
+    // mid-ladder, before the v299 rung that adds that column has run in the
+    // same upgrade -- so on that path section_id does not exist yet. Skip
+    // the items/sections seed entirely rather than fail; beforeOpen calls
+    // this function again once the whole ladder (including v299) has run,
+    // and seeds correctly then.
+    final hasSectionId = await _columnExists(
+      'pre_dive_checklist_template_items',
+      'section_id',
+    );
+    if (!hasSectionId) return;
+    if (await _tableExists('pre_dive_checklist_template_sections')) {
+      await customStatement(kSeedBuiltInPreDiveTemplateSectionsSql);
+    }
     await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
     await customStatement(kRenumberCcrTailItemsSql);
+    await customStatement(kAssignBuiltInPreDiveSectionIdsSql);
   }
 
   /// Idempotent DDL for the v181 pre_dive_checklist_template_items

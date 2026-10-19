@@ -11,7 +11,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/diver_tables.dart';
 
-/// A diver's logbook rule (v297): when [conditionJson] (the versioned query
+/// A diver's logbook rule (v301): when [conditionJson] (the versioned query
 /// AST from `queryNodeToJson`) matches a dive or site, apply [actionsJson]
 /// (the versioned list from `ruleActionsToJson`). [subject] is `dives` or
 /// `sites`; [triggers] is comma-joined `RuleTrigger` names. Synced with its
@@ -38,7 +38,7 @@ class Rules extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// One run of the rules that changed something (v297): its history entry.
+/// One run of the rules that changed something (v301): its history entry.
 /// [trigger] is a `RuleRunTrigger` name; [undoneAt] is set once undone.
 @DataClassName('RuleRunRow')
 class RuleRuns extends Table {
@@ -60,7 +60,7 @@ class RuleRuns extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// One field a run changed on one dive or site (v297). [beforeJson] and
+/// One field a run changed on one dive or site (v301). [beforeJson] and
 /// [afterJson] are the JSON values undo compares and restores. [ruleId] has
 /// no foreign key: the history outlives a deleted rule, and [ruleName]
 /// keeps its name from the time of the run.

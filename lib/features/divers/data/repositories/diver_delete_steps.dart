@@ -116,6 +116,11 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
     entityType: 'tripChecklistItems',
     where: _ofDiverTrips,
   ),
+  (
+    table: 'trip_checklist_sections',
+    entityType: 'tripChecklistSections',
+    where: _ofDiverTrips,
+  ),
   // The ledger first: it cascades from its slot, and a cascade logs nothing.
   (
     table: 'trip_cylinder_events',

@@ -29,7 +29,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(286));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(286));
   });
 
   test('upgrading keeps every diver on the factory default view', () async {

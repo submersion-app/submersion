@@ -40,8 +40,12 @@ extension MediaMigrations on AppDatabase {
       'created_at INTEGER NOT NULL, '
       'updated_at INTEGER NOT NULL, '
       'hlc TEXT, '
+      'location TEXT, '
       'nickname TEXT)',
     );
+    // v293: connected_accounts.location (issue #3482); a table created
+    // before v293 gains it here.
+    await _addColumnIfMissing('connected_accounts', 'location', 'TEXT');
     // v295: connected_accounts.nickname (issue #3522); a table created
     // before v295 gains it here.
     await _addColumnIfMissing('connected_accounts', 'nickname', 'TEXT');

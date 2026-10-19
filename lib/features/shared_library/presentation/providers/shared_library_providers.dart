@@ -1,8 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
-import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
@@ -148,19 +146,6 @@ final _siteStateTickProvider = StreamProvider<void>((ref) async* {
   yield* ref.watch(sharedLibraryStoreProvider).watchSiteStates();
 });
 
-/// Connected accounts that can back a shared site library.
-final eligibleLibraryAccountsProvider = FutureProvider<List<ConnectedAccount>>((
-  ref,
-) async {
-  final accounts = ref.watch(connectedAccountsRepositoryProvider);
-  ref.invalidateSelfWhen(accounts.watchAccountsChanges());
-  final all = await accounts.getAll();
-  return [
-    for (final a in all)
-      if (a.kind == AccountKind.s3 || a.kind == AccountKind.webdav) a,
-  ];
-});
-
 /// Builds the folder transport for a connected account and prefix from
 /// the account registry (S3 and WebDAV adapters build a provider per
 /// account, so two libraries on one device keep separate credentials).
@@ -232,10 +217,9 @@ final suggestionServiceProvider = Provider<SuggestionService>(
   ),
 );
 
-// no-tick: a service object; it writes accounts at action time.
+// no-tick: a service object; it reads stored accounts at action time.
 final libraryAccountSetupProvider = Provider<LibraryAccountSetup>(
   (ref) => LibraryAccountSetup(
-    accounts: ref.watch(connectedAccountsRepositoryProvider),
     credentials: ref.watch(accountCredentialsStoreProvider),
   ),
 );

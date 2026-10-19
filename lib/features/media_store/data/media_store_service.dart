@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
@@ -263,6 +264,7 @@ class MediaStoreService {
         kind: AccountKind.webdav,
         naturalKey: webdavNaturalKey(config),
         label: config.displayLabel,
+        location: WebDavAccountLocation.fromConfig(config),
       );
       await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
       await _attachState.setAttached(
@@ -310,7 +312,22 @@ class MediaStoreService {
               kind: AccountKind.s3,
               naturalKey: s3NaturalKey(config),
               label: '${config.bucket} @ ${config.displayHost}',
+              location: S3AccountLocation.fromConfig(config),
             );
+      // A reused account keeps its own location unless the config is the
+      // one its id was made from: a location never names another row. (A
+      // row ensure() resolved already has it.)
+      if (identical(account, requested) &&
+          account.id ==
+              accountIdFor(
+                kind: AccountKind.s3,
+                naturalKey: s3NaturalKey(config),
+              )) {
+        await _accounts.setLocation(
+          account.id,
+          S3AccountLocation.fromConfig(config),
+        );
+      }
       await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
       // Legacy blob still written so a rollback build keeps working.
       await _credentials.save(config);

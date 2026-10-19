@@ -44,6 +44,8 @@ class ExcelExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<PreDiveSessionSection>> preDiveSectionsBySession =
+        const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
@@ -60,6 +62,7 @@ class ExcelExportService {
       dateFormat: dateFormat,
       preDiveSessions: preDiveSessions,
       preDiveItemsBySession: preDiveItemsBySession,
+      preDiveSectionsBySession: preDiveSectionsBySession,
       maintenanceRows: maintenanceRows,
       componentNames: componentNames,
       observationRows: observationRows,
@@ -88,6 +91,8 @@ class ExcelExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<PreDiveSessionSection>> preDiveSectionsBySession =
+        const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
@@ -111,6 +116,7 @@ class ExcelExportService {
       excel,
       sessions: preDiveSessions,
       itemsBySession: preDiveItemsBySession,
+      sectionsBySession: preDiveSectionsBySession,
       dateFormat: dateFormat,
     );
     // Only when there is history to carry, so a library with no service
@@ -166,6 +172,8 @@ class ExcelExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<PreDiveSessionSection>> preDiveSectionsBySession =
+        const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
@@ -182,6 +190,7 @@ class ExcelExportService {
       dateFormat: dateFormat,
       preDiveSessions: preDiveSessions,
       preDiveItemsBySession: preDiveItemsBySession,
+      preDiveSectionsBySession: preDiveSectionsBySession,
       maintenanceRows: maintenanceRows,
       componentNames: componentNames,
       observationRows: observationRows,

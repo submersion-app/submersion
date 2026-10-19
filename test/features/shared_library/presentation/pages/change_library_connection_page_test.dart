@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/account_groups_fixture.dart';
 
 final _accounts = [
   for (final (id, label) in [('a', 'Old bucket'), ('b', 'New bucket')])
@@ -128,9 +131,12 @@ Widget _app(
           ),
       ]),
     ),
-    eligibleLibraryAccountsProvider.overrideWith(
-      (ref) async => accounts ?? _accounts,
+    accountGroupsProvider.overrideWith(
+      (ref) async => signedInGroupsOf(accounts ?? _accounts),
     ),
+    accountGroupsOfKindsProvider(
+      libraryKindsKey,
+    ).overrideWith((ref) async => signedInGroupsOf(accounts ?? _accounts)),
     libraryConnectionServiceProvider.overrideWithValue(service),
     sharedLibrarySyncProvider.overrideWith(_RecordingSync.new),
   ],
@@ -149,7 +155,7 @@ void main() {
     final service = _FakeConnection();
     await tester.pumpWidget(_app(service));
     await tester.pumpAndSettle();
-    expect(find.text('Old bucket'), findsOneWidget);
+    expect(find.text('Using: Old bucket'), findsOneWidget);
     expect(
       tester
           .widget<TextField>(find.byKey(const Key('library-prefix')))
@@ -330,9 +336,9 @@ void main() {
     await tester.pumpWidget(_app(_FakeConnection(), accounts: const []));
     await tester.pumpAndSettle();
     expect(find.text('Check location'), findsNothing);
-    await tester.tap(find.text('Add storage account'));
+    await tester.tap(find.text('Add account'));
     await tester.pumpAndSettle();
-    expect(find.byType(SegmentedButton<AccountKind>), findsOneWidget);
+    expect(find.text('My own server'), findsOneWidget);
   });
 
   testWidgets('a locked copy asks for the passphrase', (tester) async {

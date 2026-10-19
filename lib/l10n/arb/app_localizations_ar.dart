@@ -4600,6 +4600,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_template_addItem => 'إضافة عنصر';
 
   @override
+  String get sectionEditor_addSection => 'إضافة قسم';
+
+  @override
+  String get sectionEditor_newSectionTitle => 'قسم جديد';
+
+  @override
+  String get sectionEditor_noSection => 'بلا قسم';
+
+  @override
+  String sectionEditor_delete_title(String title) {
+    return 'حذف \"$title\"؟';
+  }
+
+  @override
+  String sectionEditor_delete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ماذا يجب أن يحدث لعناصره البالغ عددها $count؟',
+      many: 'ماذا يجب أن يحدث لعناصره البالغ عددها $count؟',
+      few: 'ماذا يجب أن يحدث لعناصره البالغ عددها $count؟',
+      two: 'ماذا يجب أن يحدث لعنصريه؟',
+      one: 'ماذا يجب أن يحدث لعنصره الواحد؟',
+      zero: 'لا يحتوي هذا القسم على عناصر.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sectionEditor_delete_moveTo(String title) {
+    return 'نقل العناصر إلى \"$title\"';
+  }
+
+  @override
+  String get sectionEditor_delete_deleteItems => 'حذف العناصر أيضًا';
+
+  @override
   String get preDive_templates_title => 'قوائم تحقق ما قبل الغوص';
 
   @override
@@ -21330,9 +21367,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
 
   @override
-  String get settings_cloudSync_autoSync => 'المزامنة التلقائية';
-
-  @override
   String get settings_cloudSync_autoSync_subtitle =>
       'المزامنة تلقائيًا بعد التغييرات';
 
@@ -21367,15 +21401,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_action => 'توصيل مكتبة';
-
-  @override
-  String get sharedLibrary_connect_addAccount => 'إضافة حساب تخزين';
-
-  @override
-  String get sharedLibrary_connect_saveAccount => 'حفظ الحساب';
-
-  @override
-  String get sharedLibrary_connect_account_label => 'حساب التخزين';
 
   @override
   String get sharedLibrary_connect_prefix_label => 'المجلد (البادئة)';
@@ -21738,9 +21763,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_confirm => 'عبارة المرور مرة أخرى';
-
-  @override
-  String get sharedLibrary_connect_probe_action => 'تحقق';
 
   @override
   String sharedLibrary_connect_join_action(String name) {
@@ -22121,12 +22143,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_adopt_notNow => 'ليس الآن';
 
   @override
-  String get settings_cloudSync_dangerZone => 'منطقة الخطر';
-
-  @override
-  String get settings_cloudSync_replaceLibrary_tile => 'استبدال مكتبة السحابة';
-
-  @override
   String get settings_cloudSync_replaceLibrary_tileSubtitle =>
       'اجعل مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة';
 
@@ -22222,9 +22238,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_dialogTitle => 'تبديل خدمة المزامنة؟';
-
-  @override
   String settings_cloudSync_switch_dialogContent(
     String fromName,
     String toName,
@@ -22233,14 +22246,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_confirm => 'تبديل';
-
-  @override
   String settings_cloudSync_moved_banner(
     String deviceName,
     String destination,
   ) {
-    return 'قام $deviceName بنقل هذه المكتبة إلى $destination. لم تعد هذه الخدمة تُحدَّث بواسطته. اختر $destination أدناه لمتابعة النقل.';
+    return 'قام $deviceName بنقل هذه المكتبة إلى $destination. لم تعد هذه الخدمة تُحدَّث بواسطته. اختر تغيير ثم $destination لمتابعة النقل.';
   }
 
   @override
@@ -22265,15 +22275,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم إيقاف النسخ الاحتياطي السحابي وسيتم حفظ النسخ الاحتياطية في الموقع الافتراضي.';
 
   @override
-  String get settings_cloudSync_header_cloudProvider => 'مزود السحابة';
-
-  @override
   String settings_cloudSync_header_conflicts(Object count) {
     return 'التعارضات ($count)';
   }
-
-  @override
-  String get settings_cloudSync_header_syncBehavior => 'سلوك المزامنة';
 
   @override
   String settings_cloudSync_lastSynced(Object time) {
@@ -22364,9 +22368,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم تطبيقها تلقائيًا عندما يصل تحديث متجر التطبيقات لهذا الجهاز إلى ذلك الإصدار. قد يكون التحديث لا يزال قيد المراجعة، أو لم يُطرح بعد إذا كان الجهاز الآخر يشغّل إصدار بيتا (TestFlight أو اختبار Google Play): انضم إلى البيتا نفسها على هذا الجهاز، أو انتظر الإصدار التالي.';
 
   @override
-  String get settings_cloudSync_provider_connected => 'متصل';
-
-  @override
   String settings_cloudSync_provider_connectedTo(Object providerName) {
     return 'متصل بـ $providerName';
   }
@@ -22378,9 +22379,6 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return 'فشل الاتصال بـ $providerName: $error';
   }
-
-  @override
-  String get settings_cloudSync_dropbox_account_title => 'حساب Dropbox';
 
   @override
   String get settings_cloudSync_dropbox_connect_codeLabel => 'رمز التفويض';
@@ -22409,33 +22407,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_title => 'الاتصال بـ Dropbox';
 
   @override
-  String get settings_cloudSync_dropbox_connected => 'متصل بـ Dropbox';
-
-  @override
-  String settings_cloudSync_dropbox_connectedAs(Object account) {
-    return 'متصل كـ $account';
-  }
-
-  @override
-  String get settings_cloudSync_dropbox_disconnect => 'قطع الاتصال';
-
-  @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      'المزامنة عبر Dropbox (Apps/Submersion)';
-
-  @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
 
   @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
-
-  @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      'المزامنة عبر Google Drive';
-
-  @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
-      'غير متوفر في هذا الإصدار';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title =>
@@ -22454,24 +22429,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable =>
-      'غير متاح على هذه المنصة';
-
-  @override
-  String get settings_cloudSync_provider_s3_edit => 'تحرير إعدادات S3';
-
-  @override
-  String get settings_cloudSync_provider_s3_subtitle =>
-      'يعمل مع أي خدمة تخزين متوافقة مع S3';
-
-  @override
   String get settings_cloudSync_provider_s3_title => 'تخزين متوافق مع S3';
-
-  @override
-  String get settings_cloudSync_provider_webdav_edit => 'تعديل إعدادات WebDAV';
-
-  @override
-  String get settings_cloudSync_provider_webdav_subtitle => 'أي خادم WebDAV';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -22482,29 +22440,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_cloudSync_selectProviderHint =>
       'اختر مزود سحابة لتمكين المزامنة';
-
-  @override
-  String get settings_cloudSync_signOut => 'تسجيل الخروج';
-
-  @override
-  String get settings_cloudSync_signOutDialog_cancel => 'إلغاء';
-
-  @override
-  String get settings_cloudSync_signOutDialog_content =>
-      'سيؤدي هذا إلى قطع الاتصال بمزود السحابة. ستبقى بياناتك المحلية سليمة.';
-
-  @override
-  String get settings_cloudSync_signOutDialog_signOut => 'تسجيل الخروج';
-
-  @override
-  String get settings_cloudSync_signOutDialog_title => 'تسجيل الخروج؟';
-
-  @override
-  String get settings_cloudSync_signOutSuccess =>
-      'تم تسجيل الخروج من مزود السحابة';
-
-  @override
-  String get settings_cloudSync_signOut_subtitle => 'قطع الاتصال بمزود السحابة';
 
   @override
   String get settings_cloudSync_status_conflictsDetected => 'تم اكتشاف تعارضات';
@@ -22528,14 +22463,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_syncNow => 'مزامنة الآن';
 
   @override
-  String get settings_cloudSync_syncOnLaunch => 'المزامنة عند التشغيل';
-
-  @override
   String get settings_cloudSync_syncOnLaunch_subtitle =>
       'التحقق من التحديثات عند بدء التشغيل';
-
-  @override
-  String get settings_cloudSync_syncOnResume => 'المزامنة عند الاستئناف';
 
   @override
   String get settings_cloudSync_syncOnResume_subtitle =>
@@ -22980,6 +22909,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => 'الخدمة';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_location =>
+      'موقع الحساب';
 
   @override
   String get settings_conflict_field_connectedAccounts_nickname => 'الاسم';
@@ -25342,7 +25275,23 @@ class AppLocalizationsAr extends AppLocalizations {
       'قالب قائمة التحقق قبل الغوص';
 
   @override
+  String get settings_conflict_ref_preDiveChecklistTemplateSection =>
+      'قسم من قالب قائمة التحقق قبل الغوص';
+
+  @override
   String get settings_conflict_ref_preDiveSession => 'قائمة التحقق قبل الغوص';
+
+  @override
+  String get settings_conflict_ref_preDiveSessionSection =>
+      'قسم من قائمة التحقق قبل الغوص';
+
+  @override
+  String get settings_conflict_ref_checklistTemplateSection =>
+      'قسم من قالب قائمة التحقق';
+
+  @override
+  String get settings_conflict_ref_tripChecklistSection =>
+      'قسم من قائمة التحقق';
 
   @override
   String get settings_conflict_ref_regulator => 'المنظم';
@@ -26881,16 +26830,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_profileHub_switchDiver => 'تبديل الغواص';
 
   @override
-  String get settings_s3Config_action_remove => 'إزالة الإعدادات';
-
-  @override
   String get settings_s3Config_action_testConnection => 'اختبار الاتصال';
 
   @override
   String get settings_s3Config_advanced_title => 'متقدم';
-
-  @override
-  String get settings_s3Config_appBar_title => 'تخزين متوافق مع S3';
 
   @override
   String get settings_s3Config_error_secureStorage =>
@@ -26934,23 +26877,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'Secret Access Key';
 
   @override
-  String get settings_s3Config_remove_confirm_action => 'إزالة';
-
-  @override
-  String get settings_s3Config_remove_confirm_body =>
-      'ستتوقف المزامنة عبر S3 على هذا الجهاز. لن تُحذف بياناتك في الحاوية.';
-
-  @override
-  String get settings_s3Config_remove_confirm_title =>
-      'هل تريد إزالة إعدادات S3؟';
-
-  @override
-  String get settings_s3Config_removed => 'تمت إزالة إعدادات S3';
-
-  @override
-  String get settings_s3Config_saved => 'تم حفظ إعدادات S3';
-
-  @override
   String settings_s3Config_test_regionDetected(String region) {
     return 'تم اكتشاف المنطقة: $region';
   }
@@ -26977,13 +26903,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_webdavConfig_action_forgetCertificate => 'نسيان';
 
   @override
-  String get settings_webdavConfig_action_remove => 'إزالة الإعدادات';
-
-  @override
   String get settings_webdavConfig_action_testConnection => 'اختبار الاتصال';
-
-  @override
-  String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
   String get settings_webdavConfig_error_conflict =>
@@ -27075,23 +26995,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_field_username_label => 'اسم المستخدم';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_action => 'إزالة';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_body =>
-      'تُزال بيانات الخادم وكلمة المرور من هذا الجهاز. تبقى الملفات على الخادم.';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_title =>
-      'إزالة إعدادات WebDAV؟';
-
-  @override
-  String get settings_webdavConfig_removed => 'تمت إزالة إعدادات WebDAV';
-
-  @override
-  String get settings_webdavConfig_saved => 'تم حفظ إعدادات WebDAV';
 
   @override
   String get settings_webdavConfig_test_success => 'نجح الاتصال';
@@ -37579,19 +37482,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => 'تم تسجيل الدخول';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn =>
-      'يتطلب تسجيل الدخول';
-
-  @override
   String get settings_connectedAccounts_status_unavailable =>
       'غير متاح على هذا الجهاز';
 
   @override
   String get settings_connectedAccounts_disconnectDevice =>
       'تسجيل الخروج على هذا الجهاز';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary => 'إزالة من المكتبة';
 
   @override
   String get settings_connectedAccounts_rename => 'إعادة التسمية';
@@ -37664,13 +37560,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'غير مستخدم على هذا الجهاز';
 
   @override
-  String get settings_connectedAccounts_usage_databaseSync =>
-      'مزامنة قاعدة البيانات';
-
-  @override
-  String get settings_connectedAccounts_usage_mediaStorage => 'تخزين الوسائط';
-
-  @override
   String settings_connectedAccounts_usage_sharedLibrary(String name) {
     return 'مكتبة مواقع مشتركة: $name';
   }
@@ -37698,6 +37587,143 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_usage_unknown =>
       'تعذر التحقق مما يُستخدم له هذا الحساب على هذا الجهاز. قد يتوقف ما يستخدمه هنا عن العمل.';
+
+  @override
+  String get settings_accounts_ownServer_title => 'خادمي الخاص';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'متوافق مع S3';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => 'التحقق من الاتصال';
+
+  @override
+  String get settings_accounts_save => 'حفظ';
+
+  @override
+  String get settings_accounts_saved => 'تم حفظ الحساب';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return 'تسجيل الدخول إلى $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => 'حساباتك';
+
+  @override
+  String get settings_accounts_sheet_add => 'إضافة حساب';
+
+  @override
+  String get settings_accounts_signInHere => 'سجّل الدخول لاستخدامه هنا';
+
+  @override
+  String get settings_accounts_state_notSignedIn =>
+      'لم يتم تسجيل الدخول على هذا الجهاز';
+
+  @override
+  String get settings_accounts_continue => 'متابعة';
+
+  @override
+  String get settings_accounts_add => 'إضافة حساب';
+
+  @override
+  String get settings_accounts_signInAgain => 'تسجيل الدخول مرة أخرى';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return 'مستخدم على هذا الجهاز لـ $features';
+  }
+
+  @override
+  String get settings_accounts_folders => 'المجلدات';
+
+  @override
+  String get settings_accounts_removeEverywhere => 'إزالة من جميع الأجهزة';
+
+  @override
+  String get settings_accounts_icloudManaged =>
+      'تتم إدارته بواسطة Apple ID في إعدادات الجهاز';
+
+  @override
+  String get settings_accounts_serverDetails => 'تفاصيل الخادم';
+
+  @override
+  String get settings_accounts_usage_sync => 'المزامنة بين الأجهزة';
+
+  @override
+  String get settings_accounts_usage_photos => 'الصور ومقاطع الفيديو';
+
+  @override
+  String get settings_accounts_folder_other => 'مجلد آخر';
+
+  @override
+  String get settings_accounts_notUsedYet => 'غير مستخدم بعد';
+
+  @override
+  String settings_sync_using(String account) {
+    return 'قيد الاستخدام: $account';
+  }
+
+  @override
+  String get settings_sync_change => 'تغيير';
+
+  @override
+  String get settings_sync_notSetUp => 'غير مُعد';
+
+  @override
+  String get settings_sync_offCustomFolder =>
+      'متوقف أثناء وجود قاعدة البيانات في مجلد مخصص';
+
+  @override
+  String get settings_sync_keepInStep => 'إبقاء الأجهزة متزامنة تلقائيًا';
+
+  @override
+  String get settings_sync_alsoAtLaunch => 'المزامنة أيضًا عند التشغيل';
+
+  @override
+  String get settings_sync_alsoOnReturn =>
+      'المزامنة أيضًا عند العودة إلى التطبيق';
+
+  @override
+  String get settings_sync_encryption => 'التشفير';
+
+  @override
+  String get settings_sync_devices => 'الأجهزة التي تستخدم هذه المكتبة';
+
+  @override
+  String get settings_sync_troubleshoot => 'استكشاف الأخطاء وإصلاحها';
+
+  @override
+  String get settings_sync_replaceLibrary => 'استبدال المكتبة بنسخة هذا الجهاز';
+
+  @override
+  String get settings_sync_stop => 'إيقاف المزامنة على هذا الجهاز';
+
+  @override
+  String get settings_sync_stop_subtitle => 'يبقى حسابك مسجّل الدخول';
+
+  @override
+  String get settings_sync_stop_confirmTitle =>
+      'إيقاف المزامنة على هذا الجهاز؟';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      'يتوقف هذا الجهاز عن المزامنة. يبقى حسابك مسجّل الدخول، وتبقى غطساتك هنا وفي السحابة.';
+
+  @override
+  String get settings_sync_stopped => 'توقفت المزامنة على هذا الجهاز';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => 'حذف البيانات القديمة؟';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return 'يحذف هذا ملفات المزامنة القديمة من $backend. تبقى غطساتك على هذا الجهاز وفي الحساب الذي تزامن معه الآن.';
+  }
 
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
@@ -49018,10 +49044,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String autoUpdate_banner_packageManagerHint(String command) {
     return 'حدّث باستخدام: $command';
   }
-
-  @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      'المزامنة عبر Apple iCloud';
 
   @override
   String get settings_debugLog_search_hint => 'البحث في السجلات...';

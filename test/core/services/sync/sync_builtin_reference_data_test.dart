@@ -143,11 +143,15 @@ void main() {
       'deleteAllRecords($entity) clears custom rows but keeps built-ins',
       () async {
         final db = DatabaseService.instance.database;
-        // pre_dive_checklist_templates is seeded with built-in child items that
-        // reference it (RESTRICT FK); clear them before wiping the parents.
+        // pre_dive_checklist_templates is seeded with built-in child items and
+        // sections that reference it (RESTRICT FK); clear them before wiping
+        // the parents.
         if (table == 'pre_dive_checklist_templates') {
           await db.customStatement(
             'DELETE FROM pre_dive_checklist_template_items',
+          );
+          await db.customStatement(
+            'DELETE FROM pre_dive_checklist_template_sections',
           );
         }
         await db.customStatement('DELETE FROM $table');

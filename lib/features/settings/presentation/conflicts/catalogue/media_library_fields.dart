@@ -253,6 +253,11 @@ final Map<String, ConflictField> mediaLibraryOverrides = {
     (l) => l.settings_conflict_field_connectedAccounts_kind,
     FieldKind.shortText,
   ),
+  // Secret-free JSON (AccountLocation); shown as changed, never inline.
+  'connectedAccounts.location': ConflictField(
+    (l) => l.settings_conflict_field_connectedAccounts_location,
+    FieldKind.opaque,
+  ),
   'connectedAccounts.nickname': ConflictField(
     (l) => l.settings_conflict_field_connectedAccounts_nickname,
     FieldKind.shortText,

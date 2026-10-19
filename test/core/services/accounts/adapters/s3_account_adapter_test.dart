@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
 import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 
@@ -84,5 +86,41 @@ void main() {
   test('syncProvider returns an S3StorageProvider (account-first raw '
       'provider for sync resolution)', () {
     expect(adapter.syncProvider(account), isA<S3StorageProvider>());
+  });
+
+  // Review of #3527: signing out of the S3 sync account clears the sync
+  // settings too, as WebDAV's adapter does, or the next credential mirror
+  // would copy them back and sign the account in again.
+  group('with the sync settings', () {
+    late S3CredentialsStore legacy;
+    late S3AccountAdapter withSync;
+    final syncRow = domain.ConnectedAccount(
+      id: accountIdFor(
+        kind: AccountKind.s3,
+        naturalKey: s3NaturalKey(validS3Config),
+      ),
+      kind: AccountKind.s3,
+      label: 'dive-media @ minio.local',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
+
+    setUp(() async {
+      legacy = S3CredentialsStore(storage: keychain);
+      withSync = S3AccountAdapter(credentials: credStore, legacySync: legacy);
+      await legacy.save(validS3Config);
+    });
+
+    test('signing out the sync row clears the sync settings', () async {
+      await withSync.saveConfig(syncRow, validS3Config);
+      await withSync.disconnect(syncRow);
+      expect(await legacy.load(), isNull);
+    });
+
+    test('signing out another folder leaves sync alone', () async {
+      await withSync.saveConfig(account, validS3Config);
+      await withSync.disconnect(account);
+      expect(await legacy.load(), isNotNull);
+    });
   });
 }

@@ -207,6 +207,18 @@ extension BeforeOpenBackstops on AppDatabase {
     // v128 backstop: re-assert the pre-dive checklist tables and their
     // built-in templates (same rationale as the dive-types re-seed).
     await _assertPreDiveChecklistSchema();
+
+    // v299 backstop: pre_dive_checklist_template_sections,
+    // pre_dive_checklist_template_items.section_id and the section
+    // backfill+drop (idempotent; issue #3360). Must run after
+    // _assertPreDiveChecklistSchema and before _seedBuiltInPreDiveTemplates:
+    // the schema assert above can recreate pre_dive_checklist_template_items
+    // from scratch using the current table definition (section_id's foreign
+    // key included), so the table that key points to must exist before
+    // anything -- including the seed's own DELETE in
+    // kRetireLegacyGueEdgeItemsSql -- touches pre_dive_checklist_template_items.
+    await _assertAndBackfillPreDiveTemplateSections();
+
     await _seedBuiltInPreDiveTemplates();
 
     // v129 backstop: re-assert quality_findings schema.

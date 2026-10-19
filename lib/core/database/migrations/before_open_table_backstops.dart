@@ -48,6 +48,33 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();
 
+    // v297 backstop: trip_checklist_sections, trip_checklist_items.section_id
+    // and the category backfill+drop (idempotent; issue #3360).
+    await _assertAndBackfillTripChecklistSections();
+
+    // v298 backstop: checklist_template_sections,
+    // checklist_template_items.section_id and the category backfill+drop
+    // (idempotent; issue #3360).
+    await _assertAndBackfillChecklistTemplateSections();
+
+    // v299 backstop: pre_dive_checklist_template_sections,
+    // pre_dive_checklist_template_items.section_id and the section
+    // backfill+drop (idempotent; issue #3360). NOT called here: unlike the
+    // other three table groups, pre_dive_checklist_templates/items can be
+    // recreated from scratch later in this same beforeOpen by
+    // _assertPreDiveChecklistSchema's parallel-branch self-heal (v128),
+    // using the current table definitions -- which already bake in
+    // section_id's foreign key. Running this backstop here, before that
+    // self-heal, would see no templates table yet, skip, and leave that
+    // self-heal to create the FK column with no sections table for it to
+    // reference. Called from before_open.dart instead, right after that
+    // self-heal and before _seedBuiltInPreDiveTemplates.
+
+    // v300 backstop: pre_dive_session_sections,
+    // pre_dive_session_items.section_id and the section backfill+drop
+    // (idempotent; issue #3360).
+    await _assertAndBackfillPreDiveSessionSections();
+
     // v250 backstop: trip_hides and site_hides (idempotent).
     await _assertTripHidesSchema();
     await _assertSiteHidesSchema();
@@ -76,7 +103,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // shipped; idempotent).
     await _assertSharedLibrarySchema();
 
-    // v297 backstop: the logbook rules tables and indexes (parallel-branch
+    // v301 backstop: the logbook rules tables and indexes (parallel-branch
     // version-collision self-heal; idempotent).
     await _assertRuleSchema();
   }

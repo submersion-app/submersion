@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
@@ -60,6 +61,7 @@ class _StartSessionSheet extends ConsumerStatefulWidget {
 class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
   PreDiveChecklistTemplate? _template;
   List<PreDiveChecklistTemplateItem> _templateItems = const [];
+  List<PreDiveChecklistTemplateSection> _templateSections = const [];
   EquipmentSet? _equipmentSet;
   bool _setInitialized = false;
   final Map<String, EquipmentItem?> _equipmentByItemId = {};
@@ -74,13 +76,14 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
       .toList();
 
   Future<void> _selectTemplate(PreDiveChecklistTemplate template) async {
-    final items = await ref
-        .read(preDiveTemplateRepositoryProvider)
-        .getItemsForTemplate(template.id);
+    final repository = ref.read(preDiveTemplateRepositoryProvider);
+    final items = await repository.getItemsForTemplate(template.id);
+    final sections = await repository.getSectionsForTemplate(template.id);
     if (!mounted) return;
     setState(() {
       _template = template;
       _templateItems = items;
+      _templateSections = sections;
       _equipmentByItemId.clear();
       _equipmentInitialized.clear();
     });
@@ -114,8 +117,9 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
       // Overdue service is a purely informative, live-computed warning shown
       // in the runner (SessionItemTile), not a decision baked into the
       // session at start time -- so no service-clock lookup happens here.
-      final items = SessionItemComposer.compose(
+      final composed = SessionItemComposer.compose(
         templateItems: _templateItems,
+        templateSections: _templateSections,
         equipmentSet: chosenSet,
         equipmentItems: allGear,
         equipmentByTemplateItemId: {
@@ -127,7 +131,8 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
           .read(preDiveSessionRepositoryProvider)
           .startSession(
             template: template,
-            items: items,
+            items: composed.items,
+            sections: composed.sections,
             diverId: diverId,
             diveId: widget.diveId,
             tripId: widget.tripId,

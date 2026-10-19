@@ -103,9 +103,7 @@ void main() {
     expect(tile.subtitle, isNull);
   });
 
-  testWidgets('selecting edit from the overflow menu invokes onEdit', (
-    tester,
-  ) async {
+  testWidgets('tapping the tile invokes onEdit', (tester) async {
     var edited = false;
     await tester.pumpWidget(
       testApp(
@@ -119,37 +117,10 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Edit item'));
+    await tester.tap(find.byType(ListTile));
     await tester.pumpAndSettle();
 
     expect(edited, isTrue);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('selecting delete from the overflow menu invokes onDelete', (
-    tester,
-  ) async {
-    var deleted = false;
-    await tester.pumpWidget(
-      testApp(
-        overrides: _settingsOverrides(),
-        child: ChecklistItemTile(
-          item: _item(),
-          showOverdue: true,
-          onToggle: (_) {},
-          onDelete: () => deleted = true,
-        ),
-      ),
-    );
-
-    await tester.tap(find.byType(PopupMenuButton<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete item'));
-    await tester.pumpAndSettle();
-
-    expect(deleted, isTrue);
     expect(tester.takeException(), isNull);
   });
 

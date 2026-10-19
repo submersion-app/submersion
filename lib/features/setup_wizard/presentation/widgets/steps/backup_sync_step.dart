@@ -5,11 +5,12 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
-import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
-import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/wizard_surface_style.dart';
@@ -124,35 +125,32 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
         .setConnectedProvider(null);
   }
 
-  Future<void> _openS3Config() async {
-    // Push on the ROOT navigator, not go_router: during first run the wizard
-    // has zero divers, so the router's onboarding redirect bounces any
-    // context.push to a real route straight back to /welcome (the fork).
-    // S3 config is a modal action within the wizard, not a route destination.
-    await Navigator.of(
-      context,
-      rootNavigator: true,
-    ).push(MaterialPageRoute<void>(builder: (_) => const S3ConfigPage()));
-    if (!mounted) return;
-    // S3ConfigPage activates S3 itself on save; reflect it in the draft.
-    final sel = ref.read(selectedCloudProviderTypeProvider);
-    if (sel == CloudProviderType.s3) {
-      ref
-          .read(setupWizardProvider(widget.mode).notifier)
-          .setConnectedProvider(sel);
-    }
-  }
+  Future<void> _openS3Config() => _openOwnServer(AccountKind.s3);
 
-  Future<void> _openWebDavConfig() async {
-    // Root navigator for the same reason as _openS3Config: the onboarding
-    // redirect would bounce a go_router push back to /welcome.
-    await Navigator.of(
+  Future<void> _openWebDavConfig() => _openOwnServer(AccountKind.webdav);
+
+  /// The shared My own server form (issue #3482), pushed on the ROOT
+  /// navigator: during first run the wizard has zero divers, so the router's
+  /// onboarding redirect would bounce a go_router push back to /welcome.
+  /// Saving points sync at the server, as the S3 and WebDAV settings pages
+  /// did, and the draft reflects it.
+  Future<void> _openOwnServer(AccountKind kind) async {
+    // The sync folder is shown, as the S3 and WebDAV settings pages showed
+    // it: a new device joining a library kept in a custom folder must be
+    // able to name that folder.
+    final row = await showOwnServerPage(
       context,
+      kinds: {kind},
       rootNavigator: true,
-    ).push(MaterialPageRoute<void>(builder: (_) => const WebDavConfigPage()));
+      showSyncFolder: true,
+    );
     if (!mounted) return;
+    if (row != null) {
+      await switchSyncToRow(context, ref, row);
+      if (!mounted) return;
+    }
     final sel = ref.read(selectedCloudProviderTypeProvider);
-    if (sel == CloudProviderType.webdav) {
+    if (sel == kind.cloudProviderType) {
       ref
           .read(setupWizardProvider(widget.mode).notifier)
           .setConnectedProvider(sel);

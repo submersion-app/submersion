@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -32,30 +34,49 @@ Trip _trip({required bool upcoming}) {
 TripChecklistItem _item({
   String id = 'i1',
   String title = 'Service regulator',
-  String? category,
+  String? sectionId,
   bool isDone = false,
   DateTime? dueDate,
 }) => TripChecklistItem(
   id: id,
   tripId: 't1',
   title: title,
-  category: category,
+  sectionId: sectionId,
   isDone: isDone,
   dueDate: dueDate,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );
 
+domain.TripChecklistSection _section({
+  required String id,
+  required String title,
+  int sortOrder = 0,
+}) => domain.TripChecklistSection(
+  id: id,
+  tripId: 't1',
+  title: title,
+  sortOrder: sortOrder,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
 void main() {
-  testWidgets('groups items by category and shows checkboxes', (tester) async {
+  testWidgets('groups items by section and shows checkboxes', (tester) async {
     await tester.pumpWidget(
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith(
             (ref) async => [
-              _item(id: 'i1', title: 'Service regulator', category: 'Gear'),
-              _item(id: 'i2', title: 'Book flights', category: 'Bookings'),
+              _item(id: 'i1', title: 'Service regulator', sectionId: 'gear'),
+              _item(id: 'i2', title: 'Book flights', sectionId: 'bookings'),
               _item(id: 'i3', title: 'Passport check'),
+            ],
+          ),
+          tripChecklistSectionsProvider('t1').overrideWith(
+            (ref) async => [
+              _section(id: 'gear', title: 'Gear'),
+              _section(id: 'bookings', title: 'Bookings', sortOrder: 1),
             ],
           ),
         ],
@@ -73,6 +94,37 @@ void main() {
     expect(find.byType(Checkbox), findsNWidgets(3));
   });
 
+  testWidgets(
+    'an item whose sectionId is not in the loaded sections renders without '
+    'throwing (#3360)',
+    (tester) async {
+      // Reachable under sync: a section's delete can apply before this
+      // item's own sectionId update does, since the two sync as
+      // independent HLC records with no guaranteed arrival order.
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            tripChecklistProvider('t1').overrideWith(
+              (ref) async => [
+                _item(id: 'i1', title: 'Service regulator', sectionId: 'gone'),
+              ],
+            ),
+            tripChecklistSectionsProvider('t1').overrideWith(
+              (ref) async => [_section(id: 'gear', title: 'Gear')],
+            ),
+          ],
+          child: SingleChildScrollView(
+            child: TripChecklistSection(trip: _trip(upcoming: true)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Service regulator'), findsOneWidget);
+    },
+  );
+
   testWidgets('shows overdue chip only for upcoming trips', (tester) async {
     final overdue = _item(
       dueDate: DateTime.now().subtract(const Duration(days: 3)),
@@ -81,6 +133,7 @@ void main() {
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith((ref) async => [overdue]),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
         ],
         child: SingleChildScrollView(
           child: TripChecklistSection(trip: _trip(upcoming: true)),
@@ -94,6 +147,7 @@ void main() {
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith((ref) async => [overdue]),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
         ],
         child: SingleChildScrollView(
           child: TripChecklistSection(trip: _trip(upcoming: false)),
@@ -109,6 +163,7 @@ void main() {
       testApp(
         overrides: [
           tripChecklistProvider('t1').overrideWith((ref) async => []),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
         ],
         child: SingleChildScrollView(
           child: TripChecklistSection(trip: _trip(upcoming: true)),
@@ -120,6 +175,53 @@ void main() {
       find.text('Plan your trip - add to-dos or apply a template'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a brand new trip still offers "+ Add section" alongside the '
+      'planning invitation', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          tripChecklistProvider('t1').overrideWith((ref) async => []),
+          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
+        ],
+        child: SingleChildScrollView(
+          child: TripChecklistSection(trip: _trip(upcoming: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Plan your trip - add to-dos or apply a template'),
+      findsOneWidget,
+    );
+    // The only way to create the feature's "empty section laid out in
+    // advance" case is this button; a trip with no items and no sections
+    // yet must not hide it behind the empty-state message (issue #3360).
+    expect(find.text('Add section'), findsOneWidget);
+  });
+
+  testWidgets('a sections-provider failure shows the error, not a spinner', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          tripChecklistProvider('t1').overrideWith((ref) async => []),
+          tripChecklistSectionsProvider(
+            't1',
+          ).overrideWith((ref) => Future.error('section load boom')),
+        ],
+        child: SingleChildScrollView(
+          child: TripChecklistSection(trip: _trip(upcoming: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.textContaining('section load boom'), findsOneWidget);
   });
 
   group('real-database interactions', () {
@@ -180,7 +282,9 @@ void main() {
       expect(items.single.isDone, isTrue);
     });
 
-    testWidgets('editing an item via the tile menu updates it', (tester) async {
+    testWidgets('tapping an item opens the edit sheet and updates it', (
+      tester,
+    ) async {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
@@ -192,9 +296,7 @@ void main() {
       );
       await pumpSection(tester);
 
-      await tester.tap(find.byType(PopupMenuButton<String>).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit item'));
+      await tester.tap(find.widgetWithText(ListTile, 'Fins'));
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -209,9 +311,7 @@ void main() {
       expect(items.single.title, 'Split fins');
     });
 
-    testWidgets('deleting an item via the tile menu removes it', (
-      tester,
-    ) async {
+    testWidgets('tapping an item\'s delete icon removes it', (tester) async {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
@@ -224,9 +324,7 @@ void main() {
       await pumpSection(tester);
       expect(find.text('Fins'), findsOneWidget);
 
-      await tester.tap(find.byType(PopupMenuButton<String>).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete item'));
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
@@ -399,9 +497,202 @@ void main() {
       );
       expect(clearItem.enabled, isFalse);
     });
+
+    testWidgets('renaming a section via its title field persists it', (
+      tester,
+    ) async {
+      await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await pumpSection(tester);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Assembly'),
+        'Prep',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      expect(sections.single.title, 'Prep');
+    });
+
+    testWidgets('renaming a section back to its original title persists it', (
+      tester,
+    ) async {
+      await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await pumpSection(tester);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Assembly'),
+        'Prep',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      // Committed by leaving the field (a blur, not Enter): the blur path is
+      // the one that used to compare against the title from the first build.
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Prep'),
+        'Assembly',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      expect(sections.single.title, 'Assembly');
+    });
+
+    testWidgets('the delete icon is disabled for the only remaining section', (
+      tester,
+    ) async {
+      await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await pumpSection(tester);
+
+      final deleteButton = tester.widget<IconButton>(
+        find
+            .ancestor(
+              of: find.byIcon(Icons.delete_outline).first,
+              matching: find.byType(IconButton),
+            )
+            .first,
+      );
+      expect(deleteButton.onPressed, isNull);
+    });
+
+    testWidgets(
+      'deleting a section with a sibling offers moving its items there',
+      (tester) async {
+        final assembly = await checklistRepository.createSection(
+          tripId: trip.id,
+          title: 'Assembly',
+        );
+        final cells = await checklistRepository.createSection(
+          tripId: trip.id,
+          title: 'Cells',
+        );
+        final item = await checklistRepository.createItem(
+          TripChecklistItem(
+            id: '',
+            tripId: trip.id,
+            title: 'Check O-rings',
+            sectionId: assembly.id,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        await pumpSection(tester);
+
+        await tester.tap(find.byIcon(Icons.delete_outline).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Move items to "Cells"'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        final sections = await checklistRepository.getSectionsForTrip(trip.id);
+        expect(sections.map((s) => s.id), [cells.id]);
+        final items = await checklistRepository.getByTripId(trip.id);
+        expect(items.single.id, item.id);
+        expect(items.single.sectionId, cells.id);
+      },
+    );
+
+    testWidgets('deleting a section can delete its items instead', (
+      tester,
+    ) async {
+      final assembly = await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Assembly',
+      );
+      await checklistRepository.createSection(tripId: trip.id, title: 'Cells');
+      await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          tripId: trip.id,
+          title: 'Check O-rings',
+          sectionId: assembly.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await pumpSection(tester);
+
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete items too'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(await checklistRepository.getByTripId(trip.id), isEmpty);
+    });
+
+    testWidgets('the up arrow reorders sections', (tester) async {
+      await checklistRepository.createSection(tripId: trip.id, title: 'A');
+      await checklistRepository.createSection(tripId: trip.id, title: 'B');
+      await pumpSection(tester);
+
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_up).last);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      expect(sections.map((s) => s.title).toList(), ['B', 'A']);
+    });
+
+    testWidgets('an item\'s down arrow reorders items within its section', (
+      tester,
+    ) async {
+      final section = await checklistRepository.createSection(
+        tripId: trip.id,
+        title: 'Gear',
+      );
+      final first = await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          tripId: trip.id,
+          title: 'Mask',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final second = await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          tripId: trip.id,
+          title: 'Fins',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await pumpSection(tester);
+
+      // Index 0 is the section's own (disabled, since there is only one
+      // section) down arrow; index 1 is the first item's.
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).at(1));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final items = await checklistRepository.getByTripId(trip.id);
+      expect(items.map((i) => i.id).toList(), [second.id, first.id]);
+    });
   });
 
-  testWidgets('categories differing only in case form one group', (
+  // Case-insensitive folding of a typed category onto an existing section
+  // now happens once, at write time, in
+  // TripChecklistRepository.findOrCreateSectionId -- covered by
+  // trip_checklist_repository_test.dart's "sections" group. Rendering here
+  // only ever groups by sectionId, so this widget's own thing to prove is
+  // that groups render in the sections' own sort order.
+  testWidgets('sections render in their own sort order, not item order', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -409,9 +700,16 @@ void main() {
         overrides: [
           tripChecklistProvider('t1').overrideWith(
             (ref) async => [
-              _item(id: 'i1', title: 'Service regulator', category: 'Diving'),
-              _item(id: 'i2', title: 'Pack fins', category: 'diving'),
-              _item(id: 'i3', title: 'Book flights', category: 'Bookings'),
+              // The first item in the list belongs to the section sorted
+              // second, so a correct render still shows Bookings first.
+              _item(id: 'i1', title: 'Pack fins', sectionId: 'diving'),
+              _item(id: 'i2', title: 'Book flights', sectionId: 'bookings'),
+            ],
+          ),
+          tripChecklistSectionsProvider('t1').overrideWith(
+            (ref) async => [
+              _section(id: 'bookings', title: 'Bookings'),
+              _section(id: 'diving', title: 'Diving', sortOrder: 1),
             ],
           ),
         ],
@@ -422,11 +720,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // One heading, labelled with the casing that appeared first.
-    expect(find.text('Diving'), findsOneWidget);
-    expect(find.text('diving'), findsNothing);
-    expect(find.text('Service regulator'), findsOneWidget);
-    expect(find.text('Pack fins'), findsOneWidget);
-    expect(find.text('Bookings'), findsOneWidget);
+    final bookingsHeader = tester.getTopLeft(find.text('Bookings'));
+    final divingHeader = tester.getTopLeft(find.text('Diving'));
+    expect(bookingsHeader.dy, lessThan(divingHeader.dy));
   });
 }

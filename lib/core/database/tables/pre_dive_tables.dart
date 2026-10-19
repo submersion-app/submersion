@@ -43,6 +43,29 @@ class PreDiveChecklistTemplates extends Table {
   // coverage:ignore-end
 }
 
+/// A visual grouping header for a pre-dive template's items (issue #3360).
+/// Replaces the free-text `section` items used to carry. Built-in rows get
+/// stable ids (e.g. `builtin-predive-ccr-build-assembly`) instead of random
+/// uuids, so the idempotent built-in seed can reference them by id.
+@DataClassName('PreDiveChecklistTemplateSectionRow')
+class PreDiveChecklistTemplateSections extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get templateId =>
+      text().references(PreDiveChecklistTemplates, #id)();
+  TextColumn get title => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Items belonging to a pre-dive checklist template.
 class PreDiveChecklistTemplateItems extends Table {
   // coverage:ignore-start
@@ -50,8 +73,13 @@ class PreDiveChecklistTemplateItems extends Table {
   TextColumn get templateId =>
       text().references(PreDiveChecklistTemplates, #id)();
 
-  /// Visual grouping header (e.g. "Cells", "Bailout").
-  TextColumn get section => text().nullable()();
+  /// The section this item is grouped under, if any (issue #3360). Replaces
+  /// the free-text `section` column.
+  TextColumn get sectionId => text().nullable().references(
+    PreDiveChecklistTemplateSections,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   TextColumn get title => text()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
@@ -146,6 +174,31 @@ class PreDiveSessions extends Table {
   // coverage:ignore-end
 }
 
+/// A frozen snapshot of a template section, taken at session start (issue
+/// #3360). Its own table rather than a reference to the *template's*
+/// section, so a later template edit or deletion cannot alter a past
+/// session's shape; see `PreDiveSessionSection` (domain entity) for the
+/// full rationale. Never managed: sessions are immutable audit records
+/// once started.
+@DataClassName('PreDiveSessionSectionRow')
+class PreDiveSessionSections extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get sessionId =>
+      text().references(PreDiveSessions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get title => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Per-session checklist items: a full snapshot of the template item plus
 /// run state. Mutated individually during a run, so first-class HLC rows.
 class PreDiveSessionItems extends Table {
@@ -153,7 +206,14 @@ class PreDiveSessionItems extends Table {
   TextColumn get id => text()();
   TextColumn get sessionId =>
       text().references(PreDiveSessions, #id, onDelete: KeyAction.cascade)();
-  TextColumn get section => text().nullable()();
+
+  /// The session section this item is grouped under, if any (issue #3360).
+  /// Replaces the free-text `section` column.
+  ///
+  /// Not a SQL-level FK, same reasoning as [sourceItemId]: these two rows
+  /// sync as independent HLC records with no guaranteed order of arrival,
+  /// so a constraint would reject a legitimate out-of-order insert.
+  TextColumn get sectionId => text().nullable()();
   TextColumn get title => text()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
@@ -236,11 +296,37 @@ const String kSeedBuiltInPreDiveTemplatesSql = '''
      'Packing', 0, 1, 'builtin-predive-gear-packing', 0, 0)
 ''';
 
+/// Section headers for the built-in CCR Build template (issue #3360). Stable
+/// ids, not random uuids, so the items seed below can reference them and
+/// `kAssignBuiltInPreDiveSectionIdsSql` can repair a database that already
+/// had these item rows (with the old free-text `section` column) before
+/// this table existed. The other three built-in templates have no section
+/// headers; nothing to seed for them. Timestamps are the constant 0, same
+/// reasoning as the other built-in seeds.
+const String kSeedBuiltInPreDiveTemplateSectionsSql = '''
+  INSERT OR IGNORE INTO pre_dive_checklist_template_sections
+    (id, template_id, title, sort_order, created_at, updated_at)
+  VALUES
+    ('builtin-predive-ccr-build-assembly', 'builtin-predive-ccr-build',
+     'Assembly', 0, 0, 0),
+    ('builtin-predive-ccr-build-tests', 'builtin-predive-ccr-build',
+     'Tests', 1, 0, 0),
+    ('builtin-predive-ccr-build-cells', 'builtin-predive-ccr-build',
+     'Cells', 2, 0, 0),
+    ('builtin-predive-ccr-build-gas', 'builtin-predive-ccr-build',
+     'Gas', 3, 0, 0),
+    ('builtin-predive-ccr-build-prebreathe', 'builtin-predive-ccr-build',
+     'Pre-breathe', 4, 0, 0),
+    ('builtin-predive-ccr-build-bailout', 'builtin-predive-ccr-build',
+     'Bailout', 5, 0, 0)
+''';
+
 /// Items for the built-in pre-dive templates. Same idempotence contract as
-/// [kSeedBuiltInPreDiveTemplatesSql].
+/// [kSeedBuiltInPreDiveTemplatesSql]. `section_id` values are the stable
+/// ids [kSeedBuiltInPreDiveTemplateSectionsSql] seeds, not free text.
 const String kSeedBuiltInPreDiveTemplateItemsSql = '''
   INSERT OR IGNORE INTO pre_dive_checklist_template_items
-    (id, template_id, section, title, notes, sort_order, item_type,
+    (id, template_id, section_id, title, notes, sort_order, item_type,
      value_label, value_unit, value_min, value_max, is_required,
      source_item_id, created_at, updated_at)
   VALUES
@@ -280,34 +366,44 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
     ('builtin-predive-gue-edge-6', 'builtin-predive-gue-edge', NULL,
      'Environment: conditions, entry/exit, descent reference, hazards', '',
      6, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-0', 'builtin-predive-ccr-build', 'Assembly',
+    ('builtin-predive-ccr-0', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-assembly',
      'Scrubber packed and within duration limits', '', 0, 'check',
      NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-1', 'builtin-predive-ccr-build', 'Assembly',
+    ('builtin-predive-ccr-1', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-assembly',
      'Loop assembled, mushroom valves checked', '', 1, 'check',
      NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-2', 'builtin-predive-ccr-build', 'Tests',
+    ('builtin-predive-ccr-2', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-tests',
      'Negative pressure test held 60 s', '', 2, 'check',
      NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-3', 'builtin-predive-ccr-build', 'Tests',
+    ('builtin-predive-ccr-3', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-tests',
      'Positive pressure test held 60 s', '', 3, 'check',
      NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-4', 'builtin-predive-ccr-build', 'Cells',
+    ('builtin-predive-ccr-4', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-cells',
      'Cell 1 mV in air', '', 4, 'value',
      'Cell 1', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-5', 'builtin-predive-ccr-build', 'Cells',
+    ('builtin-predive-ccr-5', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-cells',
      'Cell 2 mV in air', '', 5, 'value',
      'Cell 2', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-6', 'builtin-predive-ccr-build', 'Cells',
+    ('builtin-predive-ccr-6', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-cells',
      'Cell 3 mV in air', '', 6, 'value',
      'Cell 3', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-7', 'builtin-predive-ccr-build', 'Gas',
+    ('builtin-predive-ccr-7', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-gas',
      'Diluent and O2 analyzed, MOD labels on', '', 7, 'check',
      NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-8', 'builtin-predive-ccr-build', 'Pre-breathe',
+    ('builtin-predive-ccr-8', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-prebreathe',
      'Five-minute pre-breathe, setpoint holds', '', 8, 'check',
      NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
-    ('builtin-predive-ccr-9', 'builtin-predive-ccr-build', 'Bailout',
+    ('builtin-predive-ccr-9', 'builtin-predive-ccr-build',
+     'builtin-predive-ccr-build-bailout',
      'Bailout analyzed, pressurized, clipped', '', 9, 'check',
      NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-pack-0', 'builtin-predive-gear-packing', NULL,
@@ -323,14 +419,57 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
      'Water, sun protection, logbook', '', 3, 'check',
      NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
     ('builtin-predive-ccr-cell1-linearity', 'builtin-predive-ccr-build',
-     'Cells', 'Cell 1 mV in O2', '', 7, 'cellLinearity',
-     'Cell 1', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-4', 0, 0),
+     'builtin-predive-ccr-build-cells', 'Cell 1 mV in O2', '', 7,
+     'cellLinearity', 'Cell 1', 'mV', 95.0, NULL, 1,
+     'builtin-predive-ccr-4', 0, 0),
     ('builtin-predive-ccr-cell2-linearity', 'builtin-predive-ccr-build',
-     'Cells', 'Cell 2 mV in O2', '', 8, 'cellLinearity',
-     'Cell 2', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-5', 0, 0),
+     'builtin-predive-ccr-build-cells', 'Cell 2 mV in O2', '', 8,
+     'cellLinearity', 'Cell 2', 'mV', 95.0, NULL, 1,
+     'builtin-predive-ccr-5', 0, 0),
     ('builtin-predive-ccr-cell3-linearity', 'builtin-predive-ccr-build',
-     'Cells', 'Cell 3 mV in O2', '', 9, 'cellLinearity',
-     'Cell 3', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-6', 0, 0)
+     'builtin-predive-ccr-build-cells', 'Cell 3 mV in O2', '', 9,
+     'cellLinearity', 'Cell 3', 'mV', 95.0, NULL, 1,
+     'builtin-predive-ccr-6', 0, 0)
+''';
+
+/// Repairs `section_id` on built-in CCR Build items seeded before this table
+/// existed: INSERT OR IGNORE above can add rows but never rewrite a
+/// `section_id` an already-seeded row holds (same limitation
+/// [kRenumberCcrTailItemsSql]/[kRetireLegacyGueEdgeItemsSql] work around for
+/// other columns). Idempotent (`WHERE section_id IS NULL`) and keyed by the
+/// stable item ids, so safe to run on every open alongside the rest of
+/// [kSeedBuiltInPreDiveTemplateItemsSql]'s contract.
+const String kAssignBuiltInPreDiveSectionIdsSql = '''
+  UPDATE pre_dive_checklist_template_items
+  SET section_id = CASE id
+        WHEN 'builtin-predive-ccr-0' THEN 'builtin-predive-ccr-build-assembly'
+        WHEN 'builtin-predive-ccr-1' THEN 'builtin-predive-ccr-build-assembly'
+        WHEN 'builtin-predive-ccr-2' THEN 'builtin-predive-ccr-build-tests'
+        WHEN 'builtin-predive-ccr-3' THEN 'builtin-predive-ccr-build-tests'
+        WHEN 'builtin-predive-ccr-4' THEN 'builtin-predive-ccr-build-cells'
+        WHEN 'builtin-predive-ccr-5' THEN 'builtin-predive-ccr-build-cells'
+        WHEN 'builtin-predive-ccr-6' THEN 'builtin-predive-ccr-build-cells'
+        WHEN 'builtin-predive-ccr-7' THEN 'builtin-predive-ccr-build-gas'
+        WHEN 'builtin-predive-ccr-8' THEN 'builtin-predive-ccr-build-prebreathe'
+        WHEN 'builtin-predive-ccr-9' THEN 'builtin-predive-ccr-build-bailout'
+        WHEN 'builtin-predive-ccr-cell1-linearity'
+          THEN 'builtin-predive-ccr-build-cells'
+        WHEN 'builtin-predive-ccr-cell2-linearity'
+          THEN 'builtin-predive-ccr-build-cells'
+        WHEN 'builtin-predive-ccr-cell3-linearity'
+          THEN 'builtin-predive-ccr-build-cells'
+      END
+  WHERE section_id IS NULL
+    AND id IN (
+      'builtin-predive-ccr-0', 'builtin-predive-ccr-1',
+      'builtin-predive-ccr-2', 'builtin-predive-ccr-3',
+      'builtin-predive-ccr-4', 'builtin-predive-ccr-5',
+      'builtin-predive-ccr-6', 'builtin-predive-ccr-7',
+      'builtin-predive-ccr-8', 'builtin-predive-ccr-9',
+      'builtin-predive-ccr-cell1-linearity',
+      'builtin-predive-ccr-cell2-linearity',
+      'builtin-predive-ccr-cell3-linearity'
+    )
 ''';
 
 /// Retires the original four-item GUE EDGE list (ids `builtin-predive-gue-0`

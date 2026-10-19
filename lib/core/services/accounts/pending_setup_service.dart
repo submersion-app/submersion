@@ -140,6 +140,12 @@ class PendingSetupService {
     // here and are skipped.
     final usage = await _usage.load();
     for (final account in await _accounts.getAll()) {
+      // Only accounts this device needs: its sync account, its media store's
+      // account and its libraries' accounts. A row nothing here uses
+      // (another device's server or folder) asks for no sign-in (spec
+      // section 7.2), and is never probed. A Lightroom row always counts as
+      // used: the connector's usage is per kind, not per device.
+      if (usage.usagesOf(account).isEmpty) continue;
       final adapter = _registry.capabilityFor<AccountProviderAdapter>(
         account.kind,
       );
@@ -154,7 +160,7 @@ class PendingSetupService {
           key: key,
           label: account.displayName,
           accountKind: account.kind,
-          route: _routeFor(account, usage: usage, store: store),
+          route: _routeFor(account, usage: usage),
           dismissed: _isDismissed(key),
         ),
       );
@@ -165,13 +171,12 @@ class PendingSetupService {
   /// The settings page that can actually sign this account in, from what
   /// the account drives on this device ([AccountUsageService], shared with
   /// the Connected Accounts page). Connectors have their own pages; the sync
-  /// account belongs to Cloud Sync; the attached media account, or one
-  /// matching the announced store's provider on a device not attached yet,
-  /// belongs to Media Storage; anything else defaults to Cloud Sync.
+  /// account belongs to Cloud Sync; the attached media account to Media
+  /// Storage; a library's account to its own account page, whose Sign in
+  /// again covers every kind.
   String _routeFor(
     domain.ConnectedAccount account, {
     required AccountUsageSnapshot usage,
-    required MediaStoreDescriptor? store,
   }) {
     final kinds = {for (final u in usage.usagesOf(account)) u.kind};
     if (kinds.contains(AccountUsageKind.lightroom)) {
@@ -183,10 +188,6 @@ class PendingSetupService {
     if (kinds.contains(AccountUsageKind.mediaStorage)) {
       return '/settings/media-storage';
     }
-    if (store != null &&
-        account.kind.cloudProviderType?.name == store.providerType) {
-      return '/settings/media-storage';
-    }
-    return '/settings/cloud-sync';
+    return '/settings/connected-accounts/${account.id}';
   }
 }

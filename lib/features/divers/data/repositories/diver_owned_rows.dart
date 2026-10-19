@@ -156,6 +156,11 @@ const List<_OwnedTable> _ownedTables = [
         entityType: 'checklistTemplateItems',
         parentColumn: 'template_id',
       ),
+      (
+        table: 'checklist_template_sections',
+        entityType: 'checklistTemplateSections',
+        parentColumn: 'template_id',
+      ),
     ],
   ),
   (
@@ -168,6 +173,11 @@ const List<_OwnedTable> _ownedTables = [
         entityType: 'preDiveChecklistTemplateItems',
         parentColumn: 'template_id',
       ),
+      (
+        table: 'pre_dive_checklist_template_sections',
+        entityType: 'preDiveChecklistTemplateSections',
+        parentColumn: 'template_id',
+      ),
     ],
   ),
   (
@@ -178,6 +188,11 @@ const List<_OwnedTable> _ownedTables = [
       (
         table: 'pre_dive_session_items',
         entityType: 'preDiveSessionItems',
+        parentColumn: 'session_id',
+      ),
+      (
+        table: 'pre_dive_session_sections',
+        entityType: 'preDiveSessionSections',
         parentColumn: 'session_id',
       ),
     ],

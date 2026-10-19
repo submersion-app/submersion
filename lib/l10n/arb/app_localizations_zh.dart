@@ -4280,6 +4280,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_template_addItem => '添加事项';
 
   @override
+  String get sectionEditor_addSection => '添加分区';
+
+  @override
+  String get sectionEditor_newSectionTitle => '新分区';
+
+  @override
+  String get sectionEditor_noSection => '无分区';
+
+  @override
+  String sectionEditor_delete_title(String title) {
+    return '删除“$title”？';
+  }
+
+  @override
+  String sectionEditor_delete_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '它的 $count 个项目该如何处理？',
+      one: '它的 1 个项目该如何处理？',
+      zero: '此分区没有项目。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sectionEditor_delete_moveTo(String title) {
+    return '将项目移至“$title”';
+  }
+
+  @override
+  String get sectionEditor_delete_deleteItems => '同时删除项目';
+
+  @override
   String get preDive_templates_title => '潜前检查清单';
 
   @override
@@ -20021,9 +20055,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override
-  String get settings_cloudSync_autoSync => '自动同步';
-
-  @override
   String get settings_cloudSync_autoSync_subtitle => '更改后自动同步';
 
   @override
@@ -20052,15 +20083,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sharedLibrary_connect_action => '连接库';
-
-  @override
-  String get sharedLibrary_connect_addAccount => '添加存储账户';
-
-  @override
-  String get sharedLibrary_connect_saveAccount => '保存账户';
-
-  @override
-  String get sharedLibrary_connect_account_label => '存储账户';
 
   @override
   String get sharedLibrary_connect_prefix_label => '文件夹（前缀）';
@@ -20395,9 +20417,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sharedLibrary_encryption_confirm => '再次输入口令';
-
-  @override
-  String get sharedLibrary_connect_probe_action => '检查';
 
   @override
   String sharedLibrary_connect_join_action(String name) {
@@ -20750,12 +20769,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_adopt_notNow => '暂不';
 
   @override
-  String get settings_cloudSync_dangerZone => '危险操作';
-
-  @override
-  String get settings_cloudSync_replaceLibrary_tile => '替换云端库';
-
-  @override
   String get settings_cloudSync_replaceLibrary_tileSubtitle =>
       '让本设备的库成为所有设备共用的库';
 
@@ -20834,9 +20847,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_dialogTitle => '切换同步后端？';
-
-  @override
   String settings_cloudSync_switch_dialogContent(
     String fromName,
     String toName,
@@ -20845,14 +20855,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_switch_confirm => '切换';
-
-  @override
   String settings_cloudSync_moved_banner(
     String deviceName,
     String destination,
   ) {
-    return '$deviceName 已将此资料库移至 $destination。该后端不再由它更新。请在下方选择 $destination 以跟随此次移动。';
+    return '$deviceName 已将此资料库移至 $destination。该后端不再由它更新。请选择“更改”，然后选择 $destination 以跟随此次移动。';
   }
 
   @override
@@ -20876,15 +20883,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_signOut_backupWarning => '云备份将被关闭，备份将保存到默认位置。';
 
   @override
-  String get settings_cloudSync_header_cloudProvider => '云服务提供商';
-
-  @override
   String settings_cloudSync_header_conflicts(Object count) {
     return '冲突 ($count)';
   }
-
-  @override
-  String get settings_cloudSync_header_syncBehavior => '同步行为';
 
   @override
   String settings_cloudSync_lastSynced(Object time) {
@@ -20972,9 +20973,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '此设备的应用商店更新达到该版本后，这些更改将自动应用。该更新可能仍在审核中；如果该设备运行的是 Beta 版（TestFlight 或 Google Play 测试），也可能尚未发布：请在此设备上加入同一 Beta，或等待下一个版本。';
 
   @override
-  String get settings_cloudSync_provider_connected => '已连接';
-
-  @override
   String settings_cloudSync_provider_connectedTo(Object providerName) {
     return '已连接到 $providerName';
   }
@@ -20986,9 +20984,6 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '$providerName 连接失败：$error';
   }
-
-  @override
-  String get settings_cloudSync_dropbox_account_title => 'Dropbox 账户';
 
   @override
   String get settings_cloudSync_dropbox_connect_codeLabel => '授权码';
@@ -21015,32 +21010,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_dropbox_connect_title => '连接 Dropbox';
 
   @override
-  String get settings_cloudSync_dropbox_connected => '已连接到 Dropbox';
-
-  @override
-  String settings_cloudSync_dropbox_connectedAs(Object account) {
-    return '已连接为 $account';
-  }
-
-  @override
-  String get settings_cloudSync_dropbox_disconnect => '断开连接';
-
-  @override
-  String get settings_cloudSync_provider_dropbox_subtitle =>
-      '通过 Dropbox 同步（Apps/Submersion）';
-
-  @override
   String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
 
   @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
-
-  @override
-  String get settings_cloudSync_provider_googleDrive_subtitle =>
-      '通过 Google Drive 同步';
-
-  @override
-  String get settings_cloudSync_googleDrive_desktopNotConfigured => '此版本不可用';
 
   @override
   String get settings_cloudSync_googleDrive_browserWait_title => '请在浏览器中继续';
@@ -21058,22 +21031,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_provider_notAvailable => '在此平台上不可用';
-
-  @override
-  String get settings_cloudSync_provider_s3_edit => '编辑 S3 配置';
-
-  @override
-  String get settings_cloudSync_provider_s3_subtitle => '适用于任何兼容 S3 的存储服务';
-
-  @override
   String get settings_cloudSync_provider_s3_title => 'S3 兼容存储';
-
-  @override
-  String get settings_cloudSync_provider_webdav_edit => '编辑 WebDAV 配置';
-
-  @override
-  String get settings_cloudSync_provider_webdav_subtitle => '任意 WebDAV 服务器';
 
   @override
   String get settings_cloudSync_provider_webdav_title => 'WebDAV';
@@ -21083,28 +21041,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_selectProviderHint => '选择一个云服务提供商以启用同步';
-
-  @override
-  String get settings_cloudSync_signOut => '退出登录';
-
-  @override
-  String get settings_cloudSync_signOutDialog_cancel => '取消';
-
-  @override
-  String get settings_cloudSync_signOutDialog_content =>
-      '这将断开与云服务提供商的连接。您的本地数据将保持不变。';
-
-  @override
-  String get settings_cloudSync_signOutDialog_signOut => '退出登录';
-
-  @override
-  String get settings_cloudSync_signOutDialog_title => '退出登录？';
-
-  @override
-  String get settings_cloudSync_signOutSuccess => '已退出云服务提供商';
-
-  @override
-  String get settings_cloudSync_signOut_subtitle => '断开与云服务提供商的连接';
 
   @override
   String get settings_cloudSync_status_conflictsDetected => '检测到冲突';
@@ -21128,13 +21064,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_syncNow => '立即同步';
 
   @override
-  String get settings_cloudSync_syncOnLaunch => '启动时同步';
-
-  @override
   String get settings_cloudSync_syncOnLaunch_subtitle => '启动时检查更新';
-
-  @override
-  String get settings_cloudSync_syncOnResume => '恢复时同步';
 
   @override
   String get settings_cloudSync_syncOnResume_subtitle => '应用变为活跃状态时检查更新';
@@ -21547,6 +21477,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_connectedAccounts_kind => '服务';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_location => '账户位置';
 
   @override
   String get settings_conflict_field_connectedAccounts_nickname => '名称';
@@ -23760,7 +23693,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_preDiveChecklistTemplate => '潜前清单模板';
 
   @override
+  String get settings_conflict_ref_preDiveChecklistTemplateSection =>
+      '潜前清单模板的分区';
+
+  @override
   String get settings_conflict_ref_preDiveSession => '潜前清单';
+
+  @override
+  String get settings_conflict_ref_preDiveSessionSection => '潜前清单的分区';
+
+  @override
+  String get settings_conflict_ref_checklistTemplateSection => '清单模板的分区';
+
+  @override
+  String get settings_conflict_ref_tripChecklistSection => '清单的分区';
 
   @override
   String get settings_conflict_ref_regulator => '调节器';
@@ -25183,16 +25129,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_profileHub_switchDiver => '切换潜水员';
 
   @override
-  String get settings_s3Config_action_remove => '移除配置';
-
-  @override
   String get settings_s3Config_action_testConnection => '测试连接';
 
   @override
   String get settings_s3Config_advanced_title => '高级';
-
-  @override
-  String get settings_s3Config_appBar_title => 'S3 兼容存储';
 
   @override
   String get settings_s3Config_error_secureStorage => '无法访问安全存储';
@@ -25232,22 +25172,6 @@ class AppLocalizationsZh extends AppLocalizations {
       'Secret Access Key';
 
   @override
-  String get settings_s3Config_remove_confirm_action => '移除';
-
-  @override
-  String get settings_s3Config_remove_confirm_body =>
-      '此设备上将停止通过 S3 同步。存储桶中的数据不会被删除。';
-
-  @override
-  String get settings_s3Config_remove_confirm_title => '移除 S3 配置？';
-
-  @override
-  String get settings_s3Config_removed => 'S3 配置已移除';
-
-  @override
-  String get settings_s3Config_saved => 'S3 配置已保存';
-
-  @override
   String settings_s3Config_test_regionDetected(String region) {
     return '检测到区域：$region';
   }
@@ -25273,13 +25197,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_webdavConfig_action_forgetCertificate => '忘记';
 
   @override
-  String get settings_webdavConfig_action_remove => '移除配置';
-
-  @override
   String get settings_webdavConfig_action_testConnection => '测试连接';
-
-  @override
-  String get settings_webdavConfig_appBar_title => 'WebDAV';
 
   @override
   String get settings_webdavConfig_error_conflict => '无法在服务器上创建文件夹。';
@@ -25359,22 +25277,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_webdavConfig_field_username_label => '用户名';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_action => '移除';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_body =>
-      '服务器信息和密码将从此设备中移除。服务器上的文件将保留。';
-
-  @override
-  String get settings_webdavConfig_remove_confirm_title => '要移除 WebDAV 配置吗？';
-
-  @override
-  String get settings_webdavConfig_removed => 'WebDAV 配置已移除';
-
-  @override
-  String get settings_webdavConfig_saved => 'WebDAV 配置已保存';
 
   @override
   String get settings_webdavConfig_test_success => '连接成功';
@@ -34933,16 +34835,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_connectedAccounts_status_signedIn => '已登录';
 
   @override
-  String get settings_connectedAccounts_status_needsSignIn => '需要登录';
-
-  @override
   String get settings_connectedAccounts_status_unavailable => '此设备上不可用';
 
   @override
   String get settings_connectedAccounts_disconnectDevice => '在此设备上退出登录';
-
-  @override
-  String get settings_connectedAccounts_removeFromLibrary => '从库中移除';
 
   @override
   String get settings_connectedAccounts_rename => '重命名';
@@ -35012,12 +34908,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_connectedAccounts_usage_none => '此设备上未使用';
 
   @override
-  String get settings_connectedAccounts_usage_databaseSync => '数据库同步';
-
-  @override
-  String get settings_connectedAccounts_usage_mediaStorage => '媒体存储';
-
-  @override
   String settings_connectedAccounts_usage_sharedLibrary(String name) {
     return '共享潜点库：$name';
   }
@@ -35044,6 +34934,138 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_connectedAccounts_usage_unknown =>
       '无法确认此账户在此设备上的用途。此处使用它的功能可能会停止工作。';
+
+  @override
+  String get settings_accounts_ownServer_title => '我自己的服务器';
+
+  @override
+  String get settings_accounts_ownServer_s3 => 'S3 兼容';
+
+  @override
+  String get settings_accounts_ownServer_webdav => 'WebDAV';
+
+  @override
+  String get settings_accounts_checkConnection => '检查连接';
+
+  @override
+  String get settings_accounts_save => '保存';
+
+  @override
+  String get settings_accounts_saved => '账户已保存';
+
+  @override
+  String settings_accounts_signInTo(String account) {
+    return '登录 $account';
+  }
+
+  @override
+  String get settings_accounts_sheet_yours => '您的账户';
+
+  @override
+  String get settings_accounts_sheet_add => '添加账户';
+
+  @override
+  String get settings_accounts_signInHere => '登录后即可在此使用';
+
+  @override
+  String get settings_accounts_state_notSignedIn => '未在此设备上登录';
+
+  @override
+  String get settings_accounts_continue => '继续';
+
+  @override
+  String get settings_accounts_add => '添加账户';
+
+  @override
+  String get settings_accounts_signInAgain => '重新登录';
+
+  @override
+  String settings_accounts_usedHere(String features) {
+    return '在此设备上用于$features';
+  }
+
+  @override
+  String get settings_accounts_folders => '文件夹';
+
+  @override
+  String get settings_accounts_removeEverywhere => '从所有设备中移除';
+
+  @override
+  String get settings_accounts_icloudManaged => '由设备设置中的 Apple ID 管理';
+
+  @override
+  String get settings_accounts_serverDetails => '服务器详情';
+
+  @override
+  String get settings_accounts_usage_sync => '设备间同步';
+
+  @override
+  String get settings_accounts_usage_photos => '照片和视频';
+
+  @override
+  String get settings_accounts_folder_other => '其他文件夹';
+
+  @override
+  String get settings_accounts_notUsedYet => '尚未使用';
+
+  @override
+  String settings_sync_using(String account) {
+    return '正在使用：$account';
+  }
+
+  @override
+  String get settings_sync_change => '更改';
+
+  @override
+  String get settings_sync_notSetUp => '未设置';
+
+  @override
+  String get settings_sync_offCustomFolder => '数据库位于自定义文件夹时关闭';
+
+  @override
+  String get settings_sync_keepInStep => '自动保持设备同步';
+
+  @override
+  String get settings_sync_alsoAtLaunch => '启动时也同步';
+
+  @override
+  String get settings_sync_alsoOnReturn => '返回应用时也同步';
+
+  @override
+  String get settings_sync_encryption => '加密';
+
+  @override
+  String get settings_sync_devices => '使用此资料库的设备';
+
+  @override
+  String get settings_sync_troubleshoot => '故障排除';
+
+  @override
+  String get settings_sync_replaceLibrary => '用此设备的副本替换资料库';
+
+  @override
+  String get settings_sync_stop => '停止在此设备上同步';
+
+  @override
+  String get settings_sync_stop_subtitle => '您的账户保持登录';
+
+  @override
+  String get settings_sync_stop_confirmTitle => '停止在此设备上同步？';
+
+  @override
+  String get settings_sync_stop_confirmBody =>
+      '此设备将停止同步。您的账户保持登录，您的潜水记录仍保留在此设备和云端。';
+
+  @override
+  String get settings_sync_stopped => '已停止在此设备上同步';
+
+  @override
+  String get settings_sync_cleanup_confirmTitle => '删除旧数据？';
+
+  @override
+  String settings_sync_cleanup_confirmBody(String backend) {
+    return '这将从 $backend 删除旧的同步文件。您的潜水记录仍保留在此设备和您当前同步的账户中。';
+  }
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
@@ -45438,10 +45460,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String autoUpdate_banner_packageManagerHint(String command) {
     return '更新命令：$command';
   }
-
-  @override
-  String get settings_cloudSync_provider_icloud_subtitle =>
-      '通过 Apple iCloud 同步';
 
   @override
   String get settings_debugLog_search_hint => '搜索日志...';

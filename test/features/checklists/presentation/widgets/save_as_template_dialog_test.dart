@@ -32,12 +32,16 @@ void main() {
         updatedAt: DateTime.now(),
       ),
     );
+    final section = await checklistRepository.createSection(
+      tripId: trip.id,
+      title: 'Bookings',
+    );
     await checklistRepository.createItem(
       TripChecklistItem(
         id: '',
         tripId: trip.id,
         title: 'Book flights',
-        category: 'Bookings',
+        sectionId: section.id,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),
@@ -93,7 +97,11 @@ void main() {
         templates.single.id,
       );
       expect(items.single.title, 'Book flights');
-      expect(items.single.category, 'Bookings');
+      final sections = await templateRepository.getSectionsForTemplate(
+        templates.single.id,
+      );
+      expect(sections.single.title, 'Bookings');
+      expect(items.single.sectionId, sections.single.id);
 
       // Dialog is dismissed on success.
       expect(find.byType(AlertDialog), findsNothing);

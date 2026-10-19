@@ -183,6 +183,8 @@ void main() {
       'continua': _Homograph(
         'the verb continua, and the adjective contínua',
         keys: {
+          'settings_sync_stop_confirmBody',
+          'settings_sync_stop_subtitle',
           'surfaceInterval_result_beyondHorizon',
           'startup_interruptedRestore_bodyWithDate',
           'startup_interruptedRestore_body',

@@ -52,7 +52,10 @@ class ChecklistTemplateItem extends Equatable {
   final String id;
   final String templateId;
   final String title;
-  final String? category;
+
+  /// The section this item is grouped under, if any (issue #3360). Replaces
+  /// the free-text `category` field.
+  final String? sectionId;
   final String notes;
 
   /// Days before trip start the item is due (null = no due date).
@@ -65,7 +68,7 @@ class ChecklistTemplateItem extends Equatable {
     required this.id,
     required this.templateId,
     required this.title,
-    this.category,
+    this.sectionId,
     this.notes = '',
     this.dueOffsetDays,
     this.sortOrder = 0,
@@ -77,7 +80,7 @@ class ChecklistTemplateItem extends Equatable {
     String? id,
     String? templateId,
     String? title,
-    Object? category = _undefined,
+    Object? sectionId = _undefined,
     String? notes,
     Object? dueOffsetDays = _undefined,
     int? sortOrder,
@@ -88,7 +91,9 @@ class ChecklistTemplateItem extends Equatable {
       id: id ?? this.id,
       templateId: templateId ?? this.templateId,
       title: title ?? this.title,
-      category: category == _undefined ? this.category : category as String?,
+      sectionId: sectionId == _undefined
+          ? this.sectionId
+          : sectionId as String?,
       notes: notes ?? this.notes,
       dueOffsetDays: dueOffsetDays == _undefined
           ? this.dueOffsetDays
@@ -104,7 +109,7 @@ class ChecklistTemplateItem extends Equatable {
     id,
     templateId,
     title,
-    category,
+    sectionId,
     notes,
     dueOffsetDays,
     sortOrder,

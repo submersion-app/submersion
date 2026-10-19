@@ -35,8 +35,10 @@ void main() {
     );
   });
 
-  test('the columns are additive, so the sync floor stays at 280', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 280);
+  // The floor itself moved later (checklist sections, #3360); what this
+  // rung pins is that it did not move it.
+  test('the columns are additive and did not move the sync floor', () {
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(296));
   });
 
   test('upgrading from v295 adds both columns and keeps the rows', () async {

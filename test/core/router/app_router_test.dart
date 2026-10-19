@@ -2089,8 +2089,6 @@ void main() {
     const locations = [
       '/settings/backup',
       '/settings/cloud-sync',
-      '/settings/cloud-sync/s3-config',
-      '/settings/cloud-sync/webdav-config',
       '/settings/shared-libraries',
       '/settings/shared-libraries/connect?prefix=club',
       '/settings/shared-libraries/lib1',
@@ -2105,6 +2103,7 @@ void main() {
       '/settings/media-storage',
       '/settings/media-storage/transfers',
       '/settings/connected-accounts',
+      '/settings/connected-accounts/acct1',
       '/settings/storage',
       '/settings/storage-usage',
       '/settings/storage-usage/unrecognized-backups',
@@ -2113,6 +2112,8 @@ void main() {
       '/settings/link-buddy-names',
       '/settings/retype-other-gear',
       '/settings/data-quality',
+      '/settings/import-options',
+      '/settings/data-tools',
     ];
 
     testWidgets('each location builds the page its route builds', (

@@ -27,6 +27,7 @@ class _RecordingExcelExporter extends PreDiveExcelExportService {
   Future<String> exportToExcel({
     required List<PreDiveSession> sessions,
     required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required Map<String, List<PreDiveSessionSection>> sectionsBySession,
     required DateFormatPreference dateFormat,
   }) async {
     sharedSessions = sessions;
@@ -37,6 +38,7 @@ class _RecordingExcelExporter extends PreDiveExcelExportService {
   Future<String?> saveToFile({
     required List<PreDiveSession> sessions,
     required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required Map<String, List<PreDiveSessionSection>> sectionsBySession,
     required DateFormatPreference dateFormat,
   }) async {
     savedSessions = sessions;
@@ -70,6 +72,11 @@ class _StubSessionRepository implements PreDiveSessionRepository {
     requestedIds = sessionIds;
     return {for (final id in sessionIds) id: const []};
   }
+
+  @override
+  Future<Map<String, List<PreDiveSessionSection>>> getSectionsForSessions(
+    List<String> sessionIds,
+  ) async => {for (final id in sessionIds) id: const []};
 
   /// No writes reach this fake from outside the test, so the tick the link
   /// providers subscribe to never has anything to report.

@@ -188,7 +188,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('My MinIO'), findsOneWidget);
-    expect(find.textContaining('Needs sign-in'), findsOneWidget);
+    expect(find.textContaining('Not signed in on this device'), findsOneWidget);
   });
 
   testWidgets('connected accounts page shows the empty state', (tester) async {

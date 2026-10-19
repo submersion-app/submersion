@@ -62,6 +62,19 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
+    // Section tables for checklists/pre-dive (v297-300, issue #3360), fully
+    // wired for sync (SyncData, mergeOrder, parentRefs, conflict_reference
+    // labels) alongside their item tables.
+    'tripChecklistSections': (table: 'trip_checklist_sections', pk: 'id'),
+    'checklistTemplateSections': (
+      table: 'checklist_template_sections',
+      pk: 'id',
+    ),
+    'preDiveChecklistTemplateSections': (
+      table: 'pre_dive_checklist_template_sections',
+      pk: 'id',
+    ),
+    'preDiveSessionSections': (table: 'pre_dive_session_sections', pk: 'id'),
     'preDiveChecklistTemplates': (
       table: 'pre_dive_checklist_templates',
       pk: 'id',
@@ -461,6 +474,27 @@ class SyncRepository {
     );
   }
 
+  /// Retires the cursor minted against [providerId], for a switch to another
+  /// account of the same kind: its time still reads as the last sync, but
+  /// `getLastSyncTime(forProvider: providerId)` reads null, so the new
+  /// account's first sync is first contact (the Combine check runs, and no
+  /// cursor from the old account is reused).
+  Future<void> retireCursor(String providerId) async {
+    final metadata = await getOrCreateMetadata();
+    if (metadata.lastSyncTimestamp == null) return;
+    final stamped = metadata.lastSyncProvider;
+    if (stamped != null && stamped != providerId) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.syncMetadata,
+    )..where((t) => t.id.equals(_globalMetadataId))).write(
+      SyncMetadataCompanion(
+        lastSyncProvider: Value('$providerId:retired'),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
   /// Set the cloud provider. Clearing it (null) also clears the sync
   /// account selection; setting a bare type leaves any account id in place
   /// (the account-aware writer is [setSyncAccount]).
@@ -770,6 +804,68 @@ class SyncRepository {
     (
       entityType: 'tankPressureSeries',
       table: 'tank_pressure_series',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    // The category/section->section_id migration (issue #3360) clears hlc
+    // on every section it backfills (brand new rows, never stamped) and on
+    // every item it re-points at one (an already-synced row whose link just
+    // changed under it). Without these eight entries, a diver who had
+    // already synced before updating would see the migration's new
+    // sections and item links apply locally but never reach any peer.
+    (
+      entityType: 'tripChecklistSections',
+      table: 'trip_checklist_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'tripChecklistItems',
+      table: 'trip_checklist_items',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'checklistTemplateSections',
+      table: 'checklist_template_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'checklistTemplateItems',
+      table: 'checklist_template_items',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'preDiveChecklistTemplateSections',
+      table: 'pre_dive_checklist_template_sections',
+      timestamp: 'updated_at',
+      // Built-in templates' sections are reference data re-seeded on every
+      // device and skipped by the export (same reasoning as serviceKinds
+      // above), so stamping one would only queue a sync record that
+      // publishes nothing.
+      filter:
+          'template_id NOT IN '
+          '(SELECT id FROM pre_dive_checklist_templates WHERE is_built_in = 1)',
+    ),
+    (
+      entityType: 'preDiveChecklistTemplateItems',
+      table: 'pre_dive_checklist_template_items',
+      timestamp: 'updated_at',
+      filter:
+          'template_id NOT IN '
+          '(SELECT id FROM pre_dive_checklist_templates WHERE is_built_in = 1)',
+    ),
+    (
+      entityType: 'preDiveSessionSections',
+      table: 'pre_dive_session_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'preDiveSessionItems',
+      table: 'pre_dive_session_items',
       timestamp: 'updated_at',
       filter: null,
     ),

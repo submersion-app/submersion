@@ -4,6 +4,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart'
     as domain;
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart'
+    as domain;
 
 import '../../../../helpers/test_database.dart';
 
@@ -317,5 +319,202 @@ void main() {
         reason: 'the link must follow the remap, not dangle at the old id',
       );
     });
+  });
+
+  group('sections (#3360)', () {
+    test('createSection appends at the end of the template order', () async {
+      final tpl = await repository.createTemplate(template());
+      final a = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      final b = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Cells',
+      );
+      expect(a.sortOrder, 0);
+      expect(b.sortOrder, 1);
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.map((s) => s.title).toList(), ['Assembly', 'Cells']);
+    });
+
+    test('renameSection updates the title only', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      await repository.renameSection(section.id, 'Assembly checks');
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.single.title, 'Assembly checks');
+      expect(sections.single.id, section.id);
+    });
+
+    test('reorderSections persists the new order', () async {
+      final tpl = await repository.createTemplate(template());
+      final a = await repository.createSection(templateId: tpl.id, title: 'A');
+      final b = await repository.createSection(templateId: tpl.id, title: 'B');
+      await repository.reorderSections(tpl.id, [b.id, a.id]);
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.map((s) => s.title).toList(), ['B', 'A']);
+    });
+
+    test('saveSections inserts new, renames kept, and tombstones removed '
+        'sections', () async {
+      final tpl = await repository.createTemplate(template());
+      final existing = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      final toRemove = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Obsolete',
+      );
+
+      await repository.saveSections(tpl.id, [
+        existing.copyWith(title: 'Assembly checks'),
+        existing.copyWith(
+          id: '',
+          title: 'Cells',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.map((s) => s.title).toList(), [
+        'Assembly checks',
+        'Cells',
+      ]);
+      expect(sections.first.id, existing.id);
+      expect(
+        await tombstoneCount('preDiveChecklistTemplateSections', toRemove.id),
+        1,
+      );
+    });
+
+    test('saveSections rejects built-in templates', () async {
+      final tpl = await repository.createTemplate(
+        template().copyWith(isBuiltIn: true),
+      );
+
+      expect(
+        () => repository.saveSections(tpl.id, [
+          domain.PreDiveChecklistTemplateSection(
+            id: '',
+            templateId: tpl.id,
+            title: 'Assembly',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ]),
+        throwsStateError,
+      );
+    });
+
+    test('deleteSection sets item.sectionId to null, not delete', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      await repository.saveItems(tpl.id, [
+        item(tpl.id, 'Check O-rings').copyWith(sectionId: section.id),
+      ]);
+
+      await repository.deleteSection(section.id);
+
+      expect(await repository.getSectionsForTemplate(tpl.id), isEmpty);
+      final survivors = await repository.getItemsForTemplate(tpl.id);
+      expect(survivors, hasLength(1));
+      expect(survivors.single.sectionId, isNull);
+    });
+
+    test('deleteTemplate also removes and tombstones its sections', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Empty',
+      );
+
+      await repository.deleteTemplate(tpl.id);
+
+      expect(await repository.getSectionsForTemplate(tpl.id), isEmpty);
+      expect(
+        await tombstoneCount('preDiveChecklistTemplateSections', section.id),
+        1,
+      );
+    });
+
+    test(
+      'findOrCreateSectionId matches an existing title case-insensitively',
+      () async {
+        final tpl = await repository.createTemplate(template());
+        final created = await repository.createSection(
+          templateId: tpl.id,
+          title: 'Cells',
+        );
+        final resolved = await repository.findOrCreateSectionId(
+          tpl.id,
+          'cells',
+        );
+        expect(resolved, created.id);
+        expect(await repository.getSectionsForTemplate(tpl.id), hasLength(1));
+      },
+    );
+
+    test('createSection, renameSection and deleteSection reject built-in '
+        'templates', () async {
+      final builtIn = await repository.createTemplate(
+        template(name: 'Built-in').copyWith(isBuiltIn: true, builtinKey: 'k'),
+      );
+      expect(
+        () => repository.createSection(templateId: builtIn.id, title: 'X'),
+        throwsStateError,
+      );
+
+      // createSection itself rejects built-ins, so seed the section with a
+      // direct write to isolate renameSection/deleteSection's own guards --
+      // the same technique the updateItemEquipment test above uses.
+      final db = DatabaseService.instance.database;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_template_sections '
+        '(id, template_id, title, sort_order, created_at, updated_at) '
+        "VALUES ('bs1', '${builtIn.id}', 'Assembly', 0, $now, $now)",
+      );
+
+      expect(
+        () => repository.renameSection('bs1', 'Renamed'),
+        throwsStateError,
+      );
+      expect(() => repository.deleteSection('bs1'), throwsStateError);
+    });
+
+    test(
+      'cloneTemplate copies sections as new rows, remapping items',
+      () async {
+        final tpl = await repository.createTemplate(template());
+        final section = await repository.createSection(
+          templateId: tpl.id,
+          title: 'Assembly',
+        );
+        await repository.saveItems(tpl.id, [
+          item(tpl.id, 'Step 1').copyWith(sectionId: section.id),
+        ]);
+
+        final clone = await repository.cloneTemplate(tpl.id, newName: 'Copy');
+
+        final cloneSections = await repository.getSectionsForTemplate(clone.id);
+        expect(cloneSections.single.title, 'Assembly');
+        expect(
+          cloneSections.single.id,
+          isNot(section.id),
+          reason: 'the clone gets its own section row, not a shared one',
+        );
+        final cloneItems = await repository.getItemsForTemplate(clone.id);
+        expect(cloneItems.single.sectionId, cloneSections.single.id);
+      },
+    );
   });
 }

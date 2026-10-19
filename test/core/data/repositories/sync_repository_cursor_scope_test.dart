@@ -93,6 +93,23 @@ void main() {
     });
   });
 
+  // Issue #3482: a switch to another account of the same kind retires the
+  // old account's cursor, so the new account's first sync is first contact.
+  group('retireCursor', () {
+    test('the kind reads unsynced, the time still shows', () async {
+      await repo.updateLastSyncTime(t1, providerId: 's3');
+      await repo.retireCursor('s3');
+      expect(await repo.getLastSyncTime(forProvider: 's3'), isNull);
+      expect(await repo.getLastSyncTime(), t1);
+    });
+
+    test('leaves another kind\'s cursor alone', () async {
+      await repo.updateLastSyncTime(t1, providerId: 'icloud');
+      await repo.retireCursor('s3');
+      expect(await repo.getLastSyncTime(forProvider: 'icloud'), t1);
+    });
+  });
+
   group('resetSyncState', () {
     test('clears the provider stamp along with the cursor', () async {
       await repo.updateLastSyncTime(t1, providerId: 'icloud');

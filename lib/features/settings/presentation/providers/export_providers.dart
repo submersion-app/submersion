@@ -909,9 +909,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // Checklist runs ride along in the workbook. Fetched in bulk: one query
       // for the runs, one for every item across them.
       final preDiveSessions = await _ref.read(preDiveSessionsProvider.future);
-      final preDiveItems = await _ref
-          .read(preDiveSessionRepositoryProvider)
-          .getItemsForSessions([for (final s in preDiveSessions) s.id]);
+      final preDiveSessionIds = [for (final s in preDiveSessions) s.id];
+      final preDiveRepository = _ref.read(preDiveSessionRepositoryProvider);
+      final preDiveItems = await preDiveRepository.getItemsForSessions(
+        preDiveSessionIds,
+      );
+      final preDiveSections = await preDiveRepository.getSectionsForSessions(
+        preDiveSessionIds,
+      );
 
       if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
         state = state.copyWith(
@@ -939,6 +944,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
+        preDiveSectionsBySession: preDiveSections,
         observationRows: await _observationRows(equipment, dives),
         diveTypesById: await _diveTypesById(),
       );
@@ -1019,9 +1025,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // Checklist runs ride along in the workbook. Fetched in bulk: one query
       // for the runs, one for every item across them.
       final preDiveSessions = await _ref.read(preDiveSessionsProvider.future);
-      final preDiveItems = await _ref
-          .read(preDiveSessionRepositoryProvider)
-          .getItemsForSessions([for (final s in preDiveSessions) s.id]);
+      final preDiveSessionIds = [for (final s in preDiveSessions) s.id];
+      final preDiveRepository = _ref.read(preDiveSessionRepositoryProvider);
+      final preDiveItems = await preDiveRepository.getItemsForSessions(
+        preDiveSessionIds,
+      );
+      final preDiveSections = await preDiveRepository.getSectionsForSessions(
+        preDiveSessionIds,
+      );
 
       if (dives.isEmpty && sites.isEmpty && equipment.isEmpty) {
         state = state.copyWith(
@@ -1049,6 +1060,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
+        preDiveSectionsBySession: preDiveSections,
         observationRows: await _observationRows(equipment, dives),
         diveTypesById: await _diveTypesById(),
       );
