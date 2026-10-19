@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:submersion_transcoder/src/process_runner.dart';
 import 'package:submersion_transcoder/src/transcode_engine.dart';
@@ -35,6 +36,48 @@ class LinuxFfmpegEngine implements TranscodeEngine {
     ]);
     if (result.exitCode != 0) return null;
     return parseFfprobeJson(result.stdout);
+  }
+
+  @override
+  Future<List<Uint8List?>> extractFrames({
+    required File source,
+    required List<Duration> times,
+    int maxDimension = 160,
+  }) async {
+    if (times.isEmpty) return const [];
+    final dir = await Directory.systemTemp.createTemp('frames');
+    try {
+      final frames = <Uint8List?>[];
+      for (var i = 0; i < times.length; i++) {
+        final out = File('${dir.path}${Platform.pathSeparator}frame_$i.jpg');
+        final seconds = times[i].inMilliseconds / 1000;
+        final result = await _runner.run('ffmpeg', [
+          '-v',
+          'error',
+          // Before -i: a fast keyframe seek, close enough for colour.
+          '-ss',
+          seconds.toStringAsFixed(3),
+          '-i',
+          source.path,
+          '-frames:v',
+          '1',
+          '-vf',
+          'scale=$maxDimension:$maxDimension:force_original_aspect_ratio=decrease',
+          '-q:v',
+          '4',
+          '-y',
+          out.path,
+        ]);
+        frames.add(
+          result.exitCode == 0 && await out.exists()
+              ? await out.readAsBytes()
+              : null,
+        );
+      }
+      return frames;
+    } finally {
+      await dir.delete(recursive: true);
+    }
   }
 
   @override

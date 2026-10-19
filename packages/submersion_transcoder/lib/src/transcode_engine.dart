@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:submersion_transcoder/src/transcode_target.dart';
 import 'package:submersion_transcoder/src/video_probe.dart';
@@ -29,5 +30,15 @@ abstract class TranscodeEngine {
     required TranscodeTarget target,
     VideoProbe? probe,
     void Function(double fraction)? onProgress,
+  });
+
+  /// JPEG frames of [source] at each of [times], fitted inside
+  /// [maxDimension] square, in the same order; null for a time that could
+  /// not be read. Never throws: no engine, no codec or an unreadable file
+  /// is all nulls. Read-only: [source] is never modified.
+  Future<List<Uint8List?>> extractFrames({
+    required File source,
+    required List<Duration> times,
+    int maxDimension = 160,
   });
 }

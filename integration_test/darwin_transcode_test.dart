@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion_transcoder/submersion_transcoder.dart';
@@ -97,6 +98,64 @@ void main() {
     expect(outProbe.height, lessThanOrEqualTo(240));
     expect(await output.length(), lessThan(await input.length()));
     expect(fractions.last, 1.0);
+  });
+
+  // Issue #3520: frames at chosen times, for per-moment colour correction.
+  testWidgets('AVFoundation reads small frames at chosen times', (
+    tester,
+  ) async {
+    if (!Platform.isMacOS) {
+      markTestSkipped('darwin frame integration runs on macOS only');
+      return;
+    }
+    final ffmpeg = await _which('ffmpeg');
+    if (ffmpeg == null) {
+      markTestSkipped('ffmpeg not on PATH; cannot synthesize the input clip');
+      return;
+    }
+    final engine = engineForThisPlatform()!;
+    final dir = await Directory.systemTemp.createTemp('avf_frames_it');
+    addTearDown(() => dir.delete(recursive: true));
+
+    final input = File(p.join(dir.path, 'in.mp4'));
+    final gen = await Process.run(ffmpeg, [
+      '-y',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc=duration=3:size=640x480:rate=15',
+      '-c:v',
+      'libx264',
+      '-pix_fmt',
+      'yuv420p',
+      input.path,
+    ]);
+    expect(gen.exitCode, 0, reason: 'fixture generation: ${gen.stderr}');
+
+    final frames = await engine.extractFrames(
+      source: input,
+      times: const [
+        Duration(milliseconds: 500),
+        Duration(milliseconds: 1500),
+        Duration(milliseconds: 2500),
+      ],
+    );
+    expect(frames, hasLength(3));
+    for (final frame in frames) {
+      final decoded = img.decodeJpg(frame!)!;
+      expect(
+        decoded.width > decoded.height ? decoded.width : decoded.height,
+        lessThanOrEqualTo(160),
+      );
+    }
+
+    final missing = await engine.extractFrames(
+      source: File(p.join(dir.path, 'missing.mp4')),
+      times: const [Duration.zero],
+    );
+    expect(missing, [null]);
+    // Read-only: the clip is untouched.
+    expect(await input.exists(), isTrue);
   });
 }
 
