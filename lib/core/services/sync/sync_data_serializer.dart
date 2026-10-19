@@ -925,7 +925,7 @@ class SyncDataSerializer {
   /// Ordered table descriptors for a base snapshot, matching SyncData.toJson.
   /// `table != null` => keyset-page by `id`; otherwise `full` loads the whole
   /// (small, composite-key) table once. `blob` selects the base64 BLOB
-  /// serializer (media / certifications / diveDataSources).
+  /// serializer (media / diveDataSources).
   List<
     ({
       String key,
@@ -1019,7 +1019,9 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'diveBuddies', table: _db.diveBuddies, blob: false, full: null),
-    (key: 'certifications', table: _db.certifications, blob: true, full: null),
+    // The retired card photo BLOBs are stripped before emit (#3502), so the
+    // rows page by count, not by byte budget.
+    (key: 'certifications', table: _db.certifications, blob: false, full: null),
     (key: 'documents', table: _db.documents, blob: false, full: null),
     (key: 'documentPages', table: _db.documentPages, blob: true, full: null),
     (key: 'courses', table: _db.courses, blob: false, full: null),
