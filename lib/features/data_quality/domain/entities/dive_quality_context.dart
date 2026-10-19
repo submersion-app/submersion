@@ -74,6 +74,7 @@ class DiveQualityContext {
     this.neighbors = const [],
     this.ppO2MaxBar = QualityThresholds.ppO2WarnBar,
     this.knownTransmitterSerials = const {},
+    this.mismatchedTransmitterSerials = const {},
     this.sharedGearOverlaps = const [],
   });
 
@@ -124,6 +125,13 @@ class DiveQualityContext {
   /// Normalized serials of the diver's registered transmitters (issue #1365),
   /// so a detector can tell a downloaded tank nobody has assigned yet.
   final Set<String> knownTransmitterSerials;
+
+  /// Normalized serials of registry entries whose linked transmitter gear
+  /// item carries a different, non-empty serial of its own (issue #3367).
+  /// The gap this closes: a diver who creates the transmitter as a gear
+  /// item first (for battery/service tracking) and links it to a registry
+  /// entry afterward can end up with two serials that silently drift apart.
+  final Set<String> mismatchedTransmitterSerials;
 
   /// Other profiles' dives in the neighbour window that share gear with
   /// this one (issue #2853). Empty for a dive without a profile and in a

@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -475,6 +477,131 @@ void main() {
       expect(ctx.carriesDiverData, isFalse);
       expect(ctx.neighbors.single.id, 'dB');
       expect(ctx.neighbors.single.carriesDiverData, isTrue);
+    });
+  });
+
+  group('mismatchedTransmitterSerials', () {
+    setUp(() async {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'diver-1',
+              name: 'Alex Diver',
+              createdAt: 1000,
+              updatedAt: 1000,
+            ),
+          );
+    });
+
+    Future<void> seedTransmitterGear(
+      String id, {
+      String? serialNumber,
+    }) => db.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, serial_number, "
+      "created_at, updated_at) VALUES ('$id', 'diver-1', 'Tx', "
+      "'transmitter', ${serialNumber == null ? 'NULL' : "'$serialNumber'"}, "
+      "1, 1)",
+    );
+
+    Future<void> seedTransmitter({
+      required String id,
+      required String serial,
+      required String transmitterEquipmentId,
+    }) {
+      final now = DateTime.utc(2026, 9, 1);
+      return TransmitterRepository().create(
+        Transmitter(
+          id: id,
+          diverId: 'diver-1',
+          transmitterSerial: serial,
+          label: 'Main',
+          transmitterEquipmentId: transmitterEquipmentId,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+
+    test('flags the serial when the linked gear item carries a different '
+        'one', () async {
+      await seedTransmitterGear('tx', serialNumber: '999');
+      await seedTransmitter(
+        id: 'e1',
+        serial: '555',
+        transmitterEquipmentId: 'tx',
+      );
+      await seedDive(
+        id: 'd1',
+        entry: DateTime.utc(2026, 7, 1),
+        diverId: 'diver-1',
+      );
+
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.mismatchedTransmitterSerials, {'555'});
+    });
+
+    test(
+      'is empty when the linked gear item carries the same serial',
+      () async {
+        await seedTransmitterGear('tx', serialNumber: '555');
+        await seedTransmitter(
+          id: 'e1',
+          serial: '555',
+          transmitterEquipmentId: 'tx',
+        );
+        await seedDive(
+          id: 'd1',
+          entry: DateTime.utc(2026, 7, 1),
+          diverId: 'diver-1',
+        );
+
+        final ctx = (await builder.buildAll(['d1'])).single;
+        expect(ctx.mismatchedTransmitterSerials, isEmpty);
+      },
+    );
+
+    test(
+      'is empty when the linked gear item has no serial of its own',
+      () async {
+        await seedTransmitterGear('tx');
+        await seedTransmitter(
+          id: 'e1',
+          serial: '555',
+          transmitterEquipmentId: 'tx',
+        );
+        await seedDive(
+          id: 'd1',
+          entry: DateTime.utc(2026, 7, 1),
+          diverId: 'diver-1',
+        );
+
+        final ctx = (await builder.buildAll(['d1'])).single;
+        expect(ctx.mismatchedTransmitterSerials, isEmpty);
+      },
+    );
+
+    test('is empty for a registry entry with no linked transmitter gear '
+        'item', () async {
+      final now = DateTime.utc(2026, 9, 1);
+      await TransmitterRepository().create(
+        Transmitter(
+          id: 'e1',
+          diverId: 'diver-1',
+          transmitterSerial: '555',
+          label: 'Main',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await seedDive(
+        id: 'd1',
+        entry: DateTime.utc(2026, 7, 1),
+        diverId: 'diver-1',
+      );
+
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.mismatchedTransmitterSerials, isEmpty);
     });
   });
 }

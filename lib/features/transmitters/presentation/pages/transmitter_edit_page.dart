@@ -80,6 +80,12 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   /// the cylinder it feeds; the dropout rules read serials through it.
   String? _transmitterEquipmentId;
   String? _transmitterEquipmentName;
+
+  /// Set only by [_pickTransmitterGear] in this editing session (issue
+  /// #3367), never by loading an existing entry. Saving offers to copy the
+  /// serial onto a freshly linked gear item once; it must not re-offer on
+  /// every later save of a link that was already there.
+  bool _transmitterGearJustPicked = false;
   Transmitter? _existing;
   bool _loading = false;
   String? _keyError;
@@ -270,6 +276,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
             setState(() {
               _transmitterEquipmentId = item.id;
               _transmitterEquipmentName = item.name;
+              _transmitterGearJustPicked = true;
             });
             Navigator.of(context).pop();
           },
@@ -347,6 +354,11 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         ?entry.transmitterEquipmentId,
       };
       if (touched.isNotEmpty) scheduleConditionFindingsRefresh(touched);
+      if (_transmitterGearJustPicked &&
+          serialText.isNotEmpty &&
+          _transmitterEquipmentId != null) {
+        await _offerCopySerialToGear(_transmitterEquipmentId!, serialText);
+      }
     } on TransmitterConflictException catch (e) {
       setState(
         () => _duplicateError = l10n.transmitters_validation_duplicate(
@@ -395,6 +407,41 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     } else {
       context.go('/');
     }
+  }
+
+  /// A gear item freshly linked this session with no serial of its own
+  /// (issue #3367) gets offered a copy of the matched serial, so the
+  /// equipment record carries it too without a second manual edit. Never
+  /// overwrites a serial that is already there, even a different one - that
+  /// case is left for the data-quality detector to flag.
+  Future<void> _offerCopySerialToGear(String equipmentId, String serial) async {
+    final gear = await ref.read(equipmentItemProvider(equipmentId).future);
+    if (gear == null) return;
+    final existingSerial = gear.serialNumber?.trim();
+    if (existingSerial != null && existingSerial.isNotEmpty) return;
+    if (!mounted) return;
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.transmitters_copySerial_title(gear.name)),
+        content: Text(l10n.transmitters_copySerial_content(serial)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.common_action_copy),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref
+        .read(equipmentRepositoryProvider)
+        .updateEquipment(gear.copyWith(serialNumber: serial));
   }
 
   /// A field's number once the form has validated. Blank is "not set";
@@ -569,6 +616,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                             onPressed: () => setState(() {
                               _transmitterEquipmentId = null;
                               _transmitterEquipmentName = null;
+                              _transmitterGearJustPicked = false;
                             }),
                           ),
                     onTap: _pickTransmitterGear,

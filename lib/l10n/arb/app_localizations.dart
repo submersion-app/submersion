@@ -81424,6 +81424,18 @@ abstract class AppLocalizations {
   /// **'Transmitter saved'**
   String get transmitters_saved;
 
+  /// No description provided for @transmitters_copySerial_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the serial to \"{gearName}\"?'**
+  String transmitters_copySerial_title(String gearName);
+
+  /// No description provided for @transmitters_copySerial_content.
+  ///
+  /// In en, this message translates to:
+  /// **'The serial this entry matches on ({serial}) is not recorded on the transmitter gear item yet.'**
+  String transmitters_copySerial_content(String serial);
+
   /// No description provided for @diveComputer_detail_transmitters.
   ///
   /// In en, this message translates to:
@@ -81543,6 +81555,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transmitter {serial} is not assigned to a cylinder'**
   String dataQuality_msg_unknownTransmitter(String serial);
+
+  /// No description provided for @dataQuality_detector_transmitter_gear_serial_mismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter serial mismatch'**
+  String get dataQuality_detector_transmitter_gear_serial_mismatch;
+
+  /// No description provided for @dataQuality_msg_transmitterGearSerialMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter {serial} is linked to a gear item recorded with a different serial'**
+  String dataQuality_msg_transmitterGearSerialMismatch(String serial);
 
   /// No description provided for @dataQuality_repairLabel_useAsBailout.
   ///

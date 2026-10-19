@@ -51450,6 +51450,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transmitters_saved => 'Transmissor salvo';
 
   @override
+  String transmitters_copySerial_title(String gearName) {
+    return 'Copy the serial to \"$gearName\"?';
+  }
+
+  @override
+  String transmitters_copySerial_content(String serial) {
+    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
+  }
+
+  @override
   String get diveComputer_detail_transmitters => 'Transmissores';
 
   @override
@@ -51529,6 +51539,15 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
     return 'O transmissor $serial não está atribuído a nenhum cilindro';
+  }
+
+  @override
+  String get dataQuality_detector_transmitter_gear_serial_mismatch =>
+      'Transmitter serial mismatch';
+
+  @override
+  String dataQuality_msg_transmitterGearSerialMismatch(String serial) {
+    return 'Transmitter $serial is linked to a gear item recorded with a different serial';
   }
 
   @override

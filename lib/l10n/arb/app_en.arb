@@ -30520,6 +30520,18 @@
     }
   },
   "transmitters_saved": "Transmitter saved",
+  "transmitters_copySerial_title": "Copy the serial to \"{gearName}\"?",
+  "@transmitters_copySerial_title": {
+    "placeholders": {
+      "gearName": {"type": "String"}
+    }
+  },
+  "transmitters_copySerial_content": "The serial this entry matches on ({serial}) is not recorded on the transmitter gear item yet.",
+  "@transmitters_copySerial_content": {
+    "placeholders": {
+      "serial": {"type": "String"}
+    }
+  },
   "diveComputer_detail_transmitters": "Transmitters",
   "diveComputer_detail_transmittersSummary": "{known} known, {unassigned} unassigned",
   "@diveComputer_detail_transmittersSummary": {
@@ -30558,6 +30570,13 @@
   "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",
   "dataQuality_msg_unknownTransmitter": "Transmitter {serial} is not assigned to a cylinder",
   "@dataQuality_msg_unknownTransmitter": {
+    "placeholders": {
+      "serial": { "type": "String" }
+    }
+  },
+  "dataQuality_detector_transmitter_gear_serial_mismatch": "Transmitter serial mismatch",
+  "dataQuality_msg_transmitterGearSerialMismatch": "Transmitter {serial} is linked to a gear item recorded with a different serial",
+  "@dataQuality_msg_transmitterGearSerialMismatch": {
     "placeholders": {
       "serial": { "type": "String" }
     }
