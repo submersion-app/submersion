@@ -3044,7 +3044,9 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.certifications,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson(serializer: _syncBlobSerializer);
+        return row == null
+            ? null
+            : withoutDeviceLocalColumns('certifications', row.toJson());
       case 'documents':
         final row = await (_db.select(
           _db.documents,
@@ -3950,7 +3952,8 @@ class SyncDataSerializer {
           _db.certifications,
         )..where((t) => t.id.isIn(idList))).get();
         return {
-          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+          for (final r in rows)
+            r.id: withoutDeviceLocalColumns('certifications', r.toJson()),
         };
       case 'documents':
         final rows = await (_db.select(
@@ -8880,8 +8883,10 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    // Certifications carry photoFront/photoBack BLOBs; base64-encode them.
-    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+    // The retired photoFront/photoBack BLOBs stay off the wire (#3502).
+    return rows
+        .map((r) => withoutDeviceLocalColumns('certifications', r.toJson()))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDocuments(String? hlcSince) async {

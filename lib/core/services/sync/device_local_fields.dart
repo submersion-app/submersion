@@ -1,11 +1,16 @@
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 
 /// Columns a synced row never carries, by entity type and wire (JSON) key,
-/// because their value belongs to one device rather than to the library.
+/// because their value belongs to one device rather than to the library, or
+/// because the column is retired and only a leftover copy lives there.
 ///
 /// Export strips them, import refills them from this device, and a save that
 /// changes only these columns stamps no sync clock (issue #2947).
 const Map<String, Set<String>> deviceLocalSyncColumns = {
+  // Retired card photos: the documents store holds them since v277, and
+  // v294 clears the copies (issue #3502). Kept off the wire so an older
+  // peer's leftover bytes never land here again.
+  'certifications': {'photoFront', 'photoBack'},
   // A host's BLE identifier for a computer; another host's never applies.
   'diveComputers': {'bluetoothAddress'},
   // A host's identifier for one of a computer's connections, and when this
