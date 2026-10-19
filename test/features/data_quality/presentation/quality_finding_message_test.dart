@@ -61,6 +61,7 @@ void main() {
         'tank_assignment',
         'source_conflict',
         'transmitter_role',
+        'transmitter_gear_serial_mismatch',
       ];
       for (final id in ids) {
         final title = detectorTitle(l10n, id);
