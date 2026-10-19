@@ -14,6 +14,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_tile_image_memo.dart';
+import 'package:submersion/features/media/presentation/widgets/color_corrected.dart';
 import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -354,12 +355,17 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       cacheWidth: cacheWidth,
       file: file,
     );
-    return Image(
-      image: MediaTileImageMemo.providerFor(file, cacheWidth),
-      fit: widget.fit,
-      errorBuilder: _imageError,
+    final provider = MediaTileImageMemo.providerFor(file, cacheWidth);
+    return _corrected(
+      provider,
+      Image(image: provider, fit: widget.fit, errorBuilder: _imageError),
     );
   }
+
+  /// [image] drawn with the item's colour correction (issue #3520); the
+  /// placeholders and error tiles never pass through here.
+  Widget _corrected(ImageProvider source, Widget image) =>
+      ColorCorrected(item: widget.item, analysisSource: source, child: image);
 
   /// Whether this view fills a full-screen viewer page rather than a tile.
   ///
@@ -439,10 +445,13 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
                   cacheWidth: cacheWidth,
                 );
           if (remembered != null) {
-            return Image(
-              image: remembered,
-              fit: widget.fit,
-              errorBuilder: _imageError,
+            return _corrected(
+              remembered,
+              Image(
+                image: remembered,
+                fit: widget.fit,
+                errorBuilder: _imageError,
+              ),
             );
           }
           return _loading();
@@ -471,24 +480,30 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           FileData(isPoster: false) when widget.item.isVideo =>
             const _VideoThumbnailPlaceholder(),
           FileData(file: final f) => _fileImage(memo, f, cacheWidth),
-          NetworkData(url: final u, headers: final h) => CachedNetworkImage(
-            imageUrl: u.toString(),
-            httpHeaders: h,
-            fit: widget.fit,
-            // The same decode bound as the file and bytes branches: without
-            // it a served original decodes at native size, and the viewers
-            // keep a neighbour built either side of the current page.
-            memCacheWidth: cacheWidth,
-            placeholder: (_, _) => _loading(),
-            errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
-              data: UnavailableData(kind: UnavailableKind.networkError),
+          NetworkData(url: final u, headers: final h) => _corrected(
+            CachedNetworkImageProvider(u.toString(), headers: h),
+            CachedNetworkImage(
+              imageUrl: u.toString(),
+              httpHeaders: h,
+              fit: widget.fit,
+              // The same decode bound as the file and bytes branches: without
+              // it a served original decodes at native size, and the viewers
+              // keep a neighbour built either side of the current page.
+              memCacheWidth: cacheWidth,
+              placeholder: (_, _) => _loading(),
+              errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
+                data: UnavailableData(kind: UnavailableKind.networkError),
+              ),
             ),
           ),
-          BytesData(bytes: final b) => Image.memory(
-            b,
-            fit: widget.fit,
-            cacheWidth: cacheWidth,
-            errorBuilder: _imageError,
+          BytesData(bytes: final b) => _corrected(
+            MemoryImage(b),
+            Image.memory(
+              b,
+              fit: widget.fit,
+              cacheWidth: cacheWidth,
+              errorBuilder: _imageError,
+            ),
           ),
           UnavailableData(kind: UnavailableKind.stillFetching) =>
             GestureDetector(
