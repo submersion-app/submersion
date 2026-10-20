@@ -44,26 +44,39 @@ class DivePlans extends Table {
   RealColumn get salinityPpt => real().nullable()();
   IntColumn get gfLow => integer()();
   IntColumn get gfHigh => integer()();
-  RealColumn get descentRate => real().withDefault(const Constant(18.0))();
-  RealColumn get ascentRate => real().withDefault(const Constant(9.0))();
 
-  /// Ascent rate between intermediate (deeper than 9 m) stops, m/min.
-  RealColumn get intermediateAscentRate =>
-      real().withDefault(const Constant(6.0))();
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get descentRate => real().nullable()();
 
-  /// Ascent rate between shallow (9 m and above) stops, m/min.
-  RealColumn get shallowAscentRate => real().withDefault(const Constant(3.0))();
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get ascentRate => real().nullable()();
 
-  /// Ascent rate from the last stop to the surface, m/min.
-  RealColumn get finalAscentRate => real().withDefault(const Constant(1.0))();
+  /// Ascent rate between intermediate (deeper than 9 m) stops, m/min. Null =
+  /// use the diver's Settings default (issue #3552).
+  RealColumn get intermediateAscentRate => real().nullable()();
 
-  RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
-  IntColumn get gasSwitchStopSeconds =>
-      integer().withDefault(const Constant(0))();
+  /// Ascent rate between shallow (9 m and above) stops, m/min. Null = use
+  /// the diver's Settings default (issue #3552).
+  RealColumn get shallowAscentRate => real().nullable()();
+
+  /// Ascent rate from the last stop to the surface, m/min. Null = use the
+  /// diver's Settings default (issue #3552).
+  RealColumn get finalAscentRate => real().nullable()();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get lastStopDepth => real().nullable()();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  IntColumn get gasSwitchStopSeconds => integer().nullable()();
 
   /// Air-break policy; both null = no air breaks.
   IntColumn get airBreakO2Seconds => integer().nullable()();
   IntColumn get airBreakBreakSeconds => integer().nullable()();
+
+  // sacBottom stays non-nullable here for now; its own Drift/domain
+  // nullability change lands with the rest of Gas (issue #3552) - the v303
+  // migration already dropped its SQL-level NOT NULL ahead of that, as part
+  // of the one-time dive_plans rebuild.
   RealColumn get sacBottom => real().withDefault(const Constant(15.0))();
 
   /// Null = derive 0.8x / 2.5x of sacBottom.

@@ -78,6 +78,8 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertColorCorrectionColumns();
     // v302 backstop: diver_settings planner Setup-accordion global defaults.
     await _assertPlannerDefaultColumns();
+    // v303 backstop: dive_plans Setup-accordion columns made nullable.
+    await _assertDivePlanSetupFieldsNullable();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do

@@ -494,5 +494,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertPlannerDefaultColumns();
     }
     if (from < 302) await reportProgress();
+
+    // v303: dive_plans Setup-accordion columns created NOT NULL in the
+    // initial schema drop that constraint, so a plan can store "unset,
+    // follow Settings" (issue #3552). Table rebuild; re-asserted in
+    // beforeOpen through _assertDivePlanSetupFieldsNullable. Review focus:
+    // this rewrites dive_plans' stored schema in place - see the helper's
+    // doc comment for why it is safe (transactional, additive-only
+    // substitution of the targeted NOT NULL clauses).
+    if (from < 303) {
+      await _assertDivePlanSetupFieldsNullable();
+    }
+    if (from < 303) await reportProgress();
   }
 }

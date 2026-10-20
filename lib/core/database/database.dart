@@ -286,7 +286,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 302;
+  static const int currentSchemaVersion = 303;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1342,6 +1342,10 @@ class AppDatabase extends _$AppDatabase {
     // v302: diver_settings planner Setup-accordion global defaults (issue
     // #3552). Additive columns only; does not move the compatibility floor.
     302,
+    // v303: dive_plans Setup-accordion columns made nullable (issue #3552).
+    // Table rebuild, but every value round-trips unchanged; does not move
+    // the compatibility floor.
+    303,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
