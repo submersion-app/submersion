@@ -330,6 +330,14 @@ class _AlignPageBody extends ConsumerWidget {
     final transientRoute = state._transientRoute(route);
     final fixEvents = NavTrackSegmenter.classify(route.points).fixEvents;
     final hasFix = fixEvents.isNotEmpty;
+    // Gates the "GPS position at surfacing" end chip specifically: `hasFix`
+    // (used below for the map's fix dots) is true for ANY fix event, pre-dive
+    // included, but NavTrackEndMode.gpsFix only ever resolves against a
+    // post-dive one (NavTrackCorrector._resolveTarget). A recording with only
+    // a pre-dive calibration would otherwise show a chip that silently
+    // behaves like "no correction" once selected.
+    final hasPostDiveFix =
+        NavTrackCorrector.postDiveFixEvent(route.points) != null;
     final range = NavTrackCorrector.activeRange(route.points);
     final activeStart = range.start;
     final activeEnd = range.end;
@@ -474,6 +482,7 @@ class _AlignPageBody extends ConsumerWidget {
             route: route,
             correction: correction,
             hasFix: hasFix,
+            hasPostDiveFix: hasPostDiveFix,
             activeStart: activeStart,
             cumulative: cumulative,
             totalDistance: totalDistance,
@@ -491,6 +500,7 @@ class _ControlsPanel extends ConsumerWidget {
     required this.route,
     required this.correction,
     required this.hasFix,
+    required this.hasPostDiveFix,
     required this.activeStart,
     required this.cumulative,
     required this.totalDistance,
@@ -501,6 +511,7 @@ class _ControlsPanel extends ConsumerWidget {
   final NavTrack route;
   final NavTrackCorrection correction;
   final bool hasFix;
+  final bool hasPostDiveFix;
   final int activeStart;
 
   /// The trust slider's distance axis over the active range, as the page
@@ -640,7 +651,7 @@ class _ControlsPanel extends ConsumerWidget {
               state: state,
               route: route,
               correction: correction,
-              hasFix: hasFix,
+              hasPostDiveFix: hasPostDiveFix,
               label: l10n.navTrack_align_endLabel,
               placeLabel: l10n.navTrack_align_endMode_point,
               noneLabel: l10n.navTrack_align_endMode_none,
@@ -720,7 +731,7 @@ class _EndModeControls extends StatelessWidget {
     required this.state,
     required this.route,
     required this.correction,
-    required this.hasFix,
+    required this.hasPostDiveFix,
     required this.label,
     required this.placeLabel,
     required this.noneLabel,
@@ -731,7 +742,7 @@ class _EndModeControls extends StatelessWidget {
   final _NavTrackAlignPageState state;
   final NavTrack route;
   final NavTrackCorrection correction;
-  final bool hasFix;
+  final bool hasPostDiveFix;
   final String label;
   final String placeLabel;
   final String noneLabel;
@@ -776,7 +787,7 @@ class _EndModeControls extends StatelessWidget {
               sameAsStartLabel,
               NavTrackEndMode.sameAsStart,
             ),
-            if (hasFix)
+            if (hasPostDiveFix)
               _chip(
                 'nav-track-align-end-gps-fix',
                 gpsFixLabel,

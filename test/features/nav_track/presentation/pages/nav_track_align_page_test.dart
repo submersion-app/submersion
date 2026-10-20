@@ -484,6 +484,64 @@ void main() {
   );
 
   testWidgets(
+    'the "GPS position at surfacing" end chip does not appear for a route '
+    'with only a pre-dive fix (review finding: hasFix alone is true for '
+    'ANY fix event, but NavTrackEndMode.gpsFix only ever resolves against '
+    'a post-dive one, so gating on hasFix would show a chip that silently '
+    'did nothing)',
+    (tester) async {
+      final preDiveFixOnlyPoints = [
+        const NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+        // A pre-dive GPS re-calibration jump, before any underwater sample.
+        const NavTrackPoint(
+          timestamp: 1755856802,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856804,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        // Now descending and staying underwater until the recording ends:
+        // no post-dive fix at all.
+        const NavTrackPoint(
+          timestamp: 1755856806,
+          north: 100,
+          east: 0,
+          depth: 5,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856808,
+          north: 105,
+          east: 2,
+          depth: 8,
+        ),
+      ];
+      final route = NavTrack(
+        id: 'r1',
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'r1.csv',
+        startTime: 1755856800000,
+        endTime: 1755856808000,
+        pointCount: preDiveFixOnlyPoints.length,
+        points: preDiveFixOnlyPoints,
+        createdAt: DateTime(2026, 8, 22),
+        updatedAt: DateTime(2026, 8, 22),
+      );
+
+      await _pump(tester, route: route);
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-end-gps-fix')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
     'the "Place end on map" button starts the crosshair flow and sets the '
     'point end mode once placed',
     (tester) async {
