@@ -145,13 +145,13 @@ class QualityContextBuilder {
       };
       value = {
         for (final t in entries)
-          if (normalizeTransmitterSerial(
-                gearById[t.transmitterEquipmentId]?.serialNumber,
-              )
-              case final gearSerial?
-              when gearSerial !=
-                  normalizeTransmitterSerial(t.transmitterSerial))
-            normalizeTransmitterSerial(t.transmitterSerial)!,
+          if (normalizeTransmitterSerial(t.transmitterSerial)
+              case final serial?)
+            if (normalizeTransmitterSerial(
+                  gearById[t.transmitterEquipmentId]?.serialNumber,
+                )
+                case final gearSerial? when gearSerial != serial)
+              serial,
       };
     } catch (_) {
       value = const {};
@@ -257,7 +257,14 @@ class QualityContextBuilder {
       neighbors: neighbors,
       ppO2MaxBar: await _ppO2Max(dive.diverId),
       knownTransmitterSerials: await _knownSerials(dive.diverId),
-      mismatchedTransmitterSerials: await _mismatchedSerials(dive.diverId),
+      // Only the mismatch detector reads this, and only for a tank carrying
+      // a serial, so a dive without one skips the equipment lookup.
+      mismatchedTransmitterSerials:
+          dive.tanks.any(
+            (t) => normalizeTransmitterSerial(t.transmitterSerial) != null,
+          )
+          ? await _mismatchedSerials(dive.diverId)
+          : const {},
       sharedGearOverlaps: await _sharedGearOverlaps(dive),
     );
   }

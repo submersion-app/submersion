@@ -137,7 +137,7 @@ class TransmitterRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
-    await _rescanAffectedDives(normalized);
+    await _rescanAffectedDives([normalized]);
     return normalized.copyWith(
       createdAt: DateTime.fromMillisecondsSinceEpoch(now),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
@@ -145,9 +145,13 @@ class TransmitterRepository {
   }
 
   /// An unknown-transmitter finding clears itself on the next scan of its
-  /// dive, so queue one for the dives that carry this entry's key.
-  Future<void> _rescanAffectedDives(Transmitter t) async {
-    final affected = (await _tanksForEntry(t)).map((r) => r.diveId).toSet();
+  /// dive, so queue one, in a single batch, for the dives that carry any of
+  /// [entries]' keys.
+  Future<void> _rescanAffectedDives(Iterable<Transmitter> entries) async {
+    final affected = {
+      for (final t in entries)
+        ...(await _tanksForEntry(t)).map((r) => r.diveId),
+    };
     if (affected.isNotEmpty) scheduleQualityScan(affected);
   }
 
@@ -159,7 +163,7 @@ class TransmitterRepository {
   ) async {
     for (final id in transmitterIds.toSet()) {
       final t = await getById(id);
-      if (t != null) await _rescanAffectedDives(t);
+      if (t != null) await _rescanAffectedDives([t]);
     }
   }
 
@@ -207,6 +211,10 @@ class TransmitterRepository {
   Future<void> update(Transmitter t) async {
     final normalized = _normalized(t);
     await _checkConflicts(normalized);
+    // The dives the entry matched before the edit lose its findings (or
+    // gain an unknown-transmitter one) when its key changes, so they are
+    // rescanned along with the dives it matches now.
+    final previous = await getById(normalized.id);
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.transmitters)
           ..where((r) => r.id.equals(normalized.id)))
@@ -217,13 +225,26 @@ class TransmitterRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
-    await _rescanAffectedDives(normalized);
+    await _rescanAffectedDives([normalized, ?previous]);
   }
 
   Future<void> delete(String id) async {
+    // Read before the row goes: its dives are rescanned by its key.
+    final previous = await getById(id);
     await (_db.delete(_db.transmitters)..where((t) => t.id.equals(id))).go();
     await _syncRepository.logDeletion(entityType: _entity, recordId: id);
     SyncEventBus.notifyLocalChange();
+    if (previous != null) await _rescanAffectedDives([previous]);
+  }
+
+  /// Queues a rescan of the dives matched by every entry that names
+  /// [equipmentId] as its transmitter gear item, after that item's own
+  /// serial changed (issue #3367): the gear-serial mismatch finding reads it.
+  Future<void> rescanDivesForTransmitterItem(String equipmentId) async {
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.transmitterEquipmentId.equals(equipmentId))).get();
+    await _rescanAffectedDives(rows.map(_map));
   }
 
   /// Distinct normalized serials on the diver's downloaded tanks with no

@@ -555,6 +555,36 @@ void main() {
     },
   );
 
+  testWidgets('offers the copy onto a gear item whose serial is an all-zero '
+      'placeholder, as the mismatch detector reads it (#3540)', (tester) async {
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, serial_number, "
+      "created_at, updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', "
+      "'transmitter', '000', 1, 1)",
+    );
+    await _pumpPage(
+      tester,
+      _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
+    );
+
+    await tester.tap(find.text('Transmitter from gear'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Perdix Tx'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('transmitter_label')), 'M');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy'));
+    await tester.pumpAndSettle();
+
+    final db = DatabaseService.instance.database;
+    final row = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals('tx'))).getSingle();
+    expect(row.serialNumber, '555');
+    expect(find.text('LIST'), findsOneWidget, reason: 'the save completes');
+  });
+
   testWidgets(
     'does not copy an all-zero sentinel serial onto the gear item (#3540)',
     (tester) async {

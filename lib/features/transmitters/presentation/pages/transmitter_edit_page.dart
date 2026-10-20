@@ -355,15 +355,6 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         ?entry.transmitterEquipmentId,
       };
       if (touched.isNotEmpty) scheduleConditionFindingsRefresh(touched);
-      final normalizedSerial = normalizeTransmitterSerial(serialText);
-      if (_transmitterGearJustPicked &&
-          normalizedSerial != null &&
-          _transmitterEquipmentId != null) {
-        await _offerCopySerialToGear(
-          _transmitterEquipmentId!,
-          normalizedSerial,
-        );
-      }
     } on TransmitterConflictException catch (e) {
       setState(
         () => _duplicateError = l10n.transmitters_validation_duplicate(
@@ -377,6 +368,13 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('${l10n.common_label_error}: $e')));
       return;
+    }
+    // Outside the save's try: the entry is already written, so a failed
+    // offer must not leave the page open for a second Save to collide with it.
+    final copySerial = normalizeTransmitterSerial(serialText);
+    final gearId = _transmitterEquipmentId;
+    if (_transmitterGearJustPicked && gearId != null && copySerial != null) {
+      await _offerCopySerialToGear(gearId, copySerial);
     }
     if (!mounted) return;
     // A serial assigned straight after a download is the moment the diver
@@ -417,36 +415,54 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   /// A gear item freshly linked this session with no serial of its own
   /// (issue #3367) gets offered a copy of the matched serial, so the
   /// equipment record carries it too without a second manual edit. Never
-  /// overwrites a serial that is already there, even a different one - that
-  /// case is left for the data-quality detector to flag.
+  /// overwrites a serial that is already there, even a different one; that
+  /// case is left for the data-quality detector to flag. "Already there"
+  /// reads the gear serial the way the detector does, so an all-zero
+  /// placeholder counts as none and is offered the copy.
+  ///
+  /// The entry is saved by the time this runs, so a failure here is reported
+  /// and swallowed rather than undoing the save.
   Future<void> _offerCopySerialToGear(String equipmentId, String serial) async {
-    final gear = await ref.read(equipmentItemProvider(equipmentId).future);
-    if (gear == null) return;
-    final existingSerial = gear.serialNumber?.trim();
-    if (existingSerial != null && existingSerial.isNotEmpty) return;
-    if (!mounted) return;
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.transmitters_copySerial_title(gear.name)),
-        content: Text(l10n.transmitters_copySerial_content(serial)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.common_action_copy),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await ref
-        .read(equipmentRepositoryProvider)
-        .updateEquipment(gear.copyWith(serialNumber: serial));
+    try {
+      final gear = await ref.read(equipmentItemProvider(equipmentId).future);
+      if (gear == null) return;
+      if (normalizeTransmitterSerial(gear.serialNumber) != null) return;
+      if (!mounted) return;
+      final l10n = context.l10n;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.transmitters_copySerial_title(gear.name)),
+          content: Text(l10n.transmitters_copySerial_content(serial)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.common_action_cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.common_action_copy),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      // Through the list notifier, as the equipment editor saves, so the
+      // equipment lists refresh with the new serial.
+      await ref
+          .read(equipmentListNotifierProvider.notifier)
+          .updateEquipment(gear.copyWith(serialNumber: serial));
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not copy the serial onto the transmitter gear item',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
+      );
+    }
   }
 
   /// A field's number once the form has validated. Blank is "not set";

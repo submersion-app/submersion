@@ -494,6 +494,14 @@ void main() {
           );
     });
 
+    // A tank carrying the registry serial: the builder only resolves the
+    // mismatch set for a dive the detector could flag.
+    domain.DiveTank serialTank() => const domain.DiveTank(
+      id: 't1',
+      gasMix: domain.GasMix(o2: 21, he: 0),
+      transmitterSerial: '555',
+    );
+
     Future<void> seedTransmitterGear(
       String id, {
       String? serialNumber,
@@ -535,6 +543,7 @@ void main() {
         id: 'd1',
         entry: DateTime.utc(2026, 7, 1),
         diverId: 'diver-1',
+        tanks: [serialTank()],
       );
 
       final ctx = (await builder.buildAll(['d1'])).single;
@@ -554,6 +563,7 @@ void main() {
           id: 'd1',
           entry: DateTime.utc(2026, 7, 1),
           diverId: 'diver-1',
+          tanks: [serialTank()],
         );
 
         final ctx = (await builder.buildAll(['d1'])).single;
@@ -574,6 +584,7 @@ void main() {
           id: 'd1',
           entry: DateTime.utc(2026, 7, 1),
           diverId: 'diver-1',
+          tanks: [serialTank()],
         );
 
         final ctx = (await builder.buildAll(['d1'])).single;
@@ -593,6 +604,25 @@ void main() {
           createdAt: now,
           updatedAt: now,
         ),
+      );
+      await seedDive(
+        id: 'd1',
+        entry: DateTime.utc(2026, 7, 1),
+        diverId: 'diver-1',
+        tanks: [serialTank()],
+      );
+
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.mismatchedTransmitterSerials, isEmpty);
+    });
+
+    test('is empty for a dive with no transmitter serial on any tank, '
+        'without resolving the mismatch', () async {
+      await seedTransmitterGear('tx', serialNumber: '999');
+      await seedTransmitter(
+        id: 'e1',
+        serial: '555',
+        transmitterEquipmentId: 'tx',
       );
       await seedDive(
         id: 'd1',
