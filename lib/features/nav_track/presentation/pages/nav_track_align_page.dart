@@ -237,6 +237,17 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
 
   void _startPlacing(_Placing target) => setState(() => _placing = target);
 
+  /// Starts the end-point crosshair flow and sets the end mode to [point]
+  /// in one rebuild, instead of two separate `setState` calls for what is a
+  /// single user action (pressing "Place end on map").
+  void _startPlacingEndPoint(NavTrack route) {
+    setState(() {
+      _placing = _Placing.end;
+      _correction = _correction.copyWith(endMode: NavTrackEndMode.point);
+    });
+    _scheduleTerrainCheck(route);
+  }
+
   void _resetCorrection() => setState(() {
     _correction = const NavTrackCorrection();
     _terrainResult = null;
@@ -625,45 +636,16 @@ class _ControlsPanel extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.navTrack_align_endLabel),
-                const SizedBox(height: 4),
-                DropdownButton<NavTrackEndMode>(
-                  key: const ValueKey('nav-track-align-end-mode'),
-                  value: correction.endMode,
-                  items: [
-                    DropdownMenuItem(
-                      value: NavTrackEndMode.none,
-                      child: Text(l10n.navTrack_align_endMode_none),
-                    ),
-                    DropdownMenuItem(
-                      value: NavTrackEndMode.sameAsStart,
-                      child: Text(l10n.navTrack_align_endMode_sameAsStart),
-                    ),
-                    DropdownMenuItem(
-                      value: NavTrackEndMode.point,
-                      child: Text(l10n.navTrack_align_endMode_point),
-                    ),
-                    if (hasFix)
-                      DropdownMenuItem(
-                        value: NavTrackEndMode.gpsFix,
-                        child: Text(l10n.navTrack_align_endMode_gpsFix),
-                      ),
-                  ],
-                  onChanged: (mode) {
-                    if (mode == null) return;
-                    if (mode == NavTrackEndMode.point) {
-                      state._startPlacing(_Placing.end);
-                    }
-                    state._updateCorrection(
-                      (c) => c.copyWith(endMode: mode),
-                      route,
-                    );
-                  },
-                ),
-              ],
+            _EndModeControls(
+              state: state,
+              route: route,
+              correction: correction,
+              hasFix: hasFix,
+              label: l10n.navTrack_align_endLabel,
+              placeLabel: l10n.navTrack_align_endMode_point,
+              noneLabel: l10n.navTrack_align_endMode_none,
+              sameAsStartLabel: l10n.navTrack_align_endMode_sameAsStart,
+              gpsFixLabel: l10n.navTrack_align_endMode_gpsFix,
             ),
             const SizedBox(height: 8),
             Text(
@@ -724,6 +706,85 @@ class _ControlsPanel extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The "Ende:" row: the same button+chips look as the start-point row above
+/// it, instead of the single-value dropdown it replaces. The dropdown's one
+/// advantage -- the current mode is always legible at a glance -- is kept by
+/// giving the active chip (or, for [NavTrackEndMode.point], the button
+/// itself) a selected/checked look rather than dropping that signal.
+class _EndModeControls extends StatelessWidget {
+  const _EndModeControls({
+    required this.state,
+    required this.route,
+    required this.correction,
+    required this.hasFix,
+    required this.label,
+    required this.placeLabel,
+    required this.noneLabel,
+    required this.sameAsStartLabel,
+    required this.gpsFixLabel,
+  });
+
+  final _NavTrackAlignPageState state;
+  final NavTrack route;
+  final NavTrackCorrection correction;
+  final bool hasFix;
+  final String label;
+  final String placeLabel;
+  final String noneLabel;
+  final String sameAsStartLabel;
+  final String gpsFixLabel;
+
+  Widget _chip(String key, String text, NavTrackEndMode mode) => FilterChip(
+    key: ValueKey(key),
+    label: Text(text),
+    selected: correction.endMode == mode,
+    onSelected: (_) =>
+        state._updateCorrection((c) => c.copyWith(endMode: mode), route),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final isPoint = correction.endMode == NavTrackEndMode.point;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            isPoint
+                ? FilledButton.icon(
+                    key: const ValueKey('nav-track-align-place-end'),
+                    onPressed: () => state._startPlacingEndPoint(route),
+                    icon: const Icon(Icons.check, size: 16),
+                    label: Text(placeLabel),
+                  )
+                : FilledButton.tonal(
+                    key: const ValueKey('nav-track-align-place-end'),
+                    onPressed: () => state._startPlacingEndPoint(route),
+                    child: Text(placeLabel),
+                  ),
+            _chip('nav-track-align-end-none', noneLabel, NavTrackEndMode.none),
+            _chip(
+              'nav-track-align-end-same-as-start',
+              sameAsStartLabel,
+              NavTrackEndMode.sameAsStart,
+            ),
+            if (hasFix)
+              _chip(
+                'nav-track-align-end-gps-fix',
+                gpsFixLabel,
+                NavTrackEndMode.gpsFix,
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

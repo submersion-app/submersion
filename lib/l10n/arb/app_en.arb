@@ -30939,10 +30939,10 @@
   "navTrack_align_fromGps": "From GPS",
   "navTrack_align_startLabel": "Start: ",
   "navTrack_align_endLabel": "End: ",
-  "navTrack_align_endMode_none": "None",
+  "navTrack_align_endMode_none": "No end",
   "navTrack_align_endMode_sameAsStart": "Same as start",
-  "navTrack_align_endMode_point": "Place on map",
-  "navTrack_align_endMode_gpsFix": "From GPS fix",
+  "navTrack_align_endMode_point": "Place end on map",
+  "navTrack_align_endMode_gpsFix": "GPS position at surfacing",
   "navTrack_align_trustSummary": "Trust: trusted up to {distance}, {minutes} min",
   "@navTrack_align_trustSummary": {
     "placeholders": {

@@ -392,21 +392,126 @@ void main() {
     );
   });
 
-  testWidgets('the end mode dropdown switches to "same as start"', (
+  testWidgets('the "Same as start" end chip switches the end mode', (
     tester,
   ) async {
     final repository = await _pump(tester, route: _route());
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-end-mode')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Same as start').last);
-    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+    );
+    await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
     await tester.pumpAndSettle();
 
     expect(repository.lastCorrection?.endMode, NavTrackEndMode.sameAsStart);
   });
+
+  testWidgets(
+    'the end chips mirror the start chips\' button+chips look, and only '
+    'one end mode is selected at a time',
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      FilterChip chipByKey(String key) =>
+          tester.widget<FilterChip>(find.byKey(ValueKey(key)));
+
+      // "None" is the default end mode, so its chip starts selected.
+      expect(chipByKey('nav-track-align-end-none').selected, isTrue);
+      expect(chipByKey('nav-track-align-end-same-as-start').selected, isFalse);
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+      );
+      await tester.pump();
+
+      expect(chipByKey('nav-track-align-end-none').selected, isFalse);
+      expect(chipByKey('nav-track-align-end-same-as-start').selected, isTrue);
+    },
+  );
+
+  testWidgets(
+    'the "GPS position at surfacing" end chip only appears for a route '
+    'with a post-dive fix, and selecting it sets the end mode',
+    (tester) async {
+      final track = parseSeacraftEncCsv(
+        File(
+          'test/fixtures/nav_tracks/seacraft_enc3_gps_fix.csv',
+        ).readAsBytesSync(),
+      );
+      final fixRoute = NavTrack(
+        id: 'r-fix',
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'fix.csv',
+        startTime: track.points.first.timestamp * 1000,
+        endTime: track.points.last.timestamp * 1000,
+        pointCount: track.points.length,
+        points: track.points,
+        anchorLatitude: 47.1,
+        anchorLongitude: 8.3,
+        createdAt: DateTime(2026, 9, 6),
+        updatedAt: DateTime(2026, 9, 6),
+      );
+
+      final repository = await _pump(tester, route: fixRoute);
+
+      final chipFinder = find.byKey(
+        const ValueKey('nav-track-align-end-gps-fix'),
+      );
+      expect(chipFinder, findsOneWidget);
+      await tester.tap(chipFinder);
+      await tester.pump();
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastCorrection?.endMode, NavTrackEndMode.gpsFix);
+    },
+  );
+
+  testWidgets(
+    'the "GPS position at surfacing" end chip does not appear for a route '
+    'with no fix event',
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-end-gps-fix')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'the "Place end on map" button starts the crosshair flow and sets the '
+    'point end mode once placed',
+    (tester) async {
+      final repository = await _pump(tester, route: _route());
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+      await tester.pump();
+
+      // The dropdown this replaces always showed the current mode; the
+      // button mirrors that by switching to a checked, filled look once the
+      // point mode is active, instead of silently losing the indicator.
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-align-place-end')),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastCorrection?.endMode, NavTrackEndMode.point);
+      expect(repository.lastCorrection?.endPoint, isNotNull);
+    },
+  );
 
   testWidgets(
     'dragging the trust slider updates the trust fraction and readout',

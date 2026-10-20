@@ -52145,16 +52145,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_align_endLabel => 'Ende: ';
 
   @override
-  String get navTrack_align_endMode_none => 'Keins';
+  String get navTrack_align_endMode_none => 'Kein Ende';
 
   @override
   String get navTrack_align_endMode_sameAsStart => 'Wie der Start';
 
   @override
-  String get navTrack_align_endMode_point => 'Auf der Karte setzen';
+  String get navTrack_align_endMode_point => 'Ende auf der Karte setzen';
 
   @override
-  String get navTrack_align_endMode_gpsFix => 'Aus GPS-Fix';
+  String get navTrack_align_endMode_gpsFix => 'GPS-Position beim Auftauchen';
 
   @override
   String navTrack_align_trustSummary(String distance, int minutes) {

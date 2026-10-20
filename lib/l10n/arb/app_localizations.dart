@@ -82613,7 +82613,7 @@ abstract class AppLocalizations {
   /// No description provided for @navTrack_align_endMode_none.
   ///
   /// In en, this message translates to:
-  /// **'None'**
+  /// **'No end'**
   String get navTrack_align_endMode_none;
 
   /// No description provided for @navTrack_align_endMode_sameAsStart.
@@ -82625,13 +82625,13 @@ abstract class AppLocalizations {
   /// No description provided for @navTrack_align_endMode_point.
   ///
   /// In en, this message translates to:
-  /// **'Place on map'**
+  /// **'Place end on map'**
   String get navTrack_align_endMode_point;
 
   /// No description provided for @navTrack_align_endMode_gpsFix.
   ///
   /// In en, this message translates to:
-  /// **'From GPS fix'**
+  /// **'GPS position at surfacing'**
   String get navTrack_align_endMode_gpsFix;
 
   /// No description provided for @navTrack_align_trustSummary.

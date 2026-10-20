@@ -51436,16 +51436,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_align_endLabel => 'End: ';
 
   @override
-  String get navTrack_align_endMode_none => 'None';
+  String get navTrack_align_endMode_none => 'No end';
 
   @override
   String get navTrack_align_endMode_sameAsStart => 'Same as start';
 
   @override
-  String get navTrack_align_endMode_point => 'Place on map';
+  String get navTrack_align_endMode_point => 'Place end on map';
 
   @override
-  String get navTrack_align_endMode_gpsFix => 'From GPS fix';
+  String get navTrack_align_endMode_gpsFix => 'GPS position at surfacing';
 
   @override
   String navTrack_align_trustSummary(String distance, int minutes) {
