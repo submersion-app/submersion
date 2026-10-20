@@ -10448,6 +10448,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_label_decompression => 'Décompression';
 
   @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Par défaut ($value)';
+  }
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return 'Profondeur ($depthSymbol)';
   }

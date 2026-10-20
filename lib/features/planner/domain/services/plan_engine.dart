@@ -96,6 +96,18 @@ class PlanEngineConfig extends Equatable {
   /// from `gasModelProvider` (issue #828).
   final GasModel gasModel;
 
+  // Planner Setup-accordion global defaults (issue #3552). Resolved through
+  // descentRateFor/ascentRateFor/etc below, the same shape as
+  // setpointLowFor/setpointHighFor - a plan's own value always wins, these
+  // apply only where the plan's field is null.
+  final double descentRate;
+  final double ascentRate;
+  final double intermediateAscentRate;
+  final double shallowAscentRate;
+  final double finalAscentRate;
+  final double lastStopDepth;
+  final int gasSwitchStopSeconds;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -116,6 +128,13 @@ class PlanEngineConfig extends Equatable {
     this.pscrRatio = 100.0,
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
+    this.descentRate = 18.0,
+    this.ascentRate = 9.0,
+    this.intermediateAscentRate = 6.0,
+    this.shallowAscentRate = 3.0,
+    this.finalAscentRate = 1.0,
+    this.lastStopDepth = 3.0,
+    this.gasSwitchStopSeconds = 0,
   });
 
   @override
@@ -139,6 +158,13 @@ class PlanEngineConfig extends Equatable {
     pscrRatio,
     cnsMethod,
     gasModel,
+    descentRate,
+    ascentRate,
+    intermediateAscentRate,
+    shallowAscentRate,
+    finalAscentRate,
+    lastStopDepth,
+    gasSwitchStopSeconds,
   ];
 
   PlanEngineConfig copyWith({
@@ -161,6 +187,13 @@ class PlanEngineConfig extends Equatable {
     double? pscrRatio,
     CnsCalculationMethod? cnsMethod,
     GasModel? gasModel,
+    double? descentRate,
+    double? ascentRate,
+    double? intermediateAscentRate,
+    double? shallowAscentRate,
+    double? finalAscentRate,
+    double? lastStopDepth,
+    int? gasSwitchStopSeconds,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -183,6 +216,14 @@ class PlanEngineConfig extends Equatable {
       pscrRatio: pscrRatio ?? this.pscrRatio,
       cnsMethod: cnsMethod ?? this.cnsMethod,
       gasModel: gasModel ?? this.gasModel,
+      descentRate: descentRate ?? this.descentRate,
+      ascentRate: ascentRate ?? this.ascentRate,
+      intermediateAscentRate:
+          intermediateAscentRate ?? this.intermediateAscentRate,
+      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
+      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
+      lastStopDepth: lastStopDepth ?? this.lastStopDepth,
+      gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
     );
   }
 
@@ -196,6 +237,11 @@ class PlanEngineConfig extends Equatable {
   /// Every other field, [endLimitMeters] (the diver's Settings END limit)
   /// included, carries over through [copyWith], so a field added later
   /// cannot silently fall back to its default here (issue #2640).
+  ///
+  /// The Deco/Rates fields ([descentRate] etc., issue #3552) pass [plan]'s
+  /// value straight through the same way: [copyWith] already treats a null
+  /// argument as "keep this config's value", so an unset plan field resolves
+  /// to the diver's Settings default without any extra null-check here.
   PlanEngineConfig resolvedFor(domain.DivePlan plan) {
     return copyWith(
       ppO2Working: plan.ppO2Bottom,
@@ -203,6 +249,13 @@ class PlanEngineConfig extends Equatable {
       o2Narcotic: plan.o2Narcotic,
       bestMixEndMeters: plan.bestMixEndMeters,
       buddyFactor: plan.sacFactor,
+      descentRate: plan.descentRate,
+      ascentRate: plan.ascentRate,
+      intermediateAscentRate: plan.intermediateAscentRate,
+      shallowAscentRate: plan.shallowAscentRate,
+      finalAscentRate: plan.finalAscentRate,
+      lastStopDepth: plan.lastStopDepth,
+      gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
     );
   }
 
@@ -374,8 +427,11 @@ class PlanEngine {
         List<PlanSegment>.from(plan.segments)
           ..sort((a, b) => a.order.compareTo(b.order)),
         plan,
+        descentRate: config.descentRate,
+        ascentRate: config.ascentRate,
       ),
       plan,
+      gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     );
     // Waypoints carry only a target depth, so the profile they describe -
     // start depths, phases, rates - is resolved once here, and everything
@@ -1467,14 +1523,21 @@ class PlanEngine {
   /// stop runtimes, rock-bottom), and every one of them has to agree with the
   /// legs the deco model actually loaded. One derivation from the plan keeps
   /// them from drifting apart.
+  ///
+  /// Reads the Deco/Rates fields from [config] (issue #3552), not [plan]
+  /// directly, because by the time this runs [config] is already
+  /// [PlanEngineConfig.resolvedFor] this plan - its own value where set,
+  /// the diver's Settings otherwise. `plan` is still needed for
+  /// [domain.DivePlan.airBreaks] and [domain.DivePlan.stopMinimums], which
+  /// have no global default.
   SchedulePolicy _policyFor(domain.DivePlan plan) => SchedulePolicy(
-    lastStopDepth: plan.lastStopDepth,
-    ascentRate: plan.ascentRate,
-    intermediateAscentRate: plan.intermediateAscentRate,
-    shallowAscentRate: plan.shallowAscentRate,
-    finalAscentRate: plan.finalAscentRate,
-    descentRate: plan.descentRate,
-    gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+    lastStopDepth: config.lastStopDepth,
+    ascentRate: config.ascentRate,
+    intermediateAscentRate: config.intermediateAscentRate,
+    shallowAscentRate: config.shallowAscentRate,
+    finalAscentRate: config.finalAscentRate,
+    descentRate: config.descentRate,
+    gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     // A plan is read against a watch: stops end on whole minutes.
     snapStopsToWholeMinutes: true,
     airBreaks: plan.airBreaks,

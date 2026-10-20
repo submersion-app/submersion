@@ -24,10 +24,17 @@ const rateSplitHoldIdSuffix = '__hold';
 /// governs: its duration is stretched to the travel time instead of being
 /// left at the diver's (too short) authored figure, which would otherwise
 /// silently ignore the checkbox (#3130).
+///
+/// [descentRate]/[ascentRate] are the caller's already-resolved values
+/// (issue #3552): [plan]'s own value when set, else the diver's Settings
+/// default - this function has no `PlanEngineConfig` to resolve them
+/// against itself.
 List<PlanSegment> expandRateSplitSegments(
   List<PlanSegment> segments,
-  domain.DivePlan plan,
-) {
+  domain.DivePlan plan, {
+  required double descentRate,
+  required double ascentRate,
+}) {
   final result = <PlanSegment>[];
   var fromDepth = 0.0;
   for (final segment in segments) {
@@ -38,7 +45,7 @@ List<PlanSegment> expandRateSplitSegments(
       continue;
     }
 
-    final rate = toDepth > fromDepth ? plan.descentRate : plan.ascentRate;
+    final rate = toDepth > fromDepth ? descentRate : ascentRate;
     final travelSeconds = PlanSegment.travelSeconds(
       metres: toDepth - fromDepth,
       ratePerMinute: rate,

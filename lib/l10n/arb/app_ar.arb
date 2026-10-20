@@ -3172,6 +3172,7 @@
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "جدول تخفيف الضغط",
   "divePlanner_label_decompression": "تخفيف الضغط",
+  "divePlanner_label_defaultWithValue": "الافتراضي ({value})",
   "divePlanner_label_depthAxis": "العمق ({depthSymbol})",
   "divePlanner_label_empty": "فارغ",
   "divePlanner_label_gasConsumption": "استهلاك الغاز",

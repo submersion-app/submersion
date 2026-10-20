@@ -9914,6 +9914,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_label_decompression => '减压';
 
   @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return '默认（$value）';
+  }
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return '深度 ($depthSymbol)';
   }

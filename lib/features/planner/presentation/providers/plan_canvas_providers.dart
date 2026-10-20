@@ -34,6 +34,13 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     pscrRatio: ref.watch(pscrRatioProvider),
     cnsMethod: ref.watch(cnsCalculationMethodProvider),
     gasModel: ref.watch(gasModelProvider),
+    descentRate: ref.watch(plannerDescentRateProvider),
+    ascentRate: ref.watch(plannerAscentRateProvider),
+    intermediateAscentRate: ref.watch(plannerIntermediateAscentRateProvider),
+    shallowAscentRate: ref.watch(plannerShallowAscentRateProvider),
+    finalAscentRate: ref.watch(plannerFinalAscentRateProvider),
+    lastStopDepth: ref.watch(lastStopDepthProvider),
+    gasSwitchStopSeconds: ref.watch(plannerGasSwitchStopSecondsProvider),
   );
 });
 
@@ -200,7 +207,11 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
     final bailout = ref.watch(planBailoutProvider);
     if (bailout != null) return buildBailoutCanvasSeries(bailout);
   }
-  return buildCanvasSeries(plan: divePlanFromState(state), outcome: outcome);
+  return buildCanvasSeries(
+    plan: divePlanFromState(state),
+    outcome: outcome,
+    config: ref.watch(planEngineConfigProvider),
+  );
 });
 
 /// The worst-case bailout picture as chart series: CCR up to the worst-case
@@ -316,6 +327,7 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
 PlanCanvasSeries buildCanvasSeries({
   required domain.DivePlan plan,
   required PlanOutcome outcome,
+  PlanEngineConfig config = const PlanEngineConfig(),
 }) {
   final isCcr = plan.mode == domain.PlanMode.ccr;
   // Cylinder roles feed [withDiluentSwitchTime]'s diluent-switch detection,
@@ -323,13 +335,20 @@ PlanCanvasSeries buildCanvasSeries({
   // plan with raw, unresolved roles must not read a different authored
   // profile here than the engine computed [outcome] from.
   final resolvedPlan = const TankRoleResolver().apply(plan);
+  // Resolved against this plan (issue #3552), the same as PlanEngine.compute
+  // and BailoutSolver.solve, so an unset Deco/Rates field expands the same
+  // segments here as it did for [outcome].
+  final resolvedConfig = config.resolvedFor(resolvedPlan);
   final sorted = withDiluentSwitchTime(
     expandRateSplitSegments(
       List<PlanSegment>.from(resolvedPlan.segments)
         ..sort((a, b) => a.order.compareTo(b.order)),
       resolvedPlan,
+      descentRate: resolvedConfig.descentRate,
+      ascentRate: resolvedConfig.ascentRate,
     ),
     resolvedPlan,
+    gasSwitchStopSeconds: resolvedConfig.gasSwitchStopSeconds,
   );
 
   final profile = <CanvasPoint>[];
@@ -544,7 +563,11 @@ final selectedContingencyProvider =
 final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
   final preview = ref.watch(selectedContingencyProvider);
   if (preview == null) return null;
-  return buildCanvasSeries(plan: preview.plan, outcome: preview.outcome);
+  return buildCanvasSeries(
+    plan: preview.plan,
+    outcome: preview.outcome,
+    config: ref.watch(planEngineConfigProvider),
+  );
 });
 
 /// The outcome to display everywhere the headline stats (runtime, TTS/NDL,

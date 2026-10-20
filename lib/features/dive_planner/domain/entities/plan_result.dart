@@ -502,25 +502,30 @@ class DivePlanState extends Equatable {
   final double? sacDeco;
 
   /// Working ascent rate in meters per minute: off the bottom, up to the
-  /// first decompression stop.
-  final double ascentRate;
+  /// first decompression stop. Null = use the diver's Settings default
+  /// (issue #3552).
+  final double? ascentRate;
 
   /// Ascent rate in meters per minute between intermediate stops, deeper
-  /// than 9 m.
-  final double intermediateAscentRate;
+  /// than 9 m. Null = use the diver's Settings default (issue #3552).
+  final double? intermediateAscentRate;
 
   /// Ascent rate in meters per minute between shallow stops, 9 m and above.
-  final double shallowAscentRate;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? shallowAscentRate;
 
   /// Ascent rate in meters per minute from the last stop to the surface.
-  final double finalAscentRate;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? finalAscentRate;
 
   /// Shallowest decompression stop in meters (3 or 6), which is also where
-  /// [finalAscentRate] takes over from the other ascent rates.
-  final double lastStopDepth;
+  /// [finalAscentRate] takes over from the other ascent rates. Null = use
+  /// the diver's Settings default (issue #3552).
+  final double? lastStopDepth;
 
-  /// Descent rate in meters per minute.
-  final double descentRate;
+  /// Descent rate in meters per minute. Null = use the diver's Settings
+  /// default (issue #3552).
+  final double? descentRate;
 
   /// Air-break (back-gas break) policy for long O2 deco stops; null = no
   /// air breaks.
@@ -585,11 +590,10 @@ class DivePlanState extends Equatable {
   final int problemSolvingMinutes;
 
   /// Minimum stop time in seconds enforced wherever the gas actually
-  /// switches (main table and bailout alike); 0 = no floor. Mirrors
-  /// [DivePlan.gasSwitchStopSeconds]. Unlike the ppO2/O2-narcotic fields
-  /// below, there is no app-wide default to fall back to -- it is plan-only,
-  /// same as [DivePlan] itself.
-  final int gasSwitchStopSeconds;
+  /// switches (main table and bailout alike); 0 = no floor, null = use the
+  /// diver's Settings default (issue #3552). Mirrors
+  /// [DivePlan.gasSwitchStopSeconds].
+  final int? gasSwitchStopSeconds;
 
   /// ppO2 ceiling for the working part of the dive; null = use the app-wide
   /// setting. Mirrors [DivePlan.ppO2Bottom].
@@ -664,12 +668,12 @@ class DivePlanState extends Equatable {
     this.gfHigh = kFallbackGfHigh,
     this.sacRate = 15.0,
     this.sacDeco,
-    this.ascentRate = 9.0,
-    this.intermediateAscentRate = 6.0,
-    this.shallowAscentRate = 3.0,
-    this.finalAscentRate = 1.0,
-    this.lastStopDepth = 3.0,
-    this.descentRate = 18.0,
+    this.ascentRate,
+    this.intermediateAscentRate,
+    this.shallowAscentRate,
+    this.finalAscentRate,
+    this.lastStopDepth,
+    this.descentRate,
     this.airBreaks,
     this.surfaceInterval,
     this.initialTissueState,
@@ -691,7 +695,7 @@ class DivePlanState extends Equatable {
     this.reservePressure = kDefaultReservePressureBar,
     this.sacFactor = 2.0,
     this.problemSolvingMinutes = 2,
-    this.gasSwitchStopSeconds = 0,
+    this.gasSwitchStopSeconds,
     this.ppO2Bottom,
     this.ppO2Deco,
     this.bestMixEndMeters = 30.0,
@@ -749,11 +753,17 @@ class DivePlanState extends Equatable {
     double? sacDeco,
     bool clearSacDeco = false,
     double? ascentRate,
+    bool clearAscentRate = false,
     double? intermediateAscentRate,
+    bool clearIntermediateAscentRate = false,
     double? shallowAscentRate,
+    bool clearShallowAscentRate = false,
     double? finalAscentRate,
+    bool clearFinalAscentRate = false,
     double? lastStopDepth,
+    bool clearLastStopDepth = false,
     double? descentRate,
+    bool clearDescentRate = false,
     AirBreakPolicy? airBreaks,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
@@ -778,6 +788,7 @@ class DivePlanState extends Equatable {
     double? sacFactor,
     int? problemSolvingMinutes,
     int? gasSwitchStopSeconds,
+    bool clearGasSwitchStopSeconds = false,
     double? ppO2Bottom,
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
@@ -817,13 +828,20 @@ class DivePlanState extends Equatable {
       gfHigh: gfHigh ?? this.gfHigh,
       sacRate: sacRate ?? this.sacRate,
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
-      ascentRate: ascentRate ?? this.ascentRate,
-      intermediateAscentRate:
-          intermediateAscentRate ?? this.intermediateAscentRate,
-      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
-      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
-      lastStopDepth: lastStopDepth ?? this.lastStopDepth,
-      descentRate: descentRate ?? this.descentRate,
+      ascentRate: clearAscentRate ? null : (ascentRate ?? this.ascentRate),
+      intermediateAscentRate: clearIntermediateAscentRate
+          ? null
+          : (intermediateAscentRate ?? this.intermediateAscentRate),
+      shallowAscentRate: clearShallowAscentRate
+          ? null
+          : (shallowAscentRate ?? this.shallowAscentRate),
+      finalAscentRate: clearFinalAscentRate
+          ? null
+          : (finalAscentRate ?? this.finalAscentRate),
+      lastStopDepth: clearLastStopDepth
+          ? null
+          : (lastStopDepth ?? this.lastStopDepth),
+      descentRate: clearDescentRate ? null : (descentRate ?? this.descentRate),
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
       surfaceInterval: clearSurfaceInterval
           ? null
@@ -862,7 +880,9 @@ class DivePlanState extends Equatable {
       sacFactor: sacFactor ?? this.sacFactor,
       problemSolvingMinutes:
           problemSolvingMinutes ?? this.problemSolvingMinutes,
-      gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
+      gasSwitchStopSeconds: clearGasSwitchStopSeconds
+          ? null
+          : (gasSwitchStopSeconds ?? this.gasSwitchStopSeconds),
       ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
       ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
       bestMixEndMeters: bestMixEndMeters ?? this.bestMixEndMeters,

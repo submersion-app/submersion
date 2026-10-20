@@ -3287,6 +3287,7 @@
   "divePlanner_label_deco": "减压",
   "divePlanner_label_decoSchedule": "减压计划",
   "divePlanner_label_decompression": "减压",
+  "divePlanner_label_defaultWithValue": "默认（{value}）",
   "divePlanner_label_depthAxis": "深度 ({depthSymbol})",
   "divePlanner_label_empty": "已空",
   "divePlanner_label_gasConsumption": "气体消耗",

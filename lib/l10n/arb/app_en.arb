@@ -6368,6 +6368,7 @@
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "Decompression Schedule",
   "divePlanner_label_decompression": "Decompression",
+  "divePlanner_label_defaultWithValue": "Default ({value})",
   "divePlanner_label_depthAxis": "Depth ({depthSymbol})",
   "divePlanner_label_empty": "EMPTY",
   "divePlanner_label_gasConsumption": "Gas Consumption",
@@ -19768,6 +19769,13 @@
   "@diveLog_detail_collapsed_atTime": {
     "placeholders": {
       "timestamp": {
+        "type": "Object"
+      }
+    }
+  },
+  "@divePlanner_label_defaultWithValue": {
+    "placeholders": {
+      "value": {
         "type": "Object"
       }
     }

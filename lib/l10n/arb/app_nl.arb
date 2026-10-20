@@ -3172,6 +3172,7 @@
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "Decompressieschema",
   "divePlanner_label_decompression": "Decompressie",
+  "divePlanner_label_defaultWithValue": "Standaard ({value})",
   "divePlanner_label_depthAxis": "Diepte ({depthSymbol})",
   "divePlanner_label_empty": "LEEG",
   "divePlanner_label_gasConsumption": "Gasverbruik",

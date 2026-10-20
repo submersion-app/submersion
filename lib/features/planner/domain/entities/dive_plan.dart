@@ -47,26 +47,36 @@ class DivePlan extends Equatable {
   // Deco settings
   final int gfLow;
   final int gfHigh;
-  final double descentRate;
+
+  /// Descent rate in m/min. Null = use the diver's Settings default
+  /// (issue #3552).
+  final double? descentRate;
 
   /// Working ascent rate in m/min: leaving the bottom for the first stop.
-  final double ascentRate;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? ascentRate;
 
   /// Ascent rate in m/min between intermediate (deeper than 9 m) stops -
   /// slower than [ascentRate], because a diver climbing the stop grid is not
-  /// leaving the bottom.
-  final double intermediateAscentRate;
+  /// leaving the bottom. Null = use the diver's Settings default
+  /// (issue #3552).
+  final double? intermediateAscentRate;
 
-  /// Ascent rate in m/min between shallow (9 m and above) stops.
-  final double shallowAscentRate;
+  /// Ascent rate in m/min between shallow (9 m and above) stops. Null = use
+  /// the diver's Settings default (issue #3552).
+  final double? shallowAscentRate;
 
   /// Ascent rate in m/min from the last stop to the surface. The shallowest
   /// part of the ascent is where a depth change costs the most pressure
-  /// change, so it is the slowest of the four.
-  final double finalAscentRate;
+  /// change, so it is the slowest of the four. Null = use the diver's
+  /// Settings default (issue #3552).
+  final double? finalAscentRate;
 
-  final double lastStopDepth;
-  final int gasSwitchStopSeconds;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? lastStopDepth;
+
+  /// Null = use the diver's Settings default (issue #3552).
+  final int? gasSwitchStopSeconds;
   final AirBreakPolicy? airBreaks;
 
   /// Diver-authored minimum hold time in seconds, keyed by whole-metre stop
@@ -157,13 +167,13 @@ class DivePlan extends Equatable {
     this.startDateTime,
     required this.gfLow,
     required this.gfHigh,
-    this.descentRate = 18.0,
-    this.ascentRate = 9.0,
-    this.intermediateAscentRate = 6.0,
-    this.shallowAscentRate = 3.0,
-    this.finalAscentRate = 1.0,
-    this.lastStopDepth = 3.0,
-    this.gasSwitchStopSeconds = 0,
+    this.descentRate,
+    this.ascentRate,
+    this.intermediateAscentRate,
+    this.shallowAscentRate,
+    this.finalAscentRate,
+    this.lastStopDepth,
+    this.gasSwitchStopSeconds,
     this.airBreaks,
     this.stopMinimums = const {},
     this.sacBottom = 15.0,
@@ -244,12 +254,19 @@ class DivePlan extends Equatable {
     int? gfLow,
     int? gfHigh,
     double? descentRate,
+    bool clearDescentRate = false,
     double? ascentRate,
+    bool clearAscentRate = false,
     double? intermediateAscentRate,
+    bool clearIntermediateAscentRate = false,
     double? shallowAscentRate,
+    bool clearShallowAscentRate = false,
     double? finalAscentRate,
+    bool clearFinalAscentRate = false,
     double? lastStopDepth,
+    bool clearLastStopDepth = false,
     int? gasSwitchStopSeconds,
+    bool clearGasSwitchStopSeconds = false,
     AirBreakPolicy? airBreaks,
     bool clearAirBreaks = false,
     Map<int, int>? stopMinimums,
@@ -312,14 +329,23 @@ class DivePlan extends Equatable {
       salinityPpt: clearSalinityPpt ? null : (salinityPpt ?? this.salinityPpt),
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
-      descentRate: descentRate ?? this.descentRate,
-      ascentRate: ascentRate ?? this.ascentRate,
-      intermediateAscentRate:
-          intermediateAscentRate ?? this.intermediateAscentRate,
-      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
-      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
-      lastStopDepth: lastStopDepth ?? this.lastStopDepth,
-      gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
+      descentRate: clearDescentRate ? null : (descentRate ?? this.descentRate),
+      ascentRate: clearAscentRate ? null : (ascentRate ?? this.ascentRate),
+      intermediateAscentRate: clearIntermediateAscentRate
+          ? null
+          : (intermediateAscentRate ?? this.intermediateAscentRate),
+      shallowAscentRate: clearShallowAscentRate
+          ? null
+          : (shallowAscentRate ?? this.shallowAscentRate),
+      finalAscentRate: clearFinalAscentRate
+          ? null
+          : (finalAscentRate ?? this.finalAscentRate),
+      lastStopDepth: clearLastStopDepth
+          ? null
+          : (lastStopDepth ?? this.lastStopDepth),
+      gasSwitchStopSeconds: clearGasSwitchStopSeconds
+          ? null
+          : (gasSwitchStopSeconds ?? this.gasSwitchStopSeconds),
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
       stopMinimums: stopMinimums ?? this.stopMinimums,
       sacBottom: sacBottom ?? this.sacBottom,

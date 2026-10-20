@@ -477,12 +477,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final segments = <PlanSegment>[
       // Descends at the plan's own rate. The old call used PlanSegment
       // .descent without passing one, so the quick plan always dropped at
-      // the factory's hardcoded 18 m/min and ignored the rate field.
+      // the factory's hardcoded 18 m/min and ignored the rate field. This
+      // notifier has no Settings access to resolve an unset rate against
+      // (issue #3552), so an unset rate falls back to the same spec
+      // constant PlanEngineConfig itself defaults to - the documented last
+      // resort for a caller with no Settings to hand.
       PlanSegment.travel(
         id: _uuid.v4(),
         fromDepth: 0,
         targetDepth: maxDepth,
-        ratePerMinute: state.descentRate,
+        ratePerMinute: state.descentRate ?? 18.0,
         tankId: tank.id,
         gasMix: tank.gasMix,
         order: 0,
@@ -683,20 +687,37 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// minute. [intermediate] applies between stops deeper than 9 m, [shallow]
   /// between the 9 m and shallower stops, and [finalStretch] from the last
   /// stop to the surface.
+  ///
+  /// Each is a plan-level override of the diver's Settings default (issue
+  /// #3552): a caller passes its concrete value to set one, or omits it (the
+  /// default `null`) to leave it as-is - never to clear it, since
+  /// [DivePlanState.copyWith]'s own `??` fallback cannot otherwise tell "not
+  /// touched" apart from "cleared". Clearing one back to "follow Settings"
+  /// goes through the matching `clearX` flag instead.
   void updateRates({
     double? ascent,
+    bool clearAscent = false,
     double? intermediate,
+    bool clearIntermediate = false,
     double? shallow,
+    bool clearShallow = false,
     double? finalStretch,
+    bool clearFinalStretch = false,
     double? descent,
+    bool clearDescent = false,
   }) {
     state = _withMissionSegments(
       state.copyWith(
         ascentRate: ascent,
+        clearAscentRate: clearAscent,
         intermediateAscentRate: intermediate,
+        clearIntermediateAscentRate: clearIntermediate,
         shallowAscentRate: shallow,
+        clearShallowAscentRate: clearShallow,
         finalAscentRate: finalStretch,
+        clearFinalAscentRate: clearFinalStretch,
         descentRate: descent,
+        clearDescentRate: clearDescent,
         isDirty: true,
         updatedAt: DateTime.now(),
       ),
@@ -711,12 +732,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Set where the final decompression stop is held, 3 to 6 m. It need not
   /// sit on the 3 m grid: the schedule follows the grid down to 6 m and then
-  /// holds this depth.
-  void updateLastStopDepth(double meters) {
-    final clamped = meters.clamp(minLastStopDepth, maxLastStopDepth);
+  /// holds this depth. Null clears the override back to the diver's
+  /// Settings default (issue #3552).
+  void updateLastStopDepth(double? meters) {
+    final clamped = meters?.clamp(minLastStopDepth, maxLastStopDepth);
     if (clamped == state.lastStopDepth) return;
     state = state.copyWith(
       lastStopDepth: clamped,
+      clearLastStopDepth: clamped == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -803,18 +826,18 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Update the Subsurface-style Gas options; only supplied values change.
-  /// [sacDeco], [ppO2Bottom], [ppO2Deco], and [o2Narcotic] are nullable
-  /// overrides of the app-wide settings (or, for [sacDeco], of the 0.8x-of-
-  /// bottom fallback) - pass the matching `clear*` flag to fall back again.
-  /// [gasSwitchStopSeconds] has no app-wide default to fall back to (#3225):
-  /// it is plan-only, same as every other field [DivePlan] keeps with no
-  /// matching Settings entry, so there is no `clear*` for it either.
+  /// [sacDeco], [ppO2Bottom], [ppO2Deco], [o2Narcotic] and
+  /// [gasSwitchStopSeconds] are nullable overrides of the app-wide settings
+  /// (or, for [sacDeco], of the 0.8x-of-bottom fallback) - pass the matching
+  /// `clear*` flag to fall back again (issue #3552; [gasSwitchStopSeconds]
+  /// had no app-wide default before that and so no `clear*` either, #3225).
   void updateGasOptions({
     double? sacDeco,
     bool clearSacDeco = false,
     double? sacFactor,
     int? problemSolvingMinutes,
     int? gasSwitchStopSeconds,
+    bool clearGasSwitchStopSeconds = false,
     double? ppO2Bottom,
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
@@ -829,6 +852,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       sacFactor: sacFactor,
       problemSolvingMinutes: problemSolvingMinutes,
       gasSwitchStopSeconds: gasSwitchStopSeconds,
+      clearGasSwitchStopSeconds: clearGasSwitchStopSeconds,
       ppO2Bottom: ppO2Bottom,
       clearPpO2Bottom: clearPpO2Bottom,
       ppO2Deco: ppO2Deco,

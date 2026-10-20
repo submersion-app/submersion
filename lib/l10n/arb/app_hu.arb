@@ -3072,6 +3072,7 @@
   "divePlanner_label_deco": "DEKÓ",
   "divePlanner_label_decoSchedule": "Dekompressziós menetrend",
   "divePlanner_label_decompression": "Dekompresszió",
+  "divePlanner_label_defaultWithValue": "Alapértelmezett ({value})",
   "divePlanner_label_depthAxis": "Mélység ({depthSymbol})",
   "divePlanner_label_empty": "ÜRES",
   "divePlanner_label_gasConsumption": "Gázfogyasztás",

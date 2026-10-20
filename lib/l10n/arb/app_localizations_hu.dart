@@ -10389,6 +10389,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_decompression => 'Dekompresszió';
 
   @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Alapértelmezett ($value)';
+  }
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return 'Mélység ($depthSymbol)';
   }

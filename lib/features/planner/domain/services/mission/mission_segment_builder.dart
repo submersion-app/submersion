@@ -187,7 +187,13 @@ class MissionSegmentBuilder {
       targetDepth: toDepth,
       tankId: tank.id,
       gasMix: tank.gasMix,
-      ratePerMinute: toDepth > fromDepth ? plan.descentRate : plan.ascentRate,
+      // This builder has no PlanEngineConfig to resolve an unset rate
+      // against the diver's Settings (issue #3552) - the spec constants are
+      // the documented last resort for exactly this case (see the design
+      // spec's "Resolution order, end to end").
+      ratePerMinute: toDepth > fromDepth
+          ? (plan.descentRate ?? 18.0)
+          : (plan.ascentRate ?? 9.0),
       order: order,
     );
   }

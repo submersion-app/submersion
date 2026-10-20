@@ -10408,6 +10408,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_label_decompression => 'Descompresión';
 
   @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Predeterminado ($value)';
+  }
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return 'Profundidad ($depthSymbol)';
   }

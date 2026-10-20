@@ -16705,6 +16705,12 @@ abstract class AppLocalizations {
   /// **'Decompression'**
   String get divePlanner_label_decompression;
 
+  /// No description provided for @divePlanner_label_defaultWithValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Default ({value})'**
+  String divePlanner_label_defaultWithValue(Object value);
+
   /// No description provided for @divePlanner_label_depthAxis.
   ///
   /// In en, this message translates to:

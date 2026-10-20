@@ -3172,6 +3172,7 @@
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "Programação de Descompressão",
   "divePlanner_label_decompression": "Descompressão",
+  "divePlanner_label_defaultWithValue": "Padrão ({value})",
   "divePlanner_label_depthAxis": "Profundidade ({depthSymbol})",
   "divePlanner_label_empty": "VAZIO",
   "divePlanner_label_gasConsumption": "Consumo de Gás",

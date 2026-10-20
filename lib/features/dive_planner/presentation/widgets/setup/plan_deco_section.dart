@@ -38,6 +38,7 @@ class PlanDecoSection extends ConsumerWidget {
         const SizedBox(height: 8),
         PlanLastStopSelector(
           value: planState.lastStopDepth,
+          defaultValueMeters: ref.watch(lastStopDepthProvider),
           units: units,
           onChanged: notifier.updateLastStopDepth,
         ),

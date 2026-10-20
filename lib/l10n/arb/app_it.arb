@@ -3072,6 +3072,7 @@
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "Programma Decompressione",
   "divePlanner_label_decompression": "Decompressione",
+  "divePlanner_label_defaultWithValue": "Predefinito ({value})",
   "divePlanner_label_depthAxis": "Profondità ({depthSymbol})",
   "divePlanner_label_empty": "VUOTA",
   "divePlanner_label_gasConsumption": "Consumo Gas",

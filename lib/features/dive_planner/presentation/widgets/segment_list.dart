@@ -53,8 +53,15 @@ class SegmentList extends ConsumerWidget {
     final resolvedPlan = const TankRoleResolver().apply(
       divePlanFromState(planState),
     );
+    final int gasSwitchStopSeconds =
+        resolvedPlan.gasSwitchStopSeconds ??
+        ref.watch(plannerGasSwitchStopSecondsProvider);
     final adjustedLegs = const SegmentChain().resolve(
-      withDiluentSwitchTime(resolvedPlan.segments, resolvedPlan),
+      withDiluentSwitchTime(
+        resolvedPlan.segments,
+        resolvedPlan,
+        gasSwitchStopSeconds: gasSwitchStopSeconds,
+      ),
     );
     int runtimeSecondsFor(String segmentId) => adjustedLegs
         .firstWhere((l) => l.segment.id == segmentId)
