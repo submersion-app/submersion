@@ -45,16 +45,20 @@ class PlanLastStopSelector extends StatelessWidget {
         : choicesMeters.reduce(
             (a, b) => (a - value!).abs() <= (b - value!).abs() ? a : b,
           );
+    // Stacked, not a label-plus-control row: the "Default (X m)" segment
+    // added for issue #3552 makes the control too wide to share a row with
+    // the label at the Setup accordion's usual widths (confirmed: 694 px
+    // overflow at 272 px when it was still inline).
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              context.l10n.plannerCanvas_rates_lastStop,
-              style: theme.textTheme.bodyMedium,
-            ),
+          Text(
+            context.l10n.plannerCanvas_rates_lastStop,
+            style: theme.textTheme.bodyMedium,
           ),
+          const SizedBox(height: 6),
           SegmentedButton<double?>(
             showSelectedIcon: false,
             style: const ButtonStyle(
