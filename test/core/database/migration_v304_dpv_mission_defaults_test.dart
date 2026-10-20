@@ -22,12 +22,12 @@ void main() {
         "updated_at) VALUES ('p1', 'Mission plan', 50, 80, 0, 0)",
       );
       rawDb.execute(
-        'CREATE TABLE dive_plan_missions (id TEXT NOT NULL PRIMARY KEY, '
-        'plan_id TEXT NOT NULL, '
-        'battery_reserve_fraction REAL NOT NULL, '
-        'environment TEXT NOT NULL DEFAULT \'overhead\', '
-        'walk_speed_mps REAL NOT NULL DEFAULT 0.8, '
-        'created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
+        'CREATE TABLE dive_plan_missions ("id" TEXT NOT NULL PRIMARY KEY, '
+        '"plan_id" TEXT NOT NULL, '
+        '"battery_reserve_fraction" REAL NOT NULL, '
+        '"environment" TEXT NOT NULL DEFAULT \'overhead\', '
+        '"walk_speed_mps" REAL NOT NULL DEFAULT 0.8, '
+        '"created_at" INTEGER NOT NULL, "updated_at" INTEGER NOT NULL)',
       );
       rawDb.execute(
         "INSERT INTO dive_plan_missions (id, plan_id, "
