@@ -40,7 +40,10 @@ class MissionMemberResultCard extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final used = result.batteryRoundTripFraction.clamp(0.0, 1.0);
-    final reserve = mission.batteryReserveFraction;
+    // No Settings access in this widget (issue #3552); the spec constant is
+    // the documented last resort for exactly this case.
+    final reserve =
+        mission.batteryReserveFraction ?? kDefaultBatteryReserveFraction;
     final overReserve = result.batteryRoundTripFraction > 1 - reserve;
     final binding = result.bindingFactor;
     final bindingIndex = result.bindingWaypointIndex;

@@ -407,7 +407,7 @@ void main() {
             DivePlanMissionsCompanion.insert(
               id: 'plan-a',
               planId: 'plan-a',
-              batteryReserveFraction: 1 / 3,
+              batteryReserveFraction: const Value(1 / 3),
               createdAt: stale,
               updatedAt: stale,
             ),

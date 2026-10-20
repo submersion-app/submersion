@@ -68,7 +68,10 @@ class MissionMemberAnalysis {
       );
       if (!battery.withinReserve(
         burnFraction: roundTrip,
-        reserveFraction: mission.batteryReserveFraction,
+        // No Settings access here (issue #3552); the spec constant is the
+        // documented last resort for exactly this case.
+        reserveFraction:
+            mission.batteryReserveFraction ?? kDefaultBatteryReserveFraction,
       )) {
         factor = MissionBindingFactor.battery;
       } else if (!own.survivable) {

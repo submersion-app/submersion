@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_issue_text.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_leg_table.dart';
@@ -114,7 +115,12 @@ class MissionResultsSection extends ConsumerWidget {
           Text(constraint, style: theme.textTheme.bodyMedium),
         Text(
           l10n.plannerMission_results_assumptions(
-            settingPercent(mission.batteryReserveFraction),
+            // No Settings access in this widget (issue #3552); the spec
+            // constant is the documented last resort, matching what the
+            // engine itself falls back to for the same reason.
+            settingPercent(
+              mission.batteryReserveFraction ?? kDefaultBatteryReserveFraction,
+            ),
           ),
           style: theme.textTheme.bodySmall,
         ),
