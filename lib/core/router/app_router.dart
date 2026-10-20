@@ -232,6 +232,7 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_compare_page.dart';
+import 'package:submersion/features/planning/presentation/pages/planned_dives_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -368,6 +369,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editPlan',
                     builder: (context, state) =>
                         PlanCanvasPage(planId: state.pathParameters['planId']),
+                  ),
+                  GoRoute(
+                    path: 'planned-dives',
+                    name: 'plannedDives',
+                    builder: (context, state) => const PlannedDivesPage(),
                   ),
                   GoRoute(
                     path: 'deco-calculator',

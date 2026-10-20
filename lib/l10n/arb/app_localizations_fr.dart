@@ -19905,6 +19905,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get planning_card_gasCalculators_title => 'Calculateurs de gaz';
 
   @override
+  String get planning_card_savedPlans_subtitle =>
+      'Tous les plans enregistrés, regroupés par mode';
+
+  @override
+  String get planning_plannedDives_sortTooltip => 'Trier';
+
+  @override
   String get planning_card_surfaceInterval_subtitle =>
       'Planifiez les intervalles de plongées successives';
 

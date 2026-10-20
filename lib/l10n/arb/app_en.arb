@@ -12465,6 +12465,8 @@
   "planning_card_divePlanner_title": "Dive Planner",
   "planning_card_gasCalculators_subtitle": "Depth limits, mixes, gas use and blending",
   "planning_card_gasCalculators_title": "Gas Calculators",
+  "planning_card_savedPlans_subtitle": "All saved plans, grouped by mode",
+  "planning_plannedDives_sortTooltip": "Sort",
   "planning_card_surfaceInterval_subtitle": "Plan repetitive dive intervals",
   "planning_card_surfaceInterval_title": "Surface Interval",
   "planning_card_weightCalculator_subtitle": "Recommended weight for your setup",

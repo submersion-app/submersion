@@ -5644,6 +5644,8 @@
   "planning_card_divePlanner_title": "מתכנן צלילות",
   "planning_card_gasCalculators_subtitle": "מגבלות עומק, תערובות, צריכת גז ומילוי",
   "planning_card_gasCalculators_title": "מחשבוני גז",
+  "planning_card_savedPlans_subtitle": "כל התוכניות השמורות, מקובצות לפי מצב",
+  "planning_plannedDives_sortTooltip": "מיון",
   "planning_card_surfaceInterval_subtitle": "תכנן מרווחי צלילות חוזרות",
   "planning_card_surfaceInterval_title": "מרווח שטח",
   "planning_card_weightCalculator_subtitle": "משקל מומלץ להגדרה שלך",

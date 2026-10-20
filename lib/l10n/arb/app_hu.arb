@@ -5644,6 +5644,8 @@
   "planning_card_divePlanner_title": "Merülés tervező",
   "planning_card_gasCalculators_subtitle": "Mélységhatárok, keverékek, gázfogyasztás és töltés",
   "planning_card_gasCalculators_title": "Gáz kalkulátorok",
+  "planning_card_savedPlans_subtitle": "Minden mentett terv, mód szerint csoportosítva",
+  "planning_plannedDives_sortTooltip": "Rendezés",
   "planning_card_surfaceInterval_subtitle": "Ismételt merülések időintervallumainak tervezése",
   "planning_card_surfaceInterval_title": "Felszíni időköz",
   "planning_card_weightCalculator_subtitle": "Ajánlott súly az adott felszereléshez",

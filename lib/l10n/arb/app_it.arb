@@ -5644,6 +5644,8 @@
   "planning_card_divePlanner_title": "Pianificatore immersioni",
   "planning_card_gasCalculators_subtitle": "Limiti di profondità, miscele, consumo di gas e ricarica",
   "planning_card_gasCalculators_title": "Calcolatori gas",
+  "planning_card_savedPlans_subtitle": "Tutti i piani salvati, raggruppati per modalità",
+  "planning_plannedDives_sortTooltip": "Ordina",
   "planning_card_surfaceInterval_subtitle": "Pianifica intervalli per immersioni ripetitive",
   "planning_card_surfaceInterval_title": "Intervallo di superficie",
   "planning_card_weightCalculator_subtitle": "Zavorra raccomandata per la tua configurazione",

@@ -5744,6 +5744,8 @@
   "planning_card_divePlanner_title": "مخطط الغوص",
   "planning_card_gasCalculators_subtitle": "حدود العمق، الخلائط، استهلاك الغاز والتعبئة",
   "planning_card_gasCalculators_title": "حاسبات الغاز",
+  "planning_card_savedPlans_subtitle": "جميع الخطط المحفوظة، مجمعة حسب النمط",
+  "planning_plannedDives_sortTooltip": "ترتيب",
   "planning_card_surfaceInterval_subtitle": "تخطيط فترات الغوص المتكرر",
   "planning_card_surfaceInterval_title": "الفاصل الزمني على السطح",
   "planning_card_weightCalculator_subtitle": "الوزن الموصى به لإعدادك",

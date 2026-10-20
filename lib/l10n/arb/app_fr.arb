@@ -5644,6 +5644,8 @@
   "planning_card_divePlanner_title": "Planificateur de plongée",
   "planning_card_gasCalculators_subtitle": "Limites de profondeur, mélanges, consommation de gaz et gonflage",
   "planning_card_gasCalculators_title": "Calculateurs de gaz",
+  "planning_card_savedPlans_subtitle": "Tous les plans enregistrés, regroupés par mode",
+  "planning_plannedDives_sortTooltip": "Trier",
   "planning_card_surfaceInterval_subtitle": "Planifiez les intervalles de plongées successives",
   "planning_card_surfaceInterval_title": "Intervalle de surface",
   "planning_card_weightCalculator_subtitle": "Lestage recommandé pour votre configuration",

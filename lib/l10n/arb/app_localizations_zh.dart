@@ -18907,6 +18907,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_gasCalculators_title => '气体计算器';
 
   @override
+  String get planning_card_savedPlans_subtitle => '所有已保存的计划，按模式分组';
+
+  @override
+  String get planning_plannedDives_sortTooltip => '排序';
+
+  @override
   String get planning_card_surfaceInterval_subtitle => '规划重复潜水间隔';
 
   @override

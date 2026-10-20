@@ -19780,6 +19780,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_card_gasCalculators_title => 'Gáz kalkulátorok';
 
   @override
+  String get planning_card_savedPlans_subtitle =>
+      'Minden mentett terv, mód szerint csoportosítva';
+
+  @override
+  String get planning_plannedDives_sortTooltip => 'Rendezés';
+
+  @override
   String get planning_card_surfaceInterval_subtitle =>
       'Ismételt merülések időintervallumainak tervezése';
 

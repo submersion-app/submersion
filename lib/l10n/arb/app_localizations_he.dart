@@ -19417,6 +19417,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_card_gasCalculators_title => 'מחשבוני גז';
 
   @override
+  String get planning_card_savedPlans_subtitle =>
+      'כל התוכניות השמורות, מקובצות לפי מצב';
+
+  @override
+  String get planning_plannedDives_sortTooltip => 'מיון';
+
+  @override
   String get planning_card_surfaceInterval_subtitle =>
       'תכנן מרווחי צלילות חוזרות';
 

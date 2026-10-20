@@ -5875,6 +5875,8 @@
   "planning_card_divePlanner_title": "Tauchplan",
   "planning_card_gasCalculators_subtitle": "Tiefengrenzen, Gemische, Gasverbrauch und Füllen",
   "planning_card_gasCalculators_title": "Gasrechner",
+  "planning_card_savedPlans_subtitle": "Alle gespeicherten Pläne, gruppiert nach Modus",
+  "planning_plannedDives_sortTooltip": "Sortieren",
   "planning_card_surfaceInterval_subtitle": "Wiederholungstauchgang-Intervalle planen",
   "planning_card_surfaceInterval_title": "Oberflächen-Intervall",
   "planning_card_weightCalculator_subtitle": "Empfohlenes Gewicht für Ihre Konfiguration",

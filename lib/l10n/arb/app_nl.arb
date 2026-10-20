@@ -5744,6 +5744,8 @@
   "planning_card_divePlanner_title": "Duikplanner",
   "planning_card_gasCalculators_subtitle": "Dieptelimieten, mengsels, gasverbruik en vullen",
   "planning_card_gasCalculators_title": "Gascalculators",
+  "planning_card_savedPlans_subtitle": "Alle opgeslagen plannen, gegroepeerd per modus",
+  "planning_plannedDives_sortTooltip": "Sorteren",
   "planning_card_surfaceInterval_subtitle": "Plan herhalingsduikintervallen",
   "planning_card_surfaceInterval_title": "Oppervlakte-interval",
   "planning_card_weightCalculator_subtitle": "Aanbevolen gewicht voor je uitrusting",

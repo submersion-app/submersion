@@ -31749,6 +31749,18 @@ abstract class AppLocalizations {
   /// **'Gas Calculators'**
   String get planning_card_gasCalculators_title;
 
+  /// No description provided for @planning_card_savedPlans_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All saved plans, grouped by mode'**
+  String get planning_card_savedPlans_subtitle;
+
+  /// No description provided for @planning_plannedDives_sortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get planning_plannedDives_sortTooltip;
+
   /// No description provided for @planning_card_surfaceInterval_subtitle.
   ///
   /// In en, this message translates to:

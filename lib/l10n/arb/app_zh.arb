@@ -5895,6 +5895,8 @@
   "planning_card_divePlanner_title": "潜水计划器",
   "planning_card_gasCalculators_subtitle": "深度限制、混合气、耗气量与配气",
   "planning_card_gasCalculators_title": "气体计算器",
+  "planning_card_savedPlans_subtitle": "所有已保存的计划，按模式分组",
+  "planning_plannedDives_sortTooltip": "排序",
   "planning_card_surfaceInterval_subtitle": "规划重复潜水间隔",
   "planning_card_surfaceInterval_title": "水面间隔",
   "planning_card_weightCalculator_subtitle": "适合您装备配置的推荐配重",

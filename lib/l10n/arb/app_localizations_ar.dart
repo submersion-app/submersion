@@ -20117,6 +20117,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_card_gasCalculators_title => 'حاسبات الغاز';
 
   @override
+  String get planning_card_savedPlans_subtitle =>
+      'جميع الخطط المحفوظة، مجمعة حسب النمط';
+
+  @override
+  String get planning_plannedDives_sortTooltip => 'ترتيب';
+
+  @override
   String get planning_card_surfaceInterval_subtitle =>
       'تخطيط فترات الغوص المتكرر';
 

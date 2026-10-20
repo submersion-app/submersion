@@ -19828,6 +19828,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planning_card_gasCalculators_title => 'Gasrechner';
 
   @override
+  String get planning_card_savedPlans_subtitle =>
+      'Alle gespeicherten Pläne, gruppiert nach Modus';
+
+  @override
+  String get planning_plannedDives_sortTooltip => 'Sortieren';
+
+  @override
   String get planning_card_surfaceInterval_subtitle =>
       'Wiederholungstauchgang-Intervalle planen';
 
