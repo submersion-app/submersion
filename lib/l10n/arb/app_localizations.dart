@@ -75922,6 +75922,60 @@ abstract class AppLocalizations {
   /// **'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.'**
   String get settings_decompression_header_ascentRate_subtitle;
 
+  /// No description provided for @settings_decompression_header_plannerRates.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner Rates'**
+  String get settings_decompression_header_plannerRates;
+
+  /// No description provided for @settings_decompression_header_plannerRates_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The descent and ascent rates a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.'**
+  String get settings_decompression_header_plannerRates_subtitle;
+
+  /// No description provided for @settings_decompression_header_plannerGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner Gas'**
+  String get settings_decompression_header_plannerGas;
+
+  /// No description provided for @settings_decompression_header_plannerGas_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The gas consumption defaults a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.'**
+  String get settings_decompression_header_plannerGas_subtitle;
+
+  /// No description provided for @settings_decompression_header_plannerContingency.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner Contingency'**
+  String get settings_decompression_header_plannerContingency;
+
+  /// No description provided for @settings_decompression_header_plannerContingency_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The what-if deviation a new plan starts with. Changing it inside a plan overrides it there only, without changing this default.'**
+  String get settings_decompression_header_plannerContingency_subtitle;
+
+  /// No description provided for @settings_decompression_header_plannerDpvTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner DPV Team'**
+  String get settings_decompression_header_plannerDpvTeam;
+
+  /// No description provided for @settings_decompression_header_plannerDpvTeam_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.'**
+  String get settings_decompression_header_plannerDpvTeam_subtitle;
+
+  /// No description provided for @settings_decompression_rates_finalAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Final ascent rate'**
+  String get settings_decompression_rates_finalAscent;
+
   /// No description provided for @settings_decompression_ascentRateThresholds.
   ///
   /// In en, this message translates to:

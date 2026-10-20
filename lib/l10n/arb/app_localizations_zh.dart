@@ -44822,6 +44822,37 @@ class AppLocalizationsZh extends AppLocalizations {
       '剖面图中上升速度颜色和事件所用的阈值。安全回顾使用自己固定的限值，因此修改这些值不会改变已回顾的潜水。';
 
   @override
+  String get settings_decompression_header_plannerRates => '计划器速率';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      '新计划开始时使用的下潜和上升速率。在计划内更改某一项仅会覆盖该计划，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_header_plannerGas => '计划器气体';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      '新计划开始时使用的气体消耗默认值。在计划内更改某一项仅会覆盖该计划，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_header_plannerContingency => '计划器应急方案';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      '新计划开始时使用的假设偏差。在计划内更改仅会覆盖该计划，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => '计划器 DPV 团队';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      '新 DPV 任务开始时使用的水下推进器电池备用量和步行速度。在任务内更改仅会覆盖该任务，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_rates_finalAscent => '最终上升速率';
+
+  @override
   String get settings_decompression_ascentRateThresholds => '上升速度阈值';
 
   @override

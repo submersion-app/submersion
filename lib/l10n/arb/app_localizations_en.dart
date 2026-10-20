@@ -46960,6 +46960,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Planner Rates';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'The descent and ascent rates a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Planner Gas';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'The gas consumption defaults a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Planner Contingency';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'The what-if deviation a new plan starts with. Changing it inside a plan overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'Planner DPV Team';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'Final ascent rate';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Ascent rate thresholds';
 

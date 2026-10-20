@@ -47678,6 +47678,41 @@ class AppLocalizationsIt extends AppLocalizations {
       'Le soglie usate dai colori e dagli eventi della velocità di risalita nel profilo. La revisione di sicurezza mantiene i propri limiti fissi, quindi modificarle non cambia mai le immersioni già revisionate.';
 
   @override
+  String get settings_decompression_header_plannerRates =>
+      'Velocità del planner';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'Le velocità di discesa e risalita con cui inizia un nuovo piano. Modificarne una all\'interno di un piano la sovrascrive solo lì, senza modificare questo valore predefinito.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Gas del planner';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'I valori predefiniti di consumo del gas con cui inizia un nuovo piano. Modificarne uno all\'interno di un piano lo sovrascrive solo lì, senza modificare questo valore predefinito.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Imprevisti del planner';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'La deviazione ipotetica con cui inizia un nuovo piano. Modificarla all\'interno di un piano la sovrascrive solo lì, senza modificare questo valore predefinito.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam =>
+      'Team DPV del planner';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'La riserva della batteria dello scooter e la velocità di camminata con cui inizia una nuova missione DPV. Modificarne una all\'interno di una missione la sovrascrive solo lì, senza modificare questo valore predefinito.';
+
+  @override
+  String get settings_decompression_rates_finalAscent =>
+      'Velocità di risalita finale';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Soglie di velocità di risalita';
 

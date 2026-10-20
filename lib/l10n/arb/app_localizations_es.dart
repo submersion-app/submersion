@@ -47708,6 +47708,41 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los límites que usan los colores y eventos de velocidad de ascenso del perfil. La revisión de seguridad mantiene sus propios límites fijos, así que cambiarlos nunca altera las inmersiones ya revisadas.';
 
   @override
+  String get settings_decompression_header_plannerRates =>
+      'Velocidades del planificador';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'Las velocidades de descenso y ascenso con las que comienza un nuevo plan. Cambiar una dentro de un plan solo la sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Gas del planificador';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'Los valores predeterminados de consumo de gas con los que comienza un nuevo plan. Cambiar uno dentro de un plan solo lo sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Contingencia del planificador';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'La desviación hipotética con la que comienza un nuevo plan. Cambiarla dentro de un plan solo la sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam =>
+      'Equipo DPV del planificador';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'La reserva de batería del scooter y la velocidad de caminata con las que comienza una nueva misión DPV. Cambiarlas dentro de una misión solo las sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_rates_finalAscent =>
+      'Velocidad de ascenso final';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Umbrales de velocidad de ascenso';
 

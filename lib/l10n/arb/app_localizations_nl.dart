@@ -47367,6 +47367,39 @@ class AppLocalizationsNl extends AppLocalizations {
       'De grenzen die de kleuren en gebeurtenissen voor opstijgsnelheid in het profiel gebruiken. De veiligheidscontrole houdt haar eigen vaste grenzen aan, dus deze wijzigen verandert nooit al gecontroleerde duiken.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Plannertempo\'s';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'De afdaal- en stijgsnelheden waarmee een nieuw plan begint. Een wijziging binnen een plan overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Plannergas';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'De standaardwaarden voor gasverbruik waarmee een nieuw plan begint. Een wijziging binnen een plan overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Plannernoodscenario';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'De wat-als-afwijking waarmee een nieuw plan begint. Een wijziging binnen een plan overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'Planner DPV-team';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'De scooterbatterijreserve en looptempo waarmee een nieuwe DPV-missie begint. Een wijziging binnen een missie overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_rates_finalAscent =>
+      'Laatste stijgsnelheid';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Grenzen voor opstijgsnelheid';
 

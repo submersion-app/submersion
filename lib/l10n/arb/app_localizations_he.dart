@@ -46647,6 +46647,38 @@ class AppLocalizationsHe extends AppLocalizations {
       'הספים שבהם משתמשים הצבעים והאירועים של קצב העלייה בפרופיל. סקירת הבטיחות שומרת על מגבלות קבועות משלה, כך ששינוי ערכים אלה אינו משנה צלילות שכבר נסקרו.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'קצבי מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'קצבי הירידה והעלייה שאיתם מתחילה תוכנית חדשה. שינוי אחד בתוך תוכנית יחליף אותו רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'גז מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'ברירות המחדל לצריכת גז שאיתן מתחילה תוכנית חדשה. שינוי אחת בתוך תוכנית יחליף אותה רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'תרחיש חירום מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'סטיית ה\'מה אם\' שאיתה מתחילה תוכנית חדשה. שינוי בתוך תוכנית יחליף אותה רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'צוות DPV מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'רזרבת הסקוטר וקצב ההליכה שאיתם מתחילה משימת DPV חדשה. שינוי בתוך משימה יחליף אותו רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'קצב עלייה סופי';
+
+  @override
   String get settings_decompression_ascentRateThresholds => 'ספי קצב עלייה';
 
   @override

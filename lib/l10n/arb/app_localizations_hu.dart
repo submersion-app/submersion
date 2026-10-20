@@ -47402,6 +47402,40 @@ class AppLocalizationsHu extends AppLocalizations {
       'A profil feljövetelsebesség-színei és -eseményei által használt határértékek. A biztonsági áttekintés saját, rögzített határértékeket használ, így ezek módosítása soha nem változtatja meg a már áttekintett merüléseket.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Tervező sebességek';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'A merülési és felszállási sebességek, amelyekkel egy új terv kezdődik. Egy terven belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Tervező gáz';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'A gázfogyasztási alapértékek, amelyekkel egy új terv kezdődik. Egy terven belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Tervező vészhelyzet';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'A mi lenne ha eltérés, amellyel egy új terv kezdődik. Egy terven belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam =>
+      'Tervező DPV csapat';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'A robogó akkumulátor-rezerv és gyaloglási sebesség, amellyel egy új DPV-küldetés kezdődik. Egy küldetésen belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_rates_finalAscent =>
+      'Végső felszállási sebesség';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Feljövetelsebesség határértékei';
 

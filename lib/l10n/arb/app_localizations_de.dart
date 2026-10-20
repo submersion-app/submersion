@@ -47571,6 +47571,38 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Grenzwerte für die Farben und Ereignisse der Aufstiegsgeschwindigkeit im Profil. Die Sicherheitsüberprüfung nutzt eigene feste Grenzwerte, daher ändern diese Werte nie bereits geprüfte Tauchgänge.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Planer-Raten';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'Die Sink- und Aufstiegsraten, mit denen ein neuer Plan startet. Eine Änderung innerhalb eines Plans überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Planer-Gas';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'Die Gasverbrauchs-Standardwerte, mit denen ein neuer Plan startet. Eine Änderung innerhalb eines Plans überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Planer-Eventualplan';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'Die Was-wäre-wenn-Abweichung, mit der ein neuer Plan startet. Eine Änderung innerhalb eines Plans überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'Planer-DPV-Team';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'Die Scooter-Akku-Reserve und Gehgeschwindigkeit, mit denen eine neue DPV-Mission startet. Eine Änderung innerhalb einer Mission überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'Finale Aufstiegsrate';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Grenzwerte der Aufstiegsgeschwindigkeit';
 

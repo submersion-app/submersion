@@ -48255,6 +48255,37 @@ class AppLocalizationsAr extends AppLocalizations {
       'الحدود التي تستخدمها ألوان وأحداث سرعة الصعود في الملف. تحتفظ مراجعة السلامة بحدودها الثابتة الخاصة، لذا لا يؤدي تغيير هذه القيم أبدًا إلى تعديل الغطسات التي تمت مراجعتها.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'معدلات المخطط';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'معدلات النزول والصعود التي تبدأ بها خطة جديدة. تغيير أحدها داخل خطة يستبدله هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'غاز المخطط';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'القيم الافتراضية لاستهلاك الغاز التي تبدأ بها خطة جديدة. تغيير أحدها داخل خطة يستبدله هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_header_plannerContingency => 'طوارئ المخطط';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'انحراف \"ماذا لو\" الذي تبدأ به خطة جديدة. تغييره داخل خطة يستبدله هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'فريق DPV للمخطط';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'احتياطي بطارية السكوتر وسرعة المشي التي تبدأ بها مهمة DPV جديدة. تغييرها داخل مهمة يستبدلها هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'معدل الصعود النهائي';
+
+  @override
   String get settings_decompression_ascentRateThresholds => 'حدود سرعة الصعود';
 
   @override

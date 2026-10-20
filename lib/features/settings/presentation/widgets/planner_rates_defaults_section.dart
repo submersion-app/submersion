@@ -1,0 +1,86 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/planner_default_number_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Global defaults for the planner Setup accordion's Deco/Rates fields
+/// (issue #3552): the descent and ascent rates a new plan starts with,
+/// overridable per plan without changing this default.
+class PlannerRatesDefaultsSection extends ConsumerWidget {
+  const PlannerRatesDefaultsSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+    final notifier = ref.read(settingsProvider.notifier);
+    final suffix = units.depthRateSymbol;
+
+    Widget rateTile({
+      required String label,
+      required double meters,
+      required ValueChanged<double> onChanged,
+    }) {
+      return ListTile(
+        dense: true,
+        title: Text(label),
+        trailing: Text(
+          units.formatDepthRate(meters, decimals: 0),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        onTap: () async {
+          final entered = await showDialog<double>(
+            context: context,
+            builder: (_) => PlannerDefaultNumberDialog(
+              title: label,
+              initialValue: units.convertDepth(meters),
+              unitSymbol: suffix,
+              integer: true,
+            ),
+          );
+          if (entered == null || !entered.isFinite || entered <= 0) return;
+          onChanged(units.depthToMeters(entered));
+        },
+      );
+    }
+
+    return Card(
+      child: Column(
+        children: [
+          rateTile(
+            label: context.l10n.plannerCanvas_rates_descent,
+            meters: settings.plannerDescentRate,
+            onChanged: notifier.setPlannerDescentRate,
+          ),
+          const Divider(height: 1),
+          rateTile(
+            label: context.l10n.plannerCanvas_rates_ascent,
+            meters: settings.plannerAscentRate,
+            onChanged: notifier.setPlannerAscentRate,
+          ),
+          const Divider(height: 1),
+          rateTile(
+            label: context.l10n.plannerCanvas_rates_intermediateAscent,
+            meters: settings.plannerIntermediateAscentRate,
+            onChanged: notifier.setPlannerIntermediateAscentRate,
+          ),
+          const Divider(height: 1),
+          rateTile(
+            label: context.l10n.plannerCanvas_rates_shallowAscent,
+            meters: settings.plannerShallowAscentRate,
+            onChanged: notifier.setPlannerShallowAscentRate,
+          ),
+          const Divider(height: 1),
+          rateTile(
+            label: context.l10n.settings_decompression_rates_finalAscent,
+            meters: settings.plannerFinalAscentRate,
+            onChanged: notifier.setPlannerFinalAscentRate,
+          ),
+        ],
+      ),
+    );
+  }
+}
