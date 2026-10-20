@@ -24,9 +24,17 @@ class ContingencyChips extends ConsumerWidget {
     final selected = ref.watch(selectedDeviationProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
 
-    final depthLabel =
-        '+${units.formatDepth(state.deviationDepthDelta, decimals: 0)}';
-    final timeLabel = '+${state.deviationTimeMinutes}′';
+    // Resolved against the diver's Settings when unset (issue #3552), same
+    // fallback as ContingencySettingsSection/ContingencyService - an unset
+    // override must never render as a literal "null" here.
+    final depthDelta =
+        state.deviationDepthDelta ??
+        ref.watch(plannerDeviationDepthDeltaProvider);
+    final timeMinutes =
+        state.deviationTimeMinutes ??
+        ref.watch(plannerDeviationTimeMinutesProvider);
+    final depthLabel = '+${units.formatDepth(depthDelta, decimals: 0)}';
+    final timeLabel = '+$timeMinutes′';
 
     void select(String? key) {
       ref.read(selectedDeviationProvider.notifier).state = key;

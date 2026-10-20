@@ -194,9 +194,18 @@ class ContingencyPreviewChip extends ConsumerWidget {
         lostTank.gasMix.name,
       );
     } else {
-      final depth =
-          '+${units.formatDepth(state.deviationDepthDelta, decimals: 0)}';
-      final time = '+${state.deviationTimeMinutes}′';
+      // Resolved against the diver's Settings when unset (issue #3552), the
+      // same fallback the Contingency Setup section and ContingencyService
+      // already use - an unset override must never render as a literal
+      // "null" here.
+      final depthDelta =
+          state.deviationDepthDelta ??
+          ref.watch(plannerDeviationDepthDeltaProvider);
+      final timeMinutes =
+          state.deviationTimeMinutes ??
+          ref.watch(plannerDeviationTimeMinutesProvider);
+      final depth = '+${units.formatDepth(depthDelta, decimals: 0)}';
+      final time = '+$timeMinutes′';
       label = switch (ref.watch(selectedDeviationProvider)) {
         'deeper' => depth,
         'longer' => time,
