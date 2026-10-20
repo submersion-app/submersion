@@ -194,7 +194,9 @@ void main() {
     for (final choice in ['3m', '4m', '5m', '6m']) {
       expect(find.text(choice), findsOneWidget, reason: choice);
     }
-    expect(container.read(divePlanNotifierProvider).lastStopDepth, 3.0);
+    // A fresh plan has no override (issue #3552): the "Default" segment is
+    // selected and the plan's own field stays unset.
+    expect(container.read(divePlanNotifierProvider).lastStopDepth, isNull);
 
     await tester.tap(find.text('6m'));
     await tester.pumpAndSettle();
@@ -274,7 +276,10 @@ void main() {
       await tester.pumpWidget(_harness(const PlanGasSection()));
       await tester.pumpAndSettle();
 
-      expect(_planFieldText(tester, 'Bottom RMV'), '15');
+      // A fresh plan has no override (issue #3552): the box is empty and
+      // the Settings default (15) shows only as the hint.
+      expect(_planFieldText(tester, 'Bottom RMV'), '');
+      expect(_planFieldHint(tester, 'Bottom RMV'), '15');
       expect(
         find.descendant(
           of: _planRow('Bottom RMV'),
@@ -310,8 +315,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // The default 15 L/min is 0.5297 cuft/min, not "15 cuft/min", and at
-      // 1 decimal it read "0.5".
-      expect(_planFieldText(tester, 'Bottom RMV'), '0.53');
+      // 1 decimal it read "0.5". A fresh plan has no override (issue
+      // #3552), so this shows only as the hint.
+      expect(_planFieldText(tester, 'Bottom RMV'), '');
+      expect(_planFieldHint(tester, 'Bottom RMV'), '0.53');
       expect(
         find.descendant(
           of: _planRow('Bottom RMV'),

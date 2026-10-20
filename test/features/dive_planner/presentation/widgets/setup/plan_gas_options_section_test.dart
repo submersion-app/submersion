@@ -42,16 +42,16 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
     );
-    // Declaration order in PlanGasOptionsSection: Deco RMV, RMV factor,
-    // problem solving time, gas switch stop, ppO2 bottom, ppO2 deco,
-    // best-mix END.
+    // Declaration order in PlanGasOptionsSection: Deco RMV, stressed RMV
+    // factor (issue #3552), RMV factor, problem solving time, gas switch
+    // stop, ppO2 bottom, ppO2 deco, best-mix END.
     final fields = tester
         .widgetList<TextField>(find.byType(TextField))
         .toList();
-    expect(fields, hasLength(7));
+    expect(fields, hasLength(8));
     expect(fields.first.decoration?.hintText, '15');
 
-    await tester.enterText(find.byType(TextField).at(1), '3');
+    await tester.enterText(find.byType(TextField).at(2), '3');
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).sacFactor, 3.0);
@@ -66,7 +66,7 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
     );
-    await tester.enterText(find.byType(TextField).at(2), '4');
+    await tester.enterText(find.byType(TextField).at(3), '4');
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).problemSolvingMinutes, 4);
@@ -80,9 +80,12 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
     );
-    expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 0);
+    expect(
+      container.read(divePlanNotifierProvider).gasSwitchStopSeconds,
+      isNull,
+    );
 
-    await tester.enterText(find.byType(TextField).at(3), '2');
+    await tester.enterText(find.byType(TextField).at(4), '2');
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 120);
@@ -136,9 +139,11 @@ void main() {
     await tester.pumpWidget(_harness());
     await tester.pumpAndSettle();
 
-    // bestMixEndMeters defaults to 30 m; the last field is Best mix END.
+    // bestMixEndMeters is unset on a fresh plan (issue #3552): the field is
+    // empty, following the diver's Settings default (30 m) as its hint.
     final bestMixField = tester.widget<TextField>(find.byType(TextField).last);
-    expect(bestMixField.controller!.text, '30');
+    expect(bestMixField.controller!.text, '');
+    expect(bestMixField.decoration?.hintText, '30');
   });
 
   testWidgets('best mix END shows feet when the depth unit is imperial', (
@@ -147,9 +152,9 @@ void main() {
     await tester.pumpWidget(_harness(depthUnit: DepthUnit.feet));
     await tester.pumpAndSettle();
 
-    // 30 m == ~98 ft.
+    // 30 m == ~98 ft, shown as the hint since the field is unset.
     final bestMixField = tester.widget<TextField>(find.byType(TextField).last);
-    expect(bestMixField.controller!.text, '98');
+    expect(bestMixField.decoration?.hintText, '98');
 
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
