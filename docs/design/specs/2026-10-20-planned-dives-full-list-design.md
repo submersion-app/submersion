@@ -1,7 +1,7 @@
 # Geplante Tauchgänge: vollständige Liste
 
 Date: 2026-10-20
-Status: concept, cross-examined, no implementation plan written yet
+Status: implemented, see PR #3560
 Issue: #3551
 
 ## Problem
@@ -176,9 +176,9 @@ both surfaces:
   in einem Implementierungsplan festgelegt.
 - Detailliertes visuelles Design der Gruppen-Header, Sortier-/Gruppier-
   Auswahl-UI (Icons, genaue Beschriftungen) ist hier nicht entworfen.
-- Kein GitHub-Issue existiert bisher; eines sollte vor einem
-  Implementierungsplan erstellt werden (Projektkonvention: jeder PR
-  verlinkt ein Issue).
+- Issue #3551 wurde erstellt und ist über PR #3560 umgesetzt (kein
+  separater Implementierungsplan geschrieben; die Entscheidungen oben
+  reichten für die Umsetzung).
 - Ob die neue Seite künftig auch Lösch-/Bearbeiten-Aktionen direkt aus der
   Liste anbietet, ist nicht Teil dieser Anfrage und wird hier nicht
   entschieden.
