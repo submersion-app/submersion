@@ -298,7 +298,7 @@ void main() {
     RuleEngine engineNoting(List<String> ensured) => RuleEngine(
       names: (_) async => NameIndex(const []),
       deviceLabel: () async => 'Test device',
-      ensureDerived: (ids) async => ensured.addAll(ids),
+      ensureDerived: (_, ids) async => ensured.addAll(ids),
     );
 
     test('are brought up to date for the dives a rule judges', () async {
@@ -313,8 +313,9 @@ void main() {
     test('only the stale ones are rebuilt, found in one query', () async {
       // A whole-logbook run must not check every dive one by one.
       final metrics = _StaleOnly({'d35'});
-      await RuleEngine.ensureDerivedCurrent(['d20', 'd35'], metrics);
-      expect(metrics.staleQueries, 1);
+      await RuleEngine.ensureDerivedCurrent('me', ['d20', 'd35'], metrics);
+      // One query, for this diver's dives alone.
+      expect(metrics.staleQueriesFor, ['me']);
       expect(metrics.rebuilt, ['d35']);
     });
 
@@ -347,11 +348,11 @@ class _StaleOnly extends DerivedMetricsRepository {
 
   final Set<String> stale;
   final rebuilt = <String>[];
-  var staleQueries = 0;
+  final staleQueriesFor = <String?>[];
 
   @override
   Future<List<String>> staleDiveIds({String? diverId}) async {
-    staleQueries++;
+    staleQueriesFor.add(diverId);
     return stale.toList();
   }
 

@@ -22,7 +22,9 @@ class RuleChange {
   final RuleSubject subject;
   final String targetId;
 
-  /// Null once the rule that made the change is deleted.
+  /// The rule that made the change. Kept after that rule is deleted (the
+  /// column has no foreign key), so it may name a rule that no longer
+  /// exists.
   final String? ruleId;
   final String ruleName;
   final String field;

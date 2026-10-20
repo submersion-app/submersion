@@ -153,6 +153,42 @@ void main() {
     );
   });
 
+  testWidgets('a failed reorder keeps what synced while it ran', (
+    tester,
+  ) async {
+    // Putting back the rows from before the drag would undo a rename that
+    // arrived meanwhile.
+    await tester.runAsync(() async {
+      await make('Alpha');
+      await make('Bravo');
+      await pumpRulesApp(
+        tester,
+        home: (_) => const RulesPage(),
+        extra: [ruleRepositoryProvider.overrideWithValue(_SyncThenFail(db))],
+      );
+    });
+    await tester.pumpAndSettle();
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byIcon(Icons.drag_handle).first),
+    );
+    for (var i = 0; i < 12; i++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump();
+    }
+    await gesture.up();
+    // The write's own wait runs on the test clock, the database on the real
+    // one: advance both.
+    for (var i = 0; i < 8; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 60)),
+      );
+      await tester.pump(const Duration(milliseconds: 60));
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Charlie'), findsOneWidget);
+    expect(find.text('Bravo'), findsNothing);
+  });
+
   testWidgets('the switch turns a rule off', (tester) async {
     late String id;
     await tester.runAsync(() async {
@@ -319,4 +355,21 @@ class _FailingReorder extends RuleRepository {
   @override
   Future<void> reorder(List<String> orderedIds) async =>
       throw StateError('disk full');
+}
+
+/// A repository whose reorder write fails after a sync renamed Bravo.
+class _SyncThenFail extends RuleRepository {
+  _SyncThenFail(this.db);
+
+  final AppDatabase db;
+
+  @override
+  Future<void> reorder(List<String> orderedIds) async {
+    await db.customUpdate(
+      "UPDATE rules SET name = 'Charlie' WHERE name = 'Bravo'",
+      updates: {db.rules},
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    throw StateError('disk full');
+  }
 }

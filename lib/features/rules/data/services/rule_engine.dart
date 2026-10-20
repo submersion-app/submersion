@@ -35,7 +35,8 @@ class RuleEngine {
     SiteRuleApplier? sites,
     required Future<NameIndex> Function(String diverId) names,
     Future<String?> Function()? deviceLabel,
-    Future<void> Function(Iterable<String> diveIds)? ensureDerived,
+    Future<void> Function(String diverId, Iterable<String> diveIds)?
+    ensureDerived,
     void Function(Iterable<String> diveIds)? afterDiveWrites,
   }) : _rules = rules ?? RuleRepository(),
        _runs = runs ?? RuleRunRepository(),
@@ -55,18 +56,21 @@ class RuleEngine {
   final SiteRuleApplier _sites;
   final Future<NameIndex> Function(String diverId) _names;
   final Future<String?> Function() _deviceLabel;
-  final Future<void> Function(Iterable<String> diveIds) _ensureDerived;
+  final Future<void> Function(String diverId, Iterable<String> diveIds)
+  _ensureDerived;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
 
-  /// Rebuilds the derived fields of those [diveIds] whose stored ones are
-  /// missing or stale, found in one query rather than checked one by one
-  /// (a run over a whole logbook judges every dive).
+  /// Rebuilds the derived fields of those of [diverId]'s [diveIds] whose
+  /// stored ones are missing or stale, found in one query over the diver's
+  /// dives rather than checked one by one (a run over a whole logbook
+  /// judges every dive).
   static Future<void> ensureDerivedCurrent(
+    String diverId,
     Iterable<String> diveIds, [
     DerivedMetricsRepository? repository,
   ]) async {
     final metrics = repository ?? DerivedMetricsRepository();
-    final stale = (await metrics.staleDiveIds()).toSet();
+    final stale = (await metrics.staleDiveIds(diverId: diverId)).toSet();
     for (final id in diveIds) {
       if (stale.contains(id)) await metrics.ensureCurrent(id);
     }
@@ -155,6 +159,7 @@ class RuleEngine {
     if (!reads) return;
     final requested = request.targets[RuleSubject.dives];
     await _ensureDerived(
+      request.diverId,
       requested == null
           ? await _scope.allEligibleIds(RuleSubject.dives, request.diverId)
           : await _scope.matches(

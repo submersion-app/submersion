@@ -172,8 +172,9 @@ class _RuleListsState extends ConsumerState<_RuleLists> {
     } catch (e, st) {
       _log.error('Failed to reorder rules', error: e, stackTrace: st);
       if (!mounted) return;
-      // Nothing was stored: back to the order the rules still run in.
-      show(list);
+      // Nothing was stored: back to the stored order, as last loaded (a
+      // sync may have landed while the write ran).
+      show(List.unmodifiable(dives ? widget.dives : widget.sites));
       showRulesError(context);
     }
   }

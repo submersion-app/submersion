@@ -1967,9 +1967,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    // Read now: the diver can leave while the save runs, and a site
-    // created by hand gets its logbook rules (#3513) either way.
-    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
+    // A site created by hand gets its logbook rules (#3513); edits and
+    // merges never run them. Read now: the diver can leave while the save
+    // runs, and the new site gets them either way.
+    final rulesAfterCreate = widget.isEditing || widget.isMerging
+        ? null
+        : captureRulesAfterCreate(context, ref);
 
     try {
       final settings = ref.read(settingsProvider);
@@ -2143,11 +2146,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         ref.invalidate(siteSpottedSpeciesProvider(savedId));
       }
 
-      // Logbook rules for a site created by hand (#3513), once its types,
-      // tags and species are saved. Edits and merges never run them.
-      if (!widget.isEditing && !widget.isMerging) {
-        await rulesAfterCreate(subject: RuleSubject.sites, ids: [savedId]);
-      }
+      // The new site's rules, once its types, tags and species are saved.
+      await rulesAfterCreate?.call(subject: RuleSubject.sites, ids: [savedId]);
 
       ref.invalidate(sitesWithCountsProvider);
       ref.invalidate(sitesProvider);
