@@ -506,5 +506,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertDivePlanSetupFieldsNullable();
     }
     if (from < 303) await reportProgress();
+
+    // v304: dive_plan_missions battery_reserve_fraction and walk_speed_mps
+    // made nullable (issue #3552) - the DPV Team counterpart of v303.
+    // Table rebuild; re-asserted in beforeOpen through
+    // _assertDivePlanMissionFieldsNullable.
+    if (from < 304) {
+      await _assertDivePlanMissionFieldsNullable();
+    }
+    if (from < 304) await reportProgress();
   }
 }

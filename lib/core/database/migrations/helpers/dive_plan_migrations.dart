@@ -272,4 +272,95 @@ extension DivePlanMigrations on AppDatabase {
     await migrator.createTable(divePlanMissionLegs);
     await migrator.createTable(divePlanMissionMembers);
   }
+
+  /// v304: drops NOT NULL from dive_plan_missions.battery_reserve_fraction
+  /// and .walk_speed_mps, so a mission can store "unset, follow the diver's
+  /// Settings" (issue #3552) - the DPV Team counterpart of the v303
+  /// dive_plans rebuild, same technique and same safety argument (see that
+  /// helper's doc comment). A separate rung because this is a different
+  /// table, created later (v244) than dive_plans' initial schema.
+  Future<void> _assertDivePlanMissionFieldsNullable() async {
+    const columns = {
+      'battery_reserve_fraction': 'REAL',
+      'walk_speed_mps': 'REAL',
+    };
+
+    final stored = await customSelect(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' "
+      "AND name = 'dive_plan_missions'",
+    ).get();
+    if (stored.isEmpty) return; // minimal fixture database: table absent
+    final createSql = stored.first.read<String>('sql');
+
+    var rebuiltSql = createSql;
+    var changed = false;
+    for (final entry in columns.entries) {
+      final clause = RegExp(
+        '"${entry.key}"\\s+${entry.value}\\s+NOT\\s+NULL',
+        caseSensitive: false,
+      );
+      if (!clause.hasMatch(rebuiltSql)) continue; // already nullable
+      rebuiltSql = rebuiltSql.replaceFirst(
+        clause,
+        '"${entry.key}" ${entry.value}',
+      );
+      changed = true;
+    }
+    if (!changed) return; // every column already migrated
+
+    final header = RegExp(
+      r'^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?"?dive_plan_missions"?',
+      caseSensitive: false,
+    );
+    if (!header.hasMatch(rebuiltSql)) {
+      developer.log(
+        'dive_plan_missions Setup-field columns: stored definition not in '
+        'a recognised shape, nullability left unchanged',
+        name: 'AppDatabase',
+      );
+      return;
+    }
+    const scratch = 'dive_plan_missions_v304';
+    rebuiltSql = rebuiltSql.replaceFirst(header, 'CREATE TABLE $scratch');
+    final dependents = await customSelect(
+      "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_plan_missions' "
+      "AND type IN ('index', 'trigger') AND sql IS NOT NULL",
+    ).get();
+
+    Future<bool> enforced() async =>
+        (await customSelect(
+          'PRAGMA foreign_keys',
+        ).getSingle()).read<int>('foreign_keys') ==
+        1;
+    final wasEnforced = await enforced();
+    if (wasEnforced) {
+      await customStatement('PRAGMA foreign_keys = OFF');
+      if (await enforced()) {
+        developer.log(
+          'dive_plan_missions Setup-field columns: foreign keys could not '
+          'be switched off, rebuild deferred to a later open',
+          name: 'AppDatabase',
+        );
+        return;
+      }
+    }
+    try {
+      await transaction(() async {
+        await customStatement('DROP TABLE IF EXISTS $scratch');
+        await customStatement(rebuiltSql);
+        await customStatement(
+          'INSERT INTO $scratch SELECT * FROM dive_plan_missions',
+        );
+        await customStatement('DROP TABLE dive_plan_missions');
+        await customStatement(
+          'ALTER TABLE $scratch RENAME TO dive_plan_missions',
+        );
+        for (final row in dependents) {
+          await customStatement(row.read<String>('sql'));
+        }
+      });
+    } finally {
+      if (wasEnforced) await customStatement('PRAGMA foreign_keys = ON');
+    }
+  }
 }

@@ -80,6 +80,9 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertPlannerDefaultColumns();
     // v303 backstop: dive_plans Setup-accordion columns made nullable.
     await _assertDivePlanSetupFieldsNullable();
+    // v304 backstop: dive_plan_missions battery_reserve_fraction/
+    // walk_speed_mps made nullable.
+    await _assertDivePlanMissionFieldsNullable();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do
