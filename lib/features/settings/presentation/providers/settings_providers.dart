@@ -547,6 +547,31 @@ class AppSettings {
   /// taken at (issue #3520). Off by default; files are never changed.
   final bool autoColorCorrection;
 
+  // Planner Setup-accordion global defaults (issue #3552). A new plan
+  // resolves each of these when its own field is unset, the same way
+  // ppO2MaxWorking/ppO2MaxDeco/o2Narcotic/ccrSetpointLow/ccrSetpointHigh/
+  // lastStopDepth already do.
+  final double plannerDescentRate;
+  final double plannerAscentRate;
+  final double plannerIntermediateAscentRate;
+  final double plannerShallowAscentRate;
+  final double plannerFinalAscentRate;
+  final int plannerGasSwitchStopSeconds;
+  final double plannerSacBottom;
+  final double plannerSacDeco;
+
+  /// Multiplier on [plannerSacBottom] for the stressed/bailout SAC rate -
+  /// not an absolute rate, so it tracks bottom SAC instead of silently
+  /// diverging from it.
+  final double plannerSacStressedFactor;
+  final double plannerBuddyFactor;
+  final int plannerProblemSolvingMinutes;
+  final double plannerBestMixEndMeters;
+  final double plannerDeviationDepthDelta;
+  final int plannerDeviationTimeMinutes;
+  final double plannerBatteryReserveFraction;
+  final double plannerWalkSpeedMps;
+
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
@@ -756,6 +781,22 @@ class AppSettings {
     this.showDataSourceBadges = true,
     this.showDiveFigure = false,
     this.autoColorCorrection = false,
+    this.plannerDescentRate = 18.0,
+    this.plannerAscentRate = 9.0,
+    this.plannerIntermediateAscentRate = 6.0,
+    this.plannerShallowAscentRate = 3.0,
+    this.plannerFinalAscentRate = 1.0,
+    this.plannerGasSwitchStopSeconds = 0,
+    this.plannerSacBottom = 15.0,
+    this.plannerSacDeco = 15.0,
+    this.plannerSacStressedFactor = 2.5,
+    this.plannerBuddyFactor = 2.0,
+    this.plannerProblemSolvingMinutes = 2,
+    this.plannerBestMixEndMeters = 30.0,
+    this.plannerDeviationDepthDelta = 5.0,
+    this.plannerDeviationTimeMinutes = 5,
+    this.plannerBatteryReserveFraction = 1.0 / 3.0,
+    this.plannerWalkSpeedMps = 0.8,
     this.showProfilePanelInTableView = true,
     this.showDetailsPaneDives = false,
     this.showDetailsPaneSites = false,
@@ -950,6 +991,22 @@ class AppSettings {
     bool? showDataSourceBadges,
     bool? showDiveFigure,
     bool? autoColorCorrection,
+    double? plannerDescentRate,
+    double? plannerAscentRate,
+    double? plannerIntermediateAscentRate,
+    double? plannerShallowAscentRate,
+    double? plannerFinalAscentRate,
+    int? plannerGasSwitchStopSeconds,
+    double? plannerSacBottom,
+    double? plannerSacDeco,
+    double? plannerSacStressedFactor,
+    double? plannerBuddyFactor,
+    int? plannerProblemSolvingMinutes,
+    double? plannerBestMixEndMeters,
+    double? plannerDeviationDepthDelta,
+    int? plannerDeviationTimeMinutes,
+    double? plannerBatteryReserveFraction,
+    double? plannerWalkSpeedMps,
     bool? showProfilePanelInTableView,
     bool? showDetailsPaneDives,
     bool? showDetailsPaneSites,
@@ -1146,6 +1203,32 @@ class AppSettings {
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
       showDiveFigure: showDiveFigure ?? this.showDiveFigure,
       autoColorCorrection: autoColorCorrection ?? this.autoColorCorrection,
+      plannerDescentRate: plannerDescentRate ?? this.plannerDescentRate,
+      plannerAscentRate: plannerAscentRate ?? this.plannerAscentRate,
+      plannerIntermediateAscentRate:
+          plannerIntermediateAscentRate ?? this.plannerIntermediateAscentRate,
+      plannerShallowAscentRate:
+          plannerShallowAscentRate ?? this.plannerShallowAscentRate,
+      plannerFinalAscentRate:
+          plannerFinalAscentRate ?? this.plannerFinalAscentRate,
+      plannerGasSwitchStopSeconds:
+          plannerGasSwitchStopSeconds ?? this.plannerGasSwitchStopSeconds,
+      plannerSacBottom: plannerSacBottom ?? this.plannerSacBottom,
+      plannerSacDeco: plannerSacDeco ?? this.plannerSacDeco,
+      plannerSacStressedFactor:
+          plannerSacStressedFactor ?? this.plannerSacStressedFactor,
+      plannerBuddyFactor: plannerBuddyFactor ?? this.plannerBuddyFactor,
+      plannerProblemSolvingMinutes:
+          plannerProblemSolvingMinutes ?? this.plannerProblemSolvingMinutes,
+      plannerBestMixEndMeters:
+          plannerBestMixEndMeters ?? this.plannerBestMixEndMeters,
+      plannerDeviationDepthDelta:
+          plannerDeviationDepthDelta ?? this.plannerDeviationDepthDelta,
+      plannerDeviationTimeMinutes:
+          plannerDeviationTimeMinutes ?? this.plannerDeviationTimeMinutes,
+      plannerBatteryReserveFraction:
+          plannerBatteryReserveFraction ?? this.plannerBatteryReserveFraction,
+      plannerWalkSpeedMps: plannerWalkSpeedMps ?? this.plannerWalkSpeedMps,
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
@@ -2300,6 +2383,91 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  // Planner Setup-accordion global defaults (issue #3552). Unlike
+  // setLastStopDepth/setDecoStopIncrement above, these have no narrow
+  // diving-safety band to clamp to - the Setup accordion already clamps the
+  // same fields per-plan, and the global default has the same range.
+
+  Future<void> setPlannerDescentRate(double value) async {
+    state = state.copyWith(plannerDescentRate: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAscentRate(double value) async {
+    state = state.copyWith(plannerAscentRate: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerIntermediateAscentRate(double value) async {
+    state = state.copyWith(plannerIntermediateAscentRate: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerShallowAscentRate(double value) async {
+    state = state.copyWith(plannerShallowAscentRate: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerFinalAscentRate(double value) async {
+    state = state.copyWith(plannerFinalAscentRate: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerGasSwitchStopSeconds(int value) async {
+    state = state.copyWith(plannerGasSwitchStopSeconds: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacBottom(double value) async {
+    state = state.copyWith(plannerSacBottom: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacDeco(double value) async {
+    state = state.copyWith(plannerSacDeco: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacStressedFactor(double value) async {
+    state = state.copyWith(plannerSacStressedFactor: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBuddyFactor(double value) async {
+    state = state.copyWith(plannerBuddyFactor: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerProblemSolvingMinutes(int value) async {
+    state = state.copyWith(plannerProblemSolvingMinutes: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBestMixEndMeters(double value) async {
+    state = state.copyWith(plannerBestMixEndMeters: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerDeviationDepthDelta(double value) async {
+    state = state.copyWith(plannerDeviationDepthDelta: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerDeviationTimeMinutes(int value) async {
+    state = state.copyWith(plannerDeviationTimeMinutes: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBatteryReserveFraction(double value) async {
+    state = state.copyWith(plannerBatteryReserveFraction: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerWalkSpeedMps(double value) async {
+    state = state.copyWith(plannerWalkSpeedMps: value);
+    await _saveSettings();
+  }
+
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
     state = state.copyWith(decoStopIncrement: clamped);
@@ -3126,6 +3294,83 @@ final showNdlOnProfileProvider = Provider<bool>((ref) {
 
 final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
+});
+
+// Planner Setup-accordion global defaults (issue #3552).
+final plannerDescentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerDescentRate));
+});
+
+final plannerAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerAscentRate));
+});
+
+final plannerIntermediateAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerIntermediateAscentRate),
+  );
+});
+
+final plannerShallowAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerShallowAscentRate));
+});
+
+final plannerFinalAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerFinalAscentRate));
+});
+
+final plannerGasSwitchStopSecondsProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerGasSwitchStopSeconds),
+  );
+});
+
+final plannerSacBottomProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacBottom));
+});
+
+final plannerSacDecoProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacDeco));
+});
+
+final plannerSacStressedFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacStressedFactor));
+});
+
+final plannerBuddyFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerBuddyFactor));
+});
+
+final plannerProblemSolvingMinutesProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerProblemSolvingMinutes),
+  );
+});
+
+final plannerBestMixEndMetersProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerBestMixEndMeters));
+});
+
+final plannerDeviationDepthDeltaProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerDeviationDepthDelta),
+  );
+});
+
+final plannerDeviationTimeMinutesProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerDeviationTimeMinutes),
+  );
+});
+
+final plannerBatteryReserveFractionProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerBatteryReserveFraction),
+  );
+});
+
+final plannerWalkSpeedMpsProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerWalkSpeedMps));
 });
 
 /// The diver's passive-SCR ratio (Subsurface `pscr_ratio`, default 100).
