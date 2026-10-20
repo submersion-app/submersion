@@ -791,8 +791,11 @@ class DivePlanState extends Equatable {
     bool clearStartDateTime = false,
     PlanMode? mode,
     double? setpointLow,
+    bool clearSetpointLow = false,
     double? setpointHigh,
+    bool clearSetpointHigh = false,
     double? setpointSwitchDepth,
+    bool clearSetpointSwitchDepth = false,
     double? deviationDepthDelta,
     bool clearDeviationDepthDelta = false,
     int? deviationTimeMinutes,
@@ -835,7 +838,6 @@ class DivePlanState extends Equatable {
     bool clearAltitude = false,
     bool clearWaterType = false,
     bool clearSalinityPpt = false,
-    bool clearSetpoints = false,
     bool clearAirBreaks = false,
   }) {
     return DivePlanState(
@@ -883,9 +885,11 @@ class DivePlanState extends Equatable {
           ? null
           : (startDateTime ?? this.startDateTime),
       mode: mode ?? this.mode,
-      setpointLow: clearSetpoints ? null : (setpointLow ?? this.setpointLow),
-      setpointHigh: clearSetpoints ? null : (setpointHigh ?? this.setpointHigh),
-      setpointSwitchDepth: clearSetpoints
+      setpointLow: clearSetpointLow ? null : (setpointLow ?? this.setpointLow),
+      setpointHigh: clearSetpointHigh
+          ? null
+          : (setpointHigh ?? this.setpointHigh),
+      setpointSwitchDepth: clearSetpointSwitchDepth
           ? null
           : (setpointSwitchDepth ?? this.setpointSwitchDepth),
       deviationDepthDelta: clearDeviationDepthDelta

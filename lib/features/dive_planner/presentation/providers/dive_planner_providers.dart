@@ -957,11 +957,21 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Update CCR setpoints; only supplied values change.
-  void updateSetpoints({double? low, double? high, double? switchDepth}) {
+  void updateSetpoints({
+    double? low,
+    bool clearLow = false,
+    double? high,
+    bool clearHigh = false,
+    double? switchDepth,
+    bool clearSwitchDepth = false,
+  }) {
     state = state.copyWith(
       setpointLow: low,
+      clearSetpointLow: clearLow,
       setpointHigh: high,
+      clearSetpointHigh: clearHigh,
       setpointSwitchDepth: switchDepth,
+      clearSetpointSwitchDepth: clearSwitchDepth,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
