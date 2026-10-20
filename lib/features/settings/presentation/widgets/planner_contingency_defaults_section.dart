@@ -39,7 +39,9 @@ class PlannerContingencyDefaultsSection extends ConsumerWidget {
                   unitSymbol: units.depthSymbol,
                 ),
               );
-              if (entered == null || !entered.isFinite || entered <= 0) {
+              // 0 is a valid "no deviation" default, same as the per-plan
+              // field (contingency_settings_section.dart, min: 0).
+              if (entered == null || !entered.isFinite || entered < 0) {
                 return;
               }
               notifier.setPlannerDeviationDepthDelta(
@@ -66,7 +68,9 @@ class PlannerContingencyDefaultsSection extends ConsumerWidget {
                   integer: true,
                 ),
               );
-              if (entered == null || !entered.isFinite || entered <= 0) {
+              // 0 is a valid "no deviation" default, same as the per-plan
+              // field.
+              if (entered == null || !entered.isFinite || entered < 0) {
                 return;
               }
               notifier.setPlannerDeviationTimeMinutes(entered.round());

@@ -289,6 +289,7 @@ class PlanEngineConfig extends Equatable {
       gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
       sacBottom: plan.sacBottom,
       sacDeco: plan.sacDeco,
+      problemSolvingMinutes: plan.problemSolvingMinutes,
       deviationDepthDelta: plan.deviationDepthDelta,
       deviationTimeMinutes: plan.deviationTimeMinutes,
     );
@@ -1112,7 +1113,7 @@ class PlanEngine {
           final gas = ascentPlan.gasForDepth(legDepth);
           charge(
             _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
-            plan.sacDecoEffective *
+            config.sacDeco *
                 (subSeconds / 60.0) *
                 environment.pressureAtDepth((legDepth + legTo) / 2.0),
           );
@@ -1122,7 +1123,7 @@ class PlanEngine {
         final legAvg = (depth + stop.depthMeters) / 2.0;
         charge(
           stop.tankId,
-          plan.sacDecoEffective *
+          config.sacDeco *
               (legSeconds / 60.0) *
               environment.pressureAtDepth(legAvg),
         );
@@ -1131,7 +1132,7 @@ class PlanEngine {
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
       charge(
         stop.tankId,
-        plan.sacDecoEffective * (primarySeconds / 60.0) * stopPressure,
+        config.sacDeco * (primarySeconds / 60.0) * stopPressure,
       );
       if (stop.airBreakSeconds > 0) {
         final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
@@ -1144,7 +1145,7 @@ class PlanEngine {
             : stop.tankId;
         charge(
           breakTankId,
-          plan.sacDecoEffective * (stop.airBreakSeconds / 60.0) * stopPressure,
+          config.sacDeco * (stop.airBreakSeconds / 60.0) * stopPressure,
         );
       }
       depth = stop.depthMeters;
@@ -1159,7 +1160,7 @@ class PlanEngine {
       final gas = ascentPlan.gasForDepth(depth);
       charge(
         _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
-        plan.sacDecoEffective *
+        config.sacDeco *
             (legSeconds / 60.0) *
             environment.pressureAtDepth(depth / 2.0),
       );

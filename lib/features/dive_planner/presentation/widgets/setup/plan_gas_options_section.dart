@@ -53,12 +53,19 @@ class PlanGasOptionsSection extends ConsumerWidget {
         PlanNumberField(
           // Shown and edited as a multiple of bottom SAC, not an absolute
           // rate: the conversion factor cancels out of the ratio, so no
-          // unit conversion is needed here (issue #3552).
+          // unit conversion is needed here (issue #3552). Bottom SAC is
+          // never actually 0 through the guarded UI path (plan_gas_section
+          // only writes a positive liters value), but a 0 here would
+          // otherwise divide to NaN/Infinity, so it falls back to showing
+          // the plan's override as unset rather than a broken number.
           label: context.l10n.divePlanner_gasOptions_sacStressedFactor,
-          value: state.sacStressed != null
-              ? state.sacStressed! /
-                    (state.sacRate ?? ref.watch(plannerSacBottomProvider))
-              : null,
+          value: () {
+            final stressed = state.sacStressed;
+            if (stressed == null) return null;
+            final double bottom =
+                state.sacRate ?? ref.watch(plannerSacBottomProvider);
+            return bottom > 0 ? stressed / bottom : null;
+          }(),
           hintValue: ref.watch(plannerSacStressedFactorProvider),
           suffixText: '×',
           decimals: 1,
@@ -69,6 +76,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
             }
             final double bottom =
                 state.sacRate ?? ref.read(plannerSacBottomProvider);
+            if (bottom <= 0) return;
             notifier.updateGasOptions(sacStressed: bottom * value);
           },
         ),

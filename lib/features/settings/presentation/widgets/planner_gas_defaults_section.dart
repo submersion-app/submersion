@@ -131,6 +131,37 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
           const Divider(height: 1),
           ListTile(
             dense: true,
+            title: Text(
+              context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
+            ),
+            trailing: Text(
+              '${(settings.plannerGasSwitchStopSeconds / 60).round()} '
+              '${context.l10n.divePlanner_label_minutesUnit}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            onTap: () async {
+              final entered = await showDialog<double>(
+                context: context,
+                builder: (_) => PlannerDefaultNumberDialog(
+                  title:
+                      context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
+                  initialValue: (settings.plannerGasSwitchStopSeconds / 60)
+                      .roundToDouble(),
+                  unitSymbol: context.l10n.divePlanner_label_minutesUnit,
+                  integer: true,
+                ),
+              );
+              // 0 (no gas-switch stop) is the existing default and a valid
+              // choice, same as the per-plan field.
+              if (entered == null || !entered.isFinite || entered < 0) {
+                return;
+              }
+              notifier.setPlannerGasSwitchStopSeconds((entered * 60).round());
+            },
+          ),
+          const Divider(height: 1),
+          ListTile(
+            dense: true,
             title: Text(context.l10n.divePlanner_gasOptions_bestMixEnd),
             trailing: Text(
               units.formatDepth(settings.plannerBestMixEndMeters, decimals: 0),
