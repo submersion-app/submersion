@@ -138,8 +138,11 @@ class DivePlan extends Equatable {
   final double? setpointSwitchDepth;
 
   // Contingency config (Phase 5 UI; persisted now)
-  final double deviationDepthDelta;
-  final int deviationTimeMinutes;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? deviationDepthDelta;
+
+  /// Null = use the diver's Settings default (issue #3552).
+  final int? deviationTimeMinutes;
   final TurnPressureRule? turnPressureRule;
   final double? turnPressureFraction;
 
@@ -202,8 +205,8 @@ class DivePlan extends Equatable {
     this.setpointLow,
     this.setpointHigh,
     this.setpointSwitchDepth,
-    this.deviationDepthDelta = 5.0,
-    this.deviationTimeMinutes = 5,
+    this.deviationDepthDelta,
+    this.deviationTimeMinutes,
     this.turnPressureRule,
     this.turnPressureFraction,
     this.segments = const [],
@@ -325,7 +328,9 @@ class DivePlan extends Equatable {
     double? setpointSwitchDepth,
     bool clearSetpointSwitchDepth = false,
     double? deviationDepthDelta,
+    bool clearDeviationDepthDelta = false,
     int? deviationTimeMinutes,
+    bool clearDeviationTimeMinutes = false,
     TurnPressureRule? turnPressureRule,
     bool clearTurnPressureRule = false,
     double? turnPressureFraction,
@@ -405,8 +410,12 @@ class DivePlan extends Equatable {
       setpointSwitchDepth: clearSetpointSwitchDepth
           ? null
           : (setpointSwitchDepth ?? this.setpointSwitchDepth),
-      deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
-      deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
+      deviationDepthDelta: clearDeviationDepthDelta
+          ? null
+          : (deviationDepthDelta ?? this.deviationDepthDelta),
+      deviationTimeMinutes: clearDeviationTimeMinutes
+          ? null
+          : (deviationTimeMinutes ?? this.deviationTimeMinutes),
       turnPressureRule: clearTurnPressureRule
           ? null
           : (turnPressureRule ?? this.turnPressureRule),

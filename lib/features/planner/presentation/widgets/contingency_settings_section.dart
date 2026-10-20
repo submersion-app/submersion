@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -22,24 +23,12 @@ class ContingencySettingsSection extends ConsumerStatefulWidget {
 
 class _ContingencySettingsSectionState
     extends ConsumerState<ContingencySettingsSection> {
-  late final TextEditingController _depthController;
-  late final TextEditingController _timeController;
   late final TextEditingController _fractionController;
 
   @override
   void initState() {
     super.initState();
     final state = ref.read(divePlanNotifierProvider);
-    final units = UnitFormatter(ref.read(settingsProvider));
-    _depthController = TextEditingController(
-      text: formatRoundedForInput(
-        units.convertDepth(state.deviationDepthDelta),
-        0,
-      ),
-    );
-    _timeController = TextEditingController(
-      text: formatDecimalForInput(state.deviationTimeMinutes.toDouble()),
-    );
     _fractionController = TextEditingController(
       text: formatRoundedForInput(state.turnPressureFraction ?? (1 / 3), 2),
     );
@@ -47,8 +36,6 @@ class _ContingencySettingsSectionState
 
   @override
   void dispose() {
-    _depthController.dispose();
-    _timeController.dispose();
     _fractionController.dispose();
     super.dispose();
   }
@@ -83,44 +70,42 @@ class _ContingencySettingsSectionState
           ),
           const SizedBox(height: 8),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: NumberField(
-                  controller: _depthController,
-                  decoration: InputDecoration(
-                    labelText:
-                        '${l10n.plannerCanvas_contingency_depthDelta} '
-                        '(${units.depthSymbol})',
-                    isDense: true,
-                    border: const OutlineInputBorder(),
+                child: PlanNumberField(
+                  label: l10n.plannerCanvas_contingency_depthDelta,
+                  value: state.deviationDepthDelta != null
+                      ? units.convertDepth(state.deviationDepthDelta!)
+                      : null,
+                  hintValue: units.convertDepth(
+                    ref.watch(plannerDeviationDepthDeltaProvider),
                   ),
-                  onChanged: (read) {
-                    // Blank and unreadable text leave the plan alone.
-                    if (read is! NumberValue || read.value <= 0) return;
-                    final parsed = read.value;
-                    final factor = units.convertDepth(1.0);
-                    notifier.updateContingencies(
-                      depthDelta: factor > 0 ? parsed / factor : parsed,
-                    );
-                  },
+                  suffixText: units.depthSymbol,
+                  min: 0,
+                  onChanged: (value) => notifier.updateContingencies(
+                    depthDelta: value != null
+                        ? units.depthToMeters(value)
+                        : null,
+                    clearDepthDelta: value == null,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: NumberField(
-                  controller: _timeController,
-                  integer: true,
-                  decoration: InputDecoration(
-                    labelText: l10n.plannerCanvas_contingency_timeDelta,
-                    isDense: true,
-                    border: const OutlineInputBorder(),
+                child: PlanNumberField(
+                  label: l10n.plannerCanvas_contingency_timeDelta,
+                  value: state.deviationTimeMinutes?.toDouble(),
+                  hintValue: ref
+                      .watch(plannerDeviationTimeMinutesProvider)
+                      .toDouble(),
+                  suffixText: l10n.divePlanner_label_minutesUnit,
+                  isInteger: true,
+                  min: 0,
+                  onChanged: (value) => notifier.updateContingencies(
+                    timeMinutes: value?.round(),
+                    clearTimeMinutes: value == null,
                   ),
-                  onChanged: (read) {
-                    if (read is! NumberValue || read.value <= 0) return;
-                    notifier.updateContingencies(
-                      timeMinutes: read.value.toInt(),
-                    );
-                  },
                 ),
               ),
             ],

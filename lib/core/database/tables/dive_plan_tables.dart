@@ -90,11 +90,10 @@ class DivePlans extends Table {
   RealColumn get setpointHigh => real().nullable()();
   RealColumn get setpointSwitchDepth => real().nullable()();
 
-  /// Contingency config (Phase 5 UI).
-  RealColumn get deviationDepthDelta =>
-      real().withDefault(const Constant(5.0))();
-  IntColumn get deviationTimeMinutes =>
-      integer().withDefault(const Constant(5))();
+  /// Contingency config (Phase 5 UI). Null = use the diver's Settings
+  /// default (issue #3552).
+  RealColumn get deviationDepthDelta => real().nullable()();
+  IntColumn get deviationTimeMinutes => integer().nullable()();
 
   /// TurnPressureRule enum name; null = none.
   TextColumn get turnPressureRule => text().nullable()();

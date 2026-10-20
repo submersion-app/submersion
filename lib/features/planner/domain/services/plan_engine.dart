@@ -116,6 +116,8 @@ class PlanEngineConfig extends Equatable {
   /// override is an absolute rate, not a factor.
   final double sacStressedFactor;
   final int problemSolvingMinutes;
+  final double deviationDepthDelta;
+  final int deviationTimeMinutes;
 
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
@@ -148,6 +150,8 @@ class PlanEngineConfig extends Equatable {
     this.sacDeco = 15.0,
     this.sacStressedFactor = 2.5,
     this.problemSolvingMinutes = 2,
+    this.deviationDepthDelta = 5.0,
+    this.deviationTimeMinutes = 5,
   });
 
   @override
@@ -182,6 +186,8 @@ class PlanEngineConfig extends Equatable {
     sacDeco,
     sacStressedFactor,
     problemSolvingMinutes,
+    deviationDepthDelta,
+    deviationTimeMinutes,
   ];
 
   PlanEngineConfig copyWith({
@@ -215,6 +221,8 @@ class PlanEngineConfig extends Equatable {
     double? sacDeco,
     double? sacStressedFactor,
     int? problemSolvingMinutes,
+    double? deviationDepthDelta,
+    int? deviationTimeMinutes,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -250,6 +258,8 @@ class PlanEngineConfig extends Equatable {
       sacStressedFactor: sacStressedFactor ?? this.sacStressedFactor,
       problemSolvingMinutes:
           problemSolvingMinutes ?? this.problemSolvingMinutes,
+      deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
+      deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
     );
   }
 
@@ -279,6 +289,8 @@ class PlanEngineConfig extends Equatable {
       gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
       sacBottom: plan.sacBottom,
       sacDeco: plan.sacDeco,
+      deviationDepthDelta: plan.deviationDepthDelta,
+      deviationTimeMinutes: plan.deviationTimeMinutes,
     );
   }
 

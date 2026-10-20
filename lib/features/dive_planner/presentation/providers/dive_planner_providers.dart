@@ -970,14 +970,18 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Update contingency configuration; only supplied values change.
   void updateContingencies({
     double? depthDelta,
+    bool clearDepthDelta = false,
     int? timeMinutes,
+    bool clearTimeMinutes = false,
     domain.TurnPressureRule? turnRule,
     double? turnFraction,
     bool clearTurnRule = false,
   }) {
     state = state.copyWith(
       deviationDepthDelta: depthDelta,
+      clearDeviationDepthDelta: clearDepthDelta,
       deviationTimeMinutes: timeMinutes,
+      clearDeviationTimeMinutes: clearTimeMinutes,
       turnPressureRule: turnRule,
       turnPressureFraction: turnFraction,
       clearTurnPressureRule: clearTurnRule,

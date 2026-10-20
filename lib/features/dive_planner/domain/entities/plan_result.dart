@@ -576,9 +576,10 @@ class DivePlanState extends Equatable {
   /// Depth below which the high setpoint is in force; null = default 10 m.
   final double? setpointSwitchDepth;
 
-  /// Contingency deviation deltas (Phase 5).
-  final double deviationDepthDelta;
-  final int deviationTimeMinutes;
+  /// Contingency deviation deltas (Phase 5). Null = use the diver's
+  /// Settings default (issue #3552).
+  final double? deviationDepthDelta;
+  final int? deviationTimeMinutes;
 
   /// Turn-pressure rule for penetration planning; null = none.
   final TurnPressureRule? turnPressureRule;
@@ -698,8 +699,8 @@ class DivePlanState extends Equatable {
     this.setpointLow,
     this.setpointHigh,
     this.setpointSwitchDepth,
-    this.deviationDepthDelta = 5.0,
-    this.deviationTimeMinutes = 5,
+    this.deviationDepthDelta,
+    this.deviationTimeMinutes,
     this.turnPressureRule,
     this.turnPressureFraction,
     this.reservePressure = kDefaultReservePressureBar,
@@ -793,7 +794,9 @@ class DivePlanState extends Equatable {
     double? setpointHigh,
     double? setpointSwitchDepth,
     double? deviationDepthDelta,
+    bool clearDeviationDepthDelta = false,
     int? deviationTimeMinutes,
+    bool clearDeviationTimeMinutes = false,
     TurnPressureRule? turnPressureRule,
     double? turnPressureFraction,
     bool clearTurnPressureRule = false,
@@ -885,8 +888,12 @@ class DivePlanState extends Equatable {
       setpointSwitchDepth: clearSetpoints
           ? null
           : (setpointSwitchDepth ?? this.setpointSwitchDepth),
-      deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
-      deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
+      deviationDepthDelta: clearDeviationDepthDelta
+          ? null
+          : (deviationDepthDelta ?? this.deviationDepthDelta),
+      deviationTimeMinutes: clearDeviationTimeMinutes
+          ? null
+          : (deviationTimeMinutes ?? this.deviationTimeMinutes),
       turnPressureRule: clearTurnPressureRule
           ? null
           : (turnPressureRule ?? this.turnPressureRule),

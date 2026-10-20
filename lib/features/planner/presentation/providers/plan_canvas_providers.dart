@@ -47,6 +47,8 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     problemSolvingMinutes: ref.watch(plannerProblemSolvingMinutesProvider),
     buddyFactor: ref.watch(plannerBuddyFactorProvider),
     bestMixEndMeters: ref.watch(plannerBestMixEndMetersProvider),
+    deviationDepthDelta: ref.watch(plannerDeviationDepthDeltaProvider),
+    deviationTimeMinutes: ref.watch(plannerDeviationTimeMinutesProvider),
   );
 });
 
