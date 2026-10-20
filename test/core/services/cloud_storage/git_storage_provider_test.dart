@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_config.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_errors.dart';
@@ -476,10 +477,16 @@ void main() {
         );
         await p.listFiles(folderId: 'Submersion Sync');
         await runGit(repo, ['config', 'receive.denyNonFastForwards', 'true']);
+        final changed = <String>[];
+        final sub = GitStorageProvider.resetRecords.changes.listen(changed.add);
+        addTearDown(sub.cancel);
         await p.deleteFile(up.fileId);
         await p.flush();
         final config = (await p.loadConfig())!;
         expect(GitStorageProvider.resetRefusedFor(config), isTrue);
+        // The Cloud sync page follows these changes while it is open.
+        await pumpEventQueue();
+        expect(changed, contains(gitNaturalKey(config)));
         final files = await runGit(repo, [
           'ls-tree',
           '-r',

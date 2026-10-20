@@ -20,6 +20,7 @@ import 'package:submersion/core/services/cloud_storage/git/git_errors.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_http_transport.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
+import 'package:submersion/core/services/cloud_storage/git/git_reset_records.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
@@ -204,24 +205,21 @@ class GitStorageProvider
   @override
   Future<String?> getUserEmail() async => (await _loadConfig())?.displayLabel;
 
-  /// When each repository and branch last had its history reset, as seen
-  /// by any provider in this process. Process-wide because the active sync
-  /// provider is built per account, apart from the settings singleton that
-  /// the Cloud sync page reads.
-  static final Map<String, DateTime> _lastResetByEndpoint = {};
-
-  /// Repositories and branches whose host refused a history reset.
-  static final Set<String> _resetRefusedEndpoints = {};
+  /// History reset outcomes for each repository and branch, as seen by any
+  /// provider in this process. Process-wide because the active sync provider
+  /// is built per account, apart from the settings singleton that the Cloud
+  /// sync page reads; the page follows [GitResetRecords.changes].
+  static final GitResetRecords resetRecords = GitResetRecords();
 
   /// Whether the host refused the last history reset of [config]'s branch
   /// (branch protection); the Cloud sync page says how to allow it.
   static bool resetRefusedFor(GitConfig config) =>
-      _resetRefusedEndpoints.contains(gitNaturalKey(config));
+      resetRecords.statusFor(gitNaturalKey(config)).refused;
 
   /// When [config]'s branch was last reset, as far as this process has
   /// seen; no network.
   static DateTime? lastKnownResetFor(GitConfig config) =>
-      _lastResetByEndpoint[gitNaturalKey(config)];
+      resetRecords.statusFor(gitNaturalKey(config)).lastResetAt;
 
   /// When this provider's branch was last reset; no network.
   DateTime? get lastKnownResetAt {
@@ -233,8 +231,10 @@ class GitStorageProvider
     final ms = session.current?.meta.lastResetAtMs;
     final config = _cachedConfig;
     if (ms == null || config == null) return;
-    _lastResetByEndpoint[gitNaturalKey(config)] =
-        DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+    resetRecords.noteReset(
+      gitNaturalKey(config),
+      DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true),
+    );
   }
 
   void dispose() {
@@ -651,11 +651,11 @@ class GitStorageProvider
     final key = config == null ? null : gitNaturalKey(config);
     try {
       final reset = await session.resetHistoryIfDue(force: force);
-      if (reset && key != null) _resetRefusedEndpoints.remove(key);
+      if (reset && key != null) resetRecords.noteRefused(key, refused: false);
       _noteSnapshot(session);
     } on GitException catch (e) {
       if (e.code == GitErrorCode.protectedBranch && key != null) {
-        _resetRefusedEndpoints.add(key);
+        resetRecords.noteRefused(key, refused: true);
       }
       rethrow;
     }

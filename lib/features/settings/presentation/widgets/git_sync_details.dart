@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/cloud_storage/git_storage_provider.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -18,8 +18,11 @@ class GitSyncDetails extends ConsumerWidget {
     final config = ref.watch(gitConfigProvider).valueOrNull;
     if (config == null) return const SizedBox.shrink();
     final l10n = context.l10n;
-    final reset = GitStorageProvider.lastKnownResetFor(config);
-    final refused = GitStorageProvider.resetRefusedFor(config);
+    // Watched, not read once: a reset, or a refused one, can happen while
+    // the page is open.
+    final (lastResetAt: reset, :refused) = ref.watch(
+      gitResetStatusProvider(gitNaturalKey(config)),
+    );
     return Column(
       key: const Key('git-sync-details'),
       crossAxisAlignment: CrossAxisAlignment.start,
