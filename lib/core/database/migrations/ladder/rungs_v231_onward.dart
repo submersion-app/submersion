@@ -486,5 +486,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertRuleSchema();
     }
     if (from < 301) await reportProgress();
+
+    // v302: diver_settings planner Setup-accordion global defaults (issue
+    // #3552). Columns only; re-asserted in beforeOpen through
+    // _assertPlannerDefaultColumns.
+    if (from < 302) {
+      await _assertPlannerDefaultColumns();
+    }
+    if (from < 302) await reportProgress();
   }
 }

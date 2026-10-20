@@ -286,7 +286,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 301;
+  static const int currentSchemaVersion = 302;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1339,6 +1339,9 @@ class AppDatabase extends _$AppDatabase {
     // #3481 and #3502 shipped 292 and 294, #3482 holds 293, #3522 shipped
     // 295, #3520 shipped 296 and #3360 shipped 297 to 300.
     301,
+    // v302: diver_settings planner Setup-accordion global defaults (issue
+    // #3552). Additive columns only; does not move the compatibility floor.
+    302,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

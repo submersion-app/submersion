@@ -62,6 +62,7 @@ part 'helpers/equipment_condition_migrations.dart';
 part 'helpers/equipment_location_migrations.dart';
 part 'helpers/insight_migrations.dart';
 part 'helpers/media_migrations.dart';
+part 'helpers/planner_defaults_migrations.dart';
 part 'helpers/pre_dive_migrations.dart';
 part 'helpers/profile_series_history_migrations.dart';
 part 'helpers/quality_migrations.dart';
