@@ -3188,6 +3188,7 @@
   "divePlanner_gasOptions_sacBottom": "RMV القاع",
   "divePlanner_gasOptions_sacDeco": "RMV تخفيف الضغط",
   "divePlanner_gasOptions_sacFactor": "معامل RMV",
+  "divePlanner_gasOptions_sacStressedFactor": "معامل RMV تحت الضغط",
   "divePlanner_gasOptions_problemSolvingMinutes": "زمن حل المشكلة",
   "divePlanner_gasOptions_ppO2Bottom": "ppO₂ القاع",
   "divePlanner_gasOptions_ppO2Deco": "ppO₂ تخفيف الضغط",

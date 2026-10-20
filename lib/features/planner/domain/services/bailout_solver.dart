@@ -313,7 +313,7 @@ class BailoutSolver {
               litersRequired: _ascentLiters(
                 schedule,
                 fromDepth: chunkEndDepth,
-                sac: plan.sacStressedEffective,
+                sac: config.sacStressedFor(plan),
                 policy: policy,
                 environment: environment,
               ),
@@ -340,7 +340,7 @@ class BailoutSolver {
       bailoutPlan: bailoutPlan,
       policy: policy,
       environment: environment,
-      sac: plan.sacStressedEffective,
+      sac: config.sacStressedFor(plan),
     );
     return BailoutOutcome(
       points: points,

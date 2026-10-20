@@ -203,10 +203,15 @@ class ExitPathEvaluator {
   /// proportion. Never below their own SAC; a plan with no bottom SAC gives
   /// no ratio, so the diver keeps their own.
   static double stressedSacFor(domain.DivePlan plan, double sacBottom) {
-    if (plan.sacBottom <= 0) {
+    // This evaluator has no PlanEngineConfig to resolve the plan's bottom
+    // SAC/stressed-SAC against the diver's Settings (issue #3552) - the
+    // *Effective getters' spec-constant fallback is the documented last
+    // resort for exactly this case.
+    final planSacBottom = plan.sacBottomEffective;
+    if (planSacBottom <= 0) {
       return math.max(plan.sacStressedEffective, sacBottom);
     }
-    final factor = plan.sacStressedEffective / plan.sacBottom;
+    final factor = plan.sacStressedEffective / planSacBottom;
     return sacBottom * math.max(1.0, factor);
   }
 

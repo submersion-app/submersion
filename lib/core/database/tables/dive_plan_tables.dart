@@ -73,14 +73,14 @@ class DivePlans extends Table {
   IntColumn get airBreakO2Seconds => integer().nullable()();
   IntColumn get airBreakBreakSeconds => integer().nullable()();
 
-  // sacBottom stays non-nullable here for now; its own Drift/domain
-  // nullability change lands with the rest of Gas (issue #3552) - the v303
-  // migration already dropped its SQL-level NOT NULL ahead of that, as part
-  // of the one-time dive_plans rebuild.
-  RealColumn get sacBottom => real().withDefault(const Constant(15.0))();
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get sacBottom => real().nullable()();
 
-  /// Null = derive 0.8x / 2.5x of sacBottom.
+  /// Null = use the diver's Settings default (issue #3552).
   RealColumn get sacDeco => real().nullable()();
+
+  /// Null = derive from sacBottom and the diver's Settings stressed-SAC
+  /// factor (issue #3552).
   RealColumn get sacStressed => real().nullable()();
   RealColumn get reservePressure => real().withDefault(const Constant(50.0))();
   IntColumn get surfaceIntervalSeconds => integer().nullable()();
@@ -111,13 +111,13 @@ class DivePlans extends Table {
   TextColumn get stopMinimumsJson => text().nullable()();
 
   /// Gas options (Subsurface parity). See [DivePlan.sacFactor] and siblings
-  /// for the semantics of each field.
-  RealColumn get sacFactor => real().withDefault(const Constant(2.0))();
-  IntColumn get problemSolvingMinutes =>
-      integer().withDefault(const Constant(2))();
+  /// for the semantics of each field. Null = use the diver's Settings
+  /// default (issue #3552).
+  RealColumn get sacFactor => real().nullable()();
+  IntColumn get problemSolvingMinutes => integer().nullable()();
   RealColumn get ppO2Bottom => real().nullable()();
   RealColumn get ppO2Deco => real().nullable()();
-  RealColumn get bestMixEndMeters => real().withDefault(const Constant(30.0))();
+  RealColumn get bestMixEndMeters => real().nullable()();
   BoolColumn get o2Narcotic => boolean().nullable()();
 
   /// Denormalized list-display summary (no engine run per list row).

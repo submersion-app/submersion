@@ -3215,6 +3215,7 @@
   "divePlanner_gasOptions_sacBottom": "Grund-AMV",
   "divePlanner_gasOptions_sacDeco": "Deko-AMV",
   "divePlanner_gasOptions_sacFactor": "AMV-Faktor",
+  "divePlanner_gasOptions_sacStressedFactor": "Gestresster AMV-Faktor",
   "divePlanner_gasOptions_problemSolvingMinutes": "Zeit zur Problemlösung",
   "divePlanner_gasOptions_gasSwitchStopSeconds": "Stopp beim Gaswechsel",
   "divePlanner_gasOptions_ppO2Bottom": "Grund-ppO₂",

@@ -86,20 +86,29 @@ class DivePlan extends Equatable {
   final Map<int, int> stopMinimums;
 
   // Gas planning
-  final double sacBottom;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? sacBottom;
+
+  /// Null = use the diver's Settings default (issue #3552; was "0.8x of
+  /// bottom" before it had one - see [sacDecoEffective]).
   final double? sacDeco;
+
+  /// Null = derive from [sacBottom] and the diver's Settings stressed-SAC
+  /// factor (issue #3552) - see [sacStressedEffective].
   final double? sacStressed;
   final double reservePressure;
 
   // Gas options (Subsurface-style; issue-driven G-series follow-up).
   /// Multiplier on [sacStressedEffective]'s fallback for the minimum-gas /
   /// rock-bottom calculation, standing in for the app-wide
-  /// `PlanEngineConfig.buddyFactor` default (2.0) once a plan sets it.
-  final double sacFactor;
+  /// `PlanEngineConfig.buddyFactor` default (2.0) once a plan sets it. Null
+  /// = use the diver's Settings default (issue #3552).
+  final double? sacFactor;
 
   /// Minutes spent at max depth at the stressed SAC before the ascent
-  /// begins, in the minimum-gas calculation. Subsurface default: 2.
-  final int problemSolvingMinutes;
+  /// begins, in the minimum-gas calculation. Null = use the diver's
+  /// Settings default (issue #3552; Subsurface default: 2).
+  final int? problemSolvingMinutes;
 
   /// ppO2 ceiling for gas selection / MOD warnings during the working part
   /// of the dive. Null = use the app-wide setting.
@@ -110,8 +119,9 @@ class DivePlan extends Equatable {
   final double? ppO2Deco;
 
   /// Equivalent narcotic depth target used when suggesting a best mix for a
-  /// depth. Subsurface default: 30 m (its UI shows 28 m).
-  final double bestMixEndMeters;
+  /// depth. Null = use the diver's Settings default (issue #3552;
+  /// Subsurface default: 30 m, its UI shows 28 m).
+  final double? bestMixEndMeters;
 
   /// Whether O2 counts as narcotic in END for this plan. Null = use the
   /// app-wide setting.
@@ -176,15 +186,15 @@ class DivePlan extends Equatable {
     this.gasSwitchStopSeconds,
     this.airBreaks,
     this.stopMinimums = const {},
-    this.sacBottom = 15.0,
+    this.sacBottom,
     this.sacDeco,
     this.sacStressed,
     this.reservePressure = 50.0,
-    this.sacFactor = 2.0,
-    this.problemSolvingMinutes = 2,
+    this.sacFactor,
+    this.problemSolvingMinutes,
     this.ppO2Bottom,
     this.ppO2Deco,
-    this.bestMixEndMeters = 30.0,
+    this.bestMixEndMeters,
     this.o2Narcotic,
     this.surfaceInterval,
     this.sourceDiveId,
@@ -216,11 +226,24 @@ class DivePlan extends Equatable {
   static const double specSetpointHigh = 1.3;
   double get effectiveSetpointSwitchDepth => setpointSwitchDepth ?? 10.0;
 
-  /// Deco SAC: explicit value, otherwise 15 L/min (same default as bottom SAC).
+  /// Bottom SAC: explicit value, otherwise the 15 L/min spec default - the
+  /// last resort for a caller with no diver Settings to hand (same reason
+  /// as [specSetpointLow] above). A caller with a [PlanEngineConfig]
+  /// resolved for this plan reads `config.sacBottom` instead, which already
+  /// carries the diver's Settings default (issue #3552).
+  double get sacBottomEffective => sacBottom ?? 15.0;
+
+  /// Deco SAC: explicit value, otherwise the 15 L/min spec default - same
+  /// last-resort caveat as [sacBottomEffective]; a config-aware caller
+  /// reads `config.sacDeco` instead (issue #3552).
   double get sacDecoEffective => sacDeco ?? 15.0;
 
-  /// Stressed (bailout/rock-bottom) SAC: explicit or 2.5x bottom.
-  double get sacStressedEffective => sacStressed ?? sacBottom * 2.5;
+  /// Stressed (bailout/rock-bottom) SAC: explicit, otherwise 2.5x
+  /// [sacBottomEffective] - same last-resort caveat; a config-aware caller
+  /// reads `config.sacStressedFor(plan)` instead, which uses the diver's
+  /// Settings stressed-SAC factor rather than the hardcoded 2.5 (issue
+  /// #3552).
+  double get sacStressedEffective => sacStressed ?? sacBottomEffective * 2.5;
 
   /// Deepest point across the user-authored segments (0 if none).
   ///
@@ -271,18 +294,22 @@ class DivePlan extends Equatable {
     bool clearAirBreaks = false,
     Map<int, int>? stopMinimums,
     double? sacBottom,
+    bool clearSacBottom = false,
     double? sacDeco,
     bool clearSacDeco = false,
     double? sacStressed,
     bool clearSacStressed = false,
     double? reservePressure,
     double? sacFactor,
+    bool clearSacFactor = false,
     int? problemSolvingMinutes,
+    bool clearProblemSolvingMinutes = false,
     double? ppO2Bottom,
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
     bool clearPpO2Deco = false,
     double? bestMixEndMeters,
+    bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
     bool clearO2Narcotic = false,
     Duration? surfaceInterval,
@@ -348,16 +375,19 @@ class DivePlan extends Equatable {
           : (gasSwitchStopSeconds ?? this.gasSwitchStopSeconds),
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
       stopMinimums: stopMinimums ?? this.stopMinimums,
-      sacBottom: sacBottom ?? this.sacBottom,
+      sacBottom: clearSacBottom ? null : (sacBottom ?? this.sacBottom),
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
       sacStressed: clearSacStressed ? null : (sacStressed ?? this.sacStressed),
       reservePressure: reservePressure ?? this.reservePressure,
-      sacFactor: sacFactor ?? this.sacFactor,
-      problemSolvingMinutes:
-          problemSolvingMinutes ?? this.problemSolvingMinutes,
+      sacFactor: clearSacFactor ? null : (sacFactor ?? this.sacFactor),
+      problemSolvingMinutes: clearProblemSolvingMinutes
+          ? null
+          : (problemSolvingMinutes ?? this.problemSolvingMinutes),
       ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
       ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
-      bestMixEndMeters: bestMixEndMeters ?? this.bestMixEndMeters,
+      bestMixEndMeters: clearBestMixEndMeters
+          ? null
+          : (bestMixEndMeters ?? this.bestMixEndMeters),
       o2Narcotic: clearO2Narcotic ? null : (o2Narcotic ?? this.o2Narcotic),
       surfaceInterval: clearSurfaceInterval
           ? null

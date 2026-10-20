@@ -3303,6 +3303,7 @@
   "divePlanner_gasOptions_sacBottom": "水底 RMV",
   "divePlanner_gasOptions_sacDeco": "减压 RMV",
   "divePlanner_gasOptions_sacFactor": "RMV 系数",
+  "divePlanner_gasOptions_sacStressedFactor": "压力 RMV 系数",
   "divePlanner_gasOptions_problemSolvingMinutes": "问题处理时间",
   "divePlanner_gasOptions_ppO2Bottom": "水底 ppO₂",
   "divePlanner_gasOptions_ppO2Deco": "减压 ppO₂",

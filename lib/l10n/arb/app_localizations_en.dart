@@ -10300,6 +10300,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV factor';
 
   @override
+  String get divePlanner_gasOptions_sacStressedFactor => 'Stressed RMV factor';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
       'Problem solving time';
 

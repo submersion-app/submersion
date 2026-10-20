@@ -16801,6 +16801,12 @@ abstract class AppLocalizations {
   /// **'RMV factor'**
   String get divePlanner_gasOptions_sacFactor;
 
+  /// No description provided for @divePlanner_gasOptions_sacStressedFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Stressed RMV factor'**
+  String get divePlanner_gasOptions_sacStressedFactor;
+
   /// No description provided for @divePlanner_gasOptions_problemSolvingMinutes.
   ///
   /// In en, this message translates to:

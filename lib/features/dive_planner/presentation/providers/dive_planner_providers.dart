@@ -683,6 +683,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Clear the SAC rate override, falling back to the diver's Settings
+  /// default (issue #3552).
+  void clearSacRate() {
+    state = state.copyWith(
+      clearSacRate: true,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Update any of the four ascent rates, or the descent rate, in meters per
   /// minute. [intermediate] applies between stops deeper than 9 m, [shallow]
   /// between the 9 m and shallower stops, and [finalStretch] from the last
@@ -826,16 +836,21 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Update the Subsurface-style Gas options; only supplied values change.
-  /// [sacDeco], [ppO2Bottom], [ppO2Deco], [o2Narcotic] and
-  /// [gasSwitchStopSeconds] are nullable overrides of the app-wide settings
-  /// (or, for [sacDeco], of the 0.8x-of-bottom fallback) - pass the matching
-  /// `clear*` flag to fall back again (issue #3552; [gasSwitchStopSeconds]
-  /// had no app-wide default before that and so no `clear*` either, #3225).
+  /// [sacDeco], [sacStressed], [sacFactor], [problemSolvingMinutes],
+  /// [gasSwitchStopSeconds], [ppO2Bottom], [ppO2Deco], [bestMixEndMeters]
+  /// and [o2Narcotic] are nullable overrides of the diver's Settings - pass
+  /// the matching `clear*` flag to fall back again. [sacStressed] falls
+  /// back to [sacDeco]'s sibling bottom-SAC-times-factor default rather
+  /// than a plain Settings value (issue #3552).
   void updateGasOptions({
     double? sacDeco,
     bool clearSacDeco = false,
+    double? sacStressed,
+    bool clearSacStressed = false,
     double? sacFactor,
+    bool clearSacFactor = false,
     int? problemSolvingMinutes,
+    bool clearProblemSolvingMinutes = false,
     int? gasSwitchStopSeconds,
     bool clearGasSwitchStopSeconds = false,
     double? ppO2Bottom,
@@ -843,14 +858,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     double? ppO2Deco,
     bool clearPpO2Deco = false,
     double? bestMixEndMeters,
+    bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
     bool clearO2Narcotic = false,
   }) {
     state = state.copyWith(
       sacDeco: sacDeco,
       clearSacDeco: clearSacDeco,
+      sacStressed: sacStressed,
+      clearSacStressed: clearSacStressed,
       sacFactor: sacFactor,
+      clearSacFactor: clearSacFactor,
       problemSolvingMinutes: problemSolvingMinutes,
+      clearProblemSolvingMinutes: clearProblemSolvingMinutes,
       gasSwitchStopSeconds: gasSwitchStopSeconds,
       clearGasSwitchStopSeconds: clearGasSwitchStopSeconds,
       ppO2Bottom: ppO2Bottom,
@@ -858,6 +878,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       ppO2Deco: ppO2Deco,
       clearPpO2Deco: clearPpO2Deco,
       bestMixEndMeters: bestMixEndMeters,
+      clearBestMixEndMeters: clearBestMixEndMeters,
       o2Narcotic: o2Narcotic,
       clearO2Narcotic: clearO2Narcotic,
       isDirty: true,
@@ -1285,7 +1306,7 @@ final planResultsProvider = Provider<PlanResult>((ref) {
   return calculator.calculatePlan(
     segments: state.segments,
     tanks: state.tanks,
-    sacRate: state.sacRate,
+    sacRate: state.sacRate ?? ref.watch(plannerSacBottomProvider),
     reservePressure: state.reservePressure,
     initialTissueState: state.initialTissueState,
     // Altitude 0 keeps the legacy sea-level surface pressure. Null water

@@ -41,7 +41,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
           value: state.sacDeco != null
               ? units.convertRmv(state.sacDeco!)
               : null,
-          hintValue: units.convertRmv(15),
+          hintValue: units.convertRmv(ref.watch(plannerSacDecoProvider)),
           suffixText: units.rmvSymbol,
           // Same precision as Bottom RMV: 2 decimals for cuft/min (#1823).
           decimals: units.rmvDecimals,
@@ -51,22 +51,47 @@ class PlanGasOptionsSection extends ConsumerWidget {
           ),
         ),
         PlanNumberField(
-          label: context.l10n.divePlanner_gasOptions_sacFactor,
-          value: state.sacFactor,
-          hintValue: 2.0,
+          // Shown and edited as a multiple of bottom SAC, not an absolute
+          // rate: the conversion factor cancels out of the ratio, so no
+          // unit conversion is needed here (issue #3552).
+          label: context.l10n.divePlanner_gasOptions_sacStressedFactor,
+          value: state.sacStressed != null
+              ? state.sacStressed! /
+                    (state.sacRate ?? ref.watch(plannerSacBottomProvider))
+              : null,
+          hintValue: ref.watch(plannerSacStressedFactorProvider),
           suffixText: '×',
           decimals: 1,
-          onChanged: (value) =>
-              notifier.updateGasOptions(sacFactor: value ?? 2.0),
+          onChanged: (value) {
+            if (value == null) {
+              notifier.updateGasOptions(clearSacStressed: true);
+              return;
+            }
+            final double bottom =
+                state.sacRate ?? ref.read(plannerSacBottomProvider);
+            notifier.updateGasOptions(sacStressed: bottom * value);
+          },
+        ),
+        PlanNumberField(
+          label: context.l10n.divePlanner_gasOptions_sacFactor,
+          value: state.sacFactor,
+          hintValue: ref.watch(plannerBuddyFactorProvider),
+          suffixText: '×',
+          decimals: 1,
+          onChanged: (value) => notifier.updateGasOptions(
+            sacFactor: value,
+            clearSacFactor: value == null,
+          ),
         ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_problemSolvingMinutes,
-          value: state.problemSolvingMinutes.toDouble(),
-          hintValue: 2,
+          value: state.problemSolvingMinutes?.toDouble(),
+          hintValue: ref.watch(plannerProblemSolvingMinutesProvider).toDouble(),
           suffixText: context.l10n.divePlanner_label_minutesUnit,
           isInteger: true,
           onChanged: (value) => notifier.updateGasOptions(
-            problemSolvingMinutes: (value ?? 2).round(),
+            problemSolvingMinutes: value?.round(),
+            clearProblemSolvingMinutes: value == null,
           ),
         ),
         PlanNumberField(
@@ -107,14 +132,17 @@ class PlanGasOptionsSection extends ConsumerWidget {
         ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_bestMixEnd,
-          value: units.convertDepth(state.bestMixEndMeters),
-          hintValue: units.convertDepth(30.0),
+          value: state.bestMixEndMeters != null
+              ? units.convertDepth(state.bestMixEndMeters!)
+              : null,
+          hintValue: units.convertDepth(
+            ref.watch(plannerBestMixEndMetersProvider),
+          ),
           suffixText: units.depthSymbol,
           decimals: 0,
           onChanged: (value) => notifier.updateGasOptions(
-            bestMixEndMeters: units.depthToMeters(
-              value ?? units.convertDepth(30.0),
-            ),
+            bestMixEndMeters: value != null ? units.depthToMeters(value) : null,
+            clearBestMixEndMeters: value == null,
           ),
         ),
         SwitchListTile(

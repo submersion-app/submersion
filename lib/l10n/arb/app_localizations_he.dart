@@ -10239,6 +10239,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'מקדם RMV';
 
   @override
+  String get divePlanner_gasOptions_sacStressedFactor => 'מקדם RMV בלחץ';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes => 'זמן לפתרון תקלה';
 
   @override

@@ -41,6 +41,12 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     finalAscentRate: ref.watch(plannerFinalAscentRateProvider),
     lastStopDepth: ref.watch(lastStopDepthProvider),
     gasSwitchStopSeconds: ref.watch(plannerGasSwitchStopSecondsProvider),
+    sacBottom: ref.watch(plannerSacBottomProvider),
+    sacDeco: ref.watch(plannerSacDecoProvider),
+    sacStressedFactor: ref.watch(plannerSacStressedFactorProvider),
+    problemSolvingMinutes: ref.watch(plannerProblemSolvingMinutesProvider),
+    buddyFactor: ref.watch(plannerBuddyFactorProvider),
+    bestMixEndMeters: ref.watch(plannerBestMixEndMetersProvider),
   );
 });
 

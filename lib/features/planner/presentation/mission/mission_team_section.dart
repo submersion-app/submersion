@@ -75,9 +75,11 @@ class MissionTeamSection extends ConsumerWidget {
                     l10n.plannerMission_team_defaultName,
                   ),
                   // A new diver starts on the first diver's SAC; the plan's
-                  // own SAC seeded that one.
+                  // own SAC (or, unset, the diver's Settings default, issue
+                  // #3552) seeded that one.
                   sacBottom: m.team.isEmpty
-                      ? ref.read(divePlanNotifierProvider).sacRate
+                      ? ref.read(divePlanNotifierProvider).sacRate ??
+                            ref.read(plannerSacBottomProvider)
                       : m.team.first.sacBottom,
                 ),
               ),

@@ -494,12 +494,18 @@ class DivePlanState extends Equatable {
   /// Gradient factor high (0-100).
   final int gfHigh;
 
-  /// Surface air consumption rate in L/min.
-  final double sacRate;
+  /// Surface air consumption rate in L/min. Null = use the diver's Settings
+  /// default (issue #3552). Mirrors [DivePlan.sacBottom].
+  final double? sacRate;
 
-  /// Deco SAC in L/min; null = the 0.8x-of-bottom fallback (Subsurface "Deco
-  /// SAC"). Mirrors [DivePlan.sacDeco].
+  /// Deco SAC in L/min; null = use the diver's Settings default (issue
+  /// #3552). Mirrors [DivePlan.sacDeco].
   final double? sacDeco;
+
+  /// Stressed/bailout SAC in L/min; null = derive from [sacRate] and the
+  /// diver's Settings stressed-SAC factor (issue #3552). Mirrors
+  /// [DivePlan.sacStressed].
+  final double? sacStressed;
 
   /// Working ascent rate in meters per minute: off the bottom, up to the
   /// first decompression stop. Null = use the diver's Settings default
@@ -582,12 +588,14 @@ class DivePlanState extends Equatable {
   final double reservePressure;
 
   /// Multiplier on the stressed-SAC fallback for the minimum-gas / rock-
-  /// bottom calculation. Mirrors [DivePlan.sacFactor]. Subsurface default: 2.
-  final double sacFactor;
+  /// bottom calculation. Null = use the diver's Settings default (issue
+  /// #3552). Mirrors [DivePlan.sacFactor].
+  final double? sacFactor;
 
   /// Minutes at max depth at the stressed SAC before the ascent begins, in
-  /// the minimum-gas calculation. Mirrors [DivePlan.problemSolvingMinutes].
-  final int problemSolvingMinutes;
+  /// the minimum-gas calculation. Null = use the diver's Settings default
+  /// (issue #3552). Mirrors [DivePlan.problemSolvingMinutes].
+  final int? problemSolvingMinutes;
 
   /// Minimum stop time in seconds enforced wherever the gas actually
   /// switches (main table and bailout alike); 0 = no floor, null = use the
@@ -603,9 +611,10 @@ class DivePlanState extends Equatable {
   /// use the app-wide setting. Mirrors [DivePlan.ppO2Deco].
   final double? ppO2Deco;
 
-  /// Equivalent narcotic depth target for best-mix suggestions. Mirrors
-  /// [DivePlan.bestMixEndMeters]. Subsurface default: 30 m.
-  final double bestMixEndMeters;
+  /// Equivalent narcotic depth target for best-mix suggestions. Null = use
+  /// the diver's Settings default (issue #3552). Mirrors
+  /// [DivePlan.bestMixEndMeters].
+  final double? bestMixEndMeters;
 
   /// Whether O2 counts as narcotic in END for this plan; null = use the
   /// app-wide setting. Mirrors [DivePlan.o2Narcotic].
@@ -666,8 +675,9 @@ class DivePlanState extends Equatable {
     required this.tanks,
     this.gfLow = kFallbackGfLow,
     this.gfHigh = kFallbackGfHigh,
-    this.sacRate = 15.0,
+    this.sacRate,
     this.sacDeco,
+    this.sacStressed,
     this.ascentRate,
     this.intermediateAscentRate,
     this.shallowAscentRate,
@@ -693,12 +703,12 @@ class DivePlanState extends Equatable {
     this.turnPressureRule,
     this.turnPressureFraction,
     this.reservePressure = kDefaultReservePressureBar,
-    this.sacFactor = 2.0,
-    this.problemSolvingMinutes = 2,
+    this.sacFactor,
+    this.problemSolvingMinutes,
     this.gasSwitchStopSeconds,
     this.ppO2Bottom,
     this.ppO2Deco,
-    this.bestMixEndMeters = 30.0,
+    this.bestMixEndMeters,
     this.o2Narcotic,
     this.stopMinimums = const {},
     this.equipmentIds = const [],
@@ -750,8 +760,11 @@ class DivePlanState extends Equatable {
     int? gfLow,
     int? gfHigh,
     double? sacRate,
+    bool clearSacRate = false,
     double? sacDeco,
     bool clearSacDeco = false,
+    double? sacStressed,
+    bool clearSacStressed = false,
     double? ascentRate,
     bool clearAscentRate = false,
     double? intermediateAscentRate,
@@ -786,7 +799,9 @@ class DivePlanState extends Equatable {
     bool clearTurnPressureRule = false,
     double? reservePressure,
     double? sacFactor,
+    bool clearSacFactor = false,
     int? problemSolvingMinutes,
+    bool clearProblemSolvingMinutes = false,
     int? gasSwitchStopSeconds,
     bool clearGasSwitchStopSeconds = false,
     double? ppO2Bottom,
@@ -794,6 +809,7 @@ class DivePlanState extends Equatable {
     double? ppO2Deco,
     bool clearPpO2Deco = false,
     double? bestMixEndMeters,
+    bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
     bool clearO2Narcotic = false,
     Map<int, int>? stopMinimums,
@@ -826,8 +842,9 @@ class DivePlanState extends Equatable {
       tanks: tanks ?? this.tanks,
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
-      sacRate: sacRate ?? this.sacRate,
+      sacRate: clearSacRate ? null : (sacRate ?? this.sacRate),
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
+      sacStressed: clearSacStressed ? null : (sacStressed ?? this.sacStressed),
       ascentRate: clearAscentRate ? null : (ascentRate ?? this.ascentRate),
       intermediateAscentRate: clearIntermediateAscentRate
           ? null
@@ -877,15 +894,18 @@ class DivePlanState extends Equatable {
           ? null
           : (turnPressureFraction ?? this.turnPressureFraction),
       reservePressure: reservePressure ?? this.reservePressure,
-      sacFactor: sacFactor ?? this.sacFactor,
-      problemSolvingMinutes:
-          problemSolvingMinutes ?? this.problemSolvingMinutes,
+      sacFactor: clearSacFactor ? null : (sacFactor ?? this.sacFactor),
+      problemSolvingMinutes: clearProblemSolvingMinutes
+          ? null
+          : (problemSolvingMinutes ?? this.problemSolvingMinutes),
       gasSwitchStopSeconds: clearGasSwitchStopSeconds
           ? null
           : (gasSwitchStopSeconds ?? this.gasSwitchStopSeconds),
       ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
       ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
-      bestMixEndMeters: bestMixEndMeters ?? this.bestMixEndMeters,
+      bestMixEndMeters: clearBestMixEndMeters
+          ? null
+          : (bestMixEndMeters ?? this.bestMixEndMeters),
       o2Narcotic: clearO2Narcotic ? null : (o2Narcotic ?? this.o2Narcotic),
       stopMinimums: stopMinimums ?? this.stopMinimums,
       equipmentIds: equipmentIds ?? this.equipmentIds,
@@ -914,6 +934,7 @@ class DivePlanState extends Equatable {
     gfHigh,
     sacRate,
     sacDeco,
+    sacStressed,
     ascentRate,
     intermediateAscentRate,
     shallowAscentRate,

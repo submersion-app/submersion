@@ -40,26 +40,36 @@ class PlanGasSection extends ConsumerWidget {
         // re-seeded as "0.6" mid-entry (#1823).
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_sacBottom,
-          value: units.convertRmv(planState.sacRate),
-          hintValue: units.convertRmv(15),
+          value: planState.sacRate != null
+              ? units.convertRmv(planState.sacRate!)
+              : null,
+          hintValue: units.convertRmv(ref.watch(plannerSacBottomProvider)),
           suffixText: units.rmvSymbol,
           decimals: units.rmvDecimals,
           semanticsLabel: context.l10n.divePlanner_semantics_sacRate(
             formatFixedForDisplay(
-              units.convertRmv(planState.sacRate),
+              units.convertRmv(
+                planState.sacRate ?? ref.watch(plannerSacBottomProvider),
+              ),
               units.rmvDecimals,
             ),
             units.volumeSymbol,
           ),
           onChanged: (value) {
-            if (value == null) return;
+            if (value == null) {
+              ref.read(divePlanNotifierProvider.notifier).clearSacRate();
+              return;
+            }
             final liters = units.volumeToLiters(value);
             if (liters > 0) {
               ref.read(divePlanNotifierProvider.notifier).updateSacRate(liters);
             }
           },
         ),
-        _LoggedRmvButton(currentRmv: planState.sacRate, units: units),
+        _LoggedRmvButton(
+          currentRmv: planState.sacRate ?? ref.watch(plannerSacBottomProvider),
+          units: units,
+        ),
         const SizedBox(height: 12),
         _ReservePressureInput(
           reservePressure: planState.reservePressure,

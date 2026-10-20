@@ -172,20 +172,49 @@ pattern and copy it.
 - [ ] Add providers and repository read/write.
 - [ ] Run; pass. Commit `feat(settings): expose planner default values`.
 
-### Task 3: Deco + Rates - nullable fields and engine resolution
+### Task 3: Deco + Rates - nullable fields and engine resolution (done)
 
-- [ ] Write `PlanEngineConfig`/`resolvedFor` tests for `descentRate`,
-      `ascentRate`, `intermediateAscentRate`, `shallowAscentRate`,
-      `finalAscentRate`, `lastStopDepth`, `gasSwitchStopSeconds`: unset plan
-      value resolves to Settings; set value always wins.
-- [ ] Run; FAIL.
-- [ ] Make these `DivePlan` fields nullable; add the matching
-      `PlanEngineConfig` fields, `resolvedFor` lines, `*For(plan)` getters.
-- [ ] Grep call sites for just this field set and switch each to the
-      resolved getter; `flutter analyze` to catch any the grep missed.
-- [ ] Run; pass. Commit `refactor(planner): resolve Deco/Rates fields from Settings when unset`.
+Shipped as two commits, `9bcae527e4` (DB rebuild) and `725414410f`
+(everything else). Turned out bigger than planned - worth recording why,
+since Tasks 4-6 hit the same shape:
+
+- The `dive_plans` columns for these fields were NOT NULL from the initial
+  schema, not added later via `ALTER TABLE ADD COLUMN` - making them
+  nullable needed a real table rebuild (no `ALTER COLUMN` in SQLite), not
+  just a Drift-side type change. Done once, for **all** fields in scope
+  across Deco/Rates/Gas/Contingency (13 columns), in the v303 migration -
+  see `_assertDivePlanSetupFieldsNullable` in `dive_plan_migrations.dart`.
+  **This means Tasks 4-6 need no further DB rebuild** - only their own
+  Drift `.nullable()` column declaration, domain entity nullability, and
+  wiring.
+- `DivePlanState` (the UI draft model, `plan_result.dart`) needed the same
+  nullable + `clearX`-flag treatment as `DivePlan` itself - the UI reads
+  this, not the domain entity directly. Budget this into every remaining
+  field-group task, not a separate later "UI" task.
+- `expandRateSplitSegments` and `withDiluentSwitchTime` (pure functions, no
+  `PlanEngineConfig` access) needed resolved values threaded in as explicit
+  parameters from every call site (`PlanEngine`, `BailoutSolver`,
+  `buildCanvasSeries`, `SegmentList`) - not a config field change, a
+  call-site change.
+- `MissionSegmentBuilder`/`addSimplePlan` (notifier) have no Settings access
+  at all; an unset rate there falls back to the spec constant (the
+  documented step-4 last resort), not a thread-through of config.
+- The "shared override widget" from the original draft never existed -
+  `PlanNumberField`'s existing `hintValue`/`allowEmpty` already does it;
+  every `_RateField`-style wrapper just needed its `allowEmpty` flipped and
+  `hintValue` repointed at the new Settings provider.
+- `lastStopDepth`'s `PlanLastStopSelector` got a "Default (X m)" segment
+  (new ARB key `divePlanner_label_defaultWithValue`, translated into all
+  locales) instead of an empty-box pattern, per the segmented-control shape
+  decided during cross-examination.
 
 ### Task 4: Gas - nullable fields and engine resolution
+
+DB-level NOT NULL already dropped in Task 3's v303 rebuild for `sacBottom`,
+`sacFactor`, `problemSolvingMinutes`, `bestMixEndMeters` - only the Drift
+Table's own `.nullable()` declaration is still needed here (mechanical,
+like the Task 3 dive_plan_tables.dart edit). `sacDeco`/`sacStressed` were
+already nullable at every layer before this issue.
 
 - [ ] Write tests for `sacBottom`, `sacDeco`, `sacStressed`/
       `sacStressedFactor`, `sacFactor`, `problemSolvingMinutes`,
@@ -194,10 +223,13 @@ pattern and copy it.
       `buddyFactor`/`bestMixEndMeters` in `resolvedFor`; set value wins).
       Include the independence test from Review focus item 5.
 - [ ] Run; FAIL.
-- [ ] Make fields nullable; replace the hardcoded `* 2.5` in
-      `sacStressedEffective` with `config.sacStressedFactorFor(plan)` (or
-      equivalent); wire the rest.
-- [ ] Grep and fix call sites for this field set; `flutter analyze`.
+- [ ] Make `DivePlan`/`DivePlanState` fields nullable (with matching `clearX`
+      flags on both `copyWith`s, per the Task 3 lesson); mark the Drift
+      columns `.nullable()`; replace the hardcoded `* 2.5` in
+      `sacStressedEffective` with the resolved factor; wire `PlanEngineConfig`.
+- [ ] Grep and fix call sites for this field set (expect `plan_gas_options_section.dart`'s
+      remaining non-override fields, any pure function reading these off
+      `plan` directly); `flutter analyze` on both `lib` and `test`.
 - [ ] Run; pass. Commit `refactor(planner): resolve Gas fields from Settings when unset`.
 
 ### Task 5: Contingency - nullable fields and resolution

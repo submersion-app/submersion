@@ -107,6 +107,15 @@ class PlanEngineConfig extends Equatable {
   final double finalAscentRate;
   final double lastStopDepth;
   final int gasSwitchStopSeconds;
+  final double sacBottom;
+  final double sacDeco;
+
+  /// Multiplier on [sacBottom] for the stressed/bailout SAC rate (issue
+  /// #3552) - resolved per plan through [sacStressedFor], not a plain
+  /// config field read directly, since the plan's own [sacStressed]
+  /// override is an absolute rate, not a factor.
+  final double sacStressedFactor;
+  final int problemSolvingMinutes;
 
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
@@ -135,6 +144,10 @@ class PlanEngineConfig extends Equatable {
     this.finalAscentRate = 1.0,
     this.lastStopDepth = 3.0,
     this.gasSwitchStopSeconds = 0,
+    this.sacBottom = 15.0,
+    this.sacDeco = 15.0,
+    this.sacStressedFactor = 2.5,
+    this.problemSolvingMinutes = 2,
   });
 
   @override
@@ -165,6 +178,10 @@ class PlanEngineConfig extends Equatable {
     finalAscentRate,
     lastStopDepth,
     gasSwitchStopSeconds,
+    sacBottom,
+    sacDeco,
+    sacStressedFactor,
+    problemSolvingMinutes,
   ];
 
   PlanEngineConfig copyWith({
@@ -194,6 +211,10 @@ class PlanEngineConfig extends Equatable {
     double? finalAscentRate,
     double? lastStopDepth,
     int? gasSwitchStopSeconds,
+    double? sacBottom,
+    double? sacDeco,
+    double? sacStressedFactor,
+    int? problemSolvingMinutes,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -224,24 +245,24 @@ class PlanEngineConfig extends Equatable {
       finalAscentRate: finalAscentRate ?? this.finalAscentRate,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
+      sacBottom: sacBottom ?? this.sacBottom,
+      sacDeco: sacDeco ?? this.sacDeco,
+      sacStressedFactor: sacStressedFactor ?? this.sacStressedFactor,
+      problemSolvingMinutes:
+          problemSolvingMinutes ?? this.problemSolvingMinutes,
     );
   }
 
   /// Merges this app-wide config with [plan]'s per-plan gas-option
   /// overrides. A set plan value always wins; an unset (null) one falls back
-  /// to this config unchanged.
-  ///
-  /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
-  /// (they are plain defaulted fields, not nullable overrides), so they
-  /// always replace [buddyFactor] and [bestMixEndMeters] for this plan.
-  /// Every other field, [endLimitMeters] (the diver's Settings END limit)
-  /// included, carries over through [copyWith], so a field added later
-  /// cannot silently fall back to its default here (issue #2640).
-  ///
-  /// The Deco/Rates fields ([descentRate] etc., issue #3552) pass [plan]'s
-  /// value straight through the same way: [copyWith] already treats a null
-  /// argument as "keep this config's value", so an unset plan field resolves
-  /// to the diver's Settings default without any extra null-check here.
+  /// to this config unchanged. Every field, [endLimitMeters] (the diver's
+  /// Settings END limit) included, carries over through [copyWith], so a
+  /// field added later cannot silently fall back to its default here (issue
+  /// #2640). `sacFactor`/`bestMixEndMeters` (-> [buddyFactor]/
+  /// [bestMixEndMeters]) used to be plain defaulted `DivePlan` fields with
+  /// no global source, always replacing the config's own value; since issue
+  /// #3552 gave them one, a `null` plan value (now possible) resolves to
+  /// the diver's Settings the same way every other field here already does.
   PlanEngineConfig resolvedFor(domain.DivePlan plan) {
     return copyWith(
       ppO2Working: plan.ppO2Bottom,
@@ -256,6 +277,8 @@ class PlanEngineConfig extends Equatable {
       finalAscentRate: plan.finalAscentRate,
       lastStopDepth: plan.lastStopDepth,
       gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+      sacBottom: plan.sacBottom,
+      sacDeco: plan.sacDeco,
     );
   }
 
@@ -263,6 +286,14 @@ class PlanEngineConfig extends Equatable {
   /// diver's [ccrSetpointLow] (issue #2801).
   double setpointLowFor(domain.DivePlan plan) =>
       plan.setpointLow ?? ccrSetpointLow;
+
+  /// [plan]'s stressed (bailout/rock-bottom) SAC: its own [sacStressed]
+  /// override when set, else [sacBottom] (already resolved against this
+  /// plan - call this on a [resolvedFor] config) times the diver's
+  /// [sacStressedFactor] (issue #3552; was a hardcoded 2.5x of the plan's
+  /// raw `sacBottom`, see [domain.DivePlan.sacStressedEffective]).
+  double sacStressedFor(domain.DivePlan plan) =>
+      plan.sacStressed ?? sacBottom * sacStressedFactor;
 
   /// [plan]'s high (deep) setpoint: its own value when set, else the
   /// diver's [ccrSetpointHigh] (issue #2801).
@@ -995,10 +1026,15 @@ class PlanEngine {
       liters[id] = (liters[id] ?? 0) + amount;
     }
 
+    // Reads sacBottom/sacDeco/problemSolvingMinutes from [config] (issue
+    // #3552), not [plan] directly: by this point [config] is already
+    // resolvedFor this plan, so an unset field already carries the diver's
+    // Settings default. sacFactor has no absolute global value of its own -
+    // it always resolves through config.buddyFactor (see resolvedFor).
     for (final leg in legs) {
       final sac = switch (leg.phase) {
-        SegmentPhase.descent || SegmentPhase.level => plan.sacBottom,
-        SegmentPhase.ascent || SegmentPhase.stop => plan.sacDecoEffective,
+        SegmentPhase.descent || SegmentPhase.level => config.sacBottom,
+        SegmentPhase.ascent || SegmentPhase.stop => config.sacDeco,
       };
       charge(
         leg.tankId,
@@ -1011,7 +1047,7 @@ class PlanEngine {
     // Problem-solving time: extra N minutes at max depth on the working
     // gas, at bottom SAC x SAC factor, so the used/end figures include the
     // same bottom-hold term the gas-options row describes.
-    if (plan.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
+    if (config.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
       String? bottomTankId;
       for (final leg in legs) {
         if (leg.endDepth >= plan.maxDepth - 0.1 ||
@@ -1021,9 +1057,9 @@ class PlanEngine {
       }
       charge(
         bottomTankId,
-        plan.sacBottom *
-            plan.sacFactor *
-            plan.problemSolvingMinutes *
+        config.sacBottom *
+            config.buddyFactor *
+            config.problemSolvingMinutes *
             environment.pressureAtDepth(plan.maxDepth),
       );
     }
@@ -1209,7 +1245,9 @@ class PlanEngine {
     }
     final maxDepth = plan.maxDepth;
     if (maxDepth <= 0) return null;
-    final sac = plan.sacStressedEffective * config.buddyFactor;
+    // config.sacStressedFor/sacBottom/problemSolvingMinutes (issue #3552):
+    // config is already resolvedFor this plan at this point.
+    final sac = config.sacStressedFor(plan) * config.buddyFactor;
     final ascentMinutes =
         _policyFor(
           plan,
@@ -1217,7 +1255,7 @@ class PlanEngine {
         60.0;
     final liters =
         sac *
-            plan.problemSolvingMinutes *
+            config.problemSolvingMinutes *
             environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
     final volume = tank.volume ?? 11.0;

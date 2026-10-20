@@ -3188,6 +3188,7 @@
   "divePlanner_gasOptions_sacBottom": "RMV op de bodem",
   "divePlanner_gasOptions_sacDeco": "Deco-RMV",
   "divePlanner_gasOptions_sacFactor": "RMV-factor",
+  "divePlanner_gasOptions_sacStressedFactor": "Gestreste RMV-factor",
   "divePlanner_gasOptions_problemSolvingMinutes": "Tijd voor probleemoplossing",
   "divePlanner_gasOptions_ppO2Bottom": "Bodem-ppO₂",
   "divePlanner_gasOptions_ppO2Deco": "Deco-ppO₂",

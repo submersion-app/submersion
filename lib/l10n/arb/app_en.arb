@@ -6384,6 +6384,7 @@
   "divePlanner_gasOptions_sacBottom": "Bottom RMV",
   "divePlanner_gasOptions_sacDeco": "Deco RMV",
   "divePlanner_gasOptions_sacFactor": "RMV factor",
+  "divePlanner_gasOptions_sacStressedFactor": "Stressed RMV factor",
   "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
   "divePlanner_gasOptions_gasSwitchStopSeconds": "Gas switch stop",
   "@divePlanner_gasOptions_gasSwitchStopSeconds": {

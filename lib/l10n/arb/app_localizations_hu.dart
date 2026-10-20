@@ -10441,6 +10441,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV-szorzó';
 
   @override
+  String get divePlanner_gasOptions_sacStressedFactor =>
+      'Stresszelt RMV-szorzó';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
       'Problémamegoldási idő';
 
