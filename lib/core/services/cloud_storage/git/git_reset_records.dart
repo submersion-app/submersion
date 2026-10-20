@@ -25,13 +25,18 @@ class GitResetRecords {
   void noteReset(String key, DateTime at) {
     if (_lastResetAt[key] == at) return;
     _lastResetAt[key] = at;
-    _changes.add(key);
+    _announce(key);
   }
 
   /// Records whether the host refused [key]'s last history reset.
   void noteRefused(String key, {required bool refused}) {
     final changed = refused ? _refused.add(key) : _refused.remove(key);
-    if (changed) _changes.add(key);
+    if (changed) _announce(key);
+  }
+
+  // Still recorded once disposed; there is just no one left to tell.
+  void _announce(String key) {
+    if (!_changes.isClosed) _changes.add(key);
   }
 
   void dispose() => _changes.close();

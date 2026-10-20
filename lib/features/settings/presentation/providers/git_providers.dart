@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_provider_instances.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_config.dart';
@@ -23,26 +24,11 @@ final gitResetRecordsProvider = Provider<GitResetRecords>(
 );
 
 /// The history reset status of one repository and branch (its
-/// [gitNaturalKey]), updated as resets happen or are refused, so the Cloud
+/// [gitNaturalKey]), refreshed as resets happen or are refused, so the Cloud
 /// sync page shows them without being reopened.
-final gitResetStatusProvider = NotifierProvider.autoDispose
-    .family<GitResetStatusNotifier, GitResetStatus, String>(
-      GitResetStatusNotifier.new,
-    );
-
-class GitResetStatusNotifier extends Notifier<GitResetStatus> {
-  GitResetStatusNotifier(this.endpoint);
-
-  /// The repository and branch, as [gitNaturalKey] gives it.
-  final String endpoint;
-
-  @override
-  GitResetStatus build() {
-    final records = ref.watch(gitResetRecordsProvider);
-    final changes = records.changes
-        .where((key) => key == endpoint)
-        .listen((_) => state = records.statusFor(endpoint));
-    ref.onDispose(changes.cancel);
-    return records.statusFor(endpoint);
-  }
-}
+final gitResetStatusProvider = Provider.autoDispose
+    .family<GitResetStatus, String>((ref, endpoint) {
+      final records = ref.watch(gitResetRecordsProvider);
+      ref.invalidateSelfWhen(records.changes.where((key) => key == endpoint));
+      return records.statusFor(endpoint);
+    });

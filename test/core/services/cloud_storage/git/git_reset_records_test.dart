@@ -64,4 +64,13 @@ void main() {
     expect(records.statusFor('repo|main').refused, isFalse);
     expect(changed, ['repo|main']);
   });
+
+  test('recording after dispose keeps the outcome without throwing', () {
+    records.dispose();
+
+    records.noteRefused('repo|main', refused: true);
+    records.noteReset('repo|main', DateTime.utc(2026, 10, 19));
+
+    expect(records.statusFor('repo|main').refused, isTrue);
+  });
 }
