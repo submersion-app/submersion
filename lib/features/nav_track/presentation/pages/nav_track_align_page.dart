@@ -32,7 +32,9 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_map_layers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_rotation_control.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the crosshair-and-pan flow is currently placing, or nothing.
@@ -582,6 +584,91 @@ class _ControlsPanel extends ConsumerWidget {
     );
   }
 
+  /// The Start row's suggestion chips, plus whether the anchor was placed
+  /// by hand (crosshair or drag) rather than picked from one of them.
+  ///
+  /// There is no persisted "which source set this" field --
+  /// [NavTrackCorrection.anchor] is just a [GeoPoint] -- so both are
+  /// inferred by comparing the live anchor against each known coordinate
+  /// source, computed once here (each source is its own classification or
+  /// provider read) rather than twice over for the chip list and the
+  /// manual-placement check separately.
+  ({List<NavTrackPositionOption> options, bool isManual}) _startRow(
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
+    final anchor = correction.anchor;
+    final diveEntry = _diveEntryLocation(ref);
+    final site = _siteLocation(ref);
+    final preDiveFix = _preDiveFixStartSuggestion(ref);
+    final options = [
+      if (diveEntry != null)
+        NavTrackPositionOption(
+          key: 'nav-track-align-from-dive-entry',
+          label: l10n.navTrack_align_fromDiveEntry,
+          selected: anchor == diveEntry,
+          onSelected: () => state._updateCorrection(
+            (c) => c.copyWith(anchor: diveEntry),
+            route,
+          ),
+        ),
+      if (site != null)
+        NavTrackPositionOption(
+          key: 'nav-track-align-from-site',
+          label: l10n.navTrack_align_fromSite,
+          selected: anchor == site,
+          onSelected: () =>
+              state._updateCorrection((c) => c.copyWith(anchor: site), route),
+        ),
+      if (preDiveFix != null)
+        NavTrackPositionOption(
+          key: 'nav-track-align-from-gps',
+          label: l10n.navTrack_align_fromGps,
+          selected: anchor == preDiveFix,
+          onSelected: () => state._updateCorrection(
+            (c) => c.copyWith(anchor: preDiveFix),
+            route,
+          ),
+        ),
+    ];
+    final isManual = anchor != null && options.every((o) => !o.selected);
+    return (options: options, isManual: isManual);
+  }
+
+  /// The End row's mode chips: unlike Start, [NavTrackCorrection.endMode]
+  /// is an explicit enum, so each chip's selected state reads it directly
+  /// instead of comparing coordinates.
+  List<NavTrackPositionOption> _endOptions(AppLocalizations l10n) => [
+    NavTrackPositionOption(
+      key: 'nav-track-align-end-none',
+      label: l10n.navTrack_align_endMode_none,
+      selected: correction.endMode == NavTrackEndMode.none,
+      onSelected: () => state._updateCorrection(
+        (c) => c.copyWith(endMode: NavTrackEndMode.none),
+        route,
+      ),
+    ),
+    NavTrackPositionOption(
+      key: 'nav-track-align-end-same-as-start',
+      label: l10n.navTrack_align_endMode_sameAsStart,
+      selected: correction.endMode == NavTrackEndMode.sameAsStart,
+      onSelected: () => state._updateCorrection(
+        (c) => c.copyWith(endMode: NavTrackEndMode.sameAsStart),
+        route,
+      ),
+    ),
+    if (hasPostDiveFix)
+      NavTrackPositionOption(
+        key: 'nav-track-align-end-gps-fix',
+        label: l10n.navTrack_align_endMode_gpsFix,
+        selected: correction.endMode == NavTrackEndMode.gpsFix,
+        onSelected: () => state._updateCorrection(
+          (c) => c.copyWith(endMode: NavTrackEndMode.gpsFix),
+          route,
+        ),
+      ),
+  ];
+
   int _trustedDurationSeconds() {
     if (route.points.isEmpty || totalDistance <= 0) return 0;
     final relativeIndex = trustCutoffIndex(cumulative, trustedDistance);
@@ -593,6 +680,7 @@ class _ControlsPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trustedMinutes = (_trustedDurationSeconds() / 60).round();
     final l10n = context.l10n;
+    final startRow = _startRow(ref, l10n);
     return SafeArea(
       top: false,
       child: Padding(
@@ -601,62 +689,22 @@ class _ControlsPanel extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.navTrack_align_startLabel),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    FilledButton.tonal(
-                      key: const ValueKey('nav-track-align-place-start'),
-                      onPressed: () => state._startPlacing(_Placing.start),
-                      child: Text(l10n.navTrack_align_setStartOnMap),
-                    ),
-                    if (_diveEntryLocation(ref) case final location?)
-                      ActionChip(
-                        key: const ValueKey('nav-track-align-from-dive-entry'),
-                        label: Text(l10n.navTrack_align_fromDiveEntry),
-                        onPressed: () => state._updateCorrection(
-                          (c) => c.copyWith(anchor: location),
-                          route,
-                        ),
-                      ),
-                    if (_siteLocation(ref) case final location?)
-                      ActionChip(
-                        key: const ValueKey('nav-track-align-from-site'),
-                        label: Text(l10n.navTrack_align_fromSite),
-                        onPressed: () => state._updateCorrection(
-                          (c) => c.copyWith(anchor: location),
-                          route,
-                        ),
-                      ),
-                    if (_preDiveFixStartSuggestion(ref) case final location?)
-                      ActionChip(
-                        key: const ValueKey('nav-track-align-from-gps'),
-                        label: Text(l10n.navTrack_align_fromGps),
-                        onPressed: () => state._updateCorrection(
-                          (c) => c.copyWith(anchor: location),
-                          route,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
+            NavTrackPositionRowControls(
+              label: l10n.navTrack_align_startLabel,
+              placeKey: 'nav-track-align-place-start',
+              placeLabel: l10n.navTrack_align_setStartOnMap,
+              placeSelected: startRow.isManual,
+              onPlace: () => state._startPlacing(_Placing.start),
+              options: startRow.options,
             ),
             const SizedBox(height: 8),
-            _EndModeControls(
-              state: state,
-              route: route,
-              correction: correction,
-              hasPostDiveFix: hasPostDiveFix,
+            NavTrackPositionRowControls(
               label: l10n.navTrack_align_endLabel,
+              placeKey: 'nav-track-align-place-end',
               placeLabel: l10n.navTrack_align_endMode_point,
-              noneLabel: l10n.navTrack_align_endMode_none,
-              sameAsStartLabel: l10n.navTrack_align_endMode_sameAsStart,
-              gpsFixLabel: l10n.navTrack_align_endMode_gpsFix,
+              placeSelected: correction.endMode == NavTrackEndMode.point,
+              onPlace: () => state._startPlacingEndPoint(route),
+              options: _endOptions(l10n),
             ),
             const SizedBox(height: 8),
             Text(
@@ -717,85 +765,6 @@ class _ControlsPanel extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// The "Ende:" row: the same button+chips look as the start-point row above
-/// it, instead of the single-value dropdown it replaces. The dropdown's one
-/// advantage -- the current mode is always legible at a glance -- is kept by
-/// giving the active chip (or, for [NavTrackEndMode.point], the button
-/// itself) a selected/checked look rather than dropping that signal.
-class _EndModeControls extends StatelessWidget {
-  const _EndModeControls({
-    required this.state,
-    required this.route,
-    required this.correction,
-    required this.hasPostDiveFix,
-    required this.label,
-    required this.placeLabel,
-    required this.noneLabel,
-    required this.sameAsStartLabel,
-    required this.gpsFixLabel,
-  });
-
-  final _NavTrackAlignPageState state;
-  final NavTrack route;
-  final NavTrackCorrection correction;
-  final bool hasPostDiveFix;
-  final String label;
-  final String placeLabel;
-  final String noneLabel;
-  final String sameAsStartLabel;
-  final String gpsFixLabel;
-
-  Widget _chip(String key, String text, NavTrackEndMode mode) => FilterChip(
-    key: ValueKey(key),
-    label: Text(text),
-    selected: correction.endMode == mode,
-    onSelected: (_) =>
-        state._updateCorrection((c) => c.copyWith(endMode: mode), route),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final isPoint = correction.endMode == NavTrackEndMode.point;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        const SizedBox(height: 4),
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          children: [
-            isPoint
-                ? FilledButton.icon(
-                    key: const ValueKey('nav-track-align-place-end'),
-                    onPressed: () => state._startPlacingEndPoint(route),
-                    icon: const Icon(Icons.check, size: 16),
-                    label: Text(placeLabel),
-                  )
-                : FilledButton.tonal(
-                    key: const ValueKey('nav-track-align-place-end'),
-                    onPressed: () => state._startPlacingEndPoint(route),
-                    child: Text(placeLabel),
-                  ),
-            _chip('nav-track-align-end-none', noneLabel, NavTrackEndMode.none),
-            _chip(
-              'nav-track-align-end-same-as-start',
-              sameAsStartLabel,
-              NavTrackEndMode.sameAsStart,
-            ),
-            if (hasPostDiveFix)
-              _chip(
-                'nav-track-align-end-gps-fix',
-                gpsFixLabel,
-                NavTrackEndMode.gpsFix,
-              ),
-          ],
-        ),
-      ],
     );
   }
 }

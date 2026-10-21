@@ -217,6 +217,91 @@ void main() {
   });
 
   testWidgets(
+    'the start row mirrors the end row: picking a suggestion chip marks '
+    'that chip selected, not the "place on map" button, and no other chip',
+    (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      final dive = Dive(
+        id: 'dive-1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+        entryLocation: const GeoPoint(46.9, 7.2),
+      );
+      await _pump(
+        tester,
+        route: _route(diveId: 'dive-1', siteId: 'site-1'),
+        linkedDive: dive,
+        site: site,
+      );
+
+      FilterChip chipByKey(String key) =>
+          tester.widget<FilterChip>(find.byKey(ValueKey(key)));
+      bool placeButtonChecked() => find
+          .descendant(
+            of: find.byKey(const ValueKey('nav-track-align-place-start')),
+            matching: find.byIcon(Icons.check),
+          )
+          .evaluate()
+          .isNotEmpty;
+
+      expect(chipByKey('nav-track-align-from-site').selected, isFalse);
+      expect(placeButtonChecked(), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-from-site')));
+      await tester.pump();
+
+      expect(chipByKey('nav-track-align-from-site').selected, isTrue);
+      expect(chipByKey('nav-track-align-from-dive-entry').selected, isFalse);
+      expect(placeButtonChecked(), isFalse);
+    },
+  );
+
+  testWidgets(
+    'manually placing the start point (not from a suggestion) checks the '
+    '"Start auf der Karte setzen" button instead of any chip',
+    (tester) async {
+      final dive = Dive(
+        id: 'dive-1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+        entryLocation: const GeoPoint(46.9, 7.2),
+      );
+      await _pump(
+        tester,
+        route: _route(diveId: 'dive-1'),
+        linkedDive: dive,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-place-start')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+      await tester.pump();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-align-place-start')),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.byKey(const ValueKey('nav-track-align-from-dive-entry')),
+            )
+            .selected,
+        isFalse,
+      );
+    },
+  );
+
+  testWidgets(
     'the "From site" chip still works after other controls triggered a '
     'rebuild (regression: the chip used to sit behind a FutureBuilder '
     'whose Future was recreated on every setState, one Flutter anti-'
