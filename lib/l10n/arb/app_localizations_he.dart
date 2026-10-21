@@ -35442,51 +35442,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין עדיין פריטים בצלילות שנבחרו';
 
   @override
-  String get settings_mediaStorage_entry_title => 'אחסון מדיה';
-
-  @override
-  String get settings_mediaStorage_entry_subtitle =>
-      'שמור מקורות של תמונות ווידאו באחסון הענן שלך';
-
-  @override
-  String get settings_mediaStorage_status_notConfigured =>
-      'לא מחובר אחסון מדיה במכשיר זה';
-
-  @override
-  String settings_mediaStorage_status_connected(String hint) {
-    return 'מחובר אל $hint';
-  }
-
-  @override
-  String get settings_mediaStorage_test_success => 'החיבור הצליח';
-
-  @override
-  String get settings_mediaStorage_saved => 'אחסון המדיה חובר';
-
-  @override
   String get settings_mediaStorage_error_notReady =>
       'עדיין לא ניתן היה לקרוא את אחסון הענן. המתינו רגע ונסו שוב.';
-
-  @override
-  String get settings_mediaStorage_action_disconnect => 'התנתק';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_title =>
-      'לנתק את אחסון המדיה?';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_body =>
-      'מכשיר זה יפסיק להעלות ולהוריד מדיה. שום דבר לא יימחק מהדלי שלך.';
-
-  @override
-  String get settings_mediaStorage_action_copyFromSync =>
-      'העתק הגדרות מהסנכרון';
-
-  @override
-  String get settings_mediaStorage_transfers_title => 'העברות';
-
-  @override
-  String get settings_mediaStorage_transfers_entry => 'הצג העברות';
 
   @override
   String get settings_mediaStorage_transfers_empty => 'אין העברות';
@@ -35513,34 +35470,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'נכשל';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_title =>
-      'ההעברות מושהות';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_subtitle =>
-      'המכשיר הזה ואחסון הענן כבר לא מסכימים על המאגר שבשימוש. חיבור מחדש של אחסון המדיה מאמץ את המאגר שנמצא כעת בענן.';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_detached =>
-      'המכשיר הזה כבר לא מחובר לאחסון המדיה הזה. אפשר לחבר אותו מחדש בהגדרות אחסון המדיה.';
-
-  @override
   String get settings_mediaStorage_transfers_suspended_unreachable =>
       'לא ניתן היה לבדוק את אחסון המדיה. ההעברות ינוסו שוב באופן אוטומטי.';
-
-  @override
-  String settings_mediaStorage_transfers_queued(int count) {
-    return '$count בתור';
-  }
-
-  @override
-  String settings_mediaStorage_transfers_waitingRetry(int count) {
-    return '$count ממתינים לניסיון חוזר';
-  }
-
-  @override
-  String get settings_mediaStorage_transfers_waitingConnection =>
-      'ממתין לחיבור';
 
   @override
   String get settings_mediaStorage_report_action => 'ייצוא דוח מדיה';
@@ -35554,9 +35485,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_report_running => 'בונה את דוח המדיה...';
-
-  @override
-  String get settings_mediaStorage_verify_action => 'אימות הספרייה';
 
   @override
   String get settings_mediaStorage_verify_running => 'מאמת את ספריית המדיה...';
@@ -35605,45 +35533,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'דבר לא נמחק: המחיקות ימתינו עד שההעלאות יסתיימו.';
 
   @override
-  String get settings_mediaStorage_backfill_action => 'העלה ספריה קיימת';
-
-  @override
   String settings_mediaStorage_backfill_enqueued(int count) {
     return '$count העלאות בתור';
-  }
-
-  @override
-  String get settings_mediaStorage_policy_autoUpload => 'העלה תמונות אוטומטית';
-
-  @override
-  String get settings_mediaStorage_policy_photosOnCellular =>
-      'העלה תמונות ברשת סלולרית';
-
-  @override
-  String get settings_mediaStorage_provider_label => 'ספק';
-
-  @override
-  String get settings_mediaStorage_provider_webdav => 'WebDAV';
-
-  @override
-  String get settings_mediaStorage_webdav_useSyncServer =>
-      'שימוש בשרת הסנכרון שלי';
-
-  @override
-  String get settings_mediaStorage_connect_dropbox_hint =>
-      'משתמש בחיבור Dropbox מסנכרון בין מכשירים. המדיה נשמרת בתיקיית האפליקציה ב-Dropbox.';
-
-  @override
-  String get settings_mediaStorage_connect_gdrive_hint =>
-      'מתחבר עם Google. המדיה נשמרת בשטח ה-Drive הפרטי של האפליקציה.';
-
-  @override
-  String get settings_mediaStorage_connect_icloud_hint =>
-      'המדיה נשמרת במיכל ה-iCloud של האפליקציה ומסתנכרנת דרך ה-Apple ID שלך.';
-
-  @override
-  String settings_mediaStorage_connect_action(String provider) {
-    return 'חבר את $provider';
   }
 
   @override
@@ -36221,19 +36112,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_setup_dismiss => 'התעלם';
 
   @override
-  String get settings_photosMedia_sourcesHeader => 'מאיפה מגיעות התמונות';
-
-  @override
-  String get settings_photosMedia_storageHeader => 'איפה נשמרים העותקים';
-
-  @override
-  String get settings_photosMedia_displayHeader => 'תצוגה';
-
-  @override
   String get settings_photosMedia_guidedSetup => 'הגדרה מודרכת';
-
-  @override
-  String get settings_photosMedia_photoSources_title => 'ספריית תמונות ומקורות';
 
   @override
   String get settings_photosMedia_photoSources_subtitle =>
@@ -49386,9 +49265,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_timeInDive_reset => 'איפוס לאוטומטי';
 
   @override
-  String get media_info_backupSection => 'גיבוי';
-
-  @override
   String get media_info_store => 'אחסון בענן';
 
   @override
@@ -49485,9 +49361,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_info_actionLocate => 'אתר קובץ...';
-
-  @override
-  String get media_info_actionBackUpNow => 'גבה עכשיו';
 
   @override
   String get media_info_actionRetryUpload => 'נסה להעלות שוב';
@@ -53723,4 +53596,164 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_backups_passwordProtection => 'הגנה בסיסמה';
+
+  @override
+  String get settings_photos_cloudHeader => 'עותקים בענן';
+
+  @override
+  String settings_photos_copiesIn(String account) {
+    return 'עותקים ב-$account';
+  }
+
+  @override
+  String settings_photos_attached(String account) {
+    return 'העותקים הוגדרו ב-$account';
+  }
+
+  @override
+  String get settings_photos_autoUpload => 'העלאה אוטומטית של תמונות חדשות';
+
+  @override
+  String get settings_photos_cellular => 'שימוש בנתונים סלולריים';
+
+  @override
+  String get settings_photos_uploads => 'העלאות';
+
+  @override
+  String get settings_photos_sourcesHeader => 'מאיפה מגיעות התמונות';
+
+  @override
+  String get settings_photos_library => 'ספריית התמונות וקבצים';
+
+  @override
+  String get settings_photos_quality => 'איכות העלאה';
+
+  @override
+  String get settings_photos_uploadAll => 'העלאת כל מה שכבר צורף';
+
+  @override
+  String get settings_photos_verify => 'אימות העותקים';
+
+  @override
+  String get settings_photos_stopKeeping => 'הפסקת שמירת עותקים במכשיר הזה';
+
+  @override
+  String get settings_photos_stopKeepingBody =>
+      'המכשיר הזה מפסיק להעלות ולהוריד עותקים. שום דבר בחשבון לא נמחק.';
+
+  @override
+  String settings_photos_switchConsequence(String current, String choice) {
+    return 'המכשיר הזה מפסיק להשתמש בעותקים ב-$current ומתחיל או מצטרף לעותקים ב-$choice. שום דבר לא נמחק.';
+  }
+
+  @override
+  String settings_photos_status_copied(int copied, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      copied,
+      locale: localeName,
+      other: 'הועתקו',
+      one: 'הועתק',
+    );
+    return '$copied מתוך $total $_temp0';
+  }
+
+  @override
+  String settings_photos_status_uploading(int copied, int total, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      copied,
+      locale: localeName,
+      other: 'הועתקו',
+      one: 'הועתק',
+    );
+    return '$copied מתוך $total $_temp0, $count בהעלאה';
+  }
+
+  @override
+  String settings_photos_status_uploadingOnly(int count) {
+    return '$count בהעלאה';
+  }
+
+  @override
+  String get settings_photos_status_waitingConnection => 'ממתין לחיבור';
+
+  @override
+  String settings_photos_status_waitingRetry(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ממתינים לניסיון חוזר',
+      one: '$count ממתין לניסיון חוזר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_photos_status_pausedUnreachable =>
+      'ההעלאות מושהות: לא ניתן היה לבדוק את החשבון';
+
+  @override
+  String get settings_photos_status_pausedDetached =>
+      'ההעלאות מושהות: המכשיר הזה אינו מחובר לעותקים האלה';
+
+  @override
+  String get settings_photos_status_pausedMismatch =>
+      'ההעלאות מושהות: בחרו שוב את החשבון';
+
+  @override
+  String get settings_photos_status_finishSetup => 'סיום הגדרת המכשיר הזה';
+
+  @override
+  String settings_photos_status_unreachable(String account) {
+    return 'לא ניתן היה להגיע ל-$account';
+  }
+
+  @override
+  String get settings_photos_suspended_detached =>
+      'המכשיר הזה כבר אינו מחובר לעותקים האלה. בחרו שוב את החשבון בתמונות וסרטונים.';
+
+  @override
+  String get settings_photos_suspended_mismatch =>
+      'המכשיר הזה והחשבון כבר אינם מסכימים אילו עותקים בשימוש. בחירה מחדש בחשבון מאמצת את העותקים שהוא מחזיק עכשיו.';
+
+  @override
+  String get media_info_actionCopyNow => 'העתקה עכשיו';
+
+  @override
+  String get settings_photos_suspended_title => 'ההעלאות מושהות';
+
+  @override
+  String settings_photos_separateConsequence(String current, String choice) {
+    return 'העותקים של הספרייה נמצאים ב-$current. בחירה ב-$choice מתחילה שם עותקים נפרדים. שום דבר לא נמחק.';
+  }
+
+  @override
+  String settings_photos_joinConsequence(String choice) {
+    return 'המכשיר הזה מתחיל עותקים ב-$choice או מצטרף אליהם. שום דבר לא נמחק.';
+  }
+
+  @override
+  String settings_photos_switchConsequenceUnnamed(String choice) {
+    return 'המכשיר הזה מפסיק להשתמש בעותקים הנוכחיים שלו ומתחיל או מצטרף לעותקים ב-$choice. שום דבר לא נמחק.';
+  }
+
+  @override
+  String settings_photos_switchHeldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count תמונות שמורות רק בעותקים הנוכחיים ולא ייפתחו במכשיר הזה אחרי השינוי.',
+      one:
+          'תמונה אחת שמורה רק בעותקים הנוכחיים ולא תיפתח במכשיר הזה אחרי השינוי.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_startedSeparate(String account) {
+    return 'לא נמצאו עותקים ב-$account, ולכן המכשיר הזה התחיל שם עותקים נפרדים.';
+  }
+
+  @override
+  String get settings_conflict_field_remoteStoreId => 'הועלה אל';
 }

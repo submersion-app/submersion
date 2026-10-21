@@ -514,7 +514,7 @@ class DiverSettings extends Table {
   BoolColumn get autoColorCorrection =>
       boolean().withDefault(const Constant(false))();
   // coverage:ignore-end
-  // v302: planner Setup-accordion global defaults (issue #3552). A new plan
+  // v304: planner Setup-accordion global defaults (issue #3552). A new plan
   // resolves each of these when its own field is unset; existing fields
   // (gfLow/gfHigh, ccrSetpointLow/High, ppO2MaxWorking/Deco, o2Narcotic,
   // lastStopDepth) already cover part of the Setup accordion and are reused
@@ -551,16 +551,16 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(1.0 / 3.0))();
   RealColumn get plannerWalkSpeedMps =>
       real().withDefault(const Constant(0.8))();
-  // v305: planner air-break and turn-pressure global defaults (issue
-  // #3552). Nullable, unlike the v302 columns above: null means "no
+  // v307: planner air-break and turn-pressure global defaults (issue
+  // #3552). Nullable, unlike the v304 columns above: null means "no
   // policy"/"no rule", matching today's behaviour for every diver who has
   // not opted in to a default.
   TextColumn get plannerTurnPressureRule => text().nullable()();
   RealColumn get plannerTurnPressureFraction => real().nullable()();
   IntColumn get plannerAirBreakO2Seconds => integer().nullable()();
   IntColumn get plannerAirBreakBreakSeconds => integer().nullable()();
-  // v306: planner reserve-pressure default (issue #3552, follow-up to
-  // v302-305). Backfilled in the migration from the diver's pressure unit
+  // v308: planner reserve-pressure default (issue #3552, follow-up to
+  // v304-307). Backfilled in the migration from the diver's pressure unit
   // (50 bar / 500 psi), matching addSimplePlan's pre-existing convention.
   RealColumn get plannerReservePressure =>
       real().withDefault(const Constant(50.0))();

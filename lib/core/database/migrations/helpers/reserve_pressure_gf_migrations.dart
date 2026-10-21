@@ -1,17 +1,18 @@
 part of '../app_database_migrations.dart';
 
-/// v306: reserve pressure and gradient factors join the live-resolve group
-/// (issue #3552, follow-up to v302-305). Both were previously
+/// v308: reserve pressure and gradient factors join the live-resolve group
+/// (issue #3552, follow-up to v304-307). Both were previously
 /// snapshot-on-create - gfLow/gfHigh already had a diver Settings default
 /// ([gfLowProvider]/[gfHighProvider], copied onto a plan only at creation),
 /// reservePressure had none at all (hardcoded to the pressure unit's
 /// convention, 50 bar / 500 psi, with no Settings override). Both now
 /// resolve live like every other Setup field: a plan's own value wins,
-/// else the diver's Settings.
+/// else the diver's Settings. Renumbered from 306 as #3482 shipped 302-303
+/// first.
 extension ReservePressureGfMigrations on AppDatabase {
   /// Drops NOT NULL from dive_plans.reserve_pressure/gf_low/gf_high. Same
   /// table-rebuild technique as [DivePlanMigrations._assertDivePlanSetupFieldsNullable]
-  /// (v303) - see that helper's doc comment for why it is safe. A separate
+  /// (v305) - see that helper's doc comment for why it is safe. A separate
   /// rung because these three were snapshot-on-create, not simply missing a
   /// column, until this issue's own cross-examination pass reconsidered them.
   Future<void> _assertDivePlanReserveAndGfNullable() async {
@@ -83,7 +84,7 @@ extension ReservePressureGfMigrations on AppDatabase {
       );
       return;
     }
-    const scratch = 'dive_plans_v306';
+    const scratch = 'dive_plans_v308';
     rebuiltSql = rebuiltSql.replaceFirst(header, 'CREATE TABLE $scratch');
     final dependents = await customSelect(
       "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_plans' "

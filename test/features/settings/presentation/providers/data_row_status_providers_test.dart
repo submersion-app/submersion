@@ -85,8 +85,13 @@ class _FakeStores extends Fake implements MediaStoresRepository {
   Future<MediaStoreDescriptor?> getActive() async =>
       active == null ? null : _descriptor(active!, hints[active!] ?? '');
 
-  MediaStoreDescriptor _descriptor(String id, String hint) =>
-      (id: id, providerType: 's3', displayHint: hint, lastSweepAt: null);
+  MediaStoreDescriptor _descriptor(String id, String hint) => (
+    id: id,
+    providerType: 's3',
+    displayHint: hint,
+    lastSweepAt: null,
+    accountId: null,
+  );
 }
 
 class _FakeAccounts extends Fake implements ConnectedAccountsRepository {
@@ -533,7 +538,7 @@ void main() {
               kind: SetupItemKind.mediaStoreAttach,
               key: 'store_1',
               label: 'photos @ nas',
-              route: '/settings/media-storage',
+              route: '/settings/photos-media',
             ),
           ],
         ),

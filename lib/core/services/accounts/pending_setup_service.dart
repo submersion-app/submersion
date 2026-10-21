@@ -111,7 +111,7 @@ class PendingSetupService {
             kind: SetupItemKind.mediaStoreAttach,
             key: key,
             label: shortStorageLabel(store.displayHint),
-            route: '/settings/media-storage',
+            route: '/settings/photos-media',
           ),
         );
       }
@@ -131,7 +131,7 @@ class PendingSetupService {
             kind: SetupItemKind.mediaStoreReconnect,
             key: key,
             label: shortStorageLabel(store.displayHint),
-            route: '/settings/media-storage',
+            route: '/settings/photos-media',
           ),
         );
       }
@@ -188,7 +188,7 @@ class PendingSetupService {
       return '/settings/cloud-sync';
     }
     if (kinds.contains(AccountUsageKind.mediaStorage)) {
-      return '/settings/media-storage';
+      return '/settings/photos-media';
     }
     if (kinds.contains(AccountUsageKind.backupCopy)) {
       return '/settings/backup';

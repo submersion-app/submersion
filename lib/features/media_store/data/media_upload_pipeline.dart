@@ -41,8 +41,10 @@ class MediaUploadPipeline {
     MediaUploadQualityPolicy? quality,
     MediaCompressor? imageCompressor,
     VideoTranscoder? videoTranscoder,
+    String? storeId,
     DateTime Function()? now,
   }) : _mediaRepository = mediaRepository,
+       _storeId = storeId,
        _queue = queue,
        _store = store,
        _registry = registry,
@@ -56,6 +58,11 @@ class MediaUploadPipeline {
        _now = now ?? DateTime.now;
 
   final MediaRepository _mediaRepository;
+
+  /// The store this pipeline uploads to (issue #3482): stamps made in
+  /// another store do not skip an upload, and every stamp names this one.
+  /// Null in tests that predate per-store stamps.
+  final String? _storeId;
   final MediaTransferQueueRepository _queue;
   final MediaObjectStore _store;
   final MediaSourceResolverRegistry _registry;
@@ -104,7 +111,8 @@ class MediaUploadPipeline {
 
   Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
     await _queue.markTransferring(entry.id);
-    final item = await _mediaRepository.getMediaById(entry.mediaId);
+    final found = await _mediaRepository.getMediaById(entry.mediaId);
+    final item = found == null ? null : stampsInStore(found, _storeId);
     if (item == null || !_isEligible(item)) {
       await _queue.markDone(entry.id);
       return UploadOutcome.skippedIneligible;
@@ -179,6 +187,7 @@ class MediaUploadPipeline {
             await _mediaRepository.stampRemoteThumbUploaded(
               item.id,
               uploadedAt: _now(),
+              storeId: _storeId,
             );
           }
         } on Exception catch (e) {
@@ -231,6 +240,7 @@ class MediaUploadPipeline {
           item.id,
           uploadedAt: _now(),
           level: level.name,
+          storeId: _storeId,
           // First-writer-wins: on the dedup path the stored object was written
           // by the first uploader and may differ from this device's local
           // rendition (renditions are not hash-verified and can vary by level),
@@ -297,7 +307,11 @@ class MediaUploadPipeline {
         );
       }
 
-      await _mediaRepository.stampRemoteUploaded(item.id, uploadedAt: _now());
+      await _mediaRepository.stampRemoteUploaded(
+        item.id,
+        uploadedAt: _now(),
+        storeId: _storeId,
+      );
       // Namespace switch (override compressed -> original): drop the now
       // unreferenced rendition object.
       if (hadCompressed) {

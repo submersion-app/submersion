@@ -4,11 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v306: reserve pressure and gradient factors join the live-resolve
-/// group (issue #3552, follow-up to v302-305). dive_plans.reserve_pressure/
-/// gf_low/gf_high made nullable (table rebuild, same technique as v303),
+/// Schema v308: reserve pressure and gradient factors join the live-resolve
+/// group (issue #3552, follow-up to v304-307). dive_plans.reserve_pressure/
+/// gf_low/gf_high made nullable (table rebuild, same technique as v305),
 /// diver_settings gains the reserve-pressure default (gfLow/gfHigh already
-/// had one via gfLowProvider/gfHighProvider).
+/// had one via gfLowProvider/gfHighProvider). Renumbered from 306 as #3482
+/// shipped 302-303 first.
 void main() {
   NativeDatabase dbAt(int version, {String pressureUnit = 'bar'}) =>
       NativeDatabase.memory(
@@ -38,23 +39,23 @@ void main() {
         },
       );
 
-  test('v306 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(306));
-    expect(AppDatabase.migrationVersions, contains(306));
+  test('v308 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(308));
+    expect(AppDatabase.migrationVersions, contains(308));
     expect(
-      AppDatabase.migrationStepCount(305),
-      AppDatabase.migrationStepCount(306) + 1,
+      AppDatabase.migrationStepCount(307),
+      AppDatabase.migrationStepCount(308) + 1,
     );
   });
 
   test('the columns are additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(306));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(308));
   });
 
   test(
-    'upgrading from v305 keeps the row\'s existing values unchanged',
+    'upgrading from v307 keeps the row\'s existing values unchanged',
     () async {
-      final db = AppDatabase(dbAt(305));
+      final db = AppDatabase(dbAt(307));
       addTearDown(db.close);
       final row = await db
           .customSelect(
@@ -70,9 +71,9 @@ void main() {
   );
 
   test(
-    'upgrading from v305 lets every rebuilt column accept an explicit NULL',
+    'upgrading from v307 lets every rebuilt column accept an explicit NULL',
     () async {
-      final db = AppDatabase(dbAt(305));
+      final db = AppDatabase(dbAt(307));
       addTearDown(db.close);
       await db.customStatement(
         'UPDATE dive_plans SET gf_low = NULL, gf_high = NULL, '
@@ -92,9 +93,9 @@ void main() {
     },
   );
 
-  test('upgrading from v305 adds the diver_settings reserve default as 50.0 '
+  test('upgrading from v307 adds the diver_settings reserve default as 50.0 '
       'for a metric diver', () async {
-    final db = AppDatabase(dbAt(305));
+    final db = AppDatabase(dbAt(307));
     addTearDown(db.close);
     final row = await db
         .customSelect('SELECT planner_reserve_pressure FROM diver_settings')
@@ -103,10 +104,10 @@ void main() {
   });
 
   test(
-    'upgrading from v305 backfills the diver_settings reserve default to '
+    'upgrading from v307 backfills the diver_settings reserve default to '
     "the pre-migration imperial convention (500 psi) for a 'psi' diver",
     () async {
-      final db = AppDatabase(dbAt(305, pressureUnit: 'psi'));
+      final db = AppDatabase(dbAt(307, pressureUnit: 'psi'));
       addTearDown(db.close);
       final row = await db
           .customSelect('SELECT planner_reserve_pressure FROM diver_settings')
@@ -118,8 +119,8 @@ void main() {
     },
   );
 
-  test('beforeOpen heals a database already at v306 that lacks it', () async {
-    final db = AppDatabase(dbAt(306));
+  test('beforeOpen heals a database already at v308 that lacks it', () async {
+    final db = AppDatabase(dbAt(308));
     addTearDown(db.close);
     final cols =
         (await db.customSelect("PRAGMA table_info('dive_plans')").get())

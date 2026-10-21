@@ -170,6 +170,10 @@ final Map<String, ConflictField> mediaLibraryFields = {
     (l) => l.settings_conflict_field_remoteCompressedUploadedAt,
     FieldKind.dateTime,
   ),
+  'remoteStoreId': ConflictField(
+    (l) => l.settings_conflict_field_remoteStoreId,
+    FieldKind.opaque,
+  ),
   'remoteThumbUploadedAt': ConflictField(
     (l) => l.settings_conflict_field_remoteThumbUploadedAt,
     FieldKind.dateTime,
@@ -261,6 +265,11 @@ final Map<String, ConflictField> mediaLibraryOverrides = {
   'connectedAccounts.nickname': ConflictField(
     (l) => l.settings_conflict_field_connectedAccounts_nickname,
     FieldKind.shortText,
+  ),
+  // A roster row id: shown as changed under the roster's own "Account" word.
+  'mediaStores.accountId': ConflictField(
+    (l) => l.settings_conflict_field_accountIdentifier,
+    FieldKind.opaque,
   ),
   'settings.key': ConflictField(
     (l) => l.settings_conflict_field_settings_key,

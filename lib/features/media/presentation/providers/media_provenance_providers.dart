@@ -69,8 +69,14 @@ final mediaProvenanceProvider = Provider.family<MediaProvenance, MediaItem>((
   item,
 ) {
   final attached = ref.watch(mediaStoreAttachedProvider).value ?? false;
+  final storeId = ref.watch(mediaAttachedStoreIdProvider).value;
   final queue = ref.watch(mediaQueueFactsProvider(item.id)).value;
-  return MediaProvenance.from(item, storeAttached: attached, queue: queue);
+  return MediaProvenance.from(
+    item,
+    storeAttached: attached,
+    queue: queue,
+    storeId: storeId,
+  );
 }, isAutoDispose: true);
 
 /// Checks one item's source and persists the outcome.
@@ -115,13 +121,21 @@ class MediaStoreIdentity {
   final String displayHint;
 }
 
-/// The attached store's identity, or null when none is attached.
+/// The identity of the store this device is attached to; detached, the one
+/// the library announces; null when there is neither (or the attached
+/// store's descriptor has not synced in yet).
 ///
-/// PANEL ONLY. Do not watch this from a grid tile. It reads the active store
-/// descriptor, and its dependency chain can construct the store runtime,
+/// PANEL ONLY. Do not watch this from a grid tile. It reads store
+/// descriptors, and its dependency chain can construct the store runtime,
 /// which is the expensive path [mediaProvenanceProvider] is written to avoid.
 ///
-/// Reads [MediaStoresRepository.getActive] directly rather than reusing
+/// Attached, it names that store and never the library's newest one: the
+/// tier, upload date and "Copy now" beside the name are all worked out
+/// through the attached store, so naming another would report on (and
+/// offer to copy into) a store the name does not match. Same rule as
+/// `photosCopiesProvider`.
+///
+/// Reads [MediaStoresRepository] directly rather than reusing
 /// [mediaStoreStatusHintProvider], which collapses the provider type into the
 /// hint string and loses the distinction the panel wants to show.
 final mediaStoreIdentityProvider = FutureProvider<MediaStoreIdentity?>((
@@ -131,9 +145,13 @@ final mediaStoreIdentityProvider = FutureProvider<MediaStoreIdentity?>((
   // Without this the panel would keep reporting whatever store was attached
   // when it first resolved: connect or disconnect a store and the Backup
   // block would serve a stale cache. Same tick mediaStoreStatusHintProvider
-  // subscribes to.
+  // subscribes to. An attach change is caught by the watch below, which
+  // invalidateMediaStoreAttachment refreshes.
   ref.invalidateSelfWhen(storesRepository.watchStoresChanges());
-  final descriptor = await storesRepository.getActive();
+  final attachedId = await ref.watch(mediaAttachedStoreIdProvider.future);
+  final descriptor = attachedId == null
+      ? await storesRepository.getActive()
+      : await storesRepository.getById(attachedId);
   if (descriptor == null) return null;
   return MediaStoreIdentity(
     providerType: descriptor.providerType,

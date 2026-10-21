@@ -121,7 +121,7 @@ class _LoggedRmvButton extends ConsumerWidget {
 /// Reserve pressure input field with validation.
 ///
 /// Null = use the diver's Settings default (issue #3552, follow-up to
-/// v302-305) - the box is empty and shows the default as a hint, the same
+/// v304-307) - the box is empty and shows the default as a hint, the same
 /// pattern [PlanNumberField] uses, retrofitted onto this field's own
 /// hand-rolled controller rather than switching to [PlanNumberField]
 /// itself, which has no room for the tank-max validation this field needs.

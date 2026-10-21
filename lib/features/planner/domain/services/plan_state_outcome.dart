@@ -26,7 +26,7 @@ PlanOutcome computeOutcomeForState(
 /// contingencies, the range table, the bailout picture) starts here.
 ///
 /// Reads gfLow/gfHigh from [state], falling back to [config] (issue #3552,
-/// follow-up to v302-305) when the plan has not overridden them - the same
+/// follow-up to v304-307) when the plan has not overridden them - the same
 /// resolution PlanEngineConfig.resolvedFor applies for the engine run
 /// itself, kept in sync here so the seed and the schedule agree.
 TissueState? startStateForPlan(

@@ -103,6 +103,7 @@ final mediaVerifyRunnerProvider =
           store: runtime.store,
           mediaRepository: ref.read(mediaRepositoryProvider),
           queue: ref.read(mediaTransferQueueRepositoryProvider),
+          storeId: runtime.storeId,
         );
         // The same gates as the scheduled cleanup: no delete while an upload is
         // transferring, nor during or after a merge, a restore or an

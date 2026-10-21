@@ -24,14 +24,27 @@ MediaItem _item({
 );
 
 class _FakeStoresRepository implements MediaStoresRepository {
-  _FakeStoresRepository(this._active, {Stream<void>? changes})
-    : _changes = changes ?? const Stream<void>.empty();
+  _FakeStoresRepository(
+    this._active, {
+    Stream<void>? changes,
+    List<MediaStoreDescriptor> all = const [],
+  }) : _changes = changes ?? const Stream<void>.empty(),
+       _all = all;
 
   final MediaStoreDescriptor? _active;
   final Stream<void> _changes;
+  final List<MediaStoreDescriptor> _all;
 
   @override
   Future<MediaStoreDescriptor?> getActive() async => _active;
+
+  @override
+  Future<MediaStoreDescriptor?> getById(String storeId) async {
+    for (final d in [?_active, ..._all]) {
+      if (d.id == storeId) return d;
+    }
+    return null;
+  }
 
   /// The identity provider subscribes to this so connecting or disconnecting
   /// a store refreshes the panel instead of serving a stale descriptor.
@@ -67,12 +80,14 @@ class _MutableStoresRepository implements MediaStoresRepository {
 // as dynamic and are cast at the call site.
 ProviderContainer _container({
   bool attached = true,
+  String? attachedStoreId,
   QueueFacts? queue,
   List<dynamic> extra = const [],
 }) {
   final c = ProviderContainer(
     overrides: [
       mediaStoreAttachedProvider.overrideWith((ref) async => attached),
+      mediaAttachedStoreIdProvider.overrideWith((ref) async => attachedStoreId),
       mediaQueueFactsProvider.overrideWith((ref, id) => Stream.value(queue)),
       ...extra.cast(),
     ],
@@ -153,8 +168,9 @@ void main() {
       expect(await c.read(mediaStoreIdentityProvider.future), isNull);
     });
 
-    test('reports the active descriptor provider type and hint', () async {
+    test('detached, reports the active descriptor type and hint', () async {
       final c = _container(
+        attached: false,
         extra: [
           mediaStoresRepositoryProvider.overrideWithValue(
             _FakeStoresRepository((
@@ -162,6 +178,7 @@ void main() {
               providerType: 's3',
               displayHint: 'dive-media @ minio.host',
               lastSweepAt: null,
+              accountId: null,
             )),
           ),
         ],
@@ -171,6 +188,60 @@ void main() {
 
       expect(identity!.providerType, 's3');
       expect(identity.displayHint, 'dive-media @ minio.host');
+    });
+
+    // The tier, upload date and "Copy now" beneath the store name are all
+    // worked out through this device's attached store, so the name must be
+    // that store's too, not whichever store the library announced last.
+    test('names the attached store, not the newest one announced', () async {
+      const attachedStore = (
+        id: 's1',
+        providerType: 'dropbox',
+        displayHint: 'Dropbox',
+        lastSweepAt: null,
+        accountId: null,
+      );
+      final c = _container(
+        attachedStoreId: 's1',
+        extra: [
+          mediaStoresRepositoryProvider.overrideWithValue(
+            _FakeStoresRepository(
+              (
+                id: 's2',
+                providerType: 's3',
+                displayHint: 'other @ minio.host',
+                lastSweepAt: null,
+                accountId: null,
+              ),
+              all: const [attachedStore],
+            ),
+          ),
+        ],
+      );
+
+      final identity = await c.read(mediaStoreIdentityProvider.future);
+
+      expect(identity!.providerType, 'dropbox');
+      expect(identity.displayHint, 'Dropbox');
+    });
+
+    test('is null while the attached store has not synced in yet', () async {
+      final c = _container(
+        attachedStoreId: 's1',
+        extra: [
+          mediaStoresRepositoryProvider.overrideWithValue(
+            _FakeStoresRepository((
+              id: 's2',
+              providerType: 's3',
+              displayHint: 'other @ minio.host',
+              lastSweepAt: null,
+              accountId: null,
+            )),
+          ),
+        ],
+      );
+
+      expect(await c.read(mediaStoreIdentityProvider.future), isNull);
     });
 
     // Without a change-tick subscription this provider would keep serving
@@ -199,6 +270,7 @@ void main() {
         providerType: 'dropbox',
         displayHint: 'Dropbox',
         lastSweepAt: null,
+        accountId: null,
       );
       changes.add(null);
       await Future<void>.delayed(Duration.zero);

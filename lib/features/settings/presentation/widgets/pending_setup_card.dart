@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Ticks on every SyncEventBus event (repository writes that mark records
@@ -56,12 +56,30 @@ final pendingSetupItemsProvider =
 /// there is nothing to do, so it can sit permanently at the top of the
 /// settings list.
 class PendingSetupCard extends ConsumerWidget {
-  const PendingSetupCard({super.key, this.margin});
+  const PendingSetupCard({
+    super.key,
+    this.margin,
+    this.hostRoute,
+    this.onHostRoute,
+  }) : assert(
+         (hostRoute == null) == (onHostRoute == null),
+         'hostRoute and onHostRoute go together',
+       );
 
   /// Overrides the default margin. Host surfaces that already pad their
   /// content horizontally (e.g. the Photos & Media hub) pass a
   /// vertical-only margin so the card aligns with their other cards.
   final EdgeInsetsGeometry? margin;
+
+  /// The route of the page this card sits on, when that page is where some
+  /// items resolve (Photos & videos for the media store items). Tapping such
+  /// an item runs [onHostRoute] instead of opening a second copy of the page
+  /// the diver is already on, where the item would never resolve.
+  final String? hostRoute;
+
+  /// What tapping an item whose route is [hostRoute] does on the host page,
+  /// such as bringing the control that resolves it into view.
+  final VoidCallback? onHostRoute;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,7 +135,16 @@ class PendingSetupCard extends ConsumerWidget {
                     ref.invalidate(pendingSetupItemsProvider);
                   },
                 ),
-                onTap: () => context.push(item.route),
+                onTap: () {
+                  final onHost = onHostRoute;
+                  if (onHost != null && item.route == hostRoute) {
+                    onHost();
+                    return;
+                  }
+                  // In the desktop settings pane the page opens there, and
+                  // a page already open is walked back to, not stacked.
+                  context.pushSettingsPage(item.route);
+                },
               ),
           ],
         ),

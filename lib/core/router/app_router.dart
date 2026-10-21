@@ -119,12 +119,11 @@ import 'package:submersion/features/shared_library/presentation/pages/shared_lib
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/suggestion_inbox_page.dart';
-import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
+import 'package:submersion/features/media_store/presentation/pages/photos_videos_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
@@ -1633,15 +1632,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
+              // Media Storage merged into Photos & videos (issue #3482); old
+              // links and pending setup items land on the new page.
               GoRoute(
                 path: 'media-storage',
                 name: 'mediaStorage',
-                builder: (context, state) => const MediaStoragePage(),
+                redirect: (context, state) =>
+                    state.uri.path.endsWith('/transfers')
+                    ? '/settings/photos-media/uploads'
+                    : '/settings/photos-media',
                 routes: [
                   GoRoute(
                     path: 'transfers',
                     name: 'mediaStorageTransfers',
-                    builder: (context, state) => const TransfersPage(),
+                    redirect: (context, state) =>
+                        '/settings/photos-media/uploads',
                   ),
                 ],
               ),
@@ -1661,12 +1666,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'photos-media',
                 name: 'photosMedia',
-                builder: (context, state) => const PhotosMediaHubPage(),
+                builder: (context, state) => const PhotosVideosPage(),
                 routes: [
                   GoRoute(
                     path: 'setup',
                     name: 'photosMediaSetup',
                     builder: (context, state) => const PhotosMediaSetupPage(),
+                  ),
+                  GoRoute(
+                    path: 'uploads',
+                    name: 'photosUploads',
+                    builder: (context, state) => const TransfersPage(),
                   ),
                 ],
               ),

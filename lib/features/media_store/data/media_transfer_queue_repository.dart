@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 
@@ -148,9 +149,9 @@ class MediaTransferQueueRepository {
 
   /// Idempotent per mediaId for every live state: pending/transferring
   /// rows are reused, and a terminally 'failed' row is returned as-is so
-  /// backfill or re-import cannot resurrect it with a fresh attempt
-  /// budget (explicit retry() is the way back in). Only 'done' rows allow
-  /// a new enqueue. Transactional so concurrent enqueues cannot both miss
+  /// a re-import cannot resurrect it with a fresh attempt budget (explicit
+  /// retry(), or the backfill's [rearmUploads], is the way back in). Only
+  /// 'done' rows allow a new enqueue. Transactional so concurrent enqueues cannot both miss
   /// the select and insert duplicates.
   Future<int> enqueueUpload({required String mediaId}) {
     return _db.transaction(() async {
@@ -475,6 +476,52 @@ class MediaTransferQueueRepository {
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
+  }
+
+  /// The backfill's "upload everything" re-arm: the upload rows of
+  /// [mediaIds] start over with a fresh attempt budget, as [retry] gives
+  /// one. A terminally failed row goes back to pending, and a pending row
+  /// that has spent attempts gets them back with its backoff and error
+  /// cleared. Without this a row that failed against a store the diver has
+  /// since left (out of space, revoked) would count as queued yet never be
+  /// selected, and a pending one would go terminal after its first failure
+  /// against the new store.
+  ///
+  /// Never touches a fresh pending row (nothing spent; a policy deferral on
+  /// it stands), a transferring or done row, a delete row, or a row a
+  /// worker in this process has claimed: its transfer is under way. One
+  /// UPDATE per [chunkSize] ids. Returns how many rows were re-armed.
+  Future<int> rearmUploads(
+    List<String> mediaIds, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async {
+    var rearmed = 0;
+    for (final chunk in seriesIdChunks(mediaIds, size: chunkSize)) {
+      // Read with no await before the update is built, so a row claimed
+      // since is excluded; one claimed while the update runs is still
+      // safe, as the claim re-reads the row it took.
+      final held = _held.toList();
+      rearmed +=
+          await (_db.update(_db.mediaTransferQueue)..where(
+                (t) =>
+                    t.mediaId.isIn(chunk) &
+                    t.direction.equals('upload') &
+                    t.id.isNotIn(held) &
+                    (t.state.equals('failed') |
+                        (t.state.equals('pending') &
+                            t.attempts.isBiggerThanValue(0))),
+              ))
+              .write(
+                MediaTransferQueueCompanion(
+                  state: const Value('pending'),
+                  attempts: const Value(0),
+                  nextAttemptAt: const Value(null),
+                  errorMessage: const Value(null),
+                  updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+                ),
+              );
+    }
+    return rearmed;
   }
 
   /// Crash recovery: returns rows stranded in 'transferring' back to

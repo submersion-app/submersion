@@ -120,7 +120,7 @@ class PlanEngineConfig extends Equatable {
   final int deviationTimeMinutes;
 
   /// The diver's default turn-pressure rule/fraction and air-break policy
-  /// (issue #3552, follow-up to v302-304). Nullable, unlike the fields
+  /// (issue #3552, follow-up to v304-306). Nullable, unlike the fields
   /// above: "no rule"/"no policy" is itself a legitimate default, matching
   /// today's behaviour for a diver who has not opted in to one. Resolved
   /// per plan through [turnPressureRuleFor]/[turnPressureFractionFor]/
@@ -134,7 +134,7 @@ class PlanEngineConfig extends Equatable {
 
   /// Gradient factors (0-100) and tank reserve pressure (bar) - previously
   /// snapshot-on-create, now live-resolve like every other Setup field
-  /// (issue #3552, follow-up to v302-305). Merged through the plain
+  /// (issue #3552, follow-up to v304-307). Merged through the plain
   /// `?? this.x` [copyWith]/[resolvedFor] pattern, same as sacBottom/sacDeco:
   /// a plan's own value always wins, there is no "explicit off" concept to
   /// a gradient factor or a reserve margin.

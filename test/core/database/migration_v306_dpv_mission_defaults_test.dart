@@ -4,9 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v304: dive_plan_missions.battery_reserve_fraction and
-/// .walk_speed_mps made nullable, the DPV Team counterpart of the v303
-/// dive_plans rebuild (issue #3552).
+/// Schema v306: dive_plan_missions.battery_reserve_fraction and
+/// .walk_speed_mps made nullable, the DPV Team counterpart of the v305
+/// dive_plans rebuild (issue #3552). Renumbered from 304 as #3482 shipped
+/// 302-303 first.
 void main() {
   NativeDatabase dbAt(int version) => NativeDatabase.memory(
     setup: (rawDb) {
@@ -37,23 +38,23 @@ void main() {
     },
   );
 
-  test('v304 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(304));
-    expect(AppDatabase.migrationVersions, contains(304));
+  test('v306 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(306));
+    expect(AppDatabase.migrationVersions, contains(306));
     expect(
-      AppDatabase.migrationStepCount(303),
-      AppDatabase.migrationStepCount(304) + 1,
+      AppDatabase.migrationStepCount(305),
+      AppDatabase.migrationStepCount(306) + 1,
     );
   });
 
   test('the columns are additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(304));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(306));
   });
 
   test(
-    'upgrading from v303 drops NOT NULL and keeps every existing value',
+    'upgrading from v305 drops NOT NULL and keeps every existing value',
     () async {
-      final db = AppDatabase(dbAt(303));
+      final db = AppDatabase(dbAt(305));
       addTearDown(db.close);
       final row = await db
           .customSelect(
@@ -82,8 +83,8 @@ void main() {
     },
   );
 
-  test('beforeOpen heals a database already at v304 that lacks it', () async {
-    final db = AppDatabase(dbAt(304));
+  test('beforeOpen heals a database already at v306 that lacks it', () async {
+    final db = AppDatabase(dbAt(306));
     addTearDown(db.close);
     await db.customStatement(
       'UPDATE dive_plan_missions SET battery_reserve_fraction = NULL '

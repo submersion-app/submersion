@@ -52,7 +52,7 @@ void main() {
     expect(names, containsAll(_columns.keys));
   });
 
-  test('the columns are nullable since v303 (issue #3552), unset on a fresh '
+  test('the columns are nullable since v305 (issue #3552), unset on a fresh '
       'database', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
@@ -64,7 +64,7 @@ void main() {
       final column = cols.firstWhere(
         (c) => c.read<String>('name') == entry.key,
       );
-      // Made nullable in v303, so a plan can store "unset, follow the
+      // Made nullable in v305, so a plan can store "unset, follow the
       // diver's Settings default" instead of always carrying a concrete
       // value. A fresh database's own CREATE TABLE (dive_plan_tables.dart)
       // declares no SQL-level default any more - "the standard rate" is

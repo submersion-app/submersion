@@ -1309,7 +1309,7 @@ void main() {
       '/trips',
       '/pre-dive-sessions/session-7',
       '/courses/c1',
-      '/settings/media-storage/transfers',
+      '/settings/photos-media/uploads',
       '/settings/backup',
       '/settings/cloud-sync',
       '/dives/quality',
@@ -2098,10 +2098,9 @@ void main() {
       '/settings/shared-libraries/lib1/connection',
       '/settings/photos-media',
       '/settings/photos-media/setup',
+      '/settings/photos-media/uploads',
       '/settings/media-sources',
       '/settings/media-sources/network-sources',
-      '/settings/media-storage',
-      '/settings/media-storage/transfers',
       '/settings/connected-accounts',
       '/settings/connected-accounts/acct1',
       '/settings/storage',
@@ -2150,6 +2149,49 @@ void main() {
         final pane = dataPanePage(uri);
         expect(pane, isNotNull, reason: location);
         expect(pane.runtimeType, routed.runtimeType, reason: location);
+      }
+    });
+
+    // Issue #3482 phase 4: Media Storage merged into Photos & videos. Old
+    // links and pushes still land somewhere real.
+    testWidgets('the old Media Storage routes redirect to Photos & videos', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      for (final (from, to) in const [
+        ('/settings/media-storage', '/settings/photos-media'),
+        ('/settings/media-storage/transfers', '/settings/photos-media/uploads'),
+      ]) {
+        final uri = Uri.parse(from);
+        final match = router.configuration.findMatch(uri);
+        expect(match.isError, isFalse, reason: from);
+        final redirect = match.last.route.redirect;
+        expect(redirect, isNotNull, reason: from);
+        final target = await redirect!(
+          capturedContext,
+          GoRouterState(
+            router.configuration,
+            uri: uri,
+            matchedLocation: match.last.matchedLocation,
+            fullPath: match.fullPath,
+            pathParameters: match.pathParameters,
+            pageKey: ValueKey(from),
+          ),
+        );
+        expect(target, to, reason: from);
+        // A push inside the desktop pane lands on the same pages.
+        expect(dataPanePage(uri), isNotNull, reason: from);
       }
     });
 

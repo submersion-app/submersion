@@ -122,6 +122,10 @@ class MediaItem extends Equatable {
   final int? compressedSizeBytes;
   final DateTime? remoteCompressedUploadedAt;
 
+  /// The media store the three remote stamps refer to (issue #3482); null
+  /// for stamps from before stores were recorded.
+  final String? remoteStoreId;
+
   /// Media section Phase 2: explicitly kept in the library while unlinked.
   /// The orphan sweep never GCs retained rows' store blobs.
   final bool retainInLibrary;
@@ -190,6 +194,7 @@ class MediaItem extends Equatable {
     this.compressedLevel,
     this.compressedSizeBytes,
     this.remoteCompressedUploadedAt,
+    this.remoteStoreId,
     this.retainInLibrary = false,
     this.manualElapsedSeconds,
     this.siteCategory,
@@ -349,6 +354,7 @@ class MediaItem extends Equatable {
     Object? compressedLevel = _undefined,
     Object? compressedSizeBytes = _undefined,
     Object? remoteCompressedUploadedAt = _undefined,
+    Object? remoteStoreId = _undefined,
     bool? retainInLibrary,
     Object? manualElapsedSeconds = _undefined,
     Object? siteCategory = _undefined,
@@ -447,6 +453,9 @@ class MediaItem extends Equatable {
       remoteCompressedUploadedAt: remoteCompressedUploadedAt == _undefined
           ? this.remoteCompressedUploadedAt
           : remoteCompressedUploadedAt as DateTime?,
+      remoteStoreId: remoteStoreId == _undefined
+          ? this.remoteStoreId
+          : remoteStoreId as String?,
       retainInLibrary: retainInLibrary ?? this.retainInLibrary,
       manualElapsedSeconds: manualElapsedSeconds == _undefined
           ? this.manualElapsedSeconds
@@ -510,6 +519,7 @@ class MediaItem extends Equatable {
     compressedLevel,
     compressedSizeBytes,
     remoteCompressedUploadedAt,
+    remoteStoreId,
     retainInLibrary,
     manualElapsedSeconds,
     siteCategory,

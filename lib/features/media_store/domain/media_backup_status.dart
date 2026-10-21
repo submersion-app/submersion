@@ -17,9 +17,30 @@ bool isThumbOnlyMedia(MediaItem item) =>
     item.sourceType == MediaSourceType.serviceConnector &&
     item.mediaType == MediaType.video;
 
-/// Whether [item] already exists in the attached media store. Mirrors the
-/// pipeline's own dedup check so a tile never reports "not backed up" for
-/// an item the pipeline would skip as already uploaded.
-bool isBackedUp(MediaItem item) => isThumbOnlyMedia(item)
-    ? item.remoteThumbUploadedAt != null
-    : item.remoteUploadedAt != null || item.remoteCompressedUploadedAt != null;
+/// [item] as the store [storeId] sees it (issue #3482): stamps made in
+/// another store say nothing about this one, so they are dropped, with the
+/// rendition facts they describe. Stamps naming no store predate the column
+/// and stand, as do all stamps when no store is named.
+MediaItem stampsInStore(MediaItem item, String? storeId) {
+  final owner = item.remoteStoreId;
+  if (storeId == null || owner == null || owner == storeId) return item;
+  return item.copyWith(
+    remoteUploadedAt: null,
+    remoteThumbUploadedAt: null,
+    remoteCompressedUploadedAt: null,
+    compressedLevel: null,
+    compressedSizeBytes: null,
+  );
+}
+
+/// Whether [item] already exists in the attached media store, [storeId]
+/// when known. Mirrors the pipeline's own dedup check so a tile never
+/// reports "not backed up" for an item the pipeline would skip as already
+/// uploaded.
+bool isBackedUp(MediaItem item, {String? storeId}) {
+  final seen = stampsInStore(item, storeId);
+  return isThumbOnlyMedia(seen)
+      ? seen.remoteThumbUploadedAt != null
+      : seen.remoteUploadedAt != null ||
+            seen.remoteCompressedUploadedAt != null;
+}

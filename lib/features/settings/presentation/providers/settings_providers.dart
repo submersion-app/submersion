@@ -577,7 +577,7 @@ class AppSettings {
   final double plannerWalkSpeedMps;
 
   /// Turn-pressure/air-break global defaults (issue #3552, follow-up to
-  /// v302-304). Nullable, unlike the fields above: null = no rule/no
+  /// v304-306). Nullable, unlike the fields above: null = no rule/no
   /// breaks, matching today's behaviour for a diver who has not opted in.
   final domain.TurnPressureRule? plannerTurnPressureRule;
   final double? plannerTurnPressureFraction;
@@ -585,7 +585,7 @@ class AppSettings {
   final int? plannerAirBreakBreakSeconds;
 
   /// The diver's tank reserve-pressure default (issue #3552, follow-up to
-  /// v302-305) - previously hardcoded to the pressure unit's convention (50
+  /// v304-307) - previously hardcoded to the pressure unit's convention (50
   /// bar / 500 psi) with no Settings override at all.
   final double plannerReservePressure;
 
@@ -3503,7 +3503,7 @@ final plannerAirBreakPolicyProvider = Provider<AirBreakPolicy?>((ref) {
 });
 
 /// The diver's tank reserve-pressure default (issue #3552, follow-up to
-/// v302-305).
+/// v304-307).
 final plannerReservePressureProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.plannerReservePressure));
 });

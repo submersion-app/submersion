@@ -44,8 +44,13 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  MediaStoreDescriptor store(String id) =>
-      (id: id, providerType: 's3', displayHint: r2, lastSweepAt: null);
+  MediaStoreDescriptor store(String id) => (
+    id: id,
+    providerType: 's3',
+    displayHint: r2,
+    lastSweepAt: null,
+    accountId: null,
+  );
 
   test('the attached store reads by its account nickname', () async {
     await attachState.setAttached(

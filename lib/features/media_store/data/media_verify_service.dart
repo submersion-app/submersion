@@ -97,10 +97,12 @@ class MediaVerifyService {
     required MediaObjectStore store,
     required MediaRepository mediaRepository,
     required MediaTransferQueueRepository queue,
+    String? storeId,
     DateTime Function() now = DateTime.now,
   }) : _store = store,
        _mediaRepository = mediaRepository,
        _queue = queue,
+       _storeId = storeId,
        _now = now;
 
   static const staleSessionAge = Duration(days: 7);
@@ -117,6 +119,10 @@ class MediaVerifyService {
   final MediaObjectStore _store;
   final MediaRepository _mediaRepository;
   final MediaTransferQueueRepository _queue;
+
+  /// The attached store [_store] is (issue #3482): reverse repair judges
+  /// only the stamps made in it, or naming no store.
+  final String? _storeId;
   final DateTime Function() _now;
   final _log = LoggerService.forClass(MediaVerifyService);
 
@@ -363,7 +369,9 @@ class MediaVerifyService {
     // bytes when they resolve and fails gracefully when they do not.
     var repairsQueued = 0;
     if (!deferred) {
-      for (final row in await _mediaRepository.getRemoteStampedSummaries()) {
+      for (final row in await _mediaRepository.getRemoteStampedSummaries(
+        storeId: _storeId,
+      )) {
         // The exact keys the row resolves to: a sibling under another
         // extension, or a rendition in the other format, does not serve it.
         final hash = row.contentHash;

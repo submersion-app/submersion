@@ -260,7 +260,7 @@ A feature that is not set up shows a **Set up** action under its status.
 | **Sync between devices** | Keep your devices in step through cloud storage; see [Multi-Device Sync](multi-device-sync.md) |
 | **Photos & videos** | Where photos come from, and where copies are kept; see [Media Sync](media-sync.md) |
 | **Shared site libraries** | Dive sites kept together with other divers; see [Shared site libraries](shared-site-libraries.md) |
-| **Connected accounts** | The sign-ins used by sync, media storage and shared site libraries |
+| **Connected accounts** | The sign-ins used by sync, photo copies, backup copies and shared site libraries |
 
 ### Advanced
 

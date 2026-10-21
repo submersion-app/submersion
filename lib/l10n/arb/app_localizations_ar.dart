@@ -36847,51 +36847,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد عناصر في الغطسات المحددة بعد';
 
   @override
-  String get settings_mediaStorage_entry_title => 'تخزين الوسائط';
-
-  @override
-  String get settings_mediaStorage_entry_subtitle =>
-      'خزّن النسخ الأصلية للصور والفيديو في التخزين السحابي الخاص بك';
-
-  @override
-  String get settings_mediaStorage_status_notConfigured =>
-      'لا يوجد مخزن وسائط متصل على هذا الجهاز';
-
-  @override
-  String settings_mediaStorage_status_connected(String hint) {
-    return 'متصل بـ $hint';
-  }
-
-  @override
-  String get settings_mediaStorage_test_success => 'نجح الاتصال';
-
-  @override
-  String get settings_mediaStorage_saved => 'تم توصيل مخزن الوسائط';
-
-  @override
   String get settings_mediaStorage_error_notReady =>
       'تعذّرت قراءة التخزين السحابي حتى الآن. انتظر لحظة ثم أعد المحاولة.';
-
-  @override
-  String get settings_mediaStorage_action_disconnect => 'قطع الاتصال';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_title =>
-      'قطع اتصال مخزن الوسائط؟';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_body =>
-      'يتوقف هذا الجهاز عن رفع الوسائط وجلبها. لن يُحذف أي شيء من الحاوية الخاصة بك.';
-
-  @override
-  String get settings_mediaStorage_action_copyFromSync =>
-      'نسخ الإعدادات من المزامنة';
-
-  @override
-  String get settings_mediaStorage_transfers_title => 'عمليات النقل';
-
-  @override
-  String get settings_mediaStorage_transfers_entry => 'عرض عمليات النقل';
 
   @override
   String get settings_mediaStorage_transfers_empty => 'لا توجد عمليات نقل';
@@ -36919,34 +36876,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'فشل';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_title =>
-      'تم إيقاف عمليات النقل مؤقتًا';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_subtitle =>
-      'لم يعد هذا الجهاز والتخزين السحابي متفقين على المخزن المستخدم. تؤدي إعادة توصيل تخزين الوسائط إلى اعتماد المخزن الموجود في السحابة الآن.';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_detached =>
-      'لم يعد هذا الجهاز متصلاً بتخزين الوسائط هذا. يمكن إعادة الاتصال به من إعدادات تخزين الوسائط.';
-
-  @override
   String get settings_mediaStorage_transfers_suspended_unreachable =>
       'تعذّر التحقق من تخزين الوسائط. تتم إعادة محاولة عمليات النقل تلقائيًا.';
-
-  @override
-  String settings_mediaStorage_transfers_queued(int count) {
-    return '$count في قائمة الانتظار';
-  }
-
-  @override
-  String settings_mediaStorage_transfers_waitingRetry(int count) {
-    return '$count في انتظار إعادة المحاولة';
-  }
-
-  @override
-  String get settings_mediaStorage_transfers_waitingConnection =>
-      'في انتظار الاتصال';
 
   @override
   String get settings_mediaStorage_report_action => 'تصدير تقرير الوسائط';
@@ -36961,9 +36892,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_mediaStorage_report_running =>
       'جارٍ إنشاء تقرير الوسائط...';
-
-  @override
-  String get settings_mediaStorage_verify_action => 'التحقق من المكتبة';
 
   @override
   String get settings_mediaStorage_verify_running =>
@@ -37022,45 +36950,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يُحذف أي شيء: تنتظر عمليات الحذف حتى تنتهي عمليات الرفع.';
 
   @override
-  String get settings_mediaStorage_backfill_action => 'رفع المكتبة الحالية';
-
-  @override
   String settings_mediaStorage_backfill_enqueued(int count) {
     return '$count عمليات رفع في قائمة الانتظار';
-  }
-
-  @override
-  String get settings_mediaStorage_policy_autoUpload => 'رفع الصور تلقائيا';
-
-  @override
-  String get settings_mediaStorage_policy_photosOnCellular =>
-      'رفع الصور عبر شبكة الجوال';
-
-  @override
-  String get settings_mediaStorage_provider_label => 'المزود';
-
-  @override
-  String get settings_mediaStorage_provider_webdav => 'WebDAV';
-
-  @override
-  String get settings_mediaStorage_webdav_useSyncServer =>
-      'استخدام خادم المزامنة الخاص بي';
-
-  @override
-  String get settings_mediaStorage_connect_dropbox_hint =>
-      'يستخدم اتصال Dropbox من المزامنة بين الأجهزة. تُخزن الوسائط في مجلد التطبيق في Dropbox.';
-
-  @override
-  String get settings_mediaStorage_connect_gdrive_hint =>
-      'يسجل الدخول عبر Google. تُخزن الوسائط في مساحة Drive الخاصة بهذا التطبيق.';
-
-  @override
-  String get settings_mediaStorage_connect_icloud_hint =>
-      'تُخزن الوسائط في حاوية iCloud لهذا التطبيق وتتزامن عبر Apple ID الخاص بك.';
-
-  @override
-  String settings_mediaStorage_connect_action(String provider) {
-    return 'توصيل $provider';
   }
 
   @override
@@ -37641,19 +37532,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_setup_dismiss => 'تجاهل';
 
   @override
-  String get settings_photosMedia_sourcesHeader => 'من أين تأتي الصور';
-
-  @override
-  String get settings_photosMedia_storageHeader => 'أين تُحفظ النسخ';
-
-  @override
-  String get settings_photosMedia_displayHeader => 'العرض';
-
-  @override
   String get settings_photosMedia_guidedSetup => 'إعداد موجه';
-
-  @override
-  String get settings_photosMedia_photoSources_title => 'مكتبة الصور والمصادر';
 
   @override
   String get settings_photosMedia_photoSources_subtitle =>
@@ -51106,9 +50985,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_timeInDive_reset => 'إعادة التعيين إلى التلقائي';
 
   @override
-  String get media_info_backupSection => 'النسخ الاحتياطي';
-
-  @override
   String get media_info_store => 'التخزين السحابي';
 
   @override
@@ -51207,9 +51083,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_info_actionLocate => 'تحديد موقع الملف...';
-
-  @override
-  String get media_info_actionBackUpNow => 'انسخ احتياطيًا الآن';
 
   @override
   String get media_info_actionRetryUpload => 'إعادة محاولة الرفع';
@@ -55581,4 +55454,189 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_backups_passwordProtection => 'الحماية بكلمة مرور';
+
+  @override
+  String get settings_photos_cloudHeader => 'نسخ في السحابة';
+
+  @override
+  String settings_photos_copiesIn(String account) {
+    return 'النسخ في $account';
+  }
+
+  @override
+  String settings_photos_attached(String account) {
+    return 'تم إعداد النسخ في $account';
+  }
+
+  @override
+  String get settings_photos_autoUpload => 'رفع الصور الجديدة تلقائيًا';
+
+  @override
+  String get settings_photos_cellular => 'استخدام بيانات الجوال';
+
+  @override
+  String get settings_photos_uploads => 'عمليات الرفع';
+
+  @override
+  String get settings_photos_sourcesHeader => 'مصدر الصور';
+
+  @override
+  String get settings_photos_library => 'مكتبة الصور والملفات';
+
+  @override
+  String get settings_photos_quality => 'جودة الرفع';
+
+  @override
+  String get settings_photos_uploadAll => 'رفع كل ما تم إرفاقه بالفعل';
+
+  @override
+  String get settings_photos_verify => 'التحقق من النسخ';
+
+  @override
+  String get settings_photos_stopKeeping =>
+      'إيقاف الاحتفاظ بالنسخ على هذا الجهاز';
+
+  @override
+  String get settings_photos_stopKeepingBody =>
+      'يتوقف هذا الجهاز عن رفع النسخ وجلبها. لا يُحذف أي شيء من الحساب.';
+
+  @override
+  String settings_photos_switchConsequence(String current, String choice) {
+    return 'يتوقف هذا الجهاز عن استخدام النسخ في $current ويبدأ نسخًا في $choice أو ينضم إليها. لا يُحذف أي شيء.';
+  }
+
+  @override
+  String settings_photos_status_copied(int copied, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total عنصر',
+      many: '$total عنصرًا',
+      few: '$total عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'تم نسخ $copied من $_temp0';
+  }
+
+  @override
+  String settings_photos_status_uploading(int copied, int total, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return 'تم نسخ $copied من $total، و$_temp0 قيد الرفع';
+  }
+
+  @override
+  String settings_photos_status_uploadingOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0 قيد الرفع';
+  }
+
+  @override
+  String get settings_photos_status_waitingConnection => 'في انتظار الاتصال';
+
+  @override
+  String settings_photos_status_waitingRetry(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0 في انتظار إعادة المحاولة';
+  }
+
+  @override
+  String get settings_photos_status_pausedUnreachable =>
+      'تم إيقاف الرفع مؤقتًا: تعذر التحقق من الحساب';
+
+  @override
+  String get settings_photos_status_pausedDetached =>
+      'تم إيقاف الرفع مؤقتًا: هذا الجهاز غير متصل بهذه النسخ';
+
+  @override
+  String get settings_photos_status_pausedMismatch =>
+      'تم إيقاف الرفع مؤقتًا: اختر الحساب مرة أخرى';
+
+  @override
+  String get settings_photos_status_finishSetup => 'إنهاء إعداد هذا الجهاز';
+
+  @override
+  String settings_photos_status_unreachable(String account) {
+    return 'تعذر الوصول إلى $account';
+  }
+
+  @override
+  String get settings_photos_suspended_detached =>
+      'لم يعد هذا الجهاز متصلًا بهذه النسخ. اختر الحساب مرة أخرى في الصور ومقاطع الفيديو.';
+
+  @override
+  String get settings_photos_suspended_mismatch =>
+      'لم يعد هذا الجهاز والحساب متفقين على النسخ المستخدمة. يؤدي اختيار الحساب مرة أخرى إلى اعتماد النسخ الموجودة فيه الآن.';
+
+  @override
+  String get media_info_actionCopyNow => 'النسخ الآن';
+
+  @override
+  String get settings_photos_suspended_title => 'تم إيقاف الرفع مؤقتًا';
+
+  @override
+  String settings_photos_separateConsequence(String current, String choice) {
+    return 'نسخ المكتبة موجودة في $current. اختيار $choice يبدأ نسخًا منفصلة هناك. لا يُحذف أي شيء.';
+  }
+
+  @override
+  String settings_photos_joinConsequence(String choice) {
+    return 'يبدأ هذا الجهاز نسخًا في $choice أو ينضم إليها. لا يُحذف أي شيء.';
+  }
+
+  @override
+  String settings_photos_switchConsequenceUnnamed(String choice) {
+    return 'يتوقف هذا الجهاز عن استخدام نسخه الحالية ويبدأ نسخًا في $choice أو ينضم إليها. لا يُحذف أي شيء.';
+  }
+
+  @override
+  String settings_photos_switchHeldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count صورة محفوظة فقط في النسخ الحالية ولن تُفتح على هذا الجهاز بعد التغيير.',
+      many:
+          '$count صورة محفوظة فقط في النسخ الحالية ولن تُفتح على هذا الجهاز بعد التغيير.',
+      few:
+          '$count صور محفوظة فقط في النسخ الحالية ولن تُفتح على هذا الجهاز بعد التغيير.',
+      two:
+          'صورتان محفوظتان فقط في النسخ الحالية ولن تُفتحا على هذا الجهاز بعد التغيير.',
+      one:
+          'صورة واحدة محفوظة فقط في النسخ الحالية ولن تُفتح على هذا الجهاز بعد التغيير.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_startedSeparate(String account) {
+    return 'لم يُعثر على نسخ في $account، لذا بدأ هذا الجهاز نسخًا منفصلة هناك.';
+  }
+
+  @override
+  String get settings_conflict_field_remoteStoreId => 'تم الرفع إلى';
 }

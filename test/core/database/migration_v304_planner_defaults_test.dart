@@ -3,10 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v302: diver_settings gains the planner Setup-accordion global
+/// Schema v304: diver_settings gains the planner Setup-accordion global
 /// defaults (Deco rates, Gas/SAC, Contingency, DPV team policy) so a new
 /// plan's Setup fields resolve from Settings instead of hardcoded
-/// constructor defaults (issue #3552).
+/// constructor defaults (issue #3552). Renumbered from 302 as #3482
+/// shipped 302-303 first.
 void main() {
   NativeDatabase dbAt(int version) => NativeDatabase.memory(
     setup: (rawDb) {
@@ -40,23 +41,23 @@ void main() {
     'planner_walk_speed_mps': 0.8,
   };
 
-  test('v302 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(302));
-    expect(AppDatabase.migrationVersions, contains(302));
+  test('v304 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(304));
+    expect(AppDatabase.migrationVersions, contains(304));
     expect(
-      AppDatabase.migrationStepCount(301),
-      AppDatabase.migrationStepCount(302) + 1,
+      AppDatabase.migrationStepCount(303),
+      AppDatabase.migrationStepCount(304) + 1,
     );
   });
 
   test('the columns are additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(302));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(304));
   });
 
   test(
-    'upgrading from v301 adds every column with its documented default',
+    'upgrading from v303 adds every column with its documented default',
     () async {
-      final db = AppDatabase(dbAt(301));
+      final db = AppDatabase(dbAt(303));
       addTearDown(db.close);
       final row = await db
           .customSelect(
@@ -78,8 +79,8 @@ void main() {
     },
   );
 
-  test('beforeOpen heals a database already at v302 that lacks them', () async {
-    final db = AppDatabase(dbAt(302));
+  test('beforeOpen heals a database already at v304 that lacks them', () async {
+    final db = AppDatabase(dbAt(304));
     addTearDown(db.close);
     final cols =
         (await db.customSelect("PRAGMA table_info('diver_settings')").get())

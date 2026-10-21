@@ -36137,51 +36137,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincsenek elemek a kiválasztott merüléseken';
 
   @override
-  String get settings_mediaStorage_entry_title => 'Médiatárhely';
-
-  @override
-  String get settings_mediaStorage_entry_subtitle =>
-      'Fotó- és videóeredetik tárolása saját felhőtárhelyen';
-
-  @override
-  String get settings_mediaStorage_status_notConfigured =>
-      'Nincs médiatár csatlakoztatva ezen az eszközön';
-
-  @override
-  String settings_mediaStorage_status_connected(String hint) {
-    return 'Csatlakoztatva: $hint';
-  }
-
-  @override
-  String get settings_mediaStorage_test_success => 'Sikeres kapcsolat';
-
-  @override
-  String get settings_mediaStorage_saved => 'Médiatár csatlakoztatva';
-
-  @override
   String get settings_mediaStorage_error_notReady =>
       'A felhőtárolót még nem sikerült beolvasni. Várj egy pillanatot, majd próbáld újra.';
-
-  @override
-  String get settings_mediaStorage_action_disconnect => 'Leválasztás';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_title =>
-      'Leválasztja a médiatárat?';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_body =>
-      'Az eszköz nem tölt fel és nem tölt le több médiát. A bucketből semmi sem törlődik.';
-
-  @override
-  String get settings_mediaStorage_action_copyFromSync =>
-      'Beállítások átvétele a szinkronizálásból';
-
-  @override
-  String get settings_mediaStorage_transfers_title => 'Átvitelek';
-
-  @override
-  String get settings_mediaStorage_transfers_entry => 'Átvitelek megtekintése';
 
   @override
   String get settings_mediaStorage_transfers_empty => 'Nincs átvitel';
@@ -36210,34 +36167,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Sikertelen';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_title =>
-      'Átvitelek szüneteltetve';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_subtitle =>
-      'Ez az eszköz és a felhőtároló már nem egyezik abban, melyik tárolót használják. A médiatároló újracsatlakoztatása a felhőben most található tárolót veszi át.';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_detached =>
-      'Ez az eszköz már nem csatlakozik ehhez a médiatárolóhoz. Az újracsatlakoztatás a Médiatároló beállításoknál lehetséges.';
-
-  @override
   String get settings_mediaStorage_transfers_suspended_unreachable =>
       'A médiatárolót nem sikerült ellenőrizni. Az átvitelek automatikusan újrapróbálkoznak.';
-
-  @override
-  String settings_mediaStorage_transfers_queued(int count) {
-    return '$count sorban áll';
-  }
-
-  @override
-  String settings_mediaStorage_transfers_waitingRetry(int count) {
-    return '$count újrapróbálkozásra vár';
-  }
-
-  @override
-  String get settings_mediaStorage_transfers_waitingConnection =>
-      'Várakozás kapcsolatra';
 
   @override
   String get settings_mediaStorage_report_action => 'Médiajelentés exportálása';
@@ -36252,9 +36183,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_mediaStorage_report_running =>
       'Médiajelentés készítése...';
-
-  @override
-  String get settings_mediaStorage_verify_action => 'Könyvtár ellenőrzése';
 
   @override
   String get settings_mediaStorage_verify_running => 'Médiatár ellenőrzése...';
@@ -36285,47 +36213,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Semmi sem lett törölve: a törlések megvárják, amíg a feltöltések befejeződnek.';
 
   @override
-  String get settings_mediaStorage_backfill_action =>
-      'Meglévő könyvtár feltöltése';
-
-  @override
   String settings_mediaStorage_backfill_enqueued(int count) {
     return '$count feltöltés sorban';
-  }
-
-  @override
-  String get settings_mediaStorage_policy_autoUpload =>
-      'Fotók automatikus feltöltése';
-
-  @override
-  String get settings_mediaStorage_policy_photosOnCellular =>
-      'Fotók feltöltése mobilhálózaton';
-
-  @override
-  String get settings_mediaStorage_provider_label => 'Szolgáltató';
-
-  @override
-  String get settings_mediaStorage_provider_webdav => 'WebDAV';
-
-  @override
-  String get settings_mediaStorage_webdav_useSyncServer =>
-      'Saját szinkronizálási kiszolgáló használata';
-
-  @override
-  String get settings_mediaStorage_connect_dropbox_hint =>
-      'A Szinkronizálás eszközök között Dropbox-kapcsolatát használja. A média a Dropbox alkalmazásmappájában tárolódik.';
-
-  @override
-  String get settings_mediaStorage_connect_gdrive_hint =>
-      'Google-fiókkal jelentkezik be. A média az alkalmazás privát Drive-területén tárolódik.';
-
-  @override
-  String get settings_mediaStorage_connect_icloud_hint =>
-      'A média az alkalmazás iCloud-tárolójában tárolódik, és az Apple ID-n keresztül szinkronizálódik.';
-
-  @override
-  String settings_mediaStorage_connect_action(String provider) {
-    return '$provider csatlakoztatása';
   }
 
   @override
@@ -36912,19 +36801,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_setup_dismiss => 'Elvetés';
 
   @override
-  String get settings_photosMedia_sourcesHeader => 'Honnan érkeznek a fotók';
-
-  @override
-  String get settings_photosMedia_storageHeader => 'Hol tároljuk a másolatokat';
-
-  @override
-  String get settings_photosMedia_displayHeader => 'Megjelenítés';
-
-  @override
   String get settings_photosMedia_guidedSetup => 'Vezetett beállítás';
-
-  @override
-  String get settings_photosMedia_photoSources_title => 'Fotótár és források';
 
   @override
   String get settings_photosMedia_photoSources_subtitle =>
@@ -50158,9 +50035,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_timeInDive_reset => 'Visszaállítás automatikusra';
 
   @override
-  String get media_info_backupSection => 'Biztonsági mentés';
-
-  @override
   String get media_info_store => 'Felhő tárhely';
 
   @override
@@ -50262,9 +50136,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_info_actionLocate => 'Fájl keresése...';
-
-  @override
-  String get media_info_actionBackUpNow => 'Mentés most';
 
   @override
   String get media_info_actionRetryUpload => 'Feltöltés újra';
@@ -54566,4 +54437,148 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_backups_passwordProtection => 'Jelszavas védelem';
+
+  @override
+  String get settings_photos_cloudHeader => 'Másolatok a felhőben';
+
+  @override
+  String settings_photos_copiesIn(String account) {
+    return 'Másolatok itt: $account';
+  }
+
+  @override
+  String settings_photos_attached(String account) {
+    return 'Másolatok beállítva itt: $account';
+  }
+
+  @override
+  String get settings_photos_autoUpload => 'Új fotók automatikus feltöltése';
+
+  @override
+  String get settings_photos_cellular => 'Mobiladat használata';
+
+  @override
+  String get settings_photos_uploads => 'Feltöltések';
+
+  @override
+  String get settings_photos_sourcesHeader => 'Honnan származnak a fotók';
+
+  @override
+  String get settings_photos_library => 'Fotókönyvtár és fájlok';
+
+  @override
+  String get settings_photos_quality => 'Feltöltési minőség';
+
+  @override
+  String get settings_photos_uploadAll => 'Minden már csatolt elem feltöltése';
+
+  @override
+  String get settings_photos_verify => 'Másolatok ellenőrzése';
+
+  @override
+  String get settings_photos_stopKeeping =>
+      'Másolatok kezelésének leállítása ezen az eszközön';
+
+  @override
+  String get settings_photos_stopKeepingBody =>
+      'Ez az eszköz nem tölt fel és nem tölt le több másolatot. A fiókból semmi sem törlődik.';
+
+  @override
+  String settings_photos_switchConsequence(String current, String choice) {
+    return 'Ez az eszköz nem használja tovább a(z) $current másolatait, és másolatokat indít vagy csatlakozik hozzájuk itt: $choice. Semmi sem törlődik.';
+  }
+
+  @override
+  String settings_photos_status_copied(int copied, int total) {
+    return '$copied/$total másolva';
+  }
+
+  @override
+  String settings_photos_status_uploading(int copied, int total, int count) {
+    return '$copied/$total másolva, $count feltöltés alatt';
+  }
+
+  @override
+  String settings_photos_status_uploadingOnly(int count) {
+    return '$count feltöltés alatt';
+  }
+
+  @override
+  String get settings_photos_status_waitingConnection => 'Kapcsolatra vár';
+
+  @override
+  String settings_photos_status_waitingRetry(int count) {
+    return '$count újrapróbálkozásra vár';
+  }
+
+  @override
+  String get settings_photos_status_pausedUnreachable =>
+      'Feltöltések szüneteltetve: a fiókot nem sikerült ellenőrizni';
+
+  @override
+  String get settings_photos_status_pausedDetached =>
+      'Feltöltések szüneteltetve: ez az eszköz nem kapcsolódik ezekhez a másolatokhoz';
+
+  @override
+  String get settings_photos_status_pausedMismatch =>
+      'Feltöltések szüneteltetve: válassza ki újra a fiókot';
+
+  @override
+  String get settings_photos_status_finishSetup =>
+      'Az eszköz beállításának befejezése';
+
+  @override
+  String settings_photos_status_unreachable(String account) {
+    return '$account nem érhető el';
+  }
+
+  @override
+  String get settings_photos_suspended_detached =>
+      'Ez az eszköz már nem kapcsolódik ezekhez a másolatokhoz. Válassza ki újra a fiókot a Fotók és videók oldalon.';
+
+  @override
+  String get settings_photos_suspended_mismatch =>
+      'Ez az eszköz és a fiók már nem egyezik abban, mely másolatok vannak használatban. A fiók újbóli kiválasztása átveszi a benne most lévő másolatokat.';
+
+  @override
+  String get media_info_actionCopyNow => 'Másolás most';
+
+  @override
+  String get settings_photos_suspended_title => 'Feltöltések szüneteltetve';
+
+  @override
+  String settings_photos_separateConsequence(String current, String choice) {
+    return 'A könyvtár másolatai itt vannak: $current. A(z) $choice választásával ott külön másolatok indulnak. Semmi sem törlődik.';
+  }
+
+  @override
+  String settings_photos_joinConsequence(String choice) {
+    return 'Ez az eszköz másolatokat indít itt: $choice, vagy csatlakozik hozzájuk. Semmi sem törlődik.';
+  }
+
+  @override
+  String settings_photos_switchConsequenceUnnamed(String choice) {
+    return 'Ez az eszköz nem használja tovább a jelenlegi másolatait, és másolatokat indít vagy csatlakozik hozzájuk itt: $choice. Semmi sem törlődik.';
+  }
+
+  @override
+  String settings_photos_switchHeldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fotó csak a jelenlegi másolatokban van meg, és a váltás után nem nyitható meg ezen az eszközön.',
+      one:
+          '1 fotó csak a jelenlegi másolatokban van meg, és a váltás után nem nyitható meg ezen az eszközön.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_startedSeparate(String account) {
+    return 'Itt nem találhatók másolatok: $account, ezért ez az eszköz külön másolatokat indított ott.';
+  }
+
+  @override
+  String get settings_conflict_field_remoteStoreId => 'Feltöltés helye';
 }

@@ -178,7 +178,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     // Kept for constructor-signature stability (existing callers/tests
     // supply them); no longer read here. gfLow/gfHigh/reservePressure now
     // live-resolve against the diver's Settings instead of being
-    // snapshotted at creation (issue #3552, follow-up to v302-305) - a new
+    // snapshotted at creation (issue #3552, follow-up to v304-307) - a new
     // plan starts unset, the same as every other Setup field.
     required double reservePressure,
     required PlanGradientFactors Function() getGradientFactors,
@@ -645,7 +645,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // --------------------------------------------------------------------------
 
   /// Update gradient factors. Null clears back to the diver's Settings
-  /// default (issue #3552, follow-up to v302-305).
+  /// default (issue #3552, follow-up to v304-307).
   void updateGradientFactors(int? gfLow, int? gfHigh) {
     state = state.copyWith(
       gfLow: gfLow,
@@ -815,7 +815,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Update reserve pressure in bar.
   /// Null clears back to the diver's Settings default (issue #3552,
-  /// follow-up to v302-305).
+  /// follow-up to v304-307).
   void updateReservePressure(double? reservePressure) {
     state = state.copyWith(
       reservePressure: reservePressure,

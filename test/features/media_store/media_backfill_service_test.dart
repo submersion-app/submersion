@@ -1,9 +1,12 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
@@ -57,6 +60,7 @@ void main() {
     MediaSourceType sourceType = MediaSourceType.localFile,
     DateTime? takenAt,
     DateTime? uploadedAt,
+    String? storeId,
   }) async {
     final created = await mediaRepository.createMedia(
       domain.MediaItem(
@@ -76,6 +80,7 @@ void main() {
       await mediaRepository.stampRemoteUploaded(
         created.id,
         uploadedAt: uploadedAt,
+        storeId: storeId,
       );
     }
     return created;
@@ -145,5 +150,75 @@ void main() {
 
     final ids = await mediaRepository.getBackfillCandidateIds();
     expect(ids, [photo.id, videoNoThumb.id, galleryVideo.id]);
+  });
+
+  // Issue #3482: after a switch the attached store holds nothing, so rows
+  // stamped in the old store are uploaded again.
+  test('uploads what another store holds to the attached one', () async {
+    SharedPreferences.setMockInitialValues({});
+    final attachState = MediaStoreAttachState(
+      prefs: await SharedPreferences.getInstance(),
+    );
+    await attachState.setAttached(
+      'store-b',
+      providerType: CloudProviderType.dropbox,
+    );
+    final elsewhere = await mediaRow(
+      name: 'old.jpg',
+      uploadedAt: DateTime(2026, 7),
+      storeId: 'store-a',
+    );
+    await mediaRow(
+      name: 'here.jpg',
+      uploadedAt: DateTime(2026, 7),
+      storeId: 'store-b',
+    );
+
+    final enqueued = await MediaBackfillService(
+      mediaRepository: mediaRepository,
+      queue: queue,
+      attachState: attachState,
+    ).enqueueAll();
+
+    expect(enqueued, 1);
+    expect((await queue.allForTesting()).single.mediaId, elsewhere.id);
+  });
+  // A switch leaves the old store's terminal failures behind; tapping
+  // Upload everything must give them a fresh attempt budget against the
+  // attached store, or they count as queued and never upload.
+  test('re-arms a terminally failed upload row so it can be claimed', () async {
+    final photo = await mediaRow(name: 'stuck.jpg');
+    final id = await queue.enqueueUpload(mediaId: photo.id);
+    for (var i = 0; i < 5; i++) {
+      await queue.markFailed(id, 'insufficient space');
+    }
+    expect((await queue.allForTesting()).single.state, 'failed');
+
+    expect(await service.enqueueAll(), 1);
+
+    final row = (await queue.allForTesting()).single;
+    expect(row.id, id);
+    expect(row.state, 'pending');
+    expect(row.attempts, 0);
+    expect(row.errorMessage, isNull);
+    final claimed = await queue.claimNextPending(DateTime.now());
+    expect(claimed?.id, id);
+    queue.release(id);
+  });
+
+  test('resets the attempt count of a pending upload row', () async {
+    final photo = await mediaRow(name: 'retrying.jpg');
+    final id = await queue.enqueueUpload(mediaId: photo.id);
+    for (var i = 0; i < 4; i++) {
+      await queue.markFailed(id, 'insufficient space');
+    }
+
+    expect(await service.enqueueAll(), 1);
+
+    final row = (await queue.allForTesting()).single;
+    expect(row.state, 'pending');
+    expect(row.attempts, 0);
+    expect(row.nextAttemptAt, isNull);
+    expect(await queue.nextPending(DateTime.now()), isNotNull);
   });
 }

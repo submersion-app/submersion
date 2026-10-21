@@ -189,9 +189,9 @@ void main() {
     test('media health counts only media setup items', () {
       expect(
         countMediaSetupItems([
-          item(SetupItemKind.mediaStoreAttach, '/settings/media-storage'),
-          item(SetupItemKind.mediaStoreReconnect, '/settings/media-storage'),
-          item(SetupItemKind.accountSignIn, '/settings/media-storage'),
+          item(SetupItemKind.mediaStoreAttach, '/settings/photos-media'),
+          item(SetupItemKind.mediaStoreReconnect, '/settings/photos-media'),
+          item(SetupItemKind.accountSignIn, '/settings/photos-media'),
           item(SetupItemKind.accountSignIn, '/settings/lightroom'),
           item(SetupItemKind.accountSignIn, '/settings/cloud-sync'),
         ]),
@@ -206,7 +206,7 @@ void main() {
             kind: SetupItemKind.accountSignIn,
             key: 'account_1',
             label: 'x',
-            route: '/settings/media-storage',
+            route: '/settings/photos-media',
             dismissed: true,
           ),
         ]),

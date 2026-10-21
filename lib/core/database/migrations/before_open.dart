@@ -76,17 +76,17 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertSegmentSplitAtRateColumn();
     // v296 backstop: media.color_adjustment, diver_settings.auto_color_correction.
     await _assertColorCorrectionColumns();
-    // v302 backstop: diver_settings planner Setup-accordion global defaults.
+    // v304 backstop: diver_settings planner Setup-accordion global defaults.
     await _assertPlannerDefaultColumns();
-    // v303 backstop: dive_plans Setup-accordion columns made nullable.
+    // v305 backstop: dive_plans Setup-accordion columns made nullable.
     await _assertDivePlanSetupFieldsNullable();
-    // v304 backstop: dive_plan_missions battery_reserve_fraction/
+    // v306 backstop: dive_plan_missions battery_reserve_fraction/
     // walk_speed_mps made nullable.
     await _assertDivePlanMissionFieldsNullable();
-    // v305 backstop: diver_settings air-break/turn-pressure defaults and
+    // v307 backstop: diver_settings air-break/turn-pressure defaults and
     // dive_plans.air_breaks_explicitly_off.
     await _assertAirBreaksTurnPressureDefaultColumns();
-    // v306 backstop: dive_plans reserve_pressure/gf_low/gf_high made
+    // v308 backstop: dive_plans reserve_pressure/gf_low/gf_high made
     // nullable, diver_settings.planner_reserve_pressure added.
     await _assertDivePlanReserveAndGfNullable();
 
@@ -127,6 +127,8 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v136 backstop: re-assert media_stores.last_sweep_at.
     await _assertMediaStoresLastSweepColumn();
+    await _assertMediaStoresAccountColumn(); // v302
+    await _assertMediaRemoteStoreColumn(); // v303
 
     // v137 backstop: re-assert dives.weather_code.
     await _assertWeatherCodeColumn();

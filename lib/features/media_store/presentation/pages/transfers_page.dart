@@ -44,9 +44,9 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
     // Opening this page resumes the queue (issue #1270).
     //
     // The dashboard's "N uploads pending" chip pushes straight here, and this
-    // route is a plain `builder` nested under media-storage, so
-    // MediaStoragePage - whose build resolves the runtime, and which is
-    // therefore the app's only reliable drain trigger - never runs on the way
+    // route is a plain `builder` nested under photos-media, so the Photos &
+    // videos page (whose status line resolves the runtime, and which is
+    // therefore the app's only reliable drain trigger) never runs on the way
     // in. Someone arriving to ask why nothing is uploading was shown the
     // stuck rows and nothing else.
     //
@@ -115,7 +115,7 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                   onDelete: () => _confirmAndDelete(rows),
                 )
               : AppBar(
-                  title: Text(l10n.settings_mediaStorage_transfers_title),
+                  title: Text(l10n.settings_photos_uploads),
                   actions: [
                     IconButton(
                       key: const ValueKey('enter_selection'),

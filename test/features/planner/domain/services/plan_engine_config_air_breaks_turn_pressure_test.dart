@@ -5,7 +5,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// turnPressureRuleFor/turnPressureFractionFor/airBreaksFor (issue #3552,
-/// follow-up to v302-304): both fields have no sensible non-null config
+/// follow-up to v304-306): both fields have no sensible non-null config
 /// default, and a plan needs its own explicit "off" to turn tracking off
 /// once the diver has opted into a non-null global default - `off` is a
 /// real [domain.TurnPressureRule] value, while air breaks need a separate

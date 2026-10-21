@@ -78,6 +78,7 @@ domain.MediaItem mediaItemFromRow(
     remoteCompressedUploadedAt: row.remoteCompressedUploadedAt != null
         ? DateTime.fromMillisecondsSinceEpoch(row.remoteCompressedUploadedAt!)
         : null,
+    remoteStoreId: row.remoteStoreId,
     retainInLibrary: row.retainInLibrary,
     manualElapsedSeconds: row.manualElapsedSeconds,
     siteCategory: SiteAttachmentCategory.fromStorageKey(row.siteCategory),

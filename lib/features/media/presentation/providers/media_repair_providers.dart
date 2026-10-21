@@ -194,6 +194,9 @@ final mediaRepairServiceProvider = Provider<MediaRepairService>((ref) {
     log: ref.watch(mediaRepairLogRepositoryProvider),
     cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
     assetCache: ref.watch(localAssetCacheRepositoryProvider),
+    // Read at apply time: a store change since the scan must not convert
+    // rows against a store that never held them (issue #3482).
+    attachedStoreId: () => ref.read(mediaAttachedStoreIdProvider.future),
   );
 });
 
@@ -233,6 +236,9 @@ final repairWizardProvider =
             ),
           if (config.useStore)
             StoreCandidateSource(
+              // Stamps count only for the attached store (issue #3482).
+              attachedStoreId: () =>
+                  ref.read(mediaAttachedStoreIdProvider.future),
               // Lazy per-key HEAD: resolves the runtime when first needed so an
               // unconfigured store degrades to unverified candidates, never an
               // error.

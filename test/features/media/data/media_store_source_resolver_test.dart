@@ -12,6 +12,7 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 MediaItem item({
   String? contentHash,
   DateTime? remoteUploadedAt,
+  String? remoteStoreId,
   MediaType mediaType = MediaType.photo,
 }) => MediaItem(
   id: 'm1',
@@ -19,6 +20,7 @@ MediaItem item({
   sourceType: MediaSourceType.mediaStore,
   contentHash: contentHash,
   remoteUploadedAt: remoteUploadedAt,
+  remoteStoreId: remoteStoreId,
   takenAt: DateTime.utc(2026, 6, 1),
   createdAt: DateTime.utc(2026, 6, 1),
   updatedAt: DateTime.utc(2026, 6, 1),
@@ -162,5 +164,26 @@ void main() {
       VerifyResult.available,
     );
     expect(await resolver.verify(item()), VerifyResult.notFound);
+  });
+
+  test('verify reads the stamp through the attached store', () async {
+    final resolver = MediaStoreSourceResolver(
+      remote: () =>
+          (mediaItem, {required bool thumbnail}) async => null,
+      storeId: () => 'store-b',
+    );
+    MediaItem ownedBy(String? store) => item(
+      contentHash: 'h',
+      remoteUploadedAt: DateTime.utc(2026),
+      remoteStoreId: store,
+    );
+
+    expect(
+      await resolver.verify(ownedBy('store-a')),
+      VerifyResult.notFound,
+      reason: 'a stamp made in another store says nothing about this one',
+    );
+    expect(await resolver.verify(ownedBy('store-b')), VerifyResult.available);
+    expect(await resolver.verify(ownedBy(null)), VerifyResult.available);
   });
 }

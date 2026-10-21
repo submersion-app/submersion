@@ -57074,83 +57074,11 @@ abstract class AppLocalizations {
   /// **'No items on the selected dives yet'**
   String get diveLog_bulkEdit_membership_empty;
 
-  /// No description provided for @settings_mediaStorage_entry_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Media Storage'**
-  String get settings_mediaStorage_entry_title;
-
-  /// No description provided for @settings_mediaStorage_entry_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Store photo and video originals in your own cloud storage'**
-  String get settings_mediaStorage_entry_subtitle;
-
-  /// No description provided for @settings_mediaStorage_status_notConfigured.
-  ///
-  /// In en, this message translates to:
-  /// **'No media store connected on this device'**
-  String get settings_mediaStorage_status_notConfigured;
-
-  /// No description provided for @settings_mediaStorage_status_connected.
-  ///
-  /// In en, this message translates to:
-  /// **'Connected to {hint}'**
-  String settings_mediaStorage_status_connected(String hint);
-
-  /// No description provided for @settings_mediaStorage_test_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Connection successful'**
-  String get settings_mediaStorage_test_success;
-
-  /// No description provided for @settings_mediaStorage_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'Media store connected'**
-  String get settings_mediaStorage_saved;
-
   /// No description provided for @settings_mediaStorage_error_notReady.
   ///
   /// In en, this message translates to:
   /// **'The cloud storage could not be read yet. Wait a moment and try connecting again.'**
   String get settings_mediaStorage_error_notReady;
-
-  /// No description provided for @settings_mediaStorage_action_disconnect.
-  ///
-  /// In en, this message translates to:
-  /// **'Disconnect'**
-  String get settings_mediaStorage_action_disconnect;
-
-  /// No description provided for @settings_mediaStorage_disconnect_confirm_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Disconnect media store?'**
-  String get settings_mediaStorage_disconnect_confirm_title;
-
-  /// No description provided for @settings_mediaStorage_disconnect_confirm_body.
-  ///
-  /// In en, this message translates to:
-  /// **'This device stops uploading and fetching media. Nothing in your bucket is deleted.'**
-  String get settings_mediaStorage_disconnect_confirm_body;
-
-  /// No description provided for @settings_mediaStorage_action_copyFromSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy settings from Sync'**
-  String get settings_mediaStorage_action_copyFromSync;
-
-  /// No description provided for @settings_mediaStorage_transfers_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Transfers'**
-  String get settings_mediaStorage_transfers_title;
-
-  /// No description provided for @settings_mediaStorage_transfers_entry.
-  ///
-  /// In en, this message translates to:
-  /// **'View transfers'**
-  String get settings_mediaStorage_transfers_entry;
 
   /// No description provided for @settings_mediaStorage_transfers_empty.
   ///
@@ -57200,47 +57128,11 @@ abstract class AppLocalizations {
   /// **'Failed'**
   String get settings_mediaStorage_transfers_state_failed;
 
-  /// No description provided for @settings_mediaStorage_transfers_suspended_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Transfers paused'**
-  String get settings_mediaStorage_transfers_suspended_title;
-
-  /// No description provided for @settings_mediaStorage_transfers_suspended_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'This device and the cloud store no longer agree on which store is in use. Reconnecting media storage adopts the store the cloud holds now.'**
-  String get settings_mediaStorage_transfers_suspended_subtitle;
-
-  /// Suspended transfers notice when this device detached from the media store
-  ///
-  /// In en, this message translates to:
-  /// **'This device is no longer connected to this media store. Connect it again in Media Storage.'**
-  String get settings_mediaStorage_transfers_suspended_detached;
-
   /// Suspended transfers notice when the media store could not be checked; the raw error is shown beneath
   ///
   /// In en, this message translates to:
   /// **'The media store could not be checked. Transfers retry automatically.'**
   String get settings_mediaStorage_transfers_suspended_unreachable;
-
-  /// No description provided for @settings_mediaStorage_transfers_queued.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} queued'**
-  String settings_mediaStorage_transfers_queued(int count);
-
-  /// No description provided for @settings_mediaStorage_transfers_waitingRetry.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} waiting to retry'**
-  String settings_mediaStorage_transfers_waitingRetry(int count);
-
-  /// Media Storage summary line while queued transfers wait for the device to come online
-  ///
-  /// In en, this message translates to:
-  /// **'Waiting for a connection'**
-  String get settings_mediaStorage_transfers_waitingConnection;
 
   /// No description provided for @settings_mediaStorage_report_action.
   ///
@@ -57265,12 +57157,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Building the media report...'**
   String get settings_mediaStorage_report_running;
-
-  /// No description provided for @settings_mediaStorage_verify_action.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify library'**
-  String get settings_mediaStorage_verify_action;
 
   /// No description provided for @settings_mediaStorage_verify_running.
   ///
@@ -57310,71 +57196,11 @@ abstract class AppLocalizations {
   /// **'Nothing was deleted: deletes wait until uploads finish.'**
   String get settings_mediaStorage_verify_uploads;
 
-  /// No description provided for @settings_mediaStorage_backfill_action.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload existing library'**
-  String get settings_mediaStorage_backfill_action;
-
   /// No description provided for @settings_mediaStorage_backfill_enqueued.
   ///
   /// In en, this message translates to:
   /// **'{count} uploads queued'**
   String settings_mediaStorage_backfill_enqueued(int count);
-
-  /// No description provided for @settings_mediaStorage_policy_autoUpload.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload photos automatically'**
-  String get settings_mediaStorage_policy_autoUpload;
-
-  /// No description provided for @settings_mediaStorage_policy_photosOnCellular.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload photos on cellular'**
-  String get settings_mediaStorage_policy_photosOnCellular;
-
-  /// No description provided for @settings_mediaStorage_provider_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Provider'**
-  String get settings_mediaStorage_provider_label;
-
-  /// No description provided for @settings_mediaStorage_provider_webdav.
-  ///
-  /// In en, this message translates to:
-  /// **'WebDAV'**
-  String get settings_mediaStorage_provider_webdav;
-
-  /// No description provided for @settings_mediaStorage_webdav_useSyncServer.
-  ///
-  /// In en, this message translates to:
-  /// **'Use my sync server'**
-  String get settings_mediaStorage_webdav_useSyncServer;
-
-  /// No description provided for @settings_mediaStorage_connect_dropbox_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Uses your Dropbox connection from Sync between devices. Media is stored in your Dropbox app folder.'**
-  String get settings_mediaStorage_connect_dropbox_hint;
-
-  /// No description provided for @settings_mediaStorage_connect_gdrive_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Signs in with Google. Media is stored in this app\'s private Drive space.'**
-  String get settings_mediaStorage_connect_gdrive_hint;
-
-  /// No description provided for @settings_mediaStorage_connect_icloud_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Media is stored in this app\'s iCloud container and syncs through your Apple ID.'**
-  String get settings_mediaStorage_connect_icloud_hint;
-
-  /// No description provided for @settings_mediaStorage_connect_action.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect {provider}'**
-  String settings_mediaStorage_connect_action(String provider);
 
   /// No description provided for @bodyWeight_addEntry.
   ///
@@ -58426,35 +58252,11 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get settings_setup_dismiss;
 
-  /// No description provided for @settings_photosMedia_sourcesHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Where photos come from'**
-  String get settings_photosMedia_sourcesHeader;
-
-  /// No description provided for @settings_photosMedia_storageHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Where copies are kept'**
-  String get settings_photosMedia_storageHeader;
-
-  /// No description provided for @settings_photosMedia_displayHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Display'**
-  String get settings_photosMedia_displayHeader;
-
   /// No description provided for @settings_photosMedia_guidedSetup.
   ///
   /// In en, this message translates to:
   /// **'Guided setup'**
   String get settings_photosMedia_guidedSetup;
-
-  /// No description provided for @settings_photosMedia_photoSources_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo library & sources'**
-  String get settings_photosMedia_photoSources_title;
 
   /// No description provided for @settings_photosMedia_photoSources_subtitle.
   ///
@@ -79835,12 +79637,6 @@ abstract class AppLocalizations {
   /// **'Reset to automatic'**
   String get media_timeInDive_reset;
 
-  /// No description provided for @media_info_backupSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup'**
-  String get media_info_backupSection;
-
   /// No description provided for @media_info_store.
   ///
   /// In en, this message translates to:
@@ -80026,12 +79822,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Locate file...'**
   String get media_info_actionLocate;
-
-  /// Media info panel, Backup block: queues the item for upload
-  ///
-  /// In en, this message translates to:
-  /// **'Back up now'**
-  String get media_info_actionBackUpNow;
 
   /// Media info panel, Backup block: same action as Back up now, shown when the previous upload failed
   ///
@@ -86918,6 +86708,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Password protection'**
   String get settings_backups_passwordProtection;
+
+  /// Photos & videos: header over where copies are kept
+  ///
+  /// In en, this message translates to:
+  /// **'Copies in the cloud'**
+  String get settings_photos_cloudHeader;
+
+  /// Photos & videos Using row: the account the copies are kept in
+  ///
+  /// In en, this message translates to:
+  /// **'Copies in {account}'**
+  String settings_photos_copiesIn(String account);
+
+  /// Snackbar after copies are set up in an account
+  ///
+  /// In en, this message translates to:
+  /// **'Copies set up in {account}'**
+  String settings_photos_attached(String account);
+
+  /// Switch: upload newly attached photos without asking
+  ///
+  /// In en, this message translates to:
+  /// **'Upload new photos automatically'**
+  String get settings_photos_autoUpload;
+
+  /// Switch: allow photo uploads over a cellular connection
+  ///
+  /// In en, this message translates to:
+  /// **'Use cellular data'**
+  String get settings_photos_cellular;
+
+  /// Row and page title: the list of photo uploads (today's Transfers)
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads'**
+  String get settings_photos_uploads;
+
+  /// Photos & videos: header over where photos are linked from
+  ///
+  /// In en, this message translates to:
+  /// **'Where photos come from'**
+  String get settings_photos_sourcesHeader;
+
+  /// Row: the photo library and files a diver links photos from
+  ///
+  /// In en, this message translates to:
+  /// **'Photo library and files'**
+  String get settings_photos_library;
+
+  /// Advanced: header of the photo and video upload quality settings
+  ///
+  /// In en, this message translates to:
+  /// **'Upload quality'**
+  String get settings_photos_quality;
+
+  /// Advanced: queue every photo already attached for upload
+  ///
+  /// In en, this message translates to:
+  /// **'Upload everything already attached'**
+  String get settings_photos_uploadAll;
+
+  /// Advanced: check the copies in the account against the logbook
+  ///
+  /// In en, this message translates to:
+  /// **'Verify the copies'**
+  String get settings_photos_verify;
+
+  /// Advanced: detach this device from the copies (today's Disconnect)
+  ///
+  /// In en, this message translates to:
+  /// **'Stop keeping copies on this device'**
+  String get settings_photos_stopKeeping;
+
+  /// Confirmation body for Stop keeping copies on this device
+  ///
+  /// In en, this message translates to:
+  /// **'This device stops uploading and fetching copies. Nothing in the account is deleted.'**
+  String get settings_photos_stopKeepingBody;
+
+  /// Account sheet: what choosing another account for photo copies does
+  ///
+  /// In en, this message translates to:
+  /// **'This device stops using the copies in {current} and starts or joins copies in {choice}. Nothing is deleted.'**
+  String settings_photos_switchConsequence(String current, String choice);
+
+  /// Status: how many photos are copied
+  ///
+  /// In en, this message translates to:
+  /// **'{copied} of {total} copied'**
+  String settings_photos_status_copied(int copied, int total);
+
+  /// Status: copied count plus uploads in progress
+  ///
+  /// In en, this message translates to:
+  /// **'{copied} of {total} copied, {count} uploading'**
+  String settings_photos_status_uploading(int copied, int total, int count);
+
+  /// Status: uploads in progress, before the copied count is known
+  ///
+  /// In en, this message translates to:
+  /// **'{count} uploading'**
+  String settings_photos_status_uploadingOnly(int count);
+
+  /// Status: uploads wait for a network connection
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for a connection'**
+  String get settings_photos_status_waitingConnection;
+
+  /// Status: uploads that failed and will be retried
+  ///
+  /// In en, this message translates to:
+  /// **'{count} waiting to retry'**
+  String settings_photos_status_waitingRetry(int count);
+
+  /// Status: uploads held because the account's copies could not be checked
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads paused: the account could not be checked'**
+  String get settings_photos_status_pausedUnreachable;
+
+  /// Status: uploads held because this device is no longer connected to the copies
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads paused: this device is not connected to these copies'**
+  String get settings_photos_status_pausedDetached;
+
+  /// Status: uploads held because the account now holds different copies
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads paused: choose the account again'**
+  String get settings_photos_status_pausedMismatch;
+
+  /// Status: the library keeps copies this device has not joined yet
+  ///
+  /// In en, this message translates to:
+  /// **'Finish setting up this device'**
+  String get settings_photos_status_finishSetup;
+
+  /// Status: the account holding the copies could not be opened
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach {account}'**
+  String settings_photos_status_unreachable(String account);
+
+  /// Uploads page notice: this device was detached from the copies
+  ///
+  /// In en, this message translates to:
+  /// **'This device is no longer connected to these copies. Choose the account again in Photos & videos.'**
+  String get settings_photos_suspended_detached;
+
+  /// Uploads page notice: the account now holds different copies than this device attached to
+  ///
+  /// In en, this message translates to:
+  /// **'This device and the account no longer agree on which copies are in use. Choosing the account again adopts the copies it holds now.'**
+  String get settings_photos_suspended_mismatch;
+
+  /// Media info panel: copy this item to the cloud now
+  ///
+  /// In en, this message translates to:
+  /// **'Copy now'**
+  String get media_info_actionCopyNow;
+
+  /// Uploads page notice title: uploads are held
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads paused'**
+  String get settings_photos_suspended_title;
+
+  /// Account sheet consequence on the Photos page when this device sets up copies in a different account from the one the library's copies already live in. {current} and {choice} are account names.
+  ///
+  /// In en, this message translates to:
+  /// **'The library\'s copies are in {current}. Choosing {choice} starts separate copies there. Nothing is deleted.'**
+  String settings_photos_separateConsequence(String current, String choice);
+
+  /// Account sheet consequence on the Photos page when the copies in use predate stores recording their account, so it is unknown whether the chosen account holds them. {choice} is an account name.
+  ///
+  /// In en, this message translates to:
+  /// **'This device starts or joins copies in {choice}. Nothing is deleted.'**
+  String settings_photos_joinConsequence(String choice);
+
+  /// Account sheet: what choosing another account for photo copies does, when the account in use cannot be named. {choice} is an account name.
+  ///
+  /// In en, this message translates to:
+  /// **'This device stops using its current copies and starts or joins copies in {choice}. Nothing is deleted.'**
+  String settings_photos_switchConsequenceUnnamed(String choice);
+
+  /// Account sheet: added after the switch consequence when some photos exist only in the store being left (cloud-backed photos). Plural on count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo is kept only in the current copies and will not open on this device after the change.} other{{count} photos are kept only in the current copies and will not open on this device after the change.}}'**
+  String settings_photos_switchHeldOnly(int count);
+
+  /// Snackbar after choosing an account for photo copies that held none, so a new separate set was started instead of joining the library's copies. {account} is an account name.
+  ///
+  /// In en, this message translates to:
+  /// **'No copies were found in {account}, so this device started separate copies there.'**
+  String settings_photos_startedSeparate(String account);
+
+  /// Sync conflict field label: the photo copies store a media item's upload stamps refer to
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded to'**
+  String get settings_conflict_field_remoteStoreId;
 }
 
 class _AppLocalizationsDelegate

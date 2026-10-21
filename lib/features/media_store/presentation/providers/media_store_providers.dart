@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,6 +32,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_tile_image_memo.dart';
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
+import 'package:submersion/features/media_store/data/media_store_account_attach.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -310,6 +312,7 @@ final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(
     mediaRepository: ref.watch(mediaRepositoryProvider),
     queue: ref.watch(mediaTransferQueueRepositoryProvider),
+    attachState: ref.watch(mediaStoreAttachStateProvider),
   ),
 );
 
@@ -402,36 +405,67 @@ final FutureProvider<bool> mediaStoreAttachedProvider = FutureProvider<bool>((
   }
 });
 
+/// The store this device is attached to, for readers that see stamps
+/// through it (issue #3482); null when detached or not yet known.
+final FutureProvider<String?> mediaAttachedStoreIdProvider =
+    FutureProvider<String?>((ref) async {
+      try {
+        return await ref.watch(mediaStoreAttachStateProvider).attachedStoreId();
+      } on Object {
+        return null;
+      }
+    });
+
 /// Call after any media store attach change (connect or disconnect).
 ///
-/// Three providers cache attachment state:
+/// Four providers cache attachment state:
 /// [attachedMediaObjectStoreProvider] holds the store adapter,
 /// [mediaStoreRuntimeProvider] holds the runtime built from it, and
 /// [mediaStoreAttachedProvider] holds the cheap
-/// boolean the tile badge reads. Refreshing only the runtime leaves the
+/// boolean the tile badge reads, and [mediaAttachedStoreIdProvider] the
+/// store id stamps are read through. Refreshing only the runtime leaves the
 /// badge answering from a stale cache, so a freshly attached store shows
 /// no not-backed-up badges until the app restarts, and a disconnected one
 /// keeps showing them. Invalidating both together is the whole point of
 /// this helper: keep new call sites from having to remember the second.
-void invalidateMediaStoreAttachment(WidgetRef ref) {
+void invalidateMediaStoreAttachment(WidgetRef ref) =>
+    invalidateMediaStoreAttachmentWith(ref.invalidate);
+
+/// [invalidateMediaStoreAttachment] through any invalidate, such as a
+/// container's, for a caller whose widget may be gone by the time an attach
+/// finishes.
+void invalidateMediaStoreAttachmentWith(
+  void Function(ProviderOrFamily provider) invalidate,
+) {
   // The adapter first: the runtime is built from it, so invalidating the
   // runtime alone would rebuild it around the old store, and a diagnostics
   // report would keep probing a store this device just disconnected from.
-  ref.invalidate(attachedMediaObjectStoreProvider);
-  ref.invalidate(mediaStoreRuntimeProvider);
-  ref.invalidate(mediaStoreAttachedProvider);
+  invalidate(attachedMediaObjectStoreProvider);
+  invalidate(mediaStoreRuntimeProvider);
+  invalidate(mediaStoreAttachedProvider);
+  invalidate(mediaAttachedStoreIdProvider);
 }
 
 final mediaStoresRepositoryProvider = Provider<MediaStoresRepository>(
   (ref) => MediaStoresRepository(),
 );
 
-/// Connect/test/disconnect flows for the Media Storage settings page.
+/// Attach and detach flows for the Photos & videos page.
 final mediaStoreServiceProvider = Provider<MediaStoreService>(
   (ref) => MediaStoreService(
     credentials: ref.watch(mediaStoreCredentialsStoreProvider),
     attachState: ref.watch(mediaStoreAttachStateProvider),
     storesRepository: ref.watch(mediaStoresRepositoryProvider),
+    mediaRepository: ref.watch(mediaRepositoryProvider),
+  ),
+);
+
+/// Sets up and moves photo copies through an account (issue #3482).
+final mediaStoreAccountAttachProvider = Provider<MediaStoreAccountAttach>(
+  (ref) => MediaStoreAccountAttach(
+    service: ref.watch(mediaStoreServiceProvider),
+    accounts: ref.watch(accountGroupServiceProvider),
+    registry: ref.watch(accountProviderRegistryProvider),
   ),
 );
 
@@ -512,6 +546,15 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       if (attachedId == null) return null;
       final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
+      // Fills in the account a store announced before descriptors recorded
+      // it, so other devices join it in its own folder. Best effort.
+      try {
+        await ref.read(mediaStoreServiceProvider).recordAttachedAccount();
+      } on Object catch (e) {
+        LoggerService.forClass(
+          MediaStoreService,
+        ).warning('Could not record the media store account: $e');
+      }
 
       final cache = await openMediaCacheStore(mediaCachePrefsOrNull(ref));
       final resolver = MediaStoreResolver(store: store, cache: cache);
@@ -531,6 +574,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         cache: cache,
         quality: ref.watch(mediaUploadQualityPolicyProvider),
         videoTranscoder: PlatformVideoTranscoder(),
+        storeId: attachedId,
       );
       final deleteProcessor = MediaDeleteProcessor(
         queue: MediaTransferQueueRepository(),

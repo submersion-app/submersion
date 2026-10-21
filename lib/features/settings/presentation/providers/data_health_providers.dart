@@ -134,7 +134,7 @@ int countMediaSetupItems(List<PendingSetupItem> items) => items
             SetupItemKind.mediaStoreAttach => true,
             SetupItemKind.mediaStoreReconnect => true,
             SetupItemKind.accountSignIn =>
-              i.route == '/settings/media-storage' ||
+              i.route == '/settings/photos-media' ||
                   i.route == '/settings/lightroom',
           },
     )

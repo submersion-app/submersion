@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
@@ -716,6 +718,85 @@ class SyncRepository {
       );
       rethrow;
     }
+  }
+
+  /// [markFactsPending] for many rows written together: one clock reading
+  /// stamps every row's [group] clock, and the writes are set-based, so a
+  /// library-wide fact write costs a handful of statements rather than four
+  /// round trips per row. Callers run it inside the transaction that wrote
+  /// the facts.
+  Future<void> markFactsPendingForAll({
+    required String entityType,
+    required List<String> recordIds,
+    required int localUpdatedAt,
+    required SyncFactGroup group,
+  }) async {
+    if (recordIds.isEmpty) return;
+    final target = hlcTargets[entityType];
+    if (target == null || compositeHlcKeys.containsKey(entityType)) {
+      for (final recordId in recordIds) {
+        await markFactsPending(
+          entityType: entityType,
+          recordId: recordId,
+          localUpdatedAt: localUpdatedAt,
+          group: group,
+        );
+      }
+      return;
+    }
+    try {
+      await _db.transaction(() async {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(_db.syncRecords, [
+            for (final recordId in recordIds)
+              SyncRecordsCompanion(
+                id: Value('${entityType}_$recordId'),
+                entityType: Value(entityType),
+                recordId: Value(recordId),
+                localUpdatedAt: Value(localUpdatedAt),
+                syncStatus: const Value('pending'),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+          ]),
+        );
+        await ensureSyncClockConfigured();
+        final hlc = SyncClock.instance.issue();
+        if (hlc == null) return;
+        // Chunked: one statement may bind only so many variables.
+        for (var i = 0; i < recordIds.length; i += _clockChunk) {
+          final chunk = recordIds.sublist(
+            i,
+            min(i + _clockChunk, recordIds.length),
+          );
+          final marks = List.filled(chunk.length, '?').join(', ');
+          await _db.customStatement(
+            'UPDATE "${target.table}" SET "${group.clockColumn}" = ? '
+            'WHERE "${target.pk}" IN ($marks)',
+            [hlc, ...chunk],
+          );
+        }
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to mark facts pending: $entityType x${recordIds.length} '
+        '(${group.name})',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  static const _clockChunk = 500;
+
+  /// This device's node id as its clock writes it into every HLC it issues.
+  /// A row whose clock ends in it was last written on this device. Null when
+  /// the clock cannot be configured.
+  Future<String?> localNodeId() async {
+    await ensureSyncClockConfigured();
+    return SyncClock.instance.current?.nodeId;
   }
 
   /// Tables that can still hold rows written while their entity type did not

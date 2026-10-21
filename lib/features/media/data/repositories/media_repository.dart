@@ -352,6 +352,7 @@ class MediaRepository {
               remoteCompressedUploadedAt: Value(
                 item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
               ),
+              remoteStoreId: Value(item.remoteStoreId),
               retainInLibrary: Value(item.retainInLibrary),
               manualElapsedSeconds: Value(item.manualElapsedSeconds),
               siteCategory: Value(item.siteCategory?.storageKey),
@@ -1952,6 +1953,7 @@ class MediaRepository {
   Future<void> stampRemoteUploaded(
     String mediaId, {
     required DateTime uploadedAt,
+    String? storeId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     // One transaction: a fact column and the clock that orders it must not
@@ -1960,8 +1962,9 @@ class MediaRepository {
     // record, so a later row edit exported it under that stale clock and a
     // peer's older fact beat it (media sync program spec 5.1).
     await _db.transaction(() async {
+      final base = await _storeColumns(mediaId, storeId);
       await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-        MediaCompanion(
+        base.copyWith(
           remoteUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
           updatedAt: Value(now),
         ),
@@ -2244,17 +2247,27 @@ class MediaRepository {
   /// section Phase 3): the store becomes the source of truth, the local
   /// pointers clear, and the orphan flag lifts. Refused per row without the
   /// contentHash + remoteUploadedAt stamp pair -- converting an unconfirmed
-  /// row would render nothing anywhere. Sync-safe like [_unlinkColumns].
-  Future<void> convertToCloudBacked(List<String> mediaIds) async {
-    if (mediaIds.isEmpty) return;
+  /// row would render nothing anywhere. The stamp must also be one made in
+  /// [storeId], the attached store, or name no store (issue #3482): a row
+  /// whose only copy is in a store the device has changed away from would
+  /// resolve against one that never held it. Sync-safe like
+  /// [_unlinkColumns]. Returns the ids actually converted.
+  Future<Set<String>> convertToCloudBacked(
+    List<String> mediaIds, {
+    required String storeId,
+  }) async {
+    if (mediaIds.isEmpty) return const {};
     final rows = await (_db.select(
       _db.media,
     )..where((t) => t.id.isIn(mediaIds))).get();
     final qualified = [
       for (final row in rows)
-        if (row.contentHash != null && row.remoteUploadedAt != null) row.id,
+        if (row.contentHash != null &&
+            row.remoteUploadedAt != null &&
+            (row.remoteStoreId == null || row.remoteStoreId == storeId))
+          row.id,
     ];
-    if (qualified.isEmpty) return;
+    if (qualified.isEmpty) return const {};
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       await (_db.update(_db.media)..where((t) => t.id.isIn(qualified))).write(
@@ -2279,6 +2292,7 @@ class MediaRepository {
       }
     });
     SyncEventBus.notifyLocalChange();
+    return qualified.toSet();
   }
 
   /// Deletes the enrichment rows of [mediaIds], each with a tombstone.
@@ -2615,7 +2629,7 @@ class MediaRepository {
       })
     >
   >
-  getRemoteStampedSummaries() async {
+  getRemoteStampedSummaries({String? storeId}) async {
     // selectOnly projection: full rows would drag the imageData BLOB
     // (signature bytes) into memory for every stamped row, and the verify
     // sweep only needs a few scalars.
@@ -2630,7 +2644,13 @@ class MediaRepository {
       ..addColumns([id, hash, filename, fileType, original, thumb, rendition])
       ..where(
         hash.isNotNull() &
-            (original.isNotNull() | thumb.isNotNull() | rendition.isNotNull()),
+            (original.isNotNull() | thumb.isNotNull() | rendition.isNotNull()) &
+            // With [storeId], only stamps made in that store or naming none
+            // (issue #3482): another store's stamps say nothing about it.
+            (storeId == null
+                ? const Constant(true)
+                : _db.media.remoteStoreId.isNull() |
+                      _db.media.remoteStoreId.equals(storeId)),
       );
     final rows = await query.get();
     return [
@@ -2726,61 +2746,193 @@ class MediaRepository {
   /// not yet confirmed in the media store, newest first so recent dives
   /// gain protection soonest. Scoped to rows linked to a dive or site so
   /// orphaned rows are never uploaded (orphan-prevention spec section 4.1).
-  Future<List<String>> getBackfillCandidateIds() async {
-    // A row another device imported is that device's to upload: this one
-    // cannot read its path, so enqueueing it only manufactures a "source
-    // unavailable" failure. Rows from before origin tracking carry no id
-    // and keep today's verdict.
-    final thisDevice = await _syncRepository.getDeviceId();
+  ///
+  /// With [storeId], stamps made in another store do not count as copied.
+  Future<List<String>> getBackfillCandidateIds({String? storeId}) async {
     final id = _db.media.id;
     final query = _db.selectOnly(_db.media)
       ..addColumns([id])
       ..where(
-        isLinkedToLogbook(_db.media) &
-            (_db.media.originDeviceId.isNull() |
-                _db.media.originDeviceId.equals(thisDevice)) &
-            // Photos from any uploadable source.
-            ((_db.media.remoteUploadedAt.isNull() &
-                    _db.media.remoteCompressedUploadedAt.isNull() &
-                    _db.media.fileType.equals('photo') &
-                    _db.media.sourceType.isIn([
-                      'platformGallery',
-                      'localFile',
-                      'serviceConnector',
-                    ])) |
-                // Gallery and local videos upload their original, so a
-                // missing original stamp is their backfill signal. Without
-                // this branch a local video could never be uploaded after
-                // the fact and would show a permanent not-backed-up badge.
-                //
-                // serviceConnector is deliberately absent: connector videos
-                // are thumb-only and never get remoteUploadedAt, so
-                // including them here would re-enqueue them on every
-                // backfill run forever. They are covered by the thumb
-                // branch below.
-                (_db.media.remoteUploadedAt.isNull() &
-                    _db.media.remoteCompressedUploadedAt.isNull() &
-                    _db.media.fileType.equals('video') &
-                    _db.media.sourceType.isIn([
-                      'platformGallery',
-                      'localFile',
-                    ])) |
-                // Connector videos are thumb-only (no original in the store
-                // by design), so their backfill signal is the missing thumb
-                // stamp.
-                (_db.media.remoteThumbUploadedAt.isNull() &
-                    _db.media.fileType.equals('video') &
-                    _db.media.sourceType.equals('serviceConnector'))),
+        _uploadEligible(await _syncRepository.getDeviceId()) &
+            _uploadDone(storeId).not(),
       )
       ..orderBy([OrderingTerm.desc(_db.media.takenAt)]);
     final rows = await query.get();
     return rows.map((r) => r.read(id)!).toList();
   }
 
+  /// How many of the rows the media store would ever hold are copied there
+  /// (issue #3482): the same rule as [getBackfillCandidateIds], so what is
+  /// left to copy is exactly what a backfill would upload.
+  Future<({int copied, int total})> countUploadProgress({
+    String? storeId,
+  }) async {
+    final eligible = _uploadEligible(await _syncRepository.getDeviceId());
+    final done = _uploadDone(storeId);
+    final total = countAll(filter: eligible);
+    final copied = countAll(filter: eligible & done);
+    final row = await (_db.selectOnly(
+      _db.media,
+    )..addColumns([total, copied])).getSingle();
+    return (copied: row.read(copied) ?? 0, total: row.read(total) ?? 0);
+  }
+
+  /// How many logbook photos and videos only [storeId] holds (issue #3482):
+  /// cloud-backed rows whose stamps were made there or name no store. A
+  /// device that moves its copies to another store can no longer open them.
+  Future<int> countHeldOnlyInStore(String storeId) async {
+    final held = countAll(
+      filter:
+          isLinkedToLogbook(_db.media) &
+          _db.media.sourceType.equals('mediaStore') &
+          (_db.media.remoteStoreId.isNull() |
+              _db.media.remoteStoreId.equals(storeId)),
+    );
+    final row = await (_db.selectOnly(
+      _db.media,
+    )..addColumns([held])).getSingle();
+    return row.read(held) ?? 0;
+  }
+
+  /// Rows the media store holds a copy of once uploaded: linked to the
+  /// logbook, and this device's own (or from before origin tracking).
+  ///
+  /// A row another device imported is that device's to upload: this one
+  /// cannot read its path, so enqueueing it only manufactures a "source
+  /// unavailable" failure. Rows from before origin tracking carry no id and
+  /// keep today's verdict.
+  Expression<bool> _uploadEligible(String thisDevice) =>
+      isLinkedToLogbook(_db.media) &
+      (_db.media.originDeviceId.isNull() |
+          _db.media.originDeviceId.equals(thisDevice)) &
+      // Photos from any uploadable source.
+      ((_db.media.fileType.equals('photo') &
+              _db.media.sourceType.isIn([
+                'platformGallery',
+                'localFile',
+                'serviceConnector',
+              ])) |
+          // Gallery, local and connector videos.
+          (_db.media.fileType.equals('video') &
+              _db.media.sourceType.isIn([
+                'platformGallery',
+                'localFile',
+                'serviceConnector',
+              ])));
+
+  /// Whether an eligible row's copy is complete.
+  ///
+  /// Photos, and gallery and local videos, upload their original (or a
+  /// compressed rendition), so either stamp completes them. Without the
+  /// video branch a local video could never be uploaded after the fact and
+  /// would show a permanent not-backed-up badge.
+  ///
+  /// Connector videos are thumb-only (no original in the store by design),
+  /// so the thumb stamp completes them. They never get remoteUploadedAt:
+  /// judging them by it would re-enqueue them on every backfill forever.
+  ///
+  /// With [storeId], only stamps made in that store, or naming no store,
+  /// count: the same view as stampsInStore.
+  Expression<bool> _uploadDone(String? storeId) {
+    final stamped =
+        ((_db.media.fileType.equals('photo') |
+                _db.media.sourceType.isIn(['platformGallery', 'localFile'])) &
+            (_db.media.remoteUploadedAt.isNotNull() |
+                _db.media.remoteCompressedUploadedAt.isNotNull())) |
+        (_db.media.fileType.equals('video') &
+            _db.media.sourceType.equals('serviceConnector') &
+            _db.media.remoteThumbUploadedAt.isNotNull());
+    if (storeId == null) return stamped;
+    return stamped &
+        (_db.media.remoteStoreId.isNull() |
+            _db.media.remoteStoreId.equals(storeId));
+  }
+
+  /// What a stamp for [storeId] writes besides itself (issue #3482): the
+  /// store, and when the row's stamps were made in another store, those
+  /// stamps cleared, since they say nothing about this one. A null
+  /// [storeId] leaves the store as it is. Read inside the stamp's
+  /// transaction.
+  Future<MediaCompanion> _storeColumns(String mediaId, String? storeId) async {
+    if (storeId == null) return const MediaCompanion();
+    final owner = _db.media.remoteStoreId;
+    final current =
+        await (_db.selectOnly(_db.media)
+              ..addColumns([owner])
+              ..where(_db.media.id.equals(mediaId)))
+            .map((r) => r.read(owner))
+            .getSingleOrNull();
+    if (current == null || current == storeId) {
+      return MediaCompanion(remoteStoreId: Value(storeId));
+    }
+    return MediaCompanion(
+      remoteStoreId: Value(storeId),
+      remoteUploadedAt: const Value(null),
+      remoteThumbUploadedAt: const Value(null),
+      remoteCompressedUploadedAt: const Value(null),
+      compressedLevel: const Value(null),
+      compressedSizeBytes: const Value(null),
+    );
+  }
+
+  /// Names [storeId] as the store of every stamped row that names none
+  /// (issue #3482), before this device moves to another store: those stamps
+  /// were made in [storeId], and left unclaimed they would count for the
+  /// next one. Only rows whose upload facts this device wrote last are
+  /// claimed: another device's unclaimed stamps were made in whichever store
+  /// that device was on, which this one cannot know. The claimed rows sync
+  /// under one new upload clock. Returns how many rows were claimed.
+  Future<int> claimUnownedStamps(String storeId) async {
+    final node = await _syncRepository.localNodeId();
+    if (node == null) return 0;
+    final id = _db.media.id;
+    final escaped = node.replaceAllMapped(
+      RegExp(r'[\\%_]'),
+      (m) => '\\${m[0]}',
+    );
+    // A null upload clock falls back to the row clock (spec 5.1).
+    final writtenHere = coalesce([
+      _db.media.uploadFactsHlc,
+      _db.media.hlc,
+    ]).like('%:$escaped', escapeChar: r'\');
+    final unclaimed =
+        _db.media.remoteStoreId.isNull() &
+        (_db.media.remoteUploadedAt.isNotNull() |
+            _db.media.remoteThumbUploadedAt.isNotNull() |
+            _db.media.remoteCompressedUploadedAt.isNotNull()) &
+        writtenHere;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final ids = await _db.transaction(() async {
+      final ids =
+          await (_db.selectOnly(_db.media)
+                ..addColumns([id])
+                ..where(unclaimed))
+              .map((r) => r.read(id)!)
+              .get();
+      if (ids.isEmpty) return ids;
+      // The same predicate, not `id IN (...)`: a large library would bind
+      // more ids than SQLite allows in one statement. The transaction keeps
+      // the two reads of it the same set.
+      await (_db.update(_db.media)..where((_) => unclaimed)).write(
+        MediaCompanion(remoteStoreId: Value(storeId), updatedAt: Value(now)),
+      );
+      await _syncRepository.markFactsPendingForAll(
+        entityType: 'media',
+        recordIds: ids,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+      return ids;
+    });
+    if (ids.isNotEmpty) SyncEventBus.notifyLocalChange();
+    return ids.length;
+  }
+
   /// Confirms the thumbnail object exists in the media store.
   Future<void> stampRemoteThumbUploaded(
     String mediaId, {
     required DateTime uploadedAt,
+    String? storeId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     // One transaction: a fact column and the clock that orders it must not
@@ -2789,8 +2941,9 @@ class MediaRepository {
     // record, so a later row edit exported it under that stale clock and a
     // peer's older fact beat it (media sync program spec 5.1).
     await _db.transaction(() async {
+      final base = await _storeColumns(mediaId, storeId);
       await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-        MediaCompanion(
+        base.copyWith(
           remoteThumbUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
           updatedAt: Value(now),
         ),
@@ -2812,6 +2965,7 @@ class MediaRepository {
     required DateTime uploadedAt,
     required String level,
     required int sizeBytes,
+    String? storeId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     // One transaction: a fact column and the clock that orders it must not
@@ -2820,8 +2974,9 @@ class MediaRepository {
     // record, so a later row edit exported it under that stale clock and a
     // peer's older fact beat it (media sync program spec 5.1).
     await _db.transaction(() async {
+      final base = await _storeColumns(mediaId, storeId);
       await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-        MediaCompanion(
+        base.copyWith(
           remoteCompressedUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
           compressedLevel: Value(level),
           compressedSizeBytes: Value(sizeBytes),

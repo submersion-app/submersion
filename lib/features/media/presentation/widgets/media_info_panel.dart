@@ -388,7 +388,7 @@ class _BackupSection extends ConsumerWidget {
     final identity = ref.watch(mediaStoreIdentityProvider).value;
 
     return _Section(
-      title: l10n.media_info_backupSection,
+      title: l10n.settings_photos_cloudHeader,
       actions: [
         if (_offerUpload)
           _BackUpButton(item: item, isRetry: backup.queueState == 'failed'),
@@ -636,7 +636,7 @@ class _BackUpButton extends ConsumerWidget {
     child: Text(
       isRetry
           ? context.l10n.media_info_actionRetryUpload
-          : context.l10n.media_info_actionBackUpNow,
+          : context.l10n.media_info_actionCopyNow,
     ),
   );
 }

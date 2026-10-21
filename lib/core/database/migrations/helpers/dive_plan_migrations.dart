@@ -63,7 +63,7 @@ extension DivePlanMigrations on AppDatabase {
     }
   }
 
-  /// v303: drops NOT NULL from the dive_plans Setup-accordion columns that
+  /// v305: drops NOT NULL from the dive_plans Setup-accordion columns that
   /// were created NOT NULL in the initial CREATE TABLE (issue #3552), so a
   /// plan can store an explicit "unset, follow the diver's Settings" state
   /// instead of always carrying a concrete value. SQLite has no
@@ -78,7 +78,8 @@ extension DivePlanMigrations on AppDatabase {
   /// partial rebuild, no data loss. Foreign keys are off for the swap, same
   /// reason as the dive_tanks rebuild: dive_plan_tanks references this
   /// table, and the DROP would otherwise cascade into it. Called from the
-  /// v303 onUpgrade step and the beforeOpen backstop.
+  /// v305 onUpgrade step and the beforeOpen backstop. Renumbered from 303
+  /// as #3482 shipped 302-303 first.
   Future<void> _assertDivePlanSetupFieldsNullable() async {
     const columns = {
       'descent_rate': 'REAL',
@@ -131,7 +132,7 @@ extension DivePlanMigrations on AppDatabase {
       );
       return;
     }
-    const scratch = 'dive_plans_v303';
+    const scratch = 'dive_plans_v305';
     rebuiltSql = rebuiltSql.replaceFirst(header, 'CREATE TABLE $scratch');
     final dependents = await customSelect(
       "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_plans' "
@@ -273,9 +274,9 @@ extension DivePlanMigrations on AppDatabase {
     await migrator.createTable(divePlanMissionMembers);
   }
 
-  /// v304: drops NOT NULL from dive_plan_missions.battery_reserve_fraction
+  /// v306: drops NOT NULL from dive_plan_missions.battery_reserve_fraction
   /// and .walk_speed_mps, so a mission can store "unset, follow the diver's
-  /// Settings" (issue #3552) - the DPV Team counterpart of the v303
+  /// Settings" (issue #3552) - the DPV Team counterpart of the v305
   /// dive_plans rebuild, same technique and same safety argument (see that
   /// helper's doc comment). A separate rung because this is a different
   /// table, created later (v244) than dive_plans' initial schema.
@@ -320,7 +321,7 @@ extension DivePlanMigrations on AppDatabase {
       );
       return;
     }
-    const scratch = 'dive_plan_missions_v304';
+    const scratch = 'dive_plan_missions_v306';
     rebuiltSql = rebuiltSql.replaceFirst(header, 'CREATE TABLE $scratch');
     final dependents = await customSelect(
       "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_plan_missions' "

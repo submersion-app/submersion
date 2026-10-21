@@ -31,12 +31,11 @@ class MediaTransfersSuspendedNotice extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final subtitle = switch (hold?.kind) {
-      MediaTransferHoldKind.detached =>
-        l10n.settings_mediaStorage_transfers_suspended_detached,
+      MediaTransferHoldKind.detached => l10n.settings_photos_suspended_detached,
       MediaTransferHoldKind.storeUnreachable =>
         '${l10n.settings_mediaStorage_transfers_suspended_unreachable}\n'
             '${hold!.message}',
-      _ => l10n.settings_mediaStorage_transfers_suspended_subtitle,
+      _ => l10n.settings_photos_suspended_mismatch,
     };
     return ListTile(
       key: const Key('media-transfers-suspended'),
@@ -45,7 +44,7 @@ class MediaTransfersSuspendedNotice extends ConsumerWidget {
         Icons.pause_circle_outline,
         color: theme.colorScheme.tertiary,
       ),
-      title: Text(l10n.settings_mediaStorage_transfers_suspended_title),
+      title: Text(l10n.settings_photos_suspended_title),
       subtitle: Text(subtitle),
     );
   }

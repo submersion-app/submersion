@@ -225,6 +225,7 @@ Future<VerifyLibraryReport?> _mediaSweep(
         store: runtime.store,
         mediaRepository: ref.read(mediaRepositoryProvider),
         queue: ref.read(mediaTransferQueueRepositoryProvider),
+        storeId: runtime.storeId,
       ).run(
         policy: ref.read(orphanDeletePolicyFactoryProvider)(),
         dryRun: dryRun,

@@ -10,7 +10,8 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
+import 'package:submersion/features/media_store/presentation/widgets/photos_advanced_section.dart';
+import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/providers/media_cache_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -124,7 +125,11 @@ void main() {
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: PhotosMediaHubPage(),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PhotosAdvancedSection(attached: false),
+            ),
+          ),
         ),
       ),
     );
@@ -140,24 +145,6 @@ void main() {
     await tester.pump();
     expect(notifier.state.autoColorCorrection, isTrue);
     expect(tester.widget<SwitchListTile>(tile).value, isTrue);
-  });
-
-  testWidgets('hub shows the two layer groups', (tester) async {
-    await tester.pumpWidget(app(const PhotosMediaHubPage()));
-    await tester.pump();
-
-    expect(find.text('Where photos come from'), findsOneWidget);
-    expect(find.text('Where copies are kept'), findsOneWidget);
-    // Issue #3460: connected accounts serve sync and shared libraries too,
-    // so they are reached from Settings > Data, not from this hub.
-    expect(find.text('Accounts'), findsNothing);
-    expect(find.text('Connected Accounts'), findsNothing);
-    // Lightroom and Network sources now live inside "Photo library &
-    // sources", not at the hub level.
-    expect(find.text('Adobe Lightroom'), findsNothing);
-    expect(find.text('Network sources'), findsNothing);
-    // Sentence-case page name from the vocabulary pass (#3482).
-    expect(find.text('Photos & videos'), findsOneWidget);
   });
 
   testWidgets('setup guide renders three steps with live status', (
@@ -215,7 +202,7 @@ void main() {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(app(const PhotosMediaHubPage()));
+      await tester.pumpWidget(app(const _CacheHost()));
       await tester.pump();
     }
 
@@ -286,7 +273,7 @@ void main() {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(app(const PhotosMediaHubPage()));
+      await tester.pumpWidget(app(const _CacheHost()));
       await tester.pump();
     }
 
@@ -356,4 +343,19 @@ void main() {
       expect(find.text('Could not empty the thumbnail cache'), findsOneWidget);
     });
   });
+}
+
+/// The cache card as the Photos page's Advanced section hosts it.
+class _CacheHost extends StatelessWidget {
+  const _CacheHost();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+    body: SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: MediaCacheSettingsCard(),
+      ),
+    ),
+  );
 }

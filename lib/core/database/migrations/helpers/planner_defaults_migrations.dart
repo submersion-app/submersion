@@ -2,13 +2,14 @@ part of '../app_database_migrations.dart';
 
 /// The planner Setup-accordion global defaults on diver_settings.
 extension PlannerDefaultsMigrations on AppDatabase {
-  /// v302: diver_settings gains the global defaults for every Setup
+  /// v304: diver_settings gains the global defaults for every Setup
   /// accordion field that had no app-wide source before (issue #3552):
   /// Deco rates, Gas/SAC, Contingency, and the two DPV team policy values.
   /// Idempotent; called from the rung and the beforeOpen backstop. Existing
   /// rows get the documented default, matching each field's old hardcoded
   /// `DivePlan`/`DpvMission` constructor default, so nothing changes for an
-  /// existing diver until they edit a Setting.
+  /// existing diver until they edit a Setting. Renumbered from 302 as
+  /// #3482 shipped 302-303 first.
   Future<void> _assertPlannerDefaultColumns() async {
     await _addColumnIfMissing(
       'diver_settings',

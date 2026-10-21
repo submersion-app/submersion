@@ -98,7 +98,7 @@ void main() {
       return attach;
     }
 
-    test('offers a reconnect to the media storage page', () async {
+    test('offers a reconnect to the Photos & videos page', () async {
       await attachedWithMismatch();
 
       final items = await service().compute();
@@ -107,7 +107,7 @@ void main() {
       expect(items.single.kind, SetupItemKind.mediaStoreReconnect);
       expect(items.single.key, 'store_marker_store-1');
       expect(items.single.label, 'dive-media @ minio');
-      expect(items.single.route, '/settings/media-storage');
+      expect(items.single.route, '/settings/photos-media');
     });
 
     test('a dismissed reconnect stays dismissed', () async {
@@ -261,7 +261,7 @@ void main() {
     final routes = {
       for (final item in await svc.compute()) item.key: item.route,
     };
-    expect(routes['account_${mediaAccount.id}'], '/settings/media-storage');
+    expect(routes['account_${mediaAccount.id}'], '/settings/photos-media');
     expect(routes['account_${syncAccount.id}'], '/settings/cloud-sync');
   });
 
@@ -284,7 +284,7 @@ void main() {
     expect(items.single.route, '/settings/connected-accounts/${account.id}');
   });
 
-  test('the attached media account routes to media storage', () async {
+  test('the attached media account routes to Photos & videos', () async {
     final mediaAccount = await accounts.create(
       kind: AccountKind.s3,
       label: 'S3 media storage',
@@ -304,7 +304,7 @@ void main() {
     final items = await service().compute();
 
     expect(items.single.key, 'account_${mediaAccount.id}');
-    expect(items.single.route, '/settings/media-storage');
+    expect(items.single.route, '/settings/photos-media');
   });
 
   test('dismissal is per key and sticks', () async {

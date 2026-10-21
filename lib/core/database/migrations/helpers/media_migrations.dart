@@ -216,6 +216,36 @@ extension MediaMigrations on AppDatabase {
     }
   }
 
+  /// Idempotent DDL for the v303 media.remote_store_id column (issue
+  /// #3482): the store a row's upload stamps refer to. Called from the v303
+  /// onUpgrade step and the beforeOpen backstop, self-guarding when the
+  /// table is absent, like [_assertMediaStoresAccountColumn].
+  Future<void> _assertMediaRemoteStoreColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('remote_store_id')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN remote_store_id TEXT',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v302 media_stores.account_id column (issue
+  /// #3482): the roster row the attached store lives on. Called from the
+  /// v302 onUpgrade step and the beforeOpen backstop, self-guarding when the
+  /// table is absent, like [_assertMediaStoresLastSweepColumn].
+  Future<void> _assertMediaStoresAccountColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media_stores')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('account_id')) {
+      await customStatement(
+        'ALTER TABLE media_stores ADD COLUMN account_id TEXT',
+      );
+    }
+  }
+
   /// Idempotent DDL for the v189 media.equipment_id column plus its lookup
   /// index (issue #1517): the link that makes an invoice or receipt an
   /// attachment of a piece of gear. Self-guards on the media table existing,

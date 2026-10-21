@@ -33,6 +33,8 @@ MediaResolutionHint? mediaResolutionHintFor({
     return MediaResolutionHint.remap;
   }
   for (final key in SyncFactGroups.mediaUpload.columns.keys) {
+    // The store a stamp names is bookkeeping, not a way to find the photo.
+    if (key == 'remoteStoreId') continue;
     final value = applied[key];
     if (value != null && value != local[key]) return MediaResolutionHint.retry;
   }

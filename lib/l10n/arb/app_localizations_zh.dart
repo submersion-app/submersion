@@ -34238,46 +34238,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkEdit_membership_empty => '所选潜水尚无项目';
 
   @override
-  String get settings_mediaStorage_entry_title => '媒体存储';
-
-  @override
-  String get settings_mediaStorage_entry_subtitle => '将照片和视频原件存储在您自己的云存储中';
-
-  @override
-  String get settings_mediaStorage_status_notConfigured => '此设备未连接媒体存储';
-
-  @override
-  String settings_mediaStorage_status_connected(String hint) {
-    return '已连接到 $hint';
-  }
-
-  @override
-  String get settings_mediaStorage_test_success => '连接成功';
-
-  @override
-  String get settings_mediaStorage_saved => '媒体存储已连接';
-
-  @override
   String get settings_mediaStorage_error_notReady => '尚无法读取云存储。请稍候片刻后重试。';
-
-  @override
-  String get settings_mediaStorage_action_disconnect => '断开连接';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_title => '断开媒体存储？';
-
-  @override
-  String get settings_mediaStorage_disconnect_confirm_body =>
-      '此设备将停止上传和获取媒体。您的存储桶中的内容不会被删除。';
-
-  @override
-  String get settings_mediaStorage_action_copyFromSync => '从同步复制设置';
-
-  @override
-  String get settings_mediaStorage_transfers_title => '传输';
-
-  @override
-  String get settings_mediaStorage_transfers_entry => '查看传输';
 
   @override
   String get settings_mediaStorage_transfers_empty => '暂无传输';
@@ -34304,32 +34265,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => '失败';
 
   @override
-  String get settings_mediaStorage_transfers_suspended_title => '传输已暂停';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_subtitle =>
-      '此设备与云存储对正在使用的存储库不再一致。重新连接媒体存储将采用云端当前保存的存储库。';
-
-  @override
-  String get settings_mediaStorage_transfers_suspended_detached =>
-      '此设备已不再连接到此媒体存储。可在媒体存储中重新连接。';
-
-  @override
   String get settings_mediaStorage_transfers_suspended_unreachable =>
       '无法检查媒体存储。传输将自动重试。';
-
-  @override
-  String settings_mediaStorage_transfers_queued(int count) {
-    return '$count 个排队中';
-  }
-
-  @override
-  String settings_mediaStorage_transfers_waitingRetry(int count) {
-    return '$count 个等待重试';
-  }
-
-  @override
-  String get settings_mediaStorage_transfers_waitingConnection => '正在等待网络连接';
 
   @override
   String get settings_mediaStorage_report_action => '导出媒体报告';
@@ -34342,9 +34279,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_report_running => '正在生成媒体报告...';
-
-  @override
-  String get settings_mediaStorage_verify_action => '验证媒体库';
 
   @override
   String get settings_mediaStorage_verify_running => '正在验证媒体库...';
@@ -34373,43 +34307,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_verify_uploads => '未删除任何内容：删除操作将等待上传完成。';
 
   @override
-  String get settings_mediaStorage_backfill_action => '上传现有媒体库';
-
-  @override
   String settings_mediaStorage_backfill_enqueued(int count) {
     return '已排队 $count 个上传';
-  }
-
-  @override
-  String get settings_mediaStorage_policy_autoUpload => '自动上传照片';
-
-  @override
-  String get settings_mediaStorage_policy_photosOnCellular => '使用蜂窝数据上传照片';
-
-  @override
-  String get settings_mediaStorage_provider_label => '服务商';
-
-  @override
-  String get settings_mediaStorage_provider_webdav => 'WebDAV';
-
-  @override
-  String get settings_mediaStorage_webdav_useSyncServer => '使用我的同步服务器';
-
-  @override
-  String get settings_mediaStorage_connect_dropbox_hint =>
-      '使用设备间同步中的 Dropbox 连接。媒体存储在您的 Dropbox 应用文件夹中。';
-
-  @override
-  String get settings_mediaStorage_connect_gdrive_hint =>
-      '使用 Google 登录。媒体存储在此应用的私有云端硬盘空间中。';
-
-  @override
-  String get settings_mediaStorage_connect_icloud_hint =>
-      '媒体存储在此应用的 iCloud 容器中，并通过您的 Apple ID 同步。';
-
-  @override
-  String settings_mediaStorage_connect_action(String provider) {
-    return '连接 $provider';
   }
 
   @override
@@ -34983,19 +34882,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_setup_dismiss => '忽略';
 
   @override
-  String get settings_photosMedia_sourcesHeader => '照片来源';
-
-  @override
-  String get settings_photosMedia_storageHeader => '副本保存位置';
-
-  @override
-  String get settings_photosMedia_displayHeader => '显示';
-
-  @override
   String get settings_photosMedia_guidedSetup => '引导设置';
-
-  @override
-  String get settings_photosMedia_photoSources_title => '照片图库与来源';
 
   @override
   String get settings_photosMedia_photoSources_subtitle => '图库、文件与导入选项';
@@ -47350,9 +47237,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_timeInDive_reset => '重置为自动';
 
   @override
-  String get media_info_backupSection => '备份';
-
-  @override
   String get media_info_store => '云存储';
 
   @override
@@ -47448,9 +47332,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_info_actionLocate => '查找文件...';
-
-  @override
-  String get media_info_actionBackUpNow => '立即备份';
 
   @override
   String get media_info_actionRetryUpload => '重试上传';
@@ -51550,4 +51431,140 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_backups_passwordProtection => '密码保护';
+
+  @override
+  String get settings_photos_cloudHeader => '云端副本';
+
+  @override
+  String settings_photos_copiesIn(String account) {
+    return '副本存放在$account';
+  }
+
+  @override
+  String settings_photos_attached(String account) {
+    return '已在$account中设置副本';
+  }
+
+  @override
+  String get settings_photos_autoUpload => '自动上传新照片';
+
+  @override
+  String get settings_photos_cellular => '使用蜂窝数据';
+
+  @override
+  String get settings_photos_uploads => '上传';
+
+  @override
+  String get settings_photos_sourcesHeader => '照片来源';
+
+  @override
+  String get settings_photos_library => '照片库和文件';
+
+  @override
+  String get settings_photos_quality => '上传质量';
+
+  @override
+  String get settings_photos_uploadAll => '上传所有已附加的内容';
+
+  @override
+  String get settings_photos_verify => '验证副本';
+
+  @override
+  String get settings_photos_stopKeeping => '停止在此设备上保留副本';
+
+  @override
+  String get settings_photos_stopKeepingBody => '此设备将停止上传和获取副本。账户中的内容不会被删除。';
+
+  @override
+  String settings_photos_switchConsequence(String current, String choice) {
+    return '此设备将停止使用$current中的副本，并在$choice中开始或加入副本。不会删除任何内容。';
+  }
+
+  @override
+  String settings_photos_status_copied(int copied, int total) {
+    return '已复制 $copied/$total';
+  }
+
+  @override
+  String settings_photos_status_uploading(int copied, int total, int count) {
+    return '已复制 $copied/$total，$count 个正在上传';
+  }
+
+  @override
+  String settings_photos_status_uploadingOnly(int count) {
+    return '$count 个正在上传';
+  }
+
+  @override
+  String get settings_photos_status_waitingConnection => '正在等待网络连接';
+
+  @override
+  String settings_photos_status_waitingRetry(int count) {
+    return '$count 个等待重试';
+  }
+
+  @override
+  String get settings_photos_status_pausedUnreachable => '上传已暂停：无法检查账户';
+
+  @override
+  String get settings_photos_status_pausedDetached => '上传已暂停：此设备未连接到这些副本';
+
+  @override
+  String get settings_photos_status_pausedMismatch => '上传已暂停：请重新选择账户';
+
+  @override
+  String get settings_photos_status_finishSetup => '完成此设备的设置';
+
+  @override
+  String settings_photos_status_unreachable(String account) {
+    return '无法连接到$account';
+  }
+
+  @override
+  String get settings_photos_suspended_detached =>
+      '此设备已不再连接到这些副本。请在“照片和视频”中重新选择账户。';
+
+  @override
+  String get settings_photos_suspended_mismatch =>
+      '此设备与账户对正在使用哪些副本已不一致。重新选择该账户将采用其中现有的副本。';
+
+  @override
+  String get media_info_actionCopyNow => '立即复制';
+
+  @override
+  String get settings_photos_suspended_title => '上传已暂停';
+
+  @override
+  String settings_photos_separateConsequence(String current, String choice) {
+    return '资料库的副本位于 $current。选择 $choice 会在那里开始另一套副本。不会删除任何内容。';
+  }
+
+  @override
+  String settings_photos_joinConsequence(String choice) {
+    return '此设备会在 $choice 中开始副本或加入现有副本。不会删除任何内容。';
+  }
+
+  @override
+  String settings_photos_switchConsequenceUnnamed(String choice) {
+    return '此设备将停止使用当前的副本，并在$choice中开始或加入副本。不会删除任何内容。';
+  }
+
+  @override
+  String settings_photos_switchHeldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片仅保存在当前副本中，更换后将无法在此设备上打开。',
+      one: '1 张照片仅保存在当前副本中，更换后将无法在此设备上打开。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_startedSeparate(String account) {
+    return '在$account中未找到副本，因此此设备在那里开始了单独的副本。';
+  }
+
+  @override
+  String get settings_conflict_field_remoteStoreId => '上传至';
 }

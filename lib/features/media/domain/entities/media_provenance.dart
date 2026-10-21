@@ -160,11 +160,15 @@ class BackupFacts {
   final String? queueState;
   final String? queueError;
 
+  /// [storeId] is the attached store when known: stamps made in another
+  /// store say nothing about it (issue #3482).
   factory BackupFacts.from(
-    MediaItem item, {
+    MediaItem raw, {
     required bool storeAttached,
     required QueueFacts? queue,
+    String? storeId,
   }) {
+    final item = stampsInStore(raw, storeId);
     final eligible = kUploadableSources.contains(item.sourceType);
     return BackupFacts(
       storeAttached: storeAttached,
@@ -255,8 +259,14 @@ class MediaProvenance {
     MediaItem item, {
     required bool storeAttached,
     required QueueFacts? queue,
+    String? storeId,
   }) => MediaProvenance(
     origin: OriginFacts.from(item),
-    backup: BackupFacts.from(item, storeAttached: storeAttached, queue: queue),
+    backup: BackupFacts.from(
+      item,
+      storeAttached: storeAttached,
+      queue: queue,
+      storeId: storeId,
+    ),
   );
 }

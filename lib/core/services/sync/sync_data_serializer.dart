@@ -10111,6 +10111,7 @@ class SyncDataSerializer {
   static const Map<String, Set<String>> _nullMeansUnsetKeys = {
     'diverSettings': {'pscrRatio', 'profileMetricsFollowViewport'},
     'connectedAccounts': {'location'},
+    'mediaStores': {'accountId'},
   };
 
   /// [data] without the [_nullMeansUnsetKeys] it carries as null, so

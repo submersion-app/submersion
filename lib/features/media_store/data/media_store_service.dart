@@ -1,25 +1,14 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/services/accounts/account_credentials_store.dart';
-import 'package:submersion/core/services/accounts/account_identity.dart';
-import 'package:submersion/core/services/accounts/account_kind.dart';
-import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
-import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
 import 'package:submersion/core/services/media_store/google_drive_media_object_store.dart';
 import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
@@ -29,8 +18,7 @@ import 'package:submersion/core/services/media_store/media_store_attach_state.da
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
 import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 import 'package:submersion/core/services/media_store/store_marker.dart';
-import 'package:submersion/core/services/media_store/webdav_media_object_store.dart';
-import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
@@ -107,47 +95,29 @@ class MediaStoreConnectResult {
   });
 }
 
-/// Connect/test/disconnect flows for the media store (design spec
-/// sections 13-14). Owns no long-lived state; the runtime provider is
-/// invalidated after these calls and rebuilds from persisted config.
+/// Attach and detach flows for the media store (design spec sections
+/// 13-14). Owns no long-lived state; the runtime provider is invalidated
+/// after these calls and rebuilds from persisted config.
 class MediaStoreService {
   MediaStoreService({
     required MediaStoreCredentialsStore credentials,
     required MediaStoreAttachState attachState,
     required MediaStoresRepository storesRepository,
-    ConnectedAccountsRepository? accountsRepository,
-    AccountCredentialsStore? accountCredentials,
+    required MediaRepository mediaRepository,
     List<Duration>? markerRetryBackoff,
-    MediaObjectStore Function(S3Config config)? storeFactory,
-    Future<MediaObjectStore?> Function()? dropboxStoreFactory,
-    Future<MediaObjectStore?> Function()? googleDriveStoreFactory,
-    Future<MediaObjectStore?> Function()? icloudStoreFactory,
-    WebDavClient Function(WebDavConfig config)? webdavClientFactory,
   }) : _markerRetryBackoff = markerRetryBackoff ?? defaultMarkerRetryBackoff,
        _credentials = credentials,
        _attachState = attachState,
        _storesRepository = storesRepository,
-       _accounts = accountsRepository ?? ConnectedAccountsRepository(),
-       _accountCredentials = accountCredentials ?? AccountCredentialsStore(),
-       _storeFactory = storeFactory,
-       _dropboxStoreFactory =
-           dropboxStoreFactory ??
-           (() => buildMediaObjectStore(CloudProviderType.dropbox)),
-       _googleDriveStoreFactory =
-           googleDriveStoreFactory ??
-           (() => buildMediaObjectStore(CloudProviderType.googledrive)),
-       _icloudStoreFactory =
-           icloudStoreFactory ??
-           (() => buildMediaObjectStore(CloudProviderType.icloud)),
-       _webdavClientFactory = webdavClientFactory ?? WebDavClient.new;
+       _mediaRepository = mediaRepository;
 
   /// How long to wait between attempts at the identity marker when the store
   /// answers that it cannot serve it yet.
   ///
-  /// Connecting is a deliberate foreground action the user is watching, and
+  /// Attaching is a deliberate foreground action the user is watching, and
   /// on iCloud the container's copy of `store.json` may still be coming down
-  /// when they tap Connect. Failing on the first attempt would refuse a
-  /// connect that succeeds seconds later, which is the shape issue #1356
+  /// when they choose the account. Failing on the first attempt would refuse
+  /// an attach that succeeds seconds later, which is the shape issue #1356
   /// leaves behind now that an unreadable marker is no longer mistaken for
   /// an absent one.
   static const List<Duration> defaultMarkerRetryBackoff = [
@@ -156,276 +126,63 @@ class MediaStoreService {
   ];
 
   final List<Duration> _markerRetryBackoff;
+
+  /// The legacy S3 blob a pre-account attachment kept; cleared on detach so
+  /// the runtime's legacy fallback cannot reattach behind the diver's back.
   final MediaStoreCredentialsStore _credentials;
   final MediaStoreAttachState _attachState;
   final MediaStoresRepository _storesRepository;
-  final ConnectedAccountsRepository _accounts;
-  final AccountCredentialsStore _accountCredentials;
 
-  /// Test seam; when null the service builds (and owns) a real S3 client
-  /// per operation.
-  final MediaObjectStore Function(S3Config config)? _storeFactory;
-  final Future<MediaObjectStore?> Function() _dropboxStoreFactory;
-  final Future<MediaObjectStore?> Function() _googleDriveStoreFactory;
-  final Future<MediaObjectStore?> Function() _icloudStoreFactory;
-  final WebDavClient Function(WebDavConfig config) _webdavClientFactory;
+  /// Claims the stamps that name no store before moving to another one.
+  final MediaRepository _mediaRepository;
 
-  /// Builds the store for a short-lived probe/connect operation. When the
-  /// default S3 path constructs its own [S3ApiClient], that client is
-  /// returned so the caller can close it (and its sockets) when done;
-  /// injected test stores have no owned client.
-  ({MediaObjectStore store, S3ApiClient? ownedClient}) _buildS3Store(
-    S3Config config,
-  ) {
-    final custom = _storeFactory;
-    if (custom != null) return (store: custom(config), ownedClient: null);
-    final client = S3ApiClient(config);
-    return (
-      store: S3MediaObjectStore(client: client, keyPrefix: config.prefix),
-      ownedClient: client,
-    );
-  }
-
-  /// Live write+read-back+delete probe against the unsaved [config].
-  /// Throws MediaStoreException on failure.
-  Future<void> testConnection(S3Config config) async {
-    _validate(config);
-    final built = _buildS3Store(config);
-    try {
-      await _probeStore(built.store);
-    } finally {
-      built.ownedClient?.close();
-    }
-  }
-
-  /// Write, head, read-back and delete of a tiny probe object. Throws
-  /// MediaStoreException on failure; cleans up after itself either way.
-  Future<void> _probeStore(MediaObjectStore store) async {
-    const probeKey = 'smv1/.submersion-media-probe';
-    final tmp = await _tempFile('probe');
-    final echo = await _tempFile('probe_back');
-    try {
-      await tmp.writeAsString('probe', flush: true);
-      await store.putFile(probeKey, tmp, contentType: 'text/plain');
-      final info = await store.head(probeKey);
-      if (info == null) {
-        throw const MediaStoreException(
-          'Probe object vanished after write',
-          kind: MediaStoreErrorKind.fatal,
-        );
-      }
-      // Downloads must work too - a policy that allows PUT but blocks GET
-      // would otherwise read as "connected" and then fail on every view.
-      await store.getFile(probeKey, echo);
-      if (await echo.readAsString() != 'probe') {
-        throw const MediaStoreException(
-          'Probe read-back returned different bytes',
-          kind: MediaStoreErrorKind.fatal,
-        );
-      }
-    } finally {
-      try {
-        await store.delete(probeKey);
-      } on MediaStoreException {
-        // Best-effort cleanup; a stranded probe object is harmless.
-      }
-      if (await tmp.exists()) await tmp.delete();
-      if (await echo.exists()) await echo.delete();
-    }
-  }
-
-  /// Rejects an incomplete [config] before anything touches the network.
-  void _validateWebDav(WebDavConfig config) {
-    final error = config.validate();
-    if (error != null) {
-      throw MediaStoreException(error, kind: MediaStoreErrorKind.fatal);
-    }
-  }
-
-  /// Live write, read-back and delete probe against unsaved [config].
-  Future<WebDavConfig> testWebDav(WebDavConfig config) async {
-    _validateWebDav(config);
-    final client = _webdavClientFactory(config);
-    try {
-      await _probeStore(WebDavMediaObjectStore(client: client));
-    } finally {
-      client.close();
-    }
-    return config;
-  }
-
-  /// Adopts or creates the store marker in the folder, then records the
-  /// account (deterministic id from the endpoint), its credentials, the
-  /// attach state and the synced store descriptor.
-  Future<MediaStoreConnectResult> connectWebDav(WebDavConfig config) async {
-    _validateWebDav(config);
-    final client = _webdavClientFactory(config);
-    try {
-      final ensured = await _ensureMarker(
-        WebDavMediaObjectStore(client: client),
-      );
-      final account = await _accounts.ensure(
-        kind: AccountKind.webdav,
-        naturalKey: webdavNaturalKey(config),
-        label: config.displayLabel,
-        location: WebDavAccountLocation.fromConfig(config),
-      );
-      await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
-      await _attachState.setAttached(
-        ensured.marker.storeId,
-        providerType: CloudProviderType.webdav,
-        accountId: account.id,
-      );
-      await _storesRepository.upsertActive(
-        storeId: ensured.marker.storeId,
-        providerType: CloudProviderType.webdav.name,
-        displayHint: config.displayLabel,
-      );
-      return MediaStoreConnectResult(
-        storeId: ensured.marker.storeId,
-        createdNewStore: ensured.created,
-      );
-    } finally {
-      client.close();
-    }
-  }
-
-  /// Ensures the bucket carries a store marker (adopting an existing one),
-  /// persists credentials and attach state, and announces the store in the
-  /// synced descriptor table.
-  Future<MediaStoreConnectResult> connectS3(
-    S3Config config, {
-    String? accountId,
+  /// Attaches [store], built from the roster row [row], as the photo copies
+  /// (issue #3482): today's marker check adopts the store already in that
+  /// folder or starts one, and the attachment and the synced descriptor both
+  /// name [row], so a second device holding the account joins with nothing
+  /// to type. A null [store] means the account has no usable keys here.
+  ///
+  /// [replacing] moves an attached device to [store]: the current
+  /// attachment stands until the marker check succeeds, and only then is
+  /// it replaced and the legacy key blob cleared, so a failure leaves the
+  /// device on the copies it had.
+  Future<MediaStoreConnectResult> attachToAccountRow(
+    domain.ConnectedAccount row,
+    MediaObjectStore? store, {
+    bool replacing = false,
   }) async {
-    _validate(config);
-    final built = _buildS3Store(config);
-    try {
-      final ensured = await _ensureMarker(built.store);
-      // Reuse the given account (only when it really is an S3 account:
-      // attaching S3 credentials under another kind's keychain key would
-      // corrupt that account), else resolve the endpoint to its
-      // deterministic account. The endpoint key includes the prefix, so a
-      // bare connect still never adopts the sync S3 account when sync uses
-      // a different prefix in the same bucket.
-      final requested = accountId == null
-          ? null
-          : await _accounts.getById(accountId);
-      final account = (requested != null && requested.kind == AccountKind.s3)
-          ? requested
-          : await _accounts.ensure(
-              kind: AccountKind.s3,
-              naturalKey: s3NaturalKey(config),
-              label: '${config.bucket} @ ${config.displayHost}',
-              location: S3AccountLocation.fromConfig(config),
-            );
-      // A reused account keeps its own location unless the config is the
-      // one its id was made from: a location never names another row. (A
-      // row ensure() resolved already has it.)
-      if (identical(account, requested) &&
-          account.id ==
-              accountIdFor(
-                kind: AccountKind.s3,
-                naturalKey: s3NaturalKey(config),
-              )) {
-        await _accounts.setLocation(
-          account.id,
-          S3AccountLocation.fromConfig(config),
-        );
-      }
-      await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
-      // Legacy blob still written so a rollback build keeps working.
-      await _credentials.save(config);
-      await _attachState.setAttached(
-        ensured.marker.storeId,
-        providerType: CloudProviderType.s3,
-        accountId: account.id,
-      );
-      await _storesRepository.upsertActive(
-        storeId: ensured.marker.storeId,
-        providerType: 's3',
-        displayHint: '${config.bucket} @ ${config.displayHost}',
-      );
-      return MediaStoreConnectResult(
-        storeId: ensured.marker.storeId,
-        createdNewStore: ensured.created,
-      );
-    } finally {
-      built.ownedClient?.close();
-    }
-  }
-
-  /// Connects the media store through the user's Dropbox link (made in
-  /// Cloud Sync settings); media lives in the Dropbox app folder.
-  Future<MediaStoreConnectResult> connectDropbox() => _connectManaged(
-    CloudProviderType.dropbox,
-    'Dropbox',
-    _dropboxStoreFactory,
-  );
-
-  /// Connects through the Google account session; media lives in this
-  /// app's private Drive space.
-  Future<MediaStoreConnectResult> connectGoogleDrive() => _connectManaged(
-    CloudProviderType.googledrive,
-    'Google Drive',
-    _googleDriveStoreFactory,
-  );
-
-  static const String _icloudDisplayHint = 'iCloud';
-
-  /// Connects through the signed-in Apple ID's iCloud container.
-  Future<MediaStoreConnectResult> connectICloud() => _connectManaged(
-    CloudProviderType.icloud,
-    _icloudDisplayHint,
-    _icloudStoreFactory,
-  );
-
-  /// Shared managed-provider flow: no credentials-store write - managed
-  /// providers keep credentials in their own auth stores.
-  Future<MediaStoreConnectResult> _connectManaged(
-    CloudProviderType type,
-    String displayHint,
-    Future<MediaObjectStore?> Function() factory,
-  ) async {
-    final store = await factory();
-    if (store == null) {
-      throw MediaStoreException(
-        '$displayHint is not connected or unavailable on this device',
-        kind: MediaStoreErrorKind.auth,
+    final type = row.kind.cloudProviderType;
+    if (store == null || type == null) {
+      throw MediaStoreAccountUnusable(
+        '${row.label} is not signed in or cannot hold copies on this device',
       );
     }
+    // Read before anything changes: the store this device is on is the one
+    // its unclaimed stamps were made in.
+    final previous =
+        await _attachState.attachedStoreId() ??
+        (await _storesRepository.getActive())?.id;
     final ensured = await _ensureMarker(store);
-    // Ensure an account row for the kind (single-instance for managed
-    // providers). Dropbox adopts the sync-era auth blob when the
-    // per-account key is still empty: a user who linked Dropbox sync
-    // before the accounts layer existed connects without re-auth.
-    final kind = AccountKind.fromCloudProviderType(type);
-    // Single-instance per kind, resolved to the deterministic id so two
-    // devices connecting the same provider converge on one row instead of
-    // each minting its own (getByKind dedups only locally).
-    final account = await _accounts.ensure(
-      kind: kind,
-      naturalKey: naturalKeyForKind(kind)!,
-      label: displayHint,
-    );
-    if (type == CloudProviderType.dropbox) {
-      // Refresh (overwrite) so a re-link in Cloud Sync that rotated the
-      // legacy blob is reflected here; the runtime reads only the
-      // per-account key, so a stale copy would fail with revoked creds.
-      await _accountCredentials.rekeyFromLegacy(
-        legacyKey: DropboxAuthStore.storageKey,
-        accountId: account.id,
-        overwrite: true,
-      );
+    final newId = ensured.marker.storeId;
+    // Stamps naming no store were made in the store this device was on, or
+    // else the one the library announces. Claim them for it before moving,
+    // or they would count as copies in the new store (issue #3482).
+    if (previous != null && previous != newId) {
+      await _mediaRepository.claimUnownedStamps(previous);
     }
+    // Replaces any attachment in one step and bumps its generation, so the
+    // old store's worker stands down.
     await _attachState.setAttached(
       ensured.marker.storeId,
       providerType: type,
-      accountId: account.id,
+      accountId: row.id,
     );
+    if (replacing) await _credentials.clear();
     await _storesRepository.upsertActive(
       storeId: ensured.marker.storeId,
       providerType: type.name,
-      displayHint: displayHint,
+      displayHint: row.label,
+      accountId: row.id,
     );
     return MediaStoreConnectResult(
       storeId: ensured.marker.storeId,
@@ -453,27 +210,33 @@ class MediaStoreService {
     }
   }
 
+  /// Records this device's account on its store's descriptor when that
+  /// names none (schema v302 added the column with no backfill), so a
+  /// second device joins the copies in their own folder rather than a
+  /// default one.
+  Future<void> recordAttachedAccount() async {
+    final storeId = await _attachState.attachedStoreId();
+    final accountId = await _attachState.attachedAccountId();
+    if (storeId == null || accountId == null) return;
+    await _storesRepository.recordAccount(storeId, accountId);
+  }
+
+  /// The store the library most recently announced on one of [accountIds].
+  Future<MediaStoreDescriptor?> storeOnAccounts(Iterable<String> accountIds) =>
+      _storesRepository.latestOnAccounts(accountIds);
+
   /// Detaches this device. Credentials and attach state are cleared; the
   /// synced descriptor row and everything in the bucket remain.
   Future<void> disconnect() async {
     await _credentials.clear();
     await _attachState.clear();
   }
+}
 
-  void _validate(S3Config config) {
-    final error = config.validate();
-    if (error != null) {
-      throw MediaStoreException(error, kind: MediaStoreErrorKind.fatal);
-    }
-  }
-
-  Future<File> _tempFile(String label) async {
-    // App-container temp dir: hardened-runtime macOS denies /tmp
-    // (Directory.systemTemp), same constraint sync hit in issue #509.
-    final dir = await resolveSyncTempDir();
-    return File(
-      '${dir.path}/submersion_media_${label}_'
-      '${DateTime.now().microsecondsSinceEpoch}',
-    );
-  }
+/// An account chosen for the copies that holds no usable keys on this
+/// device, or cannot hold copies at all. Raised before anything changes;
+/// the screens ask the diver to sign in rather than show [message].
+class MediaStoreAccountUnusable extends MediaStoreException {
+  const MediaStoreAccountUnusable(super.message)
+    : super(kind: MediaStoreErrorKind.auth);
 }

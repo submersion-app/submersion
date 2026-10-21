@@ -8,7 +8,7 @@ import 'package:submersion/features/settings/presentation/widgets/settings_secti
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Global defaults for the dive planner's Setup accordion (issue #3552,
-/// follow-up to v302-305): Rates, Gas, Contingency, and DPV Team values a
+/// follow-up to v304-307): Rates, Gas, Contingency, and DPV Team values a
 /// new plan starts from unless overridden per plan.
 ///
 /// Its own page under Settings > Safety rather than living on the

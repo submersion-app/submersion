@@ -4,10 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v303: dive_plans Setup-accordion columns that were created NOT
+/// Schema v305: dive_plans Setup-accordion columns that were created NOT
 /// NULL in the initial schema (not added later via ALTER TABLE ADD COLUMN)
 /// drop that constraint via a table rebuild, so a plan can store "unset,
-/// follow Settings" (issue #3552).
+/// follow Settings" (issue #3552). Renumbered from 303 as #3482 shipped
+/// 302-303 first.
 void main() {
   // A representative slice of the real dive_plans CREATE TABLE: just the
   // columns this rung touches, plus the minimum every row needs. Column
@@ -69,23 +70,23 @@ void main() {
     'deviation_time_minutes',
   ];
 
-  test('v303 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(303));
-    expect(AppDatabase.migrationVersions, contains(303));
+  test('v305 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(305));
+    expect(AppDatabase.migrationVersions, contains(305));
     expect(
-      AppDatabase.migrationStepCount(302),
-      AppDatabase.migrationStepCount(303) + 1,
+      AppDatabase.migrationStepCount(304),
+      AppDatabase.migrationStepCount(305) + 1,
     );
   });
 
   test('the columns are additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(303));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(305));
   });
 
   test(
-    'upgrading from v302 keeps the row\'s existing values unchanged',
+    'upgrading from v304 keeps the row\'s existing values unchanged',
     () async {
-      final db = AppDatabase(dbAt(302));
+      final db = AppDatabase(dbAt(304));
       addTearDown(db.close);
       final row = await db
           .customSelect(
@@ -104,9 +105,9 @@ void main() {
   );
 
   test(
-    'upgrading from v302 lets every rebuilt column accept an explicit NULL',
+    'upgrading from v304 lets every rebuilt column accept an explicit NULL',
     () async {
-      final db = AppDatabase(dbAt(302));
+      final db = AppDatabase(dbAt(304));
       addTearDown(db.close);
       // Before the rebuild these columns were NOT NULL: writing an explicit
       // NULL would have thrown a SQL constraint violation.
@@ -126,10 +127,10 @@ void main() {
     },
   );
 
-  test('beforeOpen heals a database already at v303 that lacks it', () async {
-    final db = AppDatabase(dbAt(303));
+  test('beforeOpen heals a database already at v305 that lacks it', () async {
+    final db = AppDatabase(dbAt(305));
     addTearDown(db.close);
-    // Simulates a database that reached v303 without the rung (parallel
+    // Simulates a database that reached v305 without the rung (parallel
     // sync-adopt branch): the column is still NOT NULL until beforeOpen's
     // backstop runs, which this constructor already triggered.
     await db.customStatement(

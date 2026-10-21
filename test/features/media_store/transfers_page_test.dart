@@ -537,9 +537,9 @@ void main() {
 
   // Issue #1270: the dashboard's "N uploads pending" chip pushes straight
   // here, and go_router builds this route with a plain `builder` nested under
-  // media-storage, so MediaStoragePage - the one screen whose build resolves
-  // the runtime, and therefore the app's only reliable drain trigger - never
-  // runs on the way in. Opening Transfers showed the stuck rows without doing
+  // photos-media, so the Photos & videos page (whose status line resolves the
+  // runtime, and therefore the app's only reliable drain trigger) never runs
+  // on the way in. Opening Transfers showed the stuck rows without doing
   // anything about them, which is precisely what the reporter expected it to
   // fix. Resolving the runtime here kicks the drain (see the unawaited
   // worker.drain() at the end of mediaStoreRuntimeProvider).
@@ -620,7 +620,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Transfers paused'), findsOneWidget);
+    expect(find.text('Uploads paused'), findsOneWidget);
     expect(find.text('Waiting'), findsOneWidget);
   });
 }

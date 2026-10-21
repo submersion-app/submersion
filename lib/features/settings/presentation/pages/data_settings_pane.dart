@@ -7,7 +7,7 @@ import 'package:submersion/features/data_quality/presentation/pages/data_quality
 import 'package:submersion/features/maps/presentation/pages/offline_maps_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
-import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
+import 'package:submersion/features/media_store/presentation/pages/photos_videos_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
 import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
@@ -18,7 +18,6 @@ import 'package:submersion/features/settings/presentation/pages/data_section_con
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
@@ -80,14 +79,15 @@ Widget? dataPanePage(Uri location) {
     ['shared-libraries', final id, 'connection'] => ChangeLibraryConnectionPage(
       libraryId: id,
     ),
-    ['photos-media'] => const PhotosMediaHubPage(),
+    ['photos-media'] => const PhotosVideosPage(),
     ['photos-media', 'setup'] => const PhotosMediaSetupPage(),
+    ['photos-media', 'uploads'] => const TransfersPage(),
     ['media-sources'] => const MediaSourcesPage(),
     ['media-sources', 'network-sources'] => const NetworkSourcesPage(),
     // Hidden pending Adobe review; while it is, the route redirects to Media
     // Sources, so a push is left to the router.
     ['lightroom'] when lightroomUiEnabled => const LightroomSettingsPage(),
-    ['media-storage'] => const MediaStoragePage(),
+    ['media-storage'] => const PhotosVideosPage(),
     ['media-storage', 'transfers'] => const TransfersPage(),
     ['connected-accounts'] => const ConnectedAccountsPage(),
     ['connected-accounts', final id] => AccountDetailPage(accountId: id),

@@ -70,7 +70,10 @@ class PhotosMediaSetupPage extends ConsumerWidget {
             title: l10n.settings_setupGuide_stepStorage,
             description: l10n.settings_setupGuide_stepStorage_desc,
             done: status?.storage ?? false,
-            route: '/settings/media-storage',
+            route: '/settings/photos-media',
+            // The guide is opened from Photos & videos, where storage is
+            // set up: go back there rather than stack a second copy.
+            backToOpener: true,
           ),
           _StepCard(
             icon: Icons.cloud_sync,
@@ -92,6 +95,7 @@ class _StepCard extends ConsumerWidget {
     required this.description,
     required this.done,
     required this.route,
+    this.backToOpener = false,
   });
 
   final IconData icon;
@@ -99,6 +103,11 @@ class _StepCard extends ConsumerWidget {
   final String description;
   final bool done;
   final String route;
+
+  /// [route] is the page this guide was opened from: its parent route on a
+  /// phone, the page under it in the desktop settings pane. Open goes back
+  /// to it instead of opening it again on top.
+  final bool backToOpener;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -144,7 +153,15 @@ class _StepCard extends ConsumerWidget {
               alignment: Alignment.centerRight,
               child: FilledButton.tonal(
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  if (backToOpener && navigator.canPop()) {
+                    navigator.pop();
+                    return;
+                  }
                   await context.pushSettingsPage(route);
+                  // The step's page may close after the guide itself did
+                  // (the desktop pane walking back past it).
+                  if (!context.mounted) return;
                   ref.invalidate(setupGuideStatusProvider);
                 },
                 child: Text(l10n.settings_setupGuide_open),

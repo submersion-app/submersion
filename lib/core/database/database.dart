@@ -286,7 +286,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 306;
+  static const int currentSchemaVersion = 308;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1339,25 +1339,33 @@ class AppDatabase extends _$AppDatabase {
     // #3481 and #3502 shipped 292 and 294, #3482 holds 293, #3522 shipped
     // 295, #3520 shipped 296 and #3360 shipped 297 to 300.
     301,
-    // v302: diver_settings planner Setup-accordion global defaults (issue
-    // #3552). Additive columns only; does not move the compatibility floor.
+    // v302: media_stores.account_id (issue #3482). Additive, nullable and
+    // never cleared by a peer's null, so the floor stays at 300.
     302,
-    // v303: dive_plans Setup-accordion columns made nullable (issue #3552).
-    // Table rebuild, but every value round-trips unchanged; does not move
-    // the compatibility floor.
+    // v303: media.remote_store_id (issue #3482). Additive and nullable, and
+    // an older peer omits it, so the floor stays at 300.
     303,
-    // v304: dive_plan_missions battery_reserve_fraction/walk_speed_mps made
-    // nullable (issue #3552). Table rebuild, same as 303; does not move
-    // the compatibility floor.
+    // v304: diver_settings planner Setup-accordion global defaults (issue
+    // #3552). Additive columns only; does not move the compatibility floor.
+    // Renumbered from 302 as #3482 shipped 302-303 first.
     304,
-    // v305: diver_settings air-break/turn-pressure defaults and
-    // dive_plans.air_breaks_explicitly_off (issue #3552). Additive only;
-    // does not move the compatibility floor.
+    // v305: dive_plans Setup-accordion columns made nullable (issue #3552).
+    // Table rebuild, but every value round-trips unchanged; does not move
+    // the compatibility floor. Renumbered from 303.
     305,
-    // v306: dive_plans.reserve_pressure/gf_low/gf_high made nullable,
+    // v306: dive_plan_missions battery_reserve_fraction/walk_speed_mps made
+    // nullable (issue #3552). Table rebuild, same as 305; does not move
+    // the compatibility floor. Renumbered from 304.
+    306,
+    // v307: diver_settings air-break/turn-pressure defaults and
+    // dive_plans.air_breaks_explicitly_off (issue #3552). Additive only;
+    // does not move the compatibility floor. Renumbered from 305.
+    307,
+    // v308: dive_plans.reserve_pressure/gf_low/gf_high made nullable,
     // diver_settings.planner_reserve_pressure added (issue #3552). Table
     // rebuild for dive_plans; does not move the compatibility floor.
-    306,
+    // Renumbered from 306.
+    308,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

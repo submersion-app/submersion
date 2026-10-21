@@ -47,6 +47,7 @@ void main() {
     Future<void> Function(String ref, Uint8List blob)? writeBookmark,
     CloudIdentifierSource? cloudIdentifiers,
     LocalAssetCacheRepository? assetCache,
+    Future<String?> Function()? attachedStoreId,
   }) => MediaRepairService(
     repository: repo,
     queue: queue,
@@ -54,12 +55,14 @@ void main() {
     writeBookmark: writeBookmark,
     cloudIdentifiers: cloudIdentifiers,
     assetCache: assetCache,
+    attachedStoreId: attachedStoreId ?? () async => 'store-b',
   );
 
   Future<MediaItem> seed(
     String id, {
     String? contentHash,
     bool stampRemote = false,
+    String? remoteStoreId,
     MediaSourceType sourceType = MediaSourceType.localFile,
     String? platformAssetId,
   }) async {
@@ -87,8 +90,9 @@ void main() {
     }
     if (stampRemote) {
       await db.customStatement(
-        'UPDATE media SET remote_uploaded_at = 123 WHERE id = ?',
-        [id],
+        'UPDATE media SET remote_uploaded_at = 123, remote_store_id = ? '
+        'WHERE id = ?',
+        [remoteStoreId, id],
       );
     }
     return created;
@@ -190,6 +194,60 @@ void main() {
     final repaired = (await repo.getMediaById('a'))!;
     expect(repaired.sourceType, MediaSourceType.mediaStore);
     expect(repaired.localPath, isNull);
+  });
+
+  group('store proposals and the attached store (issue #3482)', () {
+    RepairProposal storeProposal(MediaItem item) => RepairProposal(
+      item: item,
+      confidence: RepairConfidence.exact,
+      candidate: const RepairCandidate.store(verified: false),
+    );
+
+    test('a row whose only copy is in another store stays put', () async {
+      await seed('p', contentHash: 'H1', stampRemote: true, remoteStoreId: 'a');
+      final item = (await repo.getMediaById('p'))!;
+
+      final report = await service(
+        attachedStoreId: () async => 'b',
+      ).apply([storeProposal(item)]);
+
+      expect(report.cloudBacked, 0);
+      expect(report.skipped, 1);
+      final after = (await repo.getMediaById('p'))!;
+      expect(after.sourceType, MediaSourceType.localFile);
+      expect(after.localPath, '/gone/p.jpg');
+    });
+
+    test('a row stamped for the attached store converts', () async {
+      await seed('p', contentHash: 'H1', stampRemote: true, remoteStoreId: 'b');
+      final item = (await repo.getMediaById('p'))!;
+
+      final report = await service(
+        attachedStoreId: () async => 'b',
+      ).apply([storeProposal(item)]);
+
+      expect(report.cloudBacked, 1);
+      expect(
+        (await repo.getMediaById('p'))!.sourceType,
+        MediaSourceType.mediaStore,
+      );
+    });
+
+    test('a detached device converts nothing', () async {
+      await seed('p', contentHash: 'H1', stampRemote: true);
+      final item = (await repo.getMediaById('p'))!;
+
+      final report = await service(
+        attachedStoreId: () async => null,
+      ).apply([storeProposal(item)]);
+
+      expect(report.cloudBacked, 0);
+      expect(report.skipped, 1);
+      expect(
+        (await repo.getMediaById('p'))!.sourceType,
+        MediaSourceType.localFile,
+      );
+    });
   });
 
   test('gallery proposal flips the row to platformGallery', () async {

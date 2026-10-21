@@ -136,7 +136,7 @@ You can link a species sighting directly to a photo by tagging it in the image. 
 
 ## Media sources
 
-Submersion can resolve photos from several sources. Which sources are available is configured in **Settings > Data > Photos & videos**: **Photo library & sources**, **Network sources**, and **Media Storage** (see [Media Sync](media-sync.md)).
+Submersion can resolve photos from several sources. Which sources are available is configured in **Settings > Data > Photos & videos**: **Photo library and files**, **Network sources** (under **Advanced**), and **Copies in the cloud** (see [Media Sync](media-sync.md)).
 
 <!-- screenshot: images/marine-life-and-photos/media-sources.png: media source config -->
 

@@ -126,10 +126,7 @@ void main() {
       ),
       'videos': _Homograph(
         'video in Latin America, vídeo in Spain',
-        keys: {
-          'diveDetailSection_media_description',
-          'settings_mediaStorage_entry_subtitle',
-        },
+        keys: {'diveDetailSection_media_description'},
       ),
     },
     'pt': {
