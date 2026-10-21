@@ -120,6 +120,7 @@ void main() {
         siteId: _siteId,
         pathId: 'dive-1',
         source: PathOverlaySource.dive,
+        isolatePaths: false,
       )).future,
     );
 
@@ -144,6 +145,7 @@ void main() {
         siteId: _siteId,
         pathId: 'dive-1',
         source: PathOverlaySource.dive,
+        isolatePaths: false,
       )).future,
     );
 
@@ -157,6 +159,7 @@ void main() {
         siteId: _siteId,
         pathId: 'dive-1',
         source: PathOverlaySource.dive,
+        isolatePaths: false,
       )).future,
     );
 
@@ -178,6 +181,7 @@ void main() {
         siteId: _siteId,
         pathId: 'track-1',
         source: PathOverlaySource.navTrack,
+        isolatePaths: false,
       )).future,
     );
 

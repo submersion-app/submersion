@@ -4,10 +4,16 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
+import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import '../../../helpers/fake_hosts.dart';
 
@@ -67,19 +73,25 @@ void main() {
 
   test('site without coordinates yields SiteSeascapeNoCoordinates', () async {
     final c = container(site: noGps, grid: smallGrid());
-    final state = await c.read(siteSeascapeProvider(siteId).future);
+    final state = await c.read(
+      siteSeascapeProvider(siteSeascapeRequest(siteId)).future,
+    );
     expect(state, isA<SiteSeascapeNoCoordinates>());
   });
 
   test('no grid (empty or transient) yields SiteSeascapeNoData', () async {
     final c = container(site: withGps, grid: null);
-    final state = await c.read(siteSeascapeProvider(siteId).future);
+    final state = await c.read(
+      siteSeascapeProvider(siteSeascapeRequest(siteId)).future,
+    );
     expect(state, isA<SiteSeascapeNoData>());
   });
 
   test('grid + site yields a ready scene with provenance', () async {
     final c = container(site: withGps, grid: smallGrid());
-    final state = await c.read(siteSeascapeProvider(siteId).future);
+    final state = await c.read(
+      siteSeascapeProvider(siteSeascapeRequest(siteId)).future,
+    );
     final ready = state as SiteSeascapeReady;
     expect(ready.sourceId, 'gmrt');
     expect(ready.resolutionMeters, 61);
@@ -87,11 +99,97 @@ void main() {
     expect(ready.scene.markers.first.label, 'Salt Pier');
   });
 
+  group('isolatePaths (issue #3571)', () {
+    final dive = domain.Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime.utc(2026, 7, 28, 10),
+      site: withGps,
+      entryLocation: const GeoPoint(12.151, -68.299),
+    );
+    const path = ReckonedPath(
+      points: [
+        ReckonedPoint(east: 0, north: 0, depth: 2, timeSeconds: 0),
+        ReckonedPoint(east: 5, north: 5, depth: 10, timeSeconds: 60),
+      ],
+      provenance: PathProvenance.measured,
+      minEast: 0,
+      maxEast: 5,
+      minNorth: 0,
+      maxNorth: 5,
+      maxDepth: 10,
+      durationSeconds: 60,
+    );
+
+    ProviderContainer containerWithOneDive({
+      required bool divesProviderThrows,
+    }) {
+      final c = ProviderContainer(
+        overrides: [
+          siteProvider(siteId).overrideWith((ref) async => withGps),
+          sitesProvider.overrideWith((ref) async => [withGps]),
+          divesProvider.overrideWith(
+            (ref) async =>
+                divesProviderThrows ? throw StateError('must not run') : [dive],
+          ),
+          spatialReckonedPathProvider(
+            dive.id,
+          ).overrideWith((ref) async => path),
+          primaryNavTrackForDiveProvider(
+            dive.id,
+          ).overrideWith((ref) async => null),
+          bathymetryGridProvider.overrideWith((ref, cell) async => smallGrid()),
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('isolatePaths: false draws the dive\'s path, same as before this '
+        'field existed', () async {
+      final c = containerWithOneDive(divesProviderThrows: false);
+      final state = await c.read(
+        siteSeascapeProvider(siteSeascapeRequest(siteId)).future,
+      );
+      final ready = state as SiteSeascapeReady;
+      expect(
+        ready.scene.layers.any((l) => l.overlay == SceneOverlay.paths),
+        isTrue,
+      );
+    });
+
+    test('isolatePaths: true draws no dive path at all -- SiteTerrainPane '
+        'layers the one active dive/route\'s path on top separately', () async {
+      final c = containerWithOneDive(divesProviderThrows: false);
+      final state = await c.read(
+        siteSeascapeProvider((siteId: siteId, isolatePaths: true)).future,
+      );
+      final ready = state as SiteSeascapeReady;
+      expect(
+        ready.scene.layers.any((l) => l.overlay == SceneOverlay.paths),
+        isFalse,
+      );
+    });
+
+    test('isolatePaths: true never even reads divesProvider -- the whole '
+        'point is skipping the reconstruction work, not just hiding its '
+        'result', () async {
+      final c = containerWithOneDive(divesProviderThrows: true);
+      final state = await c.read(
+        siteSeascapeProvider((siteId: siteId, isolatePaths: true)).future,
+      );
+      expect(state, isA<SiteSeascapeReady>());
+    });
+  });
+
   test(
     'missing site yields SiteSeascapeNoCoordinates (never a throw)',
     () async {
       final c = container(site: null, grid: smallGrid());
-      final state = await c.read(siteSeascapeProvider(siteId).future);
+      final state = await c.read(
+        siteSeascapeProvider(siteSeascapeRequest(siteId)).future,
+      );
       expect(state, isA<SiteSeascapeNoCoordinates>());
     },
   );
@@ -133,6 +231,7 @@ void main() {
         siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.overview,
+          isolatePaths: false,
         )).future,
       );
       expect(layer, isNull);
@@ -145,6 +244,7 @@ void main() {
         siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.medium,
+          isolatePaths: false,
         )).future,
       );
       expect(layer, isNull);
@@ -160,6 +260,7 @@ void main() {
         siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.medium,
+          isolatePaths: false,
         )).future,
       );
       expect(layer, isNotNull);
@@ -190,6 +291,7 @@ void main() {
         siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.superFine,
+          isolatePaths: false,
         )).future,
       );
       expect(layer, isNotNull);
@@ -204,6 +306,7 @@ void main() {
         siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.superFine,
+          isolatePaths: false,
         )).future,
       );
       expect(layer, isNotNull);
@@ -220,6 +323,7 @@ void main() {
         siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.fine,
+          isolatePaths: false,
         )).future,
       );
       expect(layer, isNotNull);
@@ -234,10 +338,12 @@ void main() {
         final a = siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.medium,
+          isolatePaths: false,
         ));
         final b = siteSeascapePatchLayerProvider((
           siteId: siteId,
           stage: BathymetryLodStage.medium,
+          isolatePaths: false,
         ));
         // Riverpod family instances compare equal (and so share state) when
         // their arguments are equal -- a plain identical() check would be
@@ -274,7 +380,9 @@ void main() {
       fetchedAt: DateTime.utc(2026, 7, 28),
     );
     final c = container(site: withGps, grid: wideGrid);
-    final state = await c.read(siteSeascapeProvider(siteId).future);
+    final state = await c.read(
+      siteSeascapeProvider(siteSeascapeRequest(siteId)).future,
+    );
     final ready = state as SiteSeascapeReady;
 
     expect(ready.axisInputs.verticalExaggeration, greaterThan(1.0));
