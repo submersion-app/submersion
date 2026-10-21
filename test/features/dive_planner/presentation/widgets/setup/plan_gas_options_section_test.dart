@@ -112,28 +112,34 @@ void main() {
     },
   );
 
-  testWidgets('toggling O2 narcotic updates the notifier state', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_harness());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'Default/On/Off choice for O2 narcotic updates the notifier state '
+    '(issue #3552)',
+    (tester) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
 
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(PlanGasOptionsSection)),
-    );
-    // AppSettings default is true; the plan has no override yet, so the
-    // switch reflects the global default.
-    final switchTile = tester.widget<SwitchListTile>(
-      find.byType(SwitchListTile),
-    );
-    expect(switchTile.value, isTrue);
-    expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasOptionsSection)),
+      );
+      // A fresh plan has no override: "Default" is selected and the plan's
+      // own field stays unset, following the diver's Settings default
+      // (true in AppSettings()).
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
 
-    await tester.tap(find.byType(SwitchListTile));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Off'));
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isFalse);
 
-    expect(container.read(divePlanNotifierProvider).o2Narcotic, isFalse);
-  });
+      await tester.tap(find.text('On'));
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isTrue);
+
+      await tester.tap(find.text('Default'));
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
+    },
+  );
 
   testWidgets('best mix END shows meters by default', (tester) async {
     await tester.pumpWidget(_harness());

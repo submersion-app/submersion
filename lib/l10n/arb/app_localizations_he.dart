@@ -10200,6 +10200,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get divePlanner_label_default => 'ברירת מחדל';
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return 'עומק ($depthSymbol)';
   }
@@ -10267,6 +10270,12 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'התייחס ל-O₂ כנרקוטי בתוכנית זו';
+
+  @override
+  String get divePlanner_label_on => 'פעיל';
+
+  @override
+  String get divePlanner_label_off => 'כבוי';
 
   @override
   String get divePlanner_label_tanks => 'מיכלים';

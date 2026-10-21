@@ -9927,6 +9927,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get divePlanner_label_default => '默认';
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return '深度 ($depthSymbol)';
   }
@@ -9993,6 +9996,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_gasOptions_o2Narcotic => '在此计划中将 O₂ 视为麻醉性气体';
+
+  @override
+  String get divePlanner_label_on => '开';
+
+  @override
+  String get divePlanner_label_off => '关';
 
   @override
   String get divePlanner_label_tanks => '气瓶';

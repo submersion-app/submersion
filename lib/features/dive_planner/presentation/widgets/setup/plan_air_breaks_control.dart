@@ -146,12 +146,6 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final defaultLabel = widget.defaultPolicy == null
-        ? l10n.plannerCanvas_turnRule_none
-        : l10n.divePlanner_label_airBreaksCycle(
-            (widget.defaultPolicy!.o2Seconds / 60).round(),
-            (widget.defaultPolicy!.breakSeconds / 60).round(),
-          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -160,9 +154,15 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 6),
-        // Unconstrained width, scrolling if it doesn't fit: see
-        // PlanLastStopSelector's identical fix for why - a constrained
-        // SegmentedButton wraps its labels mid-word instead of overflowing.
+        // Short, unqualified "Default" label (issue #3552 follow-up): the
+        // "(25/3 Min.)" suffix this used to carry pushed the third segment
+        // out of view at the Setup accordion's narrow widths, with no
+        // affordance that it existed - see PlanLastStopSelector's matching
+        // fix for the full reasoning. The resolved policy already shows in
+        // the minute fields once Custom is picked.
+        // Unconstrained width, scrolling only as a safety net if a locale
+        // still doesn't fit: a constrained SegmentedButton wraps its labels
+        // mid-word instead of overflowing.
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SegmentedButton<_AirBreaksChoice>(
@@ -174,9 +174,7 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
             segments: [
               ButtonSegment(
                 value: _AirBreaksChoice.default_,
-                label: Text(
-                  l10n.divePlanner_label_defaultWithValue(defaultLabel),
-                ),
+                label: Text(l10n.divePlanner_label_default),
               ),
               ButtonSegment(
                 value: _AirBreaksChoice.off,

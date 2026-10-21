@@ -10356,6 +10356,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get divePlanner_label_default => 'Standaard';
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return 'Diepte ($depthSymbol)';
   }
@@ -10425,6 +10428,12 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'O₂ als narcotisch behandelen voor dit plan';
+
+  @override
+  String get divePlanner_label_on => 'Aan';
+
+  @override
+  String get divePlanner_label_off => 'Uit';
 
   @override
   String get divePlanner_label_tanks => 'Flessen';

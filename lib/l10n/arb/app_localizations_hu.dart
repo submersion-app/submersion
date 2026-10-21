@@ -10402,6 +10402,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get divePlanner_label_default => 'Alapértelmezett';
+
+  @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
     return 'Mélység ($depthSymbol)';
   }
@@ -10472,6 +10475,12 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'O₂ narkotikusként kezelése ebben a tervben';
+
+  @override
+  String get divePlanner_label_on => 'Be';
+
+  @override
+  String get divePlanner_label_off => 'Ki';
 
   @override
   String get divePlanner_label_tanks => 'Palackok';

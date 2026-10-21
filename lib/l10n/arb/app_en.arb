@@ -6371,6 +6371,7 @@
   "divePlanner_label_decoSchedule": "Decompression Schedule",
   "divePlanner_label_decompression": "Decompression",
   "divePlanner_label_defaultWithValue": "Default ({value})",
+  "divePlanner_label_default": "Default",
   "divePlanner_label_depthAxis": "Depth ({depthSymbol})",
   "divePlanner_label_empty": "EMPTY",
   "divePlanner_label_gasConsumption": "Gas Consumption",
@@ -6396,6 +6397,8 @@
   "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
   "divePlanner_gasOptions_bestMixEnd": "Best mix END",
   "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
+  "divePlanner_label_on": "On",
+  "divePlanner_label_off": "Off",
   "divePlanner_label_tanks": "Tanks",
   "divePlanner_label_loopGases": "Loop",
   "@divePlanner_label_loopGases": {

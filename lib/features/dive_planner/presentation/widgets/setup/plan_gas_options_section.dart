@@ -153,11 +153,46 @@ class PlanGasOptionsSection extends ConsumerWidget {
             clearBestMixEndMeters: value == null,
           ),
         ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(context.l10n.divePlanner_gasOptions_o2Narcotic),
-          value: state.o2Narcotic ?? settings.o2Narcotic,
-          onChanged: (value) => notifier.updateGasOptions(o2Narcotic: value),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.divePlanner_gasOptions_o2Narcotic),
+              const SizedBox(height: 6),
+              // Unconstrained width, scrolling if it doesn't fit: see
+              // PlanLastStopSelector's identical fix.
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SegmentedButton<bool?>(
+                  showSelectedIcon: false,
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  segments: [
+                    ButtonSegment(
+                      value: null,
+                      label: Text(context.l10n.divePlanner_label_default),
+                    ),
+                    ButtonSegment(
+                      value: true,
+                      label: Text(context.l10n.divePlanner_label_on),
+                    ),
+                    ButtonSegment(
+                      value: false,
+                      label: Text(context.l10n.divePlanner_label_off),
+                    ),
+                  ],
+                  selected: {state.o2Narcotic},
+                  onSelectionChanged: (set) => notifier.updateGasOptions(
+                    o2Narcotic: set.first,
+                    clearO2Narcotic: set.first == null,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

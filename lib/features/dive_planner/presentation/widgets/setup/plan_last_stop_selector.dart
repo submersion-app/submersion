@@ -59,10 +59,15 @@ class PlanLastStopSelector extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 6),
-          // Unconstrained width, scrolling if it doesn't fit: a constrained
-          // SegmentedButton wraps its labels instead of overflowing, which
-          // at the Setup accordion's narrow widths broke words mid-letter
-          // ("Stan"/"dard") rather than showing readable text.
+          // Short, unqualified "Default" label (issue #3552 follow-up): the
+          // "(X m)" suffix this used to carry made the segment too wide for
+          // 5 segments to all fit, pushing the rest out of view with no
+          // affordance that they existed - a horizontal-scroll fix traded
+          // mid-word wrapping for invisible options, worse. The resolved
+          // value already shows elsewhere (the field it feeds).
+          // Unconstrained width, scrolling only as a safety net if a locale
+          // still doesn't fit: a constrained SegmentedButton wraps its
+          // labels instead of overflowing.
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SegmentedButton<double?>(
@@ -74,11 +79,7 @@ class PlanLastStopSelector extends StatelessWidget {
               segments: [
                 ButtonSegment<double?>(
                   value: null,
-                  label: Text(
-                    context.l10n.divePlanner_label_defaultWithValue(
-                      units.formatDepth(defaultValueMeters, decimals: 0),
-                    ),
-                  ),
+                  label: Text(context.l10n.divePlanner_label_default),
                 ),
                 for (final meters in choicesMeters)
                   ButtonSegment<double?>(

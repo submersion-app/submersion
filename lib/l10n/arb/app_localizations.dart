@@ -16723,6 +16723,12 @@ abstract class AppLocalizations {
   /// **'Default ({value})'**
   String divePlanner_label_defaultWithValue(Object value);
 
+  /// No description provided for @divePlanner_label_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get divePlanner_label_default;
+
   /// No description provided for @divePlanner_label_depthAxis.
   ///
   /// In en, this message translates to:
@@ -16854,6 +16860,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Treat O₂ as narcotic for this plan'**
   String get divePlanner_gasOptions_o2Narcotic;
+
+  /// No description provided for @divePlanner_label_on.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get divePlanner_label_on;
+
+  /// No description provided for @divePlanner_label_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get divePlanner_label_off;
 
   /// No description provided for @divePlanner_label_tanks.
   ///
