@@ -367,8 +367,8 @@ void main() {
             DivePlansCompanion.insert(
               id: 'plan-a',
               name: 'Wreck',
-              gfLow: 30,
-              gfHigh: 70,
+              gfLow: const Value(30),
+              gfHigh: const Value(70),
               diverId: const Value('diver-a'),
               createdAt: stale,
               updatedAt: stale,
@@ -833,8 +833,8 @@ void main() {
           DivePlansCompanion.insert(
             id: 'plan-x',
             name: 'Repeat',
-            gfLow: 30,
-            gfHigh: 70,
+            gfLow: const Value(30),
+            gfHigh: const Value(70),
             sourceDiveId: const Value('dive-a'),
             linkedDiveId: const Value('dive-a'),
             siteId: const Value('site-a'),
