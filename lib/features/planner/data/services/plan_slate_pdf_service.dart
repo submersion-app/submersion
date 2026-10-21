@@ -68,12 +68,14 @@ String planSlateHeaderLine(
   domain.DivePlan plan,
   PlanOutcome outcome,
   UnitFormatter units,
-  PlanSlateLabels labels,
-) =>
+  PlanSlateLabels labels, {
+  required int gfLow,
+  required int gfHigh,
+}) =>
     // The date follows the diver's DateFormatPreference: a slate is printed
     // and read at the dive site, not parsed by another program (#964).
     '${units.formatDate(plan.updatedAt)}   ${plan.mode.name.toUpperCase()}   '
-    'GF ${plan.gfLow}/${plan.gfHigh}   '
+    'GF $gfLow/$gfHigh   '
     '${labels.maxPrefix} ${units.formatDepth(outcome.maxDepth)}   '
     'RT ${planSlateMinutes(outcome.runtimeSeconds, labels)}   '
     'CNS ${outcome.cnsEnd.toStringAsFixed(0)}%';
@@ -99,6 +101,8 @@ class PlanSlatePdfService {
     required PlanSlateLabels labels,
     required double deviationDepthDelta,
     required int deviationTimeMinutes,
+    required int gfLow,
+    required int gfHigh,
     PdfLocalization? localization,
   }) async {
     // [labels] arrive localized; [localization] picks the fonts and text
@@ -113,7 +117,7 @@ class PlanSlatePdfService {
         margin: const pw.EdgeInsets.all(28),
         textDirection: loc.textDirection,
         build: (context) => [
-          _header(plan, outcome, units, labels),
+          _header(plan, outcome, units, labels, gfLow: gfLow, gfHigh: gfHigh),
           pw.SizedBox(height: 10),
           _sectionTitle(labels.runtimeTable),
           _runtimeTable(outcome, units, labels),
@@ -179,8 +183,10 @@ class PlanSlatePdfService {
     domain.DivePlan plan,
     PlanOutcome outcome,
     UnitFormatter units,
-    PlanSlateLabels labels,
-  ) {
+    PlanSlateLabels labels, {
+    required int gfLow,
+    required int gfHigh,
+  }) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -193,7 +199,14 @@ class PlanSlatePdfService {
         ),
         pw.SizedBox(height: 2),
         pw.Text(
-          planSlateHeaderLine(plan, outcome, units, labels),
+          planSlateHeaderLine(
+            plan,
+            outcome,
+            units,
+            labels,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+          ),
           style: const pw.TextStyle(fontSize: 10),
         ),
         pw.Divider(thickness: 1.2),

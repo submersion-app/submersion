@@ -61,6 +61,8 @@ Future<PlanExportFile> planSlateExport(
   final int deviationTimeMinutes =
       state.deviationTimeMinutes ??
       ref.read(plannerDeviationTimeMinutesProvider);
+  final int gfLow = state.gfLow ?? ref.read(gfLowProvider);
+  final int gfHigh = state.gfHigh ?? ref.read(gfHighProvider);
   final bytes = await const PlanSlatePdfService().buildSlate(
     plan: divePlanFromState(state),
     outcome: ref.read(planOutcomeProvider),
@@ -73,6 +75,8 @@ Future<PlanExportFile> planSlateExport(
     labels: labels,
     deviationDepthDelta: deviationDepthDelta,
     deviationTimeMinutes: deviationTimeMinutes,
+    gfLow: gfLow,
+    gfHigh: gfHigh,
   );
   return (
     bytes: bytes,

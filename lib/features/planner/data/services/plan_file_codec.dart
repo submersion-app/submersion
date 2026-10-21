@@ -230,8 +230,8 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     altitude: (plan['altitude'] as num?)?.toDouble(),
     waterType: WaterType.values.asNameMap()[plan['waterType']],
     salinityPpt: (plan['salinityPpt'] as num?)?.toDouble(),
-    gfLow: (plan['gfLow'] as num).toInt(),
-    gfHigh: (plan['gfHigh'] as num).toInt(),
+    gfLow: (plan['gfLow'] as num?)?.toInt(),
+    gfHigh: (plan['gfHigh'] as num?)?.toInt(),
     descentRate: (plan['descentRate'] as num?)?.toDouble() ?? 18.0,
     ascentRate: (plan['ascentRate'] as num?)?.toDouble() ?? 9.0,
     intermediateAscentRate:
