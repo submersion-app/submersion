@@ -160,30 +160,36 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 6),
-        SegmentedButton<_AirBreaksChoice>(
-          showSelectedIcon: false,
-          style: const ButtonStyle(
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          segments: [
-            ButtonSegment(
-              value: _AirBreaksChoice.default_,
-              label: Text(
-                l10n.divePlanner_label_defaultWithValue(defaultLabel),
+        // Unconstrained width, scrolling if it doesn't fit: see
+        // PlanLastStopSelector's identical fix for why - a constrained
+        // SegmentedButton wraps its labels mid-word instead of overflowing.
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SegmentedButton<_AirBreaksChoice>(
+            showSelectedIcon: false,
+            style: const ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            segments: [
+              ButtonSegment(
+                value: _AirBreaksChoice.default_,
+                label: Text(
+                  l10n.divePlanner_label_defaultWithValue(defaultLabel),
+                ),
               ),
-            ),
-            ButtonSegment(
-              value: _AirBreaksChoice.off,
-              label: Text(l10n.plannerCanvas_turnRule_none),
-            ),
-            ButtonSegment(
-              value: _AirBreaksChoice.custom,
-              label: Text(l10n.divePlanner_label_airBreaksCustom),
-            ),
-          ],
-          selected: {_choice},
-          onSelectionChanged: (set) => _select(set.first),
+              ButtonSegment(
+                value: _AirBreaksChoice.off,
+                label: Text(l10n.plannerCanvas_turnRule_none),
+              ),
+              ButtonSegment(
+                value: _AirBreaksChoice.custom,
+                label: Text(l10n.divePlanner_label_airBreaksCustom),
+              ),
+            ],
+            selected: {_choice},
+            onSelectionChanged: (set) => _select(set.first),
+          ),
         ),
         if (_choice == _AirBreaksChoice.custom)
           Padding(

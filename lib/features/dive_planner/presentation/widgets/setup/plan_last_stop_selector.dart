@@ -59,29 +59,36 @@ class PlanLastStopSelector extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 6),
-          SegmentedButton<double?>(
-            showSelectedIcon: false,
-            style: const ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            segments: [
-              ButtonSegment<double?>(
-                value: null,
-                label: Text(
-                  context.l10n.divePlanner_label_defaultWithValue(
-                    units.formatDepth(defaultValueMeters, decimals: 0),
+          // Unconstrained width, scrolling if it doesn't fit: a constrained
+          // SegmentedButton wraps its labels instead of overflowing, which
+          // at the Setup accordion's narrow widths broke words mid-letter
+          // ("Stan"/"dard") rather than showing readable text.
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SegmentedButton<double?>(
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              segments: [
+                ButtonSegment<double?>(
+                  value: null,
+                  label: Text(
+                    context.l10n.divePlanner_label_defaultWithValue(
+                      units.formatDepth(defaultValueMeters, decimals: 0),
+                    ),
                   ),
                 ),
-              ),
-              for (final meters in choicesMeters)
-                ButtonSegment<double?>(
-                  value: meters,
-                  label: Text(units.formatDepth(meters, decimals: 0)),
-                ),
-            ],
-            selected: {selected},
-            onSelectionChanged: (set) => onChanged(set.first),
+                for (final meters in choicesMeters)
+                  ButtonSegment<double?>(
+                    value: meters,
+                    label: Text(units.formatDepth(meters, decimals: 0)),
+                  ),
+              ],
+              selected: {selected},
+              onSelectionChanged: (set) => onChanged(set.first),
+            ),
           ),
         ],
       ),

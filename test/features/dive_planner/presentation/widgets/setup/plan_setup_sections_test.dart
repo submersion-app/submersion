@@ -198,10 +198,15 @@ void main() {
     // selected and the plan's own field stays unset.
     expect(container.read(divePlanNotifierProvider).lastStopDepth, isNull);
 
+    // The segmented button scrolls horizontally rather than wrapping its
+    // labels at narrow widths (issue #3552); a segment past the edge of the
+    // view needs scrolling into view before it can be tapped.
+    await tester.ensureVisible(find.text('6m'));
     await tester.tap(find.text('6m'));
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 6.0);
 
+    await tester.ensureVisible(find.text('4m'));
     await tester.tap(find.text('4m'));
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
