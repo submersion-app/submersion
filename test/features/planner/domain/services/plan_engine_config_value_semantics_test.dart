@@ -11,9 +11,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+
+/// AirBreakPolicy has no value equality of its own (plain fields, no
+/// Equatable), so the fixture and its copyWith counterpart must share one
+/// instance - two separately built ones with identical fields would compare
+/// unequal and fail "copyWith airBreakPolicy replaces only that field".
+final _testAirBreakPolicy = AirBreakPolicy(o2Seconds: 100, breakSeconds: 50);
 
 /// One config per field, each differing from the defaults in that field
 /// alone. Keyed by field name so the source check below can prove the map
@@ -51,6 +58,11 @@ final Map<String, PlanEngineConfig> _oneFieldChanged = {
   'problemSolvingMinutes': PlanEngineConfig(problemSolvingMinutes: 5),
   'deviationDepthDelta': PlanEngineConfig(deviationDepthDelta: 6.0),
   'deviationTimeMinutes': PlanEngineConfig(deviationTimeMinutes: 8),
+  'turnPressureRule': PlanEngineConfig(
+    turnPressureRule: domain.TurnPressureRule.thirds,
+  ),
+  'turnPressureFraction': PlanEngineConfig(turnPressureFraction: 0.4),
+  'airBreakPolicy': PlanEngineConfig(airBreakPolicy: _testAirBreakPolicy),
 };
 
 /// The same one-field changes as [_oneFieldChanged], made through copyWith,
@@ -88,6 +100,10 @@ final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
   'problemSolvingMinutes': (c) => c.copyWith(problemSolvingMinutes: 5),
   'deviationDepthDelta': (c) => c.copyWith(deviationDepthDelta: 6.0),
   'deviationTimeMinutes': (c) => c.copyWith(deviationTimeMinutes: 8),
+  'turnPressureRule': (c) =>
+      c.copyWith(turnPressureRule: domain.TurnPressureRule.thirds),
+  'turnPressureFraction': (c) => c.copyWith(turnPressureFraction: 0.4),
+  'airBreakPolicy': (c) => c.copyWith(airBreakPolicy: _testAirBreakPolicy),
 };
 
 /// A config with every field away from its default, so a field that
@@ -137,6 +153,9 @@ PlanEngineConfig _everyFieldChanged({
   problemSolvingMinutes: 5,
   deviationDepthDelta: 6.0,
   deviationTimeMinutes: 8,
+  turnPressureRule: domain.TurnPressureRule.thirds,
+  turnPressureFraction: 0.4,
+  airBreakPolicy: _testAirBreakPolicy,
 );
 
 /// A plan that overrides nothing: its nullable gas options are unset, and

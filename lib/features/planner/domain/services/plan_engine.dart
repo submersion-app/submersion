@@ -119,6 +119,19 @@ class PlanEngineConfig extends Equatable {
   final double deviationDepthDelta;
   final int deviationTimeMinutes;
 
+  /// The diver's default turn-pressure rule/fraction and air-break policy
+  /// (issue #3552, follow-up to v302-304). Nullable, unlike the fields
+  /// above: "no rule"/"no policy" is itself a legitimate default, matching
+  /// today's behaviour for a diver who has not opted in to one. Resolved
+  /// per plan through [turnPressureRuleFor]/[turnPressureFractionFor]/
+  /// [airBreaksFor], not a plain `?? this.x` merge, because a plan's own
+  /// `TurnPressureRule.off` / [domain.DivePlan.airBreaksExplicitlyOff] must
+  /// win even though it resolves to the same "no tracking" outcome as an
+  /// unset config.
+  final domain.TurnPressureRule? turnPressureRule;
+  final double? turnPressureFraction;
+  final AirBreakPolicy? airBreakPolicy;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -152,6 +165,9 @@ class PlanEngineConfig extends Equatable {
     this.problemSolvingMinutes = 2,
     this.deviationDepthDelta = 5.0,
     this.deviationTimeMinutes = 5,
+    this.turnPressureRule,
+    this.turnPressureFraction,
+    this.airBreakPolicy,
   });
 
   @override
@@ -188,6 +204,9 @@ class PlanEngineConfig extends Equatable {
     problemSolvingMinutes,
     deviationDepthDelta,
     deviationTimeMinutes,
+    turnPressureRule,
+    turnPressureFraction,
+    airBreakPolicy,
   ];
 
   PlanEngineConfig copyWith({
@@ -223,6 +242,9 @@ class PlanEngineConfig extends Equatable {
     int? problemSolvingMinutes,
     double? deviationDepthDelta,
     int? deviationTimeMinutes,
+    domain.TurnPressureRule? turnPressureRule,
+    double? turnPressureFraction,
+    AirBreakPolicy? airBreakPolicy,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -260,6 +282,9 @@ class PlanEngineConfig extends Equatable {
           problemSolvingMinutes ?? this.problemSolvingMinutes,
       deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
       deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
+      turnPressureRule: turnPressureRule ?? this.turnPressureRule,
+      turnPressureFraction: turnPressureFraction ?? this.turnPressureFraction,
+      airBreakPolicy: airBreakPolicy ?? this.airBreakPolicy,
     );
   }
 
@@ -312,6 +337,28 @@ class PlanEngineConfig extends Equatable {
   /// diver's [ccrSetpointHigh] (issue #2801).
   double setpointHighFor(domain.DivePlan plan) =>
       plan.setpointHigh ?? ccrSetpointHigh;
+
+  /// [plan]'s turn-pressure rule: its own value when set, else the diver's
+  /// Settings default (issue #3552), which may itself be null (no rule).
+  /// Never merged through [copyWith]'s plain `?? this.x`: the plan's own
+  /// [domain.TurnPressureRule.off] must win even when the config's default
+  /// is already null, and the two look identical to `??`.
+  domain.TurnPressureRule? turnPressureRuleFor(domain.DivePlan plan) =>
+      plan.turnPressureRule ?? turnPressureRule;
+
+  /// [plan]'s turn-pressure fraction, only meaningful when
+  /// [turnPressureRuleFor] resolves to [domain.TurnPressureRule.custom].
+  double? turnPressureFractionFor(domain.DivePlan plan) =>
+      plan.turnPressureFraction ?? turnPressureFraction;
+
+  /// [plan]'s air-break policy: `null` when [domain.DivePlan.airBreaksExplicitlyOff]
+  /// is set (explicit "off", wins regardless of the diver's default), else
+  /// the plan's own [domain.DivePlan.airBreaks] when set, else the diver's
+  /// Settings default (issue #3552), which may itself be null (no breaks).
+  AirBreakPolicy? airBreaksFor(domain.DivePlan plan) {
+    if (plan.airBreaksExplicitlyOff) return null;
+    return plan.airBreaks ?? airBreakPolicy;
+  }
 }
 
 /// Setpoint in force at [depth]: the segment's per-segment override if set,
@@ -1222,18 +1269,27 @@ class PlanEngine {
   /// Turn pressure per the plan's rule; bottom tanks with a start pressure
   /// only. `usable = start - reserve`; turn when the rule's fraction of the
   /// usable gas is consumed.
+  ///
+  /// Reads the rule/fraction from [config] (issue #3552), not [plan]
+  /// directly: by this point [config] is already resolvedFor this plan,
+  /// so an unset plan field already carries the diver's Settings default.
   double? _turnPressureFor(domain.DivePlan plan, DiveTank tank) {
-    final rule = plan.turnPressureRule;
+    final rule = config.turnPressureRuleFor(plan);
     final start = tank.startPressure;
-    if (rule == null || start == null || tank.role != TankRole.backGas) {
+    if (rule == null ||
+        rule == domain.TurnPressureRule.off ||
+        start == null ||
+        tank.role != TankRole.backGas) {
       return null;
     }
     final usable = (start - plan.reservePressure).clamp(0.0, start);
     final fraction = switch (rule) {
+      domain.TurnPressureRule.off => 0.0, // unreachable, handled above
       domain.TurnPressureRule.allUsable => 1.0,
       domain.TurnPressureRule.halves => 0.5,
       domain.TurnPressureRule.thirds => 1.0 / 3.0,
-      domain.TurnPressureRule.custom => plan.turnPressureFraction ?? 1.0 / 3.0,
+      domain.TurnPressureRule.custom =>
+        config.turnPressureFractionFor(plan) ?? 1.0 / 3.0,
     };
     return start - usable * fraction;
   }
@@ -1575,12 +1631,11 @@ class PlanEngine {
   /// legs the deco model actually loaded. One derivation from the plan keeps
   /// them from drifting apart.
   ///
-  /// Reads the Deco/Rates fields from [config] (issue #3552), not [plan]
-  /// directly, because by the time this runs [config] is already
-  /// [PlanEngineConfig.resolvedFor] this plan - its own value where set,
-  /// the diver's Settings otherwise. `plan` is still needed for
-  /// [domain.DivePlan.airBreaks] and [domain.DivePlan.stopMinimums], which
-  /// have no global default.
+  /// Reads the Deco/Rates/air-breaks fields from [config] (issue #3552),
+  /// not [plan] directly, because by the time this runs [config] is
+  /// already [PlanEngineConfig.resolvedFor] this plan - its own value
+  /// where set, the diver's Settings otherwise. `plan` is still needed for
+  /// [domain.DivePlan.stopMinimums], which has no global default.
   SchedulePolicy _policyFor(domain.DivePlan plan) => SchedulePolicy(
     lastStopDepth: config.lastStopDepth,
     ascentRate: config.ascentRate,
@@ -1591,7 +1646,7 @@ class PlanEngine {
     gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     // A plan is read against a watch: stops end on whole minutes.
     snapStopsToWholeMinutes: true,
-    airBreaks: plan.airBreaks,
+    airBreaks: config.airBreaksFor(plan),
     minStopSecondsByDepth: plan.stopMinimums,
   );
 

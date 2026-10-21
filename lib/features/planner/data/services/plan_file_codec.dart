@@ -65,6 +65,7 @@ String planToSubplanJson(domain.DivePlan plan) {
               'o2Seconds': plan.airBreaks!.o2Seconds,
               'breakSeconds': plan.airBreaks!.breakSeconds,
             },
+      'airBreaksExplicitlyOff': plan.airBreaksExplicitlyOff,
       'sacBottom': plan.sacBottom,
       'sacDeco': plan.sacDeco,
       'sacStressed': plan.sacStressed,
@@ -245,6 +246,7 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
             breakSeconds: (airBreaks['breakSeconds'] as num).toInt(),
           )
         : null,
+    airBreaksExplicitlyOff: plan['airBreaksExplicitlyOff'] as bool? ?? false,
     sacBottom: (plan['sacBottom'] as num?)?.toDouble() ?? 15.0,
     sacDeco: (plan['sacDeco'] as num?)?.toDouble(),
     sacStressed: (plan['sacStressed'] as num?)?.toDouble(),

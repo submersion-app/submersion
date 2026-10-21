@@ -14,7 +14,13 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 enum PlanMode { oc, ccr, scr, pscr }
 
 /// Gas turn-pressure rule for penetration planning (Phase 5).
-enum TurnPressureRule { allUsable, halves, thirds, custom }
+///
+/// [off] is an explicit "no turn-pressure tracking" choice, distinct from a
+/// plan's [DivePlan.turnPressureRule] being unset (which follows the diver's
+/// Settings default - issue #3552, where the default itself may resolve to
+/// no tracking). Without [off], a plan would have no way to turn tracking
+/// off for itself once the diver has set a non-null global default.
+enum TurnPressureRule { off, allUsable, halves, thirds, custom }
 
 /// The persisted dive plan aggregate (planner redesign Phase 2).
 ///
@@ -77,7 +83,16 @@ class DivePlan extends Equatable {
 
   /// Null = use the diver's Settings default (issue #3552).
   final int? gasSwitchStopSeconds;
+
+  /// Null and [airBreaksExplicitlyOff] false = use the diver's Settings
+  /// default air-break policy (issue #3552; itself may be no policy). A
+  /// value here is always an explicit custom policy, never the default.
   final AirBreakPolicy? airBreaks;
+
+  /// True = no air breaks for this plan, regardless of the diver's Settings
+  /// default. Distinct from [airBreaks] being unset, which follows that
+  /// default instead of forcing it off (issue #3552).
+  final bool airBreaksExplicitlyOff;
 
   /// Diver-authored minimum hold time in seconds, keyed by whole-metre stop
   /// depth. Passed straight through to [SchedulePolicy.minStopSecondsByDepth]
@@ -143,6 +158,10 @@ class DivePlan extends Equatable {
 
   /// Null = use the diver's Settings default (issue #3552).
   final int? deviationTimeMinutes;
+
+  /// Null = use the diver's Settings default (issue #3552; itself may
+  /// resolve to no rule). [TurnPressureRule.off] is the explicit "no
+  /// tracking for this plan" choice, distinct from unset.
   final TurnPressureRule? turnPressureRule;
   final double? turnPressureFraction;
 
@@ -188,6 +207,7 @@ class DivePlan extends Equatable {
     this.lastStopDepth,
     this.gasSwitchStopSeconds,
     this.airBreaks,
+    this.airBreaksExplicitlyOff = false,
     this.stopMinimums = const {},
     this.sacBottom,
     this.sacDeco,
@@ -295,6 +315,7 @@ class DivePlan extends Equatable {
     bool clearGasSwitchStopSeconds = false,
     AirBreakPolicy? airBreaks,
     bool clearAirBreaks = false,
+    bool? airBreaksExplicitlyOff,
     Map<int, int>? stopMinimums,
     double? sacBottom,
     bool clearSacBottom = false,
@@ -379,6 +400,8 @@ class DivePlan extends Equatable {
           ? null
           : (gasSwitchStopSeconds ?? this.gasSwitchStopSeconds),
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
+      airBreaksExplicitlyOff:
+          airBreaksExplicitlyOff ?? this.airBreaksExplicitlyOff,
       stopMinimums: stopMinimums ?? this.stopMinimums,
       sacBottom: clearSacBottom ? null : (sacBottom ?? this.sacBottom),
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
@@ -460,6 +483,7 @@ class DivePlan extends Equatable {
     gasSwitchStopSeconds,
     airBreaks?.o2Seconds,
     airBreaks?.breakSeconds,
+    airBreaksExplicitlyOff,
     stopMinimums,
     sacBottom,
     sacDeco,

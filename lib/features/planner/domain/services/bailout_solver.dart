@@ -210,7 +210,7 @@ class BailoutSolver {
       descentRate: config.descentRate,
       gasSwitchStopSeconds: config.gasSwitchStopSeconds,
       snapStopsToWholeMinutes: true,
-      airBreaks: plan.airBreaks,
+      airBreaks: config.airBreaksFor(plan),
       minStopSecondsByDepth: plan.stopMinimums,
     );
     final model = BuhlmannGf(

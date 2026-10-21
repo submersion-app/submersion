@@ -533,9 +533,14 @@ class DivePlanState extends Equatable {
   /// default (issue #3552).
   final double? descentRate;
 
-  /// Air-break (back-gas break) policy for long O2 deco stops; null = no
-  /// air breaks.
+  /// Air-break (back-gas break) policy for long O2 deco stops; null and
+  /// [airBreaksExplicitlyOff] false = use the diver's Settings default
+  /// (issue #3552).
   final AirBreakPolicy? airBreaks;
+
+  /// True = no air breaks for this plan, regardless of the diver's
+  /// Settings default (issue #3552).
+  final bool airBreaksExplicitlyOff;
 
   /// Surface interval before this dive (for repetitive diving).
   final Duration? surfaceInterval;
@@ -686,6 +691,7 @@ class DivePlanState extends Equatable {
     this.lastStopDepth,
     this.descentRate,
     this.airBreaks,
+    this.airBreaksExplicitlyOff = false,
     this.surfaceInterval,
     this.initialTissueState,
     this.sourceDiveId,
@@ -779,6 +785,7 @@ class DivePlanState extends Equatable {
     double? descentRate,
     bool clearDescentRate = false,
     AirBreakPolicy? airBreaks,
+    bool? airBreaksExplicitlyOff,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
     String? sourceDiveId,
@@ -865,6 +872,8 @@ class DivePlanState extends Equatable {
           : (lastStopDepth ?? this.lastStopDepth),
       descentRate: clearDescentRate ? null : (descentRate ?? this.descentRate),
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
+      airBreaksExplicitlyOff:
+          airBreaksExplicitlyOff ?? this.airBreaksExplicitlyOff,
       surfaceInterval: clearSurfaceInterval
           ? null
           : (surfaceInterval ?? this.surfaceInterval),
@@ -954,6 +963,7 @@ class DivePlanState extends Equatable {
     descentRate,
     airBreaks?.o2Seconds,
     airBreaks?.breakSeconds,
+    airBreaksExplicitlyOff,
     surfaceInterval,
     initialTissueState,
     sourceDiveId,
