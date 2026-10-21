@@ -116,11 +116,12 @@ class PlannerRatesDefaultsSection extends ConsumerWidget {
             onChanged: (enabled) {
               if (enabled) {
                 const policy = AirBreakPolicy();
-                notifier.setPlannerAirBreakO2Seconds(policy.o2Seconds);
-                notifier.setPlannerAirBreakBreakSeconds(policy.breakSeconds);
+                notifier.setPlannerAirBreakPolicy(
+                  o2Seconds: policy.o2Seconds,
+                  breakSeconds: policy.breakSeconds,
+                );
               } else {
-                notifier.setPlannerAirBreakO2Seconds(null);
-                notifier.setPlannerAirBreakBreakSeconds(null);
+                notifier.setPlannerAirBreakPolicy();
               }
             },
           ),

@@ -2538,6 +2538,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Sets or clears both air-break seconds fields together in one save, so
+  /// toggling the Settings default on/off can never persist one half of
+  /// the pair without the other (issue #3552).
+  Future<void> setPlannerAirBreakPolicy({
+    int? o2Seconds,
+    int? breakSeconds,
+  }) async {
+    state = state.copyWith(
+      plannerAirBreakO2Seconds: o2Seconds,
+      clearPlannerAirBreakO2Seconds: o2Seconds == null,
+      plannerAirBreakBreakSeconds: breakSeconds,
+      clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+    );
+    await _saveSettings();
+  }
+
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
     state = state.copyWith(decoStopIncrement: clamped);

@@ -243,8 +243,11 @@ class PlanEngineConfig extends Equatable {
     double? deviationDepthDelta,
     int? deviationTimeMinutes,
     domain.TurnPressureRule? turnPressureRule,
+    bool clearTurnPressureRule = false,
     double? turnPressureFraction,
+    bool clearTurnPressureFraction = false,
     AirBreakPolicy? airBreakPolicy,
+    bool clearAirBreakPolicy = false,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -282,9 +285,15 @@ class PlanEngineConfig extends Equatable {
           problemSolvingMinutes ?? this.problemSolvingMinutes,
       deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
       deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
-      turnPressureRule: turnPressureRule ?? this.turnPressureRule,
-      turnPressureFraction: turnPressureFraction ?? this.turnPressureFraction,
-      airBreakPolicy: airBreakPolicy ?? this.airBreakPolicy,
+      turnPressureRule: clearTurnPressureRule
+          ? null
+          : (turnPressureRule ?? this.turnPressureRule),
+      turnPressureFraction: clearTurnPressureFraction
+          ? null
+          : (turnPressureFraction ?? this.turnPressureFraction),
+      airBreakPolicy: clearAirBreakPolicy
+          ? null
+          : (airBreakPolicy ?? this.airBreakPolicy),
     );
   }
 

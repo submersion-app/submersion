@@ -1017,9 +1017,8 @@ class DiverSettingsRepository {
       plannerDeviationTimeMinutes: row.plannerDeviationTimeMinutes,
       plannerBatteryReserveFraction: row.plannerBatteryReserveFraction,
       plannerWalkSpeedMps: row.plannerWalkSpeedMps,
-      plannerTurnPressureRule: row.plannerTurnPressureRule != null
-          ? domain.TurnPressureRule.values.byName(row.plannerTurnPressureRule!)
-          : null,
+      plannerTurnPressureRule: domain.TurnPressureRule.values
+          .asNameMap()[row.plannerTurnPressureRule],
       plannerTurnPressureFraction: row.plannerTurnPressureFraction,
       plannerAirBreakO2Seconds: row.plannerAirBreakO2Seconds,
       plannerAirBreakBreakSeconds: row.plannerAirBreakBreakSeconds,
