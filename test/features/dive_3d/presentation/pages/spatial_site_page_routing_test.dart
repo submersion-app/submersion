@@ -44,14 +44,16 @@ void main() {
           overrides: [
             ...overrides,
             diveProvider('d1').overrideWith((ref) => completer.future),
-            siteSeascapeProvider(
-              'site-1',
-            ).overrideWith((ref) async => readyState()),
+            siteSeascapeProvider((
+              siteId: 'site-1',
+              isolatePaths: true,
+            )).overrideWith((ref) async => readyState()),
             siteFeaturesProvider('site-1').overrideWith((ref) async => []),
             siteActivePathOverlayProvider((
               siteId: 'site-1',
               pathId: 'd1',
               source: PathOverlaySource.dive,
+              isolatePaths: true,
             )).overrideWith((ref) async => null),
             // No measured route: the dive stays in the site's seascape.
             spatialReckonedPathProvider('d1').overrideWith((ref) async => null),
@@ -97,14 +99,16 @@ void main() {
               site: _site,
             ),
           ),
-          siteSeascapeProvider(
-            'site-1',
-          ).overrideWith((ref) async => readyState()),
+          siteSeascapeProvider((
+            siteId: 'site-1',
+            isolatePaths: true,
+          )).overrideWith((ref) async => readyState()),
           siteFeaturesProvider('site-1').overrideWith((ref) async => []),
           siteActivePathOverlayProvider((
             siteId: 'site-1',
             pathId: 'd1',
             source: PathOverlaySource.dive,
+            isolatePaths: true,
           )).overrideWith((ref) async => null),
           spatialReckonedPathProvider('d1').overrideWith(
             (ref) async => const ReckonedPath(
@@ -182,9 +186,10 @@ void main() {
                 site: _site,
               ),
             ),
-            siteSeascapeProvider(
-              'site-1',
-            ).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
+            siteSeascapeProvider((
+              siteId: 'site-1',
+              isolatePaths: true,
+            )).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
           ],
           child: const SpatialSitePage(diveId: 'd1'),
         ),

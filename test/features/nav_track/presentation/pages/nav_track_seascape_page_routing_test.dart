@@ -43,14 +43,16 @@ void main() {
           overrides: [
             ...overrides,
             navTrackByIdProvider('t1').overrideWith((ref) => completer.future),
-            siteSeascapeProvider(
-              'site-1',
-            ).overrideWith((ref) async => readyState()),
+            siteSeascapeProvider((
+              siteId: 'site-1',
+              isolatePaths: true,
+            )).overrideWith((ref) async => readyState()),
             siteFeaturesProvider('site-1').overrideWith((ref) async => []),
             siteActivePathOverlayProvider((
               siteId: 'site-1',
               pathId: 't1',
               source: PathOverlaySource.navTrack,
+              isolatePaths: true,
             )).overrideWith((ref) async => null),
           ],
           child: const NavTrackSeascapePage(trackId: 't1'),
@@ -109,9 +111,10 @@ void main() {
             navTrackByIdProvider(
               't1',
             ).overrideWith((ref) async => _track(id: 't1', siteId: 'site-1')),
-            siteSeascapeProvider(
-              'site-1',
-            ).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
+            siteSeascapeProvider((
+              siteId: 'site-1',
+              isolatePaths: true,
+            )).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
           ],
           child: const NavTrackSeascapePage(trackId: 't1'),
         ),

@@ -76,6 +76,12 @@ const double _minOverlayColumnWidth = 160;
 
 class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
     with SingleTickerProviderStateMixin {
+  /// A playbackContext means this pane is showing one dive's or route's own
+  /// path on top of the site scene; the site scene itself then has no
+  /// reason to carry every OTHER dive's path too (issue #3571), so every
+  /// siteSeascapeProvider-derived watch below is keyed on this.
+  bool get _isolatePaths => widget.playbackContext != null;
+
   // Parked at 0 for the plain site view (no timeline there); driven by
   // [_player] once [SiteTerrainPane.playbackContext] is set. The mixin is
   // unconditional (Dart mixins can't be added only for some instances), but
@@ -200,7 +206,12 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
 
   @override
   Widget build(BuildContext context) {
-    final stateAsync = ref.watch(siteSeascapeProvider(widget.siteId));
+    final stateAsync = ref.watch(
+      siteSeascapeProvider((
+        siteId: widget.siteId,
+        isolatePaths: _isolatePaths,
+      )),
+    );
     final appearance = ref.watch(
       settingsProvider.select((s) => s.seascapeAppearance),
     );
@@ -239,6 +250,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                           onPressed: () => showTerrainAppearanceSheet(
                             context,
                             siteId: widget.siteId,
+                            isolatePaths: _isolatePaths,
                           ),
                         ),
                         IconButton(
@@ -314,6 +326,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                     siteSeascapePatchLayerProvider((
                       siteId: widget.siteId,
                       stage: stage,
+                      isolatePaths: _isolatePaths,
                     )),
                   )
                   .value;
@@ -335,6 +348,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                           NavTrackPlaybackContext() =>
                             PathOverlaySource.navTrack,
                         },
+                        isolatePaths: _isolatePaths,
                       )),
                     );
               final activePath = activePathAsync?.value;
