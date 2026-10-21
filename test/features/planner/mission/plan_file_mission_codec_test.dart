@@ -130,6 +130,26 @@ void main() {
     expect(subplanFromJson(jsonEncode(json)).mission, isNull);
   });
 
+  // Issue #3552: an unset batteryReserveFraction/walkSpeedMps means "follow
+  // Settings". Importing a mission that never wrote them must keep them
+  // unset rather than coerce them to the old spec constants - that would
+  // silently create a per-mission override on import.
+  test(
+    'unset batteryReserveFraction/walkSpeedMps stay unset on round-trip',
+    () {
+      final mission = _mission.copyWith(
+        clearBatteryReserveFraction: true,
+        clearWalkSpeedMps: true,
+      );
+      final imported = subplanFromJson(
+        planToSubplanJson(_plan(mission: mission)),
+      );
+
+      expect(imported.mission!.batteryReserveFraction, isNull);
+      expect(imported.mission!.walkSpeedMps, isNull);
+    },
+  );
+
   test('a version 2 file still imports, without a mission', () {
     final json = jsonDecode(planToSubplanJson(_plan()));
     json['version'] = 2;
