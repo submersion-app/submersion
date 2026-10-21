@@ -171,7 +171,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
               const SizedBox(width: 6),
               PlanChip(
                 label: 'GF',
-                value: '${planState.gfLow}/${planState.gfHigh}',
+                // Resolved against the diver's Settings when unset
+                // (issue #3552); an untouched plan must not show "null/null".
+                value:
+                    '${planState.gfLow ?? ref.watch(gfLowProvider)}/'
+                    '${planState.gfHigh ?? ref.watch(gfHighProvider)}',
                 onTap: () => _focusSetup('deco'),
               ),
               const SizedBox(width: 6),
