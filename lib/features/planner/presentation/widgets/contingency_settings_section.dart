@@ -81,46 +81,38 @@ class _ContingencySettingsSectionState
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: PlanNumberField(
-                  label: l10n.plannerCanvas_contingency_depthDelta,
-                  value: state.deviationDepthDelta != null
-                      ? units.convertDepth(state.deviationDepthDelta!)
-                      : null,
-                  hintValue: units.convertDepth(
-                    ref.watch(plannerDeviationDepthDeltaProvider),
-                  ),
-                  suffixText: units.depthSymbol,
-                  min: 0,
-                  onChanged: (value) => notifier.updateContingencies(
-                    depthDelta: value != null
-                        ? units.depthToMeters(value)
-                        : null,
-                    clearDepthDelta: value == null,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: PlanNumberField(
-                  label: l10n.plannerCanvas_contingency_timeDelta,
-                  value: state.deviationTimeMinutes?.toDouble(),
-                  hintValue: ref
-                      .watch(plannerDeviationTimeMinutesProvider)
-                      .toDouble(),
-                  suffixText: l10n.divePlanner_label_minutesUnit,
-                  isInteger: true,
-                  min: 0,
-                  onChanged: (value) => notifier.updateContingencies(
-                    timeMinutes: value?.round(),
-                    clearTimeMinutes: value == null,
-                  ),
-                ),
-              ),
-            ],
+          // One field per row, like every other PlanNumberField in the Setup
+          // accordion: pairing two in a Row (as this used to) overflows at
+          // the accordion's usual narrow widths - the field's fixed-width
+          // box and unit alone already approach the row's whole budget.
+          PlanNumberField(
+            label: l10n.plannerCanvas_contingency_depthDelta,
+            value: state.deviationDepthDelta != null
+                ? units.convertDepth(state.deviationDepthDelta!)
+                : null,
+            hintValue: units.convertDepth(
+              ref.watch(plannerDeviationDepthDeltaProvider),
+            ),
+            suffixText: units.depthSymbol,
+            min: 0,
+            onChanged: (value) => notifier.updateContingencies(
+              depthDelta: value != null ? units.depthToMeters(value) : null,
+              clearDepthDelta: value == null,
+            ),
+          ),
+          PlanNumberField(
+            label: l10n.plannerCanvas_contingency_timeDelta,
+            value: state.deviationTimeMinutes?.toDouble(),
+            hintValue: ref
+                .watch(plannerDeviationTimeMinutesProvider)
+                .toDouble(),
+            suffixText: l10n.divePlanner_label_minutesUnit,
+            isInteger: true,
+            min: 0,
+            onChanged: (value) => notifier.updateContingencies(
+              timeMinutes: value?.round(),
+              clearTimeMinutes: value == null,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
