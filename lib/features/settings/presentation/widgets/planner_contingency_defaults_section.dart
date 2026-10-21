@@ -7,6 +7,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_default_number_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/label_with_control.dart';
 
 /// Global defaults for the planner Setup accordion's Contingency fields
 /// (issue #3552): the what-if depth and time deviation a new plan starts
@@ -95,20 +96,23 @@ class PlannerContingencyDefaultsSection extends ConsumerWidget {
           const Divider(height: 1),
           ListTile(
             dense: true,
-            title: Text(l10n.plannerCanvas_contingency_turnRule),
-            trailing: DropdownButton<domain.TurnPressureRule?>(
-              value: settings.plannerTurnPressureRule,
-              items: [
-                for (final rule in <domain.TurnPressureRule?>[
-                  null,
-                  domain.TurnPressureRule.allUsable,
-                  domain.TurnPressureRule.halves,
-                  domain.TurnPressureRule.thirds,
-                  domain.TurnPressureRule.custom,
-                ])
-                  DropdownMenuItem(value: rule, child: Text(ruleLabel(rule))),
-              ],
-              onChanged: notifier.setPlannerTurnPressureRule,
+            title: LabelWithControl(
+              label: Text(l10n.plannerCanvas_contingency_turnRule),
+              control: DropdownButton<domain.TurnPressureRule?>(
+                value: settings.plannerTurnPressureRule,
+                underline: const SizedBox.shrink(),
+                items: [
+                  for (final rule in <domain.TurnPressureRule?>[
+                    null,
+                    domain.TurnPressureRule.allUsable,
+                    domain.TurnPressureRule.halves,
+                    domain.TurnPressureRule.thirds,
+                    domain.TurnPressureRule.custom,
+                  ])
+                    DropdownMenuItem(value: rule, child: Text(ruleLabel(rule))),
+                ],
+                onChanged: notifier.setPlannerTurnPressureRule,
+              ),
             ),
           ),
           if (settings.plannerTurnPressureRule ==
