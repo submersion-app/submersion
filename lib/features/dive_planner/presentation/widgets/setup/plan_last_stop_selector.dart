@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Where the final decompression stop is held: the diver's Settings default,
@@ -59,37 +60,26 @@ class PlanLastStopSelector extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 6),
-          // Short, unqualified "Default" label (issue #3552 follow-up): the
-          // "(X m)" suffix this used to carry made the segment too wide for
-          // 5 segments to all fit, pushing the rest out of view with no
-          // affordance that they existed - a horizontal-scroll fix traded
-          // mid-word wrapping for invisible options, worse. The resolved
-          // value already shows elsewhere (the field it feeds).
-          // Unconstrained width, scrolling only as a safety net if a locale
-          // still doesn't fit: a constrained SegmentedButton wraps its
-          // labels instead of overflowing.
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SegmentedButton<double?>(
-              showSelectedIcon: false,
-              style: const ButtonStyle(
-                visualDensity: VisualDensity.compact,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              segments: [
-                ButtonSegment<double?>(
-                  value: null,
-                  label: Text(context.l10n.divePlanner_label_default),
+          // A Wrap of chips, not a SegmentedButton (issue #3552 follow-up):
+          // 5 choices never reliably fit one row at the Setup accordion's
+          // narrow widths - a SegmentedButton either wraps labels mid-word,
+          // or (given unconstrained width to avoid that) pushes later
+          // choices out of view with nothing to show they exist. A Wrap
+          // breaks onto a second line on its own instead, so the Default
+          // chip can safely show the resolved value too.
+          PlanChoiceWrap<double?>(
+            options: [
+              (
+                null,
+                context.l10n.divePlanner_label_defaultWithValue(
+                  units.formatDepth(defaultValueMeters, decimals: 0),
                 ),
-                for (final meters in choicesMeters)
-                  ButtonSegment<double?>(
-                    value: meters,
-                    label: Text(units.formatDepth(meters, decimals: 0)),
-                  ),
-              ],
-              selected: {selected},
-              onSelectionChanged: (set) => onChanged(set.first),
-            ),
+              ),
+              for (final meters in choicesMeters)
+                (meters, units.formatDepth(meters, decimals: 0)),
+            ],
+            selected: selected,
+            onChanged: onChanged,
           ),
         ],
       ),

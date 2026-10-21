@@ -135,7 +135,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isTrue);
 
-      await tester.tap(find.text('Default'));
+      // The Default chip shows the resolved value (issue #3552 follow-up):
+      // AppSettings() defaults o2Narcotic to true.
+      await tester.tap(find.text('Default (On)'));
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
     },

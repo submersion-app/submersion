@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -160,35 +161,29 @@ class PlanGasOptionsSection extends ConsumerWidget {
             children: [
               Text(context.l10n.divePlanner_gasOptions_o2Narcotic),
               const SizedBox(height: 6),
-              // Unconstrained width, scrolling if it doesn't fit: see
-              // PlanLastStopSelector's identical fix.
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SegmentedButton<bool?>(
-                  showSelectedIcon: false,
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              // A Wrap of chips, not a SegmentedButton: see
+              // PlanLastStopSelector's matching fix for the full reasoning.
+              // Unlike a SegmentedButton, a Wrap can show the Default chip's
+              // resolved value without risking it pushing another chip out
+              // of view - a chip that does not fit just starts the next
+              // line.
+              PlanChoiceWrap<bool?>(
+                options: [
+                  (
+                    null,
+                    context.l10n.divePlanner_label_defaultWithValue(
+                      settings.o2Narcotic
+                          ? context.l10n.divePlanner_label_on
+                          : context.l10n.divePlanner_label_off,
+                    ),
                   ),
-                  segments: [
-                    ButtonSegment(
-                      value: null,
-                      label: Text(context.l10n.divePlanner_label_default),
-                    ),
-                    ButtonSegment(
-                      value: true,
-                      label: Text(context.l10n.divePlanner_label_on),
-                    ),
-                    ButtonSegment(
-                      value: false,
-                      label: Text(context.l10n.divePlanner_label_off),
-                    ),
-                  ],
-                  selected: {state.o2Narcotic},
-                  onSelectionChanged: (set) => notifier.updateGasOptions(
-                    o2Narcotic: set.first,
-                    clearO2Narcotic: set.first == null,
-                  ),
+                  (true, context.l10n.divePlanner_label_on),
+                  (false, context.l10n.divePlanner_label_off),
+                ],
+                selected: state.o2Narcotic,
+                onChanged: (value) => notifier.updateGasOptions(
+                  o2Narcotic: value,
+                  clearO2Narcotic: value == null,
                 ),
               ),
             ],

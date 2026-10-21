@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -146,6 +147,12 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+    final defaultLabel = widget.defaultPolicy == null
+        ? l10n.plannerCanvas_turnRule_none
+        : l10n.divePlanner_label_airBreaksCycle(
+            (widget.defaultPolicy!.o2Seconds / 60).round(),
+            (widget.defaultPolicy!.breakSeconds / 60).round(),
+          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -154,60 +161,38 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 6),
-        // Short, unqualified "Default" label (issue #3552 follow-up): the
-        // "(25/3 Min.)" suffix this used to carry pushed the third segment
-        // out of view at the Setup accordion's narrow widths, with no
-        // affordance that it existed - see PlanLastStopSelector's matching
-        // fix for the full reasoning. The resolved policy already shows in
-        // the minute fields once Custom is picked.
-        // Unconstrained width, scrolling only as a safety net if a locale
-        // still doesn't fit: a constrained SegmentedButton wraps its labels
-        // mid-word instead of overflowing.
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SegmentedButton<_AirBreaksChoice>(
-            showSelectedIcon: false,
-            style: const ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        // A Wrap of chips, not a SegmentedButton (issue #3552 follow-up):
+        // see PlanLastStopSelector's matching fix for the full reasoning -
+        // a SegmentedButton doesn't reliably fit its choices at the Setup
+        // accordion's narrow widths, in either labeling. Unlike a
+        // SegmentedButton, a Wrap can show the Default chip's resolved
+        // value without risking it pushing another chip out of view.
+        PlanChoiceWrap<_AirBreaksChoice>(
+          options: [
+            (
+              _AirBreaksChoice.default_,
+              l10n.divePlanner_label_defaultWithValue(defaultLabel),
             ),
-            segments: [
-              ButtonSegment(
-                value: _AirBreaksChoice.default_,
-                label: Text(l10n.divePlanner_label_default),
-              ),
-              ButtonSegment(
-                value: _AirBreaksChoice.off,
-                label: Text(l10n.plannerCanvas_turnRule_none),
-              ),
-              ButtonSegment(
-                value: _AirBreaksChoice.custom,
-                label: Text(l10n.divePlanner_label_airBreaksCustom),
-              ),
-            ],
-            selected: {_choice},
-            onSelectionChanged: (set) => _select(set.first),
-          ),
+            (_AirBreaksChoice.off, l10n.plannerCanvas_turnRule_none),
+            (_AirBreaksChoice.custom, l10n.divePlanner_label_airBreaksCustom),
+          ],
+          selected: _choice,
+          onChanged: _select,
         ),
         if (_choice == _AirBreaksChoice.custom)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: _MinutesField(
-                    label: context.l10n.divePlanner_label_airBreaksOnO2,
-                    controller: _o2Controller,
-                    onChanged: _changeO2Minutes,
-                  ),
+                _MinutesField(
+                  label: context.l10n.divePlanner_label_airBreaksOnO2,
+                  controller: _o2Controller,
+                  onChanged: _changeO2Minutes,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _MinutesField(
-                    label: context.l10n.divePlanner_label_airBreaksBreak,
-                    controller: _breakController,
-                    onChanged: _changeBreakMinutes,
-                  ),
+                _MinutesField(
+                  label: context.l10n.divePlanner_label_airBreaksBreak,
+                  controller: _breakController,
+                  onChanged: _changeBreakMinutes,
                 ),
               ],
             ),
