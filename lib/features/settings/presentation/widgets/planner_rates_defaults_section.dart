@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -47,6 +48,34 @@ class PlannerRatesDefaultsSection extends ConsumerWidget {
       );
     }
 
+    Widget minutesTile({
+      required String label,
+      required int seconds,
+      required ValueChanged<int> onChanged,
+    }) {
+      return ListTile(
+        dense: true,
+        title: Text(label),
+        trailing: Text(
+          '${(seconds / 60).round()} ${context.l10n.divePlanner_label_minutesUnit}',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        onTap: () async {
+          final entered = await showDialog<double>(
+            context: context,
+            builder: (_) => PlannerDefaultNumberDialog(
+              title: label,
+              initialValue: (seconds / 60).round().toDouble(),
+              unitSymbol: context.l10n.divePlanner_label_minutesUnit,
+              integer: true,
+            ),
+          );
+          if (entered == null || !entered.isFinite || entered <= 0) return;
+          onChanged((entered * 60).round());
+        },
+      );
+    }
+
     return Card(
       child: Column(
         children: [
@@ -79,6 +108,36 @@ class PlannerRatesDefaultsSection extends ConsumerWidget {
             meters: settings.plannerFinalAscentRate,
             onChanged: notifier.setPlannerFinalAscentRate,
           ),
+          const Divider(height: 1),
+          SwitchListTile(
+            dense: true,
+            title: Text(context.l10n.divePlanner_label_airBreaks),
+            value: settings.plannerAirBreakO2Seconds != null,
+            onChanged: (enabled) {
+              if (enabled) {
+                const policy = AirBreakPolicy();
+                notifier.setPlannerAirBreakO2Seconds(policy.o2Seconds);
+                notifier.setPlannerAirBreakBreakSeconds(policy.breakSeconds);
+              } else {
+                notifier.setPlannerAirBreakO2Seconds(null);
+                notifier.setPlannerAirBreakBreakSeconds(null);
+              }
+            },
+          ),
+          if (settings.plannerAirBreakO2Seconds != null) ...[
+            const Divider(height: 1),
+            minutesTile(
+              label: context.l10n.divePlanner_label_airBreaksOnO2,
+              seconds: settings.plannerAirBreakO2Seconds!,
+              onChanged: notifier.setPlannerAirBreakO2Seconds,
+            ),
+            const Divider(height: 1),
+            minutesTile(
+              label: context.l10n.divePlanner_label_airBreaksBreak,
+              seconds: settings.plannerAirBreakBreakSeconds ?? 0,
+              onChanged: notifier.setPlannerAirBreakBreakSeconds,
+            ),
+          ],
         ],
       ),
     );
