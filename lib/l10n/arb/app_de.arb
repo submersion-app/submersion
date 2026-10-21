@@ -3195,6 +3195,8 @@
   "divePlanner_label_airBreaks": "Luftpausen",
   "divePlanner_label_airBreaksBreak": "Pause (Min.)",
   "divePlanner_label_airBreaksOnO2": "Auf O2 (Min.)",
+  "divePlanner_label_airBreaksCustom": "Eigene Werte",
+  "divePlanner_label_airBreaksCycle": "{o2Minutes}/{breakMinutes} Min.",
   "divePlanner_label_altitude": "Höhe:",
   "divePlanner_label_deco": "DEKO",
   "divePlanner_label_decoSchedule": "Dekompressionsplan",

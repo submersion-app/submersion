@@ -817,10 +817,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Set the air-break (back-gas break) policy for long O2 deco stops; null
   /// disables air breaks.
-  void setAirBreaks(AirBreakPolicy? policy) {
+  /// [explicitlyOff] true forces no air breaks regardless of the diver's
+  /// Settings default; false with a null [policy] follows that default
+  /// instead (issue #3552).
+  void setAirBreaks(AirBreakPolicy? policy, {bool explicitlyOff = false}) {
     state = state.copyWith(
       airBreaks: policy,
       clearAirBreaks: policy == null,
+      airBreaksExplicitlyOff: explicitlyOff,
       isDirty: true,
       updatedAt: DateTime.now(),
     );

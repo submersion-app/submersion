@@ -3068,6 +3068,8 @@
   "divePlanner_label_airBreaks": "Pause in aria",
   "divePlanner_label_airBreaksBreak": "Pausa (min)",
   "divePlanner_label_airBreaksOnO2": "In O2 (min)",
+  "divePlanner_label_airBreaksCustom": "Personalizzato",
+  "divePlanner_label_airBreaksCycle": "{o2Minutes}/{breakMinutes} min",
   "divePlanner_label_altitude": "Altitudine:",
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "Programma Decompressione",

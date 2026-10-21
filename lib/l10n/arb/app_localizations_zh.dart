@@ -9902,6 +9902,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => '吸 O2（分钟）';
 
   @override
+  String get divePlanner_label_airBreaksCustom => '自定义';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes 分钟';
+  }
+
+  @override
   String get divePlanner_label_altitude => '高海拔:';
 
   @override

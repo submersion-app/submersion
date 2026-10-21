@@ -47,14 +47,26 @@ class _ContingencySettingsSectionState
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final l10n = context.l10n;
 
-    String ruleLabel(domain.TurnPressureRule? rule) => switch (rule) {
-      null => l10n.plannerCanvas_turnRule_none,
+    // domain.TurnPressureRule.off is the explicit "no tracking" choice
+    // (reuses the pre-existing "None" wording); a `null` rule is the unset
+    // state and shows the diver's Settings default instead (issue #3552),
+    // which may itself resolve to "None".
+    String concreteRuleLabel(domain.TurnPressureRule rule) => switch (rule) {
+      domain.TurnPressureRule.off => l10n.plannerCanvas_turnRule_none,
       domain.TurnPressureRule.allUsable =>
         l10n.plannerCanvas_turnRule_allUsable,
       domain.TurnPressureRule.halves => l10n.plannerCanvas_turnRule_halves,
       domain.TurnPressureRule.thirds => l10n.plannerCanvas_turnRule_thirds,
       domain.TurnPressureRule.custom => l10n.plannerCanvas_turnRule_custom,
     };
+    final settingsDefaultRule = ref.watch(plannerTurnPressureRuleProvider);
+    String ruleLabel(domain.TurnPressureRule? rule) => rule == null
+        ? l10n.divePlanner_label_defaultWithValue(
+            settingsDefaultRule == null
+                ? l10n.plannerCanvas_turnRule_none
+                : concreteRuleLabel(settingsDefaultRule),
+          )
+        : concreteRuleLabel(rule);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -116,6 +128,7 @@ class _ContingencySettingsSectionState
               Expanded(
                 child: DropdownButtonFormField<domain.TurnPressureRule?>(
                   initialValue: state.turnPressureRule,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: l10n.plannerCanvas_contingency_turnRule,
                     isDense: true,
@@ -128,7 +141,10 @@ class _ContingencySettingsSectionState
                     ])
                       DropdownMenuItem(
                         value: rule,
-                        child: Text(ruleLabel(rule)),
+                        child: Text(
+                          ruleLabel(rule),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                   ],
                   onChanged: (rule) => rule == null

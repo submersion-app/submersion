@@ -3068,6 +3068,8 @@
   "divePlanner_label_airBreaks": "Levegőszünetek",
   "divePlanner_label_airBreaksBreak": "Szünet (perc)",
   "divePlanner_label_airBreaksOnO2": "O2-n (perc)",
+  "divePlanner_label_airBreaksCustom": "Egyéni",
+  "divePlanner_label_airBreaksCycle": "{o2Minutes}/{breakMinutes} perc",
   "divePlanner_label_altitude": "Magasság:",
   "divePlanner_label_deco": "DEKÓ",
   "divePlanner_label_decoSchedule": "Dekompressziós menetrend",

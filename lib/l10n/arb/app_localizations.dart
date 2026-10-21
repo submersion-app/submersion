@@ -16681,6 +16681,18 @@ abstract class AppLocalizations {
   /// **'On O2 (min)'**
   String get divePlanner_label_airBreaksOnO2;
 
+  /// No description provided for @divePlanner_label_airBreaksCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get divePlanner_label_airBreaksCustom;
+
+  /// No description provided for @divePlanner_label_airBreaksCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'{o2Minutes}/{breakMinutes} min'**
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes);
+
   /// No description provided for @divePlanner_label_altitude.
   ///
   /// In en, this message translates to:

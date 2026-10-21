@@ -3283,6 +3283,8 @@
   "divePlanner_label_airBreaks": "空气间歇",
   "divePlanner_label_airBreaksBreak": "间歇（分钟）",
   "divePlanner_label_airBreaksOnO2": "吸 O2（分钟）",
+  "divePlanner_label_airBreaksCustom": "自定义",
+  "divePlanner_label_airBreaksCycle": "{o2Minutes}/{breakMinutes} 分钟",
   "divePlanner_label_altitude": "高海拔:",
   "divePlanner_label_deco": "减压",
   "divePlanner_label_decoSchedule": "减压计划",

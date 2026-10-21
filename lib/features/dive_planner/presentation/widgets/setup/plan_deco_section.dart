@@ -45,7 +45,10 @@ class PlanDecoSection extends ConsumerWidget {
         const SizedBox(height: 8),
         PlanAirBreaksControl(
           policy: planState.airBreaks,
-          onChanged: notifier.setAirBreaks,
+          explicitlyOff: planState.airBreaksExplicitlyOff,
+          defaultPolicy: ref.watch(plannerAirBreakPolicyProvider),
+          onChanged: (policy, {required explicitlyOff}) =>
+              notifier.setAirBreaks(policy, explicitlyOff: explicitlyOff),
         ),
       ],
     );

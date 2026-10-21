@@ -3168,6 +3168,8 @@
   "divePlanner_label_airBreaks": "استراحات الهواء",
   "divePlanner_label_airBreaksBreak": "الاستراحة (دقيقة)",
   "divePlanner_label_airBreaksOnO2": "على O2 (دقيقة)",
+  "divePlanner_label_airBreaksCustom": "مخصص",
+  "divePlanner_label_airBreaksCycle": "{o2Minutes}/{breakMinutes} دقيقة",
   "divePlanner_label_altitude": "الارتفاع:",
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "جدول تخفيف الضغط",

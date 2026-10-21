@@ -3068,6 +3068,8 @@
   "divePlanner_label_airBreaks": "הפסקות אוויר",
   "divePlanner_label_airBreaksBreak": "הפסקה (דק')",
   "divePlanner_label_airBreaksOnO2": "על O2 (דק')",
+  "divePlanner_label_airBreaksCustom": "מותאם אישית",
+  "divePlanner_label_airBreaksCycle": "{o2Minutes}/{breakMinutes} דק׳",
   "divePlanner_label_altitude": "גובה:",
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "לוח דקומפרסיה",

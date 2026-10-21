@@ -10175,6 +10175,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'על O2 (דק\')';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'מותאם אישית';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes דק׳';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'גובה:';
 
   @override

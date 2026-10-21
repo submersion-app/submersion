@@ -10377,6 +10377,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'O2-n (perc)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'Egyéni';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes perc';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'Magasság:';
 
   @override

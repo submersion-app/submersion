@@ -10394,6 +10394,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'Auf O2 (Min.)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'Eigene Werte';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes Min.';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'Höhe:';
 
   @override
