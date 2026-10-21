@@ -175,7 +175,11 @@ class _DiveSeascapeStandaloneState
             key: const ValueKey('seascapeAppearanceButton'),
             icon: const Icon(Icons.tune),
             tooltip: context.l10n.dive3d_seascape_appearance,
-            onPressed: () => showTerrainAppearanceSheet(context),
+            // No siteId here (the standalone, no-site dive view): the
+            // vertical-exaggeration section never renders, so isolatePaths
+            // has no effect either way.
+            onPressed: () =>
+                showTerrainAppearanceSheet(context, isolatePaths: false),
           ),
         ],
       ),

@@ -25,11 +25,14 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// scene was built to skip, and reintroduces the vertical-exaggeration
 /// slider's startup flicker (see `_ExaggerationSection`'s own doc comment)
 /// since that second fetch starts out loading while the caller's is
-/// already ready.
+/// already ready. No default: a caller with no site of its own (so
+/// [siteId] is also omitted) can pass either value with no effect, but a
+/// caller that DOES have a site must consciously pick one instead of
+/// silently inheriting a default that happens to be wrong for it.
 void showTerrainAppearanceSheet(
   BuildContext context, {
   String? siteId,
-  bool isolatePaths = false,
+  required bool isolatePaths,
 }) {
   showModalBottomSheet<void>(
     context: context,
@@ -132,7 +135,7 @@ class TerrainAppearanceSheet extends ConsumerWidget {
   const TerrainAppearanceSheet({
     super.key,
     this.siteId,
-    this.isolatePaths = false,
+    required this.isolatePaths,
   });
 
   static const List<int?> _palette = [
@@ -333,7 +336,10 @@ class _ExaggerationSection extends ConsumerStatefulWidget {
   /// instead of forcing a second, redundant site-wide reconstruction.
   final bool isolatePaths;
 
-  const _ExaggerationSection({required this.siteId, this.isolatePaths = false});
+  const _ExaggerationSection({
+    required this.siteId,
+    required this.isolatePaths,
+  });
 
   @override
   ConsumerState<_ExaggerationSection> createState() =>

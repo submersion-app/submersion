@@ -82,7 +82,10 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
-              child: TerrainAppearanceSheet(siteId: siteId),
+              child: TerrainAppearanceSheet(
+                siteId: siteId,
+                isolatePaths: false,
+              ),
             ),
           ),
         ),
@@ -124,7 +127,8 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(
-                onPressed: () => showTerrainAppearanceSheet(context),
+                onPressed: () =>
+                    showTerrainAppearanceSheet(context, isolatePaths: false),
                 child: const Text('open'),
               ),
             ),
@@ -792,7 +796,10 @@ void main() {
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
                 body: SingleChildScrollView(
-                  child: TerrainAppearanceSheet(siteId: 'site-1'),
+                  child: TerrainAppearanceSheet(
+                    siteId: 'site-1',
+                    isolatePaths: false,
+                  ),
                 ),
               ),
             ),
