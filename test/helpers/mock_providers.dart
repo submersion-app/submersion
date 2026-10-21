@@ -1,4 +1,7 @@
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:http/http.dart' as http;
@@ -431,6 +434,31 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setPlannerWalkSpeedMps(double value) async =>
       state = state.copyWith(plannerWalkSpeedMps: value);
+  @override
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async => state = state.copyWith(
+    plannerTurnPressureRule: value,
+    clearPlannerTurnPressureRule: value == null,
+  );
+  @override
+  Future<void> setPlannerTurnPressureFraction(double? value) async =>
+      state = state.copyWith(
+        plannerTurnPressureFraction: value,
+        clearPlannerTurnPressureFraction: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakO2Seconds: value,
+        clearPlannerAirBreakO2Seconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakBreakSeconds: value,
+        clearPlannerAirBreakBreakSeconds: value == null,
+      );
   @override
   Future<void> setPscrRatio(double value) async =>
       state = state.copyWith(pscrRatio: value);

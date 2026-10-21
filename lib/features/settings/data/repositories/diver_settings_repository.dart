@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
 import 'package:submersion/features/settings/data/repositories/profile_metric_color_columns.dart';
 import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
@@ -421,6 +424,14 @@ class DiverSettingsRepository {
                   s.plannerBatteryReserveFraction,
                 ),
                 plannerWalkSpeedMps: Value(s.plannerWalkSpeedMps),
+                plannerTurnPressureRule: Value(s.plannerTurnPressureRule?.name),
+                plannerTurnPressureFraction: Value(
+                  s.plannerTurnPressureFraction,
+                ),
+                plannerAirBreakO2Seconds: Value(s.plannerAirBreakO2Seconds),
+                plannerAirBreakBreakSeconds: Value(
+                  s.plannerAirBreakBreakSeconds,
+                ),
                 showProfilePanelInTableView: Value(
                   s.showProfilePanelInTableView,
                 ),
@@ -751,6 +762,10 @@ class DiverSettingsRepository {
         settings.plannerBatteryReserveFraction,
       ),
       plannerWalkSpeedMps: Value(settings.plannerWalkSpeedMps),
+      plannerTurnPressureRule: Value(settings.plannerTurnPressureRule?.name),
+      plannerTurnPressureFraction: Value(settings.plannerTurnPressureFraction),
+      plannerAirBreakO2Seconds: Value(settings.plannerAirBreakO2Seconds),
+      plannerAirBreakBreakSeconds: Value(settings.plannerAirBreakBreakSeconds),
       showProfilePanelInTableView: Value(settings.showProfilePanelInTableView),
       showDetailsPaneDives: Value(settings.showDetailsPaneDives),
       showDetailsPaneSites: Value(settings.showDetailsPaneSites),
@@ -1002,6 +1017,12 @@ class DiverSettingsRepository {
       plannerDeviationTimeMinutes: row.plannerDeviationTimeMinutes,
       plannerBatteryReserveFraction: row.plannerBatteryReserveFraction,
       plannerWalkSpeedMps: row.plannerWalkSpeedMps,
+      plannerTurnPressureRule: row.plannerTurnPressureRule != null
+          ? domain.TurnPressureRule.values.byName(row.plannerTurnPressureRule!)
+          : null,
+      plannerTurnPressureFraction: row.plannerTurnPressureFraction,
+      plannerAirBreakO2Seconds: row.plannerAirBreakO2Seconds,
+      plannerAirBreakBreakSeconds: row.plannerAirBreakBreakSeconds,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
       showDetailsPaneDives: row.showDetailsPaneDives,
       showDetailsPaneSites: row.showDetailsPaneSites,

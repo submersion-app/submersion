@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -26,6 +27,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_finding.
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -572,6 +576,14 @@ class AppSettings {
   final double plannerBatteryReserveFraction;
   final double plannerWalkSpeedMps;
 
+  /// Turn-pressure/air-break global defaults (issue #3552, follow-up to
+  /// v302-304). Nullable, unlike the fields above: null = no rule/no
+  /// breaks, matching today's behaviour for a diver who has not opted in.
+  final domain.TurnPressureRule? plannerTurnPressureRule;
+  final double? plannerTurnPressureFraction;
+  final int? plannerAirBreakO2Seconds;
+  final int? plannerAirBreakBreakSeconds;
+
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
@@ -797,6 +809,10 @@ class AppSettings {
     this.plannerDeviationTimeMinutes = 5,
     this.plannerBatteryReserveFraction = 1.0 / 3.0,
     this.plannerWalkSpeedMps = 0.8,
+    this.plannerTurnPressureRule,
+    this.plannerTurnPressureFraction,
+    this.plannerAirBreakO2Seconds,
+    this.plannerAirBreakBreakSeconds,
     this.showProfilePanelInTableView = true,
     this.showDetailsPaneDives = false,
     this.showDetailsPaneSites = false,
@@ -1007,6 +1023,14 @@ class AppSettings {
     int? plannerDeviationTimeMinutes,
     double? plannerBatteryReserveFraction,
     double? plannerWalkSpeedMps,
+    domain.TurnPressureRule? plannerTurnPressureRule,
+    bool clearPlannerTurnPressureRule = false,
+    double? plannerTurnPressureFraction,
+    bool clearPlannerTurnPressureFraction = false,
+    int? plannerAirBreakO2Seconds,
+    bool clearPlannerAirBreakO2Seconds = false,
+    int? plannerAirBreakBreakSeconds,
+    bool clearPlannerAirBreakBreakSeconds = false,
     bool? showProfilePanelInTableView,
     bool? showDetailsPaneDives,
     bool? showDetailsPaneSites,
@@ -1229,6 +1253,18 @@ class AppSettings {
       plannerBatteryReserveFraction:
           plannerBatteryReserveFraction ?? this.plannerBatteryReserveFraction,
       plannerWalkSpeedMps: plannerWalkSpeedMps ?? this.plannerWalkSpeedMps,
+      plannerTurnPressureRule: clearPlannerTurnPressureRule
+          ? null
+          : (plannerTurnPressureRule ?? this.plannerTurnPressureRule),
+      plannerTurnPressureFraction: clearPlannerTurnPressureFraction
+          ? null
+          : (plannerTurnPressureFraction ?? this.plannerTurnPressureFraction),
+      plannerAirBreakO2Seconds: clearPlannerAirBreakO2Seconds
+          ? null
+          : (plannerAirBreakO2Seconds ?? this.plannerAirBreakO2Seconds),
+      plannerAirBreakBreakSeconds: clearPlannerAirBreakBreakSeconds
+          ? null
+          : (plannerAirBreakBreakSeconds ?? this.plannerAirBreakBreakSeconds),
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
@@ -2468,6 +2504,40 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async {
+    state = state.copyWith(
+      plannerTurnPressureRule: value,
+      clearPlannerTurnPressureRule: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerTurnPressureFraction(double? value) async {
+    state = state.copyWith(
+      plannerTurnPressureFraction: value,
+      clearPlannerTurnPressureFraction: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async {
+    state = state.copyWith(
+      plannerAirBreakO2Seconds: value,
+      clearPlannerAirBreakO2Seconds: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async {
+    state = state.copyWith(
+      plannerAirBreakBreakSeconds: value,
+      clearPlannerAirBreakBreakSeconds: value == null,
+    );
+    await _saveSettings();
+  }
+
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
     state = state.copyWith(decoStopIncrement: clamped);
@@ -3371,6 +3441,35 @@ final plannerBatteryReserveFractionProvider = Provider<double>((ref) {
 
 final plannerWalkSpeedMpsProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.plannerWalkSpeedMps));
+});
+
+/// The diver's default turn-pressure rule; null = no rule (issue #3552).
+final plannerTurnPressureRuleProvider = Provider<domain.TurnPressureRule?>((
+  ref,
+) {
+  return ref.watch(settingsProvider.select((s) => s.plannerTurnPressureRule));
+});
+
+/// The diver's default turn-pressure fraction, only meaningful alongside
+/// [domain.TurnPressureRule.custom] (issue #3552).
+final plannerTurnPressureFractionProvider = Provider<double?>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerTurnPressureFraction),
+  );
+});
+
+/// The diver's default air-break policy; null = no breaks (issue #3552).
+/// Built from the two Settings columns rather than stored as one, same
+/// shape as [AirBreakPolicy] itself: either both are set or neither is.
+final plannerAirBreakPolicyProvider = Provider<AirBreakPolicy?>((ref) {
+  final o2Seconds = ref.watch(
+    settingsProvider.select((s) => s.plannerAirBreakO2Seconds),
+  );
+  final breakSeconds = ref.watch(
+    settingsProvider.select((s) => s.plannerAirBreakBreakSeconds),
+  );
+  if (o2Seconds == null || breakSeconds == null) return null;
+  return AirBreakPolicy(o2Seconds: o2Seconds, breakSeconds: breakSeconds);
 });
 
 /// The diver's passive-SCR ratio (Subsurface `pscr_ratio`, default 100).

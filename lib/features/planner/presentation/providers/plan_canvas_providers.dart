@@ -49,6 +49,9 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     bestMixEndMeters: ref.watch(plannerBestMixEndMetersProvider),
     deviationDepthDelta: ref.watch(plannerDeviationDepthDeltaProvider),
     deviationTimeMinutes: ref.watch(plannerDeviationTimeMinutesProvider),
+    turnPressureRule: ref.watch(plannerTurnPressureRuleProvider),
+    turnPressureFraction: ref.watch(plannerTurnPressureFractionProvider),
+    airBreakPolicy: ref.watch(plannerAirBreakPolicyProvider),
   );
 });
 
