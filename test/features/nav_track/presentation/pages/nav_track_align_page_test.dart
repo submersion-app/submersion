@@ -164,6 +164,67 @@ void main() {
   );
 
   testWidgets(
+    'picking a suggestion chip while "Start auf der Karte setzen" is still '
+    'awaiting a map tap cancels that crosshair flow, so a later accidental '
+    'tap of the still-visible "Set start here" button cannot silently '
+    'overwrite the chip\'s choice (code review)',
+    (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      await _pump(
+        tester,
+        route: _route(siteId: 'site-1'),
+        site: site,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-place-start')),
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-from-site')));
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'picking an end-mode chip while "Ende auf der Karte setzen" is still '
+    'awaiting a map tap cancels that crosshair flow the same way',
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
     'the "From dive entry" chip sets the anchor from the linked dive',
     (tester) async {
       final dive = Dive(
@@ -411,6 +472,89 @@ void main() {
       final backToFix = offsetToGeoPoint(anchor!, east: 0, north: 100);
       expect(backToFix.latitude, closeTo(site.location!.latitude, 1e-6));
       expect(backToFix.longitude, closeTo(site.location!.longitude, 1e-6));
+    },
+  );
+
+  testWidgets(
+    'the "From GPS" chip stays selected across an unrelated rebuild (code '
+    'review: its suggestion is a GeoPoint re-derived by floating-point '
+    'arithmetic on every build, not a cached value, so the chip must not '
+    'rely on exact == equality against the anchor stored at selection time)',
+    (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      final preDiveFixPoints = [
+        const NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+        const NavTrackPoint(
+          timestamp: 1755856802,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856804,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856806,
+          north: 100,
+          east: 0,
+          depth: 5,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856808,
+          north: 105,
+          east: 2,
+          depth: 8,
+        ),
+      ];
+      final route = NavTrack(
+        id: 'r1',
+        siteId: 'site-1',
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'r1.csv',
+        startTime: 1755856800000,
+        endTime: 1755856808000,
+        pointCount: preDiveFixPoints.length,
+        points: preDiveFixPoints,
+        createdAt: DateTime(2026, 8, 22),
+        updatedAt: DateTime(2026, 8, 22),
+      );
+
+      await _pump(tester, route: route, site: site);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-from-gps')));
+      await tester.pump();
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.byKey(const ValueKey('nav-track-align-from-gps')),
+            )
+            .selected,
+        isTrue,
+      );
+
+      // An unrelated control rebuilds _ControlsPanel, which re-derives the
+      // "From GPS" suggestion from scratch again.
+      await tester.drag(
+        find.byKey(const ValueKey('nav-track-align-trust-slider')),
+        const Offset(20, 0),
+      );
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.byKey(const ValueKey('nav-track-align-from-gps')),
+            )
+            .selected,
+        isTrue,
+      );
     },
   );
 

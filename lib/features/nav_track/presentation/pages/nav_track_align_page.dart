@@ -61,6 +61,28 @@ List<CorrectedNavTrackPoint> _activeCorrectedPoints(
   );
 }
 
+/// A degree tolerance for [_geoPointsMatch]: well under a millimetre at any
+/// latitude, loose enough to absorb floating-point rounding differences
+/// between two independently computed values that are meant to be the same
+/// point, tight enough that two genuinely different suggestions never read
+/// as a match.
+const double _geoPointMatchToleranceDeg = 1e-9;
+
+/// Whether [a] and [b] are the same point, within [_geoPointMatchToleranceDeg].
+///
+/// Used instead of [GeoPoint]'s own `==` to mark a start suggestion chip
+/// selected: a suggestion like [NavTrackCorrector]'s pre-dive-fix back-solve
+/// re-derives its [GeoPoint] from scratch on every build (the same
+/// floating-point arithmetic over the same inputs, not a cached value), so
+/// exact equality would only be as robust as that recomputation happening
+/// to land on the exact same bits as it did for the selection stored in
+/// [NavTrackCorrection.anchor].
+bool _geoPointsMatch(GeoPoint? a, GeoPoint? b) {
+  if (a == null || b == null) return false;
+  return (a.latitude - b.latitude).abs() < _geoPointMatchToleranceDeg &&
+      (a.longitude - b.longitude).abs() < _geoPointMatchToleranceDeg;
+}
+
 /// The alignment page (spec 2026-09-10-underwater-nav-track-design.md, "The
 /// alignment page"): start point, end point, trust slider, rotation and the
 /// terrain check, all against a transient in-memory [NavTrackCorrection]
@@ -139,6 +161,26 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     NavTrack route,
   ) {
     setState(() => _correction = fn(_correction));
+    _scheduleTerrainCheck(route);
+  }
+
+  /// Like [_updateCorrection], for a suggestion chip or end-mode chip
+  /// specifically: also cancels an in-progress crosshair-placement flow.
+  ///
+  /// Without this, picking a chip while "Start/Ende auf der Karte setzen"
+  /// is still awaiting a map tap left the crosshair and the floating "Set
+  /// ... here" button on screen; a diver who then tapped that button got
+  /// [_setPointHere] silently overwriting the chip's choice with a manual
+  /// point at the map's current center, discarding the selection they just
+  /// made with no further confirmation (code review).
+  void _selectChip(
+    NavTrackCorrection Function(NavTrackCorrection) fn,
+    NavTrack route,
+  ) {
+    setState(() {
+      _placing = _Placing.none;
+      _correction = fn(_correction);
+    });
     _scheduleTerrainCheck(route);
   }
 
@@ -483,7 +525,6 @@ class _AlignPageBody extends ConsumerWidget {
             state: state,
             route: route,
             correction: correction,
-            hasFix: hasFix,
             hasPostDiveFix: hasPostDiveFix,
             activeStart: activeStart,
             cumulative: cumulative,
@@ -501,7 +542,6 @@ class _ControlsPanel extends ConsumerWidget {
     required this.state,
     required this.route,
     required this.correction,
-    required this.hasFix,
     required this.hasPostDiveFix,
     required this.activeStart,
     required this.cumulative,
@@ -512,7 +552,6 @@ class _ControlsPanel extends ConsumerWidget {
   final _NavTrackAlignPageState state;
   final NavTrack route;
   final NavTrackCorrection correction;
-  final bool hasFix;
   final bool hasPostDiveFix;
   final int activeStart;
 
@@ -606,29 +645,31 @@ class _ControlsPanel extends ConsumerWidget {
         NavTrackPositionOption(
           key: 'nav-track-align-from-dive-entry',
           label: l10n.navTrack_align_fromDiveEntry,
-          selected: anchor == diveEntry,
-          onSelected: () => state._updateCorrection(
-            (c) => c.copyWith(anchor: diveEntry),
-            route,
-          ),
+          selected: _geoPointsMatch(anchor, diveEntry),
+          onSelected: () =>
+              state._selectChip((c) => c.copyWith(anchor: diveEntry), route),
         ),
       if (site != null)
         NavTrackPositionOption(
           key: 'nav-track-align-from-site',
           label: l10n.navTrack_align_fromSite,
-          selected: anchor == site,
+          selected: _geoPointsMatch(anchor, site),
           onSelected: () =>
-              state._updateCorrection((c) => c.copyWith(anchor: site), route),
+              state._selectChip((c) => c.copyWith(anchor: site), route),
         ),
       if (preDiveFix != null)
         NavTrackPositionOption(
           key: 'nav-track-align-from-gps',
           label: l10n.navTrack_align_fromGps,
-          selected: anchor == preDiveFix,
-          onSelected: () => state._updateCorrection(
-            (c) => c.copyWith(anchor: preDiveFix),
-            route,
-          ),
+          // _preDiveFixStartSuggestion re-derives this GeoPoint from scratch
+          // on every build (offsetToGeoPoint over the same inputs); a
+          // tolerance, not ==, keeps the chip selected even if that re-
+          // derivation ever lands a floating-point ULP off the value stored
+          // on a prior selection, instead of silently un-selecting a choice
+          // the diver did not actually change (code review).
+          selected: _geoPointsMatch(anchor, preDiveFix),
+          onSelected: () =>
+              state._selectChip((c) => c.copyWith(anchor: preDiveFix), route),
         ),
     ];
     final isManual = anchor != null && options.every((o) => !o.selected);
@@ -643,7 +684,7 @@ class _ControlsPanel extends ConsumerWidget {
       key: 'nav-track-align-end-none',
       label: l10n.navTrack_align_endMode_none,
       selected: correction.endMode == NavTrackEndMode.none,
-      onSelected: () => state._updateCorrection(
+      onSelected: () => state._selectChip(
         (c) => c.copyWith(endMode: NavTrackEndMode.none),
         route,
       ),
@@ -652,7 +693,7 @@ class _ControlsPanel extends ConsumerWidget {
       key: 'nav-track-align-end-same-as-start',
       label: l10n.navTrack_align_endMode_sameAsStart,
       selected: correction.endMode == NavTrackEndMode.sameAsStart,
-      onSelected: () => state._updateCorrection(
+      onSelected: () => state._selectChip(
         (c) => c.copyWith(endMode: NavTrackEndMode.sameAsStart),
         route,
       ),
@@ -662,7 +703,7 @@ class _ControlsPanel extends ConsumerWidget {
         key: 'nav-track-align-end-gps-fix',
         label: l10n.navTrack_align_endMode_gpsFix,
         selected: correction.endMode == NavTrackEndMode.gpsFix,
-        onSelected: () => state._updateCorrection(
+        onSelected: () => state._selectChip(
           (c) => c.copyWith(endMode: NavTrackEndMode.gpsFix),
           route,
         ),
