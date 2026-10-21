@@ -181,7 +181,7 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
         ),
         if (_choice == _AirBreaksChoice.custom)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: 12),
             child: Column(
               children: [
                 _MinutesField(
@@ -189,6 +189,7 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
                   controller: _o2Controller,
                   onChanged: _changeO2Minutes,
                 ),
+                const SizedBox(height: 12),
                 _MinutesField(
                   label: context.l10n.divePlanner_label_airBreaksBreak,
                   controller: _breakController,
@@ -220,7 +221,7 @@ class _MinutesField extends StatelessWidget {
       integer: true,
       decoration: InputDecoration(
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         labelText: label,
       ),
       onChanged: onChanged,
