@@ -106,6 +106,8 @@ Future<List<int>> _build(domain.DivePlan plan) {
     bailout: const BailoutSolver().solve(plan),
     units: const UnitFormatter(AppSettings()),
     labels: _labels,
+    deviationDepthDelta: plan.deviationDepthDelta ?? 5.0,
+    deviationTimeMinutes: plan.deviationTimeMinutes ?? 5,
   );
 }
 

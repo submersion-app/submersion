@@ -53,6 +53,14 @@ Future<PlanExportFile> planSlateExport(
   required PdfLocalization localization,
 }) async {
   final state = ref.read(divePlanNotifierProvider);
+  // Resolved against the diver's Settings when unset (issue #3552), the
+  // same fallback ContingencyChips/ContingencyService already use - an
+  // unset override must never render as a literal "null" in the slate.
+  final double deviationDepthDelta =
+      state.deviationDepthDelta ?? ref.read(plannerDeviationDepthDeltaProvider);
+  final int deviationTimeMinutes =
+      state.deviationTimeMinutes ??
+      ref.read(plannerDeviationTimeMinutesProvider);
   final bytes = await const PlanSlatePdfService().buildSlate(
     plan: divePlanFromState(state),
     outcome: ref.read(planOutcomeProvider),
@@ -63,6 +71,8 @@ Future<PlanExportFile> planSlateExport(
     bailout: ref.read(planBailoutProvider),
     units: UnitFormatter(ref.read(settingsProvider)),
     labels: labels,
+    deviationDepthDelta: deviationDepthDelta,
+    deviationTimeMinutes: deviationTimeMinutes,
   );
   return (
     bytes: bytes,

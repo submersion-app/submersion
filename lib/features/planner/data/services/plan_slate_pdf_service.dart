@@ -97,6 +97,8 @@ class PlanSlatePdfService {
     required BailoutOutcome? bailout,
     required UnitFormatter units,
     required PlanSlateLabels labels,
+    required double deviationDepthDelta,
+    required int deviationTimeMinutes,
     PdfLocalization? localization,
   }) async {
     // [labels] arrive localized; [localization] picks the fonts and text
@@ -127,7 +129,15 @@ class PlanSlatePdfService {
             pw.SizedBox(height: 10),
             _sectionTitle(labels.contingencies),
             for (final deviation in deviations) ...[
-              _subTitle(_deviationLabel(deviation, plan, units, labels)),
+              _subTitle(
+                _deviationLabel(
+                  deviation,
+                  deviationDepthDelta,
+                  deviationTimeMinutes,
+                  units,
+                  labels,
+                ),
+              ),
               _runtimeTable(deviation.outcome, units, labels),
               pw.SizedBox(height: 6),
             ],
@@ -151,13 +161,13 @@ class PlanSlatePdfService {
 
   String _deviationLabel(
     DeviationOutcome deviation,
-    domain.DivePlan plan,
+    double deviationDepthDelta,
+    int deviationTimeMinutes,
     UnitFormatter units,
     PlanSlateLabels labels,
   ) {
-    final depth =
-        '+${units.formatDepth(plan.deviationDepthDelta, decimals: 0)}';
-    final time = '+${labels.minutes('${plan.deviationTimeMinutes}')}';
+    final depth = '+${units.formatDepth(deviationDepthDelta, decimals: 0)}';
+    final time = '+${labels.minutes('$deviationTimeMinutes')}';
     return switch (deviation.key) {
       'deeper' => depth,
       'longer' => time,
