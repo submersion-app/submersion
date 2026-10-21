@@ -584,6 +584,11 @@ class AppSettings {
   final int? plannerAirBreakO2Seconds;
   final int? plannerAirBreakBreakSeconds;
 
+  /// The diver's tank reserve-pressure default (issue #3552, follow-up to
+  /// v302-305) - previously hardcoded to the pressure unit's convention (50
+  /// bar / 500 psi) with no Settings override at all.
+  final double plannerReservePressure;
+
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
@@ -813,6 +818,7 @@ class AppSettings {
     this.plannerTurnPressureFraction,
     this.plannerAirBreakO2Seconds,
     this.plannerAirBreakBreakSeconds,
+    this.plannerReservePressure = 50.0,
     this.showProfilePanelInTableView = true,
     this.showDetailsPaneDives = false,
     this.showDetailsPaneSites = false,
@@ -1031,6 +1037,7 @@ class AppSettings {
     bool clearPlannerAirBreakO2Seconds = false,
     int? plannerAirBreakBreakSeconds,
     bool clearPlannerAirBreakBreakSeconds = false,
+    double? plannerReservePressure,
     bool? showProfilePanelInTableView,
     bool? showDetailsPaneDives,
     bool? showDetailsPaneSites,
@@ -1265,6 +1272,8 @@ class AppSettings {
       plannerAirBreakBreakSeconds: clearPlannerAirBreakBreakSeconds
           ? null
           : (plannerAirBreakBreakSeconds ?? this.plannerAirBreakBreakSeconds),
+      plannerReservePressure:
+          plannerReservePressure ?? this.plannerReservePressure,
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
@@ -2554,6 +2563,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setPlannerReservePressure(double value) async {
+    state = state.copyWith(plannerReservePressure: value);
+    await _saveSettings();
+  }
+
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
     state = state.copyWith(decoStopIncrement: clamped);
@@ -3486,6 +3500,12 @@ final plannerAirBreakPolicyProvider = Provider<AirBreakPolicy?>((ref) {
   );
   if (o2Seconds == null || breakSeconds == null) return null;
   return AirBreakPolicy(o2Seconds: o2Seconds, breakSeconds: breakSeconds);
+});
+
+/// The diver's tank reserve-pressure default (issue #3552, follow-up to
+/// v302-305).
+final plannerReservePressureProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerReservePressure));
 });
 
 /// The diver's passive-SCR ratio (Subsurface `pscr_ratio`, default 100).

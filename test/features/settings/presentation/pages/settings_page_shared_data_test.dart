@@ -605,6 +605,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     clearPlannerAirBreakBreakSeconds: breakSeconds == null,
   );
   @override
+  Future<void> setPlannerReservePressure(double value) async =>
+      state = state.copyWith(plannerReservePressure: value);
+  @override
   Future<void> setPscrRatio(double value) async =>
       state = state.copyWith(pscrRatio: value);
   @override

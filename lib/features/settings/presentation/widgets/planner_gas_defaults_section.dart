@@ -185,6 +185,32 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
               notifier.setPlannerBestMixEndMeters(units.depthToMeters(entered));
             },
           ),
+          const Divider(height: 1),
+          ListTile(
+            dense: true,
+            title: Text(context.l10n.divePlanner_label_reserve),
+            trailing: Text(
+              units.formatPressure(settings.plannerReservePressure),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            onTap: () async {
+              final entered = await showDialog<double>(
+                context: context,
+                builder: (_) => PlannerDefaultNumberDialog(
+                  title: context.l10n.divePlanner_label_reserve,
+                  initialValue: units.convertPressure(
+                    settings.plannerReservePressure,
+                  ),
+                  unitSymbol: units.pressureSymbol,
+                  integer: true,
+                ),
+              );
+              if (entered == null || !entered.isFinite || entered <= 0) {
+                return;
+              }
+              notifier.setPlannerReservePressure(units.pressureToBar(entered));
+            },
+          ),
         ],
       ),
     );
