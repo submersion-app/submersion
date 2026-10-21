@@ -26862,6 +26862,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_section_decompression_title => 'Decompressie';
 
   @override
+  String get settings_section_plannerDefaults_title =>
+      'Standaardwaarden planner';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Snelheden, gas, calamiteiten, DPV-team';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Actieve duiker & profielen';
 

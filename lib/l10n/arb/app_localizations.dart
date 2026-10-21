@@ -43430,6 +43430,18 @@ abstract class AppLocalizations {
   /// **'Decompression'**
   String get settings_section_decompression_title;
 
+  /// No description provided for @settings_section_plannerDefaults_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner Defaults'**
+  String get settings_section_plannerDefaults_title;
+
+  /// No description provided for @settings_section_plannerDefaults_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates, gas, contingency, DPV team'**
+  String get settings_section_plannerDefaults_subtitle;
+
   /// No description provided for @settings_section_diverProfile_subtitle.
   ///
   /// In en, this message translates to:

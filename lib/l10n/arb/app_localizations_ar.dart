@@ -27264,6 +27264,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_decompression_title => 'تخفيف الضغط';
 
   @override
+  String get settings_section_plannerDefaults_title =>
+      'الإعدادات الافتراضية للمخطط';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'المعدلات، الغاز، الخطط الاحتياطية، فريق DPV';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'الغواص النشط والملفات الشخصية';
 

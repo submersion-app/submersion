@@ -149,6 +149,7 @@ import 'package:submersion/features/safety/presentation/pages/incidents_list_pag
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/planner_defaults_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
@@ -1493,6 +1494,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'decompressionSettings',
                     builder: (context, state) =>
                         const DecompressionSettingsPage(),
+                  ),
+                  GoRoute(
+                    path: 'planner-defaults',
+                    name: 'plannerDefaultsSettings',
+                    builder: (context, state) =>
+                        const PlannerDefaultsSettingsPage(),
                   ),
                   GoRoute(
                     path: 'equipment-condition',

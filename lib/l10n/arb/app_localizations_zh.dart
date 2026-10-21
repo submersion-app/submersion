@@ -25532,6 +25532,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_decompression_title => '减压';
 
   @override
+  String get settings_section_plannerDefaults_title => '计划器默认值';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle => '速率、气体、应急方案、DPV 团队';
+
+  @override
   String get settings_section_diverProfile_subtitle => '当前潜水员与档案';
 
   @override

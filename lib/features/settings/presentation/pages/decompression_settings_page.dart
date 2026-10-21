@@ -14,10 +14,6 @@ import 'package:submersion/features/settings/presentation/widgets/ascent_rate_th
 import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_factor_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
-import 'package:submersion/features/settings/presentation/widgets/planner_contingency_defaults_section.dart';
-import 'package:submersion/features/settings/presentation/widgets/planner_dpv_team_defaults_section.dart';
-import 'package:submersion/features/settings/presentation/widgets/planner_gas_defaults_section.dart';
-import 'package:submersion/features/settings/presentation/widgets/planner_rates_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -296,78 +292,6 @@ class DecompressionSettingsContent extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           const AscentRateSection(),
-          const SizedBox(height: 24),
-          buildSettingsSectionHeader(
-            context,
-            context.l10n.settings_decompression_header_plannerRates,
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              context.l10n.settings_decompression_header_plannerRates_subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const PlannerRatesDefaultsSection(),
-          const SizedBox(height: 24),
-          buildSettingsSectionHeader(
-            context,
-            context.l10n.settings_decompression_header_plannerGas,
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              context.l10n.settings_decompression_header_plannerGas_subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const PlannerGasDefaultsSection(),
-          const SizedBox(height: 24),
-          buildSettingsSectionHeader(
-            context,
-            context.l10n.settings_decompression_header_plannerContingency,
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              context
-                  .l10n
-                  .settings_decompression_header_plannerContingency_subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const PlannerContingencyDefaultsSection(),
-          const SizedBox(height: 24),
-          buildSettingsSectionHeader(
-            context,
-            context.l10n.settings_decompression_header_plannerDpvTeam,
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              context
-                  .l10n
-                  .settings_decompression_header_plannerDpvTeam_subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const PlannerDpvTeamDefaultsSection(),
         ],
       ),
     );

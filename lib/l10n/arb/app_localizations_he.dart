@@ -26363,6 +26363,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_decompression_title => 'דקומפרסיה';
 
   @override
+  String get settings_section_plannerDefaults_title => 'ברירות מחדל למתכנן';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'קצבים, גז, תרחישי חירום, צוות DPV';
+
+  @override
   String get settings_section_diverProfile_subtitle => 'צולל פעיל ופרופילים';
 
   @override

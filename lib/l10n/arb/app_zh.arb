@@ -7711,6 +7711,8 @@
   "settings_section_dataSources_title": "Apple HealthKit",
   "settings_section_data_title": "数据",
   "settings_section_decompression_title": "减压",
+  "settings_section_plannerDefaults_title": "计划器默认值",
+  "settings_section_plannerDefaults_subtitle": "速率、气体、应急方案、DPV 团队",
   "settings_section_diverProfile_subtitle": "当前潜水员与档案",
   "settings_section_diverProfile_title": "潜水员档案",
   "settings_section_manage_subtitle": "潜水类型与气瓶预设",

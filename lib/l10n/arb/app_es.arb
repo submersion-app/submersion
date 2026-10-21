@@ -7537,6 +7537,8 @@
   "settings_section_appearance_title": "Apariencia",
   "settings_section_data_title": "Datos",
   "settings_section_decompression_title": "Descompresión",
+  "settings_section_plannerDefaults_title": "Valores predeterminados del planificador",
+  "settings_section_plannerDefaults_subtitle": "Velocidades, gas, contingencia, equipo DPV",
   "settings_section_diverProfile_subtitle": "Buceador activo y perfiles",
   "settings_section_diverProfile_title": "Perfil de buceador",
   "settings_section_manage_subtitle": "Tipos de inmersión y preajustes de tanques",

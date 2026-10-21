@@ -7537,6 +7537,8 @@
   "settings_section_appearance_title": "Aparência",
   "settings_section_data_title": "Dados",
   "settings_section_decompression_title": "Descompressão",
+  "settings_section_plannerDefaults_title": "Padrões do planejador",
+  "settings_section_plannerDefaults_subtitle": "Taxas, gás, contingência, equipe DPV",
   "settings_section_diverProfile_subtitle": "Mergulhador ativo e perfis",
   "settings_section_diverProfile_title": "Perfil do Mergulhador",
   "settings_section_manage_subtitle": "Tipos de mergulho e predefinições de cilindro",

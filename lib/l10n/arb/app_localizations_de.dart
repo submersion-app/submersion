@@ -26993,6 +26993,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_section_decompression_title => 'Dekompression';
 
   @override
+  String get settings_section_plannerDefaults_title => 'Planer-Standardwerte';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Raten, Gas, Eventualpläne, DPV-Team';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Aktiver Taucher & Profile';
 

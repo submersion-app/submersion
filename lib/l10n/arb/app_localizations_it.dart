@@ -27051,6 +27051,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_section_decompression_title => 'Decompressione';
 
   @override
+  String get settings_section_plannerDefaults_title =>
+      'Valori predefiniti del pianificatore';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Velocità, gas, imprevisti, squadra DPV';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Subacqueo attivo e profili';
 

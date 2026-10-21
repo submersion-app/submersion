@@ -7437,6 +7437,8 @@
   "settings_section_appearance_title": "Apparence",
   "settings_section_data_title": "Données",
   "settings_section_decompression_title": "Décompression",
+  "settings_section_plannerDefaults_title": "Valeurs par défaut du planificateur",
+  "settings_section_plannerDefaults_subtitle": "Vitesses, gaz, imprévus, équipe DPV",
   "settings_section_diverProfile_subtitle": "Plongeur actif et profils",
   "settings_section_diverProfile_title": "Profil du plongeur",
   "settings_section_manage_subtitle": "Types de plongée et présélections de blocs",

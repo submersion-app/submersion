@@ -7437,6 +7437,8 @@
   "settings_section_appearance_title": "Megjelenés",
   "settings_section_data_title": "Adatok",
   "settings_section_decompression_title": "Dekompresszió",
+  "settings_section_plannerDefaults_title": "Tervező alapértékei",
+  "settings_section_plannerDefaults_subtitle": "Sebességek, gáz, vészhelyzet, DPV csapat",
   "settings_section_diverProfile_subtitle": "Aktív merülő és profilok",
   "settings_section_diverProfile_title": "Merülő profil",
   "settings_section_manage_subtitle": "Merülés típusok és palack előre beállított értékek",

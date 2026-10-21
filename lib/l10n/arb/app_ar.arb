@@ -7537,6 +7537,8 @@
   "settings_section_appearance_title": "المظهر",
   "settings_section_data_title": "البيانات",
   "settings_section_decompression_title": "تخفيف الضغط",
+  "settings_section_plannerDefaults_title": "الإعدادات الافتراضية للمخطط",
+  "settings_section_plannerDefaults_subtitle": "المعدلات، الغاز، الخطط الاحتياطية، فريق DPV",
   "settings_section_diverProfile_subtitle": "الغواص النشط والملفات الشخصية",
   "settings_section_diverProfile_title": "ملف الغواص",
   "settings_section_manage_subtitle": "أنواع الغوص وإعدادات الأسطوانات",

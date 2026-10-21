@@ -7537,6 +7537,8 @@
   "settings_section_appearance_title": "מראה",
   "settings_section_data_title": "נתונים",
   "settings_section_decompression_title": "דקומפרסיה",
+  "settings_section_plannerDefaults_title": "ברירות מחדל למתכנן",
+  "settings_section_plannerDefaults_subtitle": "קצבים, גז, תרחישי חירום, צוות DPV",
   "settings_section_diverProfile_subtitle": "צולל פעיל ופרופילים",
   "settings_section_diverProfile_title": "פרופיל צולל",
   "settings_section_manage_subtitle": "סוגי צלילה והגדרות בלון",

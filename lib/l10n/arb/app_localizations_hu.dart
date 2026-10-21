@@ -26909,6 +26909,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_section_decompression_title => 'Dekompresszió';
 
   @override
+  String get settings_section_plannerDefaults_title => 'Tervező alapértékei';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Sebességek, gáz, vészhelyzet, DPV csapat';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Aktív merülő és profilok';
 

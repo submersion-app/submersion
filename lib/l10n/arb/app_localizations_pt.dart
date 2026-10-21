@@ -27031,6 +27031,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_section_decompression_title => 'Descompressão';
 
   @override
+  String get settings_section_plannerDefaults_title => 'Padrões do planejador';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Taxas, gás, contingência, equipe DPV';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Mergulhador ativo e perfis';
 

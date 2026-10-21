@@ -7433,6 +7433,8 @@
   "settings_section_appearance_title": "Aspetto",
   "settings_section_data_title": "Dati",
   "settings_section_decompression_title": "Decompressione",
+  "settings_section_plannerDefaults_title": "Valori predefiniti del pianificatore",
+  "settings_section_plannerDefaults_subtitle": "Velocità, gas, imprevisti, squadra DPV",
   "settings_section_diverProfile_subtitle": "Subacqueo attivo e profili",
   "settings_section_diverProfile_title": "Profilo subacqueo",
   "settings_section_manage_subtitle": "Tipi di immersione e preset bombole",
