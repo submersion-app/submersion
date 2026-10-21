@@ -116,9 +116,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(Slider), findsNothing);
     expect(find.byType(PlanNumberField), findsNWidgets(2));
-    // AppSettings defaults: GF 50/85.
-    expect(_planFieldText(tester, 'GF Low'), '50');
-    expect(_planFieldText(tester, 'GF High'), '85');
+    // A fresh plan has no override (issue #3552): each box is empty and
+    // shows the diver's Settings default (GF 50/85) as its hint.
+    expect(_planFieldText(tester, 'GF Low'), '');
+    expect(_planFieldHint(tester, 'GF Low'), '50');
+    expect(_planFieldText(tester, 'GF High'), '');
+    expect(_planFieldHint(tester, 'GF High'), '85');
     expect(find.text('%'), findsNWidgets(2));
   });
 
@@ -130,15 +133,15 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanDecoSection)),
     );
-    expect(container.read(divePlanNotifierProvider).gfLow, 50);
-    expect(container.read(divePlanNotifierProvider).gfHigh, 85);
+    expect(container.read(divePlanNotifierProvider).gfLow, isNull);
+    expect(container.read(divePlanNotifierProvider).gfHigh, isNull);
 
     await tester.enterText(_planField('GF Low'), '35');
     await tester.pumpAndSettle();
 
     final state = container.read(divePlanNotifierProvider);
     expect(state.gfLow, 35);
-    expect(state.gfHigh, 85);
+    expect(state.gfHigh, isNull);
   });
 
   testWidgets('typing in the GF High box changes gfHigh and leaves gfLow', (
@@ -155,7 +158,7 @@ void main() {
 
     final state = container.read(divePlanNotifierProvider);
     expect(state.gfHigh, 70);
-    expect(state.gfLow, 50);
+    expect(state.gfLow, isNull);
   });
 
   testWidgets('GF boxes refuse a value outside the 10-100% band', (
@@ -167,12 +170,14 @@ void main() {
       tester.element(find.byType(PlanDecoSection)),
     );
 
-    // A gradient factor over 100 is not a conservative plan, it is nonsense:
-    // the box flags it and the plan keeps the last good value.
+    // A gradient factor over 100 is not a conservative plan, it is
+    // nonsense: the box flags it, and out of range is never committed, so
+    // the field stays unset (issue #3552) rather than falling back to a
+    // concrete value.
     await tester.enterText(_planField('GF High'), '120');
     await tester.pumpAndSettle();
 
-    expect(container.read(divePlanNotifierProvider).gfHigh, 85);
+    expect(container.read(divePlanNotifierProvider).gfHigh, isNull);
     expect(
       tester.widget<TextField>(_planField('GF High')).decoration?.errorText,
       isNotNull,

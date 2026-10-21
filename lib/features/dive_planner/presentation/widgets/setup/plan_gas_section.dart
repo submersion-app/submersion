@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
@@ -73,9 +71,7 @@ class PlanGasSection extends ConsumerWidget {
         const SizedBox(height: 12),
         _ReservePressureInput(
           reservePressure: planState.reservePressure,
-          defaultPressureBar: settings.pressureUnit == PressureUnit.psi
-              ? PressureUnit.psi.convert(500, PressureUnit.bar)
-              : DivePlanState.kDefaultReservePressureBar,
+          defaultPressureBar: ref.watch(plannerReservePressureProvider),
           maxPressureBar: planState.tanks
               .map((t) => t.startPressure ?? 0.0)
               .fold(0.0, (a, b) => a > b ? a : b),
@@ -123,12 +119,18 @@ class _LoggedRmvButton extends ConsumerWidget {
 }
 
 /// Reserve pressure input field with validation.
+///
+/// Null = use the diver's Settings default (issue #3552, follow-up to
+/// v302-305) - the box is empty and shows the default as a hint, the same
+/// pattern [PlanNumberField] uses, retrofitted onto this field's own
+/// hand-rolled controller rather than switching to [PlanNumberField]
+/// itself, which has no room for the tank-max validation this field needs.
 class _ReservePressureInput extends StatefulWidget {
-  final double reservePressure;
+  final double? reservePressure;
   final double defaultPressureBar;
   final double maxPressureBar;
   final UnitFormatter units;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double?> onChanged;
 
   const _ReservePressureInput({
     required this.reservePressure,
@@ -144,8 +146,7 @@ class _ReservePressureInput extends StatefulWidget {
 
 class _ReservePressureInputState extends State<_ReservePressureInput> {
   late TextEditingController _controller;
-  String? _messageText;
-  bool _isError = false;
+  String? _errorText;
 
   /// The seed and the parse must share one convention, so a whole-pressure
   /// seed is rendered in the diver's locale rather than with toStringAsFixed
@@ -156,25 +157,27 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: _seed(widget.reservePressure));
+    _controller = TextEditingController(
+      text: widget.reservePressure != null
+          ? _seed(widget.reservePressure!)
+          : '',
+    );
   }
 
   @override
   void didUpdateWidget(_ReservePressureInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.reservePressure != widget.reservePressure) {
-      final newText = _seed(widget.reservePressure);
+      final newText = widget.reservePressure != null
+          ? _seed(widget.reservePressure!)
+          : '';
       if (_controller.text != newText) {
         _controller.text = newText;
       }
     }
     // Re-validate against new max if tanks changed
     if (oldWidget.maxPressureBar != widget.maxPressureBar) {
-      final error = _getError(_controller.text);
-      setState(() {
-        _messageText = error;
-        _isError = error != null;
-      });
+      setState(() => _errorText = _getError(_controller.text));
     }
   }
 
@@ -191,6 +194,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
   };
 
   String? _getError(String value) {
+    if (value.isEmpty) return null;
     // A fraction or a typo is reported rather than read as a different
     // whole number, which a digits-only filter used to do (#1900 review).
     final unreadable = invalidNumberText(context, value, integer: true);
@@ -211,22 +215,12 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
 
   void _validate(String value) {
     if (value.isEmpty) {
-      final defaultDisplay = _seed(widget.defaultPressureBar);
-      setState(() {
-        _messageText = context.l10n.divePlanner_info_reserveDefault(
-          widget.units.pressureSymbol,
-          defaultDisplay,
-        );
-        _isError = false;
-      });
-      widget.onChanged(widget.defaultPressureBar);
+      setState(() => _errorText = null);
+      widget.onChanged(null);
       return;
     }
     final error = _getError(value);
-    setState(() {
-      _messageText = error;
-      _isError = error != null;
-    });
+    setState(() => _errorText = error);
     if (error == null) {
       final parsed = _reserve(value);
       if (parsed != null) {
@@ -237,6 +231,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
@@ -260,7 +255,9 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
                         horizontal: 8,
                         vertical: 8,
                       ),
-                      errorText: _isError ? '' : null,
+                      hintText: _seed(widget.defaultPressureBar),
+                      hintStyle: TextStyle(color: theme.colorScheme.primary),
+                      errorText: _errorText != null ? '' : null,
                       errorStyle: const TextStyle(height: 0, fontSize: 0),
                     ),
                     keyboardType: TextInputType.number,
@@ -276,15 +273,13 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
               ),
             ],
           ),
-          if (_messageText != null)
+          if (_errorText != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                _messageText!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: _isError
-                      ? Theme.of(context).colorScheme.error
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                _errorText!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
                 ),
               ),
             ),
