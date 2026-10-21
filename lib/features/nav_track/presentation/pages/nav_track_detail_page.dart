@@ -252,7 +252,7 @@ class NavTrackDetailPage extends ConsumerWidget {
               ),
               IconButton(
                 key: const ValueKey('nav-track-open-3d'),
-                icon: const Icon(Icons.view_in_ar),
+                icon: const Icon(Icons.terrain),
                 tooltip: l10n.navTrack_common_open3dTooltip,
                 onPressed: () =>
                     context.push(underwaterTrackSeascapeLocation(route.id)),

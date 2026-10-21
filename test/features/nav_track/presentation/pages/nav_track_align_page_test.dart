@@ -805,6 +805,23 @@ void main() {
   );
 
   testWidgets(
+    'the "Open 3D" button uses the same icon as "3D-Unterwasserwelt" on the '
+    'dive detail page (Icons.terrain), not the unrelated AR-cube icon the '
+    "dive profile's own 3D preview uses",
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-align-3d')),
+          matching: find.byIcon(Icons.terrain),
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
     'typing a rotation value into the field updates headingOffsetDeg',
     (tester) async {
       final repository = await _pump(tester, route: _route());

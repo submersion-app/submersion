@@ -873,6 +873,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-open-3d')),
+          matching: find.byIcon(Icons.terrain),
+        ),
+        findsOneWidget,
+        reason:
+            'should match the icon dive_detail_page.dart uses for its '
+            '"3D-Unterwasserwelt" button, not the AR-cube icon',
+      );
+
       await tester.tap(find.byKey(const ValueKey('nav-track-open-3d')));
       await tester.pumpAndSettle();
       expect(find.text('SEASCAPE_PAGE'), findsOneWidget);
