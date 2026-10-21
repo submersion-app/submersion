@@ -234,7 +234,9 @@ class ExitPathEvaluator {
         model: engine.config.gasModel,
       );
       if (remaining == null) continue;
-      if (remaining < plan.reservePressure) return true;
+      if (remaining < (plan.reservePressure ?? engine.config.reservePressure)) {
+        return true;
+      }
     }
     return false;
   }

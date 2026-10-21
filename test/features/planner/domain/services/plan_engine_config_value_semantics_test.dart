@@ -63,6 +63,9 @@ final Map<String, PlanEngineConfig> _oneFieldChanged = {
   ),
   'turnPressureFraction': PlanEngineConfig(turnPressureFraction: 0.4),
   'airBreakPolicy': PlanEngineConfig(airBreakPolicy: _testAirBreakPolicy),
+  'gfLow': PlanEngineConfig(gfLow: 35),
+  'gfHigh': PlanEngineConfig(gfHigh: 75),
+  'reservePressure': PlanEngineConfig(reservePressure: 70.0),
 };
 
 /// The same one-field changes as [_oneFieldChanged], made through copyWith,
@@ -104,6 +107,9 @@ final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
       c.copyWith(turnPressureRule: domain.TurnPressureRule.thirds),
   'turnPressureFraction': (c) => c.copyWith(turnPressureFraction: 0.4),
   'airBreakPolicy': (c) => c.copyWith(airBreakPolicy: _testAirBreakPolicy),
+  'gfLow': (c) => c.copyWith(gfLow: 35),
+  'gfHigh': (c) => c.copyWith(gfHigh: 75),
+  'reservePressure': (c) => c.copyWith(reservePressure: 70.0),
 };
 
 /// A config with every field away from its default, so a field that
@@ -120,6 +126,8 @@ PlanEngineConfig _everyFieldChanged({
   bool o2Narcotic = false,
   double bestMixEndMeters = 35,
   double buddyFactor = 1.5,
+  int gfLow = 35,
+  int gfHigh = 75,
 }) => PlanEngineConfig(
   ppO2Working: ppO2Working,
   ppO2Deco: ppO2Deco,
@@ -156,6 +164,9 @@ PlanEngineConfig _everyFieldChanged({
   turnPressureRule: domain.TurnPressureRule.thirds,
   turnPressureFraction: 0.4,
   airBreakPolicy: _testAirBreakPolicy,
+  gfLow: gfLow,
+  gfHigh: gfHigh,
+  reservePressure: 70.0,
 );
 
 /// A plan that overrides nothing: its nullable gas options are unset, and
@@ -167,6 +178,8 @@ domain.DivePlan _plan({
   bool? o2Narcotic,
   double sacFactor = 2.0,
   double bestMixEndMeters = 30.0,
+  int gfLow = 40,
+  int gfHigh = 80,
 }) {
   final now = DateTime.utc(2026, 9, 30);
   return domain.DivePlan(
@@ -174,8 +187,8 @@ domain.DivePlan _plan({
     name: 'resolvedFor test',
     createdAt: now,
     updatedAt: now,
-    gfLow: 40,
-    gfHigh: 80,
+    gfLow: gfLow,
+    gfHigh: gfHigh,
     ppO2Bottom: ppO2Bottom,
     ppO2Deco: ppO2Deco,
     o2Narcotic: o2Narcotic,
@@ -280,11 +293,16 @@ void main() {
 
       final resolved = config.resolvedFor(plan);
 
-      // sacFactor and bestMixEndMeters always come from the plan; every
-      // other field is the config's own.
+      // sacFactor, bestMixEndMeters, gfLow and gfHigh always come from the
+      // plan; every other field is the config's own.
       expect(
         resolved,
-        _everyFieldChanged(buddyFactor: 2.0, bestMixEndMeters: 30.0),
+        _everyFieldChanged(
+          buddyFactor: 2.0,
+          bestMixEndMeters: 30.0,
+          gfLow: 40,
+          gfHigh: 80,
+        ),
       );
     });
 
@@ -296,6 +314,8 @@ void main() {
         o2Narcotic: true,
         sacFactor: 1.8,
         bestMixEndMeters: 33,
+        gfLow: 42,
+        gfHigh: 82,
       );
 
       expect(
@@ -306,6 +326,8 @@ void main() {
           o2Narcotic: true,
           buddyFactor: 1.8,
           bestMixEndMeters: 33,
+          gfLow: 42,
+          gfHigh: 82,
         ),
       );
     });

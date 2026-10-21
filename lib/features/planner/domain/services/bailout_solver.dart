@@ -214,8 +214,8 @@ class BailoutSolver {
       minStopSecondsByDepth: plan.stopMinimums,
     );
     final model = BuhlmannGf(
-      gfLow: plan.gfLow / 100.0,
-      gfHigh: plan.gfHigh / 100.0,
+      gfLow: config.gfLow / 100.0,
+      gfHigh: config.gfHigh / 100.0,
       environment: environment,
       policy: policy,
     );

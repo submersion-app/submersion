@@ -229,7 +229,8 @@ class MissionEngine {
           returnSecondsFrom: returnSecondsFrom,
           setsCruise: member.id == limitingId,
           bottomTank: bottomTank,
-          reserveBar: plan.reservePressure,
+          reserveBar:
+              plan.reservePressure ?? scenarios.engine.config.reservePressure,
           gasModel: scenarios.engine.config.gasModel,
         ),
     ];

@@ -132,6 +132,16 @@ class PlanEngineConfig extends Equatable {
   final double? turnPressureFraction;
   final AirBreakPolicy? airBreakPolicy;
 
+  /// Gradient factors (0-100) and tank reserve pressure (bar) - previously
+  /// snapshot-on-create, now live-resolve like every other Setup field
+  /// (issue #3552, follow-up to v302-305). Merged through the plain
+  /// `?? this.x` [copyWith]/[resolvedFor] pattern, same as sacBottom/sacDeco:
+  /// a plan's own value always wins, there is no "explicit off" concept to
+  /// a gradient factor or a reserve margin.
+  final int gfLow;
+  final int gfHigh;
+  final double reservePressure;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -168,6 +178,9 @@ class PlanEngineConfig extends Equatable {
     this.turnPressureRule,
     this.turnPressureFraction,
     this.airBreakPolicy,
+    this.gfLow = 50,
+    this.gfHigh = 85,
+    this.reservePressure = 50.0,
   });
 
   @override
@@ -207,6 +220,9 @@ class PlanEngineConfig extends Equatable {
     turnPressureRule,
     turnPressureFraction,
     airBreakPolicy,
+    gfLow,
+    gfHigh,
+    reservePressure,
   ];
 
   PlanEngineConfig copyWith({
@@ -248,6 +264,9 @@ class PlanEngineConfig extends Equatable {
     bool clearTurnPressureFraction = false,
     AirBreakPolicy? airBreakPolicy,
     bool clearAirBreakPolicy = false,
+    int? gfLow,
+    int? gfHigh,
+    double? reservePressure,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -294,6 +313,9 @@ class PlanEngineConfig extends Equatable {
       airBreakPolicy: clearAirBreakPolicy
           ? null
           : (airBreakPolicy ?? this.airBreakPolicy),
+      gfLow: gfLow ?? this.gfLow,
+      gfHigh: gfHigh ?? this.gfHigh,
+      reservePressure: reservePressure ?? this.reservePressure,
     );
   }
 
@@ -326,6 +348,9 @@ class PlanEngineConfig extends Equatable {
       problemSolvingMinutes: plan.problemSolvingMinutes,
       deviationDepthDelta: plan.deviationDepthDelta,
       deviationTimeMinutes: plan.deviationTimeMinutes,
+      gfLow: plan.gfLow,
+      gfHigh: plan.gfHigh,
+      reservePressure: plan.reservePressure,
     );
   }
 
@@ -510,8 +535,8 @@ class PlanEngine {
     final environment = environmentFor(plan);
     final policy = _policyFor(plan);
     final model = BuhlmannGf(
-      gfLow: plan.gfLow / 100.0,
-      gfHigh: plan.gfHigh / 100.0,
+      gfLow: config.gfLow / 100.0,
+      gfHigh: config.gfHigh / 100.0,
       environment: environment,
       policy: policy,
     );
@@ -1066,7 +1091,7 @@ class PlanEngine {
                 tank.role != TankRole.bailout &&
                 remaining != null &&
                 used > 0 &&
-                remaining < plan.reservePressure,
+                remaining < config.reservePressure,
           );
         }(),
     ];
@@ -1267,7 +1292,7 @@ class PlanEngine {
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,
             reserveViolation:
-                remaining != null && remaining < plan.reservePressure,
+                remaining != null && remaining < config.reservePressure,
             turnPressureBar: _turnPressureFor(plan, tank),
             minGasBar: _minGasFor(plan, tank, environment),
           );
@@ -1291,7 +1316,7 @@ class PlanEngine {
         tank.role != TankRole.backGas) {
       return null;
     }
-    final usable = (start - plan.reservePressure).clamp(0.0, start);
+    final usable = (start - config.reservePressure).clamp(0.0, start);
     final fraction = switch (rule) {
       domain.TurnPressureRule.off => 0.0, // unreachable, handled above
       domain.TurnPressureRule.allUsable => 1.0,
@@ -1565,10 +1590,10 @@ class PlanEngine {
             severity: PlanIssueSeverity.alert,
             message:
                 'Tank ends below the '
-                '${plan.reservePressure.toStringAsFixed(0)} bar reserve',
+                '${config.reservePressure.toStringAsFixed(0)} bar reserve',
             segmentId: usage.tankId,
             value: remaining,
-            threshold: plan.reservePressure,
+            threshold: config.reservePressure,
           ),
         );
       }

@@ -175,21 +175,22 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   };
 
   static DivePlanState _createInitialState({
+    // Kept for constructor-signature stability (existing callers/tests
+    // supply them); no longer read here. gfLow/gfHigh/reservePressure now
+    // live-resolve against the diver's Settings instead of being
+    // snapshotted at creation (issue #3552, follow-up to v302-305) - a new
+    // plan starts unset, the same as every other Setup field.
     required double reservePressure,
     required PlanGradientFactors Function() getGradientFactors,
     required PlannerWaterType plannerWaterType,
   }) {
     final now = DateTime.now();
-    final gradientFactors = getGradientFactors();
     final water = _waterFieldsFor(plannerWaterType);
     return DivePlanState(
       id: _uuid.v4(),
       name: 'New Dive Plan',
       segments: [],
       tanks: [_createDefaultTank()],
-      gfLow: gradientFactors.low,
-      gfHigh: gradientFactors.high,
-      reservePressure: reservePressure,
       waterType: water.waterType,
       salinityPpt: water.salinityPpt,
       createdAt: now,
@@ -221,27 +222,6 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       reservePressure: _getDefaultReservePressure(),
       getGradientFactors: _getDefaultGradientFactors,
       plannerWaterType: _getDefaultPlannerWaterType(),
-    );
-  }
-
-  /// Move an untouched plan onto the diver's current gradient factors.
-  ///
-  /// Settings hydrate from the database after this notifier is built, and the
-  /// diver may change them with the planner open; either way a plan they have
-  /// not started yet should show the factors they actually dive. A plan with
-  /// segments, unsaved edits, or a persisted record is their work and is left
-  /// alone -- including a hand-tuned GF, which marks the plan dirty.
-  ///
-  /// Adopting a setting is not a diver edit, so this does not set `isDirty`.
-  void adoptGradientFactorsIfPristine(PlanGradientFactors gradientFactors) {
-    if (isPersisted || state.isDirty || state.segments.isNotEmpty) return;
-    if (state.gfLow == gradientFactors.low &&
-        state.gfHigh == gradientFactors.high) {
-      return;
-    }
-    state = state.copyWith(
-      gfLow: gradientFactors.low,
-      gfHigh: gradientFactors.high,
     );
   }
 
@@ -664,11 +644,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // Settings
   // --------------------------------------------------------------------------
 
-  /// Update gradient factors.
-  void updateGradientFactors(int gfLow, int gfHigh) {
+  /// Update gradient factors. Null clears back to the diver's Settings
+  /// default (issue #3552, follow-up to v302-305).
+  void updateGradientFactors(int? gfLow, int? gfHigh) {
     state = state.copyWith(
       gfLow: gfLow,
+      clearGfLow: gfLow == null,
       gfHigh: gfHigh,
+      clearGfHigh: gfHigh == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -831,9 +814,12 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Update reserve pressure in bar.
-  void updateReservePressure(double reservePressure) {
+  /// Null clears back to the diver's Settings default (issue #3552,
+  /// follow-up to v302-305).
+  void updateReservePressure(double? reservePressure) {
     state = state.copyWith(
       reservePressure: reservePressure,
+      clearReservePressure: reservePressure == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -901,7 +887,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// was built with, so a later Settings change does not move a plan the
   /// diver has already started editing in CCR.
   ///
-  /// Unlike [adoptGradientFactorsIfPristine], there is no later "adopt if
+  /// Unlike [adoptPlannerWaterIfPristine], there is no later "adopt if
   /// pristine" for these settings: switching mode is itself a diver edit and
   /// already sets `isDirty`, so a plan can never be both in CCR mode and
   /// pristine, and there is nothing left for a later settings change to
@@ -1261,8 +1247,9 @@ final divePlanNotifierProvider =
             : DivePlanState.kDefaultReservePressureBar;
       }
 
-      // A new plan starts on the diver's own deco settings. Once they have
-      // touched or saved it, it is theirs: see adoptGradientFactorsIfPristine.
+      // Unused now that gfLow/gfHigh live-resolve against Settings instead
+      // of being snapshotted at creation (issue #3552); kept so the
+      // DivePlanNotifier constructor's required parameter stays satisfied.
       PlanGradientFactors defaultGradientFactors() =>
           read(planGradientFactorSettingsProvider);
 
@@ -1284,13 +1271,9 @@ final divePlanNotifierProvider =
         loadEquipment: () => read(allEquipmentProvider.future),
       );
 
-      // `listen`, never `watch`: this reacts to settings without rebuilding,
-      // which is what lets an untouched plan track the diver's gradient
-      // factors while an in-progress one survives the same change.
-      ref.listen<PlanGradientFactors>(
-        planGradientFactorSettingsProvider,
-        (_, next) => notifier.adoptGradientFactorsIfPristine(next),
-      );
+      // `listen`, never `watch`: this reacts to settings without rebuilding.
+      // No GF listener here any more - gfLow/gfHigh live-resolve on every
+      // computation (issue #3552), so there is nothing to push into state.
       ref.listen<PlannerWaterType>(
         settingsProvider.select((s) => s.defaultPlannerWaterType),
         (_, next) => notifier.adoptPlannerWaterIfPristine(next),
@@ -1313,9 +1296,13 @@ final divePlanNotifierProvider =
 /// diverge from the plan outcome the canvas displays.
 final planResultsProvider = Provider<PlanResult>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
+  // Resolved against the diver's Settings when unset (issue #3552), same
+  // fallback the engine's own PlanEngineConfig.resolvedFor uses.
+  final int gfLow = state.gfLow ?? ref.watch(gfLowProvider);
+  final int gfHigh = state.gfHigh ?? ref.watch(gfHighProvider);
   final calculator = ref
       .watch(planCalculatorServiceProvider)
-      .withGradientFactors(state.gfLow, state.gfHigh);
+      .withGradientFactors(gfLow, gfHigh);
 
   if (state.segments.isEmpty) {
     return PlanResult.empty();
@@ -1325,7 +1312,8 @@ final planResultsProvider = Provider<PlanResult>((ref) {
     segments: state.segments,
     tanks: state.tanks,
     sacRate: state.sacRate ?? ref.watch(plannerSacBottomProvider),
-    reservePressure: state.reservePressure,
+    reservePressure:
+        state.reservePressure ?? ref.watch(plannerReservePressureProvider),
     initialTissueState: state.initialTissueState,
     // Altitude 0 keeps the legacy sea-level surface pressure. Null water
     // type is salt, matching the planner default - though a custom salinity,

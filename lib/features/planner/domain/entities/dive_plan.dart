@@ -51,8 +51,12 @@ class DivePlan extends Equatable {
   final DateTime? startDateTime;
 
   // Deco settings
-  final int gfLow;
-  final int gfHigh;
+  /// Null = use the diver's Settings default (issue #3552). Was
+  /// snapshot-on-create until this follow-up reconsidered it: the diver's
+  /// Settings default already existed ([gfLowProvider]/[gfHighProvider]),
+  /// it just never reached a plan again once copied in at creation.
+  final int? gfLow;
+  final int? gfHigh;
 
   /// Descent rate in m/min. Null = use the diver's Settings default
   /// (issue #3552).
@@ -111,7 +115,9 @@ class DivePlan extends Equatable {
   /// Null = derive from [sacBottom] and the diver's Settings stressed-SAC
   /// factor (issue #3552) - see [sacStressedEffective].
   final double? sacStressed;
-  final double reservePressure;
+
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? reservePressure;
 
   // Gas options (Subsurface-style; issue-driven G-series follow-up).
   /// Multiplier on [sacStressedEffective]'s fallback for the minimum-gas /
@@ -197,8 +203,8 @@ class DivePlan extends Equatable {
     this.waterType,
     this.salinityPpt,
     this.startDateTime,
-    required this.gfLow,
-    required this.gfHigh,
+    this.gfLow,
+    this.gfHigh,
     this.descentRate,
     this.ascentRate,
     this.intermediateAscentRate,
@@ -212,7 +218,7 @@ class DivePlan extends Equatable {
     this.sacBottom,
     this.sacDeco,
     this.sacStressed,
-    this.reservePressure = 50.0,
+    this.reservePressure,
     this.sacFactor,
     this.problemSolvingMinutes,
     this.ppO2Bottom,
@@ -298,7 +304,9 @@ class DivePlan extends Equatable {
     bool clearWaterType = false,
     bool clearSalinityPpt = false,
     int? gfLow,
+    bool clearGfLow = false,
     int? gfHigh,
+    bool clearGfHigh = false,
     double? descentRate,
     bool clearDescentRate = false,
     double? ascentRate,
@@ -324,6 +332,7 @@ class DivePlan extends Equatable {
     double? sacStressed,
     bool clearSacStressed = false,
     double? reservePressure,
+    bool clearReservePressure = false,
     double? sacFactor,
     bool clearSacFactor = false,
     int? problemSolvingMinutes,
@@ -380,8 +389,8 @@ class DivePlan extends Equatable {
           : (startDateTime ?? this.startDateTime),
       waterType: clearWaterType ? null : (waterType ?? this.waterType),
       salinityPpt: clearSalinityPpt ? null : (salinityPpt ?? this.salinityPpt),
-      gfLow: gfLow ?? this.gfLow,
-      gfHigh: gfHigh ?? this.gfHigh,
+      gfLow: clearGfLow ? null : (gfLow ?? this.gfLow),
+      gfHigh: clearGfHigh ? null : (gfHigh ?? this.gfHigh),
       descentRate: clearDescentRate ? null : (descentRate ?? this.descentRate),
       ascentRate: clearAscentRate ? null : (ascentRate ?? this.ascentRate),
       intermediateAscentRate: clearIntermediateAscentRate
@@ -406,7 +415,9 @@ class DivePlan extends Equatable {
       sacBottom: clearSacBottom ? null : (sacBottom ?? this.sacBottom),
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
       sacStressed: clearSacStressed ? null : (sacStressed ?? this.sacStressed),
-      reservePressure: reservePressure ?? this.reservePressure,
+      reservePressure: clearReservePressure
+          ? null
+          : (reservePressure ?? this.reservePressure),
       sacFactor: clearSacFactor ? null : (sacFactor ?? this.sacFactor),
       problemSolvingMinutes: clearProblemSolvingMinutes
           ? null

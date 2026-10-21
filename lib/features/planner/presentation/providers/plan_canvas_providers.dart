@@ -52,6 +52,9 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     turnPressureRule: ref.watch(plannerTurnPressureRuleProvider),
     turnPressureFraction: ref.watch(plannerTurnPressureFractionProvider),
     airBreakPolicy: ref.watch(plannerAirBreakPolicyProvider),
+    gfLow: ref.watch(gfLowProvider),
+    gfHigh: ref.watch(gfHighProvider),
+    reservePressure: ref.watch(plannerReservePressureProvider),
   );
 });
 
@@ -450,10 +453,11 @@ PlanCanvasSeries buildCanvasSeries({
 /// no bailout-role tank is carried. Recomputed live with the plan.
 final planBailoutProvider = Provider<BailoutOutcome?>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
-  final solver = BailoutSolver(config: ref.watch(planEngineConfigProvider));
+  final config = ref.watch(planEngineConfigProvider);
+  final solver = BailoutSolver(config: config);
   return solver.solve(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
 });
 
@@ -466,12 +470,11 @@ final contingenciesExpandedProvider = StateProvider<bool>((_) => false);
 final planDeviationsProvider = Provider<List<DeviationOutcome>>((ref) {
   if (!ref.watch(contingenciesExpandedProvider)) return const [];
   final state = ref.watch(divePlanNotifierProvider);
-  final service = ContingencyService(
-    config: ref.watch(planEngineConfigProvider),
-  );
+  final config = ref.watch(planEngineConfigProvider);
+  final service = ContingencyService(config: config);
   return service.deviations(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
 });
 
@@ -479,12 +482,11 @@ final planDeviationsProvider = Provider<List<DeviationOutcome>>((ref) {
 final planLostGasProvider = Provider<List<LostGasOutcome>>((ref) {
   if (!ref.watch(contingenciesExpandedProvider)) return const [];
   final state = ref.watch(divePlanNotifierProvider);
-  final service = ContingencyService(
-    config: ref.watch(planEngineConfigProvider),
-  );
+  final config = ref.watch(planEngineConfigProvider);
+  final service = ContingencyService(config: config);
   return service.lostGas(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
 });
 
@@ -499,12 +501,11 @@ final collapsedContingencyKeysProvider = StateProvider<Set<String>>(
 final planRangeTableProvider = Provider<RangeTable?>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   if (state.segments.isEmpty) return null;
-  final service = RangeTableService(
-    config: ref.watch(planEngineConfigProvider),
-  );
+  final config = ref.watch(planEngineConfigProvider);
+  final service = RangeTableService(config: config);
   final table = service.compute(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
   return table.isEmpty ? null : table;
 });
@@ -542,11 +543,10 @@ final selectedContingencyProvider =
       if (deviationKey == null && lostGasTankId == null) return null;
 
       final state = ref.watch(divePlanNotifierProvider);
-      final service = ContingencyService(
-        config: ref.watch(planEngineConfigProvider),
-      );
+      final config = ref.watch(planEngineConfigProvider);
+      final service = ContingencyService(config: config);
       final plan = divePlanFromState(state);
-      final startState = startStateForPlan(state);
+      final startState = startStateForPlan(state, config: config);
 
       if (deviationKey != null) {
         final deviation = service.deviationFor(

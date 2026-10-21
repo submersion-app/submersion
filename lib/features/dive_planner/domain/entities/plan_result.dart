@@ -488,11 +488,13 @@ class DivePlanState extends Equatable {
   /// Tanks available for the plan.
   final List<DiveTank> tanks;
 
-  /// Gradient factor low (0-100).
-  final int gfLow;
+  /// Gradient factor low (0-100). Null = use the diver's Settings default
+  /// (issue #3552). Mirrors [DivePlan.gfLow].
+  final int? gfLow;
 
-  /// Gradient factor high (0-100).
-  final int gfHigh;
+  /// Gradient factor high (0-100). Null = use the diver's Settings default
+  /// (issue #3552). Mirrors [DivePlan.gfHigh].
+  final int? gfHigh;
 
   /// Surface air consumption rate in L/min. Null = use the diver's Settings
   /// default (issue #3552). Mirrors [DivePlan.sacBottom].
@@ -590,8 +592,9 @@ class DivePlanState extends Equatable {
   final TurnPressureRule? turnPressureRule;
   final double? turnPressureFraction;
 
-  /// Reserve pressure in bar.
-  final double reservePressure;
+  /// Reserve pressure in bar. Null = use the diver's Settings default
+  /// (issue #3552). Mirrors [DivePlan.reservePressure].
+  final double? reservePressure;
 
   /// Multiplier on the stressed-SAC fallback for the minimum-gas / rock-
   /// bottom calculation. Null = use the diver's Settings default (issue
@@ -679,8 +682,8 @@ class DivePlanState extends Equatable {
     required this.name,
     required this.segments,
     required this.tanks,
-    this.gfLow = kFallbackGfLow,
-    this.gfHigh = kFallbackGfHigh,
+    this.gfLow,
+    this.gfHigh,
     this.sacRate,
     this.sacDeco,
     this.sacStressed,
@@ -709,7 +712,7 @@ class DivePlanState extends Equatable {
     this.deviationTimeMinutes,
     this.turnPressureRule,
     this.turnPressureFraction,
-    this.reservePressure = kDefaultReservePressureBar,
+    this.reservePressure,
     this.sacFactor,
     this.problemSolvingMinutes,
     this.gasSwitchStopSeconds,
@@ -765,7 +768,9 @@ class DivePlanState extends Equatable {
     List<PlanSegment>? segments,
     List<DiveTank>? tanks,
     int? gfLow,
+    bool clearGfLow = false,
     int? gfHigh,
+    bool clearGfHigh = false,
     double? sacRate,
     bool clearSacRate = false,
     double? sacDeco,
@@ -811,6 +816,7 @@ class DivePlanState extends Equatable {
     double? turnPressureFraction,
     bool clearTurnPressureRule = false,
     double? reservePressure,
+    bool clearReservePressure = false,
     double? sacFactor,
     bool clearSacFactor = false,
     int? problemSolvingMinutes,
@@ -852,8 +858,8 @@ class DivePlanState extends Equatable {
       name: name ?? this.name,
       segments: segments ?? this.segments,
       tanks: tanks ?? this.tanks,
-      gfLow: gfLow ?? this.gfLow,
-      gfHigh: gfHigh ?? this.gfHigh,
+      gfLow: clearGfLow ? null : (gfLow ?? this.gfLow),
+      gfHigh: clearGfHigh ? null : (gfHigh ?? this.gfHigh),
       sacRate: clearSacRate ? null : (sacRate ?? this.sacRate),
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
       sacStressed: clearSacStressed ? null : (sacStressed ?? this.sacStressed),
@@ -913,7 +919,9 @@ class DivePlanState extends Equatable {
       turnPressureFraction: clearTurnPressureRule
           ? null
           : (turnPressureFraction ?? this.turnPressureFraction),
-      reservePressure: reservePressure ?? this.reservePressure,
+      reservePressure: clearReservePressure
+          ? null
+          : (reservePressure ?? this.reservePressure),
       sacFactor: clearSacFactor ? null : (sacFactor ?? this.sacFactor),
       problemSolvingMinutes: clearProblemSolvingMinutes
           ? null
