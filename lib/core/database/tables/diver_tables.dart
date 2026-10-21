@@ -551,6 +551,14 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(1.0 / 3.0))();
   RealColumn get plannerWalkSpeedMps =>
       real().withDefault(const Constant(0.8))();
+  // v305: planner air-break and turn-pressure global defaults (issue
+  // #3552). Nullable, unlike the v302 columns above: null means "no
+  // policy"/"no rule", matching today's behaviour for every diver who has
+  // not opted in to a default.
+  TextColumn get plannerTurnPressureRule => text().nullable()();
+  RealColumn get plannerTurnPressureFraction => real().nullable()();
+  IntColumn get plannerAirBreakO2Seconds => integer().nullable()();
+  IntColumn get plannerAirBreakBreakSeconds => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

@@ -286,7 +286,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 304;
+  static const int currentSchemaVersion = 305;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1350,6 +1350,10 @@ class AppDatabase extends _$AppDatabase {
     // nullable (issue #3552). Table rebuild, same as 303; does not move
     // the compatibility floor.
     304,
+    // v305: diver_settings air-break/turn-pressure defaults and
+    // dive_plans.air_breaks_explicitly_off (issue #3552). Additive only;
+    // does not move the compatibility floor.
+    305,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -515,5 +515,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertDivePlanMissionFieldsNullable();
     }
     if (from < 304) await reportProgress();
+
+    // v305: diver_settings air-break/turn-pressure defaults and
+    // dive_plans.air_breaks_explicitly_off (issue #3552, follow-up to
+    // v302-304). Additive columns only, re-asserted in beforeOpen through
+    // _assertAirBreaksTurnPressureDefaultColumns.
+    if (from < 305) {
+      await _assertAirBreaksTurnPressureDefaultColumns();
+    }
+    if (from < 305) await reportProgress();
   }
 }

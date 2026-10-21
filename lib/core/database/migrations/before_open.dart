@@ -83,6 +83,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // v304 backstop: dive_plan_missions battery_reserve_fraction/
     // walk_speed_mps made nullable.
     await _assertDivePlanMissionFieldsNullable();
+    // v305 backstop: diver_settings air-break/turn-pressure defaults and
+    // dive_plans.air_breaks_explicitly_off.
+    await _assertAirBreaksTurnPressureDefaultColumns();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do

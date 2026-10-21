@@ -69,9 +69,15 @@ class DivePlans extends Table {
   /// Null = use the diver's Settings default (issue #3552).
   IntColumn get gasSwitchStopSeconds => integer().nullable()();
 
-  /// Air-break policy; both null = no air breaks.
+  /// Air-break policy; both null and [airBreaksExplicitlyOff] false = use
+  /// the diver's Settings default (issue #3552).
   IntColumn get airBreakO2Seconds => integer().nullable()();
   IntColumn get airBreakBreakSeconds => integer().nullable()();
+
+  /// True = no air breaks for this plan regardless of the diver's Settings
+  /// default (issue #3552).
+  BoolColumn get airBreaksExplicitlyOff =>
+      boolean().withDefault(const Constant(false))();
 
   /// Null = use the diver's Settings default (issue #3552).
   RealColumn get sacBottom => real().nullable()();
@@ -95,7 +101,8 @@ class DivePlans extends Table {
   RealColumn get deviationDepthDelta => real().nullable()();
   IntColumn get deviationTimeMinutes => integer().nullable()();
 
-  /// TurnPressureRule enum name; null = none.
+  /// TurnPressureRule enum name; null = use the diver's Settings default
+  /// (issue #3552). `"off"` is the explicit "no tracking" choice.
   TextColumn get turnPressureRule => text().nullable()();
   RealColumn get turnPressureFraction => real().nullable()();
 
