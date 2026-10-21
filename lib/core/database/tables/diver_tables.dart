@@ -559,6 +559,11 @@ class DiverSettings extends Table {
   RealColumn get plannerTurnPressureFraction => real().nullable()();
   IntColumn get plannerAirBreakO2Seconds => integer().nullable()();
   IntColumn get plannerAirBreakBreakSeconds => integer().nullable()();
+  // v306: planner reserve-pressure default (issue #3552, follow-up to
+  // v302-305). Backfilled in the migration from the diver's pressure unit
+  // (50 bar / 500 psi), matching addSimplePlan's pre-existing convention.
+  RealColumn get plannerReservePressure =>
+      real().withDefault(const Constant(50.0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

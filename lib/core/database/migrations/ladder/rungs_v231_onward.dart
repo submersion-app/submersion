@@ -524,5 +524,15 @@ extension RungsFromV231 on AppDatabase {
       await _assertAirBreaksTurnPressureDefaultColumns();
     }
     if (from < 305) await reportProgress();
+
+    // v306: reserve pressure and gradient factors join the live-resolve
+    // group (issue #3552, follow-up to v302-305) - dive_plans columns made
+    // nullable (table rebuild), diver_settings gains the reserve-pressure
+    // default (gfLow/gfHigh already had one). Re-asserted in beforeOpen
+    // through _assertDivePlanReserveAndGfNullable.
+    if (from < 306) {
+      await _assertDivePlanReserveAndGfNullable();
+    }
+    if (from < 306) await reportProgress();
   }
 }

@@ -35,9 +35,12 @@ const _ruleIndexes = {
 
 void main() {
   test('v301 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 301);
-    expect(AppDatabase.migrationVersions.last, 301);
-    expect(AppDatabase.migrationStepCount(300), 1);
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(301));
+    expect(AppDatabase.migrationVersions, contains(301));
+    expect(
+      AppDatabase.migrationStepCount(300) - AppDatabase.migrationStepCount(301),
+      1,
+    );
   });
 
   test('a fresh database has the three tables and their indexes', () async {

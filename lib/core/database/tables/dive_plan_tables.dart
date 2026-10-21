@@ -42,8 +42,10 @@ class DivePlans extends Table {
 
   /// Custom salinity in ppt. When set, deco uses this instead of [waterType].
   RealColumn get salinityPpt => real().nullable()();
-  IntColumn get gfLow => integer()();
-  IntColumn get gfHigh => integer()();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  IntColumn get gfLow => integer().nullable()();
+  IntColumn get gfHigh => integer().nullable()();
 
   /// Null = use the diver's Settings default (issue #3552).
   RealColumn get descentRate => real().nullable()();
@@ -88,7 +90,9 @@ class DivePlans extends Table {
   /// Null = derive from sacBottom and the diver's Settings stressed-SAC
   /// factor (issue #3552).
   RealColumn get sacStressed => real().nullable()();
-  RealColumn get reservePressure => real().withDefault(const Constant(50.0))();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get reservePressure => real().nullable()();
   IntColumn get surfaceIntervalSeconds => integer().nullable()();
 
   /// CCR setpoints (Phase 4 UI; persisted now to avoid a later migration).

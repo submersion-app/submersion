@@ -1,0 +1,137 @@
+import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/database/database.dart';
+
+/// Schema v306: reserve pressure and gradient factors join the live-resolve
+/// group (issue #3552, follow-up to v302-305). dive_plans.reserve_pressure/
+/// gf_low/gf_high made nullable (table rebuild, same technique as v303),
+/// diver_settings gains the reserve-pressure default (gfLow/gfHigh already
+/// had one via gfLowProvider/gfHighProvider).
+void main() {
+  NativeDatabase dbAt(int version, {String pressureUnit = 'bar'}) =>
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA user_version = $version');
+          rawDb.execute(
+            'CREATE TABLE diver_settings ("id" TEXT NOT NULL PRIMARY KEY, '
+            '"diver_id" TEXT NOT NULL, '
+            '"pressure_unit" TEXT NOT NULL DEFAULT \'bar\')',
+          );
+          rawDb.execute(
+            "INSERT INTO diver_settings (id, diver_id, pressure_unit) "
+            "VALUES ('s1', 'd1', '$pressureUnit')",
+          );
+          rawDb.execute(
+            'CREATE TABLE dive_plans ("id" TEXT NOT NULL PRIMARY KEY, '
+            '"name" TEXT NOT NULL, "gf_low" INTEGER NOT NULL, '
+            '"gf_high" INTEGER NOT NULL, '
+            '"reserve_pressure" REAL NOT NULL DEFAULT 50.0, '
+            '"created_at" INTEGER NOT NULL, "updated_at" INTEGER NOT NULL)',
+          );
+          rawDb.execute(
+            "INSERT INTO dive_plans (id, name, gf_low, gf_high, "
+            "reserve_pressure, created_at, updated_at) VALUES "
+            "('p1', 'plan', 45, 80, 60.0, 0, 0)",
+          );
+        },
+      );
+
+  test('v306 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(306));
+    expect(AppDatabase.migrationVersions, contains(306));
+    expect(
+      AppDatabase.migrationStepCount(305),
+      AppDatabase.migrationStepCount(306) + 1,
+    );
+  });
+
+  test('the columns are additive and did not move the sync floor', () {
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(306));
+  });
+
+  test(
+    'upgrading from v305 keeps the row\'s existing values unchanged',
+    () async {
+      final db = AppDatabase(dbAt(305));
+      addTearDown(db.close);
+      final row = await db
+          .customSelect(
+            'SELECT gf_low, gf_high, reserve_pressure FROM dive_plans '
+            'WHERE id = ?',
+            variables: [const Variable('p1')],
+          )
+          .getSingle();
+      expect(row.read<int>('gf_low'), 45);
+      expect(row.read<int>('gf_high'), 80);
+      expect(row.read<double>('reserve_pressure'), 60.0);
+    },
+  );
+
+  test(
+    'upgrading from v305 lets every rebuilt column accept an explicit NULL',
+    () async {
+      final db = AppDatabase(dbAt(305));
+      addTearDown(db.close);
+      await db.customStatement(
+        'UPDATE dive_plans SET gf_low = NULL, gf_high = NULL, '
+        'reserve_pressure = NULL WHERE id = ?',
+        ['p1'],
+      );
+      final row = await db
+          .customSelect(
+            'SELECT gf_low, gf_high, reserve_pressure FROM dive_plans '
+            'WHERE id = ?',
+            variables: [const Variable('p1')],
+          )
+          .getSingle();
+      expect(row.read<int?>('gf_low'), isNull);
+      expect(row.read<int?>('gf_high'), isNull);
+      expect(row.read<double?>('reserve_pressure'), isNull);
+    },
+  );
+
+  test('upgrading from v305 adds the diver_settings reserve default as 50.0 '
+      'for a metric diver', () async {
+    final db = AppDatabase(dbAt(305));
+    addTearDown(db.close);
+    final row = await db
+        .customSelect('SELECT planner_reserve_pressure FROM diver_settings')
+        .getSingle();
+    expect(row.read<double>('planner_reserve_pressure'), 50.0);
+  });
+
+  test(
+    'upgrading from v305 backfills the diver_settings reserve default to '
+    "the pre-migration imperial convention (500 psi) for a 'psi' diver",
+    () async {
+      final db = AppDatabase(dbAt(305, pressureUnit: 'psi'));
+      addTearDown(db.close);
+      final row = await db
+          .customSelect('SELECT planner_reserve_pressure FROM diver_settings')
+          .getSingle();
+      expect(
+        row.read<double>('planner_reserve_pressure'),
+        closeTo(500.0 / 14.5038, 0.0001),
+      );
+    },
+  );
+
+  test('beforeOpen heals a database already at v306 that lacks it', () async {
+    final db = AppDatabase(dbAt(306));
+    addTearDown(db.close);
+    final cols =
+        (await db.customSelect("PRAGMA table_info('dive_plans')").get())
+            .map((c) => c.read<String>('name'))
+            .toSet();
+    expect(cols, contains('gf_low'));
+    expect(cols, contains('gf_high'));
+    expect(cols, contains('reserve_pressure'));
+    final diverSettingsCols =
+        (await db.customSelect("PRAGMA table_info('diver_settings')").get())
+            .map((c) => c.read<String>('name'))
+            .toSet();
+    expect(diverSettingsCols, contains('planner_reserve_pressure'));
+  });
+}
