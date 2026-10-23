@@ -54051,4 +54051,111 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Uploaded to';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Set up this phone',
+      'tablet': 'Set up this tablet',
+      'computer': 'Set up this computer',
+      'other': 'Set up this device',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Finish setting up this phone',
+      'tablet': 'Finish setting up this tablet',
+      'computer': 'Finish setting up this computer',
+      'other': 'Finish setting up this device',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Set up this phone again',
+      'tablet': 'Set up this tablet again',
+      'computer': 'Set up this computer again',
+      'other': 'Set up this device again',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done of $total steps done';
+  }
+
+  @override
+  String get settings_setUpDevice_continue => 'Continue';
+
+  @override
+  String get settings_setUpDevice_hide => 'Hide this card';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'Choose where your data is kept';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'Keep dives on every device';
+
+  @override
+  String get settings_setUpDevice_step_backups => 'Back up automatically';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Share photo copies (optional)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Done';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Next';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Not yet';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Skipped';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Sign in';
+
+  @override
+  String get settings_setUpDevice_item_attachAction => 'Set up';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Reconnect';
+
+  @override
+  String get settings_setUpDevice_item_dismiss => 'Dismiss';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Sign in to $account again. Sync and backups are paused until you do.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Sign in to $account again.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'Your other devices keep photo copies in $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'The photo copies in $account need reconnecting.';
+  }
 }

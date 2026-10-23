@@ -55672,4 +55672,109 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'تم الرفع إلى';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'إعداد هذا الهاتف',
+      'tablet': 'إعداد هذا الجهاز اللوحي',
+      'computer': 'إعداد هذا الحاسوب',
+      'other': 'إعداد هذا الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'إكمال إعداد هذا الهاتف',
+      'tablet': 'إكمال إعداد هذا الجهاز اللوحي',
+      'computer': 'إكمال إعداد هذا الحاسوب',
+      'other': 'إكمال إعداد هذا الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'إعداد هذا الهاتف مجددًا',
+      'tablet': 'إعداد هذا الجهاز اللوحي مجددًا',
+      'computer': 'إعداد هذا الحاسوب مجددًا',
+      'other': 'إعداد هذا الجهاز مجددًا',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return 'اكتملت $done من $total خطوات';
+  }
+
+  @override
+  String get settings_setUpDevice_continue => 'متابعة';
+
+  @override
+  String get settings_setUpDevice_hide => 'إخفاء هذه البطاقة';
+
+  @override
+  String get settings_setUpDevice_step_account => 'اختر مكان حفظ بياناتك';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'الغطسات على كل جهاز';
+
+  @override
+  String get settings_setUpDevice_step_backups => 'النسخ الاحتياطي تلقائيًا';
+
+  @override
+  String get settings_setUpDevice_step_photos => 'مشاركة نسخ الصور (اختياري)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'تم';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'التالي';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'ليس بعد';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'تم التخطي';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'تسجيل الدخول';
+
+  @override
+  String get settings_setUpDevice_item_attachAction => 'إعداد';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'إعادة الاتصال';
+
+  @override
+  String get settings_setUpDevice_item_dismiss => 'تجاهل';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'سجّل الدخول إلى $account مجددًا. المزامنة والنسخ الاحتياطي متوقفان مؤقتًا حتى تفعل.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'سجّل الدخول إلى $account مجددًا.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'تحتفظ أجهزتك الأخرى بنسخ من الصور في $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'يلزم إعادة توصيل نسخ الصور في $account.';
+  }
 }

@@ -54603,4 +54603,112 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Feltöltés helye';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A telefon beállítása',
+      'tablet': 'A táblagép beállítása',
+      'computer': 'A számítógép beállítása',
+      'other': 'Az eszköz beállítása',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A telefon beállításának befejezése',
+      'tablet': 'A táblagép beállításának befejezése',
+      'computer': 'A számítógép beállításának befejezése',
+      'other': 'Az eszköz beállításának befejezése',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A telefon újbóli beállítása',
+      'tablet': 'A táblagép újbóli beállítása',
+      'computer': 'A számítógép újbóli beállítása',
+      'other': 'Az eszköz újbóli beállítása',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done/$total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$total lépésből $done kész';
+  }
+
+  @override
+  String get settings_setUpDevice_continue => 'Folytatás';
+
+  @override
+  String get settings_setUpDevice_hide => 'A kártya elrejtése';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'Válassza ki, hol legyenek az adatai';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'Merülések minden eszközön';
+
+  @override
+  String get settings_setUpDevice_step_backups =>
+      'Automatikus biztonsági mentés';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Fotómásolatok megosztása (nem kötelező)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Kész';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Következő';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Még nem';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Kihagyva';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Bejelentkezés';
+
+  @override
+  String get settings_setUpDevice_item_attachAction => 'Beállítás';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Újracsatlakozás';
+
+  @override
+  String get settings_setUpDevice_item_dismiss => 'Elvetés';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Jelentkezzen be újra ide: $account. Addig a szinkronizálás és a mentések szünetelnek.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Jelentkezzen be újra ide: $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'A többi eszköze itt tárol fotómásolatokat: $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'Az itt tárolt fotómásolatokat újra kell csatlakoztatni: $account.';
+  }
 }

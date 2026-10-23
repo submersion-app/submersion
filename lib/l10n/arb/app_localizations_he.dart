@@ -53775,4 +53775,111 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'הועלה אל';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'הגדרת הטלפון הזה',
+      'tablet': 'הגדרת הטאבלט הזה',
+      'computer': 'הגדרת המחשב הזה',
+      'other': 'הגדרת המכשיר הזה',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'סיום ההגדרה של הטלפון הזה',
+      'tablet': 'סיום ההגדרה של הטאבלט הזה',
+      'computer': 'סיום ההגדרה של המחשב הזה',
+      'other': 'סיום ההגדרה של המכשיר הזה',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'הגדרת הטלפון הזה מחדש',
+      'tablet': 'הגדרת הטאבלט הזה מחדש',
+      'computer': 'הגדרת המחשב הזה מחדש',
+      'other': 'הגדרת המכשיר הזה מחדש',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done מתוך $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done מתוך $total שלבים הושלמו';
+  }
+
+  @override
+  String get settings_setUpDevice_continue => 'המשך';
+
+  @override
+  String get settings_setUpDevice_hide => 'הסתרת הכרטיס הזה';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'בחירת המקום שבו הנתונים נשמרים';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'הצלילות בכל מכשיר';
+
+  @override
+  String get settings_setUpDevice_step_backups => 'גיבוי אוטומטי';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'שיתוף עותקים של תמונות (רשות)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'הושלם';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'הבא';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'עדיין לא';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'דולג';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'התחברות';
+
+  @override
+  String get settings_setUpDevice_item_attachAction => 'הגדרה';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'חיבור מחדש';
+
+  @override
+  String get settings_setUpDevice_item_dismiss => 'התעלמות';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'יש להתחבר שוב אל $account. הסנכרון והגיבויים מושהים עד אז.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'יש להתחבר שוב אל $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'המכשירים האחרים שלך שומרים עותקים של תמונות ב-$account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'יש לחבר מחדש את עותקי התמונות ב-$account.';
+  }
 }

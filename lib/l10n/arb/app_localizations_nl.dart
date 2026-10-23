@@ -54580,4 +54580,111 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Geüpload naar';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Deze telefoon instellen',
+      'tablet': 'Deze tablet instellen',
+      'computer': 'Deze computer instellen',
+      'other': 'Dit apparaat instellen',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Het instellen van deze telefoon afronden',
+      'tablet': 'Het instellen van deze tablet afronden',
+      'computer': 'Het instellen van deze computer afronden',
+      'other': 'Het instellen van dit apparaat afronden',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Deze telefoon opnieuw instellen',
+      'tablet': 'Deze tablet opnieuw instellen',
+      'computer': 'Deze computer opnieuw instellen',
+      'other': 'Dit apparaat opnieuw instellen',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done van $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done van $total stappen klaar';
+  }
+
+  @override
+  String get settings_setUpDevice_continue => 'Doorgaan';
+
+  @override
+  String get settings_setUpDevice_hide => 'Deze kaart verbergen';
+
+  @override
+  String get settings_setUpDevice_step_account => 'Kies waar je gegevens staan';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'Duiken op elk apparaat';
+
+  @override
+  String get settings_setUpDevice_step_backups =>
+      'Automatisch een back-up maken';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Fotokopieën delen (optioneel)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Klaar';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Volgende';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Nog niet';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Overgeslagen';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Inloggen';
+
+  @override
+  String get settings_setUpDevice_item_attachAction => 'Instellen';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Opnieuw verbinden';
+
+  @override
+  String get settings_setUpDevice_item_dismiss => 'Negeren';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Log opnieuw in bij $account. Synchronisatie en back-ups staan tot dan stil.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Log opnieuw in bij $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'Je andere apparaten bewaren fotokopieën in $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'De fotokopieën in $account moeten opnieuw worden verbonden.';
+  }
 }

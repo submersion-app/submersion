@@ -51579,4 +51579,109 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => '上传至';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '设置此手机',
+      'tablet': '设置此平板',
+      'computer': '设置此电脑',
+      'other': '设置此设备',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '完成此手机的设置',
+      'tablet': '完成此平板的设置',
+      'computer': '完成此电脑的设置',
+      'other': '完成此设备的设置',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '重新设置此手机',
+      'tablet': '重新设置此平板',
+      'computer': '重新设置此电脑',
+      'other': '重新设置此设备',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done/$total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '已完成 $done/$total 步';
+  }
+
+  @override
+  String get settings_setUpDevice_continue => '继续';
+
+  @override
+  String get settings_setUpDevice_hide => '隐藏此卡片';
+
+  @override
+  String get settings_setUpDevice_step_account => '选择数据的存放位置';
+
+  @override
+  String get settings_setUpDevice_step_sync => '让每台设备都有潜水记录';
+
+  @override
+  String get settings_setUpDevice_step_backups => '自动备份';
+
+  @override
+  String get settings_setUpDevice_step_photos => '共享照片副本（可选）';
+
+  @override
+  String get settings_setUpDevice_mark_done => '已完成';
+
+  @override
+  String get settings_setUpDevice_mark_next => '下一步';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => '尚未完成';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => '已跳过';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => '登录';
+
+  @override
+  String get settings_setUpDevice_item_attachAction => '设置';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => '重新连接';
+
+  @override
+  String get settings_setUpDevice_item_dismiss => '忽略';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return '请重新登录 $account。在此之前，同步和备份已暂停。';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return '请重新登录 $account。';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return '你的其他设备在 $account 中保存照片副本。';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return '$account 中的照片副本需要重新连接。';
+  }
 }

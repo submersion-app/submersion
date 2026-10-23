@@ -54958,4 +54958,113 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Subido a';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Configura este teléfono',
+      'tablet': 'Configura esta tableta',
+      'computer': 'Configura este ordenador',
+      'other': 'Configura este dispositivo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Termina de configurar este teléfono',
+      'tablet': 'Termina de configurar esta tableta',
+      'computer': 'Termina de configurar este ordenador',
+      'other': 'Termina de configurar este dispositivo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Vuelve a configurar este teléfono',
+      'tablet': 'Vuelve a configurar esta tableta',
+      'computer': 'Vuelve a configurar este ordenador',
+      'other': 'Vuelve a configurar este dispositivo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done de $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done de $total pasos hechos';
+  }
+
+  @override
+  String get settings_setUpDevice_continue => 'Continuar';
+
+  @override
+  String get settings_setUpDevice_hide => 'Ocultar esta tarjeta';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'Elige dónde se guardan tus datos';
+
+  @override
+  String get settings_setUpDevice_step_sync =>
+      'Inmersiones en todos tus dispositivos';
+
+  @override
+  String get settings_setUpDevice_step_backups =>
+      'Copia de seguridad automática';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Compartir copias de fotos (opcional)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Hecho';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Siguiente';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Todavía no';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Omitido';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Iniciar sesión';
+
+  @override
+  String get settings_setUpDevice_item_attachAction => 'Configurar';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Reconectar';
+
+  @override
+  String get settings_setUpDevice_item_dismiss => 'Descartar';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Vuelve a iniciar sesión en $account. La sincronización y las copias de seguridad están en pausa hasta entonces.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Vuelve a iniciar sesión en $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'Tus otros dispositivos guardan copias de fotos en $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'Hay que volver a conectar las copias de fotos de $account.';
+  }
 }
