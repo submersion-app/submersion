@@ -379,8 +379,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _rating = site.rating ?? 0;
     _difficulty = site.difficulty;
     _waterType = site.waterType;
-    _entryMethod = site.entryMethod;
-    _exitMethod = site.exitMethod;
+    _entryMethod = site.entryMethods.firstOrNull;
+    _exitMethod = site.exitMethods.firstOrNull;
     _isShared = site.isShared;
     _altitudeController.text = site.altitude != null
         ? _altitudeForInput(units.convertAltitude(site.altitude!))
@@ -556,7 +556,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
     _entryMethodCandidates = _buildDistinctCandidates<EntryMethod?>(
       data.sites,
-      (site) => site.entryMethod,
+      (site) => site.entryMethods.firstOrNull,
       equals: (a, b) => a == b,
     );
     _mergeFieldIndices['entryMethod'] = _firstMeaningfulIndex(
@@ -568,7 +568,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
     _exitMethodCandidates = _buildDistinctCandidates<EntryMethod?>(
       data.sites,
-      (site) => site.exitMethod,
+      (site) => site.exitMethods.firstOrNull,
       equals: (a, b) => a == b,
     );
     _mergeFieldIndices['exitMethod'] = _firstMeaningfulIndex(
@@ -2060,8 +2060,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             : _parkingInfoController.text.trim(),
         altitude: altitudeMeters,
         waterType: _waterType,
-        entryMethod: _entryMethod,
-        exitMethod: _exitMethod,
+        entryMethods: [?_entryMethod],
+        exitMethods: [?_exitMethod],
         isShared: _isShared,
       );
 

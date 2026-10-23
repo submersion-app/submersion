@@ -718,9 +718,9 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.difficulty:
         return site.difficulty;
       case SiteField.entryType:
-        return site.entryMethod?.displayName;
+        return site.entryMethods.firstOrNull?.displayName;
       case SiteField.exitMethod:
-        return site.exitMethod?.displayName;
+        return site.exitMethods.firstOrNull?.displayName;
       case SiteField.bestSeason:
         // No backing column; retained for saved-layout compatibility.
         return null;

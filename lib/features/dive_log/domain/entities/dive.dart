@@ -368,7 +368,8 @@ class Dive extends Equatable {
   ///
   /// Requires [site] to be hydrated; a dive loaded without its site reports
   /// only its own value.
-  EntryMethod? get effectiveEntryMethod => entryMethod ?? site?.entryMethod;
+  EntryMethod? get effectiveEntryMethod =>
+      entryMethod ?? site?.entryMethods.firstOrNull;
 
   /// The stored visibility range, or null when the dive has none.
   VisibilityRange? get visibilityRange =>

@@ -294,7 +294,7 @@ void main() {
         site: const DiveSite(
           id: 's',
           name: 'S',
-          entryMethod: enums.EntryMethod.shore,
+          entryMethods: [enums.EntryMethod.shore],
         ),
       );
       expect(options(DiveField.entryMethod, d), isEmpty);

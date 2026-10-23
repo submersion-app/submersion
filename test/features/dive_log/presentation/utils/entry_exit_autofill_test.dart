@@ -5,8 +5,12 @@ import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autof
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 void main() {
-  DiveSite site({EntryMethod? entry, EntryMethod? exit}) =>
-      DiveSite(id: 's', name: 'S', entryMethod: entry, exitMethod: exit);
+  DiveSite site({EntryMethod? entry, EntryMethod? exit}) => DiveSite(
+    id: 's',
+    name: 'S',
+    entryMethods: [?entry],
+    exitMethods: [?exit],
+  );
 
   group('entryExitAfterSiteAssign', () {
     test('clearing the site changes nothing', () {

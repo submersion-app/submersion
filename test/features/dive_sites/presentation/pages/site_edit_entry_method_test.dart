@@ -88,8 +88,8 @@ void main() {
       site: const DiveSite(
         id: 'site-1',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.boat,
-        exitMethod: EntryMethod.ladder,
+        entryMethods: [EntryMethod.boat],
+        exitMethods: [EntryMethod.ladder],
       ),
     );
     await expandAccess(tester);
@@ -118,7 +118,7 @@ void main() {
       site: const DiveSite(
         id: 'site-2',
         name: 'Shore Spot',
-        entryMethod: EntryMethod.shore,
+        entryMethods: [EntryMethod.shore],
       ),
     );
 

@@ -36,14 +36,14 @@ EntryExitSelection entryExitAfterSiteAssign({
   required bool currentLinked,
   required DiveSite? site,
 }) {
-  final entry = site?.entryMethod ?? currentEntry;
+  final entry = site?.entryMethods.firstOrNull ?? currentEntry;
   final entryChanged = entry != currentEntry;
 
   final EntryMethod? exit;
   if (!currentLinked) {
     exit = currentExit;
-  } else if (site?.exitMethod != null) {
-    exit = site!.exitMethod;
+  } else if (site?.exitMethods.firstOrNull != null) {
+    exit = site!.exitMethods.firstOrNull;
   } else if (entryChanged) {
     exit = entry;
   } else {

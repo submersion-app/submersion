@@ -1336,8 +1336,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
         (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
         (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ||
-        site.entryMethod != null ||
-        site.exitMethod != null;
+        site.entryMethods.firstOrNull != null ||
+        site.exitMethods.firstOrNull != null;
   }
 
   /// The site's depth: what it is rated for, and what dives actually found.
@@ -2054,22 +2054,23 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 site.accessNotes!,
               ),
             ],
-            if (site.entryMethod != null) ...[
+            if (site.entryMethods.firstOrNull != null) ...[
               _buildAccessRow(
                 context,
                 Icons.login,
                 context.l10n.diveSites_detail_access_entryMethod,
-                site.entryMethod!.localizedName(context.l10n),
+                site.entryMethods.first.localizedName(context.l10n),
               ),
             ],
             // Only when it differs: a mirrored exit repeats the entry row.
-            if (site.exitMethod != null &&
-                site.exitMethod != site.entryMethod) ...[
+            if (site.exitMethods.firstOrNull != null &&
+                site.exitMethods.firstOrNull !=
+                    site.entryMethods.firstOrNull) ...[
               _buildAccessRow(
                 context,
                 Icons.logout,
                 context.l10n.diveSites_detail_access_exitMethod,
-                site.exitMethod!.localizedName(context.l10n),
+                site.exitMethods.first.localizedName(context.l10n),
               ),
             ],
             if (site.mooringNumber != null &&

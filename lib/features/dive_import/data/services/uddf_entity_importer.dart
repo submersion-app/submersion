@@ -105,6 +105,7 @@ import 'package:submersion/features/universal_import/data/services/import_tank_d
 import 'package:uuid/uuid.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -2021,10 +2022,10 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
-        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
+        entryMethods: decodeEntryMethods(siteData['entryMethod'] as String?),
         // A site's typical way out (issue #2201); null means the
         // same as the entry, so an absent cell stays null.
-        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
+        exitMethods: decodeEntryMethods(siteData['exitMethod'] as String?),
       );
 
       // Core fields and the importer-only metadata columns go out as one
@@ -2112,10 +2113,10 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
-        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
+        entryMethods: decodeEntryMethods(siteData['entryMethod'] as String?),
         // A site's typical way out (issue #2201); null means the
         // same as the entry, so an absent cell stays null.
-        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
+        exitMethods: decodeEntryMethods(siteData['exitMethod'] as String?),
       );
 
       final createdSite = await repository.createSite(newSite);

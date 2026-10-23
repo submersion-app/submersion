@@ -15,6 +15,7 @@ import 'package:submersion/features/site_types/data/repositories/site_type_repos
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 /// Turns a local library site into its document and a document back into
 /// the row and children (issue #2567).
@@ -118,8 +119,8 @@ class SiteDocumentBridge {
         'mooringNumber' => site.mooringNumber,
         'parkingInfo' => site.parkingInfo,
         'altitude' => site.altitude,
-        'entryMethod' => site.entryMethod?.name,
-        'exitMethod' => site.exitMethod?.name,
+        'entryMethod' => encodeEntryMethods(site.entryMethods),
+        'exitMethod' => encodeEntryMethods(site.exitMethods),
         _ => null,
       };
 

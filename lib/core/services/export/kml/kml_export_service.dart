@@ -229,14 +229,15 @@ class KmlExportService {
         '<p><b>Water Type:</b> ${_escapeHtml(site.waterType!.displayName)}</p>',
       );
     }
-    if (site.entryMethod != null) {
+    if (site.entryMethods.firstOrNull != null) {
       buffer.writeln(
-        '<p><b>Entry:</b> ${_escapeHtml(site.entryMethod!.displayName)}</p>',
+        '<p><b>Entry:</b> ${_escapeHtml(site.entryMethods.first.displayName)}</p>',
       );
     }
-    if (site.exitMethod != null && site.exitMethod != site.entryMethod) {
+    if (site.exitMethods.firstOrNull != null &&
+        site.exitMethods.firstOrNull != site.entryMethods.firstOrNull) {
       buffer.writeln(
-        '<p><b>Exit:</b> ${_escapeHtml(site.exitMethod!.displayName)}</p>',
+        '<p><b>Exit:</b> ${_escapeHtml(site.exitMethods.first.displayName)}</p>',
       );
     }
 

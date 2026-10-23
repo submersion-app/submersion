@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// Issue #1427: a dive with no entry method of its own reports its site's.
 void main() {
   DiveSite site({EntryMethod? entryMethod}) =>
-      DiveSite(id: 'site', name: 'Site', entryMethod: entryMethod);
+      DiveSite(id: 'site', name: 'Site', entryMethods: [?entryMethod]);
 
   Dive dive({EntryMethod? entryMethod, DiveSite? site}) => Dive(
     id: 'dive',

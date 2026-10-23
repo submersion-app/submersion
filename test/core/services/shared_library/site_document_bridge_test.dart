@@ -78,7 +78,7 @@ void main() {
     expect(site.hazards, 'current');
     expect(site.maxDepth, 30.0);
     expect(site.location?.latitude, 1.5);
-    expect(site.entryMethod?.name, 'shore');
+    expect(site.entryMethods.map((m) => m.name), ['shore']);
     expect(
       (await SiteClassificationRepository().getTypesForSite(
         's1',

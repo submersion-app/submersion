@@ -799,8 +799,8 @@ void main() {
           accessNotes: 'Walk in from the church parking lot',
           mooringNumber: 'M-12',
           parkingInfo: 'Free parking by the church',
-          entryMethod: EntryMethod.shore,
-          exitMethod: EntryMethod.boat,
+          entryMethods: [EntryMethod.shore],
+          exitMethods: [EntryMethod.boat],
         );
         _setMobileTestSurfaceSize(tester);
         final overrides = await getBaseOverrides();

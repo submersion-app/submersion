@@ -94,8 +94,8 @@ void main() {
       site: const DiveSite(
         id: 'site-1',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.giantStride,
-        exitMethod: EntryMethod.ladder,
+        entryMethods: [EntryMethod.giantStride],
+        exitMethods: [EntryMethod.ladder],
       ),
     );
     await expandConditions(tester);
@@ -110,7 +110,7 @@ void main() {
       site: const DiveSite(
         id: 'site-1',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.boat,
+        entryMethods: [EntryMethod.boat],
       ),
     );
     await expandConditions(tester);

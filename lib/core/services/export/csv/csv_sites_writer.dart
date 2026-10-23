@@ -82,7 +82,7 @@ class CsvSitesWriter {
         // Typical current has no backing column; the header position is kept
         // so existing consumers of this CSV keep their column offsets.
         '',
-        site.entryMethod?.displayName ?? '',
+        site.entryMethods.firstOrNull?.displayName ?? '',
         site.rating?.toStringAsFixed(1) ?? '',
         sanitizeCsvField(site.description.replaceAll('\n', ' ')),
         sanitizeCsvField(site.notes.replaceAll('\n', ' ')),
@@ -96,7 +96,7 @@ class CsvSitesWriter {
         sanitizeCsvField(site.accessNotes?.replaceAll('\n', ' ')),
         sanitizeCsvField(site.mooringNumber),
         sanitizeCsvField(site.parkingInfo?.replaceAll('\n', ' ')),
-        site.exitMethod?.displayName ?? '',
+        site.exitMethods.firstOrNull?.displayName ?? '',
         sanitizeCsvField(joinCsvList(typeNamesBySite[site.id] ?? const [])),
         sanitizeCsvField(joinCsvList(tagNamesBySite[site.id] ?? const [])),
         sanitizeCsvField(

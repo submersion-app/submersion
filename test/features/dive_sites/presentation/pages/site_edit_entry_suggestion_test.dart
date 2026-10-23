@@ -106,7 +106,7 @@ void main() {
       site: const DiveSite(
         id: 'site-1',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.shore,
+        entryMethods: [EntryMethod.shore],
       ),
     );
     await expandAccess(tester);

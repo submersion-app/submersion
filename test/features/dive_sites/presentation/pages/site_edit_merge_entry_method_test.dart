@@ -65,14 +65,14 @@ void main() {
       const DiveSite(
         id: 'em-1',
         name: 'Boat Site',
-        entryMethod: EntryMethod.boat,
+        entryMethods: [EntryMethod.boat],
       ),
     );
     final site2 = await siteRepository.createSite(
       const DiveSite(
         id: 'em-2',
         name: 'Boat Site',
-        entryMethod: EntryMethod.shore,
+        entryMethods: [EntryMethod.shore],
       ),
     );
 
@@ -111,13 +111,17 @@ void main() {
     addTearDown(tester.view.reset);
 
     final site1 = await siteRepository.createSite(
-      const DiveSite(id: 'xm-1', name: 'Wall', exitMethod: EntryMethod.ladder),
+      const DiveSite(
+        id: 'xm-1',
+        name: 'Wall',
+        exitMethods: [EntryMethod.ladder],
+      ),
     );
     final site2 = await siteRepository.createSite(
       const DiveSite(
         id: 'xm-2',
         name: 'Wall',
-        exitMethod: EntryMethod.platform,
+        exitMethods: [EntryMethod.platform],
       ),
     );
 
@@ -152,10 +156,18 @@ void main() {
     addTearDown(tester.view.reset);
 
     final site1 = await siteRepository.createSite(
-      const DiveSite(id: 'ag-1', name: 'Pier', entryMethod: EntryMethod.jetty),
+      const DiveSite(
+        id: 'ag-1',
+        name: 'Pier',
+        entryMethods: [EntryMethod.jetty],
+      ),
     );
     final site2 = await siteRepository.createSite(
-      const DiveSite(id: 'ag-2', name: 'Pier', entryMethod: EntryMethod.jetty),
+      const DiveSite(
+        id: 'ag-2',
+        name: 'Pier',
+        entryMethods: [EntryMethod.jetty],
+      ),
     );
 
     await tester.pumpWidget(
