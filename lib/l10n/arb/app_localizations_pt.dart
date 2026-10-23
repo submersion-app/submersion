@@ -12286,6 +12286,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'Não foi possível desfazer: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Mergulhador Ativo';
 
   @override

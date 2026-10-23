@@ -3693,6 +3693,7 @@
   "divers_misplacedLogbook_mergedSnack": "Zusammengeführt in {target}",
   "divers_misplacedLogbook_undo": "Rückgängig",
   "divers_misplacedLogbook_mergeFailed": "Zusammenführung fehlgeschlagen: {error}",
+  "divers_misplacedLogbook_undoFailed": "Rückgängig machen fehlgeschlagen: {error}",
   "divers_detail_activeDiver": "Aktiver Taucher",
   "divers_detail_cancelButton": "Abbrechen",
   "divers_detail_deleteButton": "Löschen",

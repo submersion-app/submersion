@@ -12260,6 +12260,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'A visszavonás sikertelen: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Aktív merülő';
 
   @override

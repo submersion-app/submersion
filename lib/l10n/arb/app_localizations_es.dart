@@ -12283,6 +12283,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'No se pudo deshacer: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Buceador activo';
 
   @override

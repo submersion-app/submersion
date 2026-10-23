@@ -3775,6 +3775,7 @@
   "divers_misplacedLogbook_mergedSnack": "已合并到 {target}",
   "divers_misplacedLogbook_undo": "撤销",
   "divers_misplacedLogbook_mergeFailed": "合并失败：{error}",
+  "divers_misplacedLogbook_undoFailed": "撤销失败：{error}",
   "divers_detail_activeDiver": "当前潜水员",
   "divers_detail_cancelButton": "取消",
   "divers_detail_deleteButton": "删除",

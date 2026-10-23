@@ -3560,6 +3560,7 @@
   "divers_misplacedLogbook_mergedSnack": "מוזג אל {target}",
   "divers_misplacedLogbook_undo": "בטל",
   "divers_misplacedLogbook_mergeFailed": "המיזוג נכשל: {error}",
+  "divers_misplacedLogbook_undoFailed": "הביטול נכשל: {error}",
   "divers_detail_activeDiver": "צולל פעיל",
   "divers_detail_cancelButton": "ביטול",
   "divers_detail_deleteButton": "מחיקה",

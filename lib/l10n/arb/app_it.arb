@@ -3560,6 +3560,7 @@
   "divers_misplacedLogbook_mergedSnack": "Unito in {target}",
   "divers_misplacedLogbook_undo": "Annulla",
   "divers_misplacedLogbook_mergeFailed": "Unione non riuscita: {error}",
+  "divers_misplacedLogbook_undoFailed": "Annullamento non riuscito: {error}",
   "divers_detail_activeDiver": "Subacqueo attivo",
   "divers_detail_cancelButton": "Annulla",
   "divers_detail_deleteButton": "Elimina",

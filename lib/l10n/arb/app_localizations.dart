@@ -19627,6 +19627,12 @@ abstract class AppLocalizations {
   /// **'Merge failed: {error}'**
   String divers_misplacedLogbook_mergeFailed(String error);
 
+  /// Snackbar when undoing the merge from the Dives list banner fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo failed: {error}'**
+  String divers_misplacedLogbook_undoFailed(String error);
+
   /// No description provided for @divers_detail_activeDiver.
   ///
   /// In en, this message translates to:

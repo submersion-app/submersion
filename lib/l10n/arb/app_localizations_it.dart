@@ -12287,6 +12287,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'Annullamento non riuscito: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Subacqueo attivo';
 
   @override

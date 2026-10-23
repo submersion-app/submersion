@@ -3660,6 +3660,7 @@
   "divers_misplacedLogbook_mergedSnack": "Samengevoegd in {target}",
   "divers_misplacedLogbook_undo": "Ongedaan maken",
   "divers_misplacedLogbook_mergeFailed": "Samenvoegen mislukt: {error}",
+  "divers_misplacedLogbook_undoFailed": "Ongedaan maken mislukt: {error}",
   "divers_detail_activeDiver": "Actieve duiker",
   "divers_detail_cancelButton": "Annuleren",
   "divers_detail_deleteButton": "Verwijderen",

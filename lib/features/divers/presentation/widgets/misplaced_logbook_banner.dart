@@ -11,11 +11,23 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// empty and another profile holds the logbook (issue #3549). Sits where the
 /// diver is looking when their dives seem lost, and stays until they switch,
 /// merge, or keep both.
-class MisplacedLogbookBanner extends ConsumerWidget {
+class MisplacedLogbookBanner extends ConsumerStatefulWidget {
   const MisplacedLogbookBanner({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MisplacedLogbookBanner> createState() =>
+      _MisplacedLogbookBannerState();
+}
+
+class _MisplacedLogbookBannerState
+    extends ConsumerState<MisplacedLogbookBanner> {
+  /// True while an action runs. The banner stays up until the dive-count
+  /// tick lands, so without this a second Merge could run against the
+  /// profile the first one already removed.
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
     final found = ref.watch(misplacedLogbookProvider).asData?.value;
     if (found == null) return const SizedBox.shrink();
 
@@ -64,18 +76,24 @@ class MisplacedLogbookBanner extends ConsumerWidget {
             runSpacing: 8,
             children: [
               FilledButton(
-                onPressed: () => _switch(context, ref, found),
+                onPressed: _busy ? null : () => _run(() => _switch(found)),
                 child: Text(l10n.divers_misplacedLogbook_switchTo),
               ),
               if (found.canMerge)
                 FilledButton.tonal(
-                  onPressed: () => _confirmAndMerge(context, ref, found),
+                  onPressed: _busy
+                      ? null
+                      : () => _run(() => _confirmAndMerge(found)),
                   child: Text(l10n.divers_misplacedLogbook_merge),
                 ),
               TextButton(
-                onPressed: () => ref
-                    .read(misplacedLogbookKeptBothProvider.notifier)
-                    .keepBoth(found.active.id, found.target.id),
+                onPressed: _busy
+                    ? null
+                    : () => _run(
+                        () => ref
+                            .read(misplacedLogbookKeptBothProvider.notifier)
+                            .keepBoth(found.active.id, found.target.id),
+                      ),
                 child: Text(l10n.divers_misplacedLogbook_keepBoth),
               ),
             ],
@@ -85,11 +103,16 @@ class MisplacedLogbookBanner extends ConsumerWidget {
     );
   }
 
-  Future<void> _switch(
-    BuildContext context,
-    WidgetRef ref,
-    MisplacedLogbook found,
-  ) async {
+  Future<void> _run(Future<void> Function() action) async {
+    setState(() => _busy = true);
+    try {
+      await action();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _switch(MisplacedLogbook found) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final message = context.l10n.settings_profile_switchedTo(found.target.name);
     await ref
@@ -98,11 +121,7 @@ class MisplacedLogbookBanner extends ConsumerWidget {
     messenger?.showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _confirmAndMerge(
-    BuildContext context,
-    WidgetRef ref,
-    MisplacedLogbook found,
-  ) async {
+  Future<void> _confirmAndMerge(MisplacedLogbook found) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
@@ -127,7 +146,7 @@ class MisplacedLogbookBanner extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
     // Read before the awaits: the merge removes the active profile, which
     // rebuilds the Dives list and can unmount this banner.
@@ -156,7 +175,16 @@ class MisplacedLogbookBanner extends ConsumerWidget {
         action: SnackBarAction(
           label: l10n.divers_misplacedLogbook_undo,
           onPressed: () async {
-            await repo.undoMerge(snapshot);
+            try {
+              await repo.undoMerge(snapshot);
+            } catch (e) {
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(l10n.divers_misplacedLogbook_undoFailed('$e')),
+                ),
+              );
+              return;
+            }
             await currentDiver.setCurrentDiver(found.active.id);
           },
         ),

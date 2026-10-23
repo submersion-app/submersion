@@ -3560,6 +3560,7 @@
   "divers_misplacedLogbook_mergedSnack": "Összevonva ide: {target}",
   "divers_misplacedLogbook_undo": "Visszavonás",
   "divers_misplacedLogbook_mergeFailed": "Összevonás sikertelen: {error}",
+  "divers_misplacedLogbook_undoFailed": "A visszavonás sikertelen: {error}",
   "divers_detail_activeDiver": "Aktív merülő",
   "divers_detail_cancelButton": "Mégse",
   "divers_detail_deleteButton": "Törlés",

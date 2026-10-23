@@ -44,9 +44,16 @@ class MisplacedLogbookKeptBothNotifier extends StateNotifier<Set<String>> {
 final misplacedLogbookProvider = FutureProvider<MisplacedLogbook?>((ref) async {
   final activeDiverId = ref.watch(currentDiverIdProvider);
   final keptBoth = ref.watch(misplacedLogbookKeptBothProvider);
-  final divers = await ref.watch(allDiversProvider.future);
-  if (divers.length < 2) return null;
+  if (activeDiverId == null) return null;
+  // The counts are one GROUP BY; the profiles are hydrated rows (contacts,
+  // documents, photo). Settle the common case, an active profile with dives
+  // or no other profile with any, before loading them.
   final counts = await ref.watch(diveCountsByDiverProvider.future);
+  if ((counts[activeDiverId] ?? 0) > 0) return null;
+  if (!counts.entries.any((e) => e.key != activeDiverId && e.value > 0)) {
+    return null;
+  }
+  final divers = await ref.watch(allDiversProvider.future);
   return findMisplacedLogbook(
     activeDiverId: activeDiverId,
     divers: divers,

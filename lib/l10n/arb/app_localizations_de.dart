@@ -12290,6 +12290,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'Rückgängig machen fehlgeschlagen: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Aktiver Taucher';
 
   @override

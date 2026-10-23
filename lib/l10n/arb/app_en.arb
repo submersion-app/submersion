@@ -7517,6 +7517,16 @@
       }
     }
   },
+  "divers_misplacedLogbook_undoFailed": "Undo failed: {error}",
+  "@divers_misplacedLogbook_undoFailed": {
+    "description": "Snackbar when undoing the merge from the Dives list banner fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "database is locked"
+      }
+    }
+  },
   "divers_detail_activeDiver": "Active Diver",
   "divers_detail_cancelButton": "Cancel",
   "divers_detail_deleteButton": "Delete",

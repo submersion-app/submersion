@@ -3660,6 +3660,7 @@
   "divers_misplacedLogbook_mergedSnack": "تم الدمج في {target}",
   "divers_misplacedLogbook_undo": "تراجع",
   "divers_misplacedLogbook_mergeFailed": "فشل الدمج: {error}",
+  "divers_misplacedLogbook_undoFailed": "فشل التراجع: {error}",
   "divers_detail_activeDiver": "الغواص النشط",
   "divers_detail_cancelButton": "إلغاء",
   "divers_detail_deleteButton": "حذف",

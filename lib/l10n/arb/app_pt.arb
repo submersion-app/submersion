@@ -3660,6 +3660,7 @@
   "divers_misplacedLogbook_mergedSnack": "Mesclado em {target}",
   "divers_misplacedLogbook_undo": "Desfazer",
   "divers_misplacedLogbook_mergeFailed": "Falha ao mesclar: {error}",
+  "divers_misplacedLogbook_undoFailed": "Não foi possível desfazer: {error}",
   "divers_detail_activeDiver": "Mergulhador Ativo",
   "divers_detail_cancelButton": "Cancelar",
   "divers_detail_deleteButton": "Excluir",

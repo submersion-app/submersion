@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +18,8 @@ class _FakeMergeRepository implements DiverMergeRepository {
   final merges = <({String keeperId, String duplicateId})>[];
   final undone = <DiverMergeSnapshot>[];
   Object? failWith;
+  Object? failUndoWith;
+  Completer<void>? hold;
 
   @override
   Future<DiverMergeSnapshot> mergeDivers({
@@ -24,6 +28,7 @@ class _FakeMergeRepository implements DiverMergeRepository {
   }) async {
     final error = failWith;
     if (error != null) throw error;
+    await hold?.future;
     merges.add((keeperId: keeperId, duplicateId: duplicateId));
     return DiverMergeSnapshot(
       keeperId: keeperId,
@@ -36,6 +41,8 @@ class _FakeMergeRepository implements DiverMergeRepository {
 
   @override
   Future<void> undoMerge(DiverMergeSnapshot snapshot) async {
+    final error = failUndoWith;
+    if (error != null) throw error;
     undone.add(snapshot);
   }
 
@@ -220,5 +227,55 @@ void main() {
 
     expect(find.textContaining('database is locked'), findsOne);
     expect(currentDiver.state, _active.id);
+  });
+
+  Future<void> confirmMerge(WidgetTester tester) async {
+    await tester.tap(find.text('Merge'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(FilledButton, 'Merge'),
+      ),
+    );
+  }
+
+  testWidgets('a failed undo says so and keeps the kept profile active', (
+    tester,
+  ) async {
+    mergeRepo.failUndoWith = StateError('undo blocked');
+    await pumpBanner(tester);
+    await confirmMerge(tester);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Undo failed: Bad state: undo blocked'), findsOne);
+    expect(currentDiver.state, _target.id);
+  });
+
+  testWidgets('the actions are disabled while a merge runs', (tester) async {
+    final hold = Completer<void>();
+    mergeRepo.hold = hold;
+    await pumpBanner(tester);
+    await confirmMerge(tester);
+    await tester.pumpAndSettle();
+
+    ButtonStyleButton button(String label) => tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text(label),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      ),
+    );
+    expect(button('Merge').onPressed, isNull);
+    expect(button('Switch').onPressed, isNull);
+    expect(button('Keep both').onPressed, isNull);
+
+    hold.complete();
+    await tester.pumpAndSettle();
+
+    expect(mergeRepo.merges, hasLength(1));
+    expect(button('Merge').onPressed, isNotNull);
   });
 }

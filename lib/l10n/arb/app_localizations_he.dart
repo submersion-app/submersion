@@ -12021,6 +12021,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'הביטול נכשל: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'צולל פעיל';
 
   @override

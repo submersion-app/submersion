@@ -11693,6 +11693,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return '撤销失败：$error';
+  }
+
+  @override
   String get divers_detail_activeDiver => '当前潜水员';
 
   @override

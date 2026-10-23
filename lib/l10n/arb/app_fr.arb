@@ -3560,6 +3560,7 @@
   "divers_misplacedLogbook_mergedSnack": "Fusionné dans {target}",
   "divers_misplacedLogbook_undo": "Annuler",
   "divers_misplacedLogbook_mergeFailed": "Échec de la fusion : {error}",
+  "divers_misplacedLogbook_undoFailed": "Échec de l'annulation : {error}",
   "divers_detail_activeDiver": "Plongeur actif",
   "divers_detail_cancelButton": "Annuler",
   "divers_detail_deleteButton": "Supprimer",

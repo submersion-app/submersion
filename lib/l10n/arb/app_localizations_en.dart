@@ -12098,6 +12098,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'Undo failed: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Active Diver';
 
   @override

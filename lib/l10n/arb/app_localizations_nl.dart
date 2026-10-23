@@ -12202,6 +12202,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'Ongedaan maken mislukt: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Actieve duiker';
 
   @override

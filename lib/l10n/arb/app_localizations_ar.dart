@@ -12458,6 +12458,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'فشل التراجع: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'الغواص النشط';
 
   @override
