@@ -136,6 +136,27 @@ void main() {
     expect(opened, ['d1', 'd130', 'd1']);
   });
 
+  testWidgets('End lands on the loaded dives when the rest fails to load', (
+    tester,
+  ) async {
+    final loaded = [for (var i = 1; i <= 120; i++) makeDive('d$i')];
+    final notifier = MockPaginatedNotifier(loaded, hasMore: true)
+      ..restError = StateError('load failed');
+    final opened = <String?>[];
+    await _pump(tester, loaded, _SplitHost(opened: opened), notifier: notifier);
+
+    await tester.tap(_row('d1'));
+    await _settle(tester, untilIdle: false);
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    // Paging never ends, so the trailing spinner keeps the frames going.
+    await _settle(tester, untilIdle: false);
+    await _settle(tester, untilIdle: false);
+
+    expect(notifier.loadRestCalls, 1);
+    expect(opened, ['d1', 'd120']);
+    expect(tester.takeException(), isNull, reason: 'the list caught it');
+  });
+
   testWidgets('split view: Enter does not step to a neighbouring dive', (
     tester,
   ) async {

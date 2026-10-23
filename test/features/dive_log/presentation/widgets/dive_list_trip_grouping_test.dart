@@ -65,9 +65,14 @@ class MockPaginatedNotifier
   /// Rows [loadRest] appends, all at once, as End's load does.
   List<DiveSummary> rest = const [];
 
+  /// When set, [loadRest] throws this instead of loading.
+  Object? restError;
+
   @override
   Future<void> loadRest() async {
     loadRestCalls++;
+    final error = restError;
+    if (error != null) throw error;
     final current = state.value ?? const PaginatedDiveListState();
     state = AsyncValue.data(
       current.copyWith(dives: [...current.dives, ...rest], hasMore: false),
