@@ -321,15 +321,18 @@ void main() {
     await sites;
   });
 
-  test('itemIdsWithShares lists the items shared with someone by name', () async {
-    await seedTrip(db, 'other', owner: 'me');
-    await repository.setSharing(
-      trip,
-      'bonaire',
-      const ItemSharing(profileIds: {'son', 'daughter'}),
-      actingDiverId: 'me',
-    );
-    expect(await repository.itemIdsWithShares(trip), {'bonaire'});
-    expect(await repository.itemIdsWithShares(site), isEmpty);
-  });
+  test(
+    'itemIdsWithShares lists the items shared with someone by name',
+    () async {
+      await seedTrip(db, 'other', owner: 'me');
+      await repository.setSharing(
+        trip,
+        'bonaire',
+        const ItemSharing(profileIds: {'son', 'daughter'}),
+        actingDiverId: 'me',
+      );
+      expect(await repository.itemIdsWithShares(trip), {'bonaire'});
+      expect(await repository.itemIdsWithShares(site), isEmpty);
+    },
+  );
 }
