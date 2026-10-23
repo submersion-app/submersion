@@ -40,7 +40,7 @@ class ListScrubberPanel extends StatefulWidget {
       density ? width + ListScrubberDensityPainter.columnEnd : width;
   static const maxBandWidth = 160.0;
 
-  /// Marks the backing behind each marker label.
+  /// Marks the padded box around each marker label.
   static const labelBackingKey = ValueKey('list-scrubber-label-backing');
   static const currentBandKey = ValueKey('listScrubber.currentBand');
   static const currentValueKey = ValueKey('listScrubber.currentValue');
@@ -258,7 +258,6 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
                     translation: const Offset(0, -0.5),
                     child: Center(
                       child: _backing(
-                        colors,
                         key: ListScrubberPanel.labelBackingKey,
                         child: Text(
                           m.marker.label,
@@ -332,20 +331,13 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     );
   }
 
-  Widget _backing(ColorScheme colors, {Key? key, required Widget child}) =>
-      DecoratedBox(
-        key: key,
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHigh.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: ListScrubberPanel._backingPadding,
-          ),
-          child: child,
-        ),
-      );
+  Widget _backing({Key? key, required Widget child}) => Padding(
+    key: key,
+    padding: const EdgeInsets.symmetric(
+      horizontal: ListScrubberPanel._backingPadding,
+    ),
+    child: child,
+  );
 
   /// The current value, styled like a marker but bold, and its marker line
   /// on a band level with the thumb. A band wider than the panel sticks out
@@ -389,7 +381,6 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
               ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: labelMax),
                 child: _backing(
-                  colors,
                   child: Text(
                     label,
                     key: ListScrubberPanel.currentValueKey,
