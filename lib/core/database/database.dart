@@ -260,6 +260,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
+    TripShares,
+    SiteShares,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
     // Certification currency (v271, issue #2267)
@@ -286,7 +288,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 308;
+  static const int currentSchemaVersion = 309;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1378,6 +1380,12 @@ class AppDatabase extends _$AppDatabase {
     // rebuild for dive_plans; raises the compatibility floor to 308 for
     // the whole v305-v308 nullability change. Renumbered from 306.
     308,
+    // v309: trip_shares and site_shares, the profiles a trip or site is
+    // shared with when it is not shared with everyone (issue #2151).
+    // Table-only rung, no backfill; an older peer keeps the new entity types
+    // as inert unknowns and sees such an item as private, so the floor does
+    // not move.
+    309,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

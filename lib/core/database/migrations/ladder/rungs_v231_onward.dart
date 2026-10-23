@@ -545,5 +545,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertDivePlanReserveAndGfNullable();
     }
     if (from < 308) await reportProgress();
+
+    // v309: the profiles a trip or site is shared with when it is not
+    // shared with everyone (issue #2151). Table-only rung, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 309) {
+      await _assertTripSharesSchema();
+      await _assertSiteSharesSchema();
+    }
+    if (from < 309) await reportProgress();
   }
 }

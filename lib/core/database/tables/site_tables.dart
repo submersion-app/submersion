@@ -283,3 +283,35 @@ class SiteHides extends Table {
   ];
   // coverage:ignore-end
 }
+
+/// A profile a site is shared with when it is not shared with everyone
+/// (v309, issue #2151). "Everyone" stays `dive_sites.is_shared`; the two forms
+/// never hold together for long (a reader that meets both treats the site as
+/// shared with everyone). A parent-gated child of `dive_sites`, like
+/// `site_hides`: no updated_at, its own clock, never updated in place (a
+/// change of profile is a delete and a new row). Both parents cascade.
+@DataClassName('SiteShareRow')
+class SiteShares extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get siteId =>
+      text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// Leads with the profile: every visibility read is "sites shared with
+  /// this profile".
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {diverId, siteId},
+  ];
+  // coverage:ignore-end
+}

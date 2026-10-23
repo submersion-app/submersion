@@ -91,4 +91,14 @@ extension SiteMigrations on AppDatabase {
     }
     await Migrator(this).createTable(siteHides);
   }
+
+  /// The site_shares table (v309, issue #2151). Called from the v309 rung
+  /// and the beforeOpen backstop. Skipped on a partial migration-test
+  /// fixture that lacks a parent table.
+  Future<void> _assertSiteSharesSchema() async {
+    for (final parent in const ['dive_sites', 'divers']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(siteShares);
+  }
 }
