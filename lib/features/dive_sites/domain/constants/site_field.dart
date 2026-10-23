@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
@@ -19,11 +20,6 @@ typedef SiteWithCount = SiteWithDiveCount;
 /// Rounds to whole seconds first. SQLite's AVG returns fractional seconds,
 /// and the detail page rounds before formatting; truncating here instead
 /// would report a different minute for the same dive.
-/// A site's entry or exit methods for a table cell, in the export vocabulary
-/// ([EntryMethod.displayName]); null when there are none.
-String? _methodNames(List<EntryMethod> methods) =>
-    methods.isEmpty ? null : methods.map((m) => m.displayName).join(', ');
-
 String _formatDurationSeconds(num seconds) {
   final totalMinutes = seconds.round() ~/ 60;
   final hours = totalMinutes ~/ 60;
@@ -839,3 +835,9 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
     return SiteField.values.firstWhere((e) => e.name == name);
   }
 }
+
+/// A site's entry or exit methods for a table cell, in the export vocabulary
+/// ([EntryMethod.displayName]); null when there are none.
+String? _methodNames(List<EntryMethod> methods) => methods.isEmpty
+    ? null
+    : joinEntryMethodNames(methods, (m) => m.displayName);

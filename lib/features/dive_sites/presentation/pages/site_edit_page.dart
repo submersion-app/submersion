@@ -22,6 +22,7 @@ import 'package:submersion/features/settings/presentation/providers/hidden_built
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
@@ -1007,7 +1008,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   ].join(' · ');
 
   String _methodNames(List<EntryMethod> methods) =>
-      methods.map((m) => m.localizedName(context.l10n)).join(', ');
+      joinEntryMethodNames(methods, (m) => m.localizedName(context.l10n));
 
   String _accessSummary() => [
     if (_accessNotesController.text.trim().isNotEmpty)
@@ -1015,8 +1016,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (_entryMethods.isNotEmpty) _methodNames(_entryMethods),
     // Only when it differs, so the common mirrored case does not read
     // "Boat · Boat".
-    if (_exitMethods.isNotEmpty &&
-        !setEquals(_exitMethods.toSet(), _entryMethods.toSet()))
+    if (exitDiffersFromEntry(_entryMethods, _exitMethods))
       _methodNames(_exitMethods),
     if (_mooringNumberController.text.trim().isNotEmpty)
       context.l10n.diveSites_edit_access_mooringNumber_label,

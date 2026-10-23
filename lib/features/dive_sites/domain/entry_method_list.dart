@@ -27,3 +27,19 @@ List<EntryMethod> decodeEntryMethods(String? stored) {
     for (final name in stored.split(',')) ?byName[name.trim()],
   ]);
 }
+
+/// [methods] named by [name] and joined by ", ", in list order.
+String joinEntryMethodNames(
+  Iterable<EntryMethod> methods,
+  String Function(EntryMethod method) name,
+) => methods.map(name).join(', ');
+
+/// Whether a site's [exit] methods need a line of their own beside [entry]:
+/// empty exits mean "same as entry", and the same methods in another order
+/// are the same.
+bool exitDiffersFromEntry(List<EntryMethod> entry, List<EntryMethod> exit) {
+  if (exit.isEmpty) return false;
+  final exits = exit.toSet();
+  final entries = entry.toSet();
+  return exits.length != entries.length || !exits.containsAll(entries);
+}

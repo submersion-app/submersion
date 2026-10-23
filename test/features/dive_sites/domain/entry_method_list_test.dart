@@ -64,4 +64,53 @@ void main() {
       [EntryMethod.shore, EntryMethod.ladder],
     );
   });
+
+  test('joinEntryMethodNames joins in list order', () {
+    expect(
+      joinEntryMethodNames(const [
+        EntryMethod.backRoll,
+        EntryMethod.ladder,
+      ], (m) => m.displayName),
+      'Back Roll, Ladder',
+    );
+    expect(joinEntryMethodNames(const [], (m) => m.displayName), '');
+  });
+
+  group('exitDiffersFromEntry', () {
+    const entry = [EntryMethod.shore, EntryMethod.boat];
+
+    test('empty exits mean same as entry', () {
+      expect(exitDiffersFromEntry(entry, const []), isFalse);
+    });
+
+    test('the same set in another order is not different', () {
+      expect(
+        exitDiffersFromEntry(entry, const [
+          EntryMethod.boat,
+          EntryMethod.shore,
+        ]),
+        isFalse,
+      );
+    });
+
+    test('a subset, superset or other set is different', () {
+      expect(exitDiffersFromEntry(entry, const [EntryMethod.shore]), isTrue);
+      expect(
+        exitDiffersFromEntry(entry, const [
+          EntryMethod.shore,
+          EntryMethod.boat,
+          EntryMethod.ladder,
+        ]),
+        isTrue,
+      );
+      expect(exitDiffersFromEntry(entry, const [EntryMethod.ladder]), isTrue);
+    });
+
+    test('exits with no entries are different', () {
+      expect(
+        exitDiffersFromEntry(const [], const [EntryMethod.ladder]),
+        isTrue,
+      );
+    });
+  });
 }

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show setEquals;
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
@@ -12,6 +11,7 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 
 /// Handles KML export for Google Earth visualization.
@@ -233,12 +233,17 @@ class KmlExportService {
     // A site may list several ways in and out (#2054). Exit is written only
     // when it is a different set from entry.
     if (site.entryMethods.isNotEmpty) {
-      final names = site.entryMethods.map((m) => m.displayName).join(', ');
+      final names = joinEntryMethodNames(
+        site.entryMethods,
+        (m) => m.displayName,
+      );
       buffer.writeln('<p><b>Entry:</b> ${_escapeHtml(names)}</p>');
     }
-    if (site.exitMethods.isNotEmpty &&
-        !setEquals(site.exitMethods.toSet(), site.entryMethods.toSet())) {
-      final names = site.exitMethods.map((m) => m.displayName).join(', ');
+    if (exitDiffersFromEntry(site.entryMethods, site.exitMethods)) {
+      final names = joinEntryMethodNames(
+        site.exitMethods,
+        (m) => m.displayName,
+      );
       buffer.writeln('<p><b>Exit:</b> ${_escapeHtml(names)}</p>');
     }
 

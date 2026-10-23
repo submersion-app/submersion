@@ -46,9 +46,7 @@ extension InsightsRepositoryFocus on InsightsRepository {
             AS water_type,
           COALESCE(
             NULLIF(d.entry_method, ''),
-            -- Only a single-method site is a fallback (#2054).
-            CASE WHEN instr(s.entry_method, ',') = 0
-              THEN NULLIF(s.entry_method, '') END
+            ${singleSiteEntryMethodSql('s.entry_method')}
           ) AS entry_method,
           d.site_id,
           s.name AS site_name,

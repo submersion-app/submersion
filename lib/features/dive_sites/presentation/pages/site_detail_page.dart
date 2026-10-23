@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -33,6 +32,7 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
@@ -2060,22 +2060,24 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 context,
                 Icons.login,
                 context.l10n.diveSites_detail_access_entryMethod,
-                _methodNames(context, site.entryMethods),
+                joinEntryMethodNames(
+                  site.entryMethods,
+                  (m) => m.localizedName(context.l10n),
+                ),
               ),
             ],
             // Only when it differs: a mirrored exit repeats the entry row.
             // Compared as sets, so the same methods in another order count
             // as the same (issue #2054).
-            if (site.exitMethods.isNotEmpty &&
-                !setEquals(
-                  site.exitMethods.toSet(),
-                  site.entryMethods.toSet(),
-                )) ...[
+            if (exitDiffersFromEntry(site.entryMethods, site.exitMethods)) ...[
               _buildAccessRow(
                 context,
                 Icons.logout,
                 context.l10n.diveSites_detail_access_exitMethod,
-                _methodNames(context, site.exitMethods),
+                joinEntryMethodNames(
+                  site.exitMethods,
+                  (m) => m.localizedName(context.l10n),
+                ),
               ),
             ],
             if (site.mooringNumber != null &&
@@ -2098,10 +2100,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   /// one line, these values are often full sentences (access notes, parking
   /// tips) that need the width, not a right-aligned sliver next to the label
   /// (#1037).
-  /// Every listed method, localized and joined in enum order.
-  String _methodNames(BuildContext context, List<EntryMethod> methods) =>
-      methods.map((m) => m.localizedName(context.l10n)).join(', ');
-
   Widget _buildAccessRow(
     BuildContext context,
     IconData icon,
