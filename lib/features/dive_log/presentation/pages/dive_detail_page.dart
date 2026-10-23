@@ -3238,6 +3238,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     String? activeComputerId,
   }) {
     final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(diveId));
+    // The legacy free-text buddy and dive master columns are only a fallback
+    // while the dive_buddies junction is empty, the same rule as the Buddies
+    // card, the dive list and the exports (#1864). Otherwise an imported
+    // name the diver has since replaced keeps showing here (#3581). Shown
+    // only once the junction has been read as empty, so neither the first
+    // load nor a failed one can bring a stale name back. A refresh keeps the
+    // last answer until the new one arrives, as the Buddies card does, so
+    // the rows do not flicker on every unrelated change to the dive.
+    final showLegacyText = ref.watch(
+      buddiesForDiveProvider(
+        diveId,
+      ).select((a) => a.valueOrNull?.isEmpty ?? false),
+    );
 
     return Card(
       child: Padding(
@@ -3311,17 +3324,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context.l10n.diveLog_detail_label_waterType,
                 dive.effectiveWaterType!.localizedName(context.l10n),
               ),
-            if (dive.buddy != null && dive.buddy!.isNotEmpty)
+            // A placeholder such as "None" is no one, as on the Buddies card.
+            if (showLegacyText && LegacyBuddyTextSection.hasBuddyText(dive))
               _buildDetailRow(
                 context,
                 context.l10n.diveLog_detail_label_buddy,
-                dive.buddy!,
+                dive.buddy!.trim(),
               ),
-            if (dive.diveMaster != null && dive.diveMaster!.isNotEmpty)
+            if (showLegacyText &&
+                LegacyBuddyTextSection.hasDiveMasterText(dive))
               _buildDetailRow(
                 context,
                 context.l10n.diveLog_detail_label_diveMaster,
-                dive.diveMaster!,
+                dive.diveMaster!.trim(),
               ),
             _buildGasConsumptionRows(context, ref, dive, units),
             // Gradient factors (from dive computer)

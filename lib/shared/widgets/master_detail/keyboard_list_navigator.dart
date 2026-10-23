@@ -96,6 +96,19 @@ class KeyboardListNavigator extends StatefulWidget {
     );
   }
 
+  /// Scrolls the row registered under [key] only as far as it takes to show
+  /// it whole, building it first when it is off screen. A row already in full
+  /// view stays where it is. Moves neither the cursor nor the selection.
+  /// [context] must sit below the navigator.
+  static void keepRowVisible(BuildContext context, String key) {
+    context.getInheritedWidgetOfExactType<_KeyboardListScope>()?.state._reveal(
+      key,
+      forward: false,
+      land: true,
+      keep: true,
+    );
+  }
+
   @override
   State<KeyboardListNavigator> createState() => _KeyboardListNavigatorState();
 }
@@ -255,11 +268,19 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
     required bool forward,
     int attempt = 0,
     bool land = false,
+    bool keep = false,
   }) {
     if (!mounted || (!land && _cursor != key)) return;
     final row = _rows[key];
     if (row != null && row.mounted) {
-      if (land) {
+      if (land && keep) {
+        for (final policy in const [
+          ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+          ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+        ]) {
+          Scrollable.ensureVisible(row, alignmentPolicy: policy);
+        }
+      } else if (land) {
         Scrollable.ensureVisible(row);
       } else {
         Scrollable.ensureVisible(
@@ -302,7 +323,13 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
     if (attempt > 0 && clamped == position.pixels) return;
     position.jumpTo(clamped);
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _reveal(key, forward: forward, attempt: attempt + 1, land: land),
+      (_) => _reveal(
+        key,
+        forward: forward,
+        attempt: attempt + 1,
+        land: land,
+        keep: keep,
+      ),
     );
     WidgetsBinding.instance.scheduleFrame();
   }

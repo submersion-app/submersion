@@ -10,7 +10,7 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_tick_paint
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_thumb_style.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 
-/// The translucent panel behind an active scrubber, with [markers] centred
+/// The opaque panel behind an active scrubber, with [markers] centred
 /// at their track positions and, while dragging, [currentLabel] beside a
 /// marker line on a band level with the thumb at [thumbTop].
 class ListScrubberPanel extends StatefulWidget {
@@ -40,7 +40,7 @@ class ListScrubberPanel extends StatefulWidget {
       density ? width + ListScrubberDensityPainter.columnEnd : width;
   static const maxBandWidth = 160.0;
 
-  /// Marks the backing behind each marker label.
+  /// Marks the padded box around each marker label.
   static const labelBackingKey = ValueKey('list-scrubber-label-backing');
   static const currentBandKey = ValueKey('listScrubber.currentBand');
   static const currentValueKey = ValueKey('listScrubber.currentValue');
@@ -54,7 +54,7 @@ class ListScrubberPanel extends StatefulWidget {
   static const _thumbReserve = 14.0;
   static const _labelGap = 4.0;
   static const _minLine = 12.0;
-  static const _backingPadding = 6.0;
+  static const _labelPadding = 6.0;
   static const _bandPadding = 4.0;
 
   static TextStyle? markerStyle(ThemeData theme) => theme.textTheme.labelSmall
@@ -80,7 +80,7 @@ class ListScrubberPanel extends StatefulWidget {
   /// [hostWidth] wide.
   static double bandWidthFor(double labelWidth, double hostWidth) {
     final cap = math.min(maxBandWidth, hostWidth - 16);
-    final needed = labelWidth + _backingPadding * 2 + _chrome;
+    final needed = labelWidth + _labelPadding * 2 + _chrome;
     return math.max(0.0, math.min(math.max(needed, width), cap));
   }
 
@@ -221,7 +221,7 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final style = ListScrubberPanel.markerStyle(theme);
-    final fill = colors.surfaceContainerHigh.withValues(alpha: 0.7);
+    final fill = colors.surfaceContainerHigh;
     final centre = widget.thumbHeight / 2;
     final current = widget.currentLabel;
     final bandHeight = current == null
@@ -257,8 +257,7 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
                   child: FractionalTranslation(
                     translation: const Offset(0, -0.5),
                     child: Center(
-                      child: _backing(
-                        colors,
+                      child: _padded(
                         key: ListScrubberPanel.labelBackingKey,
                         child: Text(
                           m.marker.label,
@@ -332,20 +331,13 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     );
   }
 
-  Widget _backing(ColorScheme colors, {Key? key, required Widget child}) =>
-      DecoratedBox(
-        key: key,
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHigh.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: ListScrubberPanel._backingPadding,
-          ),
-          child: child,
-        ),
-      );
+  Widget _padded({Key? key, required Widget child}) => Padding(
+    key: key,
+    padding: const EdgeInsets.symmetric(
+      horizontal: ListScrubberPanel._labelPadding,
+    ),
+    child: child,
+  );
 
   /// The current value, styled like a marker but bold, and its marker line
   /// on a band level with the thumb. A band wider than the panel sticks out
@@ -388,8 +380,7 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
             children: [
               ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: labelMax),
-                child: _backing(
-                  colors,
+                child: _padded(
                   child: Text(
                     label,
                     key: ListScrubberPanel.currentValueKey,

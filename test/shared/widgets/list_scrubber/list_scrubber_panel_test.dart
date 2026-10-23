@@ -140,7 +140,7 @@ void main() {
     expect(label.center.dy, closeTo(panel.top + 300 + thumbHeight / 2, 1));
   });
 
-  testWidgets('each label sits on its own backing', (tester) async {
+  testWidgets('each label sits in its own padded box', (tester) async {
     await tester.pumpWidget(
       host(
         markers: const [ScrubberMarker(slot: 60, label: '2024')],
@@ -212,16 +212,21 @@ void main() {
     expect(valueStyle.color, markerStyle.color);
     expect(valueStyle.fontSize, markerStyle.fontSize);
     expect(valueStyle.fontWeight, FontWeight.w700);
-    BoxDecoration backing(Finder text) =>
-        tester
-                .widget<DecoratedBox>(
-                  find
-                      .ancestor(of: text, matching: find.byType(DecoratedBox))
-                      .first,
-                )
-                .decoration
-            as BoxDecoration;
-    expect(backing(value), backing(marker));
+    // Labels have no fill of their own: the panel's fill is the only box
+    // painted behind them.
+    final panelBoxes = find.descendant(
+      of: find.byType(ListScrubberPanel),
+      matching: find.byType(DecoratedBox),
+    );
+    for (final text in [value, marker]) {
+      expect(find.ancestor(of: text, matching: panelBoxes), findsOneWidget);
+      expect(
+        tester.widget<DecoratedBox>(
+          find.ancestor(of: text, matching: panelBoxes),
+        ),
+        tester.widget<DecoratedBox>(panelBoxes.first),
+      );
+    }
     final line =
         tester
                 .widget<Container>(
@@ -249,13 +254,13 @@ void main() {
   });
 
   for (final brightness in Brightness.values) {
-    testWidgets('a square panel at 0.7 opacity ($brightness)', (tester) async {
+    testWidgets('a square, opaque panel ($brightness)', (tester) async {
       await tester.pumpWidget(
         host(markers: const [], thumbTop: 0, brightness: brightness),
       );
       final box = decoration(tester);
       expect(box.borderRadius, isNull);
-      expect(box.color!.a, closeTo(0.7, 0.01));
+      expect(box.color!.a, 1.0);
     });
   }
 }

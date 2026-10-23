@@ -37,15 +37,55 @@ String timestampRuntimeSecondsSql(String alias) =>
 
 /// The span of the dive's profile samples in seconds, or NULL when it has no
 /// samples or they all share one timestamp. Read from the series summaries
-/// (`start_timestamp` / `end_timestamp`) over every series row of the dive,
-/// primary and demoted alike, the span the retired row-per-sample read
-/// produced (it had no `is_primary` filter either).
+/// (`start_timestamp` / `end_timestamp`) over the series the merged profile
+/// read (`DiveRepository.getMergedProfile`, which hydrates `Dive.profile`)
+/// keeps, so Insights and a hydrated dive agree on how long the dive lasted
+/// (issue #3537).
+///
+/// That read keeps primary and demoted series alike, minus two kinds of
+/// demoted row: an inactive child revision (a history row with a parent),
+/// and, once a saved edit is primary, the superseded originals of the edited
+/// family (`dropSupersededSeries`). Family membership follows that rule: a
+/// series with no computer, every series of a dive with no data sources, or
+/// one on the computer of the dive's first source in shown order (primary
+/// first, then oldest).
+///
+/// One case stays apart: a series whose packed blob fails to decode is
+/// skipped by the Dart read but still counted here, because SQL reads only
+/// the summary columns and cannot tell a corrupt blob. Every table this
+/// reads is one `watchInsightsChanges` already watches, or, for the history
+/// table, is only written alongside a `dive_profile_series` row.
 ///
 /// Mirrors `Dive.calculateRuntimeFromProfile`, which returns null unless the
 /// span is positive; `NULLIF(..., 0)` is what carries that rule into SQL.
 String profileSpanSecondsSql(String alias) =>
     'NULLIF((SELECT MAX(s.end_timestamp) - MIN(s.start_timestamp) '
-    'FROM dive_profile_series s WHERE s.dive_id = $alias.id), 0)';
+    'FROM dive_profile_series s WHERE s.dive_id = $alias.id '
+    'AND s.sample_count > 0 '
+    'AND NOT (s.is_primary = 0 AND ('
+    '${_inactiveChildRevisionSql('s')} OR ${_supersededOriginalSql('s')}'
+    '))), 0)';
+
+/// Whether demoted series [s] is an earlier revision of an edit: the merged
+/// read hides it rather than drawing it beside the active one.
+String _inactiveChildRevisionSql(String s) =>
+    'EXISTS (SELECT 1 FROM dive_profile_series_history h '
+    'WHERE h.series_id = $s.id AND h.dive_id = $s.dive_id '
+    'AND h.parent_series_id IS NOT NULL)';
+
+/// Whether demoted series [s] belongs to the family a primary saved edit (a
+/// primary series with no computer) supersedes.
+String _supersededOriginalSql(String s) {
+  const sources = 'dive_data_sources ds WHERE ds.dive_id';
+  return '(EXISTS (SELECT 1 FROM dive_profile_series e '
+      'WHERE e.dive_id = $s.dive_id AND e.is_primary = 1 '
+      'AND e.computer_id IS NULL) '
+      'AND ($s.computer_id IS NULL '
+      'OR NOT EXISTS (SELECT 1 FROM $sources = $s.dive_id) '
+      'OR $s.computer_id = (SELECT ds.computer_id FROM $sources = $s.dive_id '
+      'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.rowid ASC '
+      'LIMIT 1)))';
+}
 
 /// The first three steps of the chain: a duration the dive actually
 /// measured, in seconds, or NULL. Bottom time is left out because it is
