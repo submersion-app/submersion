@@ -174,8 +174,12 @@ void main() {
     await tester.pump();
   }
 
-  /// Drags the thumb to [slot] of [slotCount] and lets go.
-  Future<void> dropOn(WidgetTester tester, int slot, int slotCount) async {
+  /// Drags the thumb to [slot] of [slotCount] and holds it there.
+  Future<TestGesture> holdOn(
+    WidgetTester tester,
+    int slot,
+    int slotCount,
+  ) async {
     final list = tester.getRect(find.byType(CustomScrollView));
     final thumbY = tester.getTopLeft(find.byKey(ListScrubber.thumbKey)).dy;
     final target = trackForSlot(
@@ -188,9 +192,25 @@ void main() {
     );
     await gesture.moveBy(Offset(0, list.top + target - thumbY));
     await tester.pump();
+    return gesture;
+  }
+
+  /// Drags the thumb to [slot] of [slotCount] and lets go.
+  Future<void> dropOn(WidgetTester tester, int slot, int slotCount) async {
+    final gesture = await holdOn(tester, slot, slotCount);
     await gesture.up();
     await tester.pump();
   }
+
+  double scrollOffset(WidgetTester tester) => tester
+      .state<ScrollableState>(
+        find.descendant(
+          of: find.byType(CustomScrollView),
+          matching: find.byType(Scrollable),
+        ),
+      )
+      .position
+      .pixels;
 
   bool scrubbing(WidgetTester tester) => ProviderScope.containerOf(
     tester.element(find.byType(DiveListContent)),
@@ -291,6 +311,46 @@ void main() {
 
       refetch.complete(indexOf(rows));
       await settle(tester);
+    });
+  });
+
+  // The drag already scrolls the list through loaded rows, so letting go
+  // there must not move it again (#3574).
+  group('a drop on a loaded row', () {
+    testWidgets('leaves the list where the drag put it', (tester) async {
+      final notifier = await pumpList(tester, rows: dives('d', 300));
+      await showThumb(tester);
+      final gesture = await holdOn(tester, 25, 300);
+      final dragged = scrollOffset(tester);
+      expect(dragged, greaterThan(0));
+      final list = tester.getRect(find.byType(CustomScrollView));
+      final held = tester.getRect(row('d25'));
+      expect(held.top, greaterThan(list.top + held.height));
+
+      await gesture.up();
+      await settle(tester);
+
+      expect(notifier.calls, isEmpty);
+      expect(scrollOffset(tester), dragged);
+      expect(tester.getRect(row('d25')), held);
+    });
+
+    testWidgets('cancels the landing of an earlier far drop', (tester) async {
+      final notifier = await pumpList(tester, rows: dives('d', 300));
+      await showThumb(tester);
+      await dropOn(tester, 150, 300);
+      expect(scrubber(tester).busyLabel, isNotNull);
+
+      await dropOn(tester, 25, 300);
+      await tester.pump();
+      expect(scrubber(tester).busyLabel, isNull);
+      final dropped = scrollOffset(tester);
+
+      notifier.settleLoad(0);
+      await settle(tester);
+      expect(notifier.calls, [('d150', 150)]);
+      expect(scrubber(tester).busyLabel, isNull);
+      expect(scrollOffset(tester), dropped);
     });
   });
 

@@ -43,7 +43,8 @@ class DiveListScrubber extends ConsumerStatefulWidget {
   final Set<String> collapsedTripIds;
 
   /// Brings [diveId], or the header of the collapsed trip holding it, to the
-  /// top of the list. [context] sits below the list's keyboard navigator.
+  /// top of the list after a drop past the loaded rows. [context] sits below
+  /// the list's keyboard navigator.
   final void Function(BuildContext context, String diveId) onLand;
 
   /// The dive the detail pane shows, marked with a dot on the track.
@@ -273,29 +274,30 @@ class _DiveListScrubberState extends ConsumerState<DiveListScrubber> {
     );
   }
 
-  /// Only the latest drop clears the busy state and lands.
+  /// Only the latest drop clears the busy state and lands. A drop on a loaded
+  /// row leaves the list where the drag scrolled it (#3574); only a drop past
+  /// the loaded rows, which the list could not follow, loads and lands.
   Future<void> _land(DiveScrubberSlot slot) async {
     final drop = ++_drop;
     final id = slot.entry.id;
     final needsLoad = !widget.loadedDives.any((d) => d.id == id);
     if (_loading != needsLoad) setState(() => _loading = needsLoad);
-    if (needsLoad) {
-      var loaded = false;
-      try {
-        loaded = await ref
-            .read(paginatedDiveListProvider.notifier)
-            .loadThrough(id, targetIndex: slot.entryIndex);
-      } catch (e, stackTrace) {
-        _log.error(
-          'Failed to load the dive list through a scrubber drop',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      } finally {
-        if (mounted && drop == _drop) setState(() => _loading = false);
-      }
-      if (!mounted || drop != _drop || !loaded) return;
+    if (!needsLoad) return;
+    var loaded = false;
+    try {
+      loaded = await ref
+          .read(paginatedDiveListProvider.notifier)
+          .loadThrough(id, targetIndex: slot.entryIndex);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load the dive list through a scrubber drop',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      if (mounted && drop == _drop) setState(() => _loading = false);
     }
+    if (!mounted || drop != _drop || !loaded) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && drop == _drop) widget.onLand(context, id);
     });
