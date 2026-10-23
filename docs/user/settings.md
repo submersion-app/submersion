@@ -300,10 +300,19 @@ A feature that is not set up shows a **Set up** action under its status.
 
 ## Shared data
 
-With two or more diver profiles on the device, choose
-**Share new sites and trips by default**, or share everything you already have with
-**Share all my sites**, **Share all my trips** and **Share all my equipment...**. See
-[Diver Profile & Multi-Diver](diver-profile.md).
+With two or more diver profiles on the device:
+
+- **Share new sites and trips by default** shares every new site and trip with
+  everyone.
+- **Share all my sites...** and **Share all my trips...** ask who should see
+  everything you own: **Everyone**, or the profiles you tick. They only add
+  profiles; to change one site or trip later, open it and tap **Shared with**.
+- **Share all my equipment...** shares your gear with the profiles you choose.
+- **Hidden from this profile** lists the shared sites and trips you removed from
+  your profile, with **Unhide** to bring each one back.
+
+See [Diver Profile & Multi-Diver](diver-profile.md) and
+[Sharing a trip with other profiles](trips.md#sharing-a-trip-with-other-profiles).
 
 ## Apple HealthKit
 
