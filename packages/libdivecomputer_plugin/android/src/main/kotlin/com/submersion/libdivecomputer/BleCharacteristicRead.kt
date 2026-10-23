@@ -35,6 +35,12 @@ object BleCharacteristicRead {
         "readCharacteristic: $uuid failed " +
             "(status=$status, ${GattDiagnostics.describeAttStatus(status)})"
 
+    // Pre-API 33 delivers the value on characteristic.value, which can be
+    // null even on a successful read.
+    fun describeEmptyRead(uuid: String): String =
+        "readCharacteristic: $uuid failed: the read succeeded but carried " +
+            "no value"
+
     fun describeDisconnectedRead(uuid: String, status: Int): String =
         "readCharacteristic: $uuid failed: the link dropped before the " +
             "reply arrived (status=$status, " +

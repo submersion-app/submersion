@@ -540,6 +540,9 @@ class BleIoStream(
         if (status != BluetoothGatt.GATT_SUCCESS) {
             pendingReadFailure = BleCharacteristicRead
                 .describeFailedRead(characteristic.uuid.toString(), status)
+        } else if (value == null) {
+            pendingReadFailure = BleCharacteristicRead
+                .describeEmptyRead(characteristic.uuid.toString())
         }
         NativeLogger.d(TAG, "BLE",
             "onCharacteristicRead ${characteristic.uuid} status=$status " +

@@ -59,9 +59,19 @@ class BleCharacteristicReadTest {
         assertEquals(
             "readCharacteristic: 6e400003-b5a3-f393-e0a9-e50e24dc10b8 failed: " +
                 "the link dropped before the reply arrived (status=19, " +
-                GattDiagnostics.describeConnectionStatus(19) + ")",
+                "the computer closed the connection)",
             BleCharacteristicRead.describeDisconnectedRead(
                 "6e400003-b5a3-f393-e0a9-e50e24dc10b8", 19),
+        )
+    }
+
+    @Test
+    fun describesASuccessfulReadWithNoValue() {
+        assertEquals(
+            "readCharacteristic: 6e400003-b5a3-f393-e0a9-e50e24dc10b8 failed: " +
+                "the read succeeded but carried no value",
+            BleCharacteristicRead.describeEmptyRead(
+                "6e400003-b5a3-f393-e0a9-e50e24dc10b8"),
         )
     }
 
