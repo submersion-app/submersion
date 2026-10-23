@@ -17,6 +17,9 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 
@@ -798,15 +801,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(
-        find.byWidgetPredicate(
-          (w) =>
-              w is SwitchListTile &&
-              w.title is Text &&
-              (w.title as Text).data == 'Share with all dive profiles',
-        ),
-        findsNothing,
-      );
+      expect(find.byType(SharingTile), findsNothing);
     });
 
     testWidgets('shows toggle with default from AppSettings when 2+ divers', (
@@ -848,14 +843,9 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byWidgetPredicate(
-        (w) =>
-            w is SwitchListTile &&
-            w.title is Text &&
-            (w.title as Text).data == 'Share with all dive profiles',
-      );
+      final switchFinder = find.byType(SharingTile);
       expect(switchFinder, findsOneWidget);
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+      expect(find.text('Everyone'), findsOneWidget);
     });
 
     testWidgets('un-share on existing shared trip shows confirmation dialog', (
@@ -885,6 +875,9 @@ void main() {
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
+            itemSharesRepositoryProvider.overrideWithValue(
+              FakeItemShares.everyone(['test-shared']),
+            ),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
@@ -904,26 +897,139 @@ void main() {
 
       // Scroll until the share toggle is visible.
       await tester.scrollUntilVisible(
-        find.text('Share with all dive profiles'),
+        find.text('Shared with'),
         50.0,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byWidgetPredicate(
-        (w) =>
-            w is SwitchListTile &&
-            w.title is Text &&
-            (w.title as Text).data == 'Share with all dive profiles',
-      );
-      // Confirm toggle starts in the ON position.
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+      final switchFinder = find.byType(SharingTile);
+      // Shared with everyone when the page opens.
+      expect(find.text('Everyone'), findsOneWidget);
 
-      // Tap to turn OFF — should show the unshare confirm dialog.
+      // Narrowing it to one profile asks to confirm first.
       await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Two'),
+        ),
+      );
+      await tester.tap(find.text('Save').last);
       await tester.pumpAndSettle();
 
       expect(find.text('Unshare this trip?'), findsOneWidget);
+    });
+    testWidgets('a new trip shared with one profile saves its share', (
+      tester,
+    ) async {
+      final twoDivers = [
+        for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+          Diver(
+            id: id,
+            name: name,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+      ];
+      final shares = FakeItemShares();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            validatedCurrentDiverIdProvider.overrideWith((_) async => 'd1'),
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            shareByDefaultProvider.overrideWith((_) async => false),
+            itemSharesRepositoryProvider.overrideWithValue(shares),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Bonaire',
+      );
+      await tester.scrollUntilVisible(
+        find.text('Shared with'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byType(SharingTile));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('One'),
+        ),
+        findsNothing,
+        reason: 'the owner is not offered',
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Two'),
+        ),
+      );
+      await tester.tap(find.text('Save').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Two'), findsOneWidget);
+      expect(shares.setCalls, isEmpty, reason: 'nothing is stored before Save');
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(shares.setCalls, [
+        ('new-id-1', const ItemSharing(profileIds: {'d2'})),
+      ]);
+    });
+
+    testWidgets('saving an existing trip without touching sharing stores no '
+        'share change', (tester) async {
+      final twoDivers = [
+        for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+          Diver(
+            id: id,
+            name: name,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+      ];
+      final shares = FakeItemShares.everyone(['test-shared']);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithSharedTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            shareByDefaultProvider.overrideWith((_) async => false),
+            itemSharesRepositoryProvider.overrideWithValue(shares),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-shared'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(shares.setCalls, isEmpty);
     });
   });
 
@@ -938,7 +1044,7 @@ void main() {
         ),
     ];
 
-    Future<SwitchListTile> shareSwitch(
+    Future<SharingTile> shareSwitch(
       WidgetTester tester, {
       required String active,
       GatedActiveProfile? activeProfile,
@@ -949,6 +1055,9 @@ void main() {
           overrides: [
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithOwnedSharedTrip(),
+            ),
+            itemSharesRepositoryProvider.overrideWithValue(
+              FakeItemShares.everyone(['test-shared']),
             ),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
@@ -973,26 +1082,19 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Share with all dive profiles'),
+        find.text('Shared with'),
         50.0,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
-      return tester.widget<SwitchListTile>(
-        find.byWidgetPredicate(
-          (w) =>
-              w is SwitchListTile &&
-              w.title is Text &&
-              (w.title as Text).data == 'Share with all dive profiles',
-        ),
-      );
+      return tester.widget<SharingTile>(find.byType(SharingTile));
     }
 
     testWidgets('is locked for another profile, naming the owner', (
       tester,
     ) async {
       final tile = await shareSwitch(tester, active: 'd2');
-      expect(tile.onChanged, isNull);
+      expect(tile.onTap, isNull);
       expect(find.text('Only Alice can change sharing'), findsOneWidget);
     });
 
@@ -1004,21 +1106,14 @@ void main() {
         active: 'd1',
         activeProfile: activeProfile,
       );
-      expect(tile.onChanged, isNotNull);
+      expect(tile.onTap, isNotNull);
 
       ProviderScope.containerOf(
         tester.element(find.byType(TripEditPage)),
       ).invalidate(validatedCurrentDiverIdProvider);
       await tester.pump();
-      final locked = tester.widget<SwitchListTile>(
-        find.byWidgetPredicate(
-          (w) =>
-              w is SwitchListTile &&
-              w.title is Text &&
-              (w.title as Text).data == 'Share with all dive profiles',
-        ),
-      );
-      expect(locked.onChanged, isNull);
+      final locked = tester.widget<SharingTile>(find.byType(SharingTile));
+      expect(locked.onTap, isNull);
       expect(find.text('Only Alice can change sharing'), findsNothing);
 
       activeProfile.settle('d2');
@@ -1034,13 +1129,13 @@ void main() {
         active: 'd2',
         profileUnreadable: true,
       );
-      expect(tile.onChanged, isNull);
+      expect(tile.onTap, isNull);
       expect(find.text('Only Alice can change sharing'), findsNothing);
     });
 
     testWidgets('stays open for the owner', (tester) async {
       final tile = await shareSwitch(tester, active: 'd1');
-      expect(tile.onChanged, isNotNull);
+      expect(tile.onTap, isNotNull);
       expect(find.text('Only Alice can change sharing'), findsNothing);
     });
   });
@@ -2073,7 +2168,7 @@ void main() {
   });
 
   group('TripEditPage - unshare confirmation', () {
-    testWidgets('confirming unshare toggles isShared to false', (tester) async {
+    testWidgets('confirming the unshare narrows the sharing', (tester) async {
       final twoDivers = [
         Diver(
           id: 'd1',
@@ -2096,6 +2191,9 @@ void main() {
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
+            itemSharesRepositoryProvider.overrideWithValue(
+              FakeItemShares.everyone(['test-shared']),
+            ),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
@@ -2112,28 +2210,31 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Share with all dive profiles'),
+        find.text('Shared with'),
         50,
         scrollable: find.byType(Scrollable).first,
       );
-      final switchFinder = find.byWidgetPredicate(
-        (w) =>
-            w is SwitchListTile &&
-            w.title is Text &&
-            (w.title as Text).data == 'Share with all dive profiles',
+      // Narrow it from everyone to one profile.
+      await tester.tap(find.byType(SharingTile));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Two'),
+        ),
       );
-      await tester.tap(switchFinder);
+      await tester.tap(find.text('Save').last);
       await tester.pumpAndSettle();
       expect(find.text('Unshare this trip?'), findsOneWidget);
       // Confirm the unshare.
       await tester.tap(find.widgetWithText(FilledButton, 'Unshare'));
       await tester.pumpAndSettle();
-      // Dialog dismissed; switch is now off.
+      // Dialog dismissed; the trip is now shared with that profile only.
       expect(find.text('Unshare this trip?'), findsNothing);
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isFalse);
+      expect(find.text('Two'), findsOneWidget);
     });
 
-    testWidgets('cancelling unshare keeps isShared true', (tester) async {
+    testWidgets('cancelling the unshare keeps the sharing', (tester) async {
       final twoDivers = [
         Diver(
           id: 'd1',
@@ -2156,6 +2257,9 @@ void main() {
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
+            itemSharesRepositoryProvider.overrideWithValue(
+              FakeItemShares.everyone(['test-shared']),
+            ),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
             }),
@@ -2172,24 +2276,27 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Share with all dive profiles'),
+        find.text('Shared with'),
         50,
         scrollable: find.byType(Scrollable).first,
       );
-      final switchFinder = find.byWidgetPredicate(
-        (w) =>
-            w is SwitchListTile &&
-            w.title is Text &&
-            (w.title as Text).data == 'Share with all dive profiles',
+      // Narrow it from everyone to one profile.
+      await tester.tap(find.byType(SharingTile));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Two'),
+        ),
       );
-      await tester.tap(switchFinder);
+      await tester.tap(find.text('Save').last);
       await tester.pumpAndSettle();
       // Cancel via Material cancel button.
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
       expect(find.text('Unshare this trip?'), findsNothing);
-      // Switch remains on.
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+      // Still shared with everyone.
+      expect(find.text('Everyone'), findsOneWidget);
     });
   });
 

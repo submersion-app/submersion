@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -103,7 +104,7 @@ void main() {
     await tester.tap(find.text('shared'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('Share with all dive profiles'),
+      find.text('Shared with'),
       50.0,
       scrollable: find.byType(Scrollable).first,
     );
@@ -157,14 +158,14 @@ void main() {
       findsNothing,
     );
     await openLifeSection(tester);
-    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+    expect(tester.widget<SharingTile>(find.byType(SharingTile)).onTap, isNull);
     expect(find.text('Only Alice can change sharing'), findsNothing);
   });
 
   testWidgets('another profile cannot change sharing', (tester) async {
     await pump(tester, active: 'd2');
     await openLifeSection(tester);
-    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+    expect(tester.widget<SharingTile>(find.byType(SharingTile)).onTap, isNull);
     expect(find.text('Only Alice can change sharing'), findsOneWidget);
   });
 
@@ -184,7 +185,10 @@ void main() {
   testWidgets('the owner can change sharing', (tester) async {
     await pump(tester, active: 'd1');
     await openLifeSection(tester);
-    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNotNull);
+    expect(
+      tester.widget<SharingTile>(find.byType(SharingTile)).onTap,
+      isNotNull,
+    );
   });
 
   testWidgets('removing hides it for this profile, closes, and Undo restores', (

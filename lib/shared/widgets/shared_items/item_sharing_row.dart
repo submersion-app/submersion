@@ -90,16 +90,91 @@ class ItemSharingRow extends ConsumerWidget {
   }
 }
 
+/// "Shared with" on a trip or site edit page (issue #2151): [value] is the
+/// page's pending choice, saved with the form. Shown only with two or more
+/// profiles. [mayShare] is the owner check: true opens the dialog, false
+/// locks it and names [ownerId]'s profile, null (the profile is not known
+/// yet) locks it without naming anyone. A choice that takes the item away
+/// from a profile that sees it in [original] is confirmed first.
+class ItemSharingField extends ConsumerWidget {
+  const ItemSharingField({
+    super.key,
+    required this.kind,
+    required this.value,
+    required this.original,
+    required this.mayShare,
+    required this.ownerId,
+    required this.itemName,
+    required this.onChanged,
+  });
+
+  final SharedItemKind kind;
+  final ItemSharing value;
+  final ItemSharing original;
+  final bool? mayShare;
+
+  /// The item's owner; for a new item, the active profile.
+  final String? ownerId;
+  final String itemName;
+  final ValueChanged<ItemSharing> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final divers = ref.watch(allDiversProvider).value;
+    if (divers == null || divers.length < 2) return const SizedBox.shrink();
+    final l10n = context.l10n;
+    final names = {for (final d in divers) d.id: d.name};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SharingTile(
+          summary: sharingSummary(value, names, l10n),
+          onTap: mayShare == true
+              ? () async {
+                  final chosen = await pickItemSharing(
+                    context,
+                    kind: kind,
+                    profiles: [
+                      for (final d in divers)
+                        if (d.id != ownerId) d,
+                    ],
+                    current: value,
+                    confirmAgainst: original,
+                    itemName: itemName,
+                  );
+                  if (chosen != null) onChanged(chosen);
+                }
+              : null,
+        ),
+        // Only the owner changes sharing (#2594).
+        if (mayShare == false)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(48, 0, 16, 8),
+            child: Text(
+              l10n.sharedItems_shareOwnerOnly(
+                sharedItemOwnerName(divers, ownerId, l10n),
+              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 /// Opens the share dialog for one trip or site, starting from [current],
 /// and confirms first when the choice takes the item away from a profile
-/// that sees it now. Returns the confirmed choice, or null when cancelled
-/// or unchanged.
+/// that sees it in [confirmAgainst] (by default [current]). Returns the
+/// confirmed choice, or null when cancelled or unchanged.
 Future<ItemSharing?> pickItemSharing(
   BuildContext context, {
   required SharedItemKind kind,
   required List<Diver> profiles,
   required ItemSharing current,
   required String itemName,
+  ItemSharing? confirmAgainst,
 }) async {
   final l10n = context.l10n;
   final chosen = await showShareTargetDialog(
@@ -114,7 +189,7 @@ Future<ItemSharing?> pickItemSharing(
     confirmLabel: l10n.common_action_save,
   );
   if (chosen == null || chosen == current || !context.mounted) return null;
-  if (current.narrows(chosen) &&
+  if ((confirmAgainst ?? current).narrows(chosen) &&
       await confirmUnshare(context, kind, itemName) != true) {
     return null;
   }
