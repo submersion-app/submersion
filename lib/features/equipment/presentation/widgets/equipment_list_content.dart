@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -25,6 +26,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -165,8 +167,35 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Object? _currentTypeAxis;
   bool _selectionFromList = false;
 
+  /// The item last opened, which a list built again after the diver left it
+  /// scrolls back to when its address names no item (#3301). Read once, on
+  /// the first build; dropped as soon as the diver scrolls, so a regrouping
+  /// later does not pull the list back to it.
+  String? _restoreTargetId;
+  bool _restoreTargetRead = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_restoreTargetRead) return;
+    _restoreTargetRead = true;
+    if (isImperativelyPushed(context)) return;
+    _restoreTargetId = ref.read(highlightedEquipmentIdProvider);
+    if (_restoreTargetId != null) _scrollController.addListener(_onUserScroll);
+  }
+
+  void _onUserScroll() {
+    if (_scrollController.positions.any(
+      (position) => position.userScrollDirection != ScrollDirection.idle,
+    )) {
+      _restoreTargetId = null;
+      _scrollController.removeListener(_onUserScroll);
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_onUserScroll);
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
     super.dispose();
@@ -229,12 +258,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// Headings are sized separately because sizing them like items overshoots
   /// by the difference for every heading above the target, which in a
   /// grouped list is nearly one per item.
+  ///
+  /// [jump] moves straight there, for a list being restored, which should not
+  /// visibly travel from the top.
   void _scrollToIndex(
     List<_EquipmentListRow> rows,
     int index,
     String targetId,
-    Object typeAxis,
-  ) {
+    Object typeAxis, {
+    bool jump = false,
+  }) {
     if (!mounted || !_scrollController.hasClients) return;
 
     const estimatedItemHeight = 80.0;
@@ -251,11 +284,15 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final targetOffset = rowTop - (viewportHeight / 3);
     final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
-    _scrollController.animateTo(
-      clampedOffset,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (jump) {
+      _scrollController.jumpTo(clampedOffset);
+    } else {
+      _scrollController.animateTo(
+        clampedOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
     _lastScrolledToId = targetId;
     _scrolledTypeAxis = typeAxis;
   }
@@ -1161,7 +1198,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // the arrangement has moved it since (the stored arrangement landing
     // after the first frame, or the diver regrouping). The index counts
     // heading rows too, since they take space above the item.
-    final selectedId = widget.selectedId;
+    final selectedId = widget.selectedId ?? _restoreTargetId;
     // Regrouping by location moves rows as much as regrouping by type, so
     // it re-scrolls to the selected item the same way.
     final typeAxis = (
@@ -1180,8 +1217,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           // These rows were laid out for this selection. If it changed before
           // the callback ran, scrolling now would move to the old row and
           // mark the new one as done; the newer build schedules its own.
-          if (widget.selectedId != selectedId) return;
-          _scrollToIndex(rows, selectedIndex, selectedId, typeAxis);
+          if ((widget.selectedId ?? _restoreTargetId) != selectedId) return;
+          _scrollToIndex(
+            rows,
+            selectedIndex,
+            selectedId,
+            typeAxis,
+            jump: widget.selectedId == null,
+          );
         });
       }
     }

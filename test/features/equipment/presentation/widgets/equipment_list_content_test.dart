@@ -273,6 +273,32 @@ bool _badgeIsVisible(WidgetTester tester) {
 }
 
 void main() {
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted equipment item when built', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      items: [
+        for (var i = 0; i < 60; i++)
+          _makeEquipment(
+            id: 'r$i',
+            name: 'Gear ${i.toString().padLeft(2, '0')}',
+          ),
+      ],
+      highlightedEquipmentId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const EquipmentListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gear 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), under the plain title on a
   // standalone app bar and under the Equipment / Sets toggle in the pane.
   group('entry count subtitle', () {
