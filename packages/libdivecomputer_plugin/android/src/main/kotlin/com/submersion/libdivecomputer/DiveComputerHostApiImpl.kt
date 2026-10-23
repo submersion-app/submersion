@@ -407,8 +407,8 @@ class DiveComputerHostApiImpl(
         // works here because we have an active GATT connection.
         // Shearwater devices are exempt: their protocol needs no bond,
         // and holding one blocks Shearwater Cloud until the user unpairs
-        // (issue #910). So is Cressi, whose adapter never completes a
-        // pairing (issue #422) -- see BondPolicy.
+        // (issue #910). So is Cressi, whose adapter did not complete a
+        // pairing in issue #422 -- see BondPolicy.
         //
         // A bond that does not complete is not fatal. By this point the
         // link is connected and its services are discovered, and no other

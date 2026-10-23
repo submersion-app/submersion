@@ -11,10 +11,10 @@ package com.submersion.libdivecomputer
 // Shearwater Cloud connects without pairing -- and a bond created by
 // Submersion blocks Shearwater Cloud from connecting until the user
 // unpairs the computer in Android Bluetooth settings (issue #910).
-// Cressi's Bluetooth adapter never completes a pairing: the bond sat out its
-// whole 30 s wait, and the version read that followed failed, while
-// Subsurface and every other Submersion backend, none of which bond,
-// download the same computer (issue #422).
+// Cressi's Bluetooth adapter did not complete a pairing in issue #422: the
+// bond sat out its whole 30 s wait and the version read that followed
+// failed, while Subsurface and every other Submersion backend, none of
+// which bond, download the same computer.
 //
 // Skipping the proactive bond cannot strand a download: if a device does
 // demand encryption mid-session, the Android stack pairs transparently

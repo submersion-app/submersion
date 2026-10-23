@@ -21,7 +21,7 @@ class BondPolicyTest {
         assertFalse(BondPolicy.requiresProactiveBond("SHEARWATER"))
     }
 
-    // Cressi's Bluetooth adapter never completes a pairing (issue #422): the
+    // Cressi's Bluetooth adapter did not complete a pairing (issue #422): the
     // proactive bond sat out its 30 s wait and the version read that
     // followed failed, while Subsurface and every other backend, none of
     // which bond, download the same computer.
