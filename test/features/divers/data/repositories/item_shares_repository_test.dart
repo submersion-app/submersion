@@ -371,4 +371,42 @@ void main() {
     expect(result.itemsShared, 1200);
     expect((await repository.sharingOfAll(trip, ids)).length, 1200);
   });
+
+  test('isVisibleTo follows ownership, Everyone, share rows and library '
+      'membership', () async {
+    await seedSite(db, 'everyone', owner: 'me', shared: true);
+    await seedSite(db, 'library');
+    await db.customStatement(
+      "UPDATE dive_sites SET shared_library_id = 'lib1' WHERE id = 'library'",
+    );
+    await db
+        .into(db.sharedLibraryMemberships)
+        .insert(
+          SharedLibraryMembershipsCompanion.insert(
+            id: 'm1',
+            diverId: 'daughter',
+            libraryId: 'lib1',
+            memberId: 'member-1',
+            displayName: 'Dana',
+            libraryName: 'Club',
+            backendKind: 's3',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await repository.setSharing(
+      site,
+      'pier',
+      const ItemSharing(profileIds: {'son'}),
+      actingDiverId: 'me',
+    );
+    expect(await repository.isVisibleTo(site, 'pier', 'me'), isTrue);
+    expect(await repository.isVisibleTo(site, 'pier', 'son'), isTrue);
+    expect(await repository.isVisibleTo(site, 'pier', 'daughter'), isFalse);
+    expect(await repository.isVisibleTo(site, 'everyone', 'son'), isTrue);
+    expect(await repository.isVisibleTo(site, 'library', 'daughter'), isTrue);
+    expect(await repository.isVisibleTo(site, 'library', 'son'), isFalse);
+    expect(await repository.isVisibleTo(trip, 'bonaire', 'son'), isFalse);
+    expect(await repository.isVisibleTo(site, 'missing', 'me'), isFalse);
+  });
 }

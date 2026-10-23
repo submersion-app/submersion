@@ -1354,7 +1354,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   /// one (issue #2594); null while the profile is unknown (issue #2682).
   /// Read during build, so it watches the active profile.
   bool? _mayShare() {
-    if (!widget.isEditing && !widget.isMerging) return true;
+    // A new site is the active profile's; until that profile is known the
+    // picker could offer it to itself, so sharing waits (issue #2151).
+    if (!widget.isEditing && !widget.isMerging) {
+      return ref.watch(validatedCurrentDiverIdProvider).hasValue ? true : null;
+    }
     return canDestroySharedItemOnceKnown(
       ref.watch(validatedCurrentDiverIdProvider),
       ownerId: _originalSite?.diverId,
@@ -2181,9 +2185,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               SharedItemKind.site,
               savedId,
               _sharing,
-              actingDiverId:
-                  _originalSite?.diverId ??
-                  ref.read(validatedCurrentDiverIdProvider).value,
+              // The profile acting now, which the repository checks; never
+              // the owner on its behalf.
+              actingDiverId: ref.read(validatedCurrentDiverIdProvider).value,
             );
       }
       ref.invalidate(siteTypesForSiteProvider(savedId));

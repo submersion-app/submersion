@@ -980,7 +980,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   /// while the profile is unknown, which locks it without naming an owner
   /// (issue #2682). Read during build, so it watches the active profile.
   bool? _mayShare() => _originalTrip == null
-      ? true
+      // A new trip is the active profile's; until that profile is known the
+      // picker could offer it to itself, so sharing waits (issue #2151).
+      ? (ref.watch(validatedCurrentDiverIdProvider).hasValue ? true : null)
       : canDestroySharedItemOnceKnown(
           ref.watch(validatedCurrentDiverIdProvider),
           ownerId: _originalTrip?.diverId,
@@ -1070,7 +1072,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
               SharedItemKind.trip,
               savedId,
               _sharing,
-              actingDiverId: diverId,
+              // The profile acting now, which the repository checks; never
+              // the owner on its behalf.
+              actingDiverId: ref.read(validatedCurrentDiverIdProvider).value,
             );
       }
 

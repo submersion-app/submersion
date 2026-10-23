@@ -1075,6 +1075,57 @@ void main() {
     expect(shares.setCalls, [('test-shared', ItemSharing.all)]);
   });
 
+  testWidgets('a new trip keeps sharing locked until the active profile is '
+      'known (issue #2151)', (tester) async {
+    final twoDivers = [
+      for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+        Diver(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+    ];
+    final activeProfile = GatedActiveProfile();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) => activeProfile.read(),
+          ),
+          tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+          tripListNotifierProvider.overrideWith(
+            (ref) => _MockTripListNotifier([]),
+          ),
+          allDiversProvider.overrideWith((_) async => twoDivers),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          itemSharesRepositoryProvider.overrideWithValue(FakeItemShares()),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TripEditPage(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.scrollUntilVisible(
+      find.text('Shared with'),
+      50.0,
+      scrollable: find.byType(Scrollable).first,
+    );
+    // Not knowing whose trip it is, the picker would offer that profile too.
+    expect(tester.widget<SharingTile>(find.byType(SharingTile)).onTap, isNull);
+    activeProfile.settle('d1');
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<SharingTile>(find.byType(SharingTile)).onTap,
+      isNotNull,
+    );
+  });
+
   testWidgets('a failed sharing read never unshares an Everyone trip on save '
       '(issue #2151)', (tester) async {
     final twoDivers = [
