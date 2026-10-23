@@ -34,3 +34,16 @@ Future<File> writeShareTempFile(
   await file.writeAsBytes(bytes);
   return file;
 }
+
+/// The share temp file [filename] in [item]'s own share folder, for an
+/// encoder to write (a colour-corrected video copy, issue #3521). The
+/// folder is created; the file is not.
+Future<File> shareTempFileFor(
+  MediaItem item, {
+  required String filename,
+}) async {
+  final tempDir = await getTemporaryDirectory();
+  final file = File(p.join(tempDir.path, 'share', item.id, filename));
+  await file.parent.create(recursive: true);
+  return file;
+}
