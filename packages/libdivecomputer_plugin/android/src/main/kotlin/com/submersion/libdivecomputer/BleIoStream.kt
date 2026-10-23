@@ -213,10 +213,13 @@ class BleIoStream(
                 // A characteristic read in flight is woken the same way. A
                 // reply that already landed is kept: onReadComplete clears
                 // pendingReadUuid, and both callbacks run on this thread.
+                // Clearing it here too means a reply queued behind this
+                // disconnect cannot complete the read it has already failed.
                 pendingReadUuid?.let {
                     pendingReadFailure = BleCharacteristicRead
                         .describeDisconnectedRead(it.toString(), status)
                     pendingReadValue = null
+                    pendingReadUuid = null
                 }
                 readCharacteristicSemaphore.release()
                 NativeLogger.d(TAG, "BLE",

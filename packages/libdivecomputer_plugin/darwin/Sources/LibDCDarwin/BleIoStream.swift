@@ -932,7 +932,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             if let error {
                 NativeLogger.w("BleIoStream", category: "BLE",
                     "ioctl BLE_CHARACTERISTIC_READ"
-                        + " \(characteristic.uuid.uuidString) refused:"
+                        + " \(characteristic.uuid.uuidString) failed:"
                         + " \(error.localizedDescription)"
                         + " (code \((error as NSError).code))")
             }
