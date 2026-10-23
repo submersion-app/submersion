@@ -46,6 +46,15 @@ class TankPresetsPage extends ConsumerWidget {
           final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
           final customPresets = presets.where((p) => !p.isBuiltIn).toList();
           final customNames = {for (final p in customPresets) p.name};
+          // Custom presets can share a name; the default's name resolves to
+          // the lowest id among them, as in getPresetByName.
+          final defaultCustomId =
+              (customPresets
+                      .where((p) => p.name == settings.defaultTankPreset)
+                      .map((p) => p.id)
+                      .toList()
+                    ..sort())
+                  .firstOrNull;
 
           if (presets.isEmpty) {
             return Center(child: Text(context.l10n.tankPresets_noPresets));
@@ -93,7 +102,7 @@ class TankPresetsPage extends ConsumerWidget {
                     preset,
                     units,
                     canEdit: true,
-                    isDefault: settings.defaultTankPreset == preset.name,
+                    isDefault: preset.id == defaultCustomId,
                   ),
                 ),
                 const Divider(),
@@ -202,24 +211,29 @@ class TankPresetsPage extends ConsumerWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: Icon(
-              isDefault ? Icons.star : Icons.star_outline,
-              color: isDefault ? Theme.of(context).colorScheme.primary : null,
+          // A built-in [shadowed] by the diver's own preset of the same name
+          // cannot become the default, as the name would resolve to the
+          // diver's own, so it has no star. Its space is kept so the stars
+          // stay aligned.
+          Visibility(
+            visible: !shadowed,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: IconButton(
+              icon: Icon(
+                isDefault ? Icons.star : Icons.star_outline,
+                color: isDefault ? Theme.of(context).colorScheme.primary : null,
+              ),
+              onPressed: isDefault
+                  ? null
+                  : () => ref
+                        .read(settingsProvider.notifier)
+                        .setDefaultTankPreset(preset.name),
+              tooltip: isDefault
+                  ? context.l10n.tankPresets_currentDefault
+                  : context.l10n.tankPresets_setAsDefault,
             ),
-            // A built-in [shadowed] by the diver's own preset of the same
-            // name cannot become the default: the name would resolve to the
-            // diver's own.
-            onPressed: isDefault || shadowed
-                ? null
-                : () => ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultTankPreset(preset.name),
-            tooltip: isDefault
-                ? context.l10n.tankPresets_currentDefault
-                : shadowed
-                ? null
-                : context.l10n.tankPresets_setAsDefault,
           ),
           // Built-in presets can be hidden from the pickers (issue #2305),
           // except one named as the default, which the pickers always offer.

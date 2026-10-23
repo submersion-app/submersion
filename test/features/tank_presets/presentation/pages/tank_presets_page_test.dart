@@ -268,16 +268,16 @@ void main() {
         ),
         findsNothing,
       );
-      final builtInStar = tester.widget<IconButton>(
+      final builtInStarSlot = tester.widget<Visibility>(
         find.ancestor(
           of: find.descendant(
             of: row('Steel 12L'),
             matching: find.byIcon(Icons.star_outline),
           ),
-          matching: find.byType(IconButton),
+          matching: find.byType(Visibility),
         ),
       );
-      expect(builtInStar.onPressed, isNull);
+      expect(builtInStarSlot.visible, isFalse);
       // Pickers always offer the default's name, so hiding it does nothing:
       // the switch stays out of reach, as for the default itself.
       final switchSlot = tester.widget<Visibility>(
@@ -287,6 +287,77 @@ void main() {
         ),
       );
       expect(switchSlot.visible, isFalse);
+    });
+
+    testWidgets('of two custom presets sharing the default\'s name, only '
+        'the lowest id is marked default', (tester) async {
+      // Creating "Dubbel 7" twice gives two presets named dubbel_7; the
+      // name resolves to the lowest id, so only that one carries the star.
+      final now = DateTime(2026);
+      TankPresetEntity custom(String id, String displayName, double volume) =>
+          TankPresetEntity(
+            id: id,
+            name: 'dubbel_7',
+            displayName: displayName,
+            volumeLiters: volume,
+            workingPressureBar: 232,
+            material: TankMaterial.steel,
+            createdAt: now,
+            updatedAt: now,
+          );
+      final presets = [
+        custom('dubbel_7_1a2b3c4d', 'Dubbel 7 (copy)', 7),
+        custom('dubbel_7', 'Dubbel 7', 14),
+      ];
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final mockSettings = MockSettingsNotifier();
+      await mockSettings.setDefaultTankPreset('dubbel_7');
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const TankPresetsPage(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => mockSettings),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(presets),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Finder row(String title) =>
+          find.ancestor(of: find.text(title), matching: find.byType(ListTile));
+      expect(
+        find.descendant(of: row('Dubbel 7'), matching: find.byIcon(Icons.star)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: row('Dubbel 7 (copy)'),
+          matching: find.byIcon(Icons.star),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('labels the show switch column', (tester) async {
