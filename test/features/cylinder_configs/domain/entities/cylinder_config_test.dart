@@ -177,4 +177,36 @@ void main() {
     // Gas is not clearable: it always has a concrete value.
     expect(cleared.o2Percent, 21);
   });
+
+  // Issue #3567.
+  group('CylinderConfigItem MOD override', () {
+    final stamp = DateTime.utc(2026, 10, 22);
+    final base = CylinderConfigItem(
+      id: 'i',
+      configId: 'c',
+      tankRole: TankRole.deco,
+      o2Percent: 40,
+      createdAt: stamp,
+      updatedAt: stamp,
+    );
+
+    test('defaults to none', () {
+      expect(base.decoSwitchDepth, isNull);
+    });
+
+    test('copyWith sets it, keeps it, and clears it', () {
+      final set = base.copyWith(decoSwitchDepth: 21);
+      expect(set.decoSwitchDepth, 21);
+      expect(set.copyWith(label: 'x').decoSwitchDepth, 21);
+      expect(set.copyWith(clearDecoSwitchDepth: true).decoSwitchDepth, isNull);
+    });
+
+    test('takes part in equality', () {
+      expect(base.copyWith(decoSwitchDepth: 21), isNot(base));
+      expect(
+        base.copyWith(decoSwitchDepth: 21),
+        base.copyWith(decoSwitchDepth: 21),
+      );
+    });
+  });
 }

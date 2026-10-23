@@ -14689,6 +14689,48 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cylinderConfigs_fromPreset => 'Sablonból';
 
   @override
+  String get tankMod_label => 'MOD';
+
+  @override
+  String tankMod_default(String ppO2, String limit) {
+    return 'Alapértelmezés ppO2 $ppO2 mellett ($limit)';
+  }
+
+  @override
+  String get tankMod_limitBottom => 'fenékidő-határ';
+
+  @override
+  String get tankMod_limitDeco => 'dekó határ';
+
+  @override
+  String tankMod_overridden(String depth) {
+    return 'Általad megadva · alapértelmezés $depth';
+  }
+
+  @override
+  String tankMod_ppO2At(String ppO2, String depth) {
+    return 'ppO2 $ppO2 itt: $depth';
+  }
+
+  @override
+  String tankMod_exceeds(
+    String ppO2,
+    String depth,
+    String limit,
+    String limitPpO2,
+  ) {
+    return 'ppO2 $ppO2 itt: $depth, a(z) $limit ($limitPpO2) felett';
+  }
+
+  @override
+  String get tankMod_reset => 'Visszaállítás';
+
+  @override
+  String tankMod_chip(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
   String get cylinderConfigs_applyAction => 'Konfiguráció alkalmazása';
 
   @override
@@ -22619,10 +22661,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_decoStopIncrement =>
       'Dekómegállók távolsága';
-
-  @override
-  String get settings_conflict_field_decoSwitchDepth =>
-      'Dekógázra váltás mélysége';
 
   @override
   String get settings_conflict_field_deepDiveThresholdM =>

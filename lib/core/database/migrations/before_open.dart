@@ -236,6 +236,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // database stranded at any lower version by a parallel-branch
     // version collision self-heals here.
     await _assertCylinderConfigSchema();
+    await _assertCylinderConfigItemModColumn(); // v304
 
     // v142 backstop: re-assert trips.return_flight_at.
     await _assertTripReturnFlightColumn();

@@ -24,6 +24,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/services/ccr_loop_slots.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 const _uuid = Uuid();
@@ -1261,6 +1262,11 @@ final planResultsProvider = Provider<PlanResult>((ref) {
   return calculator.calculatePlan(
     segments: state.segments,
     tanks: state.tanks,
+    // Each tank's default MOD depends on its derived role and the plan's own
+    // ppO2 limits, as on the plan canvas (issue #3567).
+    tankRoles: const TankRoleResolver().rolesFor(divePlanFromState(state)),
+    bottomPpO2: state.ppO2Bottom,
+    decoPpO2: state.ppO2Deco,
     sacRate: state.sacRate,
     reservePressure: state.reservePressure,
     initialTissueState: state.initialTissueState,

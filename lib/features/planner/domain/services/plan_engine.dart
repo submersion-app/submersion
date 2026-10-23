@@ -19,6 +19,7 @@ import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -1439,6 +1440,7 @@ class PlanEngine {
       );
     }
 
+    issues.addAll(_modOverrideIssues(plan.tanks));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
   }
@@ -1481,25 +1483,49 @@ class PlanEngine {
     minStopSecondsByDepth: plan.stopMinimums,
   );
 
+  /// Each gas joins the ascent at its cylinder's MOD (issue #3567): the one
+  /// the diver set, or the default for its role at this plan's limits.
+  /// [tanks] carry resolved roles: [compute] applies TankRoleResolver first.
   AscentGasPlan _ascentPlanFor(List<DiveTank> tanks) {
     if (tanks.isEmpty) {
       return FixedAscentGas(fN2: 0.7902);
     }
     return OptimalOcAscentGas(
       maxPpO2: config.ppO2Deco,
-      gases: [
-        for (final tank in tanks)
-          AvailableGas(
-            fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
-            fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: O2ToxicityCalculator.calculateMod(
-              tank.gasMix.o2 / 100.0,
-              maxPpO2: config.ppO2Deco,
-            ),
-          ),
-      ],
+      gases: ascentGasesFor(
+        tanks,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: config.ppO2Deco,
+      ),
     );
   }
+
+  /// A MOD set by hand deeper than its cylinder's limit allows is the
+  /// diver's call, and the plan uses it, but it is reported (issue #3567):
+  /// critical above the deco limit, a warning above the bottom limit.
+  List<PlanIssue> _modOverrideIssues(List<DiveTank> tanks) => [
+    for (final tank in tanks)
+      if (modOverrideCheck(
+            tank,
+            bottomPpO2: config.ppO2Working,
+            decoPpO2: config.ppO2Deco,
+          )
+          case (:final ppO2, :final limitPpO2, exceedsLimit: true))
+        PlanIssue(
+          type: ppO2 > config.ppO2Deco
+              ? PlanIssueType.ppO2Critical
+              : PlanIssueType.ppO2High,
+          severity: ppO2 > config.ppO2Deco
+              ? PlanIssueSeverity.critical
+              : PlanIssueSeverity.warning,
+          message:
+              'ppO2 ${ppO2.toStringAsFixed(2)} bar at the MOD set on '
+              '${tank.name ?? tank.gasMix.name} exceeds its limit',
+          atDepth: tank.decoSwitchDepth,
+          value: ppO2,
+          threshold: limitPpO2,
+        ),
+  ];
 
   List<PlanStop> _mapStops(
     DecoSchedule schedule,

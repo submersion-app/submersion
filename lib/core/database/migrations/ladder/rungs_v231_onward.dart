@@ -496,5 +496,11 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen.
     if (from < 303) await _assertMediaRemoteStoreColumn();
     if (from < 303) await reportProgress();
+
+    // v304: cylinder_config_items.deco_switch_depth (issue #3567), the MOD
+    // set by hand on a saved cylinder. Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 304) await _assertCylinderConfigItemModColumn();
+    if (from < 304) await reportProgress();
   }
 }

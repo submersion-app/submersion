@@ -14434,6 +14434,48 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_fromPreset => 'מתבנית';
 
   @override
+  String get tankMod_label => 'MOD';
+
+  @override
+  String tankMod_default(String ppO2, String limit) {
+    return 'ברירת מחדל ב-ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String get tankMod_limitBottom => 'מגבלת קרקעית';
+
+  @override
+  String get tankMod_limitDeco => 'מגבלת דקו';
+
+  @override
+  String tankMod_overridden(String depth) {
+    return 'הוגדר על ידך · ברירת מחדל $depth';
+  }
+
+  @override
+  String tankMod_ppO2At(String ppO2, String depth) {
+    return 'ppO2 $ppO2 ב-$depth';
+  }
+
+  @override
+  String tankMod_exceeds(
+    String ppO2,
+    String depth,
+    String limit,
+    String limitPpO2,
+  ) {
+    return 'ppO2 $ppO2 ב-$depth, מעל $limit $limitPpO2';
+  }
+
+  @override
+  String get tankMod_reset => 'איפוס';
+
+  @override
+  String tankMod_chip(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
   String get cylinderConfigs_applyAction => 'החל תצורה';
 
   @override
@@ -22175,9 +22217,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_decoStopIncrement =>
       'מרווח בין עצירות דקו';
-
-  @override
-  String get settings_conflict_field_decoSwitchDepth => 'עומק המעבר לגז דקו';
 
   @override
   String get settings_conflict_field_deepDiveThresholdM => 'סף צלילה עמוקה';

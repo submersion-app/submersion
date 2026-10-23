@@ -14917,6 +14917,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_fromPreset => 'من قالب';
 
   @override
+  String get tankMod_label => 'MOD';
+
+  @override
+  String tankMod_default(String ppO2, String limit) {
+    return 'الافتراضي عند ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String get tankMod_limitBottom => 'حد القاع';
+
+  @override
+  String get tankMod_limitDeco => 'حد تخفيف الضغط';
+
+  @override
+  String tankMod_overridden(String depth) {
+    return 'حددته أنت · الافتراضي $depth';
+  }
+
+  @override
+  String tankMod_ppO2At(String ppO2, String depth) {
+    return 'ppO2 $ppO2 عند $depth';
+  }
+
+  @override
+  String tankMod_exceeds(
+    String ppO2,
+    String depth,
+    String limit,
+    String limitPpO2,
+  ) {
+    return 'ppO2 $ppO2 عند $depth، أعلى من $limit $limitPpO2';
+  }
+
+  @override
+  String get tankMod_reset => 'إعادة تعيين';
+
+  @override
+  String tankMod_chip(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
   String get cylinderConfigs_applyAction => 'تطبيق إعداد';
 
   @override
@@ -22972,10 +23014,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_decoStopIncrement =>
       'المسافة بين محطات تخفيف الضغط';
-
-  @override
-  String get settings_conflict_field_decoSwitchDepth =>
-      'عمق التبديل إلى غاز تخفيف الضغط';
 
   @override
   String get settings_conflict_field_deepDiveThresholdM => 'حد الغوص العميق';

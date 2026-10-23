@@ -14728,6 +14728,48 @@ class AppLocalizationsIt extends AppLocalizations {
   String get cylinderConfigs_fromPreset => 'Da preimpostazione';
 
   @override
+  String get tankMod_label => 'MOD';
+
+  @override
+  String tankMod_default(String ppO2, String limit) {
+    return 'Predefinita a ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String get tankMod_limitBottom => 'limite di fondo';
+
+  @override
+  String get tankMod_limitDeco => 'limite deco';
+
+  @override
+  String tankMod_overridden(String depth) {
+    return 'Impostata da te · predefinita $depth';
+  }
+
+  @override
+  String tankMod_ppO2At(String ppO2, String depth) {
+    return 'ppO2 $ppO2 a $depth';
+  }
+
+  @override
+  String tankMod_exceeds(
+    String ppO2,
+    String depth,
+    String limit,
+    String limitPpO2,
+  ) {
+    return 'ppO2 $ppO2 a $depth, oltre il $limit $limitPpO2';
+  }
+
+  @override
+  String get tankMod_reset => 'Ripristina';
+
+  @override
+  String tankMod_chip(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
   String get cylinderConfigs_applyAction => 'Applica configurazione';
 
   @override
@@ -22704,10 +22746,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_decoStopIncrement =>
       'Intervallo delle soste deco';
-
-  @override
-  String get settings_conflict_field_decoSwitchDepth =>
-      'Profondità di cambio al gas deco';
 
   @override
   String get settings_conflict_field_deepDiveThresholdM =>

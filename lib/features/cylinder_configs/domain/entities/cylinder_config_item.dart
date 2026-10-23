@@ -30,6 +30,11 @@ class CylinderConfigItem extends Equatable {
   final double hePercent;
 
   final double? defaultStartPressureBar;
+
+  /// The MOD in metres the diver set on this cylinder, or null to use the
+  /// default for its role (issue #3567). Maps to dive_tanks and plan tanks'
+  /// deco_switch_depth when the cylinder is applied or picked.
+  final double? decoSwitchDepth;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -45,6 +50,7 @@ class CylinderConfigItem extends Equatable {
     this.o2Percent = 21,
     this.hePercent = 0,
     this.defaultStartPressureBar,
+    this.decoSwitchDepth,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -66,6 +72,8 @@ class CylinderConfigItem extends Equatable {
     double? hePercent,
     double? defaultStartPressureBar,
     bool clearDefaultStartPressureBar = false,
+    double? decoSwitchDepth,
+    bool clearDecoSwitchDepth = false,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => CylinderConfigItem(
@@ -86,6 +94,9 @@ class CylinderConfigItem extends Equatable {
     defaultStartPressureBar: clearDefaultStartPressureBar
         ? null
         : (defaultStartPressureBar ?? this.defaultStartPressureBar),
+    decoSwitchDepth: clearDecoSwitchDepth
+        ? null
+        : (decoSwitchDepth ?? this.decoSwitchDepth),
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -105,5 +116,6 @@ class CylinderConfigItem extends Equatable {
     o2Percent,
     hePercent,
     defaultStartPressureBar,
+    decoSwitchDepth,
   ];
 }

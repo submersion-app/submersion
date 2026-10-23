@@ -23897,6 +23897,65 @@ abstract class AppLocalizations {
   /// **'From preset'**
   String get cylinderConfigs_fromPreset;
 
+  /// Label of a cylinder's maximum operating depth field. MOD is the standard diving abbreviation.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD'**
+  String get tankMod_label;
+
+  /// Under the MOD field when the diver has not set one: the ppO2 limit the default comes from. {limit} is tankMod_limitBottom or tankMod_limitDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Default at ppO2 {ppO2} ({limit})'**
+  String tankMod_default(String ppO2, String limit);
+
+  /// Name of the bottom (working) ppO2 limit, used inside other MOD strings.
+  ///
+  /// In en, this message translates to:
+  /// **'bottom limit'**
+  String get tankMod_limitBottom;
+
+  /// Name of the decompression ppO2 limit, used inside other MOD strings.
+  ///
+  /// In en, this message translates to:
+  /// **'deco limit'**
+  String get tankMod_limitDeco;
+
+  /// Under the MOD field when the diver typed a depth: says so and gives the default it replaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Set by you · default {depth}'**
+  String tankMod_overridden(String depth);
+
+  /// The ppO2 the gas reaches at the MOD the diver set.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 {ppO2} at {depth}'**
+  String tankMod_ppO2At(String ppO2, String depth);
+
+  /// Warning when the MOD the diver set gives a ppO2 above the limit for the cylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 {ppO2} at {depth}, above the {limit} {limitPpO2}'**
+  String tankMod_exceeds(
+    String ppO2,
+    String depth,
+    String limit,
+    String limitPpO2,
+  );
+
+  /// Button that clears a MOD set by hand, back to the default.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get tankMod_reset;
+
+  /// Shown on a dive plan tank chip when the diver set its MOD by hand.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD {depth}'**
+  String tankMod_chip(String depth);
+
   /// No description provided for @cylinderConfigs_applyAction.
   ///
   /// In en, this message translates to:
@@ -36167,12 +36226,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deco stop increment'**
   String get settings_conflict_field_decoStopIncrement;
-
-  /// No description provided for @settings_conflict_field_decoSwitchDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Deco gas switch depth'**
-  String get settings_conflict_field_decoSwitchDepth;
 
   /// No description provided for @settings_conflict_field_deepDiveThresholdM.
   ///

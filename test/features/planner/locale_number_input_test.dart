@@ -220,12 +220,15 @@ void main() {
         overrides: [
           tankPresetsProvider.overrideWith((ref) async => <TankPresetEntity>[]),
         ],
-        child: StatefulBuilder(
-          builder: (context, setState) => CylinderConfigItemEditor(
-            item: current,
-            units: const UnitFormatter(AppSettings()),
-            onChanged: (updated) => setState(() => current = updated),
-            onRemove: () {},
+        child: SingleChildScrollView(
+          child: StatefulBuilder(
+            builder: (context, setState) => CylinderConfigItemEditor(
+              item: current,
+              number: 1,
+              units: const UnitFormatter(AppSettings()),
+              onChanged: (updated) => setState(() => current = updated),
+              onRemove: () {},
+            ),
           ),
         ),
       );
@@ -246,7 +249,7 @@ void main() {
       await tester.pumpWidget(host(seed()));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(TextField, 'O2 %'), '32,5');
+      await tester.enterText(find.widgetWithText(TextField, 'O2'), '32,5');
       await tester.pumpAndSettle();
 
       expect(current.o2Percent, 32.5);
