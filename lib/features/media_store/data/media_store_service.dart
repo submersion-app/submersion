@@ -56,6 +56,7 @@ Future<MediaObjectStore?> buildMediaObjectStore(
       if (await provider.mediaHttpClient() == null) return null;
       return GoogleDriveMediaObjectStore(
         clientSupplier: provider.mediaHttpClient,
+        onAuthRejected: provider.mediaAuthRejected,
       );
     case CloudProviderType.icloud:
       final availability = await ICloudNativeService.getAvailability();

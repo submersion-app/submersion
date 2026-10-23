@@ -115,6 +115,12 @@ class GoogleDriveStorageProvider
     return null;
   }
 
+  /// The media store's 401 hook: Drive refused [rejected], so refresh the
+  /// token through the same shared re-auth the sync calls use. True when a
+  /// fresh client is available for one retry.
+  Future<bool> mediaAuthRejected(http.Client rejected) =>
+      _reauthorize(rejected);
+
   /// The Drive API bound to the authenticator's current client, or null
   /// when not authenticated. Rebuilt lazily so a re-auth (new client)
   /// transparently produces a new API instance.

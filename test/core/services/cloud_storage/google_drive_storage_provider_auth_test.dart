@@ -357,6 +357,34 @@ void main() {
     expect(auth.silentAuthCalls, 1);
   });
 
+  group('mediaAuthRejected', () {
+    test('re-authorizes the rejected media client', () async {
+      final rejected = auth.authClient!;
+      final fresh = drive_.client();
+      auth.silentAuthClient = fresh;
+
+      expect(await provider.mediaAuthRejected(rejected), isTrue);
+      expect(auth.authFailures, 1);
+      expect(await provider.mediaHttpClient(), same(fresh));
+    });
+
+    test('leaves a client that was already replaced alone', () async {
+      // A sync call refreshed the token first; the media store's stale
+      // rejection must not tear the fresh client down again.
+      final stale = drive_.client();
+
+      expect(await provider.mediaAuthRejected(stale), isTrue);
+      expect(auth.authFailures, 0);
+      expect(auth.silentAuthCalls, 0);
+    });
+
+    test('reports a failed re-auth', () async {
+      auth.silentAuthResult = false;
+
+      expect(await provider.mediaAuthRejected(auth.authClient!), isFalse);
+    });
+  });
+
   test('a 401 that survives re-auth asks to sign in again', () async {
     // The retry's token was rejected as well. Surfacing the raw Drive error
     // left the diver looking at "invalid credentials" with no hint that a
