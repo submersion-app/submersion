@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_scrubber_entry.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_scrubber_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 
 class _FixedList extends StateNotifier<AsyncValue<PaginatedDiveListState>>
@@ -28,10 +32,24 @@ void main() {
   AsyncValue<String?> remembered({
     required String? highlighted,
     required AsyncValue<PaginatedDiveListState> list,
+    List<String> indexedIds = const [],
   }) {
     final container = ProviderContainer(
       overrides: [
         paginatedDiveListProvider.overrideWith((ref) => _FixedList(list)),
+        diveScrubberIndexProvider.overrideWithValue(
+          AsyncData(
+            DiveScrubberIndex(
+              entries: [
+                for (final id in indexedIds)
+                  DiveScrubberEntry(id: id, sortTimestamp: 0),
+              ],
+              diverId: null,
+              filter: const DiveFilterState(),
+              sort: const SortState(field: DiveSortField.date),
+            ),
+          ),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -94,6 +112,32 @@ void main() {
         ),
       ),
       const AsyncData<String?>(null),
+    );
+  });
+
+  // The list's scrubber index holds every dive the filter selects, in order,
+  // so the search need not page blindly.
+  test('a dive the full index does not hold ends the search at once', () {
+    expect(
+      remembered(
+        highlighted: 'gone',
+        list: AsyncData(PaginatedDiveListState(dives: _dives(50))),
+        indexedIds: [for (var i = 0; i < 200; i++) 'd$i'],
+      ),
+      const AsyncData<String?>(null),
+    );
+  });
+
+  test('a dive the index holds is paged for past the row limit', () {
+    expect(
+      remembered(
+        highlighted: 'd1500',
+        list: AsyncData(
+          PaginatedDiveListState(dives: _dives(kRememberedDiveSearchLimit)),
+        ),
+        indexedIds: [for (var i = 0; i < 2000; i++) 'd$i'],
+      ).isLoading,
+      isTrue,
     );
   });
 
