@@ -338,6 +338,14 @@ class BulkDiveEditService {
             // add + overwriteRole (#893).
             await _buddyRepo.bulkUpdateBuddyRoles(ids, buddies);
         }
+        // Clear legacy buddy/divemaster text so it does not coexist with
+        // junction data in the properties section (issue #3581).
+        await (_db.update(_db.dives)
+          ..where((t) => t.id.isIn(ids)))
+            .write(DivesCompanion(
+              buddy: Value(null),
+              diveMaster: Value(null),
+            ));
       case DiverRolesOp(:final roleIds):
         final now = DateTime.now().millisecondsSinceEpoch;
         for (final id in ids) {

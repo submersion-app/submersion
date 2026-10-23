@@ -6205,6 +6205,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
       // Create dive entity
       final savedVisibility = _resolvedVisibility(units);
+      // Clear legacy buddy/divemaster text when the BuddyPicker was used
+      // (issue #3581). The BuddyPicker is the authoritative interface; the
+      // legacy text fields are deprecated and must not coexist with junction
+      // data, which causes stale names to appear in the properties section.
+      final pickerUsed =
+          _selectedBuddies.map((b) => b.buddy.id).toSet() != _originalBuddyIds;
       final dive = Dive(
         id: widget.diveId ?? '',
         diverId: _existingDive?.diverId, // Preserve diver assignment
@@ -6295,9 +6301,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         profile: _existingDive?.profile ?? const [],
         // Preserve photo associations
         photoIds: _existingDive?.photoIds ?? const [],
-        // Preserve legacy buddy/divemaster text fields
-        buddy: _existingDive?.buddy,
-        diveMaster: _existingDive?.diveMaster,
+        // Buddy/divemaster: cleared above when the picker was used so the
+        // legacy text does not coexist with junction data (issue #3581).
+        buddy: pickerUsed ? null : _existingDive?.buddy,
+        diveMaster: pickerUsed ? null : _existingDive?.diveMaster,
         // Fields this form has no widget for. Every column updateDive does
         // write, it writes unconditionally, with no merge against the stored
         // row, so anything not carried through here is reset to the entity
