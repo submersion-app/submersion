@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// "Show these trips" pushes the trip list over the page the link is on,
 /// so its back arrow returns there (#3350).
@@ -79,6 +80,67 @@ void main() {
     final ret = h.extras.last! as TripListReturn;
     expect(ret.filter.equipmentId, 'e0');
     expect(ret.highlightedTripId, 't0');
+  });
+
+  // What the diver opens or empties in a pushed list must not change whether
+  // the Trips tab reopens its pane on return (#3301).
+  testWidgets('the return snapshot carries the tab\'s closed pane', (
+    tester,
+  ) async {
+    final h = await pumpHarness(tester);
+    h.container.read(closedPaneRecordProvider.notifier).state = const {
+      'trips': 't0',
+    };
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final ret = h.extras.last! as TripListReturn;
+    expect(ret.closedPaneTripId, 't0');
+  });
+
+  Future<Map<String, String>> restoredClosedPanes(
+    WidgetTester tester, {
+    required String? snapshot,
+  }) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    late VoidCallback restore;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (context, ref, _) {
+            restore = TripListReturn(
+              filter: const TripFilterState(),
+              highlightedTripId: null,
+              closedPaneTripId: snapshot,
+            ).bindRestore(ref);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    // The pushed list emptied its pane on another trip.
+    container.read(closedPaneRecordProvider.notifier).state = const {
+      'trips': 'other',
+      'sites': 's1',
+    };
+    restore();
+    return container.read(closedPaneRecordProvider);
+  }
+
+  testWidgets('going away puts the tab\'s closed pane back', (tester) async {
+    expect(await restoredClosedPanes(tester, snapshot: 't0'), {
+      'trips': 't0',
+      'sites': 's1',
+    });
+  });
+
+  testWidgets('going away clears a closed pane the tab did not have', (
+    tester,
+  ) async {
+    expect(await restoredClosedPanes(tester, snapshot: null), {'sites': 's1'});
   });
 
   testWidgets('a double tap opens one list, so one Back returns', (
