@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -196,74 +198,25 @@ void main() {
       // dives, imports and downloads, so only it carries the default star.
       // The built-in's star cannot make the built-in the default either:
       // the name would still resolve to the diver's own.
-      final now = DateTime(2026);
-      final presets = [
-        TankPresetEntity.fromBuiltIn(TankPresets.steel12),
-        TankPresetEntity(
-          id: 'custom-1',
-          name: 'steel12',
-          displayName: 'My Steel 12L',
-          volumeLiters: 12,
-          workingPressureBar: 232,
-          material: TankMaterial.steel,
-          createdAt: now,
-          updatedAt: now,
-        ),
-      ];
-
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final mockSettings = MockSettingsNotifier();
-      await mockSettings.setDefaultTankPreset('steel12');
+      // Tall enough that the lazily built list reaches the built-in row
+      // below the default-tank settings.
       await tester.binding.setSurfaceSize(const Size(800, 1400));
       addTearDown(() => tester.binding.setSurfaceSize(null));
+      await _pumpPresetsPage(tester, [
+        TankPresetEntity.fromBuiltIn(TankPresets.steel12),
+        _custom('custom-1', 'steel12', 'My Steel 12L', 12),
+      ], defaultTankPreset: 'steel12');
 
-      final router = GoRouter(
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => const TankPresetsPage(),
-          ),
-          GoRoute(
-            path: '/tank-presets/new',
-            builder: (context, state) => const Scaffold(),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            settingsProvider.overrideWith((ref) => mockSettings),
-            currentDiverIdProvider.overrideWith(
-              (ref) => MockCurrentDiverIdNotifier(),
-            ),
-            tankPresetListNotifierProvider.overrideWith(
-              (ref) => _MockTankPresetListNotifier(presets),
-            ),
-          ].cast(),
-          child: MaterialApp.router(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      Finder row(String title) =>
-          find.ancestor(of: find.text(title), matching: find.byType(ListTile));
       expect(
         find.descendant(
-          of: row('My Steel 12L'),
+          of: _row('My Steel 12L'),
           matching: find.byIcon(Icons.star),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
-          of: row('Steel 12L'),
+          of: _row('Steel 12L'),
           matching: find.byIcon(Icons.star),
         ),
         findsNothing,
@@ -271,7 +224,7 @@ void main() {
       final builtInStarSlot = tester.widget<Visibility>(
         find.ancestor(
           of: find.descendant(
-            of: row('Steel 12L'),
+            of: _row('Steel 12L'),
             matching: find.byIcon(Icons.star_outline),
           ),
           matching: find.byType(Visibility),
@@ -293,67 +246,21 @@ void main() {
         'the lowest id is marked default', (tester) async {
       // Creating "Dubbel 7" twice gives two presets named dubbel_7; the
       // name resolves to the lowest id, so only that one carries the star.
-      final now = DateTime(2026);
-      TankPresetEntity custom(String id, String displayName, double volume) =>
-          TankPresetEntity(
-            id: id,
-            name: 'dubbel_7',
-            displayName: displayName,
-            volumeLiters: volume,
-            workingPressureBar: 232,
-            material: TankMaterial.steel,
-            createdAt: now,
-            updatedAt: now,
-          );
-      final presets = [
-        custom('dubbel_7_1a2b3c4d', 'Dubbel 7 (copy)', 7),
-        custom('dubbel_7', 'Dubbel 7', 14),
-      ];
+      await _pumpPresetsPage(tester, [
+        _custom('dubbel_7_1a2b3c4d', 'dubbel_7', 'Dubbel 7 (copy)', 7),
+        _custom('dubbel_7', 'dubbel_7', 'Dubbel 7', 14),
+      ], defaultTankPreset: 'dubbel_7');
 
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final mockSettings = MockSettingsNotifier();
-      await mockSettings.setDefaultTankPreset('dubbel_7');
-
-      final router = GoRouter(
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => const TankPresetsPage(),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            settingsProvider.overrideWith((ref) => mockSettings),
-            currentDiverIdProvider.overrideWith(
-              (ref) => MockCurrentDiverIdNotifier(),
-            ),
-            tankPresetListNotifierProvider.overrideWith(
-              (ref) => _MockTankPresetListNotifier(presets),
-            ),
-          ].cast(),
-          child: MaterialApp.router(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      Finder row(String title) =>
-          find.ancestor(of: find.text(title), matching: find.byType(ListTile));
       expect(
-        find.descendant(of: row('Dubbel 7'), matching: find.byIcon(Icons.star)),
+        find.descendant(
+          of: _row('Dubbel 7'),
+          matching: find.byIcon(Icons.star),
+        ),
         findsOneWidget,
       );
       expect(
         find.descendant(
-          of: row('Dubbel 7 (copy)'),
+          of: _row('Dubbel 7 (copy)'),
           matching: find.byIcon(Icons.star),
         ),
         findsNothing,
@@ -361,25 +268,10 @@ void main() {
     });
 
     group('deleting a custom preset named as the default', () {
-      TankPresetEntity custom(String id, String displayName) =>
-          TankPresetEntity(
-            id: id,
-            name: 'dubbel_7',
-            displayName: displayName,
-            volumeLiters: 7,
-            workingPressureBar: 232,
-            material: TankMaterial.steel,
-            createdAt: DateTime(2026),
-            updatedAt: DateTime(2026),
-          );
-
       Future<void> deleteRow(WidgetTester tester, String title) async {
         await tester.tap(
           find.descendant(
-            of: find.ancestor(
-              of: find.text(title),
-              matching: find.byType(ListTile),
-            ),
+            of: _row(title),
             matching: find.byIcon(Icons.delete_outline),
           ),
         );
@@ -391,9 +283,9 @@ void main() {
       testWidgets('keeps the default while another of that name remains', (
         tester,
       ) async {
-        final settings = await _pumpPresetsPage(tester, [
-          custom('dubbel_7', 'Dubbel 7'),
-          custom('dubbel_7_1a2b3c4d', 'Dubbel 7 (copy)'),
+        final (:settings, router: _) = await _pumpPresetsPage(tester, [
+          _custom('dubbel_7', 'dubbel_7', 'Dubbel 7', 7),
+          _custom('dubbel_7_1a2b3c4d', 'dubbel_7', 'Dubbel 7 (copy)', 7),
         ], defaultTankPreset: 'dubbel_7');
 
         await deleteRow(tester, 'Dubbel 7');
@@ -401,14 +293,61 @@ void main() {
         expect(settings.state.defaultTankPreset, 'dubbel_7');
       });
 
+      testWidgets('keeps the default while a built-in of that name remains', (
+        tester,
+      ) async {
+        // Once the diver's own steel12 is gone, the name resolves to the
+        // built-in Steel 12L, so the default is still a real cylinder.
+        await tester.binding.setSurfaceSize(const Size(800, 1400));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final (:settings, router: _) = await _pumpPresetsPage(tester, [
+          TankPresetEntity.fromBuiltIn(TankPresets.steel12),
+          _custom('custom-1', 'steel12', 'My Steel 12L', 12),
+        ], defaultTankPreset: 'steel12');
+
+        await tester.tap(
+          find.descendant(
+            of: _row('My Steel 12L'),
+            matching: find.byIcon(Icons.delete_outline),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.textContaining('reset to AL80'), findsNothing);
+        await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+        await tester.pumpAndSettle();
+
+        expect(settings.state.defaultTankPreset, 'steel12');
+      });
+
       testWidgets('resets the default when it was the last of that name', (
         tester,
       ) async {
-        final settings = await _pumpPresetsPage(tester, [
-          custom('dubbel_7', 'Dubbel 7'),
+        final (:settings, router: _) = await _pumpPresetsPage(tester, [
+          _custom('dubbel_7', 'dubbel_7', 'Dubbel 7', 7),
         ], defaultTankPreset: 'dubbel_7');
 
         await deleteRow(tester, 'Dubbel 7');
+
+        expect(settings.state.defaultTankPreset, 'al80');
+      });
+
+      testWidgets('resets the default even when the page closes during the '
+          'delete', (tester) async {
+        final deleteGate = Completer<void>();
+        final (:settings, :router) = await _pumpPresetsPage(
+          tester,
+          [_custom('dubbel_7', 'dubbel_7', 'Dubbel 7', 7)],
+          defaultTankPreset: 'dubbel_7',
+          onDelete: () => deleteGate.future,
+          pushedOverHome: true,
+        );
+
+        await deleteRow(tester, 'Dubbel 7');
+        router.pop();
+        await tester.pumpAndSettle();
+        expect(find.byType(TankPresetsPage), findsNothing);
+        deleteGate.complete();
+        await tester.pumpAndSettle();
 
         expect(settings.state.defaultTankPreset, 'al80');
       });
@@ -600,21 +539,53 @@ void main() {
   });
 }
 
-/// Simple mock that directly holds preset data in state
+Finder _row(String title) =>
+    find.ancestor(of: find.text(title), matching: find.byType(ListTile));
+
+TankPresetEntity _custom(
+  String id,
+  String name,
+  String displayName,
+  double volume,
+) => TankPresetEntity(
+  id: id,
+  name: name,
+  displayName: displayName,
+  volumeLiters: volume,
+  workingPressureBar: 232,
+  material: TankMaterial.steel,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
 /// Pumps the presets page over [presets] with [defaultTankPreset] as the
-/// diver's default, returning the settings notifier it reads.
-Future<MockSettingsNotifier> _pumpPresetsPage(
+/// diver's default, returning the settings notifier it reads and its router.
+/// [onDelete] stands in for the delete; [pushedOverHome] opens the page over
+/// a home route it can be popped back to.
+Future<({MockSettingsNotifier settings, GoRouter router})> _pumpPresetsPage(
   WidgetTester tester,
   List<TankPresetEntity> presets, {
   required String defaultTankPreset,
+  Future<void> Function()? onDelete,
+  bool pushedOverHome = false,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final settings = MockSettingsNotifier();
   await settings.setDefaultTankPreset(defaultTankPreset);
   final router = GoRouter(
+    initialLocation: pushedOverHome ? '/' : '/presets',
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const TankPresetsPage()),
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const Scaffold(),
+        routes: [
+          GoRoute(
+            path: 'presets',
+            builder: (context, state) => const TankPresetsPage(),
+          ),
+        ],
+      ),
     ],
   );
   await tester.pumpWidget(
@@ -626,7 +597,7 @@ Future<MockSettingsNotifier> _pumpPresetsPage(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         tankPresetListNotifierProvider.overrideWith(
-          (ref) => _MockTankPresetListNotifier(presets),
+          (ref) => _MockTankPresetListNotifier(presets, onDelete: onDelete),
         ),
       ].cast(),
       child: MaterialApp.router(
@@ -637,14 +608,21 @@ Future<MockSettingsNotifier> _pumpPresetsPage(
     ),
   );
   await tester.pumpAndSettle();
-  return settings;
+  if (pushedOverHome) {
+    router.push('/presets');
+    await tester.pumpAndSettle();
+  }
+  return (settings: settings, router: router);
 }
 
+/// Simple mock that directly holds preset data in state
 class _MockTankPresetListNotifier
     extends StateNotifier<AsyncValue<List<TankPresetEntity>>>
     implements TankPresetListNotifier {
-  _MockTankPresetListNotifier(List<TankPresetEntity> presets)
+  _MockTankPresetListNotifier(List<TankPresetEntity> presets, {this.onDelete})
     : super(AsyncValue.data(presets));
+
+  final Future<void> Function()? onDelete;
 
   @override
   Future<void> refresh() async {}
@@ -656,5 +634,5 @@ class _MockTankPresetListNotifier
   Future<void> updatePreset(TankPresetEntity preset) async {}
 
   @override
-  Future<void> deletePreset(String id) async {}
+  Future<void> deletePreset(String id) async => onDelete?.call();
 }

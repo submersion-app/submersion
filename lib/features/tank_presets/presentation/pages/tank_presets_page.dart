@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -48,13 +49,20 @@ class TankPresetsPage extends ConsumerWidget {
           final customNames = {for (final p in customPresets) p.name};
           // Custom presets can share a name; the default's name resolves to
           // the lowest id among them, as in getPresetByName.
-          final defaultCustomId =
-              (customPresets
-                      .where((p) => p.name == settings.defaultTankPreset)
-                      .map((p) => p.id)
-                      .toList()
-                    ..sort())
-                  .firstOrNull;
+          final defaultCustomIds =
+              customPresets
+                  .where((p) => p.name == settings.defaultTankPreset)
+                  .map((p) => p.id)
+                  .toList()
+                ..sort();
+          final defaultCustomId = defaultCustomIds.firstOrNull;
+          // Deleting it clears the default only when the name would then
+          // resolve to nothing: no other custom preset or built-in of it.
+          final defaultName = settings.defaultTankPreset;
+          final deletingDefaultClearsIt =
+              defaultName != null &&
+              defaultCustomIds.length == 1 &&
+              TankPresets.byName(defaultName) == null;
 
           if (presets.isEmpty) {
             return Center(child: Text(context.l10n.tankPresets_noPresets));
@@ -103,14 +111,9 @@ class TankPresetsPage extends ConsumerWidget {
                     units,
                     canEdit: true,
                     isDefault: preset.id == defaultCustomId,
-                    // While another custom preset of the default's name
-                    // remains, the name still resolves to it.
                     deletesDefault:
                         preset.name == settings.defaultTankPreset &&
-                        customPresets
-                                .where((p) => p.name == preset.name)
-                                .length ==
-                            1,
+                        deletingDefaultClearsIt,
                   ),
                 ),
                 const Divider(),
@@ -321,11 +324,14 @@ class TankPresetsPage extends ConsumerWidget {
     if (confirmed == true) {
       try {
         final notifier = ref.read(tankPresetListNotifierProvider.notifier);
+        // Read before the delete: the page may close while it runs, and the
+        // default must not be left naming a preset that is gone.
+        final settingsNotifier = ref.read(settingsProvider.notifier);
         await notifier.deletePreset(preset.id);
+        if (deletesDefault) {
+          await settingsNotifier.setDefaultTankPreset('al80');
+        }
         if (context.mounted) {
-          if (deletesDefault) {
-            ref.read(settingsProvider.notifier).setDefaultTankPreset('al80');
-          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
