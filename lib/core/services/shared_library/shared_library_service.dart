@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 
-import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
@@ -151,22 +149,7 @@ class SharedLibraryService {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.notConnected,
-          switch (e) {
-            LibraryAccountMissingError() => const LibrarySyncError(
-              LibrarySyncErrorCode.accountMissing,
-            ),
-            LibraryAccountSignedOutError() => const LibrarySyncError(
-              LibrarySyncErrorCode.accountSignedOut,
-            ),
-            LibraryAccountUnsupportedError(:final kindName) => LibrarySyncError(
-              LibrarySyncErrorCode.accountUnsupported,
-              detail: kindName,
-            ),
-            _ => LibrarySyncError(
-              LibrarySyncErrorCode.failed,
-              detail: e.message,
-            ),
-          },
+          LibrarySyncError.fromTransportError(e),
         );
       }
 
@@ -537,14 +520,11 @@ class SharedLibraryService {
       );
     } catch (e, st) {
       _log.error('Library $libraryId sync failed', error: e, stackTrace: st);
-      return _fail(libraryId, SharedLibrarySyncStatus.failed, switch (e) {
-        WebDavException() => LibrarySyncError.fromWebDav(e),
-        CloudStorageException() => LibrarySyncError(
-          LibrarySyncErrorCode.failed,
-          detail: e.displayMessage,
-        ),
-        _ => LibrarySyncError(LibrarySyncErrorCode.failed, detail: '$e'),
-      });
+      return _fail(
+        libraryId,
+        SharedLibrarySyncStatus.failed,
+        LibrarySyncError.fromSyncFailure(e),
+      );
     }
   }
 

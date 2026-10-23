@@ -106,31 +106,47 @@ class AccountGroupService {
     WebDavConfig? webdav,
     String? labelNote,
   }) async {
+    final account = await _ensureRow(
+      s3: s3,
+      webdav: webdav,
+      labelNote: labelNote,
+    );
+    await _credentials.write(
+      account.id,
+      jsonEncode(s3 != null ? s3.toJson() : webdav!.toJson()),
+    );
+    return account;
+  }
+
+  /// The roster row [s3] or [webdav] hashes to, with its label and
+  /// location; the credentials are left as they are.
+  Future<ConnectedAccount> _ensureRow({
+    S3Config? s3,
+    WebDavConfig? webdav,
+    String? labelNote,
+  }) {
     assert((s3 == null) != (webdav == null), 'exactly one server');
     final note = labelNote == null ? '' : ' ($labelNote)';
     if (s3 != null) {
-      final account = await _accounts.ensure(
+      return _accounts.ensure(
         kind: AccountKind.s3,
         naturalKey: s3NaturalKey(s3),
         label: '${s3.bucket} @ ${s3.displayHost}$note',
         location: S3AccountLocation.fromConfig(s3),
       );
-      await _credentials.write(account.id, jsonEncode(s3.toJson()));
-      return account;
     }
-    final account = await _accounts.ensure(
+    return _accounts.ensure(
       kind: AccountKind.webdav,
       naturalKey: webdavNaturalKey(webdav!),
       label: '${webdav.displayLabel}$note',
       location: WebDavAccountLocation.fromConfig(webdav),
     );
-    await _credentials.write(account.id, jsonEncode(webdav.toJson()));
-    return account;
   }
 
   /// Puts the roster row [rowId] back from the server settings this device
   /// still holds for it (issue #3563), or returns the row when it is still
-  /// there. A removed row's keys stay behind on every device that signed
+  /// there. Only the row is written: the settings are already stored, and a
+  /// keychain that refuses writes must not keep the row away. A removed row's keys stay behind on every device that signed
   /// in, and its id is the one they hash to, so the row written is the same
   /// account, stamped newer than the removal. Null when this device holds
   /// no settings for it, or holds settings that hash to another row:
@@ -140,14 +156,11 @@ class AccountGroupService {
     if (existing != null) return existing;
     final s3 = await _storedS3(rowId);
     if (s3 != null && _s3Id(s3) == rowId) {
-      return saveOwnServer(s3: s3, labelNote: _libraryNote(s3.prefix));
+      return _ensureRow(s3: s3, labelNote: _libraryNote(s3.prefix));
     }
     final webdav = await _storedWebDav(rowId);
     if (webdav != null && _webDavId(webdav) == rowId) {
-      return saveOwnServer(
-        webdav: webdav,
-        labelNote: _libraryNote(webdav.folder),
-      );
+      return _ensureRow(webdav: webdav, labelNote: _libraryNote(webdav.folder));
     }
     return null;
   }

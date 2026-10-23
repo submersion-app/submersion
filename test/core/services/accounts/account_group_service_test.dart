@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
@@ -331,6 +332,32 @@ void main() {
       expect((await stored(lib.id))!.accessKeyId, 'AKIA1');
     });
 
+    test('only the row is written; the keys are read, not written', () async {
+      final keychain = _WriteRefusingKeychain();
+      final keys = AccountCredentialsStore(storage: keychain);
+      final restorer = AccountGroupService(
+        accounts: accounts,
+        credentials: keys,
+        registry: AccountProviderRegistry([
+          S3AccountAdapter(credentials: keys),
+        ]),
+      );
+      final lib = await restorer.saveOwnServer(
+        s3: s3('submersion-sites/reef-team/'),
+        labelNote: 'submersion-sites/reef-team',
+      );
+      await accounts.delete(lib.id);
+      // A keychain that turns writes away (locked, or a prompt dismissed)
+      // must not stop the row coming back.
+      keychain.refuseWrites = true;
+
+      final restored = await restorer.restoreRow(lib.id);
+
+      expect(restored!.id, lib.id);
+      expect(restored.label, lib.label);
+      expect(await accounts.getById(lib.id), isNotNull);
+    });
+
     test('puts a removed WebDAV library row back', () async {
       final config = WebDavConfig(
         serverUrl: 'https://dav.example.com/remote.php/dav/files/ana',
@@ -383,4 +410,24 @@ void main() {
       expect(await accounts.getAll(), isEmpty);
     });
   });
+}
+
+/// A keychain that turns every write away once [refuseWrites] is set.
+class _WriteRefusingKeychain extends InMemoryKeychain {
+  bool refuseWrites = false;
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) {
+    if (refuseWrites) throw StateError('keychain locked (test)');
+    return super.write(key: key, value: value);
+  }
 }

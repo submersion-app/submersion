@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 
 /// Why a library's last sync failed.
@@ -48,6 +49,32 @@ class LibrarySyncError {
 
   LibrarySyncError.fromWebDav(WebDavException e)
     : this(LibrarySyncErrorCode.webdav, detail: e.displayMessage, webdav: e);
+
+  /// Why the library's transport could not be built.
+  factory LibrarySyncError.fromTransportError(StateError e) => switch (e) {
+    LibraryAccountMissingError() => const LibrarySyncError(
+      LibrarySyncErrorCode.accountMissing,
+    ),
+    LibraryAccountSignedOutError() => const LibrarySyncError(
+      LibrarySyncErrorCode.accountSignedOut,
+    ),
+    LibraryAccountUnsupportedError(:final kindName) => LibrarySyncError(
+      LibrarySyncErrorCode.accountUnsupported,
+      detail: kindName,
+    ),
+    _ => LibrarySyncError(LibrarySyncErrorCode.failed, detail: e.message),
+  };
+
+  /// A sync that failed once under way: a WebDAV refusal keeps its code,
+  /// other storage its display message, anything else its text.
+  factory LibrarySyncError.fromSyncFailure(Object e) => switch (e) {
+    WebDavException() => LibrarySyncError.fromWebDav(e),
+    CloudStorageException() => LibrarySyncError(
+      LibrarySyncErrorCode.failed,
+      detail: e.displayMessage,
+    ),
+    _ => LibrarySyncError(LibrarySyncErrorCode.failed, detail: '$e'),
+  };
 
   final LibrarySyncErrorCode code;
   final String? detail;

@@ -4,6 +4,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 
@@ -88,6 +89,58 @@ void main() {
       '{"code":"webdav","detail":"x","webdav":{"code":"somethingNew"}}',
     );
     expect(back.webdav!.code, WebDavErrorCode.unexpected);
+  });
+
+  group('fromTransportError', () {
+    test('each account error has its code', () {
+      expect(
+        LibrarySyncError.fromTransportError(
+          LibraryAccountMissingError('Reef Survey'),
+        ).code,
+        LibrarySyncErrorCode.accountMissing,
+      );
+      expect(
+        LibrarySyncError.fromTransportError(
+          LibraryAccountSignedOutError('acc'),
+        ).code,
+        LibrarySyncErrorCode.accountSignedOut,
+      );
+      final unsupported = LibrarySyncError.fromTransportError(
+        LibraryAccountUnsupportedError('adobeLightroom'),
+      );
+      expect(unsupported.code, LibrarySyncErrorCode.accountUnsupported);
+      expect(unsupported.detail, 'adobeLightroom');
+    });
+
+    test('another refusal keeps its message', () {
+      final e = LibrarySyncError.fromTransportError(StateError('no folder'));
+      expect(e.code, LibrarySyncErrorCode.failed);
+      expect(e.detail, 'no folder');
+    });
+  });
+
+  group('fromSyncFailure', () {
+    test('a WebDAV refusal keeps its WebDAV code', () {
+      final e = LibrarySyncError.fromSyncFailure(
+        WebDavException('No', code: WebDavErrorCode.forbidden),
+      );
+      expect(e.code, LibrarySyncErrorCode.webdav);
+      expect(e.webdav!.code, WebDavErrorCode.forbidden);
+    });
+
+    test('other storage keeps its display message', () {
+      final e = LibrarySyncError.fromSyncFailure(
+        const CloudStorageException('Forbidden', 'HTTP 403'),
+      );
+      expect(e.code, LibrarySyncErrorCode.failed);
+      expect(e.detail, 'Forbidden (HTTP 403)');
+    });
+
+    test('anything else keeps its text', () {
+      final e = LibrarySyncError.fromSyncFailure(const FormatException('bad'));
+      expect(e.code, LibrarySyncErrorCode.failed);
+      expect(e.detail, 'FormatException: bad');
+    });
   });
 
   test('the log line names the code and its detail', () {
