@@ -15,10 +15,9 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 
 /// Depth in meters at which [o2Fraction] reaches [maxPpO2].
 ///
-/// Without an [environment] this is the flat model every existing caller
-/// uses, 1 bar surface and exactly 10 m per bar, kept bit-identical so gas
-/// switch depths do not move. With one, the pressure follows its water
-/// density and surface pressure.
+/// Without an [environment] this is the flat model, 1 bar surface and
+/// exactly 10 m per bar, the depth a diver reads off a MOD table. With one,
+/// the pressure follows its water density and surface pressure.
 ///
 /// A gas without oxygen has no MOD and returns 0. With an [environment] the
 /// MOD is never negative: a limit the mix already exceeds at the surface
@@ -33,6 +32,29 @@ double maxOperatingDepthMeters(
   if (environment == null) return (pressure - 1.0) * 10.0;
   return math.max(environment.depthAtPressure(pressure), 0.0);
 }
+
+/// Half the 0.01 bar step a ppO2 is shown to. A planned gas switch allows
+/// this much over the limit, so a gas is breathed wherever its ppO2 still
+/// reads as the limit.
+const double gasSwitchPpO2Tolerance = 0.005;
+
+/// Deepest depth in meters at which a plan switches to [o2Fraction] under
+/// [maxPpO2], measured in the plan's [environment] (issue #3566).
+///
+/// The switch follows the water the schedule's ppO2 is computed in, so a
+/// table line never shows a gas above its limit: in seawater EAN40 at 30 m
+/// is 1.606 bar and reads 1.61, so 30 m is breathed on the previous gas.
+/// [gasSwitchPpO2Tolerance] keeps the switches that only round to the limit:
+/// oxygen at 6 m in seawater is 1.603 bar and reads 1.60.
+double gasSwitchDepthMeters(
+  double o2Fraction, {
+  required double maxPpO2,
+  required DiveEnvironment environment,
+}) => maxOperatingDepthMeters(
+  o2Fraction,
+  maxPpO2: maxPpO2 + gasSwitchPpO2Tolerance,
+  environment: environment,
+);
 
 /// Shallowest depth in meters at which [o2Fraction] reaches [minPpO2].
 ///

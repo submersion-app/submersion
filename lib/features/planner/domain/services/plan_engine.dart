@@ -10,6 +10,7 @@ import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -404,7 +405,7 @@ class PlanEngine {
                 ? 0.0
                 : lastLoopSegment.gasMix.he / 100.0,
           )
-        : _ascentPlanFor(plan.tanks);
+        : _ascentPlanFor(plan.tanks, environment);
 
     var state = startState ?? model.initial();
     var runtime = 0;
@@ -1481,7 +1482,13 @@ class PlanEngine {
     minStopSecondsByDepth: plan.stopMinimums,
   );
 
-  AscentGasPlan _ascentPlanFor(List<DiveTank> tanks) {
+  /// Each gas becomes eligible at its switch depth in [environment], the
+  /// water the schedule's ppO2 is computed in, so no table line shows a gas
+  /// above the deco limit (issue #3566, see [gasSwitchDepthMeters]).
+  AscentGasPlan _ascentPlanFor(
+    List<DiveTank> tanks,
+    DiveEnvironment environment,
+  ) {
     if (tanks.isEmpty) {
       return FixedAscentGas(fN2: 0.7902);
     }
@@ -1492,9 +1499,10 @@ class PlanEngine {
           AvailableGas(
             fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
             fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: O2ToxicityCalculator.calculateMod(
+            maxPpO2Mod: gasSwitchDepthMeters(
               tank.gasMix.o2 / 100.0,
               maxPpO2: config.ppO2Deco,
+              environment: environment,
             ),
           ),
       ],
