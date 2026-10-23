@@ -30,6 +30,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/shared_library_test_keys.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 const _lib = SharedLibrary(
   id: 'L',
@@ -975,6 +976,7 @@ void main() {
     expect(cloud.operationLog.where((op) => op.startsWith('upload')), isEmpty);
 
     await SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),

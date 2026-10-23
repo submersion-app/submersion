@@ -26,8 +26,10 @@ import '../../../../helpers/account_groups_fixture.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/shared_library_test_account.dart';
 
 SharedLibraryMembershipService _memberships() => SharedLibraryMembershipService(
+  accountById: anyTestAccount,
   store: SharedLibraryStore(),
   transportFor: ({required account, required prefix}) async =>
       SharedLibraryTransport(FakeCloudStorageProvider(), prefix: prefix),

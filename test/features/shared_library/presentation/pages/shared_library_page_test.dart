@@ -21,6 +21,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/shared_library_test_account.dart';
 
 Future<Widget> _page(
   SharedLibraryRole role, {
@@ -708,6 +709,7 @@ class _RecordingEncryption extends LibraryEncryptionService {
     : super(
         store: SharedLibraryStore(),
         memberships: SharedLibraryMembershipService(
+          accountById: anyTestAccount,
           store: SharedLibraryStore(),
           transportFor: ({required account, required prefix}) =>
               throw UnimplementedError(),

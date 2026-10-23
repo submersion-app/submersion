@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/shared_library_test_keys.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 /// A library id read from storage names local folders (its backups), so
 /// one that could leave them is refused (issue #2567).
@@ -43,6 +44,7 @@ void main() {
     });
     await t.writeRoles(await signedTestRoles(owners: {'o'}));
     final memberships = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),

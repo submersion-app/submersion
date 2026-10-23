@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 /// An owner profile and a reader profile on one device (issue #2567).
 void main() {
@@ -67,6 +68,7 @@ void main() {
     await addDiver('reader', 'Bo');
     cloud = FakeCloudStorageProvider();
     memberships = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),
