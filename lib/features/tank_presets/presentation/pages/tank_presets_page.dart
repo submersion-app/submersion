@@ -45,6 +45,7 @@ class TankPresetsPage extends ConsumerWidget {
         data: (presets) {
           final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
           final customPresets = presets.where((p) => !p.isBuiltIn).toList();
+          final customNames = {for (final p in customPresets) p.name};
 
           if (presets.isEmpty) {
             return Center(child: Text(context.l10n.tankPresets_noPresets));
@@ -112,19 +113,26 @@ class TankPresetsPage extends ConsumerWidget {
                   ),
                 ),
               ),
-              ...builtInPresets.map(
-                (preset) => _buildPresetTile(
+              ...builtInPresets.map((preset) {
+                final hasDefaultName =
+                    settings.defaultTankPreset == preset.name;
+                // The diver's own preset of the same name is what that name
+                // resolves to (issue #3343), so it alone is the default.
+                final shadowed = customNames.contains(preset.name);
+                return _buildPresetTile(
                   context,
                   ref,
                   preset,
                   units,
                   canEdit: false,
-                  isDefault: settings.defaultTankPreset == preset.name,
+                  isDefault: hasDefaultName && !shadowed,
+                  shadowed: shadowed,
+                  canHide: !hasDefaultName,
                   isHidden:
-                      settings.defaultTankPreset != preset.name &&
+                      !hasDefaultName &&
                       settings.hiddenTankPresetIds.contains(preset.name),
-                ),
-              ),
+                );
+              }),
             ],
           );
         },
@@ -152,6 +160,8 @@ class TankPresetsPage extends ConsumerWidget {
     required bool canEdit,
     required bool isDefault,
     bool isHidden = false,
+    bool shadowed = false,
+    bool canHide = true,
   }) {
     final volumeStr = units.formatTankVolume(
       preset.volumeLiters,
@@ -197,21 +207,27 @@ class TankPresetsPage extends ConsumerWidget {
               isDefault ? Icons.star : Icons.star_outline,
               color: isDefault ? Theme.of(context).colorScheme.primary : null,
             ),
-            onPressed: isDefault
+            // A built-in [shadowed] by the diver's own preset of the same
+            // name cannot become the default: the name would resolve to the
+            // diver's own.
+            onPressed: isDefault || shadowed
                 ? null
                 : () => ref
                       .read(settingsProvider.notifier)
                       .setDefaultTankPreset(preset.name),
             tooltip: isDefault
                 ? context.l10n.tankPresets_currentDefault
+                : shadowed
+                ? null
                 : context.l10n.tankPresets_setAsDefault,
           ),
           // Built-in presets can be hidden from the pickers (issue #2305),
-          // except the default one. Its switch keeps its space so the stars
-          // stay aligned down the list.
+          // except one named as the default, which the pickers always offer.
+          // Its switch keeps its space so the stars stay aligned down the
+          // list.
           if (!canEdit)
             Visibility(
-              visible: !isDefault,
+              visible: canHide,
               maintainSize: true,
               maintainAnimation: true,
               maintainState: true,

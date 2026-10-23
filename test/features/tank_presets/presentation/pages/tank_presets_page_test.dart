@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
-import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -188,6 +188,105 @@ void main() {
 
       expect(find.text('My Steel 12L'), findsOneWidget);
       expect(find.text('Steel 12L'), findsOneWidget);
+    });
+
+    testWidgets('a built-in shadowed by the diver\'s own default is not '
+        'marked default (#3343)', (tester) async {
+      // The diver's own "steel12" is what the name resolves to for new
+      // dives, imports and downloads, so only it carries the default star.
+      // The built-in's star cannot make the built-in the default either:
+      // the name would still resolve to the diver's own.
+      final now = DateTime(2026);
+      final presets = [
+        TankPresetEntity.fromBuiltIn(TankPresets.steel12),
+        TankPresetEntity(
+          id: 'custom-1',
+          name: 'steel12',
+          displayName: 'My Steel 12L',
+          volumeLiters: 12,
+          workingPressureBar: 232,
+          material: TankMaterial.steel,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final mockSettings = MockSettingsNotifier();
+      await mockSettings.setDefaultTankPreset('steel12');
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const TankPresetsPage(),
+          ),
+          GoRoute(
+            path: '/tank-presets/new',
+            builder: (context, state) => const Scaffold(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => mockSettings),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(presets),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Finder row(String title) =>
+          find.ancestor(of: find.text(title), matching: find.byType(ListTile));
+      expect(
+        find.descendant(
+          of: row('My Steel 12L'),
+          matching: find.byIcon(Icons.star),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: row('Steel 12L'),
+          matching: find.byIcon(Icons.star),
+        ),
+        findsNothing,
+      );
+      final builtInStar = tester.widget<IconButton>(
+        find.ancestor(
+          of: find.descendant(
+            of: row('Steel 12L'),
+            matching: find.byIcon(Icons.star_outline),
+          ),
+          matching: find.byType(IconButton),
+        ),
+      );
+      expect(builtInStar.onPressed, isNull);
+      // Pickers always offer the default's name, so hiding it does nothing:
+      // the switch stays out of reach, as for the default itself.
+      final switchSlot = tester.widget<Visibility>(
+        find.ancestor(
+          of: find.byKey(const ValueKey('tank-preset-visible-steel12')),
+          matching: find.byType(Visibility),
+        ),
+      );
+      expect(switchSlot.visible, isFalse);
     });
 
     testWidgets('labels the show switch column', (tester) async {
