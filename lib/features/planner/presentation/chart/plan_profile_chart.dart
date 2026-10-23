@@ -55,9 +55,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   /// opens its menu instead (issue #3564).
   Timer? _longPressTimer;
 
-  /// Set once the long-press menu opened, so that press's pointer-up is not
-  /// also read as a tap.
-  bool _longPressed = false;
+  /// Set when a press already did its job (a right-click, or a long-press
+  /// that opened the menu), so its pointer-up is not also read as a tap.
+  bool _pressHandled = false;
 
   @override
   void dispose() {
@@ -362,8 +362,11 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         void onPointerDown(PointerDownEvent event) {
           _focusNode.requestFocus();
           _cancelLongPress();
-          _longPressed = false;
+          _pressHandled = false;
           if (event.buttons & kSecondaryButton != 0 && !_readOnly) {
+            // Off a waypoint no menu opens, so the pointer-up still arrives;
+            // two quick right-clicks there must not add a waypoint.
+            _pressHandled = true;
             final hit = hitTestVertex(
               vertices: vertices,
               geometry: geometry,
@@ -399,7 +402,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
               _longPressTimer = Timer(kLongPressTimeout, () {
                 _longPressTimer = null;
                 if (!mounted || _dragSegmentId != segmentId) return;
-                _longPressed = true;
+                _pressHandled = true;
                 endDrag();
                 _clearScrub();
                 Feedback.forLongPress(context);
@@ -431,8 +434,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           final wasDrag = _dragVertex != null;
           endDrag();
           _clearScrub();
-          if (wasDrag || _moved || _readOnly || _longPressed) {
-            _longPressed = false;
+          if (wasDrag || _moved || _readOnly || _pressHandled) {
+            _pressHandled = false;
             _downPosition = null;
             return;
           }
@@ -485,7 +488,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
               onPointerUp: onPointerUp,
               onPointerCancel: (_) {
                 _cancelLongPress();
-                _longPressed = false;
+                _pressHandled = false;
                 endDrag();
                 _clearScrub();
                 _downPosition = null;

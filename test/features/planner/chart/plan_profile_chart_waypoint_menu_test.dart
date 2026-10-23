@@ -38,6 +38,8 @@ const _removeItem = Key('planWaypointMenu_remove');
 
 void main() {
   Widget harness() => testApp(
+    // The tests assert the English menu label.
+    locale: const Locale('en'),
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
@@ -251,6 +253,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(ordered().any((s) => s.id == descent.id), isFalse);
     expect(totalSeconds(), runtime);
+  });
+
+  testWidgets('right-clicks off a waypoint are not taps', (tester) async {
+    await pumpPlan(tester);
+    final before = ordered();
+    final rect = tester.getRect(find.byKey(const Key('planChartOverlay')));
+    // Well below the profile, so no handle is hit and no menu opens.
+    final at = rect.center + const Offset(0, 120);
+    for (var i = 0; i < 2; i++) {
+      final gesture = await tester.startGesture(
+        at,
+        kind: PointerDeviceKind.mouse,
+        buttons: kSecondaryMouseButton,
+      );
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.pumpAndSettle();
+
+    // Two quick taps there would select a leg and split it.
+    expect(ordered(), before);
+    expect(container.read(selectedSegmentIdProvider), isNull);
   });
 
   testWidgets('the Delete key removes the same way', (tester) async {
