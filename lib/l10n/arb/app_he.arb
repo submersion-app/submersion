@@ -5450,6 +5450,7 @@
       }
     }
   },
+  "plannerCanvas_chart_removeWaypoint": "הסרת נקודת הציון",
   "plannerCanvas_contingency_title": "תוכניות חירום",
   "plannerCanvas_contingency_turnFraction": "שבר פנייה",
   "plannerCanvas_contingency_turnRule": "כלל לחץ פנייה",

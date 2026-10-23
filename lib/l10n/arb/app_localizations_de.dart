@@ -19563,6 +19563,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chart_removeWaypoint => 'Wegpunkt entfernen';
+
+  @override
   String get plannerCanvas_contingency_title => 'Eventualpläne';
 
   @override

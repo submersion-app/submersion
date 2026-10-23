@@ -31299,6 +31299,12 @@ abstract class AppLocalizations {
   /// **'mean {depth}'**
   String plannerCanvas_chart_meanDepth(String depth);
 
+  /// No description provided for @plannerCanvas_chart_removeWaypoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove waypoint'**
+  String get plannerCanvas_chart_removeWaypoint;
+
   /// No description provided for @plannerCanvas_contingency_title.
   ///
   /// In en, this message translates to:

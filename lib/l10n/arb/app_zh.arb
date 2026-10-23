@@ -5701,6 +5701,7 @@
       }
     }
   },
+  "plannerCanvas_chart_removeWaypoint": "删除航点",
   "plannerCanvas_contingency_title": "应急计划",
   "plannerCanvas_contingency_turnFraction": "折返比例",
   "plannerCanvas_contingency_turnRule": "折返压力规则",

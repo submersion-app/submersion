@@ -260,4 +260,67 @@ void main() {
       expect(_phaseOf(after, 'new'), SegmentPhase.ascent);
     });
   });
+
+  group('removeVertex', () {
+    test('the next leg absorbs the removed time; later waypoints stay', () {
+      final ordered = [_descent(), _bottom()];
+      final before = planVertices(ordered);
+      final removal = removeVertex(ordered: ordered, vertexIndex: 0);
+
+      expect(removal.removeId, 'd');
+      final (id, merged) = removal.updates.single;
+      expect(id, 'b');
+      expect(merged.durationSeconds, 120 + 1200);
+      expect(merged.targetDepth, 30);
+
+      final after = planVertices([merged]);
+      expect(after.single.timeSeconds, before.last.timeSeconds);
+    });
+
+    test('undoes a double-tap split exactly', () {
+      final ordered = [_descent(), _bottom()];
+      final split = splitSegmentAt(
+        ordered: ordered,
+        timeSeconds: 120 + 400,
+        depthMeters: 24.6,
+        depthUnitScale: 1,
+        idGen: () => 'new',
+      )!;
+      final afterSplit = [ordered[0], ...split.replacements];
+      // The new waypoint sits at the end of the first half, which kept 'b'.
+      final index = afterSplit.indexWhere((s) => s.id == 'b');
+      final removal = removeVertex(ordered: afterSplit, vertexIndex: index);
+
+      expect(removal.removeId, 'b');
+      final (id, merged) = removal.updates.single;
+      expect(id, 'new');
+      expect(merged.durationSeconds, 1200);
+      expect(merged.targetDepth, 30);
+    });
+
+    test('keeps the next leg own gas, setpoint and mode', () {
+      final ordered = [
+        _descent(),
+        _bottom().copyWith(
+          gasMix: _ean50,
+          setpointBar: 1.3,
+          diveModeOverride: PlanMode.ccr,
+        ),
+      ];
+      final (_, merged) = removeVertex(
+        ordered: ordered,
+        vertexIndex: 0,
+      ).updates.single;
+      expect(merged.gasMix, _ean50);
+      expect(merged.setpointBar, 1.3);
+      expect(merged.diveModeOverride, PlanMode.ccr);
+    });
+
+    test('the last waypoint has no next leg and is simply dropped', () {
+      final ordered = [_descent(), _bottom()];
+      final removal = removeVertex(ordered: ordered, vertexIndex: 1);
+      expect(removal.removeId, 'b');
+      expect(removal.updates, isEmpty);
+    });
+  });
 }

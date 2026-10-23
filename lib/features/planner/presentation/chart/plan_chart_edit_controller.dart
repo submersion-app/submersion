@@ -111,6 +111,32 @@ VertexDragResult dragVertex({
   ]);
 }
 
+/// Removes the waypoint at the end of segment [vertexIndex] without moving
+/// any other: the next leg absorbs the removed segment's time, so it runs
+/// straight from the previous waypoint to its own. This is the inverse of
+/// [splitSegmentAt]. The last waypoint has no next leg and is just dropped.
+({String removeId, List<(String, PlanSegment)> updates}) removeVertex({
+  required List<PlanSegment> ordered,
+  required int vertexIndex,
+}) {
+  final removed = ordered[vertexIndex];
+  if (vertexIndex + 1 >= ordered.length) {
+    return (removeId: removed.id, updates: const []);
+  }
+  final next = ordered[vertexIndex + 1];
+  return (
+    removeId: removed.id,
+    updates: [
+      (
+        next.id,
+        next.copyWith(
+          durationSeconds: next.durationSeconds + removed.durationSeconds,
+        ),
+      ),
+    ],
+  );
+}
+
 ({String replaceId, List<PlanSegment> replacements})? splitSegmentAt({
   required List<PlanSegment> ordered,
   required double timeSeconds,

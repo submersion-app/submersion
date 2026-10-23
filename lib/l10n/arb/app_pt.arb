@@ -5550,6 +5550,7 @@
       }
     }
   },
+  "plannerCanvas_chart_removeWaypoint": "Remover ponto",
   "plannerCanvas_contingency_title": "Contingências",
   "plannerCanvas_contingency_turnFraction": "Fração de retorno",
   "plannerCanvas_contingency_turnRule": "Regra de pressão de retorno",

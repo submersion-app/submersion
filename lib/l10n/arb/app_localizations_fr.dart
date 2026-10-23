@@ -19639,6 +19639,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chart_removeWaypoint => 'Supprimer le point';
+
+  @override
   String get plannerCanvas_contingency_title => 'Plans de secours';
 
   @override

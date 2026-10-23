@@ -5450,6 +5450,7 @@
       }
     }
   },
+  "plannerCanvas_chart_removeWaypoint": "Supprimer le point",
   "plannerCanvas_contingency_title": "Plans de secours",
   "plannerCanvas_contingency_turnFraction": "Fraction de demi-tour",
   "plannerCanvas_contingency_turnRule": "Règle de pression de demi-tour",
