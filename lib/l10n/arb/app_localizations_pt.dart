@@ -2351,8 +2351,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Redimensionar painel principal';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Partilhado com todos os perfis de mergulho';
+  String get accessibility_label_sharedWithProfiles =>
+      'Partilhado com outros perfis de mergulho';
 
   @override
   String get accessibility_label_showList => 'Mostrar Lista';
@@ -35915,20 +35915,21 @@ class AppLocalizationsPt extends AppLocalizations {
       'Partilhar novos locais e viagens por predefinição';
 
   @override
-  String get settings_shareAllSites_title => 'Partilhar todos os meus locais';
+  String get settings_shareAllSites_title =>
+      'Partilhar todos os meus locais...';
 
   @override
   String get settings_shareAllTrips_title =>
-      'Partilhar todas as minhas viagens';
+      'Partilhar todas as minhas viagens...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Tornar os teus $count locais visíveis a todos os perfis de mergulho desta app? Poderás deixar de partilhar locais individuais mais tarde.';
+    return 'Escolhe quem vê os teus $count locais. Para alterar um local mais tarde, abre-o e toca em Partilhado com.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Tornar as tuas $count viagens visíveis a todos os perfis de mergulho desta app? Poderás deixar de partilhar viagens individuais mais tarde.';
+    return 'Escolhe quem vê as tuas $count viagens. Para alterar uma viagem mais tarde, abre-a e toca em Partilhado com.';
   }
 
   @override
@@ -35974,7 +35975,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'Isto irá remover «$name» das vistas dos outros perfis de mergulho. Poderás voltar a partilhar mais tarde.';
+    return 'Os perfis que retirares deixam de ver «$name». Os mergulhos deles continuam ligados a ela e poderás voltar a partilhá-la com eles mais tarde.';
   }
 
   @override
@@ -35982,7 +35983,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'Isto irá remover «$name» das vistas dos outros perfis de mergulho. Poderás voltar a partilhar mais tarde.';
+    return 'Os perfis que retirares deixam de ver «$name». Os mergulhos deles continuam ligados a ele e poderás voltar a partilhá-lo com eles mais tarde.';
   }
 
   @override
@@ -36057,6 +36058,31 @@ class AppLocalizationsPt extends AppLocalizations {
       one: 'Remover $count item do teu perfil?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Partilhar com...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens partilhados',
+      one: '$count item partilhado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens partilhados',
+      one: '$count item partilhado',
+    );
+    return '$_temp0, $skipped ignorados que não são seus';
   }
 
   @override
@@ -36157,6 +36183,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Removido do teu perfil';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Todos os perfis de mergulho, incluindo os adicionados mais tarde';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'Os perfis que escolheres veem este local e podem registar nele os seus próprios mergulhos. Só tu podes eliminá-lo ou alterar com quem é partilhado.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Partilhar com';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'Os perfis que escolheres veem esta viagem e podem adicionar-lhe os seus próprios mergulhos. Só tu podes eliminá-la ou alterar com quem é partilhada.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Só $owner pode alterar a partilha';
   }
@@ -36165,6 +36206,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Partilhado por $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Todos';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Partilhado com';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Não partilhado';
 
   @override
   String get sharedItems_undo => 'Desfazer';

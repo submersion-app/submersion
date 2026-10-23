@@ -2329,8 +2329,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessibility_label_resizeMasterPane => 'Resize master pane';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Shared with all dive profiles';
+  String get accessibility_label_sharedWithProfiles =>
+      'Shared with other dive profiles';
 
   @override
   String get accessibility_label_showList => 'Show List';
@@ -35320,19 +35320,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Share new sites and trips by default';
 
   @override
-  String get settings_shareAllSites_title => 'Share all my sites';
+  String get settings_shareAllSites_title => 'Share all my sites...';
 
   @override
-  String get settings_shareAllTrips_title => 'Share all my trips';
+  String get settings_shareAllTrips_title => 'Share all my trips...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Make all $count of your sites visible to every dive profile in this app? You can unshare individual sites later.';
+    return 'Choose who sees all $count of your sites. To change one site later, open it and tap Shared with.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Make all $count of your trips visible to every dive profile in this app? You can unshare individual trips later.';
+    return 'Choose who sees all $count of your trips. To change one trip later, open it and tap Shared with.';
   }
 
   @override
@@ -35379,7 +35379,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'Profiles you take off will no longer see \'$name\'. Their dives stay linked to it, and you can share it with them again later.';
   }
 
   @override
@@ -35387,7 +35387,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'Profiles you take off will no longer see \'$name\'. Their dives stay linked to it, and you can share it with them again later.';
   }
 
   @override
@@ -35462,6 +35462,31 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Remove $count item from your profile?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Share with...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared $count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared $count item',
+    );
+    return '$_temp0, skipped $skipped you do not own';
   }
 
   @override
@@ -35560,6 +35585,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Removed from your profile';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Every dive profile, including ones added later';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'Profiles you choose see this site and can log their own dives at it. Only you can delete it or change who it is shared with.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Share with';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'Profiles you choose see this trip and can add their own dives to it. Only you can delete it or change who it is shared with.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Only $owner can change sharing';
   }
@@ -35568,6 +35608,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Shared by $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Everyone';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Shared with';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Not shared';
 
   @override
   String get sharedItems_undo => 'Undo';

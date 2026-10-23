@@ -54,6 +54,7 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -482,8 +483,15 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final hideIds = [for (final s in split.hide) s.id];
     final deleteCount = destroyIds.length;
     final hideCount = hideIds.length;
+    // Shared with everyone or with chosen profiles (issue #2151).
+    final sharedByName = sharing.diverCount >= 2 && destroyIds.isNotEmpty
+        ? await ref.read(itemIdsWithSharesProvider(SharedItemKind.site).future)
+        : const <String>{};
+    if (!mounted) return BulkActionOutcome.cancelled;
     final sharedDeleteCount = sharing.diverCount >= 2
-        ? split.destroy.where((s) => s.isShared).length
+        ? split.destroy
+              .where((s) => s.isShared || sharedByName.contains(s.id))
+              .length
         : 0;
     final usage = deleteCount > 0
         ? await readSiteDeleteUsage(ref, destroyIds)
@@ -1567,7 +1575,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         widget.selectedId == site.id ||
         ref.watch(highlightedSiteIdProvider) == site.id;
     final isChecked = _selectedIds.contains(site.id);
-    final showSharedBadge = site.isShared && diversCount >= 2;
+    // Sites shared with chosen profiles carry the badge too (issue #2151).
+    final sharedByName =
+        ref.watch(itemIdsWithSharesProvider(SharedItemKind.site)).value ??
+        const <String>{};
+    final showSharedBadge =
+        (site.isShared || sharedByName.contains(site.id)) && diversCount >= 2;
 
     final viewMode = ref.watch(siteListViewModeProvider);
     final locationString = site.locationString.isNotEmpty

@@ -2353,8 +2353,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Hauptbereich in der Größe ändern';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Mit allen Taucherprofilen geteilt';
+  String get accessibility_label_sharedWithProfiles =>
+      'Mit anderen Taucherprofilen geteilt';
 
   @override
   String get accessibility_label_showList => 'Liste anzeigen';
@@ -35852,19 +35852,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Neue Orte und Reisen standardmäßig teilen';
 
   @override
-  String get settings_shareAllSites_title => 'Alle meine Orte teilen';
+  String get settings_shareAllSites_title => 'Alle meine Tauchplätze teilen...';
 
   @override
-  String get settings_shareAllTrips_title => 'Alle meine Reisen teilen';
+  String get settings_shareAllTrips_title => 'Alle meine Reisen teilen...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Alle $count deiner Orte für jedes Taucherprofil in dieser App sichtbar machen? Du kannst einzelne Orte später wieder privat machen.';
+    return 'Wähle aus, wer alle $count deiner Tauchplätze sieht. Um einen Tauchplatz später zu ändern, öffne ihn und tippe auf Geteilt mit.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Alle $count deiner Reisen für jedes Taucherprofil in dieser App sichtbar machen? Du kannst einzelne Reisen später wieder privat machen.';
+    return 'Wähle aus, wer alle $count deiner Reisen sieht. Um eine Reise später zu ändern, öffne sie und tippe auf Geteilt mit.';
   }
 
   @override
@@ -35911,7 +35911,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return '„$name\" wird aus den Ansichten anderer Taucherprofile entfernt. Du kannst die Reise später wieder teilen.';
+    return 'Profile, die du entfernst, sehen „$name\" nicht mehr. Ihre Tauchgänge bleiben damit verknüpft, und du kannst die Reise später wieder mit ihnen teilen.';
   }
 
   @override
@@ -35919,7 +35919,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return '„$name\" wird aus den Ansichten anderer Taucherprofile entfernt. Du kannst den Ort später wieder teilen.';
+    return 'Profile, die du entfernst, sehen „$name\" nicht mehr. Ihre Tauchgänge bleiben damit verknüpft, und du kannst den Tauchplatz später wieder mit ihnen teilen.';
   }
 
   @override
@@ -35994,6 +35994,31 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '$count Eintrag aus deinem Profil entfernen?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Teilen mit...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente geteilt',
+      one: '$count Element geteilt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente geteilt',
+      one: '$count Element geteilt',
+    );
+    return '$_temp0, $skipped übersprungen, die dir nicht gehören';
   }
 
   @override
@@ -36094,6 +36119,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Aus deinem Profil entfernt';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Jedes Taucherprofil, auch später hinzugefügte';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'Die Profile, die du auswählst, sehen diesen Tauchplatz und können eigene Tauchgänge dort eintragen. Nur du kannst ihn löschen oder ändern, mit wem er geteilt wird.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Teilen mit';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'Die Profile, die du auswählst, sehen diese Reise und können eigene Tauchgänge hinzufügen. Nur du kannst sie löschen oder ändern, mit wem sie geteilt wird.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Nur $owner kann das Teilen ändern';
   }
@@ -36102,6 +36142,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Geteilt von $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Alle';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Geteilt mit';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Nicht geteilt';
 
   @override
   String get sharedItems_undo => 'Rückgängig';

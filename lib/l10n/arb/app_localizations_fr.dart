@@ -2360,8 +2360,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Redimensionner le panneau principal';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Partagé avec tous les profils de plongée';
+  String get accessibility_label_sharedWithProfiles =>
+      'Partagé avec d’autres profils de plongée';
 
   @override
   String get accessibility_label_showList => 'Afficher la liste';
@@ -36032,19 +36032,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Partager les nouveaux sites et voyages par défaut';
 
   @override
-  String get settings_shareAllSites_title => 'Partager tous mes sites';
+  String get settings_shareAllSites_title => 'Partager tous mes sites...';
 
   @override
-  String get settings_shareAllTrips_title => 'Partager tous mes voyages';
+  String get settings_shareAllTrips_title => 'Partager tous mes voyages...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Rendre vos $count sites visibles pour tous les profils de plongée de cette app ? Vous pourrez annuler le partage de sites individuels plus tard.';
+    return 'Choisissez qui voit vos $count sites. Pour modifier un site plus tard, ouvrez-le et touchez Partagé avec.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Rendre vos $count voyages visibles pour tous les profils de plongée de cette app ? Vous pourrez annuler le partage de voyages individuels plus tard.';
+    return 'Choisissez qui voit vos $count voyages. Pour modifier un voyage plus tard, ouvrez-le et touchez Partagé avec.';
   }
 
   @override
@@ -36090,7 +36090,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return '« $name » sera retiré des vues des autres profils de plongée. Vous pourrez le partager à nouveau plus tard.';
+    return 'Les profils que vous retirez ne verront plus « $name ». Leurs plongées y restent liées, et vous pourrez le partager à nouveau avec eux plus tard.';
   }
 
   @override
@@ -36098,7 +36098,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return '« $name » sera retiré des vues des autres profils de plongée. Vous pourrez le partager à nouveau plus tard.';
+    return 'Les profils que vous retirez ne verront plus « $name ». Leurs plongées y restent liées, et vous pourrez le partager à nouveau avec eux plus tard.';
   }
 
   @override
@@ -36174,6 +36174,31 @@ class AppLocalizationsFr extends AppLocalizations {
       one: 'Retirer $count élément de votre profil ?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Partager avec...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments partagés',
+      one: '$count élément partagé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments partagés',
+      one: '$count élément partagé',
+    );
+    return '$_temp0, $skipped ignorés qui ne vous appartiennent pas';
   }
 
   @override
@@ -36274,6 +36299,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Retiré de votre profil';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Tous les profils de plongée, y compris ceux ajoutés plus tard';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'Les profils que vous choisissez voient ce site et peuvent y enregistrer leurs propres plongées. Vous seul pouvez le supprimer ou modifier avec qui il est partagé.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Partager avec';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'Les profils que vous choisissez voient ce voyage et peuvent y ajouter leurs propres plongées. Vous seul pouvez le supprimer ou modifier avec qui il est partagé.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Seul $owner peut modifier le partage';
   }
@@ -36282,6 +36322,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Partagé par $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Tout le monde';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Partagé avec';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Non partagé';
 
   @override
   String get sharedItems_undo => 'Annuler';

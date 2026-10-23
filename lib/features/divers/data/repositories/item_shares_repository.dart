@@ -110,6 +110,20 @@ class ItemSharesRepository {
     };
   }
 
+  /// The ids of the trips or sites shared with at least one profile by
+  /// name, for the lists' shared badge and delete warnings, which read the
+  /// everyone flag from the items themselves.
+  Future<Set<String>> itemIdsWithShares(SharedItemKind kind) async {
+    final t = _of(kind);
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT ${t.parentColumn} AS id FROM ${t.table}',
+          readsFrom: {_tableOf(kind)},
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('id')};
+  }
+
   /// Shares item [id] exactly as [sharing] says, for its owner
   /// [actingDiverId]: the flag for Everyone, one row per chosen profile,
   /// every other row deleted. True when it is shared so afterwards. False,

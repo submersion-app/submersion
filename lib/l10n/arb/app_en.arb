@@ -1339,9 +1339,9 @@
   "@accessibility_label_resizeMasterPane": {
     "description": "Semantics label for the draggable divider between the master and detail panes in master-detail scaffold"
   },
-  "accessibility_label_sharedWithAllProfiles": "Shared with all dive profiles",
-  "@accessibility_label_sharedWithAllProfiles": {
-    "description": "Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch."
+  "accessibility_label_sharedWithProfiles": "Shared with other dive profiles",
+  "@accessibility_label_sharedWithProfiles": {
+    "description": "Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared with other dive profiles, with every profile or with chosen ones. Descriptive form (state)."
   },
   "accessibility_label_showList": "Show List",
   "accessibility_label_showMapView": "Show Map View",
@@ -21610,15 +21610,15 @@
   "@settings_shareByDefault_title": {
     "description": "Global setting: when ON, newly created trips and sites are shared with all dive profiles by default."
   },
-  "settings_shareAllSites_title": "Share all my sites",
+  "settings_shareAllSites_title": "Share all my sites...",
   "@settings_shareAllSites_title": {
     "description": "Button/menu item to share all sites at once"
   },
-  "settings_shareAllTrips_title": "Share all my trips",
+  "settings_shareAllTrips_title": "Share all my trips...",
   "@settings_shareAllTrips_title": {
     "description": "Button/menu item to share all trips at once"
   },
-  "settings_shareAllSites_confirm": "Make all {count} of your sites visible to every dive profile in this app? You can unshare individual sites later.",
+  "settings_shareAllSites_confirm": "Choose who sees all {count} of your sites. To change one site later, open it and tap Shared with.",
   "@settings_shareAllSites_confirm": {
     "placeholders": {
       "count": {
@@ -21627,7 +21627,7 @@
       }
     }
   },
-  "settings_shareAllTrips_confirm": "Make all {count} of your trips visible to every dive profile in this app? You can unshare individual trips later.",
+  "settings_shareAllTrips_confirm": "Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.",
   "@settings_shareAllTrips_confirm": {
     "placeholders": {
       "count": {
@@ -21694,7 +21694,7 @@
   "@trips_unshareConfirm_title": {
     "description": "Title of the confirmation dialog shown before un-sharing a trip that is currently shared with all profiles."
   },
-  "trips_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "trips_unshareConfirm_body": "Profiles you take off will no longer see '{name}'. Their dives stay linked to it, and you can share it with them again later.",
   "@trips_unshareConfirm_body": {
     "description": "Body of the confirmation dialog shown before un-sharing a trip.",
     "placeholders": {
@@ -21708,7 +21708,7 @@
   "@sites_unshareConfirm_title": {
     "description": "Title of the confirmation dialog shown before un-sharing a dive site that is currently shared with all profiles."
   },
-  "sites_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "sites_unshareConfirm_body": "Profiles you take off will no longer see '{name}'. Their dives stay linked to it, and you can share it with them again later.",
   "@sites_unshareConfirm_body": {
     "description": "Body of the confirmation dialog shown before un-sharing a dive site.",
     "placeholders": {
@@ -21789,6 +21789,31 @@
       "count": {
         "type": "int",
         "example": "2"
+      }
+    }
+  },
+  "sharedItems_bulkShare_action": "Share with...",
+  "@sharedItems_bulkShare_action": {
+    "description": "Trip or site list selection action: share the selected items with chosen profiles."
+  },
+  "sharedItems_bulkShare_done": "{count, plural, one{Shared {count} item} other{Shared {count} items}}",
+  "@sharedItems_bulkShare_done": {
+    "description": "Snackbar after a bulk share of trips or sites.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedItems_bulkShare_doneSkipped": "{count, plural, one{Shared {count} item} other{Shared {count} items}}, skipped {skipped} you do not own",
+  "@sharedItems_bulkShare_doneSkipped": {
+    "description": "Snackbar after a bulk share of trips or sites that skipped items another profile owns.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
       }
     }
   },
@@ -21894,6 +21919,22 @@
   "@sharedItems_removedSnackbar": {
     "description": "Snackbar after hiding a shared trip or site from the active profile."
   },
+  "sharedItems_shareDialog_everyoneSubtitle": "Every dive profile, including ones added later",
+  "@sharedItems_shareDialog_everyoneSubtitle": {
+    "description": "Subtitle of the Everyone choice in the share dialog for a trip or site."
+  },
+  "sharedItems_shareDialog_siteBody": "Profiles you choose see this site and can log their own dives at it. Only you can delete it or change who it is shared with.",
+  "@sharedItems_shareDialog_siteBody": {
+    "description": "Body of the dialog that picks who a dive site is shared with."
+  },
+  "sharedItems_shareDialog_title": "Share with",
+  "@sharedItems_shareDialog_title": {
+    "description": "Title of the dialog that picks who a trip or site is shared with."
+  },
+  "sharedItems_shareDialog_tripBody": "Profiles you choose see this trip and can add their own dives to it. Only you can delete it or change who it is shared with.",
+  "@sharedItems_shareDialog_tripBody": {
+    "description": "Body of the dialog that picks who a trip is shared with."
+  },
   "sharedItems_shareOwnerOnly": "Only {owner} can change sharing",
   "@sharedItems_shareOwnerOnly": {
     "description": "Helper under the disabled share switch when another profile owns the trip or site.",
@@ -21913,6 +21954,18 @@
         "example": "Alice"
       }
     }
+  },
+  "sharedItems_sharedWith_everyone": "Everyone",
+  "@sharedItems_sharedWith_everyone": {
+    "description": "A trip or site shared with every dive profile."
+  },
+  "sharedItems_sharedWith_label": "Shared with",
+  "@sharedItems_sharedWith_label": {
+    "description": "Label of the row on a trip or site page showing who it is shared with."
+  },
+  "sharedItems_sharedWith_none": "Not shared",
+  "@sharedItems_sharedWith_none": {
+    "description": "A trip or site shared with nobody."
   },
   "sharedItems_undo": "Undo",
   "@sharedItems_undo": {

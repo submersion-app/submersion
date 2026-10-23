@@ -43,6 +43,7 @@ import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_ban
 import 'package:submersion/shared/widgets/card_icon_label.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 final _log = LoggerService.forClass(TripListContent);
@@ -387,8 +388,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     final deleteCount = split.destroy.length;
     final hideCount = split.hide.length;
     if (deleteCount + hideCount == 0) return BulkActionOutcome.cancelled;
+    // Shared with everyone or with chosen profiles (issue #2151).
+    final sharedByName = sharing.diverCount >= 2 && split.destroy.isNotEmpty
+        ? await ref.read(itemIdsWithSharesProvider(SharedItemKind.trip).future)
+        : const <String>{};
+    if (!mounted) return BulkActionOutcome.cancelled;
     final sharedDeleteCount = sharing.diverCount >= 2
-        ? split.destroy.where((t) => t.isShared).length
+        ? split.destroy
+              .where((t) => t.isShared || sharedByName.contains(t.id))
+              .length
         : 0;
 
     final confirmed = await showDialog<bool>(
@@ -744,6 +752,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     final diversCount = ref
         .watch(allDiversProvider)
         .when(data: (d) => d.length, loading: () => 0, error: (_, _) => 0);
+    // Trips shared with chosen profiles carry the badge too (issue #2151).
+    final sharedByName =
+        ref.watch(itemIdsWithSharesProvider(SharedItemKind.trip)).value ??
+        const <String>{};
 
     final upcoming = trips.where((t) => t.trip.isUpcoming).toList()
       ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
@@ -808,7 +820,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                           tripWithStats.trip.id;
                   final viewMode = ref.watch(tripListViewModeProvider);
                   final showSharedBadge =
-                      tripWithStats.trip.isShared && diversCount >= 2;
+                      (tripWithStats.trip.isShared ||
+                          sharedByName.contains(tripWithStats.trip.id)) &&
+                      diversCount >= 2;
                   final isChecked = _selectedIds.contains(
                     tripWithStats.trip.id,
                   );
@@ -1063,8 +1077,7 @@ class TripListTile extends ConsumerWidget {
               if (showSharedBadge) ...[
                 const SizedBox(width: 6),
                 Tooltip(
-                  message:
-                      context.l10n.accessibility_label_sharedWithAllProfiles,
+                  message: context.l10n.accessibility_label_sharedWithProfiles,
                   child: Icon(
                     Icons.people_outline,
                     size: 16,

@@ -30,9 +30,11 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   tester.view.devicePixelRatio = 1.0;
@@ -255,6 +257,9 @@ void main() {
               // No active profile, as before sharing: every action is the owner's.
               validatedCurrentDiverIdProvider.overrideWith((_) async => null),
               ...overrides,
+              itemSharesRepositoryProvider.overrideWithValue(
+                FakeItemShares.everyone([sharedSite.id]),
+              ),
               siteProvider(
                 sharedSite.id,
               ).overrideWith((ref) async => sharedSite),

@@ -2241,7 +2241,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_label_resizeMasterPane => '调整主窗格大小';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles => '已与所有潜水员资料共享';
+  String get accessibility_label_sharedWithProfiles => '已与其他潜水员资料共享';
 
   @override
   String get accessibility_label_showList => '显示列表';
@@ -33852,19 +33852,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_shareByDefault_title => '默认共享新潜点和行程';
 
   @override
-  String get settings_shareAllSites_title => '共享我的所有潜点';
+  String get settings_shareAllSites_title => '共享我的所有潜点...';
 
   @override
-  String get settings_shareAllTrips_title => '共享我的所有行程';
+  String get settings_shareAllTrips_title => '共享我的所有行程...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return '将您的全部 $count 个潜点向此应用中的每个潜水员资料开放？您之后可以单独取消共享。';
+    return '选择谁可以看到你的全部 $count 个潜点。之后要更改某个潜点，打开它并点按“共享给”。';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return '将您的全部 $count 个行程向此应用中的每个潜水员资料开放？您之后可以单独取消共享。';
+    return '选择谁可以看到你的全部 $count 个行程。之后要更改某个行程，打开它并点按“共享给”。';
   }
 
   @override
@@ -33909,7 +33909,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return '此操作会将「$name」从其他潜水员资料的视图中移除。您之后可以再次共享。';
+    return '你移除的资料将不再看到“$name”。他们的潜水仍与其关联，你之后可以再次与他们共享。';
   }
 
   @override
@@ -33917,7 +33917,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return '此操作会将「$name」从其他潜水员资料的视图中移除。您之后可以再次共享。';
+    return '你移除的资料将不再看到“$name”。他们的潜水仍与其关联，你之后可以再次与他们共享。';
   }
 
   @override
@@ -33986,6 +33986,31 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '要从您的资料中移除 $count 项吗？',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => '共享给...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已共享 $count 项',
+      one: '已共享 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已共享 $count 项',
+      one: '已共享 $count 项',
+    );
+    return '$_temp0，跳过 $skipped 项非你所有的内容';
   }
 
   @override
@@ -34074,6 +34099,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedItems_removedSnackbar => '已从您的资料中移除';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle => '所有潜水员资料，包括之后添加的资料';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      '你选择的资料可以看到此潜点，并可在此记录自己的潜水。只有你可以删除它或更改共享对象。';
+
+  @override
+  String get sharedItems_shareDialog_title => '共享给';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      '你选择的资料可以看到此行程，并可添加自己的潜水。只有你可以删除它或更改共享对象。';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return '只有 $owner 可以更改共享设置';
   }
@@ -34082,6 +34121,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return '由 $owner 共享';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => '所有人';
+
+  @override
+  String get sharedItems_sharedWith_label => '共享给';
+
+  @override
+  String get sharedItems_sharedWith_none => '未共享';
 
   @override
   String get sharedItems_undo => '撤消';

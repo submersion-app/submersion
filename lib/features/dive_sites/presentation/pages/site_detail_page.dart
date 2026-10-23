@@ -67,6 +67,8 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_edit_history_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -228,7 +230,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             kind: SharedItemKind.site,
             itemId: site.id,
             ownerId: site.diverId,
-            isShared: site.isShared,
+          ),
+          ItemSharingRow(
+            kind: SharedItemKind.site,
+            itemId: site.id,
+            ownerId: site.diverId,
+            itemName: site.name,
+            isLibrarySite: site.isLibrarySite,
           ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
@@ -833,7 +841,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       final divers = await ref.read(allDiversProvider.future);
       final usage = await readSiteDeleteUsage(ref, [site.id]);
       final diverCount = divers.length;
-      final isSharedDelete = site.isShared && diverCount >= 2;
+      // Shared with everyone or with chosen profiles (issue #2151).
+      final isSharedDelete =
+          diverCount >= 2 &&
+          (await ref
+                  .read(itemSharesRepositoryProvider)
+                  .sharingOf(SharedItemKind.site, site.id))
+              .isShared;
       // The other profiles' dives that lose the site (issue #2594).
       final others = isSharedDelete
           ? (await readDiveLinkCounts(ref, SharedItemKind.site, site.id)).others

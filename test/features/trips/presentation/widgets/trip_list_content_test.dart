@@ -29,6 +29,7 @@ import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/list_create_router.dart';
@@ -38,6 +39,7 @@ import '../../../../helpers/selection_contract.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -356,6 +358,7 @@ void main() {
               (_) async =>
                   profileUnreadable ? throw StateError('no profile') : 'd2',
             ),
+            itemSharesRepositoryProvider.overrideWithValue(FakeItemShares()),
             allDiversProvider.overrideWith(
               (_) async => profilesUncountable
                   ? throw StateError('no divers')

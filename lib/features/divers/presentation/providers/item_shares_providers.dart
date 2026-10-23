@@ -8,6 +8,15 @@ final itemSharesRepositoryProvider = Provider<ItemSharesRepository>(
   (ref) => ItemSharesRepository(),
 );
 
+/// The trips or sites shared with at least one profile by name, for the
+/// lists' shared badge. Refreshes when a share row changes.
+final itemIdsWithSharesProvider =
+    FutureProvider.family<Set<String>, SharedItemKind>((ref, kind) async {
+      final repository = ref.watch(itemSharesRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      return repository.itemIdsWithShares(kind);
+    });
+
 /// Who one trip or site is shared with. Refreshes when a share row, a trip
 /// or a site changes, including by sync.
 final itemSharingProvider =

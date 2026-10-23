@@ -11,6 +11,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -67,6 +68,9 @@ void main() {
           ),
           profileHidesRepositoryProvider.overrideWithValue(
             _FakeHides(hidden: hidden),
+          ),
+          itemSharesRepositoryProvider.overrideWithValue(
+            FakeItemShares.everyone([site.id]),
           ),
           siteListNotifierProvider.overrideWith((ref) => notifier),
         ],

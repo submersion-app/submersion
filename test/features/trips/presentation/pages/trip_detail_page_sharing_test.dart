@@ -13,6 +13,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -81,6 +82,9 @@ void main() {
           ),
           profileHidesRepositoryProvider.overrideWithValue(
             _FakeHides(hidden: hidden),
+          ),
+          itemSharesRepositoryProvider.overrideWithValue(
+            FakeItemShares.everyone([trip.id]),
           ),
         ],
         // The page pops through go_router after a remove, so it sits one

@@ -2353,8 +2353,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cambiar el tamaño del panel principal';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Compartido con todos los perfiles de buceo';
+  String get accessibility_label_sharedWithProfiles =>
+      'Compartido con otros perfiles de buceo';
 
   @override
   String get accessibility_label_showList => 'Mostrar lista';
@@ -35958,19 +35958,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'Compartir los nuevos sitios y viajes por defecto';
 
   @override
-  String get settings_shareAllSites_title => 'Compartir todos mis sitios';
+  String get settings_shareAllSites_title => 'Compartir todos mis sitios...';
 
   @override
-  String get settings_shareAllTrips_title => 'Compartir todos mis viajes';
+  String get settings_shareAllTrips_title => 'Compartir todos mis viajes...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return '¿Hacer visibles los $count sitios para todos los perfiles de buceo de esta app? Podrás dejar de compartir sitios individuales más tarde.';
+    return 'Elige quién ve tus $count sitios. Para cambiar un sitio más tarde, ábrelo y toca Compartido con.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return '¿Hacer visibles los $count viajes para todos los perfiles de buceo de esta app? Podrás dejar de compartir viajes individuales más tarde.';
+    return 'Elige quién ve tus $count viajes. Para cambiar un viaje más tarde, ábrelo y toca Compartido con.';
   }
 
   @override
@@ -36016,7 +36016,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'Esto eliminará «$name» de la vista de los demás perfiles de buceo. Podrás volver a compartirlo más tarde.';
+    return 'Los perfiles que quites dejarán de ver «$name». Sus inmersiones siguen vinculadas a él y podrás volver a compartirlo con ellos más tarde.';
   }
 
   @override
@@ -36024,7 +36024,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'Esto eliminará «$name» de la vista de los demás perfiles de buceo. Podrás volver a compartirlo más tarde.';
+    return 'Los perfiles que quites dejarán de ver «$name». Sus inmersiones siguen vinculadas a él y podrás volver a compartirlo con ellos más tarde.';
   }
 
   @override
@@ -36099,6 +36099,31 @@ class AppLocalizationsEs extends AppLocalizations {
       one: '¿Quitar $count elemento de tu perfil?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Compartir con...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos compartidos',
+      one: '$count elemento compartido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos compartidos',
+      one: '$count elemento compartido',
+    );
+    return '$_temp0, se omitieron $skipped que no son tuyos';
   }
 
   @override
@@ -36199,6 +36224,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Quitado de tu perfil';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Todos los perfiles de buceo, incluidos los que se añadan más tarde';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'Los perfiles que elijas ven este sitio y pueden registrar en él sus propias inmersiones. Solo el perfil que lo creó puede eliminarlo o cambiar con quién se comparte.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Compartir con';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'Los perfiles que elijas ven este viaje y pueden añadirle sus propias inmersiones. Solo el perfil que lo creó puede eliminarlo o cambiar con quién se comparte.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Solo $owner puede cambiar el uso compartido';
   }
@@ -36207,6 +36247,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Compartido por $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Todos';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Compartido con';
+
+  @override
+  String get sharedItems_sharedWith_none => 'No compartido';
 
   @override
   String get sharedItems_undo => 'Deshacer';

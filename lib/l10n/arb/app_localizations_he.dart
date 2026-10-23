@@ -2321,8 +2321,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'שינוי גודל החלונית הראשית';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'משותף עם כל פרופילי הצלילה';
+  String get accessibility_label_sharedWithProfiles =>
+      'משותף עם פרופילי צלילה אחרים';
 
   @override
   String get accessibility_label_showList => 'הצגת רשימה';
@@ -35040,19 +35040,19 @@ class AppLocalizationsHe extends AppLocalizations {
       'שתף אתרים וטיולים חדשים כברירת מחדל';
 
   @override
-  String get settings_shareAllSites_title => 'שתף את כל האתרים שלי';
+  String get settings_shareAllSites_title => 'שתף את כל האתרים שלי...';
 
   @override
-  String get settings_shareAllTrips_title => 'שתף את כל הטיולים שלי';
+  String get settings_shareAllTrips_title => 'שתף את כל הטיולים שלי...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'להציג את כל $count האתרים שלך לכל פרופיל צלילה באפליקציה? תוכל לבטל שיתוף של אתרים בודדים בהמשך.';
+    return 'בחר מי רואה את כל $count האתרים שלך. כדי לשנות אתר אחד בהמשך, פתח אותו והקש על משותף עם.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'להציג את כל $count הטיולים שלך לכל פרופיל צלילה באפליקציה? תוכל לבטל שיתוף של טיולים בודדים בהמשך.';
+    return 'בחר מי רואה את כל $count הטיולים שלך. כדי לשנות טיול אחד בהמשך, פתח אותו והקש על משותף עם.';
   }
 
   @override
@@ -35098,7 +35098,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'פעולה זו תסיר את «$name» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.';
+    return 'פרופילים שתסיר לא יראו עוד את \"$name\". הצלילות שלהם יישארו מקושרות אליו, ותוכל לשתף אותו איתם שוב בהמשך.';
   }
 
   @override
@@ -35106,7 +35106,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'פעולה זו תסיר את «$name» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.';
+    return 'פרופילים שתסיר לא יראו עוד את \"$name\". הצלילות שלהם יישארו מקושרות אליו, ותוכל לשתף אותו איתם שוב בהמשך.';
   }
 
   @override
@@ -35181,6 +35181,31 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'להסיר $count פריט מהפרופיל שלך?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'שיתוף עם...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים שותפו',
+      one: 'פריט $count שותף',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים שותפו',
+      one: 'פריט $count שותף',
+    );
+    return '$_temp0, דולגו $skipped שאינם בבעלותך';
   }
 
   @override
@@ -35275,6 +35300,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'הוסר מהפרופיל שלך';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'כל פרופילי הצלילה, כולל פרופילים שיתווספו בהמשך';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'הפרופילים שתבחר רואים את האתר הזה ויכולים לתעד בו את הצלילות שלהם. רק אתה יכול למחוק אותו או לשנות עם מי הוא משותף.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'שיתוף עם';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'הפרופילים שתבחר רואים את הטיול הזה ויכולים להוסיף לו את הצלילות שלהם. רק אתה יכול למחוק אותו או לשנות עם מי הוא משותף.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'רק $owner יכול לשנות את השיתוף';
   }
@@ -35283,6 +35323,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'שותף על ידי $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'כולם';
+
+  @override
+  String get sharedItems_sharedWith_label => 'משותף עם';
+
+  @override
+  String get sharedItems_sharedWith_none => 'לא משותף';
 
   @override
   String get sharedItems_undo => 'בטל';

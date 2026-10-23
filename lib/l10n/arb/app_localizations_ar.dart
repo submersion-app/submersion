@@ -2409,8 +2409,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'تغيير حجم اللوحة الرئيسية';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'مشترك مع جميع ملفات الغوص';
+  String get accessibility_label_sharedWithProfiles =>
+      'مشترك مع ملفات غوص أخرى';
 
   @override
   String get accessibility_label_showList => 'عرض القائمة';
@@ -36396,19 +36396,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'مشاركة المواقع والرحلات الجديدة تلقائيًا';
 
   @override
-  String get settings_shareAllSites_title => 'مشاركة جميع مواقعي';
+  String get settings_shareAllSites_title => 'مشاركة جميع مواقعي...';
 
   @override
-  String get settings_shareAllTrips_title => 'مشاركة جميع رحلاتي';
+  String get settings_shareAllTrips_title => 'مشاركة جميع رحلاتي...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'هل تريد جعل كل $count من مواقعك مرئية لكل ملفات الغوص في هذا التطبيق؟ يمكنك إلغاء مشاركة مواقع فردية لاحقًا.';
+    return 'اختر من يرى كل $count من مواقعك. لتغيير موقع واحد لاحقًا، افتحه واضغط على مُشارَك مع.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'هل تريد جعل كل $count من رحلاتك مرئية لكل ملفات الغوص في هذا التطبيق؟ يمكنك إلغاء مشاركة رحلات فردية لاحقًا.';
+    return 'اختر من يرى كل $count من رحلاتك. لتغيير رحلة واحدة لاحقًا، افتحها واضغط على مُشارَك مع.';
   }
 
   @override
@@ -36454,7 +36454,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'سيؤدي هذا إلى إزالة «$name» من عروض ملفات الغوص الأخرى. يمكنك مشاركتها مرة أخرى لاحقًا.';
+    return 'لن ترى الملفات التي تزيلها «$name» بعد الآن. تبقى غطساتها مرتبطة بها، ويمكنك مشاركتها معها مجددًا لاحقًا.';
   }
 
   @override
@@ -36462,7 +36462,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'سيؤدي هذا إلى إزالة «$name» من عروض ملفات الغوص الأخرى. يمكنك مشاركته مرة أخرى لاحقًا.';
+    return 'لن ترى الملفات التي تزيلها «$name» بعد الآن. تبقى غطساتها مرتبطة به، ويمكنك مشاركته معها مجددًا لاحقًا.';
   }
 
   @override
@@ -36555,6 +36555,39 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'إزالة $count عنصر من ملفك؟',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'مشاركة مع...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عنصر',
+      many: 'تمت مشاركة $count عنصرًا',
+      few: 'تمت مشاركة $count عناصر',
+      two: 'تمت مشاركة عنصرين',
+      one: 'تمت مشاركة عنصر واحد',
+      zero: 'لم تتم مشاركة أي عنصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عنصر',
+      many: 'تمت مشاركة $count عنصرًا',
+      few: 'تمت مشاركة $count عناصر',
+      two: 'تمت مشاركة عنصرين',
+      one: 'تمت مشاركة عنصر واحد',
+      zero: 'لم تتم مشاركة أي عنصر',
+    );
+    return '$_temp0، وتم تخطي $skipped لا تملكها';
   }
 
   @override
@@ -36664,6 +36697,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'تمت الإزالة من ملفك';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'كل ملفات الغوص، بما فيها التي تُضاف لاحقًا';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'ترى الملفات التي تختارها هذا الموقع ويمكنها تسجيل غطساتها فيه. أنت وحدك يمكنك حذفه أو تغيير من يُشارَك معه.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'مشاركة مع';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'ترى الملفات التي تختارها هذه الرحلة ويمكنها إضافة غطساتها إليها. أنت وحدك يمكنك حذفها أو تغيير من تُشارَك معه.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'يمكن لـ $owner فقط تغيير المشاركة';
   }
@@ -36672,6 +36720,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'تمت المشاركة بواسطة $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'الجميع';
+
+  @override
+  String get sharedItems_sharedWith_label => 'مُشارَك مع';
+
+  @override
+  String get sharedItems_sharedWith_none => 'غير مُشارَك';
 
   @override
   String get sharedItems_undo => 'تراجع';

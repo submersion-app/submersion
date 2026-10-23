@@ -2343,8 +2343,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoofdvenster formaat aanpassen';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Gedeeld met alle duikersprofielen';
+  String get accessibility_label_sharedWithProfiles =>
+      'Gedeeld met andere duikersprofielen';
 
   @override
   String get accessibility_label_showList => 'Lijst tonen';
@@ -35681,19 +35681,19 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nieuwe sites en trips standaard delen';
 
   @override
-  String get settings_shareAllSites_title => 'Al mijn sites delen';
+  String get settings_shareAllSites_title => 'Al mijn duikplekken delen...';
 
   @override
-  String get settings_shareAllTrips_title => 'Al mijn trips delen';
+  String get settings_shareAllTrips_title => 'Al mijn trips delen...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Al je $count sites zichtbaar maken voor elk duikersprofiel in deze app? Je kunt individuele sites later ontdelen.';
+    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, open je hem en tik je op Gedeeld met.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Al je $count trips zichtbaar maken voor elk duikersprofiel in deze app? Je kunt individuele trips later ontdelen.';
+    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, open je hem en tik je op Gedeeld met.';
   }
 
   @override
@@ -35740,7 +35740,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'Hiermee wordt ‘$name’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.';
+    return 'Profielen die je weghaalt zien „$name\" niet meer. Hun duiken blijven eraan gekoppeld en je kunt de trip later weer met ze delen.';
   }
 
   @override
@@ -35748,7 +35748,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'Hiermee wordt ‘$name’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.';
+    return 'Profielen die je weghaalt zien „$name\" niet meer. Hun duiken blijven eraan gekoppeld en je kunt de duikplek later weer met ze delen.';
   }
 
   @override
@@ -35823,6 +35823,31 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '$count item uit je profiel verwijderen?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Delen met...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items gedeeld',
+      one: '$count item gedeeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items gedeeld',
+      one: '$count item gedeeld',
+    );
+    return '$_temp0, $skipped overgeslagen die niet van jou zijn';
   }
 
   @override
@@ -35923,6 +35948,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Uit je profiel verwijderd';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Elk duikersprofiel, ook profielen die later worden toegevoegd';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'De profielen die je kiest zien deze duikplek en kunnen er hun eigen duiken op vastleggen. Alleen jij kunt hem verwijderen of wijzigen met wie hij wordt gedeeld.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Delen met';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'De profielen die je kiest zien deze trip en kunnen er hun eigen duiken aan toevoegen. Alleen jij kunt hem verwijderen of wijzigen met wie hij wordt gedeeld.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Alleen $owner kan het delen wijzigen';
   }
@@ -35931,6 +35971,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Gedeeld door $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Iedereen';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Gedeeld met';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Niet gedeeld';
 
   @override
   String get sharedItems_undo => 'Ongedaan maken';
