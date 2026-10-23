@@ -163,7 +163,7 @@ void main() {
     });
 
     test('in salt water oxygen is still breathed from the 6 m stop', () {
-      // 1.603 bar there, which reads 1.60: within half a display step.
+      // 1.603 bar there, which reads 1.60: within gasSwitchPpO2Tolerance.
       const o2 = GasMix(o2: 100);
       final base = _ocPlan();
       final plan = base.copyWith(
