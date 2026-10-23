@@ -419,6 +419,12 @@ class UddfEntityImporter {
 
   /// Parse a value that may be either an enum instance or a string matching
   /// an enum name. Returns null if the value is null or unrecognised.
+  /// A site's entry or exit methods from an import payload value (stored
+  /// comma-joined names), or null when the payload carries none, so an
+  /// overwrite keeps the site's own list.
+  static List<EntryMethod>? _entryMethodsOrNull(Object? value) =>
+      value is String ? decodeEntryMethods(value) : null;
+
   static T? _parseEnum<T extends Enum>(Object? value, List<T> values) {
     if (value == null) return null;
     if (value is T) return value;
@@ -2022,10 +2028,10 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
-        entryMethods: decodeEntryMethods(siteData['entryMethod'] as String?),
-        // A site's typical way out (issue #2201); null means the
-        // same as the entry, so an absent cell stays null.
-        exitMethods: decodeEntryMethods(siteData['exitMethod'] as String?),
+        // Null for an absent key, so the site keeps its own methods; a
+        // decoded list (even an empty one) would replace them (#2054).
+        entryMethods: _entryMethodsOrNull(siteData['entryMethod']),
+        exitMethods: _entryMethodsOrNull(siteData['exitMethod']),
       );
 
       // Core fields and the importer-only metadata columns go out as one
