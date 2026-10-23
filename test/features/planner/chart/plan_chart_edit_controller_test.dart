@@ -298,22 +298,33 @@ void main() {
       expect(merged.targetDepth, 30);
     });
 
-    test('keeps the next leg own gas, setpoint and mode', () {
+    test('carries the gas breathed into the waypoint on, not the next', () {
+      // Removing the waypoint removes its gas switch: the switch moves later
+      // (shallower on an ascent), never earlier and deeper than planned.
       final ordered = [
         _descent(),
         _bottom().copyWith(
+          tankId: 't2',
           gasMix: _ean50,
           setpointBar: 1.3,
           diveModeOverride: PlanMode.ccr,
+          splitAtConfiguredRate: true,
         ),
       ];
-      final (_, merged) = removeVertex(
+      final (id, merged) = removeVertex(
         ordered: ordered,
         vertexIndex: 0,
       ).updates.single;
-      expect(merged.gasMix, _ean50);
-      expect(merged.setpointBar, 1.3);
-      expect(merged.diveModeOverride, PlanMode.ccr);
+      expect(id, 'b');
+      expect(merged.id, 'b');
+      expect(merged.order, 1);
+      expect(merged.targetDepth, 30);
+      expect(merged.tankId, 't1');
+      expect(merged.gasMix, _gas);
+      expect(merged.setpointBar, isNull);
+      expect(merged.diveModeOverride, isNull);
+      // How the leg is travelled belongs to its end, not its gas.
+      expect(merged.splitAtConfiguredRate, isTrue);
     });
 
     test('the last waypoint has no next leg and is simply dropped', () {

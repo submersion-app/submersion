@@ -149,13 +149,13 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     );
     if (action == null || !mounted || _readOnly) return;
 
-    final ordered = _orderedSegments;
-    final index = ordered.indexWhere((s) => s.id == segmentId);
-    if (index < 0) return;
     switch (action) {
       case RemoveWaypointAction():
         _removeWaypoint(segmentId);
       case SwitchGasAction(:final tank):
+        final ordered = _orderedSegments;
+        final index = ordered.indexWhere((s) => s.id == segmentId);
+        if (index < 0) return;
         // A gas switch at vertex i applies to the FOLLOWING segment; fall
         // back to the vertex's own segment when it is the last one.
         final target = index + 1 < ordered.length
