@@ -54,7 +54,7 @@ class ListScrubberPanel extends StatefulWidget {
   static const _thumbReserve = 14.0;
   static const _labelGap = 4.0;
   static const _minLine = 12.0;
-  static const _backingPadding = 6.0;
+  static const _labelPadding = 6.0;
   static const _bandPadding = 4.0;
 
   static TextStyle? markerStyle(ThemeData theme) => theme.textTheme.labelSmall
@@ -80,7 +80,7 @@ class ListScrubberPanel extends StatefulWidget {
   /// [hostWidth] wide.
   static double bandWidthFor(double labelWidth, double hostWidth) {
     final cap = math.min(maxBandWidth, hostWidth - 16);
-    final needed = labelWidth + _backingPadding * 2 + _chrome;
+    final needed = labelWidth + _labelPadding * 2 + _chrome;
     return math.max(0.0, math.min(math.max(needed, width), cap));
   }
 
@@ -257,7 +257,7 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
                   child: FractionalTranslation(
                     translation: const Offset(0, -0.5),
                     child: Center(
-                      child: _backing(
+                      child: _padded(
                         key: ListScrubberPanel.labelBackingKey,
                         child: Text(
                           m.marker.label,
@@ -331,10 +331,10 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     );
   }
 
-  Widget _backing({Key? key, required Widget child}) => Padding(
+  Widget _padded({Key? key, required Widget child}) => Padding(
     key: key,
     padding: const EdgeInsets.symmetric(
-      horizontal: ListScrubberPanel._backingPadding,
+      horizontal: ListScrubberPanel._labelPadding,
     ),
     child: child,
   );
@@ -380,7 +380,7 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
             children: [
               ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: labelMax),
-                child: _backing(
+                child: _padded(
                   child: Text(
                     label,
                     key: ListScrubberPanel.currentValueKey,

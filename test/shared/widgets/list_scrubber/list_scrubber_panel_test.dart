@@ -140,7 +140,7 @@ void main() {
     expect(label.center.dy, closeTo(panel.top + 300 + thumbHeight / 2, 1));
   });
 
-  testWidgets('each label sits on its own backing', (tester) async {
+  testWidgets('each label sits in its own padded box', (tester) async {
     await tester.pumpWidget(
       host(
         markers: const [ScrubberMarker(slot: 60, label: '2024')],
