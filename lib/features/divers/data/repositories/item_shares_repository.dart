@@ -218,6 +218,43 @@ class ItemSharesRepository {
     return shares;
   }
 
+  /// Shares item [toItemId] with the profiles of [from] (share rows of
+  /// other items, such as sites merged away), unless it is shared with
+  /// everyone: one new row per profile it does not reach yet, never one for
+  /// its owner. Runs inside the caller's transaction and notifies nothing.
+  /// Returns the new rows' ids, so an undo can [dropShareRows] them.
+  Future<List<String>> carryShares(
+    SharedItemKind kind,
+    List<ItemShare> from,
+    String toItemId, {
+    required int now,
+  }) async {
+    if (from.isEmpty) return const [];
+    final t = _of(kind);
+    final parent = (await _parents(t, [toItemId]))[toItemId];
+    if (parent == null || parent.isShared) return const [];
+    final have = {
+      for (final s in await _shares(t, [toItemId])) s.diverId,
+      ?parent.ownerId,
+    };
+    final created = <String>[];
+    for (final diverId in {for (final s in from) s.diverId}.difference(have)) {
+      final share = (
+        id: _uuid.v4(),
+        itemId: toItemId,
+        diverId: diverId,
+        createdAt: now,
+      );
+      if (await _insertRow(kind, share, now)) created.add(share.id);
+    }
+    return created;
+  }
+
+  /// Deletes and tombstones the share rows [shareIds]. Runs inside the
+  /// caller's transaction and notifies nothing.
+  Future<void> dropShareRows(SharedItemKind kind, List<String> shareIds) =>
+      _deleteRows(kind, shareIds);
+
   /// Undo for a delete: puts [shares] (what [deleteShares] returned) back
   /// under their own ids, marked pending, and drops their tombstones. A
   /// share whose item or profile does not exist, or whose pair is already

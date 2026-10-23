@@ -13,6 +13,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
@@ -374,6 +375,8 @@ class TripRepository {
 
         // Every profile's hide of the trip (issue #2594), tombstoned.
         await ProfileHidesRepository().deleteHides(SharedItemKind.trip, [id]);
+        // Every share row of the trip (issue #2151), tombstoned.
+        await ItemSharesRepository().deleteShares(SharedItemKind.trip, [id]);
         // Every profile's dives lose the trip, stamped and marked pending.
         await clearDiveTripLinks(_db, _syncRepository, [id], now: now);
         // Its documents go with it, tombstoned (issue #2613).

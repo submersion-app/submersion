@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_restore.dart';
@@ -724,6 +725,11 @@ class SiteRepository {
         SharedItemKind.site,
         ids,
       );
+      // Every share row of the sites (issue #2151), likewise.
+      final shares = await ItemSharesRepository().deleteShares(
+        SharedItemKind.site,
+        ids,
+      );
       // The sites' documents go with them, tombstoned (issue #2613), kept
       // for the undo. A merge re-points them to the survivor first.
       final documents = undoable
@@ -749,6 +755,7 @@ class SiteRepository {
       return cleared.copyWith(
         documents: documents,
         hides: hides,
+        shares: shares,
         children: children,
         media: doomedMedia,
         mediaSiteIds: mediaSiteIds,
@@ -848,6 +855,10 @@ class SiteRepository {
       await ProfileHidesRepository().restoreHides(
         SharedItemKind.site,
         links.hides,
+      );
+      await ItemSharesRepository().restoreShares(
+        SharedItemKind.site,
+        links.shares,
       );
       await restoreSiteChildren(_db, _syncRepository, links.children, now: now);
       final restored = await restoreMediaRows(
@@ -1078,6 +1089,21 @@ class SiteRepository {
           SharedItemKind.site,
           duplicateIds,
         );
+        // The profiles a merged-away site was shared with keep seeing the
+        // site their dives now point at (issue #2151): its share rows go,
+        // and the survivor is shared with those profiles, unless it is
+        // shared with everyone. Both kept for the undo.
+        final shareRepo = ItemSharesRepository();
+        final shares = await shareRepo.deleteShares(
+          SharedItemKind.site,
+          duplicateIds,
+        );
+        final carried = await shareRepo.carryShares(
+          SharedItemKind.site,
+          shares,
+          survivorId,
+          now: now,
+        );
         for (final duplicateId in duplicateIds) {
           await (_db.delete(
             _db.diveSites,
@@ -1087,7 +1113,13 @@ class SiteRepository {
             recordId: duplicateId,
           );
         }
-        return (plans: movedPlans, hides: hides, documents: documents);
+        return (
+          plans: movedPlans,
+          hides: hides,
+          shares: shares,
+          carried: carried,
+          documents: documents,
+        );
       });
 
       SyncEventBus.notifyLocalChange();
@@ -1128,6 +1160,8 @@ class SiteRepository {
         siteTypeIdsBySite: typeIdsBySite,
         siteTagIdsBySite: tagIdsBySite,
         deletedHides: merged.hides,
+        deletedShares: merged.shares,
+        createdShareIds: merged.carried,
         documentOriginalSiteIds: merged.documents,
       );
     } catch (e, stackTrace) {
@@ -1229,6 +1263,17 @@ class SiteRepository {
         await ProfileHidesRepository().restoreHides(
           SharedItemKind.site,
           snapshot.deletedHides,
+        );
+        // 2d. The survivor's carried share rows go, and the merged-away
+        // sites' come back (issue #2151).
+        final shareRepo = ItemSharesRepository();
+        await shareRepo.dropShareRows(
+          SharedItemKind.site,
+          snapshot.createdShareIds,
+        );
+        await shareRepo.restoreShares(
+          SharedItemKind.site,
+          snapshot.deletedShares,
         );
 
         // 3. Re-point dives back to their original sites
@@ -1821,6 +1866,13 @@ class MergeSnapshot {
   /// removed (issue #2710).
   final List<ProfileHide> deletedHides;
 
+  /// The merged-away sites' share rows, which the merge removed (issue
+  /// #2151).
+  final List<ItemShare> deletedShares;
+
+  /// The share rows the merge added to the survivor in their place.
+  final List<String> createdShareIds;
+
   const MergeSnapshot({
     required this.originalSurvivor,
     required this.deletedSites,
@@ -1835,6 +1887,8 @@ class MergeSnapshot {
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
     this.deletedHides = const [],
+    this.deletedShares = const [],
+    this.createdShareIds = const [],
     this.documentOriginalSiteIds = const {},
   });
 
