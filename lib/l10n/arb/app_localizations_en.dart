@@ -36388,30 +36388,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Compare in 3D';
 
   @override
-  String get settings_setup_pendingTitle => 'Finish setting up this device';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Connect media storage ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Reconnect media storage ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Sign in to $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Dismiss';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Guided setup';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Gallery, files and import options';
 
@@ -36459,43 +36435,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'The account is removed from every synced device. Credentials stored on other devices are not deleted.';
-
-  @override
-  String get settings_setupGuide_title => 'Set up photos & media';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Connect where your photos come from and where copies are kept. You can re-run this any time.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Photo sources';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Attach photos from your photo library, files, or Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Media storage';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Keep copies of your photos in your own cloud so every device can show them.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Cloud sync';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Sync dive data between devices.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Set up';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Not set up';
-
-  @override
-  String get settings_setupGuide_open => 'Open';
 
   @override
   String get settings_connectedAccounts_loadError => 'Could not load accounts';

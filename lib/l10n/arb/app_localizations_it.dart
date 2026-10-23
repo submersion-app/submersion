@@ -37012,31 +37012,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Confronta in 3D';
 
   @override
-  String get settings_setup_pendingTitle =>
-      'Completa la configurazione di questo dispositivo';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Collega archiviazione multimediale ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Ricollega archiviazione multimediale ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Accedi a $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Ignora';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Configurazione guidata';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galleria, file e opzioni di importazione';
 
@@ -37085,43 +37060,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'L\'account viene rimosso da tutti i dispositivi sincronizzati. Le credenziali salvate su altri dispositivi non vengono eliminate.';
-
-  @override
-  String get settings_setupGuide_title => 'Configura foto e media';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Collega le sorgenti delle tue foto e dove conservare le copie. Puoi rieseguirlo in qualsiasi momento.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Sorgenti foto';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Allega foto dalla libreria, dai file o da Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Archiviazione media';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Conserva copie delle tue foto nel tuo cloud così ogni dispositivo può mostrarle.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Sincronizzazione cloud';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Sincronizza i dati delle immersioni tra dispositivi.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Configurato';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Non configurato';
-
-  @override
-  String get settings_setupGuide_open => 'Apri';
 
   @override
   String get settings_connectedAccounts_loadError =>

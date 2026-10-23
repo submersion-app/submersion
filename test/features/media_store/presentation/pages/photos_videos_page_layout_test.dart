@@ -23,7 +23,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_upl
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 final _t = DateTime.utc(2026);
@@ -174,8 +174,8 @@ void main() {
     }
     final ys = [for (final f in order) y(tester, f)];
     expect(ys, [...ys]..sort());
-    // Kept until phase 6's card replaces it.
-    expect(find.byIcon(Icons.checklist_outlined), findsOneWidget);
+    // The Set up this device card replaced the guided setup checklist.
+    expect(find.byIcon(Icons.checklist_outlined), findsNothing);
   });
 
   group('the Using row', () {

@@ -34860,30 +34860,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_compareIn3d => '3D 比较';
 
   @override
-  String get settings_setup_pendingTitle => '完成此设备的设置';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return '连接媒体存储（$hint）';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return '重新连接媒体存储（$hint）';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return '登录 $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => '忽略';
-
-  @override
-  String get settings_photosMedia_guidedSetup => '引导设置';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle => '图库、文件与导入选项';
 
   @override
@@ -34927,41 +34903,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       '该账户将从所有同步设备中移除。存储在其他设备上的凭据不会被删除。';
-
-  @override
-  String get settings_setupGuide_title => '设置照片与媒体';
-
-  @override
-  String get settings_setupGuide_intro => '连接照片来源以及副本保存位置。你可以随时重新运行。';
-
-  @override
-  String get settings_setupGuide_stepSources => '照片来源';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      '从照片图库、文件或 Lightroom 附加照片。';
-
-  @override
-  String get settings_setupGuide_stepStorage => '媒体存储';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      '将照片副本保存在你自己的云端，让每台设备都能显示。';
-
-  @override
-  String get settings_setupGuide_stepSync => '云同步';
-
-  @override
-  String get settings_setupGuide_stepSync_desc => '在设备之间同步潜水数据。';
-
-  @override
-  String get settings_setupGuide_statusDone => '已设置';
-
-  @override
-  String get settings_setupGuide_statusTodo => '未设置';
-
-  @override
-  String get settings_setupGuide_open => '打开';
 
   @override
   String get settings_connectedAccounts_loadError => '无法加载账户';

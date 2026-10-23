@@ -31,6 +31,9 @@ class PendingSetupItem {
   /// For accountSignIn: the account's kind.
   final AccountKind? accountKind;
 
+  /// For accountSignIn: the roster row that needs signing in.
+  final String? accountId;
+
   /// The settings page that actually resolves this item. Computed by the
   /// service, which knows what the account drives (sync selection, media
   /// store descriptor, connector) - the card just navigates.
@@ -47,6 +50,7 @@ class PendingSetupItem {
     required this.label,
     required this.route,
     this.accountKind,
+    this.accountId,
     this.dismissed = false,
   });
 }
@@ -91,8 +95,12 @@ class PendingSetupService {
   bool _isDismissed(String key) =>
       _prefs.getBool('$_dismissedPrefix$key') ?? false;
 
-  Future<void> dismiss(String key) async {
-    await _prefs.setBool('$_dismissedPrefix$key', true);
+  Future<void> dismiss(String key) => dismissKey(_prefs, key);
+
+  /// Records [key] as dismissed on this device. Needs no repositories, so a
+  /// card can dismiss an item without building the whole service.
+  static Future<void> dismissKey(SharedPreferences prefs, String key) async {
+    await prefs.setBool('$_dismissedPrefix$key', true);
   }
 
   Future<List<PendingSetupItem>> compute() async {
@@ -162,6 +170,7 @@ class PendingSetupService {
           key: key,
           label: account.displayName,
           accountKind: account.kind,
+          accountId: account.id,
           route: _routeFor(account, usage: usage),
           dismissed: _isDismissed(key),
         ),

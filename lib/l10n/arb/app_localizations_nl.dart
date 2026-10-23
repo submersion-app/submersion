@@ -36756,31 +36756,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Vergelijken in 3D';
 
   @override
-  String get settings_setup_pendingTitle =>
-      'Voltooi het instellen van dit apparaat';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Mediaopslag koppelen ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Mediaopslag opnieuw koppelen ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Aanmelden bij $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Negeren';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Begeleide installatie';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galerij, bestanden en importopties';
 
@@ -36829,43 +36804,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'Het account wordt van elk gesynchroniseerd apparaat verwijderd. Op andere apparaten opgeslagen inloggegevens worden niet gewist.';
-
-  @override
-  String get settings_setupGuide_title => 'Foto\'s en media instellen';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Koppel waar je foto\'s vandaan komen en waar kopieën worden bewaard. Je kunt dit altijd opnieuw uitvoeren.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Fotobronnen';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Voeg foto\'s toe uit je fotobibliotheek, bestanden of Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Mediaopslag';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Bewaar kopieën van je foto\'s in je eigen cloud zodat elk apparaat ze kan tonen.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Cloudsynchronisatie';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Synchroniseer duikgegevens tussen apparaten.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Ingesteld';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Niet ingesteld';
-
-  @override
-  String get settings_setupGuide_open => 'Openen';
 
   @override
   String get settings_connectedAccounts_loadError =>

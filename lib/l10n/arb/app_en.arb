@@ -22576,34 +22576,6 @@
   "@diveLog_selection_tooltip_compare3d": {},
   "diveLog_sources_compareIn3d": "Compare in 3D",
   "@diveLog_sources_compareIn3d": {},
-  "settings_setup_pendingTitle": "Finish setting up this device",
-  "settings_setup_mediaStoreAttach": "Connect media storage ({hint})",
-  "@settings_setup_mediaStoreAttach": {
-    "placeholders": {
-      "hint": {
-        "type": "String"
-      }
-    }
-  },
-  "settings_setup_mediaStoreReconnect": "Reconnect media storage ({hint})",
-  "@settings_setup_mediaStoreReconnect": {
-    "description": "Pending setup item when the media store no longer carries this device's marker",
-    "placeholders": {
-      "hint": {
-        "type": "String"
-      }
-    }
-  },
-  "settings_setup_accountSignIn": "Sign in to {label}",
-  "@settings_setup_accountSignIn": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
-  "settings_setup_dismiss": "Dismiss",
-  "settings_photosMedia_guidedSetup": "Guided setup",
   "settings_photosMedia_photoSources_subtitle": "Gallery, files and import options",
   "settings_photosMedia_networkSources_title": "Network sources",
   "settings_photosMedia_networkSources_subtitle": "URLs and manifest feeds (advanced)",
@@ -22627,17 +22599,6 @@
   },
   "settings_connectedAccounts_removeConfirmTitle": "Remove account?",
   "settings_connectedAccounts_removeConfirmBody": "The account is removed from every synced device. Credentials stored on other devices are not deleted.",
-  "settings_setupGuide_title": "Set up photos & media",
-  "settings_setupGuide_intro": "Connect where your photos come from and where copies are kept. You can re-run this any time.",
-  "settings_setupGuide_stepSources": "Photo sources",
-  "settings_setupGuide_stepSources_desc": "Attach photos from your photo library, files, or Lightroom.",
-  "settings_setupGuide_stepStorage": "Media storage",
-  "settings_setupGuide_stepStorage_desc": "Keep copies of your photos in your own cloud so every device can show them.",
-  "settings_setupGuide_stepSync": "Cloud sync",
-  "settings_setupGuide_stepSync_desc": "Sync dive data between devices.",
-  "settings_setupGuide_statusDone": "Set up",
-  "settings_setupGuide_statusTodo": "Not set up",
-  "settings_setupGuide_open": "Open",
   "settings_connectedAccounts_loadError": "Could not load accounts",
   "settings_connectedAccounts_usage_label": "Used for: {uses}",
   "@settings_connectedAccounts_usage_label": {

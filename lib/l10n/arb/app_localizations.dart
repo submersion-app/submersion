@@ -58204,42 +58204,6 @@ abstract class AppLocalizations {
   /// **'Compare in 3D'**
   String get diveLog_sources_compareIn3d;
 
-  /// No description provided for @settings_setup_pendingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Finish setting up this device'**
-  String get settings_setup_pendingTitle;
-
-  /// No description provided for @settings_setup_mediaStoreAttach.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect media storage ({hint})'**
-  String settings_setup_mediaStoreAttach(String hint);
-
-  /// Pending setup item when the media store no longer carries this device's marker
-  ///
-  /// In en, this message translates to:
-  /// **'Reconnect media storage ({hint})'**
-  String settings_setup_mediaStoreReconnect(String hint);
-
-  /// No description provided for @settings_setup_accountSignIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in to {label}'**
-  String settings_setup_accountSignIn(String label);
-
-  /// No description provided for @settings_setup_dismiss.
-  ///
-  /// In en, this message translates to:
-  /// **'Dismiss'**
-  String get settings_setup_dismiss;
-
-  /// No description provided for @settings_photosMedia_guidedSetup.
-  ///
-  /// In en, this message translates to:
-  /// **'Guided setup'**
-  String get settings_photosMedia_guidedSetup;
-
   /// No description provided for @settings_photosMedia_photoSources_subtitle.
   ///
   /// In en, this message translates to:
@@ -58323,72 +58287,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The account is removed from every synced device. Credentials stored on other devices are not deleted.'**
   String get settings_connectedAccounts_removeConfirmBody;
-
-  /// No description provided for @settings_setupGuide_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Set up photos & media'**
-  String get settings_setupGuide_title;
-
-  /// No description provided for @settings_setupGuide_intro.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect where your photos come from and where copies are kept. You can re-run this any time.'**
-  String get settings_setupGuide_intro;
-
-  /// No description provided for @settings_setupGuide_stepSources.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo sources'**
-  String get settings_setupGuide_stepSources;
-
-  /// No description provided for @settings_setupGuide_stepSources_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Attach photos from your photo library, files, or Lightroom.'**
-  String get settings_setupGuide_stepSources_desc;
-
-  /// No description provided for @settings_setupGuide_stepStorage.
-  ///
-  /// In en, this message translates to:
-  /// **'Media storage'**
-  String get settings_setupGuide_stepStorage;
-
-  /// No description provided for @settings_setupGuide_stepStorage_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep copies of your photos in your own cloud so every device can show them.'**
-  String get settings_setupGuide_stepStorage_desc;
-
-  /// No description provided for @settings_setupGuide_stepSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud sync'**
-  String get settings_setupGuide_stepSync;
-
-  /// No description provided for @settings_setupGuide_stepSync_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync dive data between devices.'**
-  String get settings_setupGuide_stepSync_desc;
-
-  /// No description provided for @settings_setupGuide_statusDone.
-  ///
-  /// In en, this message translates to:
-  /// **'Set up'**
-  String get settings_setupGuide_statusDone;
-
-  /// No description provided for @settings_setupGuide_statusTodo.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set up'**
-  String get settings_setupGuide_statusTodo;
-
-  /// No description provided for @settings_setupGuide_open.
-  ///
-  /// In en, this message translates to:
-  /// **'Open'**
-  String get settings_setupGuide_open;
 
   /// No description provided for @settings_connectedAccounts_loadError.
   ///

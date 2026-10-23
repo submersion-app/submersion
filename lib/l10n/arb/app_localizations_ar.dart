@@ -37518,30 +37518,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'مقارنة ثلاثية الأبعاد';
 
   @override
-  String get settings_setup_pendingTitle => 'أكمل إعداد هذا الجهاز';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'الاتصال بتخزين الوسائط ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'إعادة الاتصال بتخزين الوسائط ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'تسجيل الدخول إلى $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'تجاهل';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'إعداد موجه';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'المعرض والملفات وخيارات الاستيراد';
 
@@ -37589,43 +37565,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'تتم إزالة الحساب من جميع الأجهزة المتزامنة. لا تُحذف بيانات الاعتماد المخزنة على الأجهزة الأخرى.';
-
-  @override
-  String get settings_setupGuide_title => 'إعداد الصور والوسائط';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'اربط مصادر صورك وأماكن حفظ النسخ. يمكنك إعادة تشغيل هذا في أي وقت.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'مصادر الصور';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'أرفق الصور من مكتبة الصور أو الملفات أو Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'تخزين الوسائط';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'احفظ نسخًا من صورك في سحابتك الخاصة حتى تعرضها جميع أجهزتك.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'مزامنة سحابية';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'زامن بيانات الغوص بين الأجهزة.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'تم الإعداد';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'لم يتم الإعداد';
-
-  @override
-  String get settings_setupGuide_open => 'فتح';
 
   @override
   String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';

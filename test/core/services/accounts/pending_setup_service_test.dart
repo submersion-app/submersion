@@ -158,14 +158,14 @@ void main() {
 
   test('accounts this device uses yield sign-in items; unavailable kinds are '
       'skipped', () async {
-    await useForSync(
-      await accounts.create(kind: AccountKind.s3, label: 'MinIO'),
-    );
+    final minio = await accounts.create(kind: AccountKind.s3, label: 'MinIO');
+    await useForSync(minio);
     await accounts.create(kind: AccountKind.icloud, label: 'iCloud');
     final items = await service().compute();
     expect(items, hasLength(1));
     expect(items.single.kind, SetupItemKind.accountSignIn);
     expect(items.single.label, 'MinIO');
+    expect(items.single.accountId, minio.id);
     expect(items.single.accountKind, AccountKind.s3);
     expect(items.single.route, '/settings/cloud-sync');
   });
@@ -305,6 +305,13 @@ void main() {
 
     expect(items.single.key, 'account_${mediaAccount.id}');
     expect(items.single.route, '/settings/photos-media');
+  });
+
+  test('a key dismissed without a service is dismissed for it', () async {
+    final account = await accounts.create(kind: AccountKind.s3, label: 'M');
+    await useForSync(account);
+    await PendingSetupService.dismissKey(prefs, 'account_${account.id}');
+    expect((await service().compute()).single.dismissed, isTrue);
   });
 
   test('dismissal is per key and sticks', () async {

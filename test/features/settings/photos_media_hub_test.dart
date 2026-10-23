@@ -12,7 +12,6 @@ import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_advanced_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/providers/media_cache_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -145,19 +144,6 @@ void main() {
     await tester.pump();
     expect(notifier.state.autoColorCorrection, isTrue);
     expect(tester.widget<SwitchListTile>(tile).value, isTrue);
-  });
-
-  testWidgets('setup guide renders three steps with live status', (
-    tester,
-  ) async {
-    await tester.pumpWidget(app(const PhotosMediaSetupPage()));
-    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-    await tester.pump();
-
-    expect(find.text('Photo sources'), findsOneWidget);
-    expect(find.text('Media storage'), findsOneWidget);
-    expect(find.text('Cloud sync'), findsOneWidget);
-    expect(find.text('Not set up'), findsNWidgets(3));
   });
 
   testWidgets('connected accounts page lists an account with status', (

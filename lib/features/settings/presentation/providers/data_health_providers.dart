@@ -13,7 +13,7 @@ import 'package:submersion/features/settings/domain/data_health/shared_library_h
 import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
 // One health model behind the Settings > Data status strip and the row marks

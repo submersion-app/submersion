@@ -36093,30 +36093,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'השוואה בתלת-ממד';
 
   @override
-  String get settings_setup_pendingTitle => 'השלם את הגדרת המכשיר הזה';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'חיבור אחסון מדיה ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'חיבור מחדש של אחסון מדיה ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'התחברות אל $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'התעלם';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'הגדרה מודרכת';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'גלריה, קבצים ואפשרויות ייבוא';
 
@@ -36164,43 +36140,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'החשבון מוסר מכל המכשירים המסונכרנים. אישורים השמורים במכשירים אחרים אינם נמחקים.';
-
-  @override
-  String get settings_setupGuide_title => 'הגדרת תמונות ומדיה';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'חבר את מקורות התמונות ואת מקום שמירת העותקים. אפשר להריץ זאת שוב בכל עת.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'מקורות תמונות';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'צרף תמונות מספריית התמונות, מקבצים או מ-Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'אחסון מדיה';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'שמור עותקים של התמונות בענן שלך כדי שכל מכשיר יוכל להציגן.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'סנכרון ענן';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'סנכרן נתוני צלילה בין מכשירים.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'מוגדר';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'לא מוגדר';
-
-  @override
-  String get settings_setupGuide_open => 'פתח';
 
   @override
   String get settings_connectedAccounts_loadError => 'לא ניתן לטעון חשבונות';

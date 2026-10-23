@@ -36785,30 +36785,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Összehasonlítás 3D-ben';
 
   @override
-  String get settings_setup_pendingTitle => 'Fejezze be az eszköz beállítását';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Médiatároló csatlakoztatása ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Médiatároló újracsatlakoztatása ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Bejelentkezés: $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Elvetés';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Vezetett beállítás';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galéria, fájlok és importálási beállítások';
 
@@ -36858,43 +36834,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'A fiók minden szinkronizált eszközről eltávolításra kerül. A más eszközökön tárolt hitelesítő adatok nem törlődnek.';
-
-  @override
-  String get settings_setupGuide_title => 'Fotók és média beállítása';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Kapcsold össze, honnan érkeznek a fotóid és hol tárolod a másolatokat. Bármikor újrafuttathatod.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Fotóforrások';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Csatolj fotókat a fotótáradból, fájlokból vagy a Lightroomból.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Médiatároló';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Tárold fotóid másolatait a saját felhődben, hogy minden eszköz megjeleníthesse őket.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Felhőszinkronizálás';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Merülési adatok szinkronizálása eszközök között.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Beállítva';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Nincs beállítva';
-
-  @override
-  String get settings_setupGuide_open => 'Megnyitás';
 
   @override
   String get settings_connectedAccounts_loadError =>

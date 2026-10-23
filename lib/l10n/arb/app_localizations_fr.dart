@@ -37113,31 +37113,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Comparer en 3D';
 
   @override
-  String get settings_setup_pendingTitle =>
-      'Terminez la configuration de cet appareil';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Connecter le stockage multimédia ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Reconnecter le stockage multimédia ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Se connecter à $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Ignorer';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Configuration guidée';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galerie, fichiers et options d\'import';
 
@@ -37187,43 +37162,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'Le compte est retiré de tous les appareils synchronisés. Les identifiants stockés sur les autres appareils ne sont pas supprimés.';
-
-  @override
-  String get settings_setupGuide_title => 'Configurer photos et médias';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Connectez la provenance de vos photos et l\'emplacement des copies. Vous pouvez relancer cet assistant à tout moment.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Sources de photos';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Joignez des photos depuis votre photothèque, vos fichiers ou Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Stockage multimédia';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Conservez des copies de vos photos dans votre propre cloud pour que chaque appareil puisse les afficher.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Synchronisation cloud';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Synchronisez les données de plongée entre appareils.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Configuré';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Non configuré';
-
-  @override
-  String get settings_setupGuide_open => 'Ouvrir';
 
   @override
   String get settings_connectedAccounts_loadError =>

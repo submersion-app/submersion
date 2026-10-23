@@ -45,7 +45,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_route.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
@@ -246,7 +247,12 @@ class SettingsMobileContent extends ConsumerWidget {
         separatorBuilder: (context, index) =>
             index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
         itemBuilder: (context, index) {
-          if (index == 0) return const PendingSetupCard();
+          if (index == 0) {
+            return SetUpDeviceCard(
+              compact: true,
+              onOpenStep: (step) => context.go(setUpStepDataLocation(step)),
+            );
+          }
           final section = sections[index - 1];
           return _MobileSettingsTile(section: section);
         },
