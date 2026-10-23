@@ -491,6 +491,46 @@ void main() {
       }
     }
 
+    test('switching to psi moves an untouched reserve to 500 psi', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+      expect(container.read(settingsProvider).plannerReservePressure, 50.0);
+
+      await notifier.setPressureUnit(PressureUnit.psi);
+      expect(
+        container.read(settingsProvider).plannerReservePressure,
+        closeTo(PressureUnit.psi.convert(500, PressureUnit.bar), 1e-9),
+      );
+
+      await notifier.setMetric();
+      expect(container.read(settingsProvider).plannerReservePressure, 50.0);
+    });
+
+    test('a reserve the diver set survives a unit switch', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+      await notifier.setPlannerReservePressure(40.0);
+
+      await notifier.setImperial();
+      expect(container.read(settingsProvider).plannerReservePressure, 40.0);
+    });
+
+    test('planner rate defaults clamp to the per-plan rate band', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await notifier.setPlannerAscentRate(300);
+      expect(
+        container.read(settingsProvider).plannerAscentRate,
+        kPlannerRateMaxMetersPerMinute,
+      );
+      await notifier.setPlannerFinalAscentRate(0.1);
+      expect(
+        container.read(settingsProvider).plannerFinalAscentRate,
+        kPlannerRateMinMetersPerMinute,
+      );
+    });
+
     test('setShowProfilePanelInTableView toggles value', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

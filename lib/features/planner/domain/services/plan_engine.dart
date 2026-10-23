@@ -23,6 +23,8 @@ import 'package:submersion/features/planner/domain/services/tank_role_resolver.d
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart'
+    show kDefaultBatteryReserveFraction, kDefaultWalkSpeedMps;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
@@ -142,6 +144,13 @@ class PlanEngineConfig extends Equatable {
   final int gfHigh;
   final double reservePressure;
 
+  /// The diver's DPV mission defaults (issue #3552): the fraction of
+  /// scooter burn time kept in reserve, and the shore-exit walking speed in
+  /// m/s. A mission's own value wins; MissionEngine.compute resolves an
+  /// unset one against these before any mission service reads it.
+  final double batteryReserveFraction;
+  final double walkSpeedMps;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -181,6 +190,8 @@ class PlanEngineConfig extends Equatable {
     this.gfLow = 50,
     this.gfHigh = 85,
     this.reservePressure = 50.0,
+    this.batteryReserveFraction = kDefaultBatteryReserveFraction,
+    this.walkSpeedMps = kDefaultWalkSpeedMps,
   });
 
   @override
@@ -223,6 +234,8 @@ class PlanEngineConfig extends Equatable {
     gfLow,
     gfHigh,
     reservePressure,
+    batteryReserveFraction,
+    walkSpeedMps,
   ];
 
   PlanEngineConfig copyWith({
@@ -267,6 +280,8 @@ class PlanEngineConfig extends Equatable {
     int? gfLow,
     int? gfHigh,
     double? reservePressure,
+    double? batteryReserveFraction,
+    double? walkSpeedMps,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -316,6 +331,9 @@ class PlanEngineConfig extends Equatable {
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
       reservePressure: reservePressure ?? this.reservePressure,
+      batteryReserveFraction:
+          batteryReserveFraction ?? this.batteryReserveFraction,
+      walkSpeedMps: walkSpeedMps ?? this.walkSpeedMps,
     );
   }
 
@@ -382,8 +400,14 @@ class PlanEngineConfig extends Equatable {
 
   /// [plan]'s turn-pressure fraction, only meaningful when
   /// [turnPressureRuleFor] resolves to [domain.TurnPressureRule.custom].
+  /// Taken from the same source as the rule: a plan that sets its own rule
+  /// uses its own fraction (null = the 1/3 the Setup field shows), and a
+  /// plan following the Settings rule uses the Settings fraction, never a
+  /// leftover fraction from an earlier plan-level Custom.
   double? turnPressureFractionFor(domain.DivePlan plan) =>
-      plan.turnPressureFraction ?? turnPressureFraction;
+      plan.turnPressureRule != null
+      ? plan.turnPressureFraction
+      : turnPressureFraction;
 
   /// [plan]'s air-break policy: `null` when [domain.DivePlan.airBreaksExplicitlyOff]
   /// is set (explicit "off", wins regardless of the diver's default), else

@@ -3091,6 +3091,7 @@
   "divePlanner_gasOptions_sacBottom": "Fenék RMV",
   "divePlanner_gasOptions_sacDeco": "Dekó RMV",
   "divePlanner_gasOptions_sacFactor": "RMV-szorzó",
+  "divePlanner_gasOptions_sacStressed": "Stresszelt RMV",
   "divePlanner_gasOptions_sacStressedFactor": "Stresszelt RMV-szorzó",
   "divePlanner_gasOptions_problemSolvingMinutes": "Problémamegoldási idő",
   "divePlanner_gasOptions_ppO2Bottom": "Fenék-ppO₂",

@@ -98,10 +98,14 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v300 is in the ladder and is the floor', () {
+  test('v300 is in the ladder and holds the floor at or above it', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(300));
     expect(AppDatabase.migrationVersions, contains(300));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 300);
+    // Raised again to 308 by the planner Setup defaults (#3552).
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(300),
+    );
   });
 
   test(

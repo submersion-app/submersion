@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_provenance.da
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -761,6 +762,20 @@ void main() {
       expect(ttsForSalinity(40), greaterThan(ttsForSalinity(0)));
     });
 
+    test('the quick plan descends at the Settings rate when unset', () {
+      // An unset plan descent rate follows the diver's Settings (#3552),
+      // not the 18 m/min spec constant.
+      final notifier = DivePlanNotifier(
+        PlanCalculatorService(),
+        getEngineConfig: () => const PlanEngineConfig(descentRate: 10),
+      );
+      addTearDown(notifier.dispose);
+
+      notifier.addSimplePlan(maxDepth: 30.0, bottomTimeMinutes: 20);
+      // 30 m at 10 m/min.
+      expect(notifier.state.segments.first.durationSeconds, 180);
+    });
+
     test('plan results follow the plan water type', () {
       int ttsForWaterType(WaterType waterType) {
         final container = ProviderContainer(
@@ -941,9 +956,8 @@ void main() {
 
         notifier.newPlan();
 
-        // gfLow/gfHigh live-resolve against Settings (issue #3552); the
-        // fallback-factors callback is kept only for constructor-signature
-        // stability and is never read into state.
+        // gfLow/gfHigh live-resolve against Settings (issue #3552), so a
+        // new plan never snapshots them into state.
         expect(notifier.state.gfLow, isNull);
         expect(notifier.state.gfHigh, isNull);
       },
@@ -952,16 +966,12 @@ void main() {
     test(
       'newPlan leaves reservePressure unset even with no callback provided',
       () {
-        final notifier = DivePlanNotifier(
-          PlanCalculatorService(),
-          reservePressure: 40,
-        );
+        final notifier = DivePlanNotifier(PlanCalculatorService());
         addTearDown(notifier.dispose);
 
         notifier.newPlan();
-        // reservePressure live-resolves against Settings (issue #3552); the
-        // constructor's reservePressure parameter is kept only for
-        // signature stability and is never read into state.
+        // reservePressure live-resolves against Settings (issue #3552), so
+        // a new plan never snapshots one into state.
         expect(notifier.state.reservePressure, isNull);
       },
     );

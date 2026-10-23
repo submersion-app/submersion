@@ -3091,6 +3091,7 @@
   "divePlanner_gasOptions_sacBottom": "Fond RMV",
   "divePlanner_gasOptions_sacDeco": "Déco RMV",
   "divePlanner_gasOptions_sacFactor": "Facteur RMV",
+  "divePlanner_gasOptions_sacStressed": "RMV sous stress",
   "divePlanner_gasOptions_sacStressedFactor": "Facteur RMV sous stress",
   "divePlanner_gasOptions_problemSolvingMinutes": "Temps de résolution du problème",
   "divePlanner_gasOptions_ppO2Bottom": "Fond ppO₂",

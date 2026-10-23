@@ -79,8 +79,10 @@ void main() {
     );
   });
 
-  test('the columns are additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(305));
+  // NULL now means "follow Settings", which a pre-305 reader's
+  // non-nullable fromJson cannot decode, so v305-v308 hold older peers.
+  test('the nullable columns raise the sync floor to 308', () {
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
   });
 
   test(
@@ -140,5 +142,78 @@ void main() {
         .customSelect("SELECT descent_rate FROM dive_plans WHERE id = 'p1'")
         .getSingle();
     expect(row.read<double?>('descent_rate'), isNull);
+  });
+
+  // A long-upgraded database: the v191 ascent rates and v215 gas options
+  // were added by this ladder's own `ALTER TABLE ... ADD COLUMN name`, so
+  // SQLite stores those clauses with the column name unquoted.
+  NativeDatabase alteredDbAt(int version) => NativeDatabase.memory(
+    setup: (rawDb) {
+      rawDb.execute('PRAGMA user_version = $version');
+      rawDb.execute(
+        'CREATE TABLE dive_plans ("id" TEXT NOT NULL PRIMARY KEY, '
+        '"name" TEXT NOT NULL, '
+        '"descent_rate" REAL NOT NULL DEFAULT 18.0, '
+        '"created_at" INTEGER NOT NULL, "updated_at" INTEGER NOT NULL)',
+      );
+      for (final clause in [
+        'intermediate_ascent_rate REAL NOT NULL DEFAULT 6.0',
+        'shallow_ascent_rate REAL NOT NULL DEFAULT 3.0',
+        'final_ascent_rate REAL NOT NULL DEFAULT 1.0',
+        'sac_factor REAL NOT NULL DEFAULT 2.0',
+        'problem_solving_minutes INTEGER NOT NULL DEFAULT 2',
+        'best_mix_end_meters REAL NOT NULL DEFAULT 30.0',
+      ]) {
+        rawDb.execute('ALTER TABLE dive_plans ADD COLUMN $clause');
+      }
+      rawDb.execute(
+        "INSERT INTO dive_plans (id, name, created_at, updated_at) "
+        "VALUES ('p1', 'Old plan', 0, 0)",
+      );
+    },
+  );
+
+  test(
+    'upgrading from v304 also rebuilds columns added by an unquoted ALTER',
+    () async {
+      final db = AppDatabase(alteredDbAt(304));
+      addTearDown(db.close);
+      const altered = [
+        'intermediate_ascent_rate',
+        'shallow_ascent_rate',
+        'final_ascent_rate',
+        'sac_factor',
+        'problem_solving_minutes',
+        'best_mix_end_meters',
+      ];
+      await db.customStatement(
+        'UPDATE dive_plans SET ${altered.map((c) => '$c = NULL').join(", ")} '
+        "WHERE id = 'p1'",
+      );
+      final row = await db
+          .customSelect("SELECT * FROM dive_plans WHERE id = 'p1'")
+          .getSingle();
+      for (final column in altered) {
+        expect(row.data[column], isNull, reason: column);
+      }
+    },
+  );
+
+  test('the rebuild drops the old DEFAULT along with NOT NULL', () async {
+    final db = AppDatabase(alteredDbAt(304));
+    addTearDown(db.close);
+    // An insert that omits a column must store NULL ("follow Settings"),
+    // as a fresh install does, not the old hardcoded default.
+    await db.customStatement(
+      "INSERT INTO dive_plans (id, name, created_at, updated_at) "
+      "VALUES ('p2', 'New plan', 0, 0)",
+    );
+    final row = await db
+        .customSelect(
+          "SELECT descent_rate, sac_factor FROM dive_plans WHERE id = 'p2'",
+        )
+        .getSingle();
+    expect(row.data['descent_rate'], isNull);
+    expect(row.data['sac_factor'], isNull);
   });
 }

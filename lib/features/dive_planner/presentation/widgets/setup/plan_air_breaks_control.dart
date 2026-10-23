@@ -148,7 +148,7 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final defaultLabel = widget.defaultPolicy == null
-        ? l10n.plannerCanvas_turnRule_none
+        ? l10n.divePlanner_label_off
         : l10n.divePlanner_label_airBreaksCycle(
             (widget.defaultPolicy!.o2Seconds / 60).round(),
             (widget.defaultPolicy!.breakSeconds / 60).round(),
@@ -173,7 +173,7 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
               _AirBreaksChoice.default_,
               l10n.divePlanner_label_defaultWithValue(defaultLabel),
             ),
-            (_AirBreaksChoice.off, l10n.plannerCanvas_turnRule_none),
+            (_AirBreaksChoice.off, l10n.divePlanner_label_off),
             (_AirBreaksChoice.custom, l10n.divePlanner_label_airBreaksCustom),
           ],
           selected: _choice,

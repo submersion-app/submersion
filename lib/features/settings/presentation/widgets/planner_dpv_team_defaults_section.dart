@@ -23,58 +23,29 @@ class PlannerDpvTeamDefaultsSection extends ConsumerWidget {
     return Card(
       child: Column(
         children: [
-          ListTile(
-            dense: true,
-            title: Text(context.l10n.plannerMission_settings_batteryReserve),
-            trailing: Text(
-              '${(settings.plannerBatteryReserveFraction * 100).round()}%',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title: context.l10n.plannerMission_settings_batteryReserve,
-                  initialValue: settings.plannerBatteryReserveFraction * 100,
-                  unitSymbol: '%',
-                  integer: true,
-                ),
-              );
-              if (entered == null ||
-                  !entered.isFinite ||
-                  entered <= 0 ||
-                  entered > 100) {
-                return;
-              }
-              notifier.setPlannerBatteryReserveFraction(entered / 100);
-            },
+          PlannerDefaultTile(
+            label: context.l10n.plannerMission_settings_batteryReserve,
+            valueText:
+                '${(settings.plannerBatteryReserveFraction * 100).round()}%',
+            initialValue: settings.plannerBatteryReserveFraction * 100,
+            unitSymbol: '%',
+            integer: true,
+            // 0% (no reserve) is valid, same as the per-mission field.
+            accept: (v) => v >= 0 && v <= 100,
+            onSaved: (entered) =>
+                notifier.setPlannerBatteryReserveFraction(entered / 100),
           ),
           const Divider(height: 1),
-          ListTile(
-            dense: true,
-            title: Text(context.l10n.plannerMission_settings_walkSpeed),
-            trailing: Text(
-              '${units.speedDisplay(settings.plannerWalkSpeedMps).round()} '
-              '${units.speedSymbol}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title: context.l10n.plannerMission_settings_walkSpeed,
-                  initialValue: units.speedDisplay(
-                    settings.plannerWalkSpeedMps,
-                  ),
-                  unitSymbol: units.speedSymbol,
-                  integer: true,
-                ),
-              );
-              if (entered == null || !entered.isFinite || entered <= 0) {
-                return;
-              }
-              notifier.setPlannerWalkSpeedMps(units.speedMps(entered));
-            },
+          PlannerDefaultTile(
+            label: context.l10n.plannerMission_settings_walkSpeed,
+            valueText:
+                '${units.speedDisplay(settings.plannerWalkSpeedMps).round()} '
+                '${units.speedSymbol}',
+            initialValue: units.speedDisplay(settings.plannerWalkSpeedMps),
+            unitSymbol: units.speedSymbol,
+            integer: true,
+            onSaved: (entered) =>
+                notifier.setPlannerWalkSpeedMps(units.speedMps(entered)),
           ),
         ],
       ),

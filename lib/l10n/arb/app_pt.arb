@@ -3191,6 +3191,7 @@
   "divePlanner_gasOptions_sacBottom": "RMV de fundo",
   "divePlanner_gasOptions_sacDeco": "RMV de descompressão",
   "divePlanner_gasOptions_sacFactor": "Fator de RMV",
+  "divePlanner_gasOptions_sacStressed": "RMV sob estresse",
   "divePlanner_gasOptions_sacStressedFactor": "Fator de RMV sob estresse",
   "divePlanner_gasOptions_problemSolvingMinutes": "Tempo de resolução do problema",
   "divePlanner_gasOptions_ppO2Bottom": "ppO₂ de fundo",

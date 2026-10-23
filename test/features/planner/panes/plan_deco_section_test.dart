@@ -84,9 +84,9 @@ void main() {
       // The break side is untouched by editing the O2 field.
       expect(updated.breakSeconds, 6 * 60);
 
-      // Picking the explicit "None" choice turns breaks off, distinct from
+      // Picking the explicit "Off" choice turns breaks off, distinct from
       // just following an unset Settings default (issue #3552).
-      await tester.tap(find.text('None'));
+      await tester.tap(find.text('Off'));
       await tester.pumpAndSettle();
 
       expect(container.read(divePlanNotifierProvider).airBreaks, isNull);

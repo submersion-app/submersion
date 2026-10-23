@@ -3091,6 +3091,7 @@
   "divePlanner_gasOptions_sacBottom": "RMV בקרקעית",
   "divePlanner_gasOptions_sacDeco": "RMV דקו",
   "divePlanner_gasOptions_sacFactor": "מקדם RMV",
+  "divePlanner_gasOptions_sacStressed": "RMV בלחץ",
   "divePlanner_gasOptions_sacStressedFactor": "מקדם RMV בלחץ",
   "divePlanner_gasOptions_problemSolvingMinutes": "זמן לפתרון תקלה",
   "divePlanner_gasOptions_ppO2Bottom": "ppO₂ בקרקעית",

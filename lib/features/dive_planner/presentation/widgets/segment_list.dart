@@ -17,6 +17,8 @@ import 'package:submersion/features/planner/domain/services/diluent_switch_time.
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart'
+    show resolvedPlanEngineConfigProvider;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -53,14 +55,13 @@ class SegmentList extends ConsumerWidget {
     final resolvedPlan = const TankRoleResolver().apply(
       divePlanFromState(planState),
     );
-    final int gasSwitchStopSeconds =
-        resolvedPlan.gasSwitchStopSeconds ??
-        ref.watch(plannerGasSwitchStopSecondsProvider);
     final adjustedLegs = const SegmentChain().resolve(
       withDiluentSwitchTime(
         resolvedPlan.segments,
         resolvedPlan,
-        gasSwitchStopSeconds: gasSwitchStopSeconds,
+        gasSwitchStopSeconds: ref
+            .watch(resolvedPlanEngineConfigProvider)
+            .gasSwitchStopSeconds,
       ),
     );
     int runtimeSecondsFor(String segmentId) => adjustedLegs

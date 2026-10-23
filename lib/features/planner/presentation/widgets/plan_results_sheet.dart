@@ -267,17 +267,11 @@ class PlanResultsSheet extends ConsumerWidget {
     }
 
     String deviationLabel(String key) {
-      // Resolved against the diver's Settings when unset (issue #3552), same
-      // fallback as ContingencySettingsSection/ContingencyService - an unset
-      // override must never render as a literal "null" here.
-      final depthDelta =
-          state.deviationDepthDelta ??
-          ref.watch(plannerDeviationDepthDeltaProvider);
-      final timeMinutes =
-          state.deviationTimeMinutes ??
-          ref.watch(plannerDeviationTimeMinutesProvider);
-      final depth = '+${units.formatDepth(depthDelta, decimals: 0)}';
-      final time = '+$timeMinutes\u2032';
+      // The plan's own deviation, else the diver's Settings default (#3552).
+      final resolved = ref.watch(resolvedPlanEngineConfigProvider);
+      final depth =
+          '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
+      final time = '+${resolved.deviationTimeMinutes}\u2032';
       return switch (key) {
         'deeper' => depth,
         'longer' => time,

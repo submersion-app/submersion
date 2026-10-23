@@ -25,26 +25,13 @@ class PlannerRatesDefaultsSection extends ConsumerWidget {
       required double meters,
       required ValueChanged<double> onChanged,
     }) {
-      return ListTile(
-        dense: true,
-        title: Text(label),
-        trailing: Text(
-          units.formatDepthRate(meters, decimals: 0),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        onTap: () async {
-          final entered = await showDialog<double>(
-            context: context,
-            builder: (_) => PlannerDefaultNumberDialog(
-              title: label,
-              initialValue: units.convertDepth(meters),
-              unitSymbol: suffix,
-              integer: true,
-            ),
-          );
-          if (entered == null || !entered.isFinite || entered <= 0) return;
-          onChanged(units.depthToMeters(entered));
-        },
+      return PlannerDefaultTile(
+        label: label,
+        valueText: units.formatDepthRate(meters, decimals: 0),
+        initialValue: units.convertDepth(meters),
+        unitSymbol: suffix,
+        integer: true,
+        onSaved: (entered) => onChanged(units.depthToMeters(entered)),
       );
     }
 
@@ -53,26 +40,14 @@ class PlannerRatesDefaultsSection extends ConsumerWidget {
       required int seconds,
       required ValueChanged<int> onChanged,
     }) {
-      return ListTile(
-        dense: true,
-        title: Text(label),
-        trailing: Text(
-          '${(seconds / 60).round()} ${context.l10n.divePlanner_label_minutesUnit}',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        onTap: () async {
-          final entered = await showDialog<double>(
-            context: context,
-            builder: (_) => PlannerDefaultNumberDialog(
-              title: label,
-              initialValue: (seconds / 60).round().toDouble(),
-              unitSymbol: context.l10n.divePlanner_label_minutesUnit,
-              integer: true,
-            ),
-          );
-          if (entered == null || !entered.isFinite || entered <= 0) return;
-          onChanged((entered * 60).round());
-        },
+      final minutesUnit = context.l10n.divePlanner_label_minutesUnit;
+      return PlannerDefaultTile(
+        label: label,
+        valueText: '${(seconds / 60).round()} $minutesUnit',
+        initialValue: (seconds / 60).round().toDouble(),
+        unitSymbol: minutesUnit,
+        integer: true,
+        onSaved: (entered) => onChanged((entered * 60).round()),
       );
     }
 

@@ -47,8 +47,10 @@ void main() {
     );
   });
 
-  test('the columns are additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(306));
+  // NULL now means "follow Settings", which a pre-305 reader's
+  // non-nullable fromJson cannot decode, so v305-v308 hold older peers.
+  test('the nullable columns raise the sync floor to 308', () {
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
   });
 
   test(

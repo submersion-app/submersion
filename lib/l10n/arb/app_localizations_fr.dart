@@ -10511,6 +10511,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'Facteur RMV';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'RMV sous stress';
+
+  @override
   String get divePlanner_gasOptions_sacStressedFactor =>
       'Facteur RMV sous stress';
 

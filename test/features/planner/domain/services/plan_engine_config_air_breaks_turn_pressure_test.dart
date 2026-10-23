@@ -80,11 +80,42 @@ void main() {
       expect(config.turnPressureFractionFor(plan()), 0.4);
     });
 
-    test("the plan's own fraction wins", () {
+    test("the plan's own fraction wins alongside its own rule", () {
       const config = PlanEngineConfig(turnPressureFraction: 0.4);
       expect(
-        config.turnPressureFractionFor(plan(turnPressureFraction: 0.6)),
+        config.turnPressureFractionFor(
+          plan(
+            turnPressureRule: domain.TurnPressureRule.custom,
+            turnPressureFraction: 0.6,
+          ),
+        ),
         0.6,
+      );
+    });
+
+    test("a plan's own Custom rule never borrows the Settings fraction", () {
+      // The Setup field shows 1/3 for an unset plan fraction; the engine
+      // must not silently compute with the Settings Custom fraction.
+      const config = PlanEngineConfig(
+        turnPressureRule: domain.TurnPressureRule.custom,
+        turnPressureFraction: 0.4,
+      );
+      expect(
+        config.turnPressureFractionFor(
+          plan(turnPressureRule: domain.TurnPressureRule.custom),
+        ),
+        isNull,
+      );
+    });
+
+    test('a plan following the Settings rule ignores a stale fraction', () {
+      const config = PlanEngineConfig(
+        turnPressureRule: domain.TurnPressureRule.custom,
+        turnPressureFraction: 0.4,
+      );
+      expect(
+        config.turnPressureFractionFor(plan(turnPressureFraction: 0.25)),
+        0.4,
       );
     });
   });

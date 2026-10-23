@@ -38,60 +38,32 @@ class PlannerContingencyDefaultsSection extends ConsumerWidget {
     return Card(
       child: Column(
         children: [
-          ListTile(
-            dense: true,
-            title: Text(context.l10n.plannerCanvas_contingency_depthDelta),
-            trailing: Text(
-              units.formatDepth(settings.plannerDeviationDepthDelta),
-              style: Theme.of(context).textTheme.titleMedium,
+          PlannerDefaultTile(
+            label: context.l10n.plannerCanvas_contingency_depthDelta,
+            valueText: units.formatDepth(settings.plannerDeviationDepthDelta),
+            initialValue: units.convertDepth(
+              settings.plannerDeviationDepthDelta,
             ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title: context.l10n.plannerCanvas_contingency_depthDelta,
-                  initialValue: units.convertDepth(
-                    settings.plannerDeviationDepthDelta,
-                  ),
-                  unitSymbol: units.depthSymbol,
-                ),
-              );
-              // 0 is a valid "no deviation" default, same as the per-plan
-              // field (contingency_settings_section.dart, min: 0).
-              if (entered == null || !entered.isFinite || entered < 0) {
-                return;
-              }
-              notifier.setPlannerDeviationDepthDelta(
-                units.depthToMeters(entered),
-              );
-            },
+            unitSymbol: units.depthSymbol,
+            // 0 is a valid "no deviation" default, same as the per-plan
+            // field (contingency_settings_section.dart, min: 0).
+            accept: PlannerDefaultTile.nonNegative,
+            onSaved: (entered) => notifier.setPlannerDeviationDepthDelta(
+              units.depthToMeters(entered),
+            ),
           ),
           const Divider(height: 1),
-          ListTile(
-            dense: true,
-            title: Text(context.l10n.plannerCanvas_contingency_timeDelta),
-            trailing: Text(
-              '${settings.plannerDeviationTimeMinutes} '
-              '${context.l10n.divePlanner_label_minutesUnit}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title: context.l10n.plannerCanvas_contingency_timeDelta,
-                  initialValue: settings.plannerDeviationTimeMinutes.toDouble(),
-                  unitSymbol: context.l10n.divePlanner_label_minutesUnit,
-                  integer: true,
-                ),
-              );
-              // 0 is a valid "no deviation" default, same as the per-plan
-              // field.
-              if (entered == null || !entered.isFinite || entered < 0) {
-                return;
-              }
-              notifier.setPlannerDeviationTimeMinutes(entered.round());
-            },
+          PlannerDefaultTile(
+            label: context.l10n.plannerCanvas_contingency_timeDelta,
+            valueText:
+                '${settings.plannerDeviationTimeMinutes} '
+                '${context.l10n.divePlanner_label_minutesUnit}',
+            initialValue: settings.plannerDeviationTimeMinutes.toDouble(),
+            unitSymbol: context.l10n.divePlanner_label_minutesUnit,
+            integer: true,
+            accept: PlannerDefaultTile.nonNegative,
+            onSaved: (entered) =>
+                notifier.setPlannerDeviationTimeMinutes(entered.round()),
           ),
           const Divider(height: 1),
           ListTile(
@@ -118,32 +90,14 @@ class PlannerContingencyDefaultsSection extends ConsumerWidget {
           if (settings.plannerTurnPressureRule ==
               domain.TurnPressureRule.custom) ...[
             const Divider(height: 1),
-            ListTile(
-              dense: true,
-              title: Text(l10n.plannerCanvas_contingency_turnFraction),
-              trailing: Text(
-                settings.plannerTurnPressureFraction?.toStringAsFixed(2) ??
-                    (1 / 3).toStringAsFixed(2),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              onTap: () async {
-                final entered = await showDialog<double>(
-                  context: context,
-                  builder: (_) => PlannerDefaultNumberDialog(
-                    title: l10n.plannerCanvas_contingency_turnFraction,
-                    initialValue:
-                        settings.plannerTurnPressureFraction ?? (1 / 3),
-                    unitSymbol: '',
-                  ),
-                );
-                if (entered == null ||
-                    !entered.isFinite ||
-                    entered <= 0 ||
-                    entered > 1) {
-                  return;
-                }
-                notifier.setPlannerTurnPressureFraction(entered);
-              },
+            PlannerDefaultTile(
+              label: l10n.plannerCanvas_contingency_turnFraction,
+              valueText: (settings.plannerTurnPressureFraction ?? (1 / 3))
+                  .toStringAsFixed(2),
+              initialValue: settings.plannerTurnPressureFraction ?? (1 / 3),
+              unitSymbol: '',
+              accept: (v) => v > 0 && v <= 1,
+              onSaved: notifier.setPlannerTurnPressureFraction,
             ),
           ],
         ],

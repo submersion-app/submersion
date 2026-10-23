@@ -141,8 +141,9 @@ class MissionScenarioService {
       );
       if (!battery.withinReserve(
         burnFraction: fraction,
-        // No Settings access here (issue #3552); the spec constant is the
-        // documented last resort for exactly this case.
+        // MissionEngine.compute resolves an unset reserve against the
+        // diver's Settings before calling here (issue #3552); the spec
+        // constant only covers a direct caller that skipped it.
         reserveFraction:
             mission.batteryReserveFraction ?? kDefaultBatteryReserveFraction,
       )) {
@@ -234,8 +235,8 @@ class MissionScenarioService {
       swimSpeed - (current?.speedMps ?? 0.0),
     );
     final shore = leg.shoreExit;
-    // No Settings access here (issue #3552); the spec constant is the
-    // documented last resort for exactly this case.
+    // Resolved against the diver's Settings by MissionEngine.compute (issue
+    // #3552); the spec constant only covers a direct caller that skipped it.
     final walkSpeedMps = mission.walkSpeedMps ?? kDefaultWalkSpeedMps;
     final routes = <_SurfaceRoute>[
       (swimM: home.distanceHomeM, walkM: 0.0, viaShore: false, mps: homeMps),

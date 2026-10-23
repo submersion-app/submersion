@@ -1930,8 +1930,27 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setPressureUnit(PressureUnit unit) async {
-    state = state.copyWith(pressureUnit: unit);
+    state = state.copyWith(
+      pressureUnit: unit,
+      plannerReservePressure: _plannerReserveFor(unit),
+    );
     await _saveSettings();
+  }
+
+  /// The planner reserve-pressure default after a switch to [unit] (issue
+  /// #3552): a reserve still on a unit's convention (50 bar, or 500 psi)
+  /// moves to [unit]'s convention, as every new plan's reserve did before
+  /// it became a Setting, so a diver who picks psi after the row was
+  /// created gets 500 psi rather than 725. A reserve the diver set to any
+  /// other value is kept.
+  double _plannerReserveFor(PressureUnit unit) {
+    const metric = 50.0;
+    final imperial = PressureUnit.psi.convert(500, PressureUnit.bar);
+    final current = state.plannerReservePressure;
+    final onConvention =
+        (current - metric).abs() < 0.01 || (current - imperial).abs() < 0.01;
+    if (!onConvention) return current;
+    return unit == PressureUnit.psi ? imperial : metric;
   }
 
   Future<void> setVolumeUnit(VolumeUnit unit) async {
@@ -2428,33 +2447,38 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  // Planner Setup-accordion global defaults (issue #3552). Unlike
-  // setLastStopDepth/setDecoStopIncrement above, these have no narrow
-  // diving-safety band to clamp to - the Setup accordion already clamps the
-  // same fields per-plan, and the global default has the same range.
+  // Planner Setup-accordion global defaults (issue #3552). The rates clamp
+  // to the same band the Setup accordion's per-plan rate fields accept
+  // ([kPlannerRateMinMetersPerMinute]..[kPlannerRateMaxMetersPerMinute]),
+  // since every plan that leaves a rate unset computes with this value.
+
+  static double _clampRate(double value) => value.clamp(
+    kPlannerRateMinMetersPerMinute,
+    kPlannerRateMaxMetersPerMinute,
+  );
 
   Future<void> setPlannerDescentRate(double value) async {
-    state = state.copyWith(plannerDescentRate: value);
+    state = state.copyWith(plannerDescentRate: _clampRate(value));
     await _saveSettings();
   }
 
   Future<void> setPlannerAscentRate(double value) async {
-    state = state.copyWith(plannerAscentRate: value);
+    state = state.copyWith(plannerAscentRate: _clampRate(value));
     await _saveSettings();
   }
 
   Future<void> setPlannerIntermediateAscentRate(double value) async {
-    state = state.copyWith(plannerIntermediateAscentRate: value);
+    state = state.copyWith(plannerIntermediateAscentRate: _clampRate(value));
     await _saveSettings();
   }
 
   Future<void> setPlannerShallowAscentRate(double value) async {
-    state = state.copyWith(plannerShallowAscentRate: value);
+    state = state.copyWith(plannerShallowAscentRate: _clampRate(value));
     await _saveSettings();
   }
 
   Future<void> setPlannerFinalAscentRate(double value) async {
-    state = state.copyWith(plannerFinalAscentRate: value);
+    state = state.copyWith(plannerFinalAscentRate: _clampRate(value));
     await _saveSettings();
   }
 
@@ -3164,6 +3188,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       depthUnit: DepthUnit.meters,
       temperatureUnit: TemperatureUnit.celsius,
       pressureUnit: PressureUnit.bar,
+      plannerReservePressure: _plannerReserveFor(PressureUnit.bar),
       volumeUnit: VolumeUnit.liters,
       weightUnit: WeightUnit.kilograms,
       altitudeUnit: AltitudeUnit.meters,
@@ -3178,6 +3203,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       depthUnit: DepthUnit.feet,
       temperatureUnit: TemperatureUnit.fahrenheit,
       pressureUnit: PressureUnit.psi,
+      plannerReservePressure: _plannerReserveFor(PressureUnit.psi),
       volumeUnit: VolumeUnit.cubicFeet,
       weightUnit: WeightUnit.pounds,
       altitudeUnit: AltitudeUnit.feet,
@@ -3395,6 +3421,14 @@ final showNdlOnProfileProvider = Provider<bool>((ref) {
 final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
 });
+
+/// The band, in m/min, a planner descent or ascent rate may take: the
+/// Setup accordion's per-plan rate fields and the Settings defaults they
+/// fall back to share it (issue #3552). The floor sits at 0.9 rather than 1
+/// so that 3 ft/min (0.91 m/min), the imperial face of the 1 m/min
+/// final-ascent default, stays legal.
+const double kPlannerRateMinMetersPerMinute = 0.9;
+const double kPlannerRateMaxMetersPerMinute = 30.0;
 
 // Planner Setup-accordion global defaults (issue #3552).
 final plannerDescentRateProvider = Provider<double>((ref) {

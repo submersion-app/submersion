@@ -88,3 +88,57 @@ class _PlannerDefaultNumberDialogState
     );
   }
 }
+
+/// One planner default in a Settings card (issue #3552): [label], the
+/// current value as [valueText], and a tap that edits it in a
+/// [PlannerDefaultNumberDialog]. [initialValue] and the value handed to
+/// [onSaved] are in the diver's display unit. A blank, unreadable or
+/// non-finite entry, or one [accept] rejects, is dropped.
+class PlannerDefaultTile extends StatelessWidget {
+  final String label;
+  final String valueText;
+  final double initialValue;
+  final String unitSymbol;
+  final bool integer;
+  final bool Function(double value) accept;
+  final ValueChanged<double> onSaved;
+
+  const PlannerDefaultTile({
+    super.key,
+    required this.label,
+    required this.valueText,
+    required this.initialValue,
+    required this.unitSymbol,
+    required this.onSaved,
+    this.integer = false,
+    this.accept = positive,
+  });
+
+  /// The default [accept]: a value above zero.
+  static bool positive(double value) => value > 0;
+
+  /// For a default where 0 ("none") is a valid choice.
+  static bool nonNegative(double value) => value >= 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      title: Text(label),
+      trailing: Text(valueText, style: Theme.of(context).textTheme.titleMedium),
+      onTap: () async {
+        final entered = await showDialog<double>(
+          context: context,
+          builder: (_) => PlannerDefaultNumberDialog(
+            title: label,
+            initialValue: initialValue,
+            unitSymbol: unitSymbol,
+            integer: integer,
+          ),
+        );
+        if (entered == null || !entered.isFinite || !accept(entered)) return;
+        onSaved(entered);
+      },
+    );
+  }
+}

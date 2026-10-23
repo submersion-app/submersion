@@ -10471,6 +10471,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'Fator de RMV';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'RMV sob estresse';
+
+  @override
   String get divePlanner_gasOptions_sacStressedFactor =>
       'Fator de RMV sob estresse';
 

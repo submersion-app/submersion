@@ -68,8 +68,9 @@ class MissionMemberAnalysis {
       );
       if (!battery.withinReserve(
         burnFraction: roundTrip,
-        // No Settings access here (issue #3552); the spec constant is the
-        // documented last resort for exactly this case.
+        // MissionEngine.compute resolves an unset reserve against the
+        // diver's Settings before calling here (issue #3552); the spec
+        // constant only covers a direct caller that skipped it.
         reserveFraction:
             mission.batteryReserveFraction ?? kDefaultBatteryReserveFraction,
       )) {

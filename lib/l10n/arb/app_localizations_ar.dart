@@ -10602,6 +10602,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'معامل RMV';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'RMV تحت الضغط';
+
+  @override
   String get divePlanner_gasOptions_sacStressedFactor => 'معامل RMV تحت الضغط';
 
   @override

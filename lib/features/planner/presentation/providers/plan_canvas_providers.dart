@@ -55,7 +55,19 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     gfLow: ref.watch(gfLowProvider),
     gfHigh: ref.watch(gfHighProvider),
     reservePressure: ref.watch(plannerReservePressureProvider),
+    batteryReserveFraction: ref.watch(plannerBatteryReserveFractionProvider),
+    walkSpeedMps: ref.watch(plannerWalkSpeedMpsProvider),
   );
+});
+
+/// [planEngineConfigProvider] resolved against the plan being edited: each
+/// Setup field's own value where the plan sets one, else the diver's
+/// Settings default (issue #3552). The one place a widget reads a resolved
+/// Setup value for display, so a label always shows what the engine used.
+final resolvedPlanEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
+  return ref
+      .watch(planEngineConfigProvider)
+      .resolvedFor(divePlanFromState(ref.watch(divePlanNotifierProvider)));
 });
 
 /// The best bottom mix for the plan's deepest point, judged against the
@@ -341,7 +353,7 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
 PlanCanvasSeries buildCanvasSeries({
   required domain.DivePlan plan,
   required PlanOutcome outcome,
-  PlanEngineConfig config = const PlanEngineConfig(),
+  required PlanEngineConfig config,
 }) {
   final isCcr = plan.mode == domain.PlanMode.ccr;
   // Cylinder roles feed [withDiluentSwitchTime]'s diluent-switch detection,

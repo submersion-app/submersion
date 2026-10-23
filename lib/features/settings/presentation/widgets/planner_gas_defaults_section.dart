@@ -24,25 +24,12 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
       required double litersPerMinute,
       required ValueChanged<double> onChanged,
     }) {
-      return ListTile(
-        dense: true,
-        title: Text(label),
-        trailing: Text(
-          units.formatRmv(litersPerMinute),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        onTap: () async {
-          final entered = await showDialog<double>(
-            context: context,
-            builder: (_) => PlannerDefaultNumberDialog(
-              title: label,
-              initialValue: units.convertRmv(litersPerMinute),
-              unitSymbol: units.rmvSymbol,
-            ),
-          );
-          if (entered == null || !entered.isFinite || entered <= 0) return;
-          onChanged(units.volumeToLiters(entered));
-        },
+      return PlannerDefaultTile(
+        label: label,
+        valueText: units.formatRmv(litersPerMinute),
+        initialValue: units.convertRmv(litersPerMinute),
+        unitSymbol: units.rmvSymbol,
+        onSaved: (entered) => onChanged(units.volumeToLiters(entered)),
       );
     }
 
@@ -51,27 +38,16 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
       required double factor,
       required ValueChanged<double> onChanged,
     }) {
-      return ListTile(
-        dense: true,
-        title: Text(label),
-        trailing: Text(
-          '${factor.toStringAsFixed(1)}×',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        onTap: () async {
-          final entered = await showDialog<double>(
-            context: context,
-            builder: (_) => PlannerDefaultNumberDialog(
-              title: label,
-              initialValue: factor,
-              unitSymbol: '×',
-            ),
-          );
-          if (entered == null || !entered.isFinite || entered <= 0) return;
-          onChanged(entered);
-        },
+      return PlannerDefaultTile(
+        label: label,
+        valueText: '${factor.toStringAsFixed(1)}×',
+        initialValue: factor,
+        unitSymbol: '×',
+        onSaved: onChanged,
       );
     }
+
+    final minutesUnit = context.l10n.divePlanner_label_minutesUnit;
 
     return Card(
       child: Column(
@@ -100,116 +76,58 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
             onChanged: notifier.setPlannerBuddyFactor,
           ),
           const Divider(height: 1),
-          ListTile(
-            dense: true,
-            title: Text(
-              context.l10n.divePlanner_gasOptions_problemSolvingMinutes,
-            ),
-            trailing: Text(
-              '${settings.plannerProblemSolvingMinutes} '
-              '${context.l10n.divePlanner_label_minutesUnit}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title:
-                      context.l10n.divePlanner_gasOptions_problemSolvingMinutes,
-                  initialValue: settings.plannerProblemSolvingMinutes
-                      .toDouble(),
-                  unitSymbol: context.l10n.divePlanner_label_minutesUnit,
-                  integer: true,
-                ),
-              );
-              if (entered == null || !entered.isFinite || entered < 0) {
-                return;
-              }
-              notifier.setPlannerProblemSolvingMinutes(entered.round());
-            },
+          PlannerDefaultTile(
+            label: context.l10n.divePlanner_gasOptions_problemSolvingMinutes,
+            valueText: '${settings.plannerProblemSolvingMinutes} $minutesUnit',
+            initialValue: settings.plannerProblemSolvingMinutes.toDouble(),
+            unitSymbol: minutesUnit,
+            integer: true,
+            accept: PlannerDefaultTile.nonNegative,
+            onSaved: (entered) =>
+                notifier.setPlannerProblemSolvingMinutes(entered.round()),
           ),
           const Divider(height: 1),
-          ListTile(
-            dense: true,
-            title: Text(
-              context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
-            ),
-            trailing: Text(
-              '${(settings.plannerGasSwitchStopSeconds / 60).round()} '
-              '${context.l10n.divePlanner_label_minutesUnit}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title:
-                      context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
-                  initialValue: (settings.plannerGasSwitchStopSeconds / 60)
-                      .roundToDouble(),
-                  unitSymbol: context.l10n.divePlanner_label_minutesUnit,
-                  integer: true,
-                ),
-              );
-              // 0 (no gas-switch stop) is the existing default and a valid
-              // choice, same as the per-plan field.
-              if (entered == null || !entered.isFinite || entered < 0) {
-                return;
-              }
-              notifier.setPlannerGasSwitchStopSeconds((entered * 60).round());
-            },
+          PlannerDefaultTile(
+            label: context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
+            valueText:
+                '${(settings.plannerGasSwitchStopSeconds / 60).round()} '
+                '$minutesUnit',
+            initialValue: (settings.plannerGasSwitchStopSeconds / 60)
+                .roundToDouble(),
+            unitSymbol: minutesUnit,
+            integer: true,
+            // 0 (no gas-switch stop) is the existing default and a valid
+            // choice, same as the per-plan field.
+            accept: PlannerDefaultTile.nonNegative,
+            onSaved: (entered) =>
+                notifier.setPlannerGasSwitchStopSeconds((entered * 60).round()),
           ),
           const Divider(height: 1),
-          ListTile(
-            dense: true,
-            title: Text(context.l10n.divePlanner_gasOptions_bestMixEnd),
-            trailing: Text(
-              units.formatDepth(settings.plannerBestMixEndMeters, decimals: 0),
-              style: Theme.of(context).textTheme.titleMedium,
+          PlannerDefaultTile(
+            label: context.l10n.divePlanner_gasOptions_bestMixEnd,
+            valueText: units.formatDepth(
+              settings.plannerBestMixEndMeters,
+              decimals: 0,
             ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title: context.l10n.divePlanner_gasOptions_bestMixEnd,
-                  initialValue: units.convertDepth(
-                    settings.plannerBestMixEndMeters,
-                  ),
-                  unitSymbol: units.depthSymbol,
-                  integer: true,
-                ),
-              );
-              if (entered == null || !entered.isFinite || entered <= 0) {
-                return;
-              }
-              notifier.setPlannerBestMixEndMeters(units.depthToMeters(entered));
-            },
+            initialValue: units.convertDepth(settings.plannerBestMixEndMeters),
+            unitSymbol: units.depthSymbol,
+            integer: true,
+            onSaved: (entered) => notifier.setPlannerBestMixEndMeters(
+              units.depthToMeters(entered),
+            ),
           ),
           const Divider(height: 1),
-          ListTile(
-            dense: true,
-            title: Text(context.l10n.divePlanner_label_reserve),
-            trailing: Text(
-              units.formatPressure(settings.plannerReservePressure),
-              style: Theme.of(context).textTheme.titleMedium,
+          PlannerDefaultTile(
+            label: context.l10n.divePlanner_label_reserve,
+            valueText: units.formatPressure(settings.plannerReservePressure),
+            initialValue: units.convertPressure(
+              settings.plannerReservePressure,
             ),
-            onTap: () async {
-              final entered = await showDialog<double>(
-                context: context,
-                builder: (_) => PlannerDefaultNumberDialog(
-                  title: context.l10n.divePlanner_label_reserve,
-                  initialValue: units.convertPressure(
-                    settings.plannerReservePressure,
-                  ),
-                  unitSymbol: units.pressureSymbol,
-                  integer: true,
-                ),
-              );
-              if (entered == null || !entered.isFinite || entered <= 0) {
-                return;
-              }
-              notifier.setPlannerReservePressure(units.pressureToBar(entered));
-            },
+            unitSymbol: units.pressureSymbol,
+            integer: true,
+            onSaved: (entered) => notifier.setPlannerReservePressure(
+              units.pressureToBar(entered),
+            ),
           ),
         ],
       ),

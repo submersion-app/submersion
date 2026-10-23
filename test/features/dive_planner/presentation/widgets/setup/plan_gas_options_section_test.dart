@@ -43,8 +43,8 @@ void main() {
       tester.element(find.byType(PlanGasOptionsSection)),
     );
     // Declaration order in PlanGasOptionsSection: Deco RMV, stressed RMV
-    // factor (issue #3552), RMV factor, problem solving time, gas switch
-    // stop, ppO2 bottom, ppO2 deco, best-mix END.
+    // (issue #3552), RMV factor, problem solving time, gas switch stop,
+    // ppO2 bottom, ppO2 deco, best-mix END.
     final fields = tester
         .widgetList<TextField>(find.byType(TextField))
         .toList();
@@ -55,6 +55,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).sacFactor, 3.0);
+  });
+
+  testWidgets('stressed RMV is an absolute rate, hinted from Settings', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasOptionsSection)),
+    );
+    final stressed = tester.widgetList<TextField>(find.byType(TextField));
+    // Unset: bottom RMV 15 (Settings) times the 2.5 Settings factor.
+    expect(stressed.elementAt(1).decoration?.hintText, '37.5');
+
+    await tester.enterText(find.byType(TextField).at(1), '45');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).sacStressed, 45.0);
+
+    // A later bottom RMV change leaves the typed value exactly as typed,
+    // instead of re-deriving it as a drifting multiple.
+    container.read(divePlanNotifierProvider.notifier).updateSacRate(20);
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).sacStressed, 45.0);
   });
 
   testWidgets('editing problem solving time updates the notifier state', (

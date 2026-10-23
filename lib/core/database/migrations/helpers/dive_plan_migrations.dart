@@ -63,43 +63,62 @@ extension DivePlanMigrations on AppDatabase {
     }
   }
 
-  /// v305: drops NOT NULL from the dive_plans Setup-accordion columns that
-  /// were created NOT NULL in the initial CREATE TABLE (issue #3552), so a
-  /// plan can store an explicit "unset, follow the diver's Settings" state
-  /// instead of always carrying a concrete value. SQLite has no
-  /// `ALTER COLUMN`, so this rebuilds the table, the same technique as
+  /// v305: drops NOT NULL from the dive_plans columns that follow the
+  /// diver's Settings when unset (issue #3552), so a plan can store an
+  /// explicit "unset" state instead of always carrying a concrete value.
+  /// Also covers v308's reserve_pressure/gf_low/gf_high, so an upgrade
+  /// across both rungs rebuilds the table once; the v308 helper calls this
+  /// again, which then no-ops. Called from the v305 onUpgrade step and the
+  /// beforeOpen backstop. Renumbered from 303 as #3482 shipped 302-303
+  /// first.
+  Future<void> _assertDivePlanSetupFieldsNullable() =>
+      _dropNotNullByRebuild('dive_plans', const {
+        'descent_rate': 'REAL',
+        'ascent_rate': 'REAL',
+        'intermediate_ascent_rate': 'REAL',
+        'shallow_ascent_rate': 'REAL',
+        'final_ascent_rate': 'REAL',
+        'last_stop_depth': 'REAL',
+        'gas_switch_stop_seconds': 'INTEGER',
+        'sac_bottom': 'REAL',
+        'sac_factor': 'REAL',
+        'problem_solving_minutes': 'INTEGER',
+        'best_mix_end_meters': 'REAL',
+        'deviation_depth_delta': 'REAL',
+        'deviation_time_minutes': 'INTEGER',
+        'reserve_pressure': 'REAL',
+        'gf_low': 'INTEGER',
+        'gf_high': 'INTEGER',
+      });
+
+  /// Drops NOT NULL, and the DEFAULT that came with it, from [columns]
+  /// (name to declared type) of [table]. SQLite has no `ALTER COLUMN`, so
+  /// this rebuilds the table, the same technique as
   /// [DiveMigrations._assertDiveTankEquipmentSetNull]: only the targeted
   /// columns' clauses are rewritten in the table's actual stored SQL, so
   /// every other column - including one this code has never heard of -
   /// survives untouched, and `INSERT INTO ... SELECT *` carries every row's
-  /// data across unchanged. Idempotent (each column is skipped once its
-  /// clause no longer has NOT NULL) and wrapped in one transaction, so a
-  /// failure at any step leaves the original table exactly as it was - no
-  /// partial rebuild, no data loss. Foreign keys are off for the swap, same
-  /// reason as the dive_tanks rebuild: dive_plan_tanks references this
-  /// table, and the DROP would otherwise cascade into it. Called from the
-  /// v305 onUpgrade step and the beforeOpen backstop. Renumbered from 303
-  /// as #3482 shipped 302-303 first.
-  Future<void> _assertDivePlanSetupFieldsNullable() async {
-    const columns = {
-      'descent_rate': 'REAL',
-      'ascent_rate': 'REAL',
-      'intermediate_ascent_rate': 'REAL',
-      'shallow_ascent_rate': 'REAL',
-      'final_ascent_rate': 'REAL',
-      'last_stop_depth': 'REAL',
-      'gas_switch_stop_seconds': 'INTEGER',
-      'sac_bottom': 'REAL',
-      'sac_factor': 'REAL',
-      'problem_solving_minutes': 'INTEGER',
-      'best_mix_end_meters': 'REAL',
-      'deviation_depth_delta': 'REAL',
-      'deviation_time_minutes': 'INTEGER',
-    };
-
+  /// data across unchanged.
+  ///
+  /// A column clause matches with its name quoted (Drift's CREATE TABLE and
+  /// addColumn) or bare (this ladder's own `ALTER TABLE ... ADD COLUMN
+  /// name`, e.g. the v191 ascent rates and v215 gas options), since a
+  /// long-upgraded database carries both shapes. The DEFAULT is dropped too
+  /// so a migrated table matches a fresh one, where an omitted column is
+  /// NULL ("follow Settings") rather than the old hardcoded value.
+  ///
+  /// Idempotent (a column is skipped once its clause no longer has NOT
+  /// NULL) and wrapped in one transaction, so a failure at any step leaves
+  /// the original table exactly as it was. Foreign keys are off for the
+  /// swap, same reason as the dive_tanks rebuild: child tables reference
+  /// this one, and the DROP would otherwise cascade into them.
+  Future<void> _dropNotNullByRebuild(
+    String table,
+    Map<String, String> columns,
+  ) async {
     final stored = await customSelect(
-      "SELECT sql FROM sqlite_master WHERE type = 'table' "
-      "AND name = 'dive_plans'",
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?",
+      variables: [Variable<String>(table)],
     ).get();
     if (stored.isEmpty) return; // minimal fixture database: table absent
     final createSql = stored.first.read<String>('sql');
@@ -108,7 +127,9 @@ extension DivePlanMigrations on AppDatabase {
     var changed = false;
     for (final entry in columns.entries) {
       final clause = RegExp(
-        '"${entry.key}"\\s+${entry.value}\\s+NOT\\s+NULL',
+        '(?:"${entry.key}"|\\b${entry.key}\\b)\\s+${entry.value}'
+        '\\s+NOT\\s+NULL'
+        "(?:\\s+DEFAULT\\s+(?:\\([^)]*\\)|'[^']*'|[^\\s,)]+))?",
         caseSensitive: false,
       );
       if (!clause.hasMatch(rebuiltSql)) continue; // already nullable
@@ -121,22 +142,23 @@ extension DivePlanMigrations on AppDatabase {
     if (!changed) return; // every column already migrated
 
     final header = RegExp(
-      r'^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?"?dive_plans"?',
+      '^CREATE\\s+TABLE\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?"?$table"?(?=[\\s(])',
       caseSensitive: false,
     );
     if (!header.hasMatch(rebuiltSql)) {
       developer.log(
-        'dive_plans Setup-field columns: stored definition not in a '
+        '$table follow-Settings columns: stored definition not in a '
         'recognised shape, nullability left unchanged',
         name: 'AppDatabase',
       );
       return;
     }
-    const scratch = 'dive_plans_v305';
+    final scratch = '${table}_nullable_rebuild';
     rebuiltSql = rebuiltSql.replaceFirst(header, 'CREATE TABLE $scratch');
     final dependents = await customSelect(
-      "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_plans' "
+      "SELECT sql FROM sqlite_master WHERE tbl_name = ? "
       "AND type IN ('index', 'trigger') AND sql IS NOT NULL",
+      variables: [Variable<String>(table)],
     ).get();
 
     Future<bool> enforced() async =>
@@ -150,7 +172,7 @@ extension DivePlanMigrations on AppDatabase {
       // A no-op inside a transaction. Refuse rather than cascade.
       if (await enforced()) {
         developer.log(
-          'dive_plans Setup-field columns: foreign keys could not be '
+          '$table follow-Settings columns: foreign keys could not be '
           'switched off, rebuild deferred to a later open',
           name: 'AppDatabase',
         );
@@ -161,9 +183,9 @@ extension DivePlanMigrations on AppDatabase {
       await transaction(() async {
         await customStatement('DROP TABLE IF EXISTS $scratch');
         await customStatement(rebuiltSql);
-        await customStatement('INSERT INTO $scratch SELECT * FROM dive_plans');
-        await customStatement('DROP TABLE dive_plans');
-        await customStatement('ALTER TABLE $scratch RENAME TO dive_plans');
+        await customStatement('INSERT INTO $scratch SELECT * FROM $table');
+        await customStatement('DROP TABLE $table');
+        await customStatement('ALTER TABLE $scratch RENAME TO $table');
         for (final row in dependents) {
           await customStatement(row.read<String>('sql'));
         }
@@ -277,91 +299,10 @@ extension DivePlanMigrations on AppDatabase {
   /// v306: drops NOT NULL from dive_plan_missions.battery_reserve_fraction
   /// and .walk_speed_mps, so a mission can store "unset, follow the diver's
   /// Settings" (issue #3552) - the DPV Team counterpart of the v305
-  /// dive_plans rebuild, same technique and same safety argument (see that
-  /// helper's doc comment). A separate rung because this is a different
-  /// table, created later (v244) than dive_plans' initial schema.
-  Future<void> _assertDivePlanMissionFieldsNullable() async {
-    const columns = {
-      'battery_reserve_fraction': 'REAL',
-      'walk_speed_mps': 'REAL',
-    };
-
-    final stored = await customSelect(
-      "SELECT sql FROM sqlite_master WHERE type = 'table' "
-      "AND name = 'dive_plan_missions'",
-    ).get();
-    if (stored.isEmpty) return; // minimal fixture database: table absent
-    final createSql = stored.first.read<String>('sql');
-
-    var rebuiltSql = createSql;
-    var changed = false;
-    for (final entry in columns.entries) {
-      final clause = RegExp(
-        '"${entry.key}"\\s+${entry.value}\\s+NOT\\s+NULL',
-        caseSensitive: false,
-      );
-      if (!clause.hasMatch(rebuiltSql)) continue; // already nullable
-      rebuiltSql = rebuiltSql.replaceFirst(
-        clause,
-        '"${entry.key}" ${entry.value}',
-      );
-      changed = true;
-    }
-    if (!changed) return; // every column already migrated
-
-    final header = RegExp(
-      r'^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?"?dive_plan_missions"?',
-      caseSensitive: false,
-    );
-    if (!header.hasMatch(rebuiltSql)) {
-      developer.log(
-        'dive_plan_missions Setup-field columns: stored definition not in '
-        'a recognised shape, nullability left unchanged',
-        name: 'AppDatabase',
-      );
-      return;
-    }
-    const scratch = 'dive_plan_missions_v306';
-    rebuiltSql = rebuiltSql.replaceFirst(header, 'CREATE TABLE $scratch');
-    final dependents = await customSelect(
-      "SELECT sql FROM sqlite_master WHERE tbl_name = 'dive_plan_missions' "
-      "AND type IN ('index', 'trigger') AND sql IS NOT NULL",
-    ).get();
-
-    Future<bool> enforced() async =>
-        (await customSelect(
-          'PRAGMA foreign_keys',
-        ).getSingle()).read<int>('foreign_keys') ==
-        1;
-    final wasEnforced = await enforced();
-    if (wasEnforced) {
-      await customStatement('PRAGMA foreign_keys = OFF');
-      if (await enforced()) {
-        developer.log(
-          'dive_plan_missions Setup-field columns: foreign keys could not '
-          'be switched off, rebuild deferred to a later open',
-          name: 'AppDatabase',
-        );
-        return;
-      }
-    }
-    try {
-      await transaction(() async {
-        await customStatement('DROP TABLE IF EXISTS $scratch');
-        await customStatement(rebuiltSql);
-        await customStatement(
-          'INSERT INTO $scratch SELECT * FROM dive_plan_missions',
-        );
-        await customStatement('DROP TABLE dive_plan_missions');
-        await customStatement(
-          'ALTER TABLE $scratch RENAME TO dive_plan_missions',
-        );
-        for (final row in dependents) {
-          await customStatement(row.read<String>('sql'));
-        }
-      });
-    } finally {
-      if (wasEnforced) await customStatement('PRAGMA foreign_keys = ON');
-    }
-  }
+  /// dive_plans rebuild. A separate rung because this is a different table,
+  /// created later (v244) than dive_plans' initial schema.
+  Future<void> _assertDivePlanMissionFieldsNullable() => _dropNotNullByRebuild(
+    'dive_plan_missions',
+    const {'battery_reserve_fraction': 'REAL', 'walk_speed_mps': 'REAL'},
+  );
 }

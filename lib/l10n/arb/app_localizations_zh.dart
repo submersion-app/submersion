@@ -9977,6 +9977,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV 系数';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => '压力 RMV';
+
+  @override
   String get divePlanner_gasOptions_sacStressedFactor => '压力 RMV 系数';
 
   @override

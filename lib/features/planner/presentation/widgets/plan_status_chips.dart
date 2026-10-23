@@ -184,7 +184,6 @@ class ContingencyPreviewChip extends ConsumerWidget {
     final preview = ref.watch(selectedContingencyProvider);
     if (preview == null) return const SizedBox.shrink();
 
-    final state = ref.watch(divePlanNotifierProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
 
     final lostTank = preview.lostTank;
@@ -194,18 +193,11 @@ class ContingencyPreviewChip extends ConsumerWidget {
         lostTank.gasMix.name,
       );
     } else {
-      // Resolved against the diver's Settings when unset (issue #3552), the
-      // same fallback the Contingency Setup section and ContingencyService
-      // already use - an unset override must never render as a literal
-      // "null" here.
-      final depthDelta =
-          state.deviationDepthDelta ??
-          ref.watch(plannerDeviationDepthDeltaProvider);
-      final timeMinutes =
-          state.deviationTimeMinutes ??
-          ref.watch(plannerDeviationTimeMinutesProvider);
-      final depth = '+${units.formatDepth(depthDelta, decimals: 0)}';
-      final time = '+$timeMinutes′';
+      // The plan's own deviation, else the diver's Settings default (#3552).
+      final resolved = ref.watch(resolvedPlanEngineConfigProvider);
+      final depth =
+          '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
+      final time = '+${resolved.deviationTimeMinutes}′';
       label = switch (ref.watch(selectedDeviationProvider)) {
         'deeper' => depth,
         'longer' => time,

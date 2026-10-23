@@ -66,6 +66,8 @@ final Map<String, PlanEngineConfig> _oneFieldChanged = {
   'gfLow': PlanEngineConfig(gfLow: 35),
   'gfHigh': PlanEngineConfig(gfHigh: 75),
   'reservePressure': PlanEngineConfig(reservePressure: 70.0),
+  'batteryReserveFraction': PlanEngineConfig(batteryReserveFraction: 0.5),
+  'walkSpeedMps': PlanEngineConfig(walkSpeedMps: 1.2),
 };
 
 /// The same one-field changes as [_oneFieldChanged], made through copyWith,
@@ -110,6 +112,8 @@ final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
   'gfLow': (c) => c.copyWith(gfLow: 35),
   'gfHigh': (c) => c.copyWith(gfHigh: 75),
   'reservePressure': (c) => c.copyWith(reservePressure: 70.0),
+  'batteryReserveFraction': (c) => c.copyWith(batteryReserveFraction: 0.5),
+  'walkSpeedMps': (c) => c.copyWith(walkSpeedMps: 1.2),
 };
 
 /// A config with every field away from its default, so a field that
@@ -167,6 +171,8 @@ PlanEngineConfig _everyFieldChanged({
   gfLow: gfLow,
   gfHigh: gfHigh,
   reservePressure: 70.0,
+  batteryReserveFraction: 0.5,
+  walkSpeedMps: 1.2,
 );
 
 /// A plan that overrides nothing: its nullable gas options are unset, and

@@ -10469,6 +10469,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'AMV-Faktor';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'AMV unter Stress';
+
+  @override
   String get divePlanner_gasOptions_sacStressedFactor =>
       'Gestresster AMV-Faktor';
 

@@ -107,13 +107,11 @@ class _RateField extends StatelessWidget {
   final ValueChanged<double?> onChanged;
 
   // Rate band, in m/min, kept canonical so the accepted range matches across
-  // unit systems. The box bounds narrow inward (ceil the minimum, floor the
-  // maximum) so every whole number it accepts maps back inside the band:
-  // 1-30 m/min, 3-98 ft/min. The floor sits at 0.9 rather than 1 so that
-  // 3 ft/min (0.91 m/min), the imperial face of the 1 m/min final-ascent
-  // default, stays a legal entry instead of clamping up to 4.
-  static const _minMetric = 0.9;
-  static const _maxMetric = 30.0;
+  // unit systems, and shared with the Settings defaults. The box bounds
+  // narrow inward (ceil the minimum, floor the maximum) so every whole
+  // number it accepts maps back inside the band: 1-30 m/min, 3-98 ft/min.
+  static const _minMetric = kPlannerRateMinMetersPerMinute;
+  static const _maxMetric = kPlannerRateMaxMetersPerMinute;
 
   @override
   Widget build(BuildContext context) {

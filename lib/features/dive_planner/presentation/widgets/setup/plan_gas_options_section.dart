@@ -27,6 +27,9 @@ class PlanGasOptionsSection extends ConsumerWidget {
     final units = UnitFormatter(settings);
     final globalPpO2Working = ref.watch(ppO2MaxWorkingProvider);
     final globalPpO2Deco = ref.watch(ppO2MaxDecoProvider);
+    // Typed so `??` does not infer the watch as nullable.
+    final double bottomRmv =
+        state.sacRate ?? ref.watch(plannerSacBottomProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,34 +55,24 @@ class PlanGasOptionsSection extends ConsumerWidget {
           ),
         ),
         PlanNumberField(
-          // Shown and edited as a multiple of bottom SAC, not an absolute
-          // rate: the conversion factor cancels out of the ratio, so no
-          // unit conversion is needed here (issue #3552). Bottom SAC is
-          // never actually 0 through the guarded UI path (plan_gas_section
-          // only writes a positive liters value), but a 0 here would
-          // otherwise divide to NaN/Infinity, so it falls back to showing
-          // the plan's override as unset rather than a broken number.
-          label: context.l10n.divePlanner_gasOptions_sacStressedFactor,
-          value: () {
-            final stressed = state.sacStressed;
-            if (stressed == null) return null;
-            final double bottom =
-                state.sacRate ?? ref.watch(plannerSacBottomProvider);
-            return bottom > 0 ? stressed / bottom : null;
-          }(),
-          hintValue: ref.watch(plannerSacStressedFactorProvider),
-          suffixText: '×',
-          decimals: 1,
-          onChanged: (value) {
-            if (value == null) {
-              notifier.updateGasOptions(clearSacStressed: true);
-              return;
-            }
-            final double bottom =
-                state.sacRate ?? ref.read(plannerSacBottomProvider);
-            if (bottom <= 0) return;
-            notifier.updateGasOptions(sacStressed: bottom * value);
-          },
+          // An absolute rate, matching what the plan stores (sacStressed):
+          // a typed factor stored as an absolute value would drift from
+          // what the diver typed as soon as bottom RMV changed. Unset, it
+          // follows bottom RMV times the diver's Settings stressed factor,
+          // which the hint shows resolved (issue #3552).
+          label: context.l10n.divePlanner_gasOptions_sacStressed,
+          value: state.sacStressed != null
+              ? units.convertRmv(state.sacStressed!)
+              : null,
+          hintValue: units.convertRmv(
+            bottomRmv * ref.watch(plannerSacStressedFactorProvider),
+          ),
+          suffixText: units.rmvSymbol,
+          decimals: units.rmvDecimals,
+          onChanged: (value) => notifier.updateGasOptions(
+            sacStressed: value != null ? units.volumeToLiters(value) : null,
+            clearSacStressed: value == null,
+          ),
         ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_sacFactor,
