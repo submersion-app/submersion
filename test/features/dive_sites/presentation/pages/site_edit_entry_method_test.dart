@@ -118,6 +118,24 @@ void main() {
     expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
   });
 
+  testWidgets('ticking exit methods shows them on the exit row', (
+    tester,
+  ) async {
+    await pumpSiteEdit(tester);
+    await expandAccess(tester);
+
+    await tester.tap(find.text('Exit Method'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Platform'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Ladder'));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(CheckboxListTile).first)).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ladder, Platform'), findsOneWidget);
+  });
+
   testWidgets('an existing site seeds every listed method', (tester) async {
     await pumpSiteEdit(
       tester,
