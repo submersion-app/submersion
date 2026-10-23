@@ -1005,8 +1005,25 @@ class PaginatedDiveListNotifier
     return state.valueOrNull?.dives.any((d) => d.id == diveId) ?? false;
   }
 
-  /// A [jump] comes from [loadThrough]: it keeps the spinner flag of a page
-  /// load queued behind it, and preloads profiles around its target only.
+  /// Loads every row past the end of the list in one query, so End in the
+  /// list reaches the last dive rather than the last loaded one (#3302).
+  /// Asks for a page more than the count left, so a dive added meanwhile
+  /// still comes in and paging ends.
+  Future<void> loadRest() => _enqueuePaging(() async {
+    if (!mounted) return;
+    final current = state.valueOrNull;
+    if (current == null || !current.hasMore) return;
+    final missing = current.totalCount - current.dives.length;
+    await _appendRows(
+      current,
+      limit: (missing > 0 ? missing : 0) + _pageSize,
+      jump: true,
+    );
+  });
+
+  /// A [jump] comes from [loadThrough] or [loadRest]: it keeps the spinner
+  /// flag of a page load queued behind it, and preloads profiles around its
+  /// target only.
   Future<void> _appendRows(
     PaginatedDiveListState current, {
     required int limit,

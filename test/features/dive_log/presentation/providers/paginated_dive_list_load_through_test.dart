@@ -383,4 +383,49 @@ void main() {
       );
     });
   });
+
+  // End in the dive list reaches the last dive, not the last loaded one
+  // (#3302).
+  group('PaginatedDiveListNotifier.loadRest', () {
+    test('loads every remaining dive in one query and ends paging', () async {
+      final diver = await setUpCurrentDiver();
+      final dives = await seedDives(diver.id, 260);
+      final repo = _CountingRepository(diveRepo);
+      final container = makeContainer(repository: repo);
+      addTearDown(container.dispose);
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+      await loadPages(container, 1);
+      final before = repo.summaryCalls;
+
+      await container.read(paginatedDiveListProvider.notifier).loadRest();
+
+      final state = container.read(paginatedDiveListProvider).value!;
+      expect(repo.summaryCalls - before, 1);
+      expect(state.dives, hasLength(260));
+      expect(state.dives.last.id, dives.last.id);
+      expect(state.hasMore, isFalse);
+      expect(state.isLoadingMore, isFalse);
+    });
+
+    test('reads nothing when every dive is already loaded', () async {
+      final diver = await setUpCurrentDiver();
+      await seedDives(diver.id, 30);
+      final repo = _CountingRepository(diveRepo);
+      final container = makeContainer(repository: repo);
+      addTearDown(container.dispose);
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+      await loadPages(container, 1);
+      final before = repo.summaryCalls;
+
+      await container.read(paginatedDiveListProvider.notifier).loadRest();
+
+      expect(repo.summaryCalls, before);
+      expect(
+        container.read(paginatedDiveListProvider).value!.dives,
+        hasLength(30),
+      );
+    });
+  });
 }

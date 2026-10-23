@@ -60,6 +60,20 @@ class MockPaginatedNotifier
     );
   }
 
+  int loadRestCalls = 0;
+
+  /// Rows [loadRest] appends, all at once, as End's load does.
+  List<DiveSummary> rest = const [];
+
+  @override
+  Future<void> loadRest() async {
+    loadRestCalls++;
+    final current = state.value ?? const PaginatedDiveListState();
+    state = AsyncValue.data(
+      current.copyWith(dives: [...current.dives, ...rest], hasMore: false),
+    );
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

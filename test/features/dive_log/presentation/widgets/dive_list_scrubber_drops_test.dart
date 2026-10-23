@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -85,6 +86,17 @@ class _HeldNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
 
   @override
   Future<void> loadNextPage() async {}
+
+  /// End's load of the rest, held until [settleRest].
+  Completer<void>? restLoad;
+
+  @override
+  Future<void> loadRest() => (restLoad = Completer<void>()).future;
+
+  void settleRest() {
+    state = AsyncValue.data(state.value!.copyWith(dives: all, hasMore: false));
+    restLoad!.complete();
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -292,6 +304,31 @@ void main() {
       refetch.complete(indexOf(rows));
       await settle(tester);
     });
+  });
+
+  testWidgets('End shows the scrubber loading until the rest lands (#3302)', (
+    tester,
+  ) async {
+    final notifier = await pumpList(tester, rows: dives('d', 300));
+    // Tab in: at phone width a tap would open the dive's page.
+    for (var tabs = 0; tabs < 40; tabs++) {
+      if (FocusManager.instance.primaryFocus?.debugLabel ==
+          KeyboardListNavigator.focusDebugLabel) {
+        break;
+      }
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+    }
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    await tester.pump();
+    expect(notifier.restLoad, isNotNull);
+    expect(scrubber(tester).busyLabel, isNotNull);
+
+    notifier.settleRest();
+    await settle(tester);
+    expect(scrubber(tester).busyLabel, isNull);
+    expect(row('d299').hitTestable(), findsOneWidget);
   });
 
   group('overlapping drops', () {
