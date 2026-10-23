@@ -51,7 +51,7 @@ enum RendererPolicy {
 /// cannot see that declaration, so this getter has no `override`, but the
 /// engine reads the property through Objective-C dispatch and gets this one.
 /// Flutter's wide-gamut choice asks it too. RunnerTests pins the selector and
-/// CI runs them (native-plugin-tests.yml, also on a Flutter version bump), so
+/// CI runs them (macos-runner-tests.yml, also on a Flutter version bump), so
 /// an engine upgrade that renames it fails a check rather than quietly turning
 /// Impeller back on for Intel Macs.
 final class RendererDartProject: FlutterDartProject {

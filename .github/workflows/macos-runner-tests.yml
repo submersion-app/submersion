@@ -1,0 +1,69 @@
+# macOS Runner Tests
+#
+# Runs the XCTest target of the macOS app (macos/RunnerTests). They pin the
+# renderer override that keeps Intel Macs on Skia (#3531) against the pinned
+# Flutter version, so a Flutter bump that renames the overridden selector
+# fails here.
+
+name: macOS Runner Tests
+
+on:
+  push:
+    paths:
+      - 'macos/Runner/**'
+      - 'macos/RunnerTests/**'
+      - 'macos/Runner.xcodeproj/**'
+      - '.github/flutter-version.txt'
+      - '.github/workflows/macos-runner-tests.yml'
+      - '.github/actions/setup-flutter/**'
+  pull_request:
+    paths:
+      - 'macos/Runner/**'
+      - 'macos/RunnerTests/**'
+      - 'macos/Runner.xcodeproj/**'
+      - '.github/flutter-version.txt'
+      - '.github/workflows/macos-runner-tests.yml'
+      - '.github/actions/setup-flutter/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-runner-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
+
+jobs:
+  runner-tests:
+    name: macOS Runner Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(cat "$FLUTTER_VERSION_FILE")" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # The tests are hosted in the app, so this builds it first. Unsigned,
+      # as the plugin workflow's macOS build is.
+      - name: Run RunnerTests (no codesign)
+        run: |
+          flutter build macos --config-only --debug
+          xcodebuild test \
+            -workspace macos/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -only-testing:RunnerTests \
+            CODE_SIGNING_ALLOWED=NO

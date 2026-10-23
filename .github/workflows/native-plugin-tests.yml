@@ -11,19 +11,11 @@ on:
       - 'packages/libdivecomputer_plugin/**'
       - '.github/workflows/native-plugin-tests.yml'
       - '.github/actions/setup-flutter/**'
-      - 'macos/Runner/**'
-      - 'macos/RunnerTests/**'
-      - 'macos/Runner.xcodeproj/**'
-      - '.github/flutter-version.txt'
   pull_request:
     paths:
       - 'packages/libdivecomputer_plugin/**'
       - '.github/workflows/native-plugin-tests.yml'
       - '.github/actions/setup-flutter/**'
-      - 'macos/Runner/**'
-      - 'macos/RunnerTests/**'
-      - 'macos/Runner.xcodeproj/**'
-      - '.github/flutter-version.txt'
 
 permissions:
   contents: read
@@ -88,18 +80,13 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
-      # Building for test also builds the app, so this covers the build and
-      # runs RunnerTests, which pin the renderer override for Intel Macs
-      # (#3531) against the pinned Flutter version.
-      - name: Build macOS debug and run RunnerTests (no codesign)
+      - name: Build macOS debug (no codesign)
         run: |
           flutter build macos --config-only --debug
-          xcodebuild test \
+          xcodebuild build \
             -workspace macos/Runner.xcworkspace \
             -scheme Runner \
             -configuration Debug \
-            -destination 'platform=macOS' \
-            -only-testing:RunnerTests \
             CODE_SIGNING_ALLOWED=NO
 
   # ==========================================================================
