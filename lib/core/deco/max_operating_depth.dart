@@ -4,9 +4,10 @@
 /// `GasMix.mod` and `ScrCalculator.calculateMod` delegate here, so the
 /// planner, the dive log and the gas calculators cannot drift apart.
 ///
-/// The values are exact and never rounded: the planner switches gases on
-/// them. A limit depth shown to a diver is rounded DOWN at display time, via
-/// `UnitFormatter.formatDepthFloor`.
+/// The values are exact and never rounded. The planner switches gases on
+/// [gasSwitchDepthMeters], the MOD in the plan's water with a display
+/// tolerance. A limit depth shown to a diver is rounded DOWN at display
+/// time, via `UnitFormatter.formatDepthFloor`.
 library;
 
 import 'dart:math' as math;
