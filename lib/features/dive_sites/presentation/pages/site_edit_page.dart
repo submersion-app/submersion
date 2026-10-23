@@ -160,6 +160,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   /// The stored sharing could not be read: the field stays locked, so a
   /// save never overwrites sharing the page never saw.
   bool _sharingUnread = false;
+
+  /// An existing site's share rows have been read; until then the field
+  /// stays locked, so a pick is never confirmed against a stale original.
+  bool _sharingLoaded = false;
+
+  /// Share rows stored beside the everyone flag (a sync race): an owner's
+  /// save clears them, or a later unshare would bring them back.
+  bool _staleShareRows = false;
   final _suggestionNote = TextEditingController();
   bool _isApplyingInitialValues = false;
   Timer? _altitudeLookupDebounce;
@@ -414,16 +422,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     try {
       final stored = await ref
           .read(itemSharesRepositoryProvider)
-          .sharingOf(SharedItemKind.site, site.id);
+          .storedProfileIds(SharedItemKind.site, site.id);
       if (!mounted) return;
       setState(() {
-        final loaded = ItemSharing(
-          everyone: site.isShared,
-          profileIds: stored.profileIds,
-        );
-        // A pick made before the read finished is what the diver chose.
-        if (_sharing == _originalSharing) _sharing = loaded;
+        final loaded = ItemSharing(everyone: site.isShared, profileIds: stored);
+        _staleShareRows = site.isShared && stored.isNotEmpty;
+        _sharing = loaded;
         _originalSharing = loaded;
+        _sharingLoaded = true;
       });
     } catch (e, stackTrace) {
       _log.warning(
@@ -1230,7 +1236,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                     kind: SharedItemKind.site,
                     value: _sharing,
                     original: _originalSharing,
-                    mayShare: _sharingUnread ? null : _mayShare(),
+                    mayShare:
+                        _sharingUnread || (widget.isEditing && !_sharingLoaded)
+                        ? null
+                        : _mayShare(),
                     ownerId:
                         _originalSite?.diverId ??
                         ref.watch(validatedCurrentDiverIdProvider).value,
@@ -1313,7 +1322,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ]),
               ),
             )
-          else if (_mayShare() == false)
+          // Remove only while the site reaches this profile (issue #2151).
+          else if (_mayShare() == false &&
+              watchReachesHere(
+                ref,
+                SharedItemKind.site,
+                widget.siteId!,
+                isLibrarySite: _originalSite?.isLibrarySite ?? false,
+              ))
             IconButton(
               icon: const Icon(Icons.visibility_off_outlined),
               tooltip: context.l10n.sharedItems_removeAction,
@@ -2156,7 +2172,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       // merge carries each site's sharing itself.
       if (!widget.isMerging &&
           !_sharingUnread &&
-          _sharing != _originalSharing &&
+          (_sharing != _originalSharing ||
+              (_staleShareRows && _sharing.everyone)) &&
           (!widget.isEditing || _mayShareNow())) {
         await ref
             .read(itemSharesRepositoryProvider)

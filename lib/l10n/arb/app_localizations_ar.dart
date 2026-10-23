@@ -36758,6 +36758,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'انتقلت $count رحلة وموقع مشترك إلى الملفات التي شوركت معها.',
+      many: 'انتقلت $count رحلة وموقعًا مشتركًا إلى الملفات التي شوركت معها.',
+      few: 'انتقلت $count رحلات ومواقع مشتركة إلى الملفات التي شوركت معها.',
+      two: 'انتقلت رحلتان أو موقعان مشتركان إلى الملفات التي شوركت معها.',
+      one: 'انتقلت رحلة أو موقع مشترك واحد إلى الملف الذي شورك معه.',
+      zero: 'لم تنتقل أي رحلة أو موقع مشترك.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String divers_delete_keptEquipment_dialogLine(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -94,12 +94,15 @@ class ProfileHidesRepository {
     SharedItemKind.site => _db.siteHides,
   };
 
-  /// Emits when a hide is written or removed, or a hidden item's own row
-  /// changes (its name, or its deletion).
+  /// Emits when a hide is written or removed, a hidden item's own row
+  /// changes (its name, or its deletion), or a share row changes, which
+  /// decides whether a hidden item still reaches its profile (issue #2151).
   Stream<void> watchChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.tripHides),
       TableUpdateQuery.onTable(_db.siteHides),
+      TableUpdateQuery.onTable(_db.tripShares),
+      TableUpdateQuery.onTable(_db.siteShares),
       TableUpdateQuery.onTable(_db.trips),
       TableUpdateQuery.onTable(_db.diveSites),
     ]),
@@ -250,8 +253,9 @@ class ProfileHidesRepository {
         .get();
     final sites = await _db
         .customSelect(
-          'SELECT s.id, s.name, s.diver_id, (s.is_shared = 1 OR s.id IN '
-          '(SELECT site_id FROM site_shares WHERE diver_id = h.diver_id)) '
+          'SELECT s.id, s.name, s.diver_id, (s.is_shared = 1 OR '
+          '(s.shared_library_id IS NULL AND s.id IN '
+          '(SELECT site_id FROM site_shares WHERE diver_id = h.diver_id))) '
           'AS is_shared, s.region, '
           's.country FROM site_hides h JOIN dive_sites s ON s.id = h.site_id '
           'WHERE h.diver_id = ? '

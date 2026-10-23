@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,9 @@ import 'package:submersion/features/divers/presentation/providers/profile_hides_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -56,6 +61,7 @@ void main() {
     FailingProfileHides? hides,
     GatedActiveProfile? activeProfile,
     bool profileUnreadable = false,
+    ItemSharesRepository? shares,
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -75,6 +81,8 @@ void main() {
           shareByDefaultProvider.overrideWith((_) async => false),
           if (hides != null)
             profileHidesRepositoryProvider.overrideWithValue(hides),
+          if (shares != null)
+            itemSharesRepositoryProvider.overrideWithValue(shares),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -179,6 +187,21 @@ void main() {
     expect(
       find.textContaining('1 dive in another profile will lose this site.'),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('the sharing field stays locked until the share rows are read '
+      '(issue #2151)', (tester) async {
+    final shares = _GatedShares();
+    await pump(tester, active: 'd1', shares: shares);
+    await openLifeSection(tester);
+    expect(tester.widget<SharingTile>(find.byType(SharingTile)).onTap, isNull);
+
+    shares.gate.complete();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<SharingTile>(find.byType(SharingTile)).onTap,
+      isNotNull,
     );
   });
 
@@ -369,4 +392,17 @@ void main() {
       isNotNull,
     );
   });
+}
+
+/// Holds the share-row read open until [gate] completes.
+class _GatedShares extends FakeItemShares {
+  _GatedShares() : super({'pier': ItemSharing.all});
+
+  final gate = Completer<void>();
+
+  @override
+  Future<Set<String>> storedProfileIds(SharedItemKind kind, String id) async {
+    await gate.future;
+    return super.storedProfileIds(kind, id);
+  }
 }

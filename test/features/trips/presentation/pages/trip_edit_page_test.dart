@@ -20,6 +20,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 
@@ -1031,6 +1032,87 @@ void main() {
       await tester.pumpAndSettle();
       expect(shares.setCalls, isEmpty);
     });
+  });
+
+  testWidgets('an owner save clears share rows left beside the everyone flag '
+      '(issue #2151)', (tester) async {
+    final twoDivers = [
+      for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+        Diver(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+    ];
+    final shares = FakeItemShares.everyone(['test-shared'])
+      ..staleRows['test-shared'] = {'d2'};
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          tripRepositoryProvider.overrideWithValue(
+            _MockTripRepositoryWithSharedTrip(),
+          ),
+          tripListNotifierProvider.overrideWith(
+            (ref) => _MockTripListNotifier([]),
+          ),
+          allDiversProvider.overrideWith((_) async => twoDivers),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          itemSharesRepositoryProvider.overrideWithValue(shares),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TripEditPage(tripId: 'test-shared'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(shares.setCalls, [('test-shared', ItemSharing.all)]);
+  });
+
+  testWidgets('a failed sharing read never unshares an Everyone trip on save '
+      '(issue #2151)', (tester) async {
+    final twoDivers = [
+      for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+        Diver(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+    ];
+    final notifier = _MockTripListNotifier([]);
+    final shares = _UnreadableShares();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          tripRepositoryProvider.overrideWithValue(
+            _MockTripRepositoryWithSharedTrip(),
+          ),
+          tripListNotifierProvider.overrideWith((ref) => notifier),
+          allDiversProvider.overrideWith((_) async => twoDivers),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          itemSharesRepositoryProvider.overrideWithValue(shares),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TripEditPage(tripId: 'test-shared'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(notifier.lastUpdated?.isShared, isTrue);
+    expect(shares.setCalls, isEmpty);
   });
 
   group('share toggle ownership (issue #2594)', () {
@@ -3027,4 +3109,11 @@ class _ErrorTripRepository implements TripRepository {
 
   @override
   Stream<void> watchTripsChanges() => const Stream<void>.empty();
+}
+
+/// A shares repository whose reads fail, as a database error does.
+class _UnreadableShares extends FakeItemShares {
+  @override
+  Future<Set<String>> storedProfileIds(SharedItemKind kind, String id) async =>
+      throw StateError('database unavailable');
 }

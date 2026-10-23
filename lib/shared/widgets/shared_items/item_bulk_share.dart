@@ -56,9 +56,9 @@ Future<BulkActionOutcome> shareItemsWithProfiles(
       SnackBar(
         content: Text(
           result.skippedNotOwned == 0
-              ? l10n.sharedItems_bulkShare_done(result.itemsChanged)
+              ? l10n.sharedItems_bulkShare_done(result.itemsShared)
               : l10n.sharedItems_bulkShare_doneSkipped(
-                  result.itemsChanged,
+                  result.itemsShared,
                   result.skippedNotOwned,
                 ),
         ),

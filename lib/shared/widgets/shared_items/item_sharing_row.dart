@@ -78,9 +78,27 @@ class ItemSharingRow extends ConsumerWidget {
     );
     if (chosen == null) return;
     try {
-      await ref
+      // The repository checks the profile acting now, not the one the page
+      // was built for: only the owner changes sharing (issue #2594).
+      final changed = await ref
           .read(itemSharesRepositoryProvider)
-          .setSharing(kind, itemId, chosen, actingDiverId: owner);
+          .setSharing(
+            kind,
+            itemId,
+            chosen,
+            actingDiverId: ref.read(validatedCurrentDiverIdProvider).value,
+          );
+      if (!changed) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.sharedItems_shareOwnerOnly(
+                sharedItemOwnerName(divers, owner, l10n),
+              ),
+            ),
+          ),
+        );
+      }
     } catch (_) {
       // The page may have closed while the save ran.
       messenger.showSnackBar(

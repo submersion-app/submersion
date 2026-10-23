@@ -56,11 +56,14 @@ class VisibilityFilter {
       (t) =>
           (t.diverId.equals(diverId) |
               t.isShared.equals(true) |
-              t.id.isInQuery(
-                db.selectOnly(shares)
-                  ..addColumns([shares.siteId])
-                  ..where(shares.diverId.equals(diverId)),
-              ) |
+              // A share row counts only for a personal site: a shared site
+              // library site follows its membership (issue #2151).
+              (t.sharedLibraryId.isNull() &
+                  t.id.isInQuery(
+                    db.selectOnly(shares)
+                      ..addColumns([shares.siteId])
+                      ..where(shares.diverId.equals(diverId)),
+                  )) |
               // A shared site library's sites, for its members (issue #2567).
               t.sharedLibraryId.isInQuery(
                 db.selectOnly(memberships)
@@ -135,12 +138,12 @@ class VisibilityFilter {
       'diver_id = $viewer))';
 
   /// [ownerOrSharedSql] for `dive_sites`, which a shared site library's members
-  /// also see (issue #2567). [viewer] appears three times, so a `?`
+  /// also see (issue #2567); a share row counts only for a personal site. [viewer] appears three times, so a `?`
   /// placeholder needs three variables.
   static String ownerOrSharedOrLibrarySql(String tableAlias, String viewer) =>
       '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1 OR '
-      '$tableAlias.id IN (SELECT site_id FROM site_shares WHERE '
-      'diver_id = $viewer) OR '
+      '($tableAlias.shared_library_id IS NULL AND $tableAlias.id IN '
+      '(SELECT site_id FROM site_shares WHERE diver_id = $viewer)) OR '
       '$tableAlias.shared_library_id IN (SELECT library_id FROM '
       'shared_library_memberships WHERE diver_id = $viewer))';
 

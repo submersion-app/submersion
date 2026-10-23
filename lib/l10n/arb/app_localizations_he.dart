@@ -35355,6 +35355,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולים ואתרים משותפים עברו לפרופילים שאיתם שותפו.',
+      one: 'טיול או אתר משותף $count עבר לפרופיל שאיתו שותף.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String divers_delete_keptEquipment_dialogLine(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

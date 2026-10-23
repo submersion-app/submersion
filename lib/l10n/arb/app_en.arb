@@ -21989,6 +21989,16 @@
       }
     }
   },
+  "divers_delete_handedOver": "{count, plural, one{{count} shared trip or site went to the profile it was shared with.} other{{count} shared trips and sites went to the profiles they were shared with.}}",
+  "@divers_delete_handedOver": {
+    "description": "Sentence in the snackbar after deleting a profile whose trips and sites shared with chosen profiles went to those profiles.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "divers_delete_keptEquipment_dialogLine": "{count, plural, one{{count} piece of gear in use by other profiles will be kept and handed to them.} other{{count} pieces of gear in use by other profiles will be kept and handed to them.}}",
   "@divers_delete_keptEquipment_dialogLine": {
     "description": "Line in the delete-profile confirmation when some of the profile's gear is used by other profiles and will be handed to them.",

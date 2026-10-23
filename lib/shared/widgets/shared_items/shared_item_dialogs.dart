@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 final _log = LoggerService.forClass(SharedItemKind);
 
@@ -50,6 +51,24 @@ bool watchHiddenHere(
 }) =>
     !canDestroy &&
     (ref.watch(isHiddenProvider((kind: kind, id: id))).value ?? false);
+
+/// Whether this trip or site reaches the active profile through sharing,
+/// with everyone or by name (issue #2151), or is a shared site library site,
+/// which its membership governs: the condition for offering "Remove from my
+/// profile". False for an item opened by id that is no longer shared with
+/// the profile, and until both reads have loaded. Watches, so call it during
+/// build.
+bool watchReachesHere(
+  WidgetRef ref,
+  SharedItemKind kind,
+  String id, {
+  bool isLibrarySite = false,
+}) {
+  if (isLibrarySite) return true;
+  final active = ref.watch(validatedCurrentDiverIdProvider).value;
+  final sharing = ref.watch(itemSharingProvider((kind: kind, id: id))).value;
+  return active != null && sharing != null && sharing.reaches(active);
+}
 
 /// The active profile and how many profiles exist, for splitting a bulk
 /// selection and choosing its warning (issue #2594). A failed read of

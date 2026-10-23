@@ -56954,6 +56954,12 @@ abstract class AppLocalizations {
   /// **'Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.'**
   String divers_delete_reassigned_snackbar(int trips, int sites, String name);
 
+  /// Sentence in the snackbar after deleting a profile whose trips and sites shared with chosen profiles went to those profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} shared trip or site went to the profile it was shared with.} other{{count} shared trips and sites went to the profiles they were shared with.}}'**
+  String divers_delete_handedOver(int count);
+
   /// Line in the delete-profile confirmation when some of the profile's gear is used by other profiles and will be handed to them.
   ///
   /// In en, this message translates to:

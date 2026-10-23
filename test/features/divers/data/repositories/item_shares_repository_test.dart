@@ -221,7 +221,9 @@ void main() {
       const ItemSharing(profileIds: {'son'}),
       actingDiverId: 'me',
     );
-    expect(result.itemsChanged, 2);
+    // Every owned item is shared with the son now, including the one
+    // already shared with everyone, which needed no change.
+    expect(result.itemsShared, 3);
     expect(result.skippedNotOwned, 1);
     expect(await tripShareDivers('bonaire'), {'son'});
     expect(await tripShareDivers('withDaughter'), {'daughter', 'son'});
@@ -237,7 +239,7 @@ void main() {
       ItemSharing.all,
       actingDiverId: 'me',
     );
-    expect(result.itemsChanged, 1);
+    expect(result.itemsShared, 1);
     expect(await tripFlag('bonaire'), isTrue);
   });
 
@@ -248,7 +250,7 @@ void main() {
       ItemSharing.none,
       actingDiverId: 'me',
     );
-    expect(result.itemsChanged, 0);
+    expect(result.itemsShared, 0);
     expect(await db.select(db.tripShares).get(), isEmpty);
   });
 
@@ -335,4 +337,38 @@ void main() {
       expect(await repository.itemIdsWithShares(site), isEmpty);
     },
   );
+
+  test(
+    'storedProfileIds reads the rows even beside the everyone flag',
+    () async {
+      await seedTrip(db, 'raced', owner: 'me', shared: true);
+      await db
+          .into(db.tripShares)
+          .insert(
+            TripSharesCompanion.insert(
+              id: 'stale',
+              tripId: 'raced',
+              diverId: 'son',
+              createdAt: 1,
+            ),
+          );
+      expect(await repository.storedProfileIds(trip, 'raced'), {'son'});
+      expect(await repository.storedProfileIds(trip, 'bonaire'), isEmpty);
+    },
+  );
+
+  test('reads more items than one SQL variable list holds', () async {
+    final ids = [for (var i = 0; i < 1200; i++) 't$i'];
+    for (final id in ids) {
+      await seedTrip(db, id, owner: 'me');
+    }
+    final result = await repository.addSharing(
+      trip,
+      ids,
+      const ItemSharing(profileIds: {'son'}),
+      actingDiverId: 'me',
+    );
+    expect(result.itemsShared, 1200);
+    expect((await repository.sharingOfAll(trip, ids)).length, 1200);
+  });
 }

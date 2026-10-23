@@ -25,7 +25,7 @@ class _SkippingShares extends FakeItemShares {
     required String actingDiverId,
   }) async {
     addCalls.add((ids, add));
-    return ItemShareResult(itemsChanged: ids.length - 1, skippedNotOwned: 1);
+    return ItemShareResult(itemsShared: ids.length - 1, skippedNotOwned: 1);
   }
 }
 

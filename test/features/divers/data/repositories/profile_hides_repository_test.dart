@@ -318,6 +318,23 @@ void main() {
     ));
   });
 
+  test('watchChanges emits on a share row write (issue #2151)', () async {
+    final tick = repository.watchChanges().first.timeout(
+      const Duration(seconds: 5),
+    );
+    await db
+        .into(db.siteShares)
+        .insert(
+          SiteSharesCompanion.insert(
+            id: 'x',
+            siteId: 'pier',
+            diverId: 'b',
+            createdAt: 1,
+          ),
+        );
+    await expectLater(tick, completes);
+  });
+
   test('watchChanges emits on a hide', () async {
     final tick = repository.watchChanges().first.timeout(
       const Duration(seconds: 5),

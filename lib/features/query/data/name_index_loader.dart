@@ -162,8 +162,8 @@ class NameIndexLoader {
           if (diverId != null) {
             // Shared with this profile alone (issue #2151).
             visible.add(
-              't.${entity.idColumn} IN (SELECT site_id '
-              'FROM site_shares WHERE diver_id = ?)',
+              '(t.shared_library_id IS NULL AND t.${entity.idColumn} IN '
+              '(SELECT site_id FROM site_shares WHERE diver_id = ?))',
             );
             variables.add(Variable<String>(diverId));
             visible.add(

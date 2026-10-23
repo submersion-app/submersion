@@ -273,6 +273,8 @@ class _TripDetailContent extends ConsumerWidget {
       trip.id,
       canDestroy: canDestroy != false,
     );
+    // Remove only while the trip reaches this profile (issue #2151).
+    final reachesHere = watchReachesHere(ref, SharedItemKind.trip, trip.id);
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -398,7 +400,7 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
           )
-        else if (canDestroy == false)
+        else if (canDestroy == false && reachesHere)
           PopupMenuItem(
             value: 'remove',
             child: Row(

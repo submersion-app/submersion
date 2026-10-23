@@ -10212,6 +10212,7 @@
   "divers_delete_keptEquipment_dialogLine": "{count, plural, one{{count} Ausrüstungsteil, das andere Profile nutzen, wird behalten und an sie übergeben.} other{{count} Ausrüstungsteile, die andere Profile nutzen, werden behalten und an sie übergeben.}}",
   "divers_delete_keptEquipment_toOne": "{count, plural, one{{count} Ausrüstungsteil an {name} übergeben.} other{{count} Ausrüstungsteile an {name} übergeben.}}",
   "divers_delete_keptEquipment_toMany": "{count, plural, one{{count} Ausrüstungsteil an die Profile übergeben, die es nutzen.} other{{count} Ausrüstungsteile an die Profile übergeben, die sie nutzen.}}",
+  "divers_delete_handedOver": "{count, plural, one{{count} geteilte Reise oder geteilter Ort ging an das Profil, mit dem sie geteilt war.} other{{count} geteilte Reisen und Orte gingen an die Profile, mit denen sie geteilt waren.}}",
   "settings_shareAllSites_confirm": "Wähle aus, wer alle {count} deiner Tauchplätze sieht. Um einen Tauchplatz später zu ändern, öffne ihn und tippe auf Geteilt mit.",
   "settings_shareAllSites_title": "Alle meine Tauchplätze teilen...",
   "settings_shareAllTrips_confirm": "Wähle aus, wer alle {count} deiner Reisen sieht. Um eine Reise später zu ändern, öffne sie und tippe auf Geteilt mit.",

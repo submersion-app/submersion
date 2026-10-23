@@ -36053,6 +36053,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count megosztott túra és helyszín azokhoz a profilokhoz került, amelyekkel meg voltak osztva.',
+      one:
+          '$count megosztott túra vagy helyszín ahhoz a profilhoz került, amellyel meg volt osztva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String divers_delete_keptEquipment_dialogLine(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

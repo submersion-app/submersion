@@ -97,6 +97,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   /// The stored sharing could not be read: the field stays locked, so a
   /// save never overwrites sharing the page never saw.
   bool _sharingUnread = false;
+
+  /// Share rows stored beside the everyone flag (a sync race): an owner's
+  /// save clears them, or a later unshare would bring them back.
+  bool _staleShareRows = false;
   Trip? _originalTrip;
 
   bool get isEditing => widget.tripId != null;
@@ -170,10 +174,18 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           .getTripById(widget.tripId!);
       if (trip != null && mounted) {
         _originalTrip = trip;
+        // The everyone flag comes with the trip; the read adds the chosen
+        // profiles. A failed read leaves the flag, so a save keeps it.
+        _originalSharing = ItemSharing(everyone: trip.isShared);
         try {
-          _originalSharing = await ref
+          final stored = await ref
               .read(itemSharesRepositoryProvider)
-              .sharingOf(SharedItemKind.trip, trip.id);
+              .storedProfileIds(SharedItemKind.trip, trip.id);
+          _originalSharing = ItemSharing(
+            everyone: trip.isShared,
+            profileIds: stored,
+          );
+          _staleShareRows = trip.isShared && stored.isNotEmpty;
         } catch (e, stackTrace) {
           _sharingUnread = true;
           _log.warning(
@@ -1044,7 +1056,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       // them; the save above already wrote the everyone flag. Checked in
       // this order so an unchanged save never reads the active profile.
       if (!_sharingUnread &&
-          _sharing != _originalSharing &&
+          (_sharing != _originalSharing ||
+              (_staleShareRows && _sharing.everyone)) &&
           (!isEditing ||
               canDestroySharedItemOnceKnown(
                     ref.read(validatedCurrentDiverIdProvider),

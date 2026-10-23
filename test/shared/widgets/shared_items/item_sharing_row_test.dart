@@ -13,7 +13,12 @@ import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 /// Records what the row asks the repository to store.
 class _RecordingShares extends ItemSharesRepository {
+  _RecordingShares({this.refuse = false});
+
+  /// Answers as the repository does for a profile that may not change it.
+  final bool refuse;
   final calls = <ItemSharing>[];
+  final actingDivers = <String?>[];
 
   @override
   Future<bool> setSharing(
@@ -23,7 +28,8 @@ class _RecordingShares extends ItemSharesRepository {
     required String? actingDiverId,
   }) async {
     calls.add(sharing);
-    return true;
+    actingDivers.add(actingDiverId);
+    return !refuse;
   }
 }
 
@@ -48,8 +54,9 @@ void main() {
     WidgetTester tester, {
     required String active,
     ItemSharing sharing = ItemSharing.none,
+    bool refuse = false,
   }) async {
-    final shares = _RecordingShares();
+    final shares = _RecordingShares(refuse: refuse);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -145,5 +152,34 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(shares.calls, isEmpty);
+  });
+
+  testWidgets('the save names the active profile, which the repository '
+      'checks (issue #2151)', (tester) async {
+    final shares = await pump(tester, active: 'me');
+    await tester.tap(find.text('Shared with'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('Sam')),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(shares.actingDivers, ['me']);
+  });
+
+  testWidgets('a refused save says only the owner can change it', (
+    tester,
+  ) async {
+    await pump(tester, active: 'me', refuse: true);
+    await tester.tap(find.text('Shared with'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('Sam')),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Only Me can change sharing'), findsOneWidget);
   });
 }

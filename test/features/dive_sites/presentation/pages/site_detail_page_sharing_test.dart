@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -42,6 +43,7 @@ void main() {
     GatedActiveProfile? activeProfile,
     bool profileUnreadable = false,
     bool hidden = false,
+    ItemSharing sharing = ItemSharing.all,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -70,7 +72,7 @@ void main() {
             _FakeHides(hidden: hidden),
           ),
           itemSharesRepositoryProvider.overrideWithValue(
-            FakeItemShares.everyone([site.id]),
+            FakeItemShares({site.id: sharing}),
           ),
           siteListNotifierProvider.overrideWith((ref) => notifier),
         ],
@@ -230,6 +232,34 @@ void main() {
       find.textContaining('5 dives in other profiles will lose this site.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a profile the site no longer reaches is not offered Remove '
+      '(issue #2151)', (tester) async {
+    // Opened by id from one of this profile's dives after its owner took
+    // the site away from it: there is nothing to remove it from.
+    await pump(
+      tester,
+      active: 'd2',
+      sharing: const ItemSharing(profileIds: {'d3'}),
+    );
+    expect(find.textContaining('Shared by'), findsNothing);
+    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsNothing);
+  });
+
+  testWidgets('a profile the site is shared with by name is offered Remove', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      active: 'd2',
+      sharing: const ItemSharing(profileIds: {'d2'}),
+    );
+    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsOneWidget);
   });
 }
 

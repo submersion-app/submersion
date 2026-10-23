@@ -445,6 +445,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       site.id,
       canDestroy: canDestroy != false,
     );
+    // Remove only while the site reaches this profile (issue #2151).
+    final reachesHere = watchReachesHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      isLibrarySite: site.isLibrarySite,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -557,7 +564,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
-                else if (canDestroy == false)
+                else if (canDestroy == false && reachesHere)
                   PopupMenuItem(
                     value: 'remove',
                     child: ListTile(

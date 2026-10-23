@@ -36354,6 +36354,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count voyages et sites partagés sont allés aux profils avec lesquels ils étaient partagés.',
+      one:
+          '$count voyage ou site partagé est allé au profil avec lequel il était partagé.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String divers_delete_keptEquipment_dialogLine(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

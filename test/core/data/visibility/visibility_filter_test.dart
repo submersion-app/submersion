@@ -51,7 +51,8 @@ void main() {
         frag.whereClause,
         equals(
           ' WHERE (trips.diver_id = ? OR trips.is_shared = 1 OR '
-          'trips.id IN (SELECT site_id FROM site_shares WHERE diver_id = ?) OR '
+          '(trips.shared_library_id IS NULL AND trips.id IN '
+          '(SELECT site_id FROM site_shares WHERE diver_id = ?)) OR '
           'trips.shared_library_id IN (SELECT library_id FROM '
           'shared_library_memberships WHERE diver_id = ?))'
           ' AND trips.id NOT IN '
@@ -228,6 +229,49 @@ void main() {
       final rows = await query.get();
 
       expect(rows.map((r) => r.id).toSet(), equals({'s1', 's2'}));
+    });
+
+    test('a share row never shows a shared site library site to a profile '
+        'outside the library', () async {
+      // Pushed into a library after it was shared with B by name: the
+      // library's membership governs it from then on.
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 'lib-site',
+              name: 'lib-site',
+              createdAt: 0,
+              updatedAt: 0,
+              sharedLibraryId: const Value('lib1'),
+            ),
+          );
+      await db
+          .into(db.siteShares)
+          .insert(
+            SiteSharesCompanion.insert(
+              id: 'x',
+              siteId: 'lib-site',
+              diverId: 'B',
+              createdAt: 0,
+            ),
+          );
+      final query = db.select(db.diveSites);
+      VisibilityFilter.applyToDiveSites(db, query, 'B');
+      expect(await query.get(), isEmpty);
+      final frag = VisibilityFilter.sqlFragment(
+        tableAlias: 's',
+        diverId: 'B',
+        conjunction: 'WHERE',
+        kind: SharedItemKind.site,
+      );
+      final raw = await db
+          .customSelect(
+            'SELECT s.id FROM dive_sites s${frag.whereClause}',
+            variables: frag.variables,
+          )
+          .get();
+      expect(raw, isEmpty);
     });
 
     test('a site shared with B is visible to B and not to C', () async {

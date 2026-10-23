@@ -206,6 +206,13 @@ class FakeItemShares extends ItemSharesRepository {
     List<String> ids,
   ) async => {for (final id in ids) id: sharing[id] ?? ItemSharing.none};
 
+  /// Share rows left beside the everyone flag by a sync race, by item id.
+  final staleRows = <String, Set<String>>{};
+
+  @override
+  Future<Set<String>> storedProfileIds(SharedItemKind kind, String id) async =>
+      staleRows[id] ?? sharing[id]?.profileIds ?? const {};
+
   @override
   Future<Set<String>> itemIdsWithShares(SharedItemKind kind) async => {
     for (final e in sharing.entries)
@@ -232,6 +239,6 @@ class FakeItemShares extends ItemSharesRepository {
     required String actingDiverId,
   }) async {
     addCalls.add((ids, add));
-    return ItemShareResult(itemsChanged: ids.length);
+    return ItemShareResult(itemsShared: ids.length);
   }
 }

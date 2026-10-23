@@ -4,17 +4,19 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
-/// What a bulk share did: the items whose sharing changed, and the selected
-/// items another profile owns, which were left alone.
+/// What a bulk share did: the owned items now shared with the choice
+/// (whether or not they needed a change), and the selected items another
+/// profile owns, which were left alone.
 class ItemShareResult {
-  const ItemShareResult({this.itemsChanged = 0, this.skippedNotOwned = 0});
+  const ItemShareResult({this.itemsShared = 0, this.skippedNotOwned = 0});
 
-  final int itemsChanged;
+  final int itemsShared;
   final int skippedNotOwned;
 }
 
@@ -110,6 +112,40 @@ class ItemSharesRepository {
     };
   }
 
+  /// The profiles item [id]'s share rows name, read as stored: unlike
+  /// [sharingOf], also those beside the everyone flag, which a sync race can
+  /// leave and an owner's save clears.
+  Future<Set<String>> storedProfileIds(SharedItemKind kind, String id) async =>
+      {
+        for (final s in await _shares(_of(kind), [id])) s.diverId,
+      };
+
+  /// Whether trip or site [id] is visible to [diverId] by the lists' rule
+  /// ([VisibilityFilter]): owned, shared with everyone or with it by name,
+  /// or (a site) in a shared site library it is a member of. Hides are not
+  /// considered: a hidden item is still the profile's to use.
+  Future<bool> isVisibleTo(
+    SharedItemKind kind,
+    String id,
+    String diverId,
+  ) async {
+    final t = _of(kind);
+    final visible = switch (kind) {
+      SharedItemKind.trip => VisibilityFilter.ownerOrSharedSql('i', '?1'),
+      SharedItemKind.site => VisibilityFilter.ownerOrSharedOrLibrarySql(
+        'i',
+        '?1',
+      ),
+    };
+    final row = await _db
+        .customSelect(
+          'SELECT 1 FROM ${t.parentTable} i WHERE i.id = ?2 AND $visible',
+          variables: [Variable.withString(diverId), Variable.withString(id)],
+        )
+        .getSingleOrNull();
+    return row != null;
+  }
+
   /// The ids of the trips or sites shared with at least one profile by
   /// name, for the lists' shared badge and delete warnings, which read the
   /// everyone flag from the items themselves.
@@ -164,6 +200,37 @@ class ItemSharesRepository {
     }
   }
 
+  /// Shares item [id] with [diverId] as well, for its owner
+  /// [actingDiverId]. Returns the new share row's id, or null, writing
+  /// nothing, when the item already reaches [diverId] (it is shared with
+  /// everyone, by name, or owned by [diverId]), is missing, or may not be
+  /// changed by [actingDiverId]. Runs in the caller's transaction when there
+  /// is one; notifies nothing.
+  Future<String?> shareWith(
+    SharedItemKind kind,
+    String id,
+    String diverId, {
+    required String? actingDiverId,
+  }) async {
+    final t = _of(kind);
+    final parent = (await _parents(t, [id]))[id];
+    if (parent == null ||
+        parent.isShared ||
+        parent.ownerId == diverId ||
+        !_mayChange(parent, actingDiverId)) {
+      return null;
+    }
+    if ((await _shares(t, [id], diverId: diverId)).isNotEmpty) return null;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final share = (
+      id: _uuid.v4(),
+      itemId: id,
+      diverId: diverId,
+      createdAt: now,
+    );
+    return await _insertRow(kind, share, now) ? share.id : null;
+  }
+
   /// Adds [add] to the sharing of each of [ids] the acting profile owns, in
   /// one transaction: chosen profiles gain a row, an item already shared
   /// with Everyone is left alone, and Everyone makes each item Everyone.
@@ -182,6 +249,7 @@ class ItemSharesRepository {
         final parents = await _parents(t, ids);
         final shares = await _shares(t, parents.keys.toList());
         final now = DateTime.now().millisecondsSinceEpoch;
+        var shared = 0;
         var changed = 0;
         var skipped = 0;
         for (final parent in parents.values) {
@@ -198,12 +266,19 @@ class ItemSharesRepository {
             profileIds: {for (final s in own) s.diverId},
           );
           final next = current.plus(add).without(parent.ownerId);
+          shared++;
           if (await _apply(kind, parent, own, next, now)) changed++;
         }
-        return ItemShareResult(itemsChanged: changed, skippedNotOwned: skipped);
+        return (
+          result: ItemShareResult(
+            itemsShared: shared,
+            skippedNotOwned: skipped,
+          ),
+          changed: changed,
+        );
       });
-      if (result.itemsChanged > 0) SyncEventBus.notifyLocalChange();
-      return result;
+      if (result.changed > 0) SyncEventBus.notifyLocalChange();
+      return result.result;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to share ${ids.length} ${t.parentTable} rows',
@@ -399,14 +474,17 @@ class ItemSharesRepository {
 
   Future<Map<String, _Parent>> _parents(_ShareTable t, List<String> ids) async {
     final isSite = t.parentTable == 'dive_sites';
-    final rows = await _db
-        .customSelect(
-          'SELECT id, diver_id, is_shared'
-          '${isSite ? ', shared_library_id' : ''} FROM ${t.parentTable} '
-          'WHERE id IN (${List.filled(ids.length, '?').join(', ')})',
-          variables: [for (final id in ids) Variable.withString(id)],
-        )
-        .get();
+    final rows = [
+      for (final chunk in _chunks(ids))
+        ...await _db
+            .customSelect(
+              'SELECT id, diver_id, is_shared'
+              '${isSite ? ', shared_library_id' : ''} FROM ${t.parentTable} '
+              'WHERE id IN (${List.filled(chunk.length, '?').join(', ')})',
+              variables: [for (final id in chunk) Variable.withString(id)],
+            )
+            .get(),
+    ];
     return {
       for (final r in rows)
         r.read<String>('id'): (
@@ -424,19 +502,22 @@ class ItemSharesRepository {
     String? diverId,
   }) async {
     if (ids.isEmpty) return const [];
-    final rows = await _db
-        .customSelect(
-          'SELECT id, ${t.parentColumn}, diver_id, created_at FROM ${t.table} '
-          'WHERE ${t.parentColumn} IN '
-          '(${List.filled(ids.length, '?').join(', ')})'
-          '${diverId == null ? '' : ' AND diver_id = ?'} '
-          'ORDER BY created_at, id',
-          variables: [
-            for (final id in ids) Variable.withString(id),
-            if (diverId != null) Variable.withString(diverId),
-          ],
-        )
-        .get();
+    final rows = [
+      for (final chunk in _chunks(ids))
+        ...await _db
+            .customSelect(
+              'SELECT id, ${t.parentColumn}, diver_id, created_at '
+              'FROM ${t.table} WHERE ${t.parentColumn} IN '
+              '(${List.filled(chunk.length, '?').join(', ')})'
+              '${diverId == null ? '' : ' AND diver_id = ?'} '
+              'ORDER BY created_at, id',
+              variables: [
+                for (final id in chunk) Variable.withString(id),
+                if (diverId != null) Variable.withString(diverId),
+              ],
+            )
+            .get(),
+    ];
     return [
       for (final r in rows)
         (
@@ -455,3 +536,11 @@ typedef _Parent = ({
   bool isShared,
   bool isLibrarySite,
 });
+
+/// [ids] in runs short enough for one statement's variable list.
+Iterable<List<String>> _chunks(List<String> ids) sync* {
+  const size = 500;
+  for (var i = 0; i < ids.length; i += size) {
+    yield ids.sublist(i, i + size > ids.length ? ids.length : i + size);
+  }
+}

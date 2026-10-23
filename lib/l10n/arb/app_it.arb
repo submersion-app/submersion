@@ -10080,6 +10080,7 @@
   "divers_delete_keptEquipment_dialogLine": "{count, plural, one{{count} pezzo di attrezzatura usato da altri profili verrà mantenuto e consegnato a loro.} other{{count} pezzi di attrezzatura usati da altri profili verranno mantenuti e consegnati a loro.}}",
   "divers_delete_keptEquipment_toOne": "{count, plural, one{{count} pezzo di attrezzatura consegnato a {name}.} other{{count} pezzi di attrezzatura consegnati a {name}.}}",
   "divers_delete_keptEquipment_toMany": "{count, plural, one{{count} pezzo di attrezzatura consegnato ai profili che lo usano.} other{{count} pezzi di attrezzatura consegnati ai profili che li usano.}}",
+  "divers_delete_handedOver": "{count, plural, one{{count} viaggio o sito condiviso è passato al profilo con cui era condiviso.} other{{count} viaggi e siti condivisi sono passati ai profili con cui erano condivisi.}}",
   "settings_shareAllSites_confirm": "Scegli chi vede tutti i tuoi {count} siti. Per cambiare un sito in seguito, aprilo e tocca Condiviso con.",
   "settings_shareAllSites_title": "Condividi tutti i miei siti...",
   "settings_shareAllTrips_confirm": "Scegli chi vede tutti i tuoi {count} viaggi. Per cambiare un viaggio in seguito, aprilo e tocca Condiviso con.",

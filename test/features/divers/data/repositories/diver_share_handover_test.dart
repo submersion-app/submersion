@@ -152,6 +152,7 @@ void main() {
       // The message names the Everyone heir, so it counts her items only.
       expect(result.reassignedTripsCount, 1);
       expect(result.reassignedToDiverId, 'daughter');
+      expect(result.handedOverCount, 1);
     },
   );
 }

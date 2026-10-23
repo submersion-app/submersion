@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
@@ -16,11 +17,11 @@ import 'package:submersion/features/divers/data/repositories/profile_hides_repos
 ///
 /// Runs inside the caller's transaction. Returns the ids handed over.
 Future<({List<String> tripIds, List<String> siteIds})> handOverSharedItems(
-  AppDatabase db,
   SyncRepository sync, {
   required String fromDiverId,
   required int now,
 }) async {
+  final db = DatabaseService.instance.database;
   final trips = await _handOver(
     db,
     sync,
