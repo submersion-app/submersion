@@ -20,8 +20,18 @@ enum RendererPolicy {
   /// The choice for the running app and the Mac it runs on.
   static func impellerEnabled() -> Bool {
     impellerEnabled(
-      infoPlistValue: Bundle.main.object(forInfoDictionaryKey: infoPlistKey) as? Bool,
+      infoPlistValue: infoPlistValue(Bundle.main.object(forInfoDictionaryKey: infoPlistKey)),
       isAppleSilicon: isAppleSiliconHardware())
+  }
+
+  /// Reads the key as Flutter does, with `boolValue`, so a string value such
+  /// as "NO" counts as well as a plist boolean. Anything else is unset.
+  static func infoPlistValue(_ raw: Any?) -> Bool? {
+    switch raw {
+    case let number as NSNumber: return number.boolValue
+    case let string as NSString: return string.boolValue
+    default: return nil
+    }
   }
 
   /// Asks the hardware, not the running slice: an x86_64 build translated by
@@ -40,8 +50,9 @@ enum RendererPolicy {
 /// FlutterDartProject_Internal.h, where it reads the Info.plist switch. Swift
 /// cannot see that declaration, so this getter has no `override`, but the
 /// engine reads the property through Objective-C dispatch and gets this one.
-/// Flutter's wide-gamut choice asks it too. RunnerTests pins the selector, so
-/// an engine upgrade that renames it fails a test rather than quietly turning
+/// Flutter's wide-gamut choice asks it too. RunnerTests pins the selector and
+/// CI runs them (native-plugin-tests.yml, also on a Flutter version bump), so
+/// an engine upgrade that renames it fails a check rather than quietly turning
 /// Impeller back on for Intel Macs.
 final class RendererDartProject: FlutterDartProject {
   private let impellerEnabled: Bool

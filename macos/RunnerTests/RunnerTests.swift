@@ -20,6 +20,24 @@ class RendererDartProjectTests: XCTestCase {
     XCTAssertFalse(RendererPolicy.impellerEnabled(infoPlistValue: false, isAppleSilicon: true))
   }
 
+  func testInfoPlistValueIsReadLikeFlutterReadsIt() {
+    XCTAssertEqual(RendererPolicy.infoPlistValue(NSNumber(value: false)), false)
+    XCTAssertEqual(RendererPolicy.infoPlistValue(NSNumber(value: true)), true)
+    XCTAssertEqual(RendererPolicy.infoPlistValue("NO" as NSString), false)
+    XCTAssertEqual(RendererPolicy.infoPlistValue("YES" as NSString), true)
+    XCTAssertNil(RendererPolicy.infoPlistValue(nil))
+    XCTAssertNil(RendererPolicy.infoPlistValue(NSArray()))
+  }
+
+  /// A native arm64 test process can only be running on Apple silicon.
+  func testDetectsAppleSiliconHardware() throws {
+    #if arch(arm64)
+      XCTAssertTrue(RendererPolicy.isAppleSiliconHardware())
+    #else
+      throw XCTSkip("x86_64 process: Intel Mac or Rosetta, either answer is possible")
+    #endif
+  }
+
   /// The override only works while Flutter still reads this selector. If an
   /// engine upgrade renames it, Intel Macs silently go back to Impeller.
   func testFlutterStillDeclaresTheOverriddenSelector() {
