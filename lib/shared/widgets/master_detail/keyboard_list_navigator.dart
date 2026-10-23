@@ -208,6 +208,20 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
     return null;
   }
 
+  /// The keys the list acts on.
+  static final _navigationKeys = {
+    LogicalKeyboardKey.arrowUp,
+    LogicalKeyboardKey.arrowDown,
+    LogicalKeyboardKey.arrowLeft,
+    LogicalKeyboardKey.arrowRight,
+    LogicalKeyboardKey.home,
+    LogicalKeyboardKey.end,
+    LogicalKeyboardKey.pageUp,
+    LogicalKeyboardKey.pageDown,
+    LogicalKeyboardKey.enter,
+    LogicalKeyboardKey.numpadEnter,
+  };
+
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
     final macEdge = _macEdgeKey(event.logicalKey);
@@ -227,9 +241,9 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
         (isPageKey && _pageSettling)) {
       return KeyEventResult.handled;
     }
-    // Any other press supersedes an End still waiting on its load, or a page
-    // waiting to settle.
-    _presses++;
+    // Any other navigating press supersedes an End still waiting on its
+    // load, or a page waiting to settle; a key the list ignores does not.
+    if (_navigationKeys.contains(key)) _presses++;
 
     if (isEdgeKey) {
       _toEdge(last: key == LogicalKeyboardKey.end);
@@ -364,7 +378,13 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
     }
     final edgeIndex = forward ? keys.length - 1 : 0;
     final index = keys.indexOf(cursor);
-    if (index == edgeIndex) return;
+    if (index == edgeIndex) {
+      // Nowhere further to go, but the page is measured from the cursor, so
+      // a cursor scrolled out of sight comes back, as with Home and End.
+      _cursor = cursor;
+      _reveal(cursor, forward: forward);
+      return;
+    }
 
     final visible = _rowsOnScreen();
     final cursorRect = visible[cursor];

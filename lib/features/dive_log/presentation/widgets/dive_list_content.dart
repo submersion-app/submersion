@@ -238,9 +238,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// enough.
   bool _autoLoadKickScheduled = false;
 
-  /// True while End loads the dives past the end of the list, which the
-  /// scrubber shows as it does its own loads (#3302).
-  bool _loadingRest = false;
+  /// End's loads of the dives past the end of the list still running, which
+  /// the scrubber shows as it does its own loads (#3302). A count, so a
+  /// second End does not lose the panel when the first load lands.
+  int _restLoads = 0;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
 
@@ -441,7 +442,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   Future<void> _loadRestOfList() async {
     final paginated = ref.read(paginatedDiveListProvider).value;
     if (paginated == null || !paginated.hasMore) return;
-    setState(() => _loadingRest = true);
+    setState(() => _restLoads++);
     try {
       await ref.read(paginatedDiveListProvider.notifier).loadRest();
     } catch (e, stackTrace) {
@@ -451,7 +452,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         stackTrace: stackTrace,
       );
     } finally {
-      if (mounted) setState(() => _loadingRest = false);
+      if (mounted) setState(() => _restLoads--);
     }
   }
 
@@ -2095,7 +2096,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 groupingEnabled: groupingEnabled,
                 collapsedTripIds: collapsedTripIds,
                 onLand: _landOnDive,
-                busy: _loadingRest,
+                busy: _restLoads > 0,
                 selectedDiveId:
                     widget.selectedId ?? ref.watch(highlightedDiveIdProvider),
                 child: CustomScrollView(

@@ -1007,18 +1007,21 @@ class PaginatedDiveListNotifier
 
   /// Loads every row past the end of the list in one query, so End in the
   /// list reaches the last dive rather than the last loaded one (#3302).
-  /// Asks for a page more than the count left, so a dive added meanwhile
-  /// still comes in and paging ends.
+  /// Asks for a page more than the count left; a count lagging rows written
+  /// since leaves that read full, and the next one picks up the rest.
   Future<void> loadRest() => _enqueuePaging(() async {
-    if (!mounted) return;
-    final current = state.valueOrNull;
-    if (current == null || !current.hasMore) return;
-    final missing = current.totalCount - current.dives.length;
-    await _appendRows(
-      current,
-      limit: (missing > 0 ? missing : 0) + _pageSize,
-      jump: true,
-    );
+    while (mounted) {
+      final current = state.valueOrNull;
+      if (current == null || !current.hasMore) return;
+      final missing = current.totalCount - current.dives.length;
+      await _appendRows(
+        current,
+        limit: (missing > 0 ? missing : 0) + _pageSize,
+        jump: true,
+      );
+      // A failed read raises the flag; the Retry row takes it from there.
+      if (state.valueOrNull?.loadMoreFailed ?? true) return;
+    }
   });
 
   /// A [jump] comes from [loadThrough] or [loadRest]: it keeps the spinner

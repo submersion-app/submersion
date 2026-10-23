@@ -228,6 +228,30 @@ void main() {
       expect(log, ['move:k5']);
     });
 
+    testWidgets('a key the list ignores does not cancel a loading End', (
+      tester,
+    ) async {
+      final log = <String>[];
+      final release = Completer<void>();
+      await _pumpHost(
+        tester,
+        _keys(5),
+        log,
+        onLoadRest: () async {
+          await release.future;
+          return ['k5'];
+        },
+      );
+      await _click(tester, 'k0');
+
+      await _press(tester, LogicalKeyboardKey.end);
+      await _press(tester, LogicalKeyboardKey.keyA);
+      release.complete();
+      await tester.pumpAndSettle();
+
+      expect(log, ['move:k5']);
+    });
+
     testWidgets('a key pressed while End loads cancels the landing', (
       tester,
     ) async {
@@ -410,6 +434,22 @@ void main() {
 
       expect(log, ['move:k99', 'move:k89']);
       expect(_topOf(tester, 'k89'), 0);
+    });
+
+    testWidgets('Page Down on an off-screen last row brings it back', (
+      tester,
+    ) async {
+      final log = <String>[];
+      await _pumpHost(tester, _keys(100), log);
+      await _click(tester, 'k0');
+      await _press(tester, LogicalKeyboardKey.end);
+      _position(tester).jumpTo(0);
+      await tester.pumpAndSettle();
+
+      await _press(tester, LogicalKeyboardKey.pageDown);
+
+      expect(log, ['move:k99']);
+      expect(_onScreen(tester, 'k99'), isTrue);
     });
 
     testWidgets('with no cursor, Page Down starts at the top', (tester) async {

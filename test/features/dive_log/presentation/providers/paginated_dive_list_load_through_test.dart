@@ -20,10 +20,14 @@ import '../../../../helpers/test_database.dart';
 /// Counts the notifier's reads, records each profile batch, and can hold the
 /// [gateCall]th `getDiveSummaries` call open until [release] completes.
 class _CountingRepository implements DiveRepository {
-  _CountingRepository(this._inner, {this.gateCall});
+  _CountingRepository(this._inner, {this.gateCall, this.reportedCount});
 
   final DiveRepository _inner;
   final int? gateCall;
+
+  /// When set, the dive count reported in place of the real one, as a count
+  /// that lags rows written since does.
+  final int? reportedCount;
   final Completer<void> gateReached = Completer<void>();
   final Completer<void> release = Completer<void>();
   int summaryCalls = 0;
@@ -59,7 +63,9 @@ class _CountingRepository implements DiveRepository {
   Future<int> getDiveCount({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
-  }) => _inner.getDiveCount(diverId: diverId, filter: filter);
+  }) async =>
+      reportedCount ??
+      await _inner.getDiveCount(diverId: diverId, filter: filter);
 
   @override
   Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
@@ -406,6 +412,24 @@ void main() {
       expect(state.dives.last.id, dives.last.id);
       expect(state.hasMore, isFalse);
       expect(state.isLoadingMore, isFalse);
+    });
+
+    test('still reaches the last dive when the count lags behind', () async {
+      final diver = await setUpCurrentDiver();
+      final dives = await seedDives(diver.id, 260);
+      final repo = _CountingRepository(diveRepo, reportedCount: 60);
+      final container = makeContainer(repository: repo);
+      addTearDown(container.dispose);
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+      await loadPages(container, 1);
+
+      await container.read(paginatedDiveListProvider.notifier).loadRest();
+
+      final state = container.read(paginatedDiveListProvider).value!;
+      expect(state.dives, hasLength(260));
+      expect(state.dives.last.id, dives.last.id);
+      expect(state.hasMore, isFalse);
     });
 
     test('reads nothing when every dive is already loaded', () async {
