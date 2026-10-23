@@ -7,6 +7,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 
 /// Site types (multi-select chips) and site tags on the site edit page
@@ -44,7 +45,6 @@ class TypeTagsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final labelStyle = Theme.of(context).textTheme.titleSmall;
     final shownTypes = visibleBuiltIns(
       allTypes,
       hiddenTypeIds,
@@ -57,66 +57,79 @@ class TypeTagsSection extends StatelessWidget {
       icon: Icons.category_outlined,
       expanded: true,
       onToggle: null,
+      // FormSection draws a divider between children, so each block (its
+      // overline plus content) is one child that pads itself (issue #3578).
       children: [
-        Text(l10n.diveSites_edit_typeTags_typesLabel, style: labelStyle),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final type in shownTypes)
-              FilterChip(
-                label: Text(type.localizedName(l10n)),
-                selected: selectedTypeIds.contains(type.id),
-                onSelected: (selected) {
-                  // Insertion order is kept: types read back in the order
-                  // the diver picked them.
-                  final next = {...selectedTypeIds};
-                  if (selected) {
-                    next.add(type.id);
-                  } else {
-                    next.remove(type.id);
-                  }
-                  onTypesChanged(next);
-                },
+            FormOverline(
+              label: l10n.diveSites_edit_typeTags_typesLabel,
+              actions: [
+                if (onManageTypes != null)
+                  FormOverlineAction(
+                    label: l10n.diveSites_edit_typeTags_manageTypes,
+                    icon: Icons.tune,
+                    onPressed: onManageTypes,
+                  ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final type in shownTypes)
+                    FilterChip(
+                      label: Text(type.localizedName(l10n)),
+                      selected: selectedTypeIds.contains(type.id),
+                      onSelected: (selected) {
+                        // Insertion order is kept: types read back in the
+                        // order the diver picked them.
+                        final next = {...selectedTypeIds};
+                        if (selected) {
+                          next.add(type.id);
+                        } else {
+                          next.remove(type.id);
+                        }
+                        onTypesChanged(next);
+                      },
+                    ),
+                ],
               ),
-            if (onManageTypes != null)
-              TextButton.icon(
-                onPressed: onManageTypes,
-                icon: const Icon(Icons.tune, size: 18),
-                label: Text(l10n.diveSites_edit_typeTags_manageTypes),
-              ),
+            ),
           ],
         ),
-        const SizedBox(height: 16),
         // Browse opens the same tag picker the dive edit page does, listing
         // the diver's site tags most used first.
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Text(
-                l10n.diveSites_edit_typeTags_tagsLabel,
-                style: labelStyle,
-              ),
+            FormOverline(
+              label: l10n.diveSites_edit_typeTags_tagsLabel,
+              actions: [
+                FormOverlineAction(
+                  label: l10n.tags_action_browse,
+                  icon: Icons.label_outline,
+                  onPressed: () => showTagPickerSheet(
+                    context,
+                    selected: selectedTags,
+                    onPicked: onTagsChanged,
+                    scope: TagScope.sites,
+                  ),
+                ),
+              ],
             ),
-            TextButton.icon(
-              onPressed: () => showTagPickerSheet(
-                context,
-                selected: selectedTags,
-                onPicked: onTagsChanged,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+              child: TagInputWidget(
+                selectedTags: selectedTags,
+                onTagsChanged: onTagsChanged,
                 scope: TagScope.sites,
               ),
-              icon: const Icon(Icons.label_outline, size: 18),
-              label: Text(l10n.tags_action_browse),
             ),
           ],
-        ),
-        const SizedBox(height: 8),
-        TagInputWidget(
-          selectedTags: selectedTags,
-          onTagsChanged: onTagsChanged,
-          scope: TagScope.sites,
         ),
       ],
     );
