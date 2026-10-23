@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -159,19 +158,15 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   /// starts at its top unless its address names one.
   bool _restoreRememberedDiveCenter() {
     if (!mounted) return true;
-    final items = ref.read(filteredDiveCentersProvider);
-    if (!items.hasValue) return items.hasError;
-    final target =
-        widget.selectedId ??
-        (isImperativelyPushed(context)
-            ? null
-            : ref.read(highlightedDiveCenterIdProvider));
-    if (target == null) return true;
-    if (!items.value!.any((item) => item.id == target)) return true;
-    // Not laid out yet: try again once the list is on screen.
-    if (!_scrollController.hasClients) return false;
-    _scrollToSelectedItem(targetId: target, jump: true);
-    return true;
+    return restoreListPosition(
+      context,
+      items: ref.read(filteredDiveCentersProvider),
+      selectedId: widget.selectedId,
+      rememberedId: ref.read(highlightedDiveCenterIdProvider),
+      idOf: (item) => item.id,
+      controller: _scrollController,
+      scrollTo: (id) => _scrollToSelectedItem(targetId: id, jump: true),
+    );
   }
 
   /// Scrolls to [targetId], or the selected dive center when omitted. [jump]

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -148,19 +147,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   /// its top unless its address names one.
   bool _restoreRememberedTrip() {
     if (!mounted) return true;
-    final items = ref.read(sortedFilteredTripsProvider);
-    if (!items.hasValue) return items.hasError;
-    final target =
-        widget.selectedId ??
-        (isImperativelyPushed(context)
-            ? null
-            : ref.read(highlightedTripIdProvider));
-    if (target == null) return true;
-    if (!items.value!.any((item) => item.trip.id == target)) return true;
-    // Not laid out yet: try again once the list is on screen.
-    if (!_scrollController.hasClients) return false;
-    _scrollToSelectedItem(targetId: target, jump: true);
-    return true;
+    return restoreListPosition(
+      context,
+      items: ref.read(sortedFilteredTripsProvider),
+      selectedId: widget.selectedId,
+      rememberedId: ref.read(highlightedTripIdProvider),
+      idOf: (item) => item.trip.id,
+      controller: _scrollController,
+      scrollTo: (id) => _scrollToSelectedItem(targetId: id, jump: true),
+    );
   }
 
   /// Scrolls to [targetId], or the selected trip when omitted. [jump] moves

@@ -378,11 +378,13 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
         selectedId != null ||
         _query['mode'] != null ||
         _isMapView ||
-        !_isShowing ||
         isImperativelyPushed(context)) {
       _restoreSettled = true;
       return;
     }
+    // Built under a page of its own, or as a hidden training tab: decided
+    // once the diver comes back to it, which rebuilds this with the route.
+    if (!_isShowing) return;
     // The list has not loaded yet; the next build checks again.
     if (!remembered.hasValue) return;
     _restoreSettled = true;
@@ -421,10 +423,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref
-          .read(closedPaneRecordProvider.notifier)
-          .update((closed) => {...closed}..remove(widget.sectionId));
+      if (mounted) forgetClosedPane(ref, widget.sectionId);
     });
   }
 

@@ -209,6 +209,21 @@ void main() {
       );
     });
 
+    testWidgets('a list built under a page of its own reopens its record '
+        'once the diver goes back to it', (tester) async {
+      final (router, _) = await _pump(
+        tester,
+        initialLocation: '/items/x',
+        remembered: const AsyncData('a'),
+      );
+
+      router.go('/items');
+      await tester.pumpAndSettle();
+
+      expect(find.text('DETAIL a'), findsOneWidget);
+      expect(_query(router)['selected'], 'a');
+    });
+
     testWidgets('nothing remembered shows the summary', (tester) async {
       final (router, _) = await _pump(
         tester,

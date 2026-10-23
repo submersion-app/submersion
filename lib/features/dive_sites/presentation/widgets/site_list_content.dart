@@ -23,7 +23,6 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
-import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_nav_stops.dart';
@@ -187,20 +186,18 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// top unless its address names a site.
   bool _restoreRememberedSite() {
     if (!mounted) return true;
-    final sites = ref.read(sortedSitesWithCountsProvider);
-    if (!sites.hasValue) return sites.hasError;
-    final target =
-        widget.selectedId ??
-        (isImperativelyPushed(context)
-            ? null
-            : ref.read(highlightedSiteIdProvider));
-    if (target == null) return true;
-    if (!sites.value!.any((s) => s.site.id == target)) return true;
-    // Not laid out yet: try again once the list is on screen.
-    if (!_scrollController.hasClients) return false;
-    _lastScrolledToId = target;
-    _scrollToSelectedItem(targetId: target, jump: true);
-    return true;
+    return restoreListPosition(
+      context,
+      items: ref.read(sortedSitesWithCountsProvider),
+      selectedId: widget.selectedId,
+      rememberedId: ref.read(highlightedSiteIdProvider),
+      idOf: (entry) => entry.site.id,
+      controller: _scrollController,
+      scrollTo: (id) {
+        _lastScrolledToId = id;
+        _scrollToSelectedItem(targetId: id, jump: true);
+      },
+    );
   }
 
   @override

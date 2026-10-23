@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
@@ -173,19 +172,15 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   /// its top unless its address names one.
   bool _restoreRememberedBuddy() {
     if (!mounted) return true;
-    final items = ref.read(filteredBuddiesWithDiveCountProvider);
-    if (!items.hasValue) return items.hasError;
-    final target =
-        widget.selectedId ??
-        (isImperativelyPushed(context)
-            ? null
-            : ref.read(highlightedBuddyIdProvider));
-    if (target == null) return true;
-    if (!items.value!.any((item) => item.buddy.id == target)) return true;
-    // Not laid out yet: try again once the list is on screen.
-    if (!_scrollController.hasClients) return false;
-    _scrollToSelectedItem(targetId: target, jump: true);
-    return true;
+    return restoreListPosition(
+      context,
+      items: ref.read(filteredBuddiesWithDiveCountProvider),
+      selectedId: widget.selectedId,
+      rememberedId: ref.read(highlightedBuddyIdProvider),
+      idOf: (item) => item.buddy.id,
+      controller: _scrollController,
+      scrollTo: (id) => _scrollToSelectedItem(targetId: id, jump: true),
+    );
   }
 
   /// Scrolls to [targetId], or the selected buddy when omitted. [jump] moves

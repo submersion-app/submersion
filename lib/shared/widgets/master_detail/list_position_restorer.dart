@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 
 /// Whether [position] is moving because of the diver rather than a jump.
 bool isScrolledByDiver(ScrollPosition position) =>
@@ -81,4 +82,32 @@ class ListPositionRestorer {
   /// Stops listening. Call from the list's `dispose`, before disposing the
   /// controller.
   void dispose() => _finish();
+}
+
+/// One [ListPositionRestorer] attempt for a list showing [items]: true once
+/// there is nothing left to wait for.
+///
+/// The target is the record the list's address names ([selectedId]) or,
+/// failing that, the one last opened ([rememberedId]), except in a list
+/// pushed over another page, which starts at its top. A target the list does
+/// not hold (deleted, filtered out) ends the restore; one it holds is
+/// scrolled to with [scrollTo] once the list is laid out on [controller].
+bool restoreListPosition<T>(
+  BuildContext context, {
+  required AsyncValue<List<T>> items,
+  required String? selectedId,
+  required String? rememberedId,
+  required String Function(T item) idOf,
+  required ScrollController controller,
+  required void Function(String id) scrollTo,
+}) {
+  if (!items.hasValue) return items.hasError;
+  final target =
+      selectedId ?? (isImperativelyPushed(context) ? null : rememberedId);
+  if (target == null) return true;
+  if (!items.value!.any((item) => idOf(item) == target)) return true;
+  // Not laid out yet: try again once the list is on screen.
+  if (!controller.hasClients) return false;
+  scrollTo(target);
+  return true;
 }

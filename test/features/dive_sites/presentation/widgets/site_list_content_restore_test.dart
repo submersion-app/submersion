@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_list_co
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -55,8 +57,29 @@ Future<ProviderContainer> _pump(
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
+  // A router, so a tapped site can open its page as it does on a phone.
+  final router = GoRouter(
+    initialLocation: '/sites',
+    routes: [
+      GoRoute(
+        path: '/sites',
+        builder: (_, _) =>
+            const Scaffold(body: SiteListContent(showAppBar: true)),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (_, state) =>
+                Scaffold(body: Text('PAGE ${state.pathParameters['id']}')),
+          ),
+        ],
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
+
   await tester.pumpWidget(
-    testApp(
+    testAppRouter(
+      router: router,
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -74,7 +97,6 @@ Future<ProviderContainer> _pump(
         siteGroupByProvider.overrideWith((ref) => SiteGroupBy.none),
         highlightedSiteIdProvider.overrideWith((ref) => highlighted),
       ],
-      child: const SiteListContent(showAppBar: true),
     ),
   );
   // A loading list shows a spinner, which never settles.
@@ -105,6 +127,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(_tile('s50'), findsOneWidget);
+  });
+
+  testWidgets('opening a site on a phone forgets a pane closed on it', (
+    tester,
+  ) async {
+    final container = await _pump(tester, highlighted: null);
+    container.read(closedPaneRecordProvider.notifier).state = const {
+      'sites': 's0',
+      'dives': 'd1',
+    };
+
+    await tester.tap(_tile('s0'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PAGE s0'), findsOneWidget);
+    expect(container.read(closedPaneRecordProvider), {'dives': 'd1'});
   });
 
   testWidgets('a site the list does not hold leaves it at the top', (
