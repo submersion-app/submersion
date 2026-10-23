@@ -153,8 +153,11 @@ class ItemSharesRepository {
     final t = _of(kind);
     final rows = await _db
         .customSelect(
-          'SELECT DISTINCT ${t.parentColumn} AS id FROM ${t.table}',
-          readsFrom: {_tableOf(kind)},
+          'SELECT DISTINCT s.${t.parentColumn} AS id FROM ${t.table} s'
+          // A shared site library site follows its membership, never its
+          // share rows, as the visibility rules say.
+          '${kind == SharedItemKind.site ? ' JOIN dive_sites d ON d.id = s.site_id WHERE d.shared_library_id IS NULL' : ''}',
+          readsFrom: {_tableOf(kind), _parentOf(kind)},
         )
         .get();
     return {for (final r in rows) r.read<String>('id')};

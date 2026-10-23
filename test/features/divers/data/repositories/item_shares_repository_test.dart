@@ -409,4 +409,17 @@ void main() {
     expect(await repository.isVisibleTo(trip, 'bonaire', 'son'), isFalse);
     expect(await repository.isVisibleTo(site, 'missing', 'me'), isFalse);
   });
+
+  test('itemIdsWithShares leaves out a shared site library site', () async {
+    await repository.setSharing(
+      site,
+      'pier',
+      const ItemSharing(profileIds: {'son'}),
+      actingDiverId: 'me',
+    );
+    await db.customStatement(
+      "UPDATE dive_sites SET shared_library_id = 'lib1' WHERE id = 'pier'",
+    );
+    expect(await repository.itemIdsWithShares(site), isEmpty);
+  });
 }
