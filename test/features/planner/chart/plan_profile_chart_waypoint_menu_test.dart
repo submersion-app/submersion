@@ -256,6 +256,25 @@ void main() {
     expect(find.byKey(_removeItem), findsNothing);
   });
 
+  testWidgets('a finger gets a larger target than the mouse', (tester) async {
+    await pumpPlan(tester);
+    // 20 px off the handle: outside the mouse's 16 px, inside touch's 24 px.
+    final near = handleOf(tester, ordered().first.id) + const Offset(0, 20);
+    await longPress(tester, near);
+    expect(find.byKey(_removeItem), findsOneWidget);
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
+
+    final gesture = await tester.startGesture(
+      near,
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryMouseButton,
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.byKey(_removeItem), findsNothing);
+  });
+
   testWidgets('long-press away from a waypoint opens nothing', (tester) async {
     await pumpPlan(tester);
     final rect = tester.getRect(find.byKey(const Key('planChartOverlay')));

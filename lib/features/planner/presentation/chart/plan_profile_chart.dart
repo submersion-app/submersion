@@ -387,6 +387,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
             vertices: vertices,
             geometry: geometry,
             position: event.localPosition,
+            // A fingertip needs the 48 px minimum touch target.
+            radius: event.kind == PointerDeviceKind.mouse ? 16 : 24,
           );
           final hit = _dragVertex;
           _dragSegmentId = hit == null ? null : vertices[hit].segmentId;
