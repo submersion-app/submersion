@@ -47,9 +47,9 @@ Calls this plan makes where the spec leaves a choice, or the code contradicts it
 
    | Step | Done when |
    |---|---|
-   | Account | Some account of `syncAccountKinds` is `signedInHere`. |
+   | Account | A feature names an account here: sync is selected, the backup copy is pinned, or photos are attached. (Changed in review round 1: no account status is probed on the Settings root or the Data page.) |
    | Sync | `isSyncEnabledProvider` is on and `syncStateProvider.lastSync != null`. |
-   | Backups | `enabled && (cloudBackupEnabled \|\| backupLocation != null)`. |
+   | Backups | `enabled` and either a cloud copy with somewhere to go (`copyAccountId != null` or sync selected) or `backupLocation != null`. |
    | Photos | `mediaStoreAttachedProvider` is true, or the step was skipped. |
 
    A custom database folder (`storageConfig` custom) settles Account and Sync. The diver chose where the data lives, and nagging them to pick an account would contradict that choice.
