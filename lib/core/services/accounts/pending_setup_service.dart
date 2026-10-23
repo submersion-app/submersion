@@ -34,6 +34,11 @@ class PendingSetupItem {
   /// For accountSignIn: the roster row that needs signing in.
   final String? accountId;
 
+  /// For accountSignIn: sync or the backup copy uses this account, so both
+  /// stop until it is signed in again. Read from the account's uses, not
+  /// from [route], which names only the first page that can sign it in.
+  final bool pausesSyncOrBackups;
+
   /// The settings page that actually resolves this item. Computed by the
   /// service, which knows what the account drives (sync selection, media
   /// store descriptor, connector) - the card just navigates.
@@ -51,6 +56,7 @@ class PendingSetupItem {
     required this.route,
     this.accountKind,
     this.accountId,
+    this.pausesSyncOrBackups = false,
     this.dismissed = false,
   });
 }
@@ -171,6 +177,13 @@ class PendingSetupService {
           label: account.displayName,
           accountKind: account.kind,
           accountId: account.id,
+          pausesSyncOrBackups: usage
+              .usagesOf(account)
+              .any(
+                (u) =>
+                    u.kind == AccountUsageKind.databaseSync ||
+                    u.kind == AccountUsageKind.backupCopy,
+              ),
           route: _routeFor(account, usage: usage),
           dismissed: _isDismissed(key),
         ),

@@ -248,9 +248,11 @@ class SettingsMobileContent extends ConsumerWidget {
             index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
         itemBuilder: (context, index) {
           if (index == 0) {
+            // A phone has no Data pane: push the step's page over the list,
+            // so Back returns here.
             return SetUpDeviceCard(
               compact: true,
-              onOpenStep: (step) => context.go(setUpStepDataLocation(step)),
+              onOpenStep: (step) => context.push(setUpStepRoute(step)),
             );
           }
           final section = sections[index - 1];

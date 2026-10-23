@@ -39,6 +39,7 @@ const _signIn = PendingSetupItem(
   accountKind: AccountKind.googledrive,
   accountId: 'a1',
   route: '/settings/cloud-sync',
+  pausesSyncOrBackups: true,
 );
 
 const _attach = PendingSetupItem(
@@ -190,6 +191,31 @@ void main() {
       );
       await pump(tester, progress: _progress(hidden: true), items: [library]);
       expect(find.text('Sign in to Club server again.'), findsOneWidget);
+    });
+
+    testWidgets('the account\'s uses decide the line, not the page that '
+        'signs it in', (tester) async {
+      const photosAndBackup = PendingSetupItem(
+        kind: SetupItemKind.accountSignIn,
+        key: 'account_m1',
+        label: 'Media server',
+        accountKind: AccountKind.s3,
+        accountId: 'm1',
+        route: '/settings/photos-media',
+        pausesSyncOrBackups: true,
+      );
+      await pump(
+        tester,
+        progress: _progress(hidden: true),
+        items: [photosAndBackup],
+      );
+      expect(
+        find.text(
+          'Sign in to Media server again. Sync and backups are paused until '
+          'you do.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('dismissing an item records it for this device', (

@@ -6,9 +6,6 @@ import 'package:submersion/features/settings/presentation/widgets/settings_pane_
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
-/// The pages whose feature stops while an account waits for a sign-in.
-const _pausingRoutes = {'/settings/cloud-sync', '/settings/backup'};
-
 /// What needs the diver after setup (spec 6.5): an account to sign in to
 /// again, a store the library announces that this device has not joined,
 /// a store marker that no longer matches. One line each, with the action
@@ -46,7 +43,7 @@ class SetUpPendingItems extends StatelessWidget {
               SetupItemKind.mediaStoreReconnect =>
                 l10n.settings_setUpDevice_item_reconnect(item.label),
               SetupItemKind.accountSignIn =>
-                _pausingRoutes.contains(item.route)
+                item.pausesSyncOrBackups
                     ? l10n.settings_setUpDevice_item_signIn(item.label)
                     : l10n.settings_setUpDevice_item_signInShort(item.label),
             }),

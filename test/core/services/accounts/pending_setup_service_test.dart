@@ -166,6 +166,7 @@ void main() {
     expect(items.single.kind, SetupItemKind.accountSignIn);
     expect(items.single.label, 'MinIO');
     expect(items.single.accountId, minio.id);
+    expect(items.single.pausesSyncOrBackups, isTrue);
     expect(items.single.accountKind, AccountKind.s3);
     expect(items.single.route, '/settings/cloud-sync');
   });
@@ -305,6 +306,35 @@ void main() {
 
     expect(items.single.key, 'account_${mediaAccount.id}');
     expect(items.single.route, '/settings/photos-media');
+  });
+
+  test('an account holding the backup copy pauses backups, even when it '
+      'routes to Photos & videos', () async {
+    final account = await accounts.create(kind: AccountKind.s3, label: 'S3');
+    await MediaStoreAttachState(prefs: prefs).setAttached(
+      'store-1',
+      providerType: CloudProviderType.s3,
+      accountId: account.id,
+    );
+    await prefs.setBool('backup_cloud_enabled', true);
+    await prefs.setString('backup_copy_account_id', account.id);
+    await prefs.setString('backup_copy_account_kind', 's3');
+
+    final item = (await service().compute()).single;
+
+    expect(item.route, '/settings/photos-media');
+    expect(item.pausesSyncOrBackups, isTrue);
+  });
+
+  test('an account only the photo copies use pauses neither', () async {
+    final account = await accounts.create(kind: AccountKind.s3, label: 'S3');
+    await MediaStoreAttachState(prefs: prefs).setAttached(
+      'store-1',
+      providerType: CloudProviderType.s3,
+      accountId: account.id,
+    );
+
+    expect((await service().compute()).single.pausesSyncOrBackups, isFalse);
   });
 
   test('a key dismissed without a service is dismissed for it', () async {

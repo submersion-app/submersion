@@ -52,6 +52,10 @@ void main() {
           path: '/settings',
           builder: (context, state) => const Scaffold(body: Text('settings')),
         ),
+        GoRoute(
+          path: '/settings/cloud-sync',
+          builder: (context, state) => const Scaffold(body: Text('sync page')),
+        ),
       ],
     );
     addTearDown(router.dispose);
@@ -75,27 +79,37 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  for (final (name, root) in [
-    ('the desktop settings list', const SettingsListContent()),
-    ('the phone settings list', const SettingsMobileContent()),
-  ]) {
-    testWidgets('$name leads with the compact card, whose Continue opens the '
-        'next step over Settings > Data', (tester) async {
-      await pump(tester, root);
+  testWidgets('the desktop settings list leads with the compact card, whose '
+      'Continue opens the next step in the Data pane', (tester) async {
+    await pump(tester, const SettingsListContent());
 
-      final card = tester.widget<SetUpDeviceCard>(find.byType(SetUpDeviceCard));
-      expect(card.compact, isTrue);
-      expect(find.text('Finish setting up this phone'), findsOneWidget);
+    final card = tester.widget<SetUpDeviceCard>(find.byType(SetUpDeviceCard));
+    expect(card.compact, isTrue);
+    expect(find.text('Finish setting up this phone'), findsOneWidget);
 
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
 
-      final location = router.routerDelegate.currentConfiguration.uri;
-      expect(location.path, '/settings');
-      expect(location.queryParameters, {
-        'selected': 'data',
-        'dataPage': 'cloud-sync',
-      });
+    final location = router.routerDelegate.currentConfiguration.uri;
+    expect(location.path, '/settings');
+    expect(location.queryParameters, {
+      'selected': 'data',
+      'dataPage': 'cloud-sync',
     });
-  }
+  });
+
+  testWidgets('the phone settings list leads with the compact card, whose '
+      'Continue pushes the next step', (tester) async {
+    await pump(tester, const SettingsMobileContent());
+
+    final card = tester.widget<SetUpDeviceCard>(find.byType(SetUpDeviceCard));
+    expect(card.compact, isTrue);
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('sync page'), findsOneWidget);
+    // Pushed over the list, so Back returns to it.
+    expect(router.canPop(), isTrue);
+  });
 }
