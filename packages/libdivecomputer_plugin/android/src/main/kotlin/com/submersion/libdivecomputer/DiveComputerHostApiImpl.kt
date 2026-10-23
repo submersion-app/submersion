@@ -420,7 +420,7 @@ class DiveComputerHostApiImpl(
         // pairs transparently during the first encrypted GATT operation,
         // and if that fails the download reports the protocol error that
         // actually describes the problem.
-        if (BondPolicy.requiresProactiveBond(device.vendor, device.product)) {
+        if (BondPolicy.requiresProactiveBond(device)) {
             if (!bleStream.ensureBonded()) {
                 val reason = bleStream.lastBondFailure ?: "reason unavailable"
                 if (BondPolicy.bondFailureAbortsDownload(device.vendor)) {

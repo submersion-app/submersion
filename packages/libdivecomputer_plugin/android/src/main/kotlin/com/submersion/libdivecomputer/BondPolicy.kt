@@ -48,6 +48,12 @@ object BondPolicy {
             (v to p) !in productsWithoutProactiveBond
     }
 
+    // The download path's entry point. It reads the descriptor product,
+    // never the advertised BLE name (DiscoveredDevice.name), which carries
+    // a serial suffix and would match no exemption.
+    fun requiresProactiveBond(device: DiscoveredDevice): Boolean =
+        requiresProactiveBond(device.vendor, device.product)
+
     // Whether a proactive bond that did not complete should end the
     // download. It never should, for any vendor.
     //

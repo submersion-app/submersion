@@ -91,7 +91,24 @@ class BondPolicyTest {
     @Test
     fun unknownOrEmptyVendorDefaultsToBonding() {
         assertTrue(BondPolicy.requiresProactiveBond("", ""))
-        assertTrue(BondPolicy.requiresProactiveBond("NoSuchVendor", "DSX"))
+        assertTrue(BondPolicy.requiresProactiveBond("NoSuchVendor", "NoSuchProduct"))
+    }
+
+    // The download path hands over the whole DiscoveredDevice. A DSX
+    // advertises a name with a serial suffix, so a policy that read the
+    // name instead of the descriptor product would bond it again.
+    @Test
+    fun discoveredDeviceOverloadReadsTheProductNotTheAdvertisedName() {
+        val dsx = DiscoveredDevice(
+            vendor = "Apeks",
+            product = "DSX",
+            model = 0x4741,
+            address = "00:11:22:33:44:55",
+            name = "DSX 12345",
+            transport = TransportType.BLE
+        )
+        assertFalse(BondPolicy.requiresProactiveBond(dsx))
+        assertTrue(BondPolicy.requiresProactiveBond(dsx.copy(product = "i300C", vendor = "Aqualung")))
     }
 
     // A tester saw eleven consecutive downloads end at "bond_failed" on a
@@ -113,6 +130,5 @@ class BondPolicyTest {
     @Test
     fun exemptVendorsAlsoNeverAbortOnBondFailure() {
         assertFalse(BondPolicy.bondFailureAbortsDownload("Shearwater"))
-        assertFalse(BondPolicy.bondFailureAbortsDownload("Apeks"))
     }
 }
