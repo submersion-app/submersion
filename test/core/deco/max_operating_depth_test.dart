@@ -98,7 +98,7 @@ void main() {
       expect(readPpO2(1.0, 6.0), 1.6);
     });
 
-    test('is the MOD at the limit plus half a display step', () {
+    test('is the MOD at the limit plus just under half a display step', () {
       expect(
         gasSwitchDepthMeters(0.5, maxPpO2: 1.6, environment: salt),
         maxOperatingDepthMeters(
@@ -107,7 +107,10 @@ void main() {
           environment: salt,
         ),
       );
-      expect(gasSwitchPpO2Tolerance, 0.005);
+      expect(gasSwitchPpO2Tolerance, lessThan(0.005));
+      // At the switch depth itself the gas still reads as the limit.
+      final depth = gasSwitchDepthMeters(0.40, maxPpO2: 1.6, environment: salt);
+      expect(readPpO2(0.40, depth), 1.6);
     });
   });
 

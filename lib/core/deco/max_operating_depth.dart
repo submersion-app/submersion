@@ -33,10 +33,12 @@ double maxOperatingDepthMeters(
   return math.max(environment.depthAtPressure(pressure), 0.0);
 }
 
-/// Half the 0.01 bar step a ppO2 is shown to. A planned gas switch allows
-/// this much over the limit, so a gas is breathed wherever its ppO2 still
-/// reads as the limit.
-const double gasSwitchPpO2Tolerance = 0.005;
+/// Just under half the 0.01 bar step a ppO2 is shown to. A planned gas
+/// switch allows this much over the limit, so a gas is breathed wherever its
+/// ppO2 still reads as the limit. Not a full half: a stop landing exactly on
+/// the switch depth would sit on the rounding boundary and could read one
+/// step high.
+const double gasSwitchPpO2Tolerance = 0.0049;
 
 /// Deepest depth in meters at which a plan switches to [o2Fraction] under
 /// [maxPpO2], measured in the plan's [environment] (issue #3566).
