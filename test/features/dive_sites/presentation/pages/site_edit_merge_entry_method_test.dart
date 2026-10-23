@@ -187,6 +187,7 @@ void main() {
     expect(find.text('Jetty/Dock'), findsOneWidget);
     expect(cycleButtonFor('Entry Method'), findsNothing);
   });
+
   testWidgets('merge mode cycles whole entry lists (#2054)', (tester) async {
     tester.view.physicalSize = const Size(900, 3600);
     tester.view.devicePixelRatio = 1.0;

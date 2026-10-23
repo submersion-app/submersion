@@ -97,4 +97,37 @@ void main() {
       expect(find.text(method.displayName), findsNothing);
     }
   });
+
+  testWidgets('several entry methods share one row (#2054)', (tester) async {
+    await pumpDetail(
+      tester,
+      const DiveSite(
+        id: 'em-multi',
+        name: 'Blue Hole',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+        exitMethods: [EntryMethod.ladder],
+      ),
+    );
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+    expect(find.text('Ladder'), findsOneWidget);
+  });
+
+  testWidgets('exits that are the same set as entries are not repeated', (
+    tester,
+  ) async {
+    await pumpDetail(
+      tester,
+      const DiveSite(
+        id: 'em-same-set',
+        name: 'Blue Hole',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+        exitMethods: [EntryMethod.giantStride, EntryMethod.backRoll],
+      ),
+    );
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+    expect(find.text('Giant Stride, Back Roll'), findsNothing);
+    expect(find.text('Exit'), findsNothing);
+  });
 }

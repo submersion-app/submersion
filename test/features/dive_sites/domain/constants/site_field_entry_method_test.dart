@@ -46,4 +46,21 @@ void main() {
       WaterType.salt.displayName,
     );
   });
+
+  test('several methods are listed in order (#2054)', () {
+    const site = DiveSite(
+      id: 's',
+      name: 'S',
+      entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+      exitMethods: [EntryMethod.ladder, EntryMethod.platform],
+    );
+    expect(
+      adapter.extractValue(SiteField.entryType, wrap(site)),
+      'Back Roll, Giant Stride',
+    );
+    expect(
+      adapter.extractValue(SiteField.exitMethod, wrap(site)),
+      'Ladder, Platform',
+    );
+  });
 }
