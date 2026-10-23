@@ -12238,6 +12238,58 @@ class AppLocalizationsDe extends AppLocalizations {
       'Benutzername ist erforderlich';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Deine Tauchgänge sind in einem anderen Taucherprofil';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '\"$target\" hat $_temp0. Dieses Gerät zeigt \"$active\" an, das keine hat. Das kann passieren, wenn ein Gerät vor seiner ersten Synchronisierung ein eigenes Profil erstellt.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Wechseln';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Zusammenführen';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Beide behalten';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      'Taucherprofile zusammenführen?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Alles aus \"$active\" wird nach \"$target\" verschoben, und \"$active\" wird entfernt. \"$target\" behält seinen Namen und seine Einstellungen. Dies kann direkt nach dem Zusammenführen rückgängig gemacht werden.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Abbrechen';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Zusammenführen';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Zusammengeführt in $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Rückgängig';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Zusammenführung fehlgeschlagen: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Aktiver Taucher';
 
   @override

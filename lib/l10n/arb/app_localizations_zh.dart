@@ -11649,6 +11649,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divelogsImport_signIn_usernameRequired => '请输入用户名';
 
   @override
+  String get divers_misplacedLogbook_title => '你的潜水记录在另一个潜水员档案中';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    return '「$target」中有 $count 次潜水。此设备显示的是「$active」，其中没有潜水记录。如果设备在首次同步之前创建了自己的档案，就可能出现这种情况。';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => '切换';
+
+  @override
+  String get divers_misplacedLogbook_merge => '合并';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => '保留两者';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle => '合并潜水员档案？';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return '「$active」中的所有内容将移入「$target」，并删除「$active」。「$target」保留其名称和设置。合并后可立即撤销此操作。';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => '取消';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => '合并';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return '已合并到 $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => '撤销';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return '合并失败：$error';
+  }
+
+  @override
   String get divers_detail_activeDiver => '当前潜水员';
 
   @override

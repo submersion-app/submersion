@@ -12208,6 +12208,58 @@ class AppLocalizationsHu extends AppLocalizations {
       'A felhasználónév megadása kötelező';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'A merüléseid egy másik búvárprofilban vannak';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return 'A(z) \"$target\" profilban $_temp0 van. Ez az eszköz a(z) \"$active\" profilt mutatja, amelyben nincs egy sem. Ez akkor fordulhat elő, ha egy eszköz az első szinkronizálás előtt saját profilt hoz létre.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Váltás';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Összevon';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Mindkettő megtartása';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      'Búvárprofilok összevonása?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'A(z) \"$active\" teljes tartalma átkerül ide: \"$target\", a(z) \"$active\" profil pedig törlődik. A(z) \"$target\" megtartja a nevét és a beállításait. Ez az összevonás után azonnal visszavonható.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Mégse';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Összevon';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Összevonva ide: $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Visszavonás';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Összevonás sikertelen: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Aktív merülő';
 
   @override

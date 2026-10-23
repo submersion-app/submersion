@@ -12405,6 +12405,59 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divelogsImport_signIn_usernameRequired => 'اسم المستخدم مطلوب';
 
   @override
+  String get divers_misplacedLogbook_title => 'غطساتك موجودة في ملف غواص آخر';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return 'في \"$target\" $_temp0. يعرض هذا الجهاز \"$active\"، الذي لا يحتوي على أي غطسات. قد يحدث هذا عندما ينشئ جهاز ملفه الشخصي قبل المزامنة الأولى.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'تبديل';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'دمج';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'الاحتفاظ بكليهما';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle => 'دمج ملفات الغواصين؟';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'سيتم نقل كل ما في \"$active\" إلى \"$target\"، وستتم إزالة \"$active\". يحتفظ \"$target\" باسمه وإعداداته. يمكن التراجع عن هذا مباشرةً بعد الدمج.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'إلغاء';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'دمج';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'تم الدمج في $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'تراجع';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'فشل الدمج: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'الغواص النشط';
 
   @override

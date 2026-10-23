@@ -11970,6 +11970,57 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divelogsImport_signIn_usernameRequired => 'נדרש שם משתמש';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'הצלילות שלך נמצאות בפרופיל צולל אחר';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return 'ב-\"$target\" יש $_temp0. מכשיר זה מציג את \"$active\", שאין בו צלילות. זה יכול לקרות כשמכשיר יוצר פרופיל משלו לפני הסנכרון הראשון.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'החלף';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'מזג';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'השאר את שניהם';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle => 'למזג פרופילי צוללים?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'כל מה שב-\"$active\" יועבר אל \"$target\", ו-\"$active\" יוסר. \"$target\" שומר על השם וההגדרות שלו. ניתן לבטל פעולה זו מיד לאחר המיזוג.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'ביטול';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'מזג';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'מוזג אל $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'בטל';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'המיזוג נכשל: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'צולל פעיל';
 
   @override

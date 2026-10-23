@@ -12047,6 +12047,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divelogsImport_signIn_usernameRequired => 'Username is required';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Your dives are in another diver profile';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '\"$target\" has $_temp0. This device is showing \"$active\", which has none. This can happen when a device creates its own profile before its first sync.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Switch';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Merge';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Keep both';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle => 'Merge diver profiles?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Everything in \"$active\" moves into \"$target\", and \"$active\" is removed. \"$target\" keeps its name and settings. You can undo this right after merging.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Cancel';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Merge';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Merged into $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Undo';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Merge failed: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Active Diver';
 
   @override

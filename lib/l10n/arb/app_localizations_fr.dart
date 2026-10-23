@@ -12274,6 +12274,58 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le nom d\'utilisateur est requis';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Vos plongées sont dans un autre profil de plongeur';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '$count plongée',
+    );
+    return '\"$target\" contient $_temp0. Cet appareil affiche \"$active\", qui n\'en contient aucune. Cela peut arriver lorsqu\'un appareil crée son propre profil avant sa première synchronisation.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Basculer';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Fusionner';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Garder les deux';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      'Fusionner les profils de plongeur ?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Tout le contenu de \"$active\" sera déplacé vers \"$target\", et \"$active\" sera supprimé. \"$target\" conserve son nom et ses réglages. Cette action peut être annulée juste après la fusion.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Annuler';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Fusionner';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Fusionné dans $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Annuler';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Échec de la fusion : $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Plongeur actif';
 
   @override

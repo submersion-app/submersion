@@ -12231,6 +12231,58 @@ class AppLocalizationsEs extends AppLocalizations {
       'El nombre de usuario es obligatorio';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Tus buceos están en otro perfil de buceador';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buceos',
+      one: '$count buceo',
+    );
+    return '\"$target\" tiene $_temp0. Este dispositivo muestra \"$active\", que no tiene ninguno. Esto puede pasar cuando un dispositivo crea su propio perfil antes de su primera sincronización.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Cambiar';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Fusionar';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Conservar ambos';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      '¿Fusionar perfiles de buceador?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Todo lo de \"$active\" se moverá a \"$target\" y \"$active\" se eliminará. \"$target\" conserva su nombre y sus ajustes. Se puede deshacer justo después de fusionar.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Cancelar';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Fusionar';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Fusionado en $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Deshacer';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Error al fusionar: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Buceador activo';
 
   @override

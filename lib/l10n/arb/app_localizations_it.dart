@@ -12235,6 +12235,58 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il nome utente è obbligatorio';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Le tue immersioni sono in un altro profilo subacqueo';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+    );
+    return '\"$target\" ha $_temp0. Questo dispositivo mostra \"$active\", che non ne ha nessuna. Può succedere quando un dispositivo crea il proprio profilo prima della prima sincronizzazione.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Passa';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Unisci';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Mantieni entrambi';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      'Unire i profili subacquei?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Tutto ciò che si trova in \"$active\" verrà spostato su \"$target\" e \"$active\" verrà rimosso. \"$target\" mantiene il suo nome e le sue impostazioni. Questa operazione può essere annullata subito dopo l\'unione.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Annulla';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Unisci';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Unito in $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Annulla';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Unione non riuscita: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Subacqueo attivo';
 
   @override

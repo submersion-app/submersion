@@ -12234,6 +12234,58 @@ class AppLocalizationsPt extends AppLocalizations {
       'O nome de utilizador é obrigatório';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Os seus mergulhos estão em outro perfil de mergulhador';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '\"$target\" tem $_temp0. Este dispositivo mostra \"$active\", que não tem nenhum. Isso pode acontecer quando um dispositivo cria o seu próprio perfil antes da primeira sincronização.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Mudar';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Mesclar';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Manter ambos';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      'Mesclar perfis de mergulhador?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Tudo em \"$active\" será movido para \"$target\" e \"$active\" será removido. \"$target\" mantém o seu nome e as suas definições. Esta ação pode ser desfeita logo após a mesclagem.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Cancelar';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Mesclar';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Mesclado em $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Desfazer';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Falha ao mesclar: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Mergulhador Ativo';
 
   @override

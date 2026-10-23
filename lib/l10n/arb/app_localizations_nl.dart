@@ -12150,6 +12150,58 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gebruikersnaam is verplicht';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Je duiken staan in een ander duikersprofiel';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '\"$target\" heeft $_temp0. Dit apparaat toont \"$active\", dat er geen heeft. Dit kan gebeuren wanneer een apparaat een eigen profiel aanmaakt vóór de eerste synchronisatie.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Wisselen';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Samenvoegen';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Beide behouden';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      'Duikersprofielen samenvoegen?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Alles in \"$active\" wordt verplaatst naar \"$target\" en \"$active\" wordt verwijderd. \"$target\" behoudt zijn naam en instellingen. Dit kan direct na het samenvoegen ongedaan worden gemaakt.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Annuleren';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Samenvoegen';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Samengevoegd in $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Ongedaan maken';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Samenvoegen mislukt: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Actieve duiker';
 
   @override

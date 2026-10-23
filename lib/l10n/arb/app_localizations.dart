@@ -19555,6 +19555,78 @@ abstract class AppLocalizations {
   /// **'Username is required'**
   String get divelogsImport_signIn_usernameRequired;
 
+  /// Title of the Dives list banner shown when this device's active diver profile has no dives and another profile holds them (issue #3549).
+  ///
+  /// In en, this message translates to:
+  /// **'Your dives are in another diver profile'**
+  String get divers_misplacedLogbook_title;
+
+  /// Banner text naming the profile that holds the dives and the empty active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{target}\" has {count, plural, =1{{count} dive} other{{count} dives}}. This device is showing \"{active}\", which has none. This can happen when a device creates its own profile before its first sync.'**
+  String divers_misplacedLogbook_body(String target, int count, String active);
+
+  /// Banner button that makes the profile holding the dives the active one on this device.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch'**
+  String get divers_misplacedLogbook_switchTo;
+
+  /// Banner button that opens the merge confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get divers_misplacedLogbook_merge;
+
+  /// Banner button that hides the banner for this pair of profiles on this device.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep both'**
+  String get divers_misplacedLogbook_keepBoth;
+
+  /// Title of the merge confirmation dialog opened from the Dives list banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge diver profiles?'**
+  String get divers_misplacedLogbook_confirmTitle;
+
+  /// Body of the merge confirmation dialog: the empty active profile merges into the one holding the dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in \"{active}\" moves into \"{target}\", and \"{active}\" is removed. \"{target}\" keeps its name and settings. You can undo this right after merging.'**
+  String divers_misplacedLogbook_confirmBody(String active, String target);
+
+  /// Cancel button on the merge confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get divers_misplacedLogbook_confirmCancel;
+
+  /// Confirm button on the merge confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get divers_misplacedLogbook_confirmAction;
+
+  /// Snackbar after the merge, naming the profile kept.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged into {target}'**
+  String divers_misplacedLogbook_mergedSnack(String target);
+
+  /// Snackbar action that undoes the merge.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get divers_misplacedLogbook_undo;
+
+  /// Snackbar when the merge fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge failed: {error}'**
+  String divers_misplacedLogbook_mergeFailed(String error);
+
   /// No description provided for @divers_detail_activeDiver.
   ///
   /// In en, this message translates to:

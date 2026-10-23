@@ -7433,6 +7433,90 @@
   "divelogsImport_signIn_unreachable": "Could not reach divelogs.de. Check your connection and try again.",
   "divelogsImport_signIn_usernameLabel": "Username",
   "divelogsImport_signIn_usernameRequired": "Username is required",
+  "divers_misplacedLogbook_title": "Your dives are in another diver profile",
+  "@divers_misplacedLogbook_title": {
+    "description": "Title of the Dives list banner shown when this device's active diver profile has no dives and another profile holds them (issue #3549)."
+  },
+  "divers_misplacedLogbook_body": "\"{target}\" has {count, plural, =1{{count} dive} other{{count} dives}}. This device is showing \"{active}\", which has none. This can happen when a device creates its own profile before its first sync.",
+  "@divers_misplacedLogbook_body": {
+    "description": "Banner text naming the profile that holds the dives and the empty active profile.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Dave"
+      },
+      "count": {
+        "type": "int",
+        "example": "212"
+      },
+      "active": {
+        "type": "String",
+        "example": "Diver"
+      }
+    }
+  },
+  "divers_misplacedLogbook_switchTo": "Switch",
+  "@divers_misplacedLogbook_switchTo": {
+    "description": "Banner button that makes the profile holding the dives the active one on this device."
+  },
+  "divers_misplacedLogbook_merge": "Merge",
+  "@divers_misplacedLogbook_merge": {
+    "description": "Banner button that opens the merge confirmation."
+  },
+  "divers_misplacedLogbook_keepBoth": "Keep both",
+  "@divers_misplacedLogbook_keepBoth": {
+    "description": "Banner button that hides the banner for this pair of profiles on this device."
+  },
+  "divers_misplacedLogbook_confirmTitle": "Merge diver profiles?",
+  "@divers_misplacedLogbook_confirmTitle": {
+    "description": "Title of the merge confirmation dialog opened from the Dives list banner."
+  },
+  "divers_misplacedLogbook_confirmBody": "Everything in \"{active}\" moves into \"{target}\", and \"{active}\" is removed. \"{target}\" keeps its name and settings. You can undo this right after merging.",
+  "@divers_misplacedLogbook_confirmBody": {
+    "description": "Body of the merge confirmation dialog: the empty active profile merges into the one holding the dives.",
+    "placeholders": {
+      "active": {
+        "type": "String",
+        "example": "Diver"
+      },
+      "target": {
+        "type": "String",
+        "example": "Dave"
+      }
+    }
+  },
+  "divers_misplacedLogbook_confirmCancel": "Cancel",
+  "@divers_misplacedLogbook_confirmCancel": {
+    "description": "Cancel button on the merge confirmation dialog."
+  },
+  "divers_misplacedLogbook_confirmAction": "Merge",
+  "@divers_misplacedLogbook_confirmAction": {
+    "description": "Confirm button on the merge confirmation dialog."
+  },
+  "divers_misplacedLogbook_mergedSnack": "Merged into {target}",
+  "@divers_misplacedLogbook_mergedSnack": {
+    "description": "Snackbar after the merge, naming the profile kept.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Dave"
+      }
+    }
+  },
+  "divers_misplacedLogbook_undo": "Undo",
+  "@divers_misplacedLogbook_undo": {
+    "description": "Snackbar action that undoes the merge."
+  },
+  "divers_misplacedLogbook_mergeFailed": "Merge failed: {error}",
+  "@divers_misplacedLogbook_mergeFailed": {
+    "description": "Snackbar when the merge fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "database is locked"
+      }
+    }
+  },
   "divers_detail_activeDiver": "Active Diver",
   "divers_detail_cancelButton": "Cancel",
   "divers_detail_deleteButton": "Delete",
