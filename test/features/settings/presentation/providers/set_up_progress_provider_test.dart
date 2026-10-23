@@ -41,13 +41,17 @@ void main() {
     bool customFolder = false,
     bool attached = false,
     bool attachLoading = false,
+    bool attachFails = false,
+    bool groupsFail = false,
   }) async {
     SharedPreferences.setMockInitialValues(prefValues);
     prefs = await SharedPreferences.getInstance();
     final c = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        accountGroupsProvider.overrideWith((ref) async => groups),
+        accountGroupsProvider.overrideWith(
+          (ref) async => groupsFail ? throw StateError('keychain') : groups,
+        ),
         isSyncEnabledProvider.overrideWithValue(syncEnabled),
         lastSyncTimeProvider.overrideWithValue(lastSync),
         isCloudSyncDisabledByCustomFolderProvider.overrideWithValue(
@@ -56,6 +60,8 @@ void main() {
         mediaStoreAttachedProvider.overrideWith(
           (ref) => attachLoading
               ? Completer<bool>().future
+              : attachFails
+              ? Future<bool>.error(StateError('prefs'))
               : Future<bool>.value(attached),
         ),
       ],
@@ -68,7 +74,6 @@ void main() {
   Future<SetUpProgress> settle(ProviderContainer c) async {
     final sub = c.listen(setUpProgressProvider, (_, _) {});
     addTearDown(sub.close);
-    await c.read(accountGroupsProvider.future);
     await c.read(mediaStoreAttachedProvider.future);
     final progress = c.read(setUpProgressProvider);
     expect(progress, isNotNull);
@@ -87,27 +92,47 @@ void main() {
     expect(progress.showsSteps, isTrue);
   });
 
-  test('an account sync can use, signed in here, does the account '
-      'step', () async {
-    final progress = await settle(
+  test('an account in use here does the account step: sync names one, the '
+      'backup copy is pinned to one, or photos are attached', () async {
+    final sync = await settle(await container(syncEnabled: true));
+    expect(sync.marks[SetUpStep.account], SetUpMark.done);
+
+    final pinned = await settle(
       await container(
-        groups: [_group(AccountKind.googledrive, AccountStatus.signedIn)],
+        prefValues: {
+          'backup_copy_account_id': 'acc-1',
+          'backup_copy_account_kind': 'googledrive',
+        },
       ),
     );
-    expect(progress.marks[SetUpStep.account], SetUpMark.done);
+    expect(pinned.marks[SetUpStep.account], SetUpMark.done);
+
+    final attached = await settle(await container(attached: true));
+    expect(attached.marks[SetUpStep.account], SetUpMark.done);
   });
 
-  test('an account that needs signing in, or one sync cannot use, does '
-      'not', () async {
-    final progress = await settle(
-      await container(
-        groups: [
-          _group(AccountKind.googledrive, AccountStatus.needsSignIn),
-          _group(AccountKind.adobeLightroom, AccountStatus.signedIn),
-        ],
-      ),
+  test('no account is probed: an account list that fails changes '
+      'nothing', () async {
+    final c = await container(
+      groups: [_group(AccountKind.googledrive, AccountStatus.signedIn)],
+      groupsFail: true,
     );
+    final progress = await settle(c);
     expect(progress.marks[SetUpStep.account], SetUpMark.next);
+  });
+
+  test('a failed attach read counts as not attached, and still shows the '
+      'card', () async {
+    final c = await container(attachFails: true);
+    final sub = c.listen(setUpProgressProvider, (_, _) {});
+    addTearDown(sub.close);
+    await expectLater(
+      c.read(mediaStoreAttachedProvider.future),
+      throwsA(anything),
+    );
+    final progress = c.read(setUpProgressProvider);
+    expect(progress, isNotNull);
+    expect(progress!.marks[SetUpStep.photos], isNot(SetUpMark.done));
   });
 
   test('sync needs an account selected and a completed sync', () async {
@@ -132,12 +157,36 @@ void main() {
     );
     expect(autoOnly.marks[SetUpStep.backups], isNot(SetUpMark.done));
 
-    final cloud = await settle(
+    final nowhere = await settle(
       await container(
         prefValues: {'backup_enabled': true, 'backup_cloud_enabled': true},
       ),
     );
-    expect(cloud.marks[SetUpStep.backups], SetUpMark.done);
+    expect(
+      nowhere.marks[SetUpStep.backups],
+      isNot(SetUpMark.done),
+      reason: 'a copy that follows sync, with sync off, goes nowhere',
+    );
+
+    final followsSync = await settle(
+      await container(
+        syncEnabled: true,
+        prefValues: {'backup_enabled': true, 'backup_cloud_enabled': true},
+      ),
+    );
+    expect(followsSync.marks[SetUpStep.backups], SetUpMark.done);
+
+    final pinned = await settle(
+      await container(
+        prefValues: {
+          'backup_enabled': true,
+          'backup_cloud_enabled': true,
+          'backup_copy_account_id': 'acc-1',
+          'backup_copy_account_kind': 'googledrive',
+        },
+      ),
+    );
+    expect(pinned.marks[SetUpStep.backups], SetUpMark.done);
 
     final folder = await settle(
       await container(

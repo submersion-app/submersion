@@ -191,6 +191,8 @@ class SetUpDeviceCard extends ConsumerWidget {
       return;
     }
     await signInToGroup(context, ref, group);
+    // The item may have resolved and taken the card's tile away meanwhile.
+    if (!context.mounted) return;
     refreshAccountState(ref.invalidate);
   };
 }

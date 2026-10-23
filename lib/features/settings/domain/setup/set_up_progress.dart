@@ -29,7 +29,8 @@ class SetUpInputs {
     required this.hidden,
   });
 
-  /// An account sync could use is signed in on this device.
+  /// A feature on this device names an account: sync, the backup copy or
+  /// the photo copies.
   final bool accountHere;
 
   /// Sync names an account and has completed a sync.
