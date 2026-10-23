@@ -62,7 +62,10 @@ final libraryConnectionDetailsProvider = FutureProvider.autoDispose
         }),
       );
       if (where == null) return null;
-      final account = await accounts.getById(where.accountId);
+      // A row the roster lost is put back from the keys held here (#3563).
+      final account = await ref.read(libraryAccountLookupProvider)(
+        where.accountId,
+      );
       final setup = ref.watch(libraryAccountSetupProvider);
       return LibraryConnectionDetails(
         account: account,

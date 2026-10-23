@@ -58,6 +58,7 @@ class LibrarySyncError {
     if (webdav case final e?)
       'webdav': {
         'code': e.code.name,
+        'message': e.message,
         if (e.statusCode != null) 'statusCode': e.statusCode,
         if (e.location != null) 'location': e.location,
         if (e.sizeBytes != null) 'sizeBytes': e.sizeBytes,
@@ -90,15 +91,15 @@ class LibrarySyncError {
     return LibrarySyncError(
       code,
       detail: detail,
-      webdav: _webDavFrom(json['webdav'], message: detail ?? ''),
+      webdav: _webDavFrom(json['webdav']),
     );
   }
 
-  static WebDavException? _webDavFrom(Object? json, {required String message}) {
+  static WebDavException? _webDavFrom(Object? json) {
     if (json is! Map<String, dynamic>) return null;
     T? as<T>(String key) => json[key] is T ? json[key] as T : null;
     return WebDavException(
-      message,
+      as<String>('message') ?? '',
       code:
           WebDavErrorCode.values.asNameMap()[json['code']] ??
           WebDavErrorCode.unexpected,

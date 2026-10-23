@@ -80,6 +80,7 @@ void main() {
     expect(e.host, 'dav.example.com');
     expect(e.location, 'https://elsewhere.example.com/');
     expect('${e.cause}', 'HTTP 413');
+    expect(e.displayMessage, 'Too large (HTTP 413)');
   });
 
   test('a WebDAV code a newer build added reads as unexpected', () {
