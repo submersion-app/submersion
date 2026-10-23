@@ -163,6 +163,9 @@ class DiverRepository {
     try {
       final rows = await _db
           .customSelect(
+            // stats-scope-exempt: which profile holds the logbook, matched
+            // to the Dives list count (every row, planned and excluded too),
+            // not a statistic.
             'SELECT diver_id, COUNT(*) AS count FROM dives '
             'WHERE diver_id IS NOT NULL GROUP BY diver_id',
             readsFrom: {_db.dives},
