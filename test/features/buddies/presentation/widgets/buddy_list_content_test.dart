@@ -156,6 +156,27 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted buddy when built', (tester) async {
+    final overrides = await _buildPhoneOverrides(
+      buddies: [
+        for (var i = 0; i < 60; i++)
+          _makeBuddy(id: 'r$i', name: 'Buddy ${i.toString().padLeft(2, '0')}'),
+      ],
+      highlightedBuddyId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const BuddyListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Buddy 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), in both the phone app bar
   // and the desktop pane header.
   group('entry count subtitle', () {

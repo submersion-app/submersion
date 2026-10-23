@@ -145,6 +145,32 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted dive center when built', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      centers: [
+        for (var i = 0; i < 60; i++)
+          _makeCenter(
+            id: 'r$i',
+            name: 'Center ${i.toString().padLeft(2, '0')}',
+          ),
+      ],
+      highlightedDiveCenterId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const DiveCenterListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Center 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), in both the phone app bar
   // and the desktop pane header.
   group('entry count subtitle', () {

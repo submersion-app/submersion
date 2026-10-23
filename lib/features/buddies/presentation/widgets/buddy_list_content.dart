@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
+import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
@@ -108,6 +111,13 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   String? _lastScrolledToId;
   bool _selectionFromList = false;
 
+  /// Brings the list back to the buddy last opened when it is built again
+  /// after the diver left it (#3301).
+  late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
+    controller: _scrollController,
+    attempt: _restoreRememberedBuddy,
+  );
+
   /// The bulk-selection state machine for this list: the page's when it
   /// passes one, otherwise this list's own.
   late final SelectionController _selection = _adoptSelection();
@@ -130,15 +140,12 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   @override
   void initState() {
     super.initState();
-    if (widget.selectedId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToSelectedItem();
-      });
-    }
+    _positionRestorer.start(ref, filteredBuddiesWithDiveCountProvider);
   }
 
   @override
   void dispose() {
+    _positionRestorer.dispose();
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
     super.dispose();
@@ -159,32 +166,42 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     }
   }
 
-  void _scrollToSelectedItem() {
-    if (widget.selectedId == null) return;
+  /// One try at showing the selected buddy (one in the address) or, failing
+  /// that, the buddy last opened, for [_positionRestorer]: true once there
+  /// is nothing left to wait for. A list pushed over another page starts at
+  /// its top unless its address names one.
+  bool _restoreRememberedBuddy() {
+    if (!mounted) return true;
+    final items = ref.read(filteredBuddiesWithDiveCountProvider);
+    if (!items.hasValue) return items.hasError;
+    final target =
+        widget.selectedId ??
+        (isImperativelyPushed(context)
+            ? null
+            : ref.read(highlightedBuddyIdProvider));
+    if (target == null) return true;
+    if (!items.value!.any((item) => item.buddy.id == target)) return true;
+    _scrollToSelectedItem(targetId: target, jump: true);
+    return true;
+  }
 
-    final buddiesAsync = ref.read(filteredBuddiesWithDiveCountProvider);
-    buddiesAsync.whenData((buddies) {
-      final index = buddies.indexWhere((b) => b.buddy.id == widget.selectedId);
-      if (index >= 0 && _scrollController.hasClients) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_scrollController.hasClients || buddies.isEmpty) return;
-
-          final maxScroll = _scrollController.position.maxScrollExtent;
-          final viewportHeight = _scrollController.position.viewportDimension;
-          final totalContentHeight = maxScroll + viewportHeight - 80;
-          final avgItemHeight = totalContentHeight / buddies.length;
-          final targetOffset = (index * avgItemHeight) - (viewportHeight / 3);
-          final clampedOffset = targetOffset.clamp(0.0, maxScroll);
-
-          _scrollController.animateTo(
-            clampedOffset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-          _lastScrolledToId = widget.selectedId;
-        });
-      }
-    });
+  /// Scrolls to [targetId], or the selected buddy when omitted. [jump] moves
+  /// straight there, for a list being restored, which should not visibly
+  /// travel from the top.
+  void _scrollToSelectedItem({String? targetId, bool jump = false}) {
+    final target = targetId ?? widget.selectedId;
+    if (target == null || !_scrollController.hasClients) return;
+    final items = ref.read(filteredBuddiesWithDiveCountProvider).value;
+    if (items == null) return;
+    final index = items.indexWhere((item) => item.buddy.id == target);
+    if (index < 0) return;
+    _lastScrolledToId = target;
+    scrollToEstimatedRow(
+      _scrollController,
+      index: index,
+      rowCount: items.length,
+      jump: jump,
+    );
   }
 
   void _handleItemTap(Buddy buddy) {

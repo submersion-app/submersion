@@ -148,6 +148,29 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted certification when built', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      certs: [
+        for (var i = 0; i < 60; i++)
+          _makeCert(id: 'r$i', name: 'Cert ${i.toString().padLeft(2, '0')}'),
+      ],
+      highlightedCertificationId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const CertificationListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cert 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), in both the phone app bar
   // and the desktop pane header.
   group('entry count subtitle', () {

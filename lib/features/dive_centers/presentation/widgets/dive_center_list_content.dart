@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -19,6 +21,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -113,18 +116,22 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   String? _lastScrolledToId;
   bool _selectionFromList = false;
 
+  /// Brings the list back to the dive center last opened when it is built again
+  /// after the diver left it (#3301).
+  late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
+    controller: _scrollController,
+    attempt: _restoreRememberedDiveCenter,
+  );
+
   @override
   void initState() {
     super.initState();
-    if (widget.selectedId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToSelectedItem();
-      });
-    }
+    _positionRestorer.start(ref, filteredDiveCentersProvider);
   }
 
   @override
   void dispose() {
+    _positionRestorer.dispose();
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
     super.dispose();
@@ -145,32 +152,42 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     }
   }
 
-  void _scrollToSelectedItem() {
-    if (widget.selectedId == null) return;
+  /// One try at showing the selected dive center (one in the address) or, failing
+  /// that, the dive center last opened, for [_positionRestorer]: true once there
+  /// is nothing left to wait for. A list pushed over another page starts at
+  /// its top unless its address names one.
+  bool _restoreRememberedDiveCenter() {
+    if (!mounted) return true;
+    final items = ref.read(filteredDiveCentersProvider);
+    if (!items.hasValue) return items.hasError;
+    final target =
+        widget.selectedId ??
+        (isImperativelyPushed(context)
+            ? null
+            : ref.read(highlightedDiveCenterIdProvider));
+    if (target == null) return true;
+    if (!items.value!.any((item) => item.id == target)) return true;
+    _scrollToSelectedItem(targetId: target, jump: true);
+    return true;
+  }
 
-    final centersAsync = ref.read(filteredDiveCentersProvider);
-    centersAsync.whenData((centers) {
-      final index = centers.indexWhere((c) => c.id == widget.selectedId);
-      if (index >= 0 && _scrollController.hasClients) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_scrollController.hasClients || centers.isEmpty) return;
-
-          final maxScroll = _scrollController.position.maxScrollExtent;
-          final viewportHeight = _scrollController.position.viewportDimension;
-          final totalContentHeight = maxScroll + viewportHeight - 80;
-          final avgItemHeight = totalContentHeight / centers.length;
-          final targetOffset = (index * avgItemHeight) - (viewportHeight / 3);
-          final clampedOffset = targetOffset.clamp(0.0, maxScroll);
-
-          _scrollController.animateTo(
-            clampedOffset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-          _lastScrolledToId = widget.selectedId;
-        });
-      }
-    });
+  /// Scrolls to [targetId], or the selected dive center when omitted. [jump] moves
+  /// straight there, for a list being restored, which should not visibly
+  /// travel from the top.
+  void _scrollToSelectedItem({String? targetId, bool jump = false}) {
+    final target = targetId ?? widget.selectedId;
+    if (target == null || !_scrollController.hasClients) return;
+    final items = ref.read(filteredDiveCentersProvider).value;
+    if (items == null) return;
+    final index = items.indexWhere((item) => item.id == target);
+    if (index < 0) return;
+    _lastScrolledToId = target;
+    scrollToEstimatedRow(
+      _scrollController,
+      index: index,
+      rowCount: items.length,
+      jump: jump,
+    );
   }
 
   void _handleItemTap(DiveCenter center) {
