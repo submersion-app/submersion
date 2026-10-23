@@ -62,7 +62,7 @@ class BondPolicyTest {
 
     @Test
     fun otherVendorsStillRequireProactiveBonding() {
-        assertTrue(BondPolicy.requiresProactiveBond("Aqualung", "i300C"))
+        assertTrue(BondPolicy.requiresProactiveBond("Oceanic", "Geo 4.0"))
         assertTrue(BondPolicy.requiresProactiveBond("Mares", "Genius"))
         assertTrue(BondPolicy.requiresProactiveBond("Suunto", "EON Steel"))
     }
