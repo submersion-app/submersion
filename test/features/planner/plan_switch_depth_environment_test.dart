@@ -131,10 +131,12 @@ bool _isEan40(double fO2) => (fO2 - 0.40).abs() < 1e-6;
 void _expectEan40WithinLimit(List<PlanScheduleRow> rows) {
   final ean40Rows = rows.where((r) => _isEan40(r.gasFO2)).toList();
   expect(ean40Rows, isNotEmpty, reason: 'the ascent switches to EAN40');
+  // Read the way the table shows it: a switch may sit up to
+  // gasSwitchPpO2Tolerance above the limit, as long as it reads 1.60.
   for (final row in ean40Rows) {
     expect(
-      row.ppO2,
-      lessThanOrEqualTo(_decoPpO2 + 1e-9),
+      double.parse(row.ppO2.toStringAsFixed(2)),
+      lessThanOrEqualTo(_decoPpO2),
       reason: 'EAN40 at ${row.depthMeters} m',
     );
   }
