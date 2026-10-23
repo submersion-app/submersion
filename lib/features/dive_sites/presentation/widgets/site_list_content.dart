@@ -29,6 +29,7 @@ import 'package:submersion/shared/widgets/master_detail/list_position_restorer.d
 import 'package:submersion/shared/widgets/master_detail/keyboard_nav_stops.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -195,6 +196,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             : ref.read(highlightedSiteIdProvider));
     if (target == null) return true;
     if (!sites.value!.any((s) => s.site.id == target)) return true;
+    // Not laid out yet: try again once the list is on screen.
+    if (!_scrollController.hasClients) return false;
     _lastScrolledToId = target;
     _scrollToSelectedItem(targetId: target, jump: true);
     return true;
@@ -286,6 +289,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           }
           _lastScrolledToId = target;
         });
+        // The measuring callback needs a frame to run in, which a settled
+        // list being restored would not otherwise schedule.
+        WidgetsBinding.instance.scheduleFrame();
       }
     });
   }
@@ -308,6 +314,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     }
 
     ref.read(highlightedSiteIdProvider.notifier).state = site.id;
+    forgetClosedPane(ref, 'sites');
 
     if (widget.onItemSelected != null) {
       _selectionFromList = true;

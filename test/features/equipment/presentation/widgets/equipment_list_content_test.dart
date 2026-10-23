@@ -299,6 +299,45 @@ void main() {
     expect(find.text('Gear 50'), findsOneWidget);
   });
 
+  // A remembered item the list did not show when it was built is given up,
+  // not jumped to whenever a later filter brings it into view (#3301).
+  testWidgets('a highlighted item missing when built is not jumped to later', (
+    tester,
+  ) async {
+    final items = [
+      for (var i = 0; i < 60; i++)
+        _makeEquipment(id: 'r$i', name: 'Gear ${i.toString().padLeft(2, '0')}'),
+    ];
+    final shown = StateProvider<AsyncValue<List<EquipmentItem>>>(
+      (ref) => AsyncData(items),
+    );
+    final overrides = [
+      ...await _buildPhoneOverrides(
+        items: items,
+        highlightedEquipmentId: 'late',
+      ),
+      filteredEquipmentProvider.overrideWith((ref) => ref.watch(shown)),
+    ];
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const EquipmentListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentListContent)),
+    );
+    container.read(shown.notifier).state = AsyncData([
+      ...items,
+      _makeEquipment(id: 'late', name: 'Gear 99'),
+    ]);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gear 00'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), under the plain title on a
   // standalone app bar and under the Equipment / Sets toggle in the pane.
   group('entry count subtitle', () {

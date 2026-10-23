@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
@@ -377,6 +378,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
         selectedId != null ||
         _query['mode'] != null ||
         _isMapView ||
+        !_isShowing ||
         isImperativelyPushed(context)) {
       _restoreSettled = true;
       return;
@@ -393,6 +395,23 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       if (!mounted || _selectedId != null) return;
       context.goInPlace('$path?$key=$id');
     });
+  }
+
+  /// Whether this list is the page on screen: not a list built underneath a
+  /// page of its own (a record's page reached with go()), whose address a
+  /// restore would rewrite, and not a training tab the diver switched away
+  /// from.
+  bool get _isShowing {
+    final state = GoRouterState.of(context);
+    final scopePath = MasterDetailRouteScope.pathOf(context);
+    return state.uri.path == (scopePath ?? state.matchedLocation);
+  }
+
+  /// Ends the wait for a list that is still loading once the diver scrolls
+  /// it: the pane must not open, nor the list move, after they took over.
+  bool _onMasterScroll(UserScrollNotification notification) {
+    if (notification.direction != ScrollDirection.idle) _restoreSettled = true;
+    return false;
   }
 
   /// A record now shows in the pane, so it is no longer one the diver closed.
@@ -475,12 +494,15 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
                         : null,
                     // The list's own create buttons hide for the same span
                     // (issue #3192).
-                    child: MasterDetailFormScope(
-                      isFormOpen: isEditingDetail,
-                      child: widget.masterBuilder(
-                        context,
-                        _onItemSelected,
-                        selectedId,
+                    child: NotificationListener<UserScrollNotification>(
+                      onNotification: _onMasterScroll,
+                      child: MasterDetailFormScope(
+                        isFormOpen: isEditingDetail,
+                        child: widget.masterBuilder(
+                          context,
+                          _onItemSelected,
+                          selectedId,
+                        ),
                       ),
                     ),
                   ),

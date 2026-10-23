@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +20,7 @@ class _Harness extends ConsumerStatefulWidget {
 }
 
 class _HarnessState extends ConsumerState<_Harness> {
-  final _controller = ScrollController();
+  final controller = ScrollController();
   late final ListPositionRestorer restorer;
   int attempts = 0;
 
@@ -26,7 +28,7 @@ class _HarnessState extends ConsumerState<_Harness> {
   void initState() {
     super.initState();
     restorer = ListPositionRestorer(
-      controller: _controller,
+      controller: controller,
       attempt: () {
         final result =
             widget.results[attempts.clamp(0, widget.results.length - 1)];
@@ -39,13 +41,13 @@ class _HarnessState extends ConsumerState<_Harness> {
   @override
   void dispose() {
     restorer.dispose();
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => ListView.builder(
-    controller: _controller,
+    controller: controller,
     itemCount: 100,
     itemBuilder: (_, i) => SizedBox(height: 50, child: Text('Row $i')),
   );
@@ -104,6 +106,22 @@ void main() {
 
     await bump(tester);
     expect(state.attempts, 1);
+  });
+
+  testWidgets('a keyboard scroll abandons the restore too', (tester) async {
+    final state = await pump(tester, [false]);
+
+    // Page Down and the arrow keys scroll by animating, which leaves the
+    // user scroll direction idle.
+    unawaited(
+      state.controller.animateTo(
+        400,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.linear,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(state.restorer.isDone, isTrue);
   });
 
   testWidgets('stops listening once the list is gone', (tester) async {

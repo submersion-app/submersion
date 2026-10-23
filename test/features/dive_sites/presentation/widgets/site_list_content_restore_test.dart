@@ -36,7 +36,16 @@ final _sites = [
 Finder _tile(String id) =>
     find.byWidgetPredicate((w) => w is SiteListTile && w.entry.site.id == id);
 
-Future<void> _pump(WidgetTester tester, {required String? highlighted}) async {
+/// The site list as the page sees it, so a test can start it loading.
+final _sitesState = StateProvider<AsyncValue<List<SiteWithDiveCount>>>(
+  (ref) => AsyncData(_sites),
+);
+
+Future<ProviderContainer> _pump(
+  WidgetTester tester, {
+  required String? highlighted,
+  bool startLoading = false,
+}) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = const Size(500, 844);
   addTearDown(() {
@@ -54,7 +63,12 @@ Future<void> _pump(WidgetTester tester, {required String? highlighted}) async {
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
-        sortedSitesWithCountsProvider.overrideWithValue(AsyncData(_sites)),
+        _sitesState.overrideWith(
+          (ref) => startLoading ? const AsyncLoading() : AsyncData(_sites),
+        ),
+        sortedSitesWithCountsProvider.overrideWith(
+          (ref) => ref.watch(_sitesState),
+        ),
         siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
         siteListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
         siteGroupByProvider.overrideWith((ref) => SiteGroupBy.none),
@@ -63,7 +77,9 @@ Future<void> _pump(WidgetTester tester, {required String? highlighted}) async {
       child: const SiteListContent(showAppBar: true),
     ),
   );
-  await tester.pumpAndSettle();
+  // A loading list shows a spinner, which never settles.
+  startLoading ? await tester.pump() : await tester.pumpAndSettle();
+  return ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
 }
 
 /// The site list, built again after the diver left it, comes back to the
@@ -74,6 +90,21 @@ void main() {
 
     expect(_tile('s50'), findsOneWidget);
     expect(_tile('s0'), findsNothing);
+  });
+
+  testWidgets('a list still loading when built comes back once it loads', (
+    tester,
+  ) async {
+    final container = await _pump(
+      tester,
+      highlighted: 's50',
+      startLoading: true,
+    );
+
+    container.read(_sitesState.notifier).state = AsyncData(_sites);
+    await tester.pumpAndSettle();
+
+    expect(_tile('s50'), findsOneWidget);
   });
 
   testWidgets('a site the list does not hold leaves it at the top', (

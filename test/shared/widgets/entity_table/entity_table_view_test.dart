@@ -913,6 +913,26 @@ void main() {
       expect(find.text('Late 150'), findsOneWidget);
     });
 
+    testWidgets('a table built with its highlighted row filtered out does not '
+        'jump to it when a later filter shows it (#3301)', (tester) async {
+      final rows = List.generate(200, (i) => _TestEntity('f-$i', 'Row $i', i));
+      await tester.pumpWidget(
+        _buildTable(entities: rows.take(100).toList(), highlightedId: 'f-150'),
+      );
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildTable(entities: const [], highlightedId: 'f-150'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(
+        _buildTable(entities: rows, highlightedId: 'f-150'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Row 0'), findsOneWidget);
+    });
+
     // -----------------------------------------------------------------------
     // didUpdateWidget changes highlightedId
     // -----------------------------------------------------------------------

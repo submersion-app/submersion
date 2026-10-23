@@ -20,6 +20,11 @@ class _PagingNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
   _PagingNotifier(this._all, {int loaded = 50})
     : super(AsyncData(_page(_all, loaded)));
 
+  /// Starts with nothing loaded, as a cold or reset list does.
+  _PagingNotifier.loading(this._all) : super(const AsyncLoading());
+
+  void finishFirstPage() => state = AsyncData(_page(_all, 50));
+
   final List<DiveSummary> _all;
   int loadNextPageCalls = 0;
 
@@ -98,6 +103,41 @@ void main() {
 
     expect(list.loadNextPageCalls, greaterThanOrEqualTo(1));
     expect(_row('d80'), findsOneWidget);
+  });
+
+  testWidgets('pages forward more than one page to reach the dive', (
+    tester,
+  ) async {
+    final list = _PagingNotifier(_summaries(200));
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(list, highlighted: 'd160'),
+        child: const DiveListContent(showAppBar: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(list.loadNextPageCalls, greaterThanOrEqualTo(3));
+    expect(_row('d160'), findsOneWidget);
+  });
+
+  testWidgets('a list still loading when built comes back once it loads', (
+    tester,
+  ) async {
+    final list = _PagingNotifier.loading(_summaries(100));
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(list, highlighted: 'd40'),
+        child: const DiveListContent(showAppBar: false),
+      ),
+    );
+    await tester.pump();
+
+    list.finishFirstPage();
+    await tester.pumpAndSettle();
+
+    expect(_row('d40'), findsOneWidget);
+    expect(_row('d0'), findsNothing);
   });
 
   testWidgets('a dive the list does not hold leaves it at the top', (

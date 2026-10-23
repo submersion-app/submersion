@@ -26,7 +26,7 @@ record they last opened:
 | Equipment | `equipment` | `highlightedEquipmentIdProvider` |
 | Buddies | `buddies` | `highlightedBuddyIdProvider` |
 | Trips | `trips` | `highlightedTripIdProvider` |
-| Dive centers | `diveCenters` | `highlightedDiveCenterIdProvider` |
+| Dive centers | `dive-centers` (table settings key `diveCenters`) | `highlightedDiveCenterIdProvider` |
 | Certifications | `certifications` | `highlightedCertificationIdProvider` |
 | Courses | `courses` | `highlightedCourseIdProvider` |
 
@@ -79,10 +79,12 @@ switch that remounts the list widget.
 5. **Lifetime:** the memory lasts while the app is running. A relaunch starts
    every list at the top with the pane empty. Nothing is persisted.
 6. **Diver switch:** switching the active diver forgets every list's memory
-   (a record id from one diver's log is meaningless in another's). Check
-   whether the highlight providers are already reset on diver switch; if
-   they are not, reset the new pane-closed flags there and leave the highlights to
-   the existing behaviour.
+   (a record id from one diver's log is meaningless in another's, and a site
+   or trip shared between profiles would otherwise bring the previous
+   diver's place back). The highlight providers are not reset on a switch
+   elsewhere, so a listener around the app shell resets all eight, and the
+   closed-pane memory, when the diver changes. The first diver id loaded at
+   startup resets nothing.
 7. **An explicit selection wins.** A route that arrives with `?selected=` (a
    deep link, "open in list" from another screen, the map's details tap)
    shows that record, not the remembered one, and becomes the new memory.

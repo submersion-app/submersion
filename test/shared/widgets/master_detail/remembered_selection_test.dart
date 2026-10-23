@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -64,6 +65,33 @@ void main() {
         const AsyncData<String?>(null),
       );
     });
+  });
+
+  testWidgets('opening a record forgets only its own list\'s closed pane', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.read(closedPaneRecordProvider.notifier).state = const {
+      'sites': 's1',
+      'dives': 'd1',
+    };
+    late WidgetRef widgetRef;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (context, ref, _) {
+            widgetRef = ref;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    forgetClosedPane(widgetRef, 'sites');
+
+    expect(container.read(closedPaneRecordProvider), {'dives': 'd1'});
   });
 
   test('closedPaneRecordProvider starts empty', () {

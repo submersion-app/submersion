@@ -44,6 +44,7 @@ import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.
 import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
@@ -253,7 +254,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _positionRestorer.start(ref, rememberedDiveIdProvider);
+    // Each page that lands is a change, even while the dive is still being
+    // looked for, so the restorer keeps paging until it is found. The table
+    // shows every dive and scrolls to its own highlighted row, and does not
+    // use the paged list at all; a view-mode switch builds a new list.
+    if (ref.read(diveListViewModeProvider) != ListViewMode.table) {
+      _positionRestorer.start(ref, paginatedDiveListProvider);
+    }
     // If there's already a selected ID on init (e.g., from URL), scroll to it after build
     if (widget.selectedId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -389,7 +396,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Bounded to a single attempt per target: a dive that is still not visible
   /// after its trip is forced open is not going to become visible by trying
   /// again, and an unbounded retry would spin build-to-frame forever.
-  void _retryScrollOnceAfterExpand(String targetId, List<DiveSummary> dives) {
+  void _retryScrollOnceAfterExpand(
+    String targetId,
+    List<DiveSummary> dives, {
+    bool jump = false,
+  }) {
     if (!shouldRetryScrollAfterExpanding(
       targetId: targetId,
       loadedDives: dives,
@@ -410,7 +421,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _scrollToSelectedItem(targetId);
+      _scrollToSelectedItem(targetId, jump);
       // That call measures inside a post-frame callback of its own, and a
       // callback only runs when some frame is scheduled. By here the tree has
       // settled and nothing else would schedule one, so the retry would sit
@@ -463,6 +474,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final remembered = ref.read(rememberedDiveIdProvider);
     if (remembered case AsyncData(:final value)) {
       if (value != null) {
+        // Not laid out yet: try again once the list is on screen.
+        if (!_scrollController.hasClients) return false;
         // Claimed now, so the selection the detail pane restores to the same
         // dive does not animate the list a second time.
         _lastScrolledToId = value;
@@ -513,7 +526,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             // silently and the dive is left off screen, most visibly on the
             // merge path, whose target arrives as an override and so never
             // reaches widget.selectedId.
-            _retryScrollOnceAfterExpand(targetId, dives);
+            _retryScrollOnceAfterExpand(targetId, dives, jump: jump);
             return;
           }
 
@@ -552,6 +565,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           }
           _lastScrolledToId = targetId;
         });
+        // The measuring callback needs a frame to run in, which a settled
+        // list being restored would not otherwise schedule.
+        WidgetsBinding.instance.scheduleFrame();
       }
     });
   }
@@ -1196,6 +1212,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     // Highlight the dive in all modes.
     ref.read(highlightedDiveIdProvider.notifier).state = dive.id;
+    forgetClosedPane(ref, 'dives');
 
     // In card/list modes, also navigate (table mode uses double-tap instead).
     if (widget.onItemSelected != null) {

@@ -11,6 +11,7 @@ import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dar
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -181,6 +182,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             : ref.read(highlightedBuddyIdProvider));
     if (target == null) return true;
     if (!items.value!.any((item) => item.buddy.id == target)) return true;
+    // Not laid out yet: try again once the list is on screen.
+    if (!_scrollController.hasClients) return false;
     _scrollToSelectedItem(targetId: target, jump: true);
     return true;
   }
@@ -211,6 +214,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     }
 
     ref.read(highlightedBuddyIdProvider.notifier).state = buddy.id;
+    forgetClosedPane(ref, 'buddies');
 
     if (widget.onItemSelected != null) {
       _selectionFromList = true;

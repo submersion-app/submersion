@@ -4,6 +4,11 @@ import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import 'package:submersion/core/providers/provider.dart';
 
+/// Whether [position] is moving because of the diver rather than a jump.
+bool isScrolledByDiver(ScrollPosition position) =>
+    position.userScrollDirection != ScrollDirection.idle ||
+    position.isScrollingNotifier.value;
+
 /// Brings a freshly built list back to the record the diver last opened.
 ///
 /// Leaving a list for another section disposes it, and with it the scroll
@@ -40,8 +45,17 @@ class ListPositionRestorer {
   /// provider the list shows) until done.
   void start(WidgetRef ref, ProviderListenable<Object?> source) {
     _controller.addListener(_onScroll);
-    _subscription = ref.listenManual(source, (_, _) => _tryRestore());
+    _subscription = ref.listenManual(source, (_, _) => _tryAfterFrame());
+    _tryAfterFrame();
+  }
+
+  /// The list rebuilds from new data in the frame after it arrives, so an
+  /// attempt made straight away would find the old rows (or a spinner with
+  /// nothing to scroll). Tried once that frame is laid out instead.
+  void _tryAfterFrame() {
+    if (_done) return;
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryRestore());
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   void _tryRestore() {
@@ -49,14 +63,11 @@ class ListPositionRestorer {
     if (_attempt()) _finish();
   }
 
-  /// A programmatic jump leaves the scroll direction idle; a drag, fling or
-  /// wheel does not.
+  /// The restore only ever jumps, which neither sets a scroll direction nor
+  /// starts a scroll activity. A drag, fling or wheel sets the direction; a
+  /// keyboard scroll (Page Down, the arrow keys) animates.
   void _onScroll() {
-    if (_controller.positions.any(
-      (position) => position.userScrollDirection != ScrollDirection.idle,
-    )) {
-      _finish();
-    }
+    if (_controller.positions.any(isScrolledByDiver)) _finish();
   }
 
   void _finish() {

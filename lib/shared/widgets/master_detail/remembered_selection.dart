@@ -38,3 +38,12 @@ AsyncValue<String?> rememberedListedId<T>({
 final closedPaneRecordProvider = StateProvider<Map<String, String>>(
   (ref) => const {},
 );
+
+/// Drops [sectionId]'s closed-pane entry because the diver opened a record
+/// in that list, on any width: the pane is no longer one they emptied.
+void forgetClosedPane(WidgetRef ref, String sectionId) {
+  final closed = ref.read(closedPaneRecordProvider);
+  if (!closed.containsKey(sectionId)) return;
+  ref.read(closedPaneRecordProvider.notifier).state = {...closed}
+    ..remove(sectionId);
+}

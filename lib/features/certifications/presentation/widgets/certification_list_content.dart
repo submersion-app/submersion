@@ -20,6 +20,7 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -101,8 +102,8 @@ class _CertificationListContentState
   String? _lastScrolledToId;
   bool _selectionFromList = false;
 
-  /// Brings the list back to the certification last opened when it is built again
-  /// after the diver left it (#3301).
+  /// Brings the list back to the certification last opened when it is built
+  /// again after the diver left it (#3301).
   late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
     controller: _scrollController,
     attempt: _restoreRememberedCertification,
@@ -137,10 +138,10 @@ class _CertificationListContentState
     }
   }
 
-  /// One try at showing the selected certification (one in the address) or, failing
-  /// that, the certification last opened, for [_positionRestorer]: true once there
-  /// is nothing left to wait for. A list pushed over another page starts at
-  /// its top unless its address names one.
+  /// One try at showing the selected certification (one in the address) or,
+  /// failing that, the certification last opened, for [_positionRestorer]: true
+  /// once there is nothing left to wait for. A list pushed over another page
+  /// starts at its top unless its address names one.
   bool _restoreRememberedCertification() {
     if (!mounted) return true;
     final items = ref.read(filteredCertificationsProvider);
@@ -152,12 +153,14 @@ class _CertificationListContentState
             : ref.read(highlightedCertificationIdProvider));
     if (target == null) return true;
     if (!items.value!.any((item) => item.id == target)) return true;
+    // Not laid out yet: try again once the list is on screen.
+    if (!_scrollController.hasClients) return false;
     _scrollToSelectedItem(targetId: target, jump: true);
     return true;
   }
 
-  /// Scrolls to [targetId], or the selected certification when omitted. [jump] moves
-  /// straight there, for a list being restored, which should not visibly
+  /// Scrolls to [targetId], or the selected certification when omitted. [jump]
+  /// moves straight there, for a list being restored, which should not visibly
   /// travel from the top.
   void _scrollToSelectedItem({String? targetId, bool jump = false}) {
     final target = targetId ?? widget.selectedId;
@@ -177,6 +180,7 @@ class _CertificationListContentState
 
   void _handleItemTap(Certification cert) {
     ref.read(highlightedCertificationIdProvider.notifier).state = cert.id;
+    forgetClosedPane(ref, 'certifications');
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(cert.id);

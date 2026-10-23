@@ -22,6 +22,7 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
@@ -122,6 +123,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
             : ref.read(highlightedCourseIdProvider));
     if (target == null) return true;
     if (!items.value!.any((item) => item.id == target)) return true;
+    // Not laid out yet: try again once the list is on screen.
+    if (!_scrollController.hasClients) return false;
     _scrollToSelectedItem(targetId: target, jump: true);
     return true;
   }
@@ -154,6 +157,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   void _handleItemTap(Course course) {
     ref.read(highlightedCourseIdProvider.notifier).state = course.id;
+    forgetClosedPane(ref, 'courses');
     if (widget.onItemSelected != null) {
       widget.onItemSelected!(course.id);
     } else {

@@ -37,7 +37,8 @@ Future<(GoRouter, ProviderContainer)> _pump(
             builder: (context, ref, _) => MasterDetailScaffold(
               sectionId: 'items',
               rememberedSelectedId: ref.watch(_remembered),
-              masterBuilder: (_, onItemSelected, _) => Column(
+              masterBuilder: (_, onItemSelected, _) => ListView(
+                key: const Key('master-list'),
                 children: [
                   TextButton(
                     onPressed: () => onItemSelected('a'),
@@ -47,6 +48,8 @@ Future<(GoRouter, ProviderContainer)> _pump(
                     onPressed: () => onItemSelected(null),
                     child: const Text('Clear'),
                   ),
+                  for (var i = 0; i < 60; i++)
+                    SizedBox(height: 40, child: Text('Row $i')),
                 ],
               ),
               detailBuilder: (_, id) => Text('DETAIL $id'),
@@ -55,6 +58,13 @@ Future<(GoRouter, ProviderContainer)> _pump(
             ),
           ),
         ),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (_, state) =>
+                Scaffold(body: Text('PAGE ${state.pathParameters['id']}')),
+          ),
+        ],
       ),
     ],
   );
@@ -163,6 +173,40 @@ void main() {
 
       expect(find.text('DETAIL a'), findsOneWidget);
       expect(_query(router)['selected'], 'a');
+    });
+
+    testWidgets('a diver who scrolls while the list loads is not interrupted '
+        'by the pane opening later', (tester) async {
+      final (router, container) = await _pump(
+        tester,
+        remembered: const AsyncLoading(),
+      );
+      await tester.drag(
+        find.byKey(const Key('master-list')),
+        const Offset(0, -300),
+      );
+      await tester.pumpAndSettle();
+
+      container.read(_remembered.notifier).state = const AsyncData('a');
+      await tester.pumpAndSettle();
+
+      expect(find.text('SUMMARY'), findsOneWidget);
+      expect(_query(router)['selected'], isNull);
+    });
+
+    testWidgets('a list built under a page of its own leaves that page\'s '
+        'address alone', (tester) async {
+      final (router, _) = await _pump(
+        tester,
+        initialLocation: '/items/x?tab=notes',
+        remembered: const AsyncData('a'),
+      );
+
+      expect(find.text('PAGE x'), findsOneWidget);
+      expect(
+        router.routeInformationProvider.value.uri.toString(),
+        '/items/x?tab=notes',
+      );
     });
 
     testWidgets('nothing remembered shows the summary', (tester) async {

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
@@ -15,6 +16,21 @@ import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// A paged list with more to load and none of it loaded, counting requests.
+class _CountingPagedList
+    extends StateNotifier<AsyncValue<PaginatedDiveListState>>
+    implements PaginatedDiveListNotifier {
+  _CountingPagedList() : super(const AsyncData(PaginatedDiveListState()));
+
+  int loadNextPageCalls = 0;
+
+  @override
+  Future<void> loadNextPage() async => loadNextPageCalls++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// Coming back to the Dives section on a wide window reopens the dive the
 /// diver last opened in the detail pane (#3301).
@@ -33,6 +49,7 @@ void main() {
   Future<({GoRouter router, ProviderContainer container})> pumpHarness(
     WidgetTester tester, {
     List<dynamic> extraOverrides = const [],
+    PaginatedDiveListNotifier? pagedList,
   }) async {
     final overrides = [
       ...await getBaseOverrides(),
@@ -41,7 +58,7 @@ void main() {
         (ref) => DiveListNotifier(repository, ref),
       ),
       paginatedDiveListProvider.overrideWith(
-        (ref) => PaginatedDiveListNotifier(repository, ref),
+        (ref) => pagedList ?? PaginatedDiveListNotifier(repository, ref),
       ),
       customTankPresetsProvider.overrideWith((ref) async => []),
       ...extraOverrides,
@@ -130,6 +147,28 @@ void main() {
     await settle(tester);
 
     expect(location(h.router), '/dives?selected=opened');
+  });
+
+  testWidgets('table view finds the dive in the table without paging the '
+      'list view\'s rows', (tester) async {
+    final opened = createTestDiveWithBottomTime().copyWith(id: 'opened');
+    final paged = _CountingPagedList();
+    final h = await pumpHarness(
+      tester,
+      pagedList: paged,
+      extraOverrides: [
+        diveListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+        tableDetailsPaneProvider('dives').overrideWith((ref) => true),
+        allDivesForTableProvider.overrideWithValue(AsyncData([opened])),
+      ],
+    );
+    h.container.read(highlightedDiveIdProvider.notifier).state = 'opened';
+
+    h.router.go('/dives');
+    await settle(tester);
+
+    expect(location(h.router), '/dives?selected=opened');
+    expect(paged.loadNextPageCalls, 0);
   });
 
   testWidgets('a deleted dive is not reopened', (tester) async {

@@ -22,6 +22,7 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -156,6 +157,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             : ref.read(highlightedTripIdProvider));
     if (target == null) return true;
     if (!items.value!.any((item) => item.trip.id == target)) return true;
+    // Not laid out yet: try again once the list is on screen.
+    if (!_scrollController.hasClients) return false;
     _scrollToSelectedItem(targetId: target, jump: true);
     return true;
   }
@@ -181,6 +184,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
   void _handleItemTap(Trip trip) {
     ref.read(highlightedTripIdProvider.notifier).state = trip.id;
+    forgetClosedPane(ref, 'trips');
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(trip.id);

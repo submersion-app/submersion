@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -37,7 +36,9 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
@@ -169,8 +170,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   /// The item last opened, which a list built again after the diver left it
   /// scrolls back to when its address names no item (#3301). Read once, on
-  /// the first build; dropped as soon as the diver scrolls, so a regrouping
-  /// later does not pull the list back to it.
+  /// the first build. It is kept while the stored arrangement lands, which
+  /// can move its row, and dropped once the diver scrolls, or when the list
+  /// first shows rows without it, so a later filter that brings it into view
+  /// does not jump the list to it.
   String? _restoreTargetId;
   bool _restoreTargetRead = false;
 
@@ -185,9 +188,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   }
 
   void _onUserScroll() {
-    if (_scrollController.positions.any(
-      (position) => position.userScrollDirection != ScrollDirection.idle,
-    )) {
+    if (_scrollController.positions.any(isScrolledByDiver)) {
       _restoreTargetId = null;
       _scrollController.removeListener(_onUserScroll);
     }
@@ -299,6 +300,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   void _handleItemTap(EquipmentItem equipment) {
     ref.read(highlightedEquipmentIdProvider.notifier).state = equipment.id;
+    forgetClosedPane(ref, 'equipment');
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(equipment.id);
@@ -1212,7 +1214,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       final selectedIndex = rows.indexWhere(
         (row) => row is _EquipmentItemRow && row.item.id == selectedId,
       );
-      if (selectedIndex >= 0) {
+      if (selectedIndex < 0 && widget.selectedId == null) {
+        _restoreTargetId = null;
+      } else if (selectedIndex >= 0) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // These rows were laid out for this selection. If it changed before
           // the callback ran, scrolling now would move to the old row and

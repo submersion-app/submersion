@@ -94,6 +94,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
     if (viewMode == ListViewMode.table) {
       return TableModeLayout(
         sectionKey: 'diveCenters',
+        paneSectionId: 'dive-centers',
         rememberedSelectedId: _rememberedDiveCenterId(ref),
         appBarTitle: context.l10n.nav_diveCenters,
         appBarSubtitle: diveCenterListCountLabel(context, ref),

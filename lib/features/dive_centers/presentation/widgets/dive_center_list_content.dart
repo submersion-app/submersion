@@ -24,6 +24,7 @@ import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -152,10 +153,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     }
   }
 
-  /// One try at showing the selected dive center (one in the address) or, failing
-  /// that, the dive center last opened, for [_positionRestorer]: true once there
-  /// is nothing left to wait for. A list pushed over another page starts at
-  /// its top unless its address names one.
+  /// One try at showing the selected dive center (one in the address) or,
+  /// failing that, the dive center last opened, for [_positionRestorer]: true
+  /// once there is nothing left to wait for. A list pushed over another page
+  /// starts at its top unless its address names one.
   bool _restoreRememberedDiveCenter() {
     if (!mounted) return true;
     final items = ref.read(filteredDiveCentersProvider);
@@ -167,12 +168,14 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             : ref.read(highlightedDiveCenterIdProvider));
     if (target == null) return true;
     if (!items.value!.any((item) => item.id == target)) return true;
+    // Not laid out yet: try again once the list is on screen.
+    if (!_scrollController.hasClients) return false;
     _scrollToSelectedItem(targetId: target, jump: true);
     return true;
   }
 
-  /// Scrolls to [targetId], or the selected dive center when omitted. [jump] moves
-  /// straight there, for a list being restored, which should not visibly
+  /// Scrolls to [targetId], or the selected dive center when omitted. [jump]
+  /// moves straight there, for a list being restored, which should not visibly
   /// travel from the top.
   void _scrollToSelectedItem({String? targetId, bool jump = false}) {
     final target = targetId ?? widget.selectedId;
@@ -203,6 +206,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     }
 
     ref.read(highlightedDiveCenterIdProvider.notifier).state = center.id;
+    forgetClosedPane(ref, 'dive-centers');
 
     if (widget.onItemSelected != null) {
       _selectionFromList = true;

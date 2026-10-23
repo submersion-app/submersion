@@ -159,6 +159,9 @@ class _EntityTableViewState<T, F extends EntityField>
     // A table built with a highlighted row (the list was returned to, #3301)
     // shows that row rather than the top of the table.
     if (widget.highlightedId != null) {
+      // Built with rows, the reveal is decided now, found or not: a row a
+      // later filter brings into view is not jumped to.
+      _revealedOnBuild = widget.entities.isNotEmpty;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _scrollToHighlightedRow(jump: true);
       });
