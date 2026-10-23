@@ -510,11 +510,21 @@ class GoogleDriveMediaObjectStore
       kind = MediaStoreErrorKind.fatal;
     }
     final reason = _errorReason(response.body);
-    return MediaStoreException(
-      'Drive $op $subject failed (HTTP $status)'
-      '${reason != null ? ': $reason' : ''}',
-      kind: kind,
-    );
+    final detail =
+        'Drive $op $subject failed (HTTP $status)'
+        '${reason != null ? ': $reason' : ''}';
+    if (status == 401) {
+      // A 401 reaching here has already outlived the one refresh [_send]
+      // allows, so the sign-in itself is gone. The transfer queue shows the
+      // message as is, and an HTTP status tells the diver nothing about how
+      // to recover; the detail stays on the cause for the log.
+      return MediaStoreException(
+        'Google Drive sign-in expired. Please sign in again.',
+        kind: kind,
+        cause: detail,
+      );
+    }
+    return MediaStoreException(detail, kind: kind);
   }
 
   /// Google's own explanation for the failure, pulled from the `{"error":

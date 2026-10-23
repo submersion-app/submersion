@@ -80,6 +80,7 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       if (_authClient != null) return true;
 
       await _ensureInitialized();
+      await _eviction;
       // A known account only needs a fresh token, which the SDK mints from
       // its authorization without any UI. Lightweight sign-in is for the
       // cold launch alone: on Android it goes through Credential Manager,
@@ -230,9 +231,25 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     final rejected = _accessToken;
     _accessToken = null;
     if (rejected == null) return;
+    final eviction = _evict(rejected);
+    _eviction = eviction;
+    try {
+      await eviction;
+    } finally {
+      if (identical(_eviction, eviction)) _eviction = null;
+    }
+  }
+
+  /// The eviction of a rejected token while it runs. Silent auth waits for
+  /// it: a caller authorizing in that window (the Cloud Sync page's unawaited
+  /// refresh, the media store's supplier) got the dead token back from the
+  /// SDK cache and installed it, so the retry failed on it again.
+  Future<void>? _eviction;
+
+  Future<void> _evict(String token) async {
     try {
       await _googleSignIn.authorizationClient.clearAuthorizationToken(
-        accessToken: rejected,
+        accessToken: token,
       );
     } catch (e) {
       _log.warning('Could not clear the rejected Google token: $e');

@@ -507,11 +507,11 @@ void main() {
       await expectLater(
         store.head('smv1/objects/aa/x.jpg'),
         throwsA(
-          isA<MediaStoreException>().having(
-            (e) => e.kind,
-            'kind',
-            MediaStoreErrorKind.auth,
-          ),
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              // The queue shows this text as is, so it must say how to
+              // recover rather than quote an HTTP status.
+              .having((e) => e.message, 'message', contains('sign in again')),
         ),
       );
       expect(refreshes, 1);
@@ -551,11 +551,11 @@ void main() {
       await expectLater(
         store.head('smv1/objects/aa/x.jpg'),
         throwsA(
-          isA<MediaStoreException>().having(
-            (e) => e.kind,
-            'kind',
-            MediaStoreErrorKind.auth,
-          ),
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              // The queue shows this text as is, so it must say how to
+              // recover rather than quote an HTTP status.
+              .having((e) => e.message, 'message', contains('sign in again')),
         ),
       );
       expect(refreshes, 1);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 // The app-facing google_sign_in package is driven indirectly here: the
 // authenticator talks to GoogleSignIn.instance, which delegates to whatever
@@ -62,10 +64,15 @@ class _FakePlatform extends GoogleSignInPlatform
   /// When set, clearAuthorizationToken throws this instead of recording.
   Object? clearTokenError;
 
+  /// When set, clearAuthorizationToken does not finish until this completes,
+  /// holding the eviction open the way a slow platform call does.
+  Completer<void>? clearGate;
+
   @override
   Future<void> clearAuthorizationToken(
     ClearAuthorizationTokenParams params,
   ) async {
+    await clearGate?.future;
     final error = clearTokenError;
     if (error != null) throw error;
     clearedTokens.add(params.accessToken);
@@ -443,6 +450,26 @@ void main() {
         expect(platform.clearedTokens, ['access-token-1', 'access-token-2']);
       },
     );
+
+    test('a re-auth waits until the rejected token is evicted', () async {
+      // Any caller may ask for auth while the eviction is still running (the
+      // Cloud Sync page's unawaited refreshState, the media store's supplier).
+      // Authorizing in that window got the dead token back from the SDK
+      // cache and installed it, so the retry failed on it again.
+      final gate = Completer<void>();
+      platform.clearGate = gate;
+      final callsBefore = platform.authorizationCalls;
+
+      final failure = auth.handleAuthFailure();
+      final reauth = auth.attemptSilentAuth();
+      await pumpEventQueue();
+      expect(platform.authorizationCalls, callsBefore);
+
+      gate.complete();
+      await failure;
+      expect(await reauth, isTrue);
+      expect(platform.authorizationCalls, callsBefore + 1);
+    });
 
     test('a token refresh fails when the scope was revoked', () async {
       await auth.handleAuthFailure();
