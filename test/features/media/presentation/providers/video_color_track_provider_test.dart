@@ -231,7 +231,7 @@ void main() {
     // relaunch but not open it; an iOS row keeps no path at all.
     final opened = <String?>[];
     VideoFileAccess fakeAccess(String resolved) =>
-        ({path, bookmarkRef, required read}) async {
+        <T>({path, bookmarkRef, required read}) async {
           opened.add(bookmarkRef);
           return bookmarkRef == null
               ? path == null
