@@ -21,6 +21,17 @@ class BondPolicyTest {
         assertFalse(BondPolicy.requiresProactiveBond("SHEARWATER"))
     }
 
+    // Cressi's Bluetooth adapter never completes a pairing (issue #422): the
+    // proactive bond sat out its 30 s wait and the version read that
+    // followed failed, while Subsurface and every other backend, none of
+    // which bond, download the same computer.
+    @Test
+    fun cressiIsExemptFromProactiveBonding() {
+        assertFalse(BondPolicy.requiresProactiveBond("Cressi"))
+        assertFalse(BondPolicy.requiresProactiveBond(" cressi "))
+        assertFalse(BondPolicy.requiresProactiveBond("CRESSI"))
+    }
+
     @Test
     fun otherVendorsStillRequireProactiveBonding() {
         assertTrue(BondPolicy.requiresProactiveBond("Aqualung"))

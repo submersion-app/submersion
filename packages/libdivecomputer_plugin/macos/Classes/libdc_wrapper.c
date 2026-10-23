@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <libdivecomputer/context.h>
 #include <libdivecomputer/version.h>
 #include <libdivecomputer/descriptor.h>
 #include <libdivecomputer/iterator.h>
@@ -625,6 +626,16 @@ int libdc_ble_characteristic_read_fill(void *data, size_t size,
     }
     size_t wanted = size - LIBDC_BLE_UUID_SIZE;
     if (value == NULL || value_len < wanted) {
+        // libdivecomputer reports this only as "Failed to read the
+        // characteristic", the same words as a GATT error, so name the
+        // lengths at a level a default debug log keeps (issue #422).
+        if (g_log_callback != NULL) {
+            char msg[96];
+            snprintf(msg, sizeof(msg),
+                     "BLE characteristic read returned %zu bytes, expected %zu",
+                     value == NULL ? (size_t)0 : value_len, wanted);
+            g_log_callback((int)DC_LOGLEVEL_WARNING, msg, g_log_userdata);
+        }
         return LIBDC_STATUS_DATAFORMAT;
     }
     memcpy((unsigned char *)data + LIBDC_BLE_UUID_SIZE, value, wanted);

@@ -27,6 +27,18 @@ object BleCharacteristicRead {
     fun readTimeoutMs(streamTimeoutMs: Int): Long =
         if (streamTimeoutMs < 0) MAX_READ_TIMEOUT_MS
         else minOf(streamTimeoutMs.toLong(), MAX_READ_TIMEOUT_MS)
+
+    // Warnings for a read that came back without a value. libdivecomputer
+    // reports every one of them as "Failed to read the characteristic", so
+    // the cause has to be logged here, at a level a default debug log keeps.
+    fun describeFailedRead(uuid: String, status: Int): String =
+        "readCharacteristic: $uuid failed " +
+            "(status=$status, ${GattDiagnostics.describeAttStatus(status)})"
+
+    fun describeDisconnectedRead(uuid: String, status: Int): String =
+        "readCharacteristic: $uuid failed: the link dropped before the " +
+            "reply arrived (status=$status, " +
+            "${GattDiagnostics.describeConnectionStatus(status)})"
 }
 
 // Characteristics whose read timed out on this connection (issue #422).
