@@ -10,7 +10,7 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_tick_paint
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_thumb_style.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 
-/// The translucent panel behind an active scrubber, with [markers] centred
+/// The opaque panel behind an active scrubber, with [markers] centred
 /// at their track positions and, while dragging, [currentLabel] beside a
 /// marker line on a band level with the thumb at [thumbTop].
 class ListScrubberPanel extends StatefulWidget {
@@ -221,7 +221,7 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final style = ListScrubberPanel.markerStyle(theme);
-    final fill = colors.surfaceContainerHigh.withValues(alpha: 0.7);
+    final fill = colors.surfaceContainerHigh;
     final centre = widget.thumbHeight / 2;
     final current = widget.currentLabel;
     final bandHeight = current == null

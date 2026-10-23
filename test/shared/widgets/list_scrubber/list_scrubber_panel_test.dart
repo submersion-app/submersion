@@ -249,13 +249,13 @@ void main() {
   });
 
   for (final brightness in Brightness.values) {
-    testWidgets('a square panel at 0.7 opacity ($brightness)', (tester) async {
+    testWidgets('a square, opaque panel ($brightness)', (tester) async {
       await tester.pumpWidget(
         host(markers: const [], thumbTop: 0, brightness: brightness),
       );
       final box = decoration(tester);
       expect(box.borderRadius, isNull);
-      expect(box.color!.a, closeTo(0.7, 0.01));
+      expect(box.color!.a, 1.0);
     });
   }
 }
