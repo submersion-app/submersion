@@ -86936,6 +86936,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The photo copies in {account} need reconnecting.'**
   String settings_setUpDevice_item_reconnect(String account);
+
+  /// Subtitle of the Advanced row that reopens the setup flow
+  ///
+  /// In en, this message translates to:
+  /// **'Account, sync, backups and photos'**
+  String get settings_setUpDevice_againSubtitle;
 }
 
 class _AppLocalizationsDelegate

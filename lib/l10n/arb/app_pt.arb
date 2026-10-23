@@ -16144,5 +16144,6 @@
   "settings_setUpDevice_item_signIn": "Inicie sessão novamente em {account}. A sincronização e os backups ficam em pausa até lá.",
   "settings_setUpDevice_item_signInShort": "Inicie sessão novamente em {account}.",
   "settings_setUpDevice_item_attach": "Os seus outros dispositivos guardam cópias das fotos em {account}.",
-  "settings_setUpDevice_item_reconnect": "As cópias das fotos em {account} precisam de voltar a ser ligadas."
+  "settings_setUpDevice_item_reconnect": "As cópias das fotos em {account} precisam de voltar a ser ligadas.",
+  "settings_setUpDevice_againSubtitle": "Conta, sincronização, backups e fotos"
 }

@@ -16144,5 +16144,6 @@
   "settings_setUpDevice_item_signIn": "יש להתחבר שוב אל {account}. הסנכרון והגיבויים מושהים עד אז.",
   "settings_setUpDevice_item_signInShort": "יש להתחבר שוב אל {account}.",
   "settings_setUpDevice_item_attach": "המכשירים האחרים שלך שומרים עותקים של תמונות ב-{account}.",
-  "settings_setUpDevice_item_reconnect": "יש לחבר מחדש את עותקי התמונות ב-{account}."
+  "settings_setUpDevice_item_reconnect": "יש לחבר מחדש את עותקי התמונות ב-{account}.",
+  "settings_setUpDevice_againSubtitle": "חשבון, סנכרון, גיבויים ותמונות"
 }

@@ -16144,5 +16144,6 @@
   "settings_setUpDevice_item_signIn": "请重新登录 {account}。在此之前，同步和备份已暂停。",
   "settings_setUpDevice_item_signInShort": "请重新登录 {account}。",
   "settings_setUpDevice_item_attach": "你的其他设备在 {account} 中保存照片副本。",
-  "settings_setUpDevice_item_reconnect": "{account} 中的照片副本需要重新连接。"
+  "settings_setUpDevice_item_reconnect": "{account} 中的照片副本需要重新连接。",
+  "settings_setUpDevice_againSubtitle": "账户、同步、备份和照片"
 }

@@ -16144,5 +16144,6 @@
   "settings_setUpDevice_item_signIn": "Jelentkezzen be újra ide: {account}. Addig a szinkronizálás és a mentések szünetelnek.",
   "settings_setUpDevice_item_signInShort": "Jelentkezzen be újra ide: {account}.",
   "settings_setUpDevice_item_attach": "A többi eszköze itt tárol fotómásolatokat: {account}.",
-  "settings_setUpDevice_item_reconnect": "Az itt tárolt fotómásolatokat újra kell csatlakoztatni: {account}."
+  "settings_setUpDevice_item_reconnect": "Az itt tárolt fotómásolatokat újra kell csatlakoztatni: {account}.",
+  "settings_setUpDevice_againSubtitle": "Fiók, szinkronizálás, mentések és fotók"
 }

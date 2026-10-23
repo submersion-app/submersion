@@ -16144,5 +16144,6 @@
   "settings_setUpDevice_item_signIn": "Accedi di nuovo a {account}. Sincronizzazione e backup sono in pausa fino ad allora.",
   "settings_setUpDevice_item_signInShort": "Accedi di nuovo a {account}.",
   "settings_setUpDevice_item_attach": "Gli altri tuoi dispositivi conservano copie delle foto in {account}.",
-  "settings_setUpDevice_item_reconnect": "Le copie delle foto in {account} devono essere ricollegate."
+  "settings_setUpDevice_item_reconnect": "Le copie delle foto in {account} devono essere ricollegate.",
+  "settings_setUpDevice_againSubtitle": "Account, sincronizzazione, backup e foto"
 }

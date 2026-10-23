@@ -5,19 +5,27 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/set_up_card_prefs_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_row_status_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_route.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/utils/device_kind.dart';
 
-/// Settings > Data: the health strip and facts line (#3390), then the five
-/// "Your data" rows, each with the strip's health mark (#3394) and a
-/// one-sentence status, then the rarely used rows under "Advanced" (#3482).
+/// Settings > Data: the health strip, the Set up this device card and the
+/// facts line (#3390, #3482), then the five "Your data" rows, each with the
+/// strip's health mark (#3394) and a one-sentence status, then the rarely
+/// used rows under "Advanced" (#3482).
 class DataSectionContent extends ConsumerStatefulWidget {
   const DataSectionContent({super.key});
 
@@ -66,6 +74,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
     final health = {
       for (final h in ref.watch(dataHealthProvider)) h.feature: h,
     };
+    final setUp = ref.watch(setUpProgressProvider);
 
     Widget feature({
       required IconData icon,
@@ -73,6 +82,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       required DataRowStatus status,
       required String route,
       DataFeature? healthOf,
+      SetUpStep? setUpStep,
     }) => DataRowTile(
       icon: icon,
       title: title,
@@ -82,6 +92,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
           ? null
           : health[healthOf],
       offersSetUp: status.offersSetUp,
+      setUpRoute: setUpStep == null ? null : setUpStepRoute(setUpStep),
     );
 
     Widget advanced(
@@ -99,6 +110,11 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
         children: [
           const DataHealthStrip(),
           const SizedBox(height: 12),
+          SetUpDeviceCard(
+            margin: const EdgeInsets.only(bottom: 12),
+            onOpenStep: (step) =>
+                context.pushSettingsPage(setUpStepRoute(step)),
+          ),
           const DataFactsLine(),
           const SizedBox(height: 12),
           const Divider(height: 1),
@@ -110,6 +126,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(backupsRowStatusProvider),
             route: '/settings/backup',
             healthOf: DataFeature.backup,
+            setUpStep: SetUpStep.backups,
           ),
           // Available on every platform (iCloud on Apple devices, other
           // accounts everywhere); the sync page gates which each one sees.
@@ -119,6 +136,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(syncRowStatusProvider),
             route: '/settings/cloud-sync',
             healthOf: DataFeature.sync,
+            setUpStep: SetUpStep.sync,
           ),
           feature(
             icon: Icons.perm_media_outlined,
@@ -126,6 +144,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(photosRowStatusProvider),
             route: '/settings/photos-media',
             healthOf: DataFeature.media,
+            setUpStep: SetUpStep.photos,
           ),
           // Shared site libraries (issue #2567).
           feature(
@@ -171,6 +190,29 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             l10n.settings_data_dataTools_subtitle,
             '/settings/data-tools',
           ),
+          // Reopens the flow from its first step once the card is hidden or
+          // complete; a hidden card shows again.
+          if (setUp != null && !setUp.showsSteps)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.restart_alt),
+              title: Text(
+                l10n.settings_setUpDevice_again(
+                  deviceKindArg(deviceKindOf(context)),
+                ),
+              ),
+              subtitle: Text(l10n.settings_setUpDevice_againSubtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                await ref
+                    .read(setUpCardPrefsProvider.notifier)
+                    .setHidden(false);
+                if (!context.mounted) return;
+                await context.pushSettingsPage(
+                  setUpStepRoute(SetUpStep.account),
+                );
+              },
+            ),
         ],
       ),
     );

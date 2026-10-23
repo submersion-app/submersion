@@ -54845,4 +54845,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String settings_setUpDevice_item_reconnect(String account) {
     return 'Die Fotokopien in $account müssen neu verbunden werden.';
   }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Konto, Sync, Sicherungen und Fotos';
 }

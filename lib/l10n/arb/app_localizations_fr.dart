@@ -55079,4 +55079,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String settings_setUpDevice_item_reconnect(String account) {
     return 'Les copies des photos dans $account doivent être reconnectées.';
   }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Compte, synchronisation, sauvegardes et photos';
 }

@@ -32483,5 +32483,7 @@
   "settings_setUpDevice_item_attach": "Your other devices keep photo copies in {account}.",
   "@settings_setUpDevice_item_attach": {"description": "Card item: the library keeps photo copies in an account this device has not joined", "placeholders": {"account": {"type": "String"}}},
   "settings_setUpDevice_item_reconnect": "The photo copies in {account} need reconnecting.",
-  "@settings_setUpDevice_item_reconnect": {"description": "Card item: the photo copies' storage no longer matches and needs reconnecting", "placeholders": {"account": {"type": "String"}}}
+  "@settings_setUpDevice_item_reconnect": {"description": "Card item: the photo copies' storage no longer matches and needs reconnecting", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_againSubtitle": "Account, sync, backups and photos",
+  "@settings_setUpDevice_againSubtitle": {"description": "Subtitle of the Advanced row that reopens the setup flow"}
 }

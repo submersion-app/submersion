@@ -51625,4 +51625,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_setUpDevice_item_reconnect(String account) {
     return '$account 中的照片副本需要重新连接。';
   }
+
+  @override
+  String get settings_setUpDevice_againSubtitle => '账户、同步、备份和照片';
 }

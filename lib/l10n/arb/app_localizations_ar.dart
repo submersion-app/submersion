@@ -55716,4 +55716,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_setUpDevice_item_reconnect(String account) {
     return 'يلزم إعادة توصيل نسخ الصور في $account.';
   }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'الحساب والمزامنة والنسخ الاحتياطية والصور';
 }

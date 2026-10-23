@@ -53821,4 +53821,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_setUpDevice_item_reconnect(String account) {
     return 'יש לחבר מחדש את עותקי התמונות ב-$account.';
   }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'חשבון, סנכרון, גיבויים ותמונות';
 }

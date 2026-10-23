@@ -16144,5 +16144,6 @@
   "settings_setUpDevice_item_signIn": "سجّل الدخول إلى {account} مجددًا. المزامنة والنسخ الاحتياطي متوقفان مؤقتًا حتى تفعل.",
   "settings_setUpDevice_item_signInShort": "سجّل الدخول إلى {account} مجددًا.",
   "settings_setUpDevice_item_attach": "تحتفظ أجهزتك الأخرى بنسخ من الصور في {account}.",
-  "settings_setUpDevice_item_reconnect": "يلزم إعادة توصيل نسخ الصور في {account}."
+  "settings_setUpDevice_item_reconnect": "يلزم إعادة توصيل نسخ الصور في {account}.",
+  "settings_setUpDevice_againSubtitle": "الحساب والمزامنة والنسخ الاحتياطية والصور"
 }

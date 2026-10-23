@@ -16144,5 +16144,6 @@
   "settings_setUpDevice_item_signIn": "Log opnieuw in bij {account}. Synchronisatie en back-ups staan tot dan stil.",
   "settings_setUpDevice_item_signInShort": "Log opnieuw in bij {account}.",
   "settings_setUpDevice_item_attach": "Je andere apparaten bewaren fotokopieën in {account}.",
-  "settings_setUpDevice_item_reconnect": "De fotokopieën in {account} moeten opnieuw worden verbonden."
+  "settings_setUpDevice_item_reconnect": "De fotokopieën in {account} moeten opnieuw worden verbonden.",
+  "settings_setUpDevice_againSubtitle": "Account, synchronisatie, back-ups en foto's"
 }

@@ -54963,4 +54963,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String settings_setUpDevice_item_reconnect(String account) {
     return 'Le copie delle foto in $account devono essere ricollegate.';
   }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Account, sincronizzazione, backup e foto';
 }

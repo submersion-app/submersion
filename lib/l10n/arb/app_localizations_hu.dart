@@ -54650,4 +54650,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_setUpDevice_item_reconnect(String account) {
     return 'Az itt tárolt fotómásolatokat újra kell csatlakoztatni: $account.';
   }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Fiók, szinkronizálás, mentések és fotók';
 }

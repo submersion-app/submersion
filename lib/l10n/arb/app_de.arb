@@ -16265,5 +16265,6 @@
   "settings_setUpDevice_item_signIn": "Melden Sie sich erneut bei {account} an. Sync und Sicherungen sind bis dahin pausiert.",
   "settings_setUpDevice_item_signInShort": "Melden Sie sich erneut bei {account} an.",
   "settings_setUpDevice_item_attach": "Ihre anderen Geräte bewahren Fotokopien in {account} auf.",
-  "settings_setUpDevice_item_reconnect": "Die Fotokopien in {account} müssen neu verbunden werden."
+  "settings_setUpDevice_item_reconnect": "Die Fotokopien in {account} müssen neu verbunden werden.",
+  "settings_setUpDevice_againSubtitle": "Konto, Sync, Sicherungen und Fotos"
 }
