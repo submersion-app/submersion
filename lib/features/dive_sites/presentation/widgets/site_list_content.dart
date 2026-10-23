@@ -55,6 +55,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_list_
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -1284,6 +1285,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// shared by both shells so the pane cannot drift from the full-width bar.
   List<BulkAction> _bulkActions(List<SiteWithDiveCount> sites) {
     final byId = {for (final s in sites) s.site.id: s.site};
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    final multipleDivers =
+        (ref.watch(allDiversProvider).value?.length ?? 0) >= 2;
     return [
       BulkAction(
         id: 'merge',
@@ -1302,6 +1306,27 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         isEnabled: (ids) => ids.every((id) => _mayPushToLibrary(byId[id])),
         onInvoke: _addToLibrary,
       ),
+      // The profile's own personal sites with chosen profiles (issue
+      // #2151). Adds only; a library site follows its library.
+      if (multipleDivers && activeDiverId != null)
+        BulkAction(
+          id: 'share',
+          icon: Icons.share,
+          label: context.l10n.sharedItems_bulkShare_action,
+          isEnabled: (ids) => ids.every((id) {
+            final site = byId[id];
+            return site != null &&
+                !site.isLibrarySite &&
+                site.diverId == activeDiverId;
+          }),
+          onInvoke: () => shareItemsWithProfiles(
+            context,
+            ref,
+            kind: SharedItemKind.site,
+            ids: _selectedIds.toList(),
+            activeDiverId: activeDiverId,
+          ),
+        ),
       // Logbook rules on the checked sites, previewed first (#3513). Library
       // sites and other profiles' sites are left out by the rules' scope.
       rulesBulkAction(

@@ -35868,16 +35868,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count Orte mit allen Taucherprofilen geteilt.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count Reisen mit allen Taucherprofilen geteilt.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'Nichts zu teilen.';
 
   @override

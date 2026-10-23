@@ -33868,16 +33868,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '已将 $count 个潜点与所有潜水员资料共享。';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '已将 $count 个行程与所有潜水员资料共享。';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => '没有可共享的内容。';
 
   @override

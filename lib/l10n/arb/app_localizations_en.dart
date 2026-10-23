@@ -35336,16 +35336,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return 'Shared $count sites with all dive profiles.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return 'Shared $count trips with all dive profiles.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'Nothing to share.';
 
   @override

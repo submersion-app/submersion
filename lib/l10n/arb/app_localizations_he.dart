@@ -35056,16 +35056,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count אתרים שותפו עם כל פרופילי הצלילה.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count טיולים שותפו עם כל פרופילי הצלילה.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'אין מה לשתף.';
 
   @override

@@ -56636,18 +56636,6 @@ abstract class AppLocalizations {
   /// **'Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.'**
   String settings_shareAllTrips_confirm(int count);
 
-  /// No description provided for @settings_shareAllSites_snackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Shared {count} sites with all dive profiles.'**
-  String settings_shareAllSites_snackbar(int count);
-
-  /// No description provided for @settings_shareAllTrips_snackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Shared {count} trips with all dive profiles.'**
-  String settings_shareAllTrips_snackbar(int count);
-
   /// Message shown when there are no sites/trips to share
   ///
   /// In en, this message translates to:

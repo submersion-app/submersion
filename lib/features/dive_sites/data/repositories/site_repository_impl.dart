@@ -603,49 +603,6 @@ class SiteRepository {
     }
   }
 
-  /// Mark every private site owned by [diverId] as shared. Returns the
-  /// count of rows updated. All updated rows are marked pending for sync.
-  Future<int> shareAllForDiver(String diverId) async {
-    try {
-      _log.info('Bulk sharing all private sites for diver $diverId');
-      final now = DateTime.now().millisecondsSinceEpoch;
-
-      return await _db.transaction(() async {
-        final toShare =
-            await (_db.select(_db.diveSites)..where(
-                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
-                ))
-                .get();
-
-        if (toShare.isEmpty) return 0;
-
-        await _db.customUpdate(
-          'UPDATE dive_sites SET is_shared = 1, updated_at = ? '
-          'WHERE diver_id = ? AND is_shared = 0',
-          variables: [Variable.withInt(now), Variable.withString(diverId)],
-          updates: {_db.diveSites},
-        );
-
-        for (final row in toShare) {
-          await _syncRepository.markRecordPending(
-            entityType: 'diveSites',
-            recordId: row.id,
-            localUpdatedAt: now,
-          );
-        }
-        SyncEventBus.notifyLocalChange();
-        return toShare.length;
-      });
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to bulk-share sites for diver $diverId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// The existing sites among [ids], split by whether [actingDiverId] may
   /// destroy them (issue #2594): its own, ownerless ones, and all of them
   /// for a caller that names no profile, against the other profiles'. An

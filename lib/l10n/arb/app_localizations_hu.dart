@@ -35746,16 +35746,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count helyszín megosztva minden búvárprofillal.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count túra megosztva minden búvárprofillal.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'Nincs mit megosztani.';
 
   @override

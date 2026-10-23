@@ -35697,16 +35697,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count sites gedeeld met alle duikersprofielen.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count trips gedeeld met alle duikersprofielen.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'Niets om te delen.';
 
   @override

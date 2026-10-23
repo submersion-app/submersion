@@ -36412,16 +36412,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return 'تمت مشاركة $count من المواقع مع جميع ملفات الغوص.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return 'تمت مشاركة $count من الرحلات مع جميع ملفات الغوص.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'لا يوجد شيء لمشاركته.';
 
   @override

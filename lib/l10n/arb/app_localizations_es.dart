@@ -35974,16 +35974,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count sitios compartidos con todos los perfiles de buceo.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count viajes compartidos con todos los perfiles de buceo.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'Nada que compartir.';
 
   @override

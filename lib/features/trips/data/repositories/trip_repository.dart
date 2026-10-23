@@ -282,49 +282,6 @@ class TripRepository {
     }
   }
 
-  /// Mark every private trip owned by [diverId] as shared. Returns the
-  /// count of rows updated. All updated rows are marked pending for sync.
-  Future<int> shareAllForDiver(String diverId) async {
-    try {
-      _log.info('Bulk sharing all private trips for diver $diverId');
-      final now = DateTime.now().millisecondsSinceEpoch;
-
-      return await _db.transaction(() async {
-        final toShare =
-            await (_db.select(_db.trips)..where(
-                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
-                ))
-                .get();
-
-        if (toShare.isEmpty) return 0;
-
-        await _db.customUpdate(
-          'UPDATE trips SET is_shared = 1, updated_at = ? '
-          'WHERE diver_id = ? AND is_shared = 0',
-          variables: [Variable.withInt(now), Variable.withString(diverId)],
-          updates: {_db.trips},
-        );
-
-        for (final row in toShare) {
-          await _syncRepository.markRecordPending(
-            entityType: 'trips',
-            recordId: row.id,
-            localUpdatedAt: now,
-          );
-        }
-        SyncEventBus.notifyLocalChange();
-        return toShare.length;
-      });
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to bulk-share trips for diver $diverId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// Delete a trip and all associated child records, when [actingDiverId]
   /// may (issue #2594): its owner, anyone for an ownerless trip, and any
   /// caller that names no profile. Returns false, with nothing changed, for

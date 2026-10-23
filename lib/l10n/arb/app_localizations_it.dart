@@ -35950,16 +35950,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count siti condivisi con tutti i profili subacquei.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count viaggi condivisi con tutti i profili subacquei.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'Niente da condividere.';
 
   @override

@@ -35933,16 +35933,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count locais partilhados com todos os perfis de mergulho.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count viagens partilhadas com todos os perfis de mergulho.';
-  }
-
-  @override
   String get settings_shareAll_noneToShare => 'Nada para partilhar.';
 
   @override

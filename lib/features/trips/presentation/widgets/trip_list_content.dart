@@ -44,6 +44,7 @@ import 'package:submersion/shared/widgets/card_icon_label.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 final _log = LoggerService.forClass(TripListContent);
@@ -345,7 +346,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   ///
   /// When embedded inside [TableModeLayout], provides only the table content.
   /// The app bar, map, and column settings are managed by [TableModeLayout].
-  /// Trips offer no extras beyond the baseline.
+  /// Trips offer one extra: Share with... (issue #2151), with two or more
+  /// profiles, for the active profile's own trips.
   ///
   /// The per-trip export menu item is a stub -- both its CSV and PDF entries
   /// only show a "coming soon" snackbar (trip_detail_page.dart:573) -- so
@@ -354,10 +356,30 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     List<TripWithStats> trips,
     SelectionBarShell shell,
   ) {
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    final multipleDivers =
+        (ref.watch(allDiversProvider).value?.length ?? 0) >= 2;
+    final ownerById = {for (final t in trips) t.trip.id: t.trip.diverId};
     return SelectionAppBar(
       controller: _selection,
       selectableIds: trips.map((t) => t.trip.id).toList(),
-      actions: const [],
+      actions: [
+        if (multipleDivers && activeDiverId != null)
+          BulkAction(
+            id: 'share',
+            icon: Icons.share,
+            label: context.l10n.sharedItems_bulkShare_action,
+            isEnabled: (ids) =>
+                ids.every((id) => ownerById[id] == activeDiverId),
+            onInvoke: () => shareItemsWithProfiles(
+              context,
+              ref,
+              kind: SharedItemKind.trip,
+              ids: _selectedIds.toList(),
+              activeDiverId: activeDiverId,
+            ),
+          ),
+      ],
       shell: shell,
       onDelete: _confirmAndDelete,
     );
