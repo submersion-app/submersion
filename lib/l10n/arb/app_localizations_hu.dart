@@ -19590,6 +19590,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_gas_noTurnRule => 'nincs fordulónyomás-szabály';
+
+  @override
+  String get plannerCanvas_gas_turnNoStartPressure =>
+      'a fordulóhoz kezdőnyomás kell';
+
+  @override
+  String get plannerCanvas_gas_minGasNoStartPressure =>
+      'a min. gázhoz kezdőnyomás kell';
+
+  @override
+  String get plannerCanvas_gas_limitsNoStartPressure =>
+      'a fordulóhoz és a min. gázhoz kezdőnyomás kell';
+
+  @override
   String plannerCanvas_gas_usedReading(String reading) {
     return 'felhasználva: $reading';
   }
@@ -19758,6 +19773,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_turn => 'Forduló';
+
+  @override
+  String get plannerCanvas_slate_noTurnRule => 'Nincs szabály';
+
+  @override
+  String get plannerCanvas_slate_noStartPressure => 'Nincs kezdőnyomás';
 
   @override
   String get plannerCanvas_table_depth => 'Mélység';

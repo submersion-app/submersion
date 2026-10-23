@@ -135,6 +135,61 @@ void main() {
     expect(container.read(selectedDeviationProvider), 'deeper');
   });
 
+  group('the gas row explains a missing turn or min gas (#3603)', () {
+    Future<DivePlanNotifier> pumpSheet(WidgetTester tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: _overrides(),
+          child: SizedBox(
+            width: 520,
+            height: 900,
+            child: PlanResultsSheet(controller: ScrollController()),
+          ),
+        ),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanResultsSheet)),
+      );
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+      return notifier;
+    }
+
+    testWidgets('no turn rule is named next to the min gas', (tester) async {
+      await pumpSheet(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('turn @'), findsNothing);
+      expect(find.textContaining('no turn rule set'), findsOneWidget);
+      expect(find.textContaining('min gas '), findsOneWidget);
+    });
+
+    testWidgets('a back gas without a start pressure says so', (tester) async {
+      final notifier = await pumpSheet(tester);
+      notifier.updateContingencies(turnRule: domain.TurnPressureRule.thirds);
+      final tank = notifier.state.tanks.single;
+      notifier.updateTank(
+        tank.id,
+        DiveTank(
+          id: tank.id,
+          name: tank.name,
+          volume: tank.volume,
+          workingPressure: tank.workingPressure,
+          gasMix: tank.gasMix,
+          role: tank.role,
+          order: tank.order,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('turn and min gas need a start pressure'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('turn @'), findsNothing);
+    });
+  });
+
   testWidgets('sheet lists deviation tables and turn pressure', (tester) async {
     await tester.pumpWidget(
       testApp(

@@ -19366,6 +19366,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_gas_noTurnRule => 'no turn rule set';
+
+  @override
+  String get plannerCanvas_gas_turnNoStartPressure =>
+      'turn needs a start pressure';
+
+  @override
+  String get plannerCanvas_gas_minGasNoStartPressure =>
+      'min gas needs a start pressure';
+
+  @override
+  String get plannerCanvas_gas_limitsNoStartPressure =>
+      'turn and min gas need a start pressure';
+
+  @override
   String plannerCanvas_gas_usedReading(String reading) {
     return 'used: $reading';
   }
@@ -19533,6 +19548,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_turn => 'Turn';
+
+  @override
+  String get plannerCanvas_slate_noTurnRule => 'No rule';
+
+  @override
+  String get plannerCanvas_slate_noStartPressure => 'No start pressure';
 
   @override
   String get plannerCanvas_table_depth => 'Depth';

@@ -19715,6 +19715,21 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_gas_noTurnRule => 'aucune règle de demi-tour';
+
+  @override
+  String get plannerCanvas_gas_turnNoStartPressure =>
+      'le demi-tour nécessite une pression de départ';
+
+  @override
+  String get plannerCanvas_gas_minGasNoStartPressure =>
+      'le gaz mini nécessite une pression de départ';
+
+  @override
+  String get plannerCanvas_gas_limitsNoStartPressure =>
+      'le demi-tour et le gaz mini nécessitent une pression de départ';
+
+  @override
   String plannerCanvas_gas_usedReading(String reading) {
     return 'utilisé : $reading';
   }
@@ -19883,6 +19898,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_turn => 'Demi-tour';
+
+  @override
+  String get plannerCanvas_slate_noTurnRule => 'Aucune règle';
+
+  @override
+  String get plannerCanvas_slate_noStartPressure => 'Pas de pression de départ';
 
   @override
   String get plannerCanvas_table_depth => 'Profondeur';

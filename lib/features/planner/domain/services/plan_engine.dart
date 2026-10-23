@@ -1319,9 +1319,35 @@ class PlanEngine {
                 remaining != null && remaining < config.reservePressure,
             turnPressureBar: _turnPressureFor(plan, tank),
             minGasBar: _minGasFor(plan, tank, environment),
+            turnPressureGap: _turnPressureGapFor(plan, tank),
+            minGasGap: _minGasGapFor(plan, tank),
           );
         }(),
     ];
+  }
+
+  /// Why [_turnPressureFor] is null for a back gas (#3603), or null when it
+  /// is not, or when [tank] is not a back gas at all. A missing rule comes
+  /// first: a start pressure alone would still leave the turn blank.
+  PlanGasLimitGap? _turnPressureGapFor(domain.DivePlan plan, DiveTank tank) {
+    if (tank.role != TankRole.backGas) return null;
+    final rule = config.turnPressureRuleFor(plan);
+    if (rule == null || rule == domain.TurnPressureRule.off) {
+      return PlanGasLimitGap.noTurnRule;
+    }
+    if (tank.startPressure == null) return PlanGasLimitGap.noStartPressure;
+    return null;
+  }
+
+  /// Why [_minGasFor] is null for an open-circuit back gas (#3603), or null
+  /// when it is not, or when minimum gas does not apply to [tank] or [plan].
+  PlanGasLimitGap? _minGasGapFor(domain.DivePlan plan, DiveTank tank) {
+    if (plan.mode == domain.PlanMode.ccr ||
+        tank.role != TankRole.backGas ||
+        plan.maxDepth <= 0) {
+      return null;
+    }
+    return tank.startPressure == null ? PlanGasLimitGap.noStartPressure : null;
   }
 
   /// Turn pressure per the plan's rule; bottom tanks with a start pressure

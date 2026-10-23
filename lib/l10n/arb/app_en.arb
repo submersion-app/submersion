@@ -12297,6 +12297,10 @@
       }
     }
   },
+  "plannerCanvas_gas_noTurnRule": "no turn rule set",
+  "plannerCanvas_gas_turnNoStartPressure": "turn needs a start pressure",
+  "plannerCanvas_gas_minGasNoStartPressure": "min gas needs a start pressure",
+  "plannerCanvas_gas_limitsNoStartPressure": "turn and min gas need a start pressure",
   "plannerCanvas_gas_usedReading": "used: {reading}",
   "@plannerCanvas_gas_usedReading": {
     "placeholders": {
@@ -12452,6 +12456,8 @@
   "plannerCanvas_slate_minGas": "Min gas",
   "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
+  "plannerCanvas_slate_noTurnRule": "No rule",
+  "plannerCanvas_slate_noStartPressure": "No start pressure",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",
   "plannerCanvas_table_runtime": "RT",

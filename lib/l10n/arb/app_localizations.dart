@@ -31419,6 +31419,30 @@ abstract class AppLocalizations {
   /// **'turn @ {pressure}'**
   String plannerCanvas_gas_turnAt(String pressure);
 
+  /// No description provided for @plannerCanvas_gas_noTurnRule.
+  ///
+  /// In en, this message translates to:
+  /// **'no turn rule set'**
+  String get plannerCanvas_gas_noTurnRule;
+
+  /// No description provided for @plannerCanvas_gas_turnNoStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'turn needs a start pressure'**
+  String get plannerCanvas_gas_turnNoStartPressure;
+
+  /// No description provided for @plannerCanvas_gas_minGasNoStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'min gas needs a start pressure'**
+  String get plannerCanvas_gas_minGasNoStartPressure;
+
+  /// No description provided for @plannerCanvas_gas_limitsNoStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'turn and min gas need a start pressure'**
+  String get plannerCanvas_gas_limitsNoStartPressure;
+
   /// No description provided for @plannerCanvas_gas_usedReading.
   ///
   /// In en, this message translates to:
@@ -31688,6 +31712,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn'**
   String get plannerCanvas_slate_turn;
+
+  /// No description provided for @plannerCanvas_slate_noTurnRule.
+  ///
+  /// In en, this message translates to:
+  /// **'No rule'**
+  String get plannerCanvas_slate_noTurnRule;
+
+  /// No description provided for @plannerCanvas_slate_noStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'No start pressure'**
+  String get plannerCanvas_slate_noStartPressure;
 
   /// No description provided for @plannerCanvas_table_depth.
   ///

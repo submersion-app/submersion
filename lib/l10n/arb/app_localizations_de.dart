@@ -19637,6 +19637,21 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_gas_noTurnRule => 'keine Umkehrregel gesetzt';
+
+  @override
+  String get plannerCanvas_gas_turnNoStartPressure =>
+      'Umkehr braucht einen Startdruck';
+
+  @override
+  String get plannerCanvas_gas_minGasNoStartPressure =>
+      'Min-Gas braucht einen Startdruck';
+
+  @override
+  String get plannerCanvas_gas_limitsNoStartPressure =>
+      'Umkehr und Min-Gas brauchen einen Startdruck';
+
+  @override
   String plannerCanvas_gas_usedReading(String reading) {
     return 'verbraucht: $reading';
   }
@@ -19805,6 +19820,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_turn => 'Umkehr';
+
+  @override
+  String get plannerCanvas_slate_noTurnRule => 'Keine Regel';
+
+  @override
+  String get plannerCanvas_slate_noStartPressure => 'Kein Startdruck';
 
   @override
   String get plannerCanvas_table_depth => 'Tiefe';

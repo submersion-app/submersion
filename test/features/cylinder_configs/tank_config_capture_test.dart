@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/tank_config_capture.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -84,6 +85,44 @@ void main() {
     // What a configuration deliberately does not carry: plan-specific facts.
     expect(picked.isTravelGas, isFalse);
     expect(picked.decoSwitchDepth, isNull);
+  });
+
+  group('a saved cylinder with no start pressure (#3603)', () {
+    // Without a start pressure the planner can compute neither turn pressure
+    // nor minimum gas, so a saved cylinder that never recorded one is filled
+    // the way a fresh cylinder is: to its rated working pressure.
+    CylinderConfigItem item({double? workingPressure, double? start}) =>
+        CylinderConfigItem(
+          id: 'item',
+          configId: 'cfg',
+          tankRole: TankRole.backGas,
+          volumeL: 11.1,
+          workingPressureBar: workingPressure,
+          defaultStartPressureBar: start,
+          createdAt: now,
+          updatedAt: now,
+        );
+
+    test('takes its working pressure', () {
+      final picked = adapter.tankFromItem(
+        item(workingPressure: 207),
+        id: 'new',
+      );
+      expect(picked.startPressure, 207);
+    });
+
+    test('falls back to 200 bar with no working pressure either', () {
+      final picked = adapter.tankFromItem(item(), id: 'new');
+      expect(picked.startPressure, 200);
+    });
+
+    test('keeps a saved start pressure over the working pressure', () {
+      final picked = adapter.tankFromItem(
+        item(workingPressure: 207, start: 180),
+        id: 'new',
+      );
+      expect(picked.startPressure, 180);
+    });
   });
 
   test('an empty id is left for the repository to mint', () {
