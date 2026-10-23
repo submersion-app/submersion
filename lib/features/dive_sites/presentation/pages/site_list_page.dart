@@ -18,6 +18,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -66,6 +67,13 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
     }
   }
 
+  /// The site last opened, while the list still shows it (#3301).
+  AsyncValue<String?> _rememberedSiteId(WidgetRef ref) => rememberedListedId(
+    items: ref.watch(sortedSitesWithCountsProvider),
+    rememberedId: ref.watch(highlightedSiteIdProvider),
+    idOf: (entry) => entry.site.id,
+  );
+
   /// Leaves a pane whose site was just deleted: drops the selection from the
   /// URL and the list's highlight, which would otherwise keep pointing at a
   /// site that no longer exists.
@@ -101,6 +109,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
     if (viewMode == ListViewMode.table) {
       return TableModeLayout(
         sectionKey: 'sites',
+        rememberedSelectedId: _rememberedSiteId(ref),
         appBarTitle: context.l10n.nav_sites,
         appBarSubtitle: siteListCountLabel(context, ref),
         tableContent: SiteListContent(
@@ -262,6 +271,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
       return FocusTraversalGroup(
         child: MasterDetailScaffold(
           sectionId: 'sites',
+          rememberedSelectedId: _rememberedSiteId(ref),
           masterBuilder: (context, onItemSelected, selectedId) =>
               SiteListContent(
                 onItemSelected: onItemSelected,
