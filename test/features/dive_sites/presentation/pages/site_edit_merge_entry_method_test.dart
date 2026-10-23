@@ -187,4 +187,78 @@ void main() {
     expect(find.text('Jetty/Dock'), findsOneWidget);
     expect(cycleButtonFor('Entry Method'), findsNothing);
   });
+  testWidgets('merge mode cycles whole entry lists (#2054)', (tester) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final site1 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ml-1',
+        name: 'Wall',
+        entryMethods: [EntryMethod.giantStride],
+      ),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ml-2',
+        name: 'Wall',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Giant Stride'), findsOneWidget);
+    await tester.tap(cycleButtonFor('Entry Method'));
+    await tester.pumpAndSettle();
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+  });
+
+  testWidgets('equal lists give one candidate and no cycle button', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    for (final id in ['eq-1', 'eq-2']) {
+      await siteRepository.createSite(
+        DiveSite(
+          id: id,
+          name: 'Wall',
+          entryMethods: const [EntryMethod.backRoll, EntryMethod.giantStride],
+        ),
+      );
+    }
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: const ['eq-1', 'eq-2'],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+    expect(cycleButtonFor('Entry Method'), findsNothing);
+  });
 }

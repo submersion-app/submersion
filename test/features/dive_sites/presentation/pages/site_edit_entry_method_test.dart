@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -98,16 +99,65 @@ void main() {
     expect(find.text('Ladder'), findsOneWidget);
   });
 
-  testWidgets('picking an entry method updates the row', (tester) async {
+  testWidgets('ticking two entry methods shows both on the row (#2054)', (
+    tester,
+  ) async {
     await pumpSiteEdit(tester);
     await expandAccess(tester);
 
     await tester.tap(find.text('Entry Method'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'Shore Entry'));
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Back Roll'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Giant Stride'));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(CheckboxListTile).first)).pop();
     await tester.pumpAndSettle();
 
-    expect(find.text('Shore Entry'), findsOneWidget);
+    // Declaration order, not tick order.
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+  });
+
+  testWidgets('an existing site seeds every listed method', (tester) async {
+    await pumpSiteEdit(
+      tester,
+      site: const DiveSite(
+        id: 'site-3',
+        name: 'Wall',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+        exitMethods: [EntryMethod.ladder, EntryMethod.platform],
+      ),
+    );
+    await expandAccess(tester);
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+    expect(find.text('Ladder, Platform'), findsOneWidget);
+  });
+
+  testWidgets('saving stores every ticked method', (tester) async {
+    final created = await SiteRepository().createSite(
+      const DiveSite(id: '', name: 'Wall'),
+    );
+    await pumpSiteEdit(tester, site: created);
+    await expandAccess(tester);
+
+    await tester.tap(find.text('Entry Method'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Giant Stride'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Back Roll'));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(CheckboxListTile).first)).pop();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = await SiteRepository().getSiteById(created.id);
+    expect(saved!.entryMethods, [
+      EntryMethod.backRoll,
+      EntryMethod.giantStride,
+    ]);
   });
 
   testWidgets('a site with only an entry method still summarises', (

@@ -43,11 +43,12 @@ void main() {
     // read-time fallback cannot reproduce it, so exit stays as stored.
     expect(dive(site: site(entryMethod: EntryMethod.shore)).exitMethod, isNull);
   });
+
   test('does not fall back to a site with several entry methods', () {
-    final multi = DiveSite(
+    const multi = DiveSite(
       id: 'site',
       name: 'Site',
-      entryMethods: const [EntryMethod.shore, EntryMethod.boat],
+      entryMethods: [EntryMethod.shore, EntryMethod.boat],
     );
     expect(dive(site: multi).effectiveEntryMethod, isNull);
   });

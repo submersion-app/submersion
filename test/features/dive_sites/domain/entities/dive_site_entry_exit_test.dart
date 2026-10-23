@@ -100,15 +100,16 @@ void main() {
     });
 
     test('sites with equal lists are equal', () {
+      // Two distinct list instances, so equality must compare content.
       final a = DiveSite(
         id: 's',
         name: 'S',
-        entryMethods: [EntryMethod.shore, EntryMethod.boat],
+        entryMethods: List.of(const [EntryMethod.shore, EntryMethod.boat]),
       );
       final b = DiveSite(
         id: 's',
         name: 'S',
-        entryMethods: [EntryMethod.shore, EntryMethod.boat],
+        entryMethods: List.of(const [EntryMethod.shore, EntryMethod.boat]),
       );
       expect(a, equals(b));
     });
