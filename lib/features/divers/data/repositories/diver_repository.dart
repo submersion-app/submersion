@@ -155,6 +155,40 @@ class DiverRepository {
     ]),
   );
 
+  /// Dive count per diver id, counted in SQL. A profile with no dives is
+  /// absent from the map, as are dives with no diver.
+  Future<Map<String, int>> getDiveCountsByDiver() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            'SELECT diver_id, COUNT(*) AS count FROM dives '
+            'WHERE diver_id IS NOT NULL GROUP BY diver_id',
+            readsFrom: {_db.dives},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('diver_id'): row.read<int>('count'),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives per diver',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Emits whenever a write could change [getDiveCountsByDiver]: a dive
+  /// added, removed or moved, or a profile added or removed.
+  Stream<void> watchDiveCountChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.dives),
+      TableUpdateQuery.onTable(_db.divers),
+    ]),
+  );
+
   /// Get the default diver (or first if none marked default)
   Future<domain.Diver?> getDefaultDiver() async {
     try {

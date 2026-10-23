@@ -492,4 +492,27 @@ void main() {
       },
     );
   });
+
+  group('getDiveCountsByDiver', () {
+    test('counts each profile\'s dives and skips profiles with none', () async {
+      await insertDiver('a');
+      await insertDiver('b');
+      await insertDiver('c');
+      await insertDive('d1', diverId: 'a');
+      await insertDive('d2', diverId: 'a');
+      await insertDive('d3', diverId: 'b');
+      await insertDive('d4');
+
+      final counts = await repository.getDiveCountsByDiver();
+
+      expect(counts, {'a': 2, 'b': 1});
+    });
+  });
+
+  test('watchDiveCountChanges ticks when a dive is written', () async {
+    await insertDiver('a');
+    final tick = repository.watchDiveCountChanges().first;
+    await insertDive('d1', diverId: 'a');
+    await expectLater(tick, completes);
+  });
 }
