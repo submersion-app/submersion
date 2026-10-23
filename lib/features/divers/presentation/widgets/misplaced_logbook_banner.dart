@@ -29,9 +29,13 @@ class _MisplacedLogbookBannerState
   @override
   Widget build(BuildContext context) {
     // .value keeps the last answer while a dive-count tick reloads the
-    // provider, so the banner does not flicker during a sync or import.
-    final found = ref.watch(misplacedLogbookProvider).value;
+    // provider, so the banner does not flicker during a sync or import. That
+    // answer may be stale (a Keep both or Switch just landed), so the buttons
+    // wait for the reload too.
+    final logbook = ref.watch(misplacedLogbookProvider);
+    final found = logbook.value;
     if (found == null) return const SizedBox.shrink();
+    final busy = _busy || logbook.isLoading;
 
     final theme = Theme.of(context);
     final l10n = context.l10n;
@@ -78,18 +82,18 @@ class _MisplacedLogbookBannerState
             runSpacing: 8,
             children: [
               FilledButton(
-                onPressed: _busy ? null : () => _run(() => _switch(found)),
+                onPressed: busy ? null : () => _run(() => _switch(found)),
                 child: Text(l10n.divers_misplacedLogbook_switchTo),
               ),
               if (found.canMerge)
                 FilledButton.tonal(
-                  onPressed: _busy
+                  onPressed: busy
                       ? null
                       : () => _run(() => _confirmAndMerge(found)),
                   child: Text(l10n.divers_misplacedLogbook_merge),
                 ),
               TextButton(
-                onPressed: _busy
+                onPressed: busy
                     ? null
                     : () => _run(
                         () => ref
@@ -162,10 +166,7 @@ class _MisplacedLogbookBannerState
       // (it may be someone else's logbook), so check the live counts. The
       // banner then rebuilds without Merge.
       final counts = await diverRepo.getDiveCountsByDiver();
-      final holders = {
-        for (final e in counts.entries)
-          if (e.key != found.active.id && e.value > 0) e.key,
-      };
+      final holders = otherDiveHolderIds(counts, found.active.id);
       if (holders.length != 1 || holders.single != found.target.id) return;
       snapshot = await repo.mergeDivers(
         keeperId: found.target.id,

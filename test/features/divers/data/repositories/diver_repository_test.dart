@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -515,4 +516,23 @@ void main() {
     await insertDive('d1', diverId: 'a');
     await expectLater(tick, completes);
   });
+
+  test(
+    'watchDiveCountChanges coalesces a burst of writes into one tick',
+    () async {
+      await insertDiver('a');
+      var ticks = 0;
+      final sub = repository.watchDiveCountChanges().listen((_) => ticks++);
+      addTearDown(sub.cancel);
+
+      await insertDive('d1', diverId: 'a');
+      await insertDive('d2', diverId: 'a');
+      await insertDive('d3', diverId: 'a');
+      await Future<void>.delayed(
+        DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+      );
+
+      expect(ticks, 1);
+    },
+  );
 }

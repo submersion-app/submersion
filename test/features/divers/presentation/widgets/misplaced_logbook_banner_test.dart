@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/misplaced_logbook.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/misplaced_logbook_providers.dart';
@@ -303,5 +304,54 @@ void main() {
 
     expect(mergeRepo.merges, isEmpty);
     expect(currentDiver.state, _active.id);
+  });
+
+  testWidgets('keeps showing while the provider reloads, with the actions '
+      'locked until the new answer lands', (tester) async {
+    final reload = StateProvider<int>((ref) => 0);
+    final hold = Completer<void>();
+    final value = MisplacedLogbook(
+      active: _active,
+      target: _target,
+      targetDiveCount: 212,
+      canMerge: true,
+    );
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          currentDiverIdProvider.overrideWith((ref) => currentDiver),
+          diverMergeRepositoryProvider.overrideWithValue(mergeRepo),
+          diverRepositoryProvider.overrideWithValue(diverRepo),
+          misplacedLogbookProvider.overrideWith((ref) async {
+            if (ref.watch(reload) > 0) await hold.future;
+            return value;
+          }),
+        ],
+        child: const MisplacedLogbookBanner(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(MisplacedLogbookBanner)),
+    ).read(reload.notifier).state++;
+    await tester.pump();
+
+    ButtonStyleButton button(String label) => tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text(label),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      ),
+    );
+    expect(find.text('Your dives are in another diver profile'), findsOne);
+    expect(button('Merge').onPressed, isNull);
+    expect(button('Keep both').onPressed, isNull);
+
+    hold.complete();
+    await tester.pumpAndSettle();
+
+    expect(button('Merge').onPressed, isNotNull);
   });
 }

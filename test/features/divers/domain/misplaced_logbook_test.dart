@@ -131,4 +131,12 @@ void main() {
       expect(byAge!.target.id, 'older');
     });
   });
+
+  test('otherDiveHolderIds lists the other profiles with dives', () {
+    expect(otherDiveHolderIds({'me': 4, 'a': 2, 'b': 0, 'c': 7}, 'me'), {
+      'a',
+      'c',
+    });
+    expect(otherDiveHolderIds(const {}, 'me'), isEmpty);
+  });
 }

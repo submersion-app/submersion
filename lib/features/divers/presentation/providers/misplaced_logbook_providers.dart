@@ -50,9 +50,7 @@ final misplacedLogbookProvider = FutureProvider<MisplacedLogbook?>((ref) async {
   // or no other profile with any, before loading them.
   final counts = await ref.watch(diveCountsByDiverProvider.future);
   if ((counts[activeDiverId] ?? 0) > 0) return null;
-  if (!counts.entries.any((e) => e.key != activeDiverId && e.value > 0)) {
-    return null;
-  }
+  if (otherDiveHolderIds(counts, activeDiverId).isEmpty) return null;
   final divers = await ref.watch(allDiversProvider.future);
   return findMisplacedLogbook(
     activeDiverId: activeDiverId,

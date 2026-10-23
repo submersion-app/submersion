@@ -31,6 +31,18 @@ class MisplacedLogbook {
 String misplacedLogbookPairKey(String activeId, String targetId) =>
     '$activeId>$targetId';
 
+/// Ids of the profiles other than [activeDiverId] that hold at least one
+/// dive, from a diver id to dive count map. The one definition of a logbook
+/// "holder", shared by detection, the provider's fast path and the merge
+/// recheck.
+Set<String> otherDiveHolderIds(
+  Map<String, int> diveCounts,
+  String activeDiverId,
+) => {
+  for (final e in diveCounts.entries)
+    if (e.key != activeDiverId && e.value > 0) e.key,
+};
+
 /// Returns the misplaced logbook for [activeDiverId], or null when the active
 /// profile has dives, no other profile has any, or the user already chose to
 /// keep this pair (a key from [misplacedLogbookPairKey] in [keptBoth]).
@@ -50,14 +62,14 @@ MisplacedLogbook? findMisplacedLogbook({
   if ((diveCounts[active.id] ?? 0) > 0) return null;
 
   int countOf(Diver d) => diveCounts[d.id] ?? 0;
-  final holders =
-      divers.where((d) => d.id != active.id && countOf(d) > 0).toList()
-        ..sort((a, b) {
-          final byCount = countOf(b).compareTo(countOf(a));
-          if (byCount != 0) return byCount;
-          if (a.isDefault != b.isDefault) return a.isDefault ? -1 : 1;
-          return a.createdAt.compareTo(b.createdAt);
-        });
+  final holderIds = otherDiveHolderIds(diveCounts, active.id);
+  final holders = divers.where((d) => holderIds.contains(d.id)).toList()
+    ..sort((a, b) {
+      final byCount = countOf(b).compareTo(countOf(a));
+      if (byCount != 0) return byCount;
+      if (a.isDefault != b.isDefault) return a.isDefault ? -1 : 1;
+      return a.createdAt.compareTo(b.createdAt);
+    });
   if (holders.isEmpty) return null;
 
   final target = holders.first;
