@@ -91,6 +91,10 @@ class TableModeLayout extends ConsumerWidget {
   /// Currently selected entity ID for the detail pane.
   final String? selectedId;
 
+  /// The record the detail pane reopens when the table is returned to; see
+  /// [MasterDetailScaffold.rememberedSelectedId].
+  final AsyncValue<String?>? rememberedSelectedId;
+
   /// Callback when an entity row is tapped.
   final void Function(String) onEntitySelected;
 
@@ -151,6 +155,7 @@ class TableModeLayout extends ConsumerWidget {
     this.columnSettingsAction,
     this.appBarActions,
     this.selectedId,
+    this.rememberedSelectedId,
     this.onEntityDoubleTap,
     this.isSelectionMode = false,
     this.selectedIds = const {},
@@ -205,6 +210,7 @@ class TableModeLayout extends ConsumerWidget {
   }) {
     return MasterDetailScaffold(
       sectionId: sectionKey,
+      rememberedSelectedId: rememberedSelectedId,
       masterBuilder: (context, onItemSelected, mdsSelectedId) {
         return _TableModeMaster(
           appBarTitle: appBarTitle,

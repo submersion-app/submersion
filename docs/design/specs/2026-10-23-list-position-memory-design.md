@@ -56,9 +56,13 @@ switch that remounts the list widget.
    list, previous/next in the details pane, and the post-merge and similar
    flows that set it today. This change adds no new writers of the
    highlight.
-2. **Closed pane stays closed.** If the diver closed the details pane (its
-   close button, which calls `onItemSelected(null)`) before leaving, the pane
-   stays closed when they return. The list still scrolls to and highlights
+2. **Closed pane stays closed.** If the diver emptied the details pane
+   before leaving, the pane stays closed when they return. The pane has no
+   close button today; what empties it is the scaffold's deselect path
+   (`onItemSelected(null)`), reached by tapping empty map in map view and by
+   deleting the shown record. The rule is recorded on that path, so it also
+   covers any close button added later (decided with the maintainer while
+   building). The list still scrolls to and highlights
    the last-opened record. Opening any record in that list clears the
    "closed" state again.
 3. **Edit and create come back as view.** Leaving a list while its pane is in
