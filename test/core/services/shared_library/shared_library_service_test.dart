@@ -9,7 +9,9 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
@@ -95,6 +97,11 @@ SharedLibraryService _service(FakeCloudStorageProvider cloud) =>
       transportFor: (lib) async =>
           SharedLibraryTransport(cloud, prefix: lib.prefix),
     );
+
+/// The failure library L's row stores after its last sync (issue #3563).
+Future<LibrarySyncError> storedError() async => LibrarySyncError.decode(
+  (await SharedLibraryStore().getLibrary('L'))!.lastError!,
+);
 
 /// [doc] as [member] signs it in library L.
 Future<SiteDocument> signedAs(String member, SiteDocument doc) async =>
@@ -321,7 +328,57 @@ void main() {
     final r = await svc.sync('L', diverId: 'd-a');
     expect(r.status, SharedLibrarySyncStatus.notALibrary);
     expect(await SiteRepository().getSiteById('s1'), isNotNull);
-    expect((await SharedLibraryStore().getLibrary('L'))!.lastError, isNotNull);
+    expect((await storedError()).code, LibrarySyncErrorCode.notALibrary);
+    expect(r.error!.code, LibrarySyncErrorCode.notALibrary);
+  });
+
+  // Issue #3563: the row stores a code, so the page says it in the reader's
+  // language.
+  test('a library whose account is gone stores that as a code', () async {
+    await device(FakeCloudStorageProvider(), 'a');
+    final svc = SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (lib) async => throw LibraryAccountMissingError(lib.name),
+    );
+    final r = await svc.sync('L', diverId: 'd-a');
+    expect(r.status, SharedLibrarySyncStatus.notConnected);
+    expect((await storedError()).code, LibrarySyncErrorCode.accountMissing);
+  });
+
+  test('an account kind that cannot hold a library stores its kind', () async {
+    await device(FakeCloudStorageProvider(), 'a');
+    final svc = SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (lib) async =>
+          throw LibraryAccountUnsupportedError('adobeLightroom'),
+    );
+    await svc.sync('L', diverId: 'd-a');
+    final error = await storedError();
+    expect(error.code, LibrarySyncErrorCode.accountUnsupported);
+    expect(error.detail, 'adobeLightroom');
+  });
+
+  test('a WebDAV refusal is stored with its WebDAV code', () async {
+    final cloud = _RefusingWebDav();
+    await seedLibrary(cloud);
+    final svc = await device(cloud, 'a');
+    cloud.refuse = true;
+    await svc.sync('L', diverId: 'd-a');
+    final error = await storedError();
+    expect(error.code, LibrarySyncErrorCode.webdav);
+    expect(error.webdav!.code, WebDavErrorCode.unauthorized);
+  });
+
+  test('a storage failure keeps the storage message as its detail', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seedLibrary(cloud);
+    final svc = await device(cloud, 'a');
+    cloud.failDownloads = true;
+    final r = await svc.sync('L', diverId: 'd-a');
+    expect(r.status, SharedLibrarySyncStatus.failed);
+    final error = await storedError();
+    expect(error.code, LibrarySyncErrorCode.failed);
+    expect(error.detail, contains('download failed (test)'));
   });
 
   test('a newer format version stops the sync', () async {
@@ -336,6 +393,9 @@ void main() {
       (await svc.sync('L', diverId: 'd-a')).status,
       SharedLibrarySyncStatus.needsNewerApp,
     );
+    final error = await storedError();
+    expect(error.code, LibrarySyncErrorCode.needsNewerApp);
+    expect(error.detail, '${SharedLibraryLayout.formatVersion + 1}');
   });
 
   test('sync picks up a renamed library and its description', () async {
@@ -893,6 +953,7 @@ void main() {
     final svc = await device(cloud, 'a');
     final r = await svc.sync('L', diverId: 'd-a');
     expect(r.status, SharedLibrarySyncStatus.retired);
+    expect((await storedError()).code, LibrarySyncErrorCode.retired);
   });
 
   test('without its key a library is locked; unlocked, it syncs', () async {
@@ -910,6 +971,7 @@ void main() {
     cloud.operationLog.clear();
     final locked = await svc.sync('L', diverId: 'd-b');
     expect(locked.status, SharedLibrarySyncStatus.locked);
+    expect((await storedError()).code, LibrarySyncErrorCode.needsPassphrase);
     expect(cloud.operationLog.where((op) => op.startsWith('upload')), isEmpty);
 
     await SharedLibraryMembershipService(
@@ -948,5 +1010,22 @@ class _HookedCloud extends FakeCloudStorageProvider {
       throw const CloudStorageException('403 Forbidden');
     }
     return super.uploadFile(data, filename, folderId: folderId);
+  }
+}
+
+/// A WebDAV server that turns every read away once [refuse] is set.
+class _RefusingWebDav extends FakeCloudStorageProvider {
+  bool refuse = false;
+
+  @override
+  Future<Uint8List> downloadFile(String fileId) {
+    if (refuse) {
+      throw WebDavException(
+        'Sign-in refused',
+        code: WebDavErrorCode.unauthorized,
+        statusCode: 401,
+      );
+    }
+    return super.downloadFile(fileId);
   }
 }

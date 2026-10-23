@@ -34451,6 +34451,24 @@ abstract class AppLocalizations {
   /// **'Last sync failed: {error}'**
   String sharedLibrary_library_errorBanner(String error);
 
+  /// No description provided for @sharedLibrary_syncError_accountMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The account for this library is no longer on this device. Use Change connection to choose it again.'**
+  String get sharedLibrary_syncError_accountMissing;
+
+  /// No description provided for @sharedLibrary_syncError_notALibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'No library at this location.'**
+  String get sharedLibrary_syncError_notALibrary;
+
+  /// No description provided for @sharedLibrary_syncError_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong.'**
+  String get sharedLibrary_syncError_failed;
+
   /// No description provided for @sharedLibrary_library_addMySites.
   ///
   /// In en, this message translates to:

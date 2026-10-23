@@ -7,6 +7,7 @@ import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
@@ -37,6 +38,7 @@ Future<Widget> _page(
   bool fakeSync = false,
   bool inShell = false,
   List<MemberRemoval> removed = const [],
+  Locale locale = const Locale('en'),
 }) async => (inShell ? testAppInShell : testApp)(
   overrides: [
     ...await getBaseOverrides(),
@@ -99,7 +101,7 @@ Future<Widget> _page(
       ],
     ),
   ],
-  locale: const Locale('en'),
+  locale: locale,
   child: const SharedLibraryPage(libraryId: 'L'),
 );
 
@@ -219,6 +221,60 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('allow reading only'), findsOneWidget);
     expect(find.textContaining('boom'), findsOneWidget);
+  });
+
+  // Issue #3563: the row stores a code, and the banner says it in the
+  // reader's language.
+  group('a stored sync failure', () {
+    Future<void> show(
+      WidgetTester tester,
+      LibrarySyncError error, {
+      Locale locale = const Locale('en'),
+    }) async {
+      await tester.pumpWidget(
+        await _page(
+          SharedLibraryRole.owner,
+          error: error.encode(),
+          locale: locale,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a missing account reads in French on a French phone', (
+      tester,
+    ) async {
+      await show(
+        tester,
+        const LibrarySyncError(LibrarySyncErrorCode.accountMissing),
+        locale: const Locale('fr'),
+      );
+      expect(
+        find.textContaining(
+          'La dernière synchronisation a échoué : '
+          "Le compte de cette bibliothèque n'est plus sur cet appareil.",
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('no longer on this device'), findsNothing);
+      expect(find.textContaining('accountMissing'), findsNothing);
+    });
+
+    testWidgets('a storage message shows as the storage gave it', (
+      tester,
+    ) async {
+      await show(
+        tester,
+        const LibrarySyncError(
+          LibrarySyncErrorCode.failed,
+          detail: 'HTTP 403 Forbidden',
+        ),
+      );
+      expect(
+        find.textContaining('Last sync failed: HTTP 403 Forbidden'),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('a refused roles file is flagged', (tester) async {

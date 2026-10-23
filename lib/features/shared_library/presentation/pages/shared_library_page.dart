@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -90,7 +91,13 @@ class SharedLibraryPage extends ConsumerWidget {
           if (library.lastError != null)
             _Banner(
               icon: Icons.error_outline,
-              text: l10n.sharedLibrary_library_errorBanner(library.lastError!),
+              text: l10n.sharedLibrary_library_errorBanner(
+                librarySyncErrorText(
+                  l10n,
+                  LibrarySyncError.decode(library.lastError!),
+                  libraryName: library.name,
+                ),
+              ),
               isError: true,
             ),
           ListTile(

@@ -18,6 +18,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 
 import '../../../helpers/test_database.dart';
 import '../../../support/fake_keychain_storage.dart';
@@ -308,5 +309,78 @@ void main() {
     expect(written, 1);
     expect((await stored(sync.id))!.region, 'eu-west-1');
     expect((await stored(lib.id))!.accessKeyId, 'CLUB');
+  });
+
+  // Issue #3563: an older build's start-up deduplicator removed every row it
+  // did not anchor, a shared library's among them, and left its keys behind.
+  group('restoreRow', () {
+    test('puts a removed library row back from the keys held here', () async {
+      final config = s3('submersion-sites/reef-team/');
+      final lib = await service.saveOwnServer(
+        s3: config,
+        labelNote: 'submersion-sites/reef-team',
+      );
+      await accounts.delete(lib.id);
+
+      final restored = await service.restoreRow(lib.id);
+
+      expect(restored!.id, lib.id);
+      expect(restored.label, lib.label);
+      expect(restored.location!.folder, 'submersion-sites/reef-team');
+      expect((await accounts.getById(lib.id))!.label, lib.label);
+      expect((await stored(lib.id))!.accessKeyId, 'AKIA1');
+    });
+
+    test('puts a removed WebDAV library row back', () async {
+      final config = WebDavConfig(
+        serverUrl: 'https://dav.example.com/remote.php/dav/files/ana',
+        username: 'ana',
+        password: 'pw',
+        folder: 'submersion-sites/reef-team',
+      );
+      final lib = await service.saveOwnServer(
+        webdav: config,
+        labelNote: 'submersion-sites/reef-team',
+      );
+      await accounts.delete(lib.id);
+
+      final restored = await service.restoreRow(lib.id);
+
+      expect(restored!.id, lib.id);
+      expect(restored.label, lib.label);
+      expect(restored.kind, AccountKind.webdav);
+    });
+
+    test('a sync row comes back with no folder note', () async {
+      final sync = await service.saveOwnServer(s3: s3('submersion-sync/'));
+      await accounts.delete(sync.id);
+
+      expect((await service.restoreRow(sync.id))!.label, sync.label);
+    });
+
+    test('a row already in the roster is returned as it is', () async {
+      final lib = await service.saveOwnServer(
+        s3: s3('submersion-sites/reef-team/'),
+      );
+
+      expect((await service.restoreRow(lib.id))!.id, lib.id);
+      expect(await accounts.getAll(), hasLength(1));
+    });
+
+    test('no keys on this device restore nothing', () async {
+      expect(await service.restoreRow('missing-id'), isNull);
+      expect(await accounts.getAll(), isEmpty);
+    });
+
+    test('keys that hash to another row restore nothing', () async {
+      const id = 'a-row-made-before-deterministic-ids';
+      await credentials.write(
+        id,
+        jsonEncode(s3('submersion-sites/reef-team/').toJson()),
+      );
+
+      expect(await service.restoreRow(id), isNull);
+      expect(await accounts.getAll(), isEmpty);
+    });
   });
 }

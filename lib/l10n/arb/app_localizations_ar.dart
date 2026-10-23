@@ -21824,6 +21824,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_syncError_accountMissing =>
+      'لم يعد حساب هذه المكتبة على هذا الجهاز. استخدم تغيير الاتصال لاختياره مرة أخرى.';
+
+  @override
+  String get sharedLibrary_syncError_notALibrary =>
+      'لا توجد مكتبة في هذا الموقع.';
+
+  @override
+  String get sharedLibrary_syncError_failed => 'حدث خطأ ما.';
+
+  @override
   String get sharedLibrary_library_addMySites => 'إضافة مواقعي';
 
   @override

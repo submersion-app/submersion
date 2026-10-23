@@ -21541,6 +21541,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_syncError_accountMissing =>
+      'L\'account di questa libreria non è più su questo dispositivo. Usa Cambia connessione per sceglierlo di nuovo.';
+
+  @override
+  String get sharedLibrary_syncError_notALibrary =>
+      'Nessuna libreria in questa posizione.';
+
+  @override
+  String get sharedLibrary_syncError_failed => 'Si è verificato un problema.';
+
+  @override
   String get sharedLibrary_library_addMySites => 'Aggiungi i miei siti';
 
   @override

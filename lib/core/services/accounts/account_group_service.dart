@@ -14,6 +14,7 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.d
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 
 /// Acts on an account, which may be several roster rows on one server
 /// (spec section 7.2). Ids and natural keys are never changed here: every
@@ -125,6 +126,38 @@ class AccountGroupService {
     );
     await _credentials.write(account.id, jsonEncode(webdav.toJson()));
     return account;
+  }
+
+  /// Puts the roster row [rowId] back from the server settings this device
+  /// still holds for it (issue #3563), or returns the row when it is still
+  /// there. A removed row's keys stay behind on every device that signed
+  /// in, and its id is the one they hash to, so the row written is the same
+  /// account, stamped newer than the removal. Null when this device holds
+  /// no settings for it, or holds settings that hash to another row:
+  /// writing those would make a different account.
+  Future<ConnectedAccount?> restoreRow(String rowId) async {
+    final existing = await _accounts.getById(rowId);
+    if (existing != null) return existing;
+    final s3 = await _storedS3(rowId);
+    if (s3 != null && _s3Id(s3) == rowId) {
+      return saveOwnServer(s3: s3, labelNote: _libraryNote(s3.prefix));
+    }
+    final webdav = await _storedWebDav(rowId);
+    if (webdav != null && _webDavId(webdav) == rowId) {
+      return saveOwnServer(
+        webdav: webdav,
+        labelNote: _libraryNote(webdav.folder),
+      );
+    }
+    return null;
+  }
+
+  /// The library folder a library row's label names, as [ensureRole] wrote
+  /// it, or null for a sync or photos folder.
+  static String? _libraryNote(String folder) {
+    final f = folder.replaceAll(RegExp(r'^/+|/+$'), '');
+    const dir = SharedLibraryLayout.librariesDir;
+    return f == dir || f.startsWith('$dir/') ? f : null;
   }
 
   /// Signs every row of [group] out on this device.

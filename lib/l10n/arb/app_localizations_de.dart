@@ -21519,6 +21519,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_syncError_accountMissing =>
+      'Das Konto dieser Bibliothek ist nicht mehr auf diesem Gerät. Wählen Sie es unter Verbindung ändern erneut aus.';
+
+  @override
+  String get sharedLibrary_syncError_notALibrary =>
+      'An diesem Ort gibt es keine Bibliothek.';
+
+  @override
+  String get sharedLibrary_syncError_failed => 'Etwas ist schiefgelaufen.';
+
+  @override
   String get sharedLibrary_library_addMySites => 'Meine Tauchplätze hinzufügen';
 
   @override

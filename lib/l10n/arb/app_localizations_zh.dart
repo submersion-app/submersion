@@ -20468,6 +20468,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_syncError_accountMissing =>
+      '此库的账户已不在此设备上。请使用“更改连接”重新选择。';
+
+  @override
+  String get sharedLibrary_syncError_notALibrary => '此位置没有库。';
+
+  @override
+  String get sharedLibrary_syncError_failed => '出现问题。';
+
+  @override
   String get sharedLibrary_library_addMySites => '添加我的潜点';
 
   @override

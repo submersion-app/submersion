@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/core/services/shared_library/crypto/suggestion_signat
 import 'package:submersion/core/services/shared_library/library_details_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -52,7 +54,7 @@ class SharedLibrarySyncResult {
   final SharedLibrarySyncStatus status;
   final int pulled;
   final int pushed;
-  final String? error;
+  final LibrarySyncError? error;
 
   bool get isHealthy =>
       status == SharedLibrarySyncStatus.success ||
@@ -149,7 +151,19 @@ class SharedLibraryService {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.notConnected,
-          e.message,
+          switch (e) {
+            LibraryAccountMissingError() => const LibrarySyncError(
+              LibrarySyncErrorCode.accountMissing,
+            ),
+            LibraryAccountUnsupportedError(:final kindName) => LibrarySyncError(
+              LibrarySyncErrorCode.accountUnsupported,
+              detail: kindName,
+            ),
+            _ => LibrarySyncError(
+              LibrarySyncErrorCode.failed,
+              detail: e.message,
+            ),
+          },
         );
       }
 
@@ -159,7 +173,7 @@ class SharedLibraryService {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.notALibrary,
-          'No library at this location',
+          const LibrarySyncError(LibrarySyncErrorCode.notALibrary),
         );
       }
       final version = (manifest['formatVersion'] as num?)?.toInt() ?? 1;
@@ -167,15 +181,17 @@ class SharedLibraryService {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.retired,
-          'This library was made by a test build of Submersion. '
-          'Create it again.',
+          const LibrarySyncError(LibrarySyncErrorCode.retired),
         );
       }
       if (version > SharedLibraryLayout.formatVersion) {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.needsNewerApp,
-          'Library format $version needs a newer app',
+          LibrarySyncError(
+            LibrarySyncErrorCode.needsNewerApp,
+            detail: '$version',
+          ),
         );
       }
 
@@ -518,11 +534,14 @@ class SharedLibraryService {
       );
     } catch (e, st) {
       _log.error('Library $libraryId sync failed', error: e, stackTrace: st);
-      return _fail(
-        libraryId,
-        SharedLibrarySyncStatus.failed,
-        e is CloudStorageException ? e.displayMessage : e.toString(),
-      );
+      return _fail(libraryId, SharedLibrarySyncStatus.failed, switch (e) {
+        WebDavException() => LibrarySyncError.fromWebDav(e),
+        CloudStorageException() => LibrarySyncError(
+          LibrarySyncErrorCode.failed,
+          detail: e.displayMessage,
+        ),
+        _ => LibrarySyncError(LibrarySyncErrorCode.failed, detail: '$e'),
+      });
     }
   }
 
@@ -614,9 +633,11 @@ class SharedLibraryService {
       return _fail(
         libraryId,
         SharedLibrarySyncStatus.locked,
-        held == null
-            ? 'Enter the passphrase for this library'
-            : "This library's passphrase changed",
+        LibrarySyncError(
+          held == null
+              ? LibrarySyncErrorCode.needsPassphrase
+              : LibrarySyncErrorCode.passphraseChanged,
+        ),
       );
     }
     t.encrypting = true;
@@ -626,9 +647,9 @@ class SharedLibraryService {
   Future<SharedLibrarySyncResult> _fail(
     String libraryId,
     SharedLibrarySyncStatus status,
-    String error,
+    LibrarySyncError error,
   ) async {
-    await _store.setLibraryStatus(libraryId, lastError: error);
+    await _store.setLibraryStatus(libraryId, lastError: error.encode());
     return SharedLibrarySyncResult(status: status, error: error);
   }
 

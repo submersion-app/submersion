@@ -21064,6 +21064,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get sharedLibrary_syncError_accountMissing =>
+      'החשבון של הספרייה הזו כבר לא נמצא במכשיר הזה. השתמשו בשינוי החיבור כדי לבחור אותו שוב.';
+
+  @override
+  String get sharedLibrary_syncError_notALibrary => 'אין ספרייה במיקום הזה.';
+
+  @override
+  String get sharedLibrary_syncError_failed => 'משהו השתבש.';
+
+  @override
   String get sharedLibrary_library_addMySites => 'הוספת האתרים שלי';
 
   @override
