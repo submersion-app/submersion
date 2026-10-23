@@ -340,6 +340,25 @@ void main() {
     );
   });
 
+  test('a 401 that survives re-auth asks to sign in again', () async {
+    // The retry's token was rejected as well. Surfacing the raw Drive error
+    // left the diver looking at "invalid credentials" with no hint that a
+    // sign-in would fix it (#3602). The client is dropped again so the next
+    // sync starts from a fresh authorization.
+    drive_.failuresRemaining = 2;
+    await expectLater(
+      provider.listFiles(namePattern: 'ssv1.'),
+      throwsA(
+        isA<CloudStorageException>().having(
+          (e) => e.message,
+          'message',
+          contains('sign in'),
+        ),
+      ),
+    );
+    expect(auth.authFailures, 2);
+  });
+
   // The desktop loopback client refreshes its access token lazily, on the
   // first request, and a revoked or expired grant fails that refresh with an
   // OAuth invalid_grant rather than a Drive 401. It must still be treated as

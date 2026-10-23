@@ -80,10 +80,13 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       if (_authClient != null) return true;
 
       await _ensureInitialized();
-      final futureAccount = _googleSignIn.attemptLightweightAuthentication();
-      if (futureAccount == null) return false;
-
-      final account = await futureAccount;
+      // A known account only needs a fresh token, which the SDK mints from
+      // its authorization without any UI. Lightweight sign-in is for the
+      // cold launch alone: on Android it goes through Credential Manager,
+      // which needs a foreground activity, so routing the hourly token
+      // refresh through it failed every background sync and left the diver
+      // signing in by hand each time the token expired (#3602).
+      final account = _currentUser ?? await _lightweightAccount();
       if (account == null) return false;
 
       final authorization = await account.authorizationClient
@@ -96,6 +99,12 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       _log.warning('Silent sign-in failed: $e');
       return false;
     }
+  }
+
+  Future<GoogleSignInAccount?> _lightweightAccount() async {
+    final futureAccount = _googleSignIn.attemptLightweightAuthentication();
+    if (futureAccount == null) return null;
+    return futureAccount;
   }
 
   @override
@@ -185,8 +194,13 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     // never gets to configure, so the deadlines go on the outside. Closing
     // the wrapper closes the client underneath it (#1279).
     _authClient = TimeoutHttpClient(authorization.authClient(scopes: _scopes));
+    _accessToken = authorization.accessToken;
     _currentUser = account;
   }
+
+  /// The access token inside [_authClient], kept so a rejection can evict it
+  /// from the SDK's token cache.
+  String? _accessToken;
 
   @override
   Future<void> signOut() async {
@@ -194,6 +208,7 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     // Close the auth client if it exists; close is synchronous.
     _authClient?.close();
     _authClient = null;
+    _accessToken = null;
     _currentUser = null;
     _log.info('Signed out from Google Drive');
   }
@@ -211,5 +226,20 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     // during a transient token refresh.
     _authClient?.close();
     _authClient = null;
+
+    // The SDK caches access tokens and can return one the API has already
+    // rejected, so the rejected token is evicted before the next
+    // authorization asks for one. Best effort: a failure here must not stop
+    // the re-auth that follows, which may still get a fresh token.
+    final rejected = _accessToken;
+    _accessToken = null;
+    if (rejected == null) return;
+    try {
+      await _googleSignIn.authorizationClient.clearAuthorizationToken(
+        accessToken: rejected,
+      );
+    } catch (e) {
+      _log.warning('Could not clear the rejected Google token: $e');
+    }
   }
 }

@@ -175,25 +175,47 @@ class GoogleDriveStorageProvider
   /// the retry's attemptSilentAuth() fails and the user is asked to sign in
   /// again. Missing that case left the dead token in place, failing every
   /// sync with a generic listing error (issue #2332).
+  ///
+  /// A retry rejected the same way means the fresh authorization is no good
+  /// either. It is reported as the same sign-in-again error rather than the
+  /// raw Drive error, which told the diver only "invalid credentials", and
+  /// the client is dropped again so the next sync re-authorizes from scratch
+  /// (issue #3602).
   Future<T> _run<T>(Future<T> Function() operation) async {
     try {
       return await operation();
     } catch (e) {
-      final unauthorized =
-          e is drive.DetailedApiRequestError && e.status == 401;
-      if (!unauthorized && !_isRevokedGrant(e)) rethrow;
+      if (!_isAuthRejection(e)) rethrow;
       _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
-      await _authenticator.handleAuthFailure();
-      _driveApi = null;
+      await _dropRejectedAuth();
       if (!await _authenticator.attemptSilentAuth()) {
-        throw CloudStorageException(
-          'Google Drive sign-in expired. Please sign in again.',
-          e,
-        );
+        throw _signInExpired(e);
       }
-      return await operation();
+      try {
+        return await operation();
+      } catch (retryError) {
+        if (!_isAuthRejection(retryError)) rethrow;
+        _log.warning('Drive rejected the re-authorized sign-in: $retryError');
+        await _dropRejectedAuth();
+        throw _signInExpired(retryError);
+      }
     }
   }
+
+  Future<void> _dropRejectedAuth() async {
+    await _authenticator.handleAuthFailure();
+    _driveApi = null;
+  }
+
+  static bool _isAuthRejection(Object e) =>
+      (e is drive.DetailedApiRequestError && e.status == 401) ||
+      _isRevokedGrant(e);
+
+  static CloudStorageException _signInExpired(Object cause) =>
+      CloudStorageException(
+        'Google Drive sign-in expired. Please sign in again.',
+        cause,
+      );
 
   /// True when [e] is Google's token endpoint refusing the refresh token
   /// itself (revoked, expired, or issued to another client). Any other

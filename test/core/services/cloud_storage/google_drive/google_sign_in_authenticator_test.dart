@@ -43,10 +43,33 @@ class _FakePlatform extends GoogleSignInPlatform
   @override
   Future<void> init(InitParameters params) async => initCalls.add(params);
 
+  /// How many times lightweight authentication ran. On Android it goes
+  /// through Credential Manager, which needs a foreground activity, so a
+  /// token refresh must not depend on it.
+  int lightweightCalls = 0;
+
   @override
   Future<AuthenticationResults?>? attemptLightweightAuthentication(
     AttemptLightweightAuthenticationParameters params,
-  ) async => lightweightResult;
+  ) async {
+    lightweightCalls++;
+    return lightweightResult;
+  }
+
+  /// Access tokens handed to clearAuthorizationToken, in call order.
+  final List<String> clearedTokens = [];
+
+  /// When set, clearAuthorizationToken throws this instead of recording.
+  Object? clearTokenError;
+
+  @override
+  Future<void> clearAuthorizationToken(
+    ClearAuthorizationTokenParams params,
+  ) async {
+    final error = clearTokenError;
+    if (error != null) throw error;
+    clearedTokens.add(params.accessToken);
+  }
 
   @override
   bool supportsAuthenticate() => true;
@@ -374,6 +397,59 @@ void main() {
 
       expect(auth.authClient, isNull);
       expect(await auth.userEmail, 'diver@example.com');
+    });
+
+    test(
+      'handleAuthFailure clears the rejected token from the cache',
+      () async {
+        // The SDK caches access tokens and can hand back one the API has
+        // already rejected. Without clearing it, the retry after a 401 got the
+        // same dead token and failed the same way on every sync (#3602).
+        await auth.handleAuthFailure();
+
+        expect(platform.clearedTokens, ['access-token-1']);
+      },
+    );
+
+    test('handleAuthFailure survives a failure to clear the token', () async {
+      platform.clearTokenError = StateError('clear failed');
+
+      await auth.handleAuthFailure();
+
+      expect(auth.authClient, isNull);
+    });
+
+    test(
+      'a token refresh reuses the known account without signing in',
+      () async {
+        // An expired access token is refreshed by asking for the account's
+        // authorization again. Lightweight sign-in is not needed for that and
+        // must not be used: on Android it needs a foreground activity, so a
+        // background sync could never refresh, and the diver had to sign in by
+        // hand every time the hourly token expired (#3602).
+        await auth.handleAuthFailure();
+        platform.lightweightResult = null; // would fail if consulted
+        platform.authorizationToken = const ClientAuthorizationTokenData(
+          accessToken: 'access-token-2',
+        );
+
+        expect(await auth.attemptSilentAuth(), isTrue);
+        expect(auth.authClient, isNotNull);
+        expect(platform.lightweightCalls, 0);
+        expect(await auth.userEmail, 'diver@example.com');
+
+        // The new token is the one cleared on the next rejection.
+        await auth.handleAuthFailure();
+        expect(platform.clearedTokens, ['access-token-1', 'access-token-2']);
+      },
+    );
+
+    test('a token refresh fails when the scope was revoked', () async {
+      await auth.handleAuthFailure();
+      platform.authorizationToken = null;
+
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(auth.authClient, isNull);
     });
 
     test('a signed-out authenticator can silently sign in again', () async {
