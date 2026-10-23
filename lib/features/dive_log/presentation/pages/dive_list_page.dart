@@ -185,6 +185,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
 
       return TableModeLayout(
         sectionKey: 'dives',
+        rememberedSelectedId: ref.watch(rememberedDiveIdProvider),
         appBarTitle: context.l10n.nav_dives,
         appBarSubtitle: diveCountSubtitle(
           context,
@@ -370,6 +371,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
       // Desktop: Use master-detail layout
       return MasterDetailScaffold(
         sectionId: 'dives',
+        rememberedSelectedId: ref.watch(rememberedDiveIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) => DiveListContent(
           onItemSelected: onItemSelected,
           selectedId: selectedId,

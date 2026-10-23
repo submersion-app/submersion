@@ -29,6 +29,34 @@ final listedHighlightedDiveIdProvider = Provider<String?>((ref) {
   return dives.any((d) => d.id == id) ? id : null;
 });
 
+/// How many dive rows the list loads while looking for the remembered dive
+/// before it gives up and starts at the top.
+const int kRememberedDiveSearchLimit = 1000;
+
+/// The dive the list comes back to: [highlightedDiveIdProvider], once the
+/// paged list has loaded it (#3301).
+///
+/// The list loads 50 dives at a time, so the dive last opened can sit beyond
+/// the rows loaded so far. While it might still be on a later page this is
+/// loading, and the list pages forward. A dive the whole filtered list does
+/// not hold (deleted, filtered out, another diver's), one past
+/// [kRememberedDiveSearchLimit] rows, or one behind a failed page load
+/// resolves to null.
+final rememberedDiveIdProvider = Provider<AsyncValue<String?>>((ref) {
+  final id = ref.watch(highlightedDiveIdProvider);
+  if (id == null) return const AsyncData(null);
+  final list = ref.watch(paginatedDiveListProvider);
+  if (list.hasError) return const AsyncData(null);
+  final state = list.value;
+  if (state == null) return const AsyncLoading();
+  if (state.dives.any((d) => d.id == id)) return AsyncData(id);
+  final mightBeLater =
+      state.hasMore &&
+      !state.loadMoreFailed &&
+      state.dives.length < kRememberedDiveSearchLimit;
+  return mightBeLater ? const AsyncLoading() : const AsyncData(null);
+});
+
 /// Whether the profile chart preview panel is visible above the dive list.
 ///
 /// Defaults to true. Initialized from persisted settings in

@@ -41,6 +41,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/trip_group_hea
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -213,6 +214,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
 
+  /// Brings the list back to the dive last opened when it is built again
+  /// after the diver left it (#3301).
+  late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
+    controller: _scrollController,
+    attempt: _restoreRememberedDive,
+  );
+
   /// The sections the list rendered on its last build.
   ///
   /// Read only by [_scrollToSelectedItem], which has to know how much of the
@@ -245,6 +253,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _positionRestorer.start(ref, rememberedDiveIdProvider);
     // If there's already a selected ID on init (e.g., from URL), scroll to it after build
     if (widget.selectedId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -262,6 +271,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   @override
   void dispose() {
+    _positionRestorer.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
@@ -440,7 +450,36 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
-  void _scrollToSelectedItem([String? overrideId]) {
+  /// One try at bringing the list back to [rememberedDiveIdProvider]'s dive,
+  /// for [_positionRestorer]: true once there is nothing left to wait for.
+  ///
+  /// A dive beyond the loaded rows pages the list forward; the restorer tries
+  /// again as each page lands. A selection already in the address (a deep
+  /// link) is scrolled to by [initState] instead, and a list pushed over
+  /// another page (a site's dives) starts at its top.
+  bool _restoreRememberedDive() {
+    if (!mounted) return true;
+    if (widget.selectedId != null || isImperativelyPushed(context)) return true;
+    final remembered = ref.read(rememberedDiveIdProvider);
+    if (remembered case AsyncData(:final value)) {
+      if (value != null) {
+        // Claimed now, so the selection the detail pane restores to the same
+        // dive does not animate the list a second time.
+        _lastScrolledToId = value;
+        _scrollToSelectedItem(value, true);
+      }
+      return true;
+    }
+    final paged = ref.read(paginatedDiveListProvider).value;
+    if (paged != null && !paged.isLoadingMore) {
+      ref.read(paginatedDiveListProvider.notifier).loadNextPage();
+    }
+    return false;
+  }
+
+  /// [jump] moves straight to the dive rather than animating there, for a
+  /// list being restored, which should not visibly travel from the top.
+  void _scrollToSelectedItem([String? overrideId, bool jump = false]) {
     final targetId = overrideId ?? widget.selectedId;
     if (targetId == null) return;
 
@@ -502,11 +541,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
-          _scrollController.animateTo(
-            clampedOffset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+          if (jump) {
+            _scrollController.jumpTo(clampedOffset);
+          } else {
+            _scrollController.animateTo(
+              clampedOffset,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
           _lastScrolledToId = targetId;
         });
       }
