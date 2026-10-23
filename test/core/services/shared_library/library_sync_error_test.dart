@@ -98,5 +98,9 @@ void main() {
       ).toString(),
       'LibrarySyncError(needsNewerApp: 5)',
     );
+    expect(
+      const LibrarySyncError(LibrarySyncErrorCode.notALibrary).toString(),
+      'LibrarySyncError(notALibrary)',
+    );
   });
 }

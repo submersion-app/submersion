@@ -370,6 +370,30 @@ void main() {
     expect(error.detail, 'adobeLightroom');
   });
 
+  test('another transport refusal keeps its message', () async {
+    await device(FakeCloudStorageProvider(), 'a');
+    final svc = SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (lib) async => throw StateError('no transport here'),
+    );
+    await svc.sync('L', diverId: 'd-a');
+    final error = await storedError();
+    expect(error.code, LibrarySyncErrorCode.failed);
+    expect(error.detail, 'no transport here');
+  });
+
+  test('a failure outside storage keeps its text', () async {
+    final cloud = _BrokenReads();
+    await seedLibrary(cloud);
+    final svc = await device(cloud, 'a');
+    cloud.broken = true;
+    final r = await svc.sync('L', diverId: 'd-a');
+    expect(r.status, SharedLibrarySyncStatus.failed);
+    final error = await storedError();
+    expect(error.code, LibrarySyncErrorCode.failed);
+    expect(error.detail, contains('unreadable (test)'));
+  });
+
   test('a WebDAV refusal is stored with its WebDAV code', () async {
     final cloud = _RefusingWebDav();
     await seedLibrary(cloud);
@@ -1023,6 +1047,17 @@ class _HookedCloud extends FakeCloudStorageProvider {
       throw const CloudStorageException('403 Forbidden');
     }
     return super.uploadFile(data, filename, folderId: folderId);
+  }
+}
+
+/// Storage whose reads fail outside the storage layer once [broken] is set.
+class _BrokenReads extends FakeCloudStorageProvider {
+  bool broken = false;
+
+  @override
+  Future<Uint8List> downloadFile(String fileId) {
+    if (broken) throw const FormatException('unreadable (test)');
+    return super.downloadFile(fileId);
   }
 }
 

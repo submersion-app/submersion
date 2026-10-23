@@ -141,6 +141,29 @@ void main() {
       );
     });
 
+    test('an account kind that cannot hold a library says so', () async {
+      final lightroom = await ConnectedAccountsRepository().create(
+        kind: AccountKind.adobeLightroom,
+        label: 'Photos',
+      );
+      await expectLater(
+        build(lightroom),
+        throwsA(isA<LibraryAccountUnsupportedError>()),
+      );
+    });
+
+    test(
+      'the membership service reports a lost account it cannot rebuild',
+      () async {
+        await expectLater(
+          plain
+              .read(sharedLibraryMembershipServiceProvider)
+              .transportForLibrary(library),
+          throwsA(isA<LibraryAccountMissingError>()),
+        );
+      },
+    );
+
     test('a signed-in account builds its transport', () async {
       final account = await row();
       await credentials.write(account.id, jsonEncode(config.toJson()));
