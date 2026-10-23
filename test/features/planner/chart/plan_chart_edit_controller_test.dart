@@ -298,12 +298,15 @@ void main() {
       expect(merged.targetDepth, 30);
     });
 
-    test('carries the gas breathed into the waypoint on, not the next', () {
-      // Removing the waypoint removes its gas switch: the switch moves later
-      // (shallower on an ascent), never earlier and deeper than planned.
+    // A merged leg keeps the gas the plan already breathes at its deeper
+    // end, so no gas is carried past the depth it was planned for.
+    test('on an ascent, keeps the gas breathed into the waypoint', () {
+      // Air up to 21 m, then a stop there on EAN50. Keeping EAN50 would
+      // start it at 30 m (ppO2 2.0).
       final ordered = [
         _descent(),
-        _bottom().copyWith(
+        _bottom(id: 'up', depth: 21, seconds: 180, order: 1),
+        _bottom(id: 'stop', depth: 21, seconds: 300, order: 2).copyWith(
           tankId: 't2',
           gasMix: _ean50,
           setpointBar: 1.3,
@@ -313,18 +316,49 @@ void main() {
       ];
       final (id, merged) = removeVertex(
         ordered: ordered,
-        vertexIndex: 0,
+        vertexIndex: 1,
       ).updates.single;
-      expect(id, 'b');
-      expect(merged.id, 'b');
-      expect(merged.order, 1);
-      expect(merged.targetDepth, 30);
+      expect(id, 'stop');
+      expect(merged.id, 'stop');
+      expect(merged.order, 2);
+      expect(merged.targetDepth, 21);
+      expect(merged.durationSeconds, 480);
       expect(merged.tankId, 't1');
       expect(merged.gasMix, _gas);
       expect(merged.setpointBar, isNull);
       expect(merged.diveModeOverride, isNull);
       // How the leg is travelled belongs to its end, not its gas.
       expect(merged.splitAtConfiguredRate, isTrue);
+    });
+
+    test('on a descent, keeps the next leg gas', () {
+      // EAN50 travel gas to 21 m, then trimix to 60 m. Keeping EAN50 would
+      // carry it to 60 m (ppO2 3.5).
+      const trimix = GasMix(o2: 18, he: 45);
+      final ordered = [
+        _descent(to: 21).copyWith(tankId: 'travel', gasMix: _ean50),
+        _bottom(depth: 60, seconds: 240).copyWith(gasMix: trimix),
+      ];
+      final (_, merged) = removeVertex(
+        ordered: ordered,
+        vertexIndex: 0,
+      ).updates.single;
+      expect(merged.tankId, 't1');
+      expect(merged.gasMix, trimix);
+      expect(merged.targetDepth, 60);
+    });
+
+    test('on a level leg, keeps the gas breathed into the waypoint', () {
+      final ordered = [
+        _descent(),
+        _bottom(id: 'b1', seconds: 600),
+        _bottom(id: 'b2', seconds: 600, order: 2).copyWith(gasMix: _ean50),
+      ];
+      final (_, merged) = removeVertex(
+        ordered: ordered,
+        vertexIndex: 1,
+      ).updates.single;
+      expect(merged.gasMix, _gas);
     });
 
     test('the last waypoint has no next leg and is simply dropped', () {

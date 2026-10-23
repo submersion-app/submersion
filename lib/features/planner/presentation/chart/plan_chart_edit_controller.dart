@@ -117,10 +117,12 @@ VertexDragResult dragVertex({
 /// [splitSegmentAt]. The last waypoint has no next leg and is just dropped.
 ///
 /// A gas switch at a waypoint is the next leg breathing something else, so
-/// removing the waypoint removes the switch: the merged leg keeps the gas,
-/// setpoint and mode breathed into the waypoint, and the switch moves to the
-/// next waypoint. Keeping the next leg's gas would move it to the previous
-/// waypoint instead, which on an ascent is deeper than planned.
+/// removing the waypoint moves the switch to one end of the merged leg. The
+/// merged leg keeps the gas, setpoint and mode the plan already breathes at
+/// its deeper end: the removed leg's on an ascent or level leg, the next
+/// leg's on a descent. Either other choice can carry a gas past the depth it
+/// was planned for, such as a deco gas started at the bottom or a travel gas
+/// taken down to it.
 ({String removeId, List<(String, PlanSegment)> updates}) removeVertex({
   required List<PlanSegment> ordered,
   required int vertexIndex,
@@ -130,8 +132,13 @@ VertexDragResult dragVertex({
     return (removeId: removed.id, updates: const []);
   }
   final next = ordered[vertexIndex + 1];
-  // Built from the removed leg so its null setpoint or mode carries over too.
-  final merged = removed.copyWith(
+  // The plan starts at the surface.
+  final startDepth = vertexIndex == 0
+      ? 0.0
+      : ordered[vertexIndex - 1].targetDepth;
+  final gasSource = next.targetDepth > startDepth ? next : removed;
+  // Built from the gas source so its null setpoint or mode carries over too.
+  final merged = gasSource.copyWith(
     id: next.id,
     targetDepth: next.targetDepth,
     durationSeconds: next.durationSeconds + removed.durationSeconds,
