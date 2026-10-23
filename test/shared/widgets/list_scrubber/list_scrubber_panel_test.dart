@@ -212,16 +212,21 @@ void main() {
     expect(valueStyle.color, markerStyle.color);
     expect(valueStyle.fontSize, markerStyle.fontSize);
     expect(valueStyle.fontWeight, FontWeight.w700);
-    BoxDecoration backing(Finder text) =>
-        tester
-                .widget<DecoratedBox>(
-                  find
-                      .ancestor(of: text, matching: find.byType(DecoratedBox))
-                      .first,
-                )
-                .decoration
-            as BoxDecoration;
-    expect(backing(value), backing(marker));
+    // Labels have no fill of their own: the panel's fill is the only box
+    // painted behind them.
+    final panelBoxes = find.descendant(
+      of: find.byType(ListScrubberPanel),
+      matching: find.byType(DecoratedBox),
+    );
+    for (final text in [value, marker]) {
+      expect(find.ancestor(of: text, matching: panelBoxes), findsOneWidget);
+      expect(
+        tester.widget<DecoratedBox>(
+          find.ancestor(of: text, matching: panelBoxes),
+        ),
+        tester.widget<DecoratedBox>(panelBoxes.first),
+      );
+    }
     final line =
         tester
                 .widget<Container>(
