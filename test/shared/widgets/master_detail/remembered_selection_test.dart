@@ -32,6 +32,35 @@ void main() {
       );
     });
 
+    test(
+      'waits for a reload rather than matching the rows it replaces',
+      () async {
+        // A filter or diver change reloads the list; until the new rows land
+        // the old ones are only a previous value.
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final source = StateProvider<int>((ref) => 0);
+        final rows = FutureProvider<List<String>>((ref) async {
+          ref.watch(source);
+          return ['a', 'b'];
+        });
+        container.listen(rows, (_, _) {});
+        await container.read(rows.future);
+        container.read(source.notifier).state++;
+        final reloading = container.read(rows);
+        expect(reloading.isLoading && reloading.hasValue, isTrue);
+
+        expect(
+          rememberedListedId<String>(
+            items: reloading,
+            rememberedId: 'b',
+            idOf: idOf,
+          ).isLoading,
+          isTrue,
+        );
+      },
+    );
+
     test('a listed id resolves to itself', () {
       expect(
         rememberedListedId<String>(

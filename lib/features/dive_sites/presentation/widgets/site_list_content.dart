@@ -1128,6 +1128,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     return;
                   }
                   ref.read(highlightedSiteIdProvider.notifier).state = id;
+                  // The same row again sets no new highlight; the pane is reopened all
+                  // the same, so it is no longer one the diver emptied (#3301).
+                  forgetClosedPane(ref, 'sites');
                 },
                 onEntityTap: (id) {
                   // Table mode honours modifier and shift clicks too, so

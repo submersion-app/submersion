@@ -130,7 +130,7 @@ import 'package:submersion/features/settings/presentation/pages/link_buddy_names
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
-import 'package:submersion/shared/widgets/master_detail/list_memory_diver_reset.dart';
+import 'package:submersion/shared/widgets/master_detail/list_memory_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
@@ -294,7 +294,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             autofocus: true,
             // Lives as long as the shell, so a diver switch anywhere in it
             // resets the lists' memory (#3301).
-            child: ListMemoryDiverReset(child: MainScaffold(child: child)),
+            child: ListMemoryScope(child: MainScaffold(child: child)),
           ),
         ),
         routes: [

@@ -1915,6 +1915,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     return;
                   }
                   ref.read(highlightedDiveIdProvider.notifier).state = id;
+                  // The same row again sets no new highlight; the pane is reopened all
+                  // the same, so it is no longer one the diver emptied (#3301).
+                  forgetClosedPane(ref, 'dives');
                 },
                 onDiveTap: (id) {
                   // Table mode now honours modifier and shift clicks too, so

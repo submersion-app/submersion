@@ -514,6 +514,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           onHideColumn: notifier.hideColumn,
           onEntityTapDown: (id) {
             ref.read(highlightedCourseIdProvider.notifier).state = id;
+            // The same row again sets no new highlight; the pane is reopened all
+            // the same, so it is no longer one the diver emptied (#3301).
+            forgetClosedPane(ref, 'courses');
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);

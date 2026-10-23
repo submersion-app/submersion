@@ -101,7 +101,9 @@ bool restoreListPosition<T>(
   required ScrollController controller,
   required void Function(String id) scrollTo,
 }) {
-  if (!items.hasValue) return items.hasError;
+  if (items.hasError) return true;
+  // A reload still carries the rows it replaces; wait for the new ones.
+  if (items.isLoading || !items.hasValue) return false;
   final target =
       selectedId ?? (isImperativelyPushed(context) ? null : rememberedId);
   if (target == null) return true;

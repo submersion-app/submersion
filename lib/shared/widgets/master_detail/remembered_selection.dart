@@ -11,8 +11,9 @@ import 'package:submersion/core/providers/provider.dart';
 /// at the top. The memory itself is left alone: relaxing the filter later
 /// brings it back.
 ///
-/// Loading while [items] load, so a caller can wait rather than settle on the
-/// top of a list that has not arrived yet. A failed load resolves to null.
+/// Loading while [items] load or reload, so a caller can wait rather than
+/// settle on the top of a list that has not arrived yet, or match the rows a
+/// reload is replacing. A failed load resolves to null.
 AsyncValue<String?> rememberedListedId<T>({
   required AsyncValue<List<T>> items,
   required String? rememberedId,
@@ -20,6 +21,9 @@ AsyncValue<String?> rememberedListedId<T>({
 }) {
   if (rememberedId == null) return const AsyncData(null);
   if (items.hasError) return const AsyncData(null);
+  // A reload (a filter or diver change) still carries the rows it replaces;
+  // only the rows it lands are the list the diver will see.
+  if (items.isLoading) return const AsyncLoading();
   final list = items.value;
   if (list == null) return const AsyncLoading();
   return AsyncData(

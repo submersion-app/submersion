@@ -11,7 +11,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/shared/widgets/master_detail/list_memory_diver_reset.dart';
+import 'package:submersion/shared/widgets/master_detail/list_memory_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -44,7 +44,7 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const ListMemoryDiverReset(child: SizedBox()),
+        child: const ListMemoryScope(child: SizedBox()),
       ),
     );
   }
@@ -87,5 +87,38 @@ void main() {
 
     expect(container.read(highlightedSiteIdProvider), 'kept');
     expect(container.read(closedPaneRecordProvider), {'sites': 'kept'});
+  });
+
+  // However a list's record is opened (a row, the keyboard, the detail
+  // page's previous and next, the table, the map), the pane is no longer
+  // one the diver emptied (#3301).
+  testWidgets('opening another record forgets that list\'s emptied pane', (
+    tester,
+  ) async {
+    await pump(tester);
+    container.read(closedPaneRecordProvider.notifier).state = const {
+      'dives': 'd1',
+      'dive-centers': 'c1',
+      'sites': 's1',
+    };
+
+    container.read(highlightedDiveIdProvider.notifier).state = 'd2';
+    container.read(highlightedDiveCenterIdProvider.notifier).state = 'c2';
+    await tester.pump();
+
+    expect(container.read(closedPaneRecordProvider), {'sites': 's1'});
+  });
+
+  testWidgets('clearing a highlight keeps the emptied pane', (tester) async {
+    await pump(tester);
+    container.read(highlightedSiteIdProvider.notifier).state = 's1';
+    container.read(closedPaneRecordProvider.notifier).state = const {
+      'sites': 's1',
+    };
+
+    container.read(highlightedSiteIdProvider.notifier).state = null;
+    await tester.pump();
+
+    expect(container.read(closedPaneRecordProvider), {'sites': 's1'});
   });
 }

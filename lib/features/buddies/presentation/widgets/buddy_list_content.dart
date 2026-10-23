@@ -763,6 +763,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
               return;
             }
             ref.read(highlightedBuddyIdProvider.notifier).state = id;
+            // The same row again sets no new highlight; the pane is reopened all
+            // the same, so it is no longer one the diver emptied (#3301).
+            forgetClosedPane(ref, 'buddies');
           },
           onEntityTap: (id) {
             // Table mode honours modifier and shift clicks too, so selection

@@ -558,6 +558,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           onHideColumn: notifier.hideColumn,
           onEntityTapDown: (id) {
             ref.read(highlightedDiveCenterIdProvider.notifier).state = id;
+            // The same row again sets no new highlight; the pane is reopened all
+            // the same, so it is no longer one the diver emptied (#3301).
+            forgetClosedPane(ref, 'dive-centers');
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);
