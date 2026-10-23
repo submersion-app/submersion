@@ -86,7 +86,9 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       // which needs a foreground activity, so routing the hourly token
       // refresh through it failed every background sync and left the diver
       // signing in by hand each time the token expired (#3602).
-      final account = _currentUser ?? await _lightweightAccount();
+      final account =
+          _currentUser ??
+          await _googleSignIn.attemptLightweightAuthentication();
       if (account == null) return false;
 
       final authorization = await account.authorizationClient
@@ -99,12 +101,6 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       _log.warning('Silent sign-in failed: $e');
       return false;
     }
-  }
-
-  Future<GoogleSignInAccount?> _lightweightAccount() async {
-    final futureAccount = _googleSignIn.attemptLightweightAuthentication();
-    if (futureAccount == null) return null;
-    return futureAccount;
   }
 
   @override

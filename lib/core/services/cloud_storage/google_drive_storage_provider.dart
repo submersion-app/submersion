@@ -182,29 +182,56 @@ class GoogleDriveStorageProvider
   /// the client is dropped again so the next sync re-authorizes from scratch
   /// (issue #3602).
   Future<T> _run<T>(Future<T> Function() operation) async {
+    final client = _authenticator.authClient;
     try {
       return await operation();
     } catch (e) {
       if (!_isAuthRejection(e)) rethrow;
       _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
-      await _dropRejectedAuth();
-      if (!await _authenticator.attemptSilentAuth()) {
+      if (!await _reauthorize(client)) {
         throw _signInExpired(e);
       }
+      final retryClient = _authenticator.authClient;
       try {
         return await operation();
       } catch (retryError) {
         if (!_isAuthRejection(retryError)) rethrow;
         _log.warning('Drive rejected the re-authorized sign-in: $retryError');
-        await _dropRejectedAuth();
+        await _dropRejectedAuth(retryClient);
         throw _signInExpired(retryError);
       }
     }
   }
 
-  Future<void> _dropRejectedAuth() async {
+  /// Replaces [rejected] with a freshly authorized client, sharing one
+  /// re-auth among every caller rejected at the same time.
+  ///
+  /// The access token expires for all in-flight requests at once, so
+  /// concurrent rejections are the ordinary case, not a corner. Each running
+  /// its own drop-and-re-auth made the later one close the client the earlier
+  /// had just installed, failing its retry with "Client is already closed",
+  /// and evict that client's fresh token from the SDK cache.
+  Future<bool>? _reauthInFlight;
+
+  Future<bool> _reauthorize(http.Client? rejected) {
+    if (_replacedSince(rejected)) return Future.value(true);
+    return _reauthInFlight ??= () async {
+      await _dropRejectedAuth(rejected);
+      return _authenticator.attemptSilentAuth();
+    }().whenComplete(() => _reauthInFlight = null);
+  }
+
+  /// Drops the authenticator's client after Drive rejected [rejected],
+  /// unless another caller has already replaced it with a fresh one.
+  Future<void> _dropRejectedAuth(http.Client? rejected) async {
+    if (_replacedSince(rejected)) return;
     await _authenticator.handleAuthFailure();
     _driveApi = null;
+  }
+
+  bool _replacedSince(http.Client? rejected) {
+    final current = _authenticator.authClient;
+    return current != null && !identical(current, rejected);
   }
 
   static bool _isAuthRejection(Object e) =>

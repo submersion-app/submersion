@@ -340,6 +340,23 @@ void main() {
     );
   });
 
+  test('concurrent 401s share one re-auth', () async {
+    // The token expires for every in-flight request at once. A re-auth per
+    // caller let the later one close the client the earlier had just
+    // installed, so the earlier retry died with "Client is already closed".
+    drive_.failuresRemaining = 2;
+    auth.silentAuthClient = drive_.client();
+
+    final results = await Future.wait([
+      provider.listFiles(namePattern: 'ssv1.'),
+      provider.listFiles(namePattern: 'ssv1.'),
+    ]);
+
+    expect(results, [isEmpty, isEmpty]);
+    expect(auth.authFailures, 1);
+    expect(auth.silentAuthCalls, 1);
+  });
+
   test('a 401 that survives re-auth asks to sign in again', () async {
     // The retry's token was rejected as well. Surfacing the raw Drive error
     // left the diver looking at "invalid credentials" with no hint that a
