@@ -198,6 +198,58 @@ void main() {
     );
   });
 
+  testWidgets('a drag from a busy slot the list never showed follows it', (
+    tester,
+  ) async {
+    int? ended;
+    Widget at(int loaded) => host(
+      rows: loaded,
+      slotCount: 400,
+      loadedSlotCount: loaded,
+      busy: 'Loading',
+      onEnd: (s) => ended = s,
+    );
+    await tester.pumpWidget(at(100));
+    await tester.drag(find.byType(ListView), const Offset(0, -10));
+    await tester.pump();
+    var gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(ListScrubber.thumbKey)),
+    );
+    await gesture.moveBy(const Offset(0, 208));
+    await tester.pump();
+    await gesture.up();
+    await tester.pump();
+    final busySlot = ended!;
+    expect(busySlot, greaterThanOrEqualTo(100));
+    final before = controller.offset;
+
+    gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(ListScrubber.thumbKey)),
+    );
+    await gesture.moveBy(const Offset(0, 40));
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, -40));
+    await tester.pump();
+    expect(controller.offset, before);
+
+    await tester.pumpWidget(at(200));
+    await gesture.up();
+    await tester.pump();
+
+    expect(ended, busySlot);
+    expect(
+      controller.offset,
+      closeTo(
+        scrollForSlot(
+          slot: busySlot,
+          maxScrollExtent: controller.position.maxScrollExtent,
+          loadedSlotCount: 200,
+        ),
+        0.01,
+      ),
+    );
+  });
+
   testWidgets('dragging back after an overshoot moves the slot at once', (
     tester,
   ) async {

@@ -332,7 +332,11 @@ class _ListScrubberState extends State<ListScrubber> {
                               onVerticalDragStart: (_) {
                                 _hideTimer?.cancel();
                                 _dragTop = thumbTop;
-                                _followedSlot = slot;
+                                // A busy thumb rests on a dropped slot the
+                                // list is not showing yet.
+                                _followedSlot = widget.busyLabel == null
+                                    ? slot
+                                    : null;
                                 setState(() => _dragSlot = slot);
                               },
                               onVerticalDragUpdate: (details) =>
