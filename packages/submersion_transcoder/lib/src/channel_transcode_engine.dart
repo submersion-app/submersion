@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
+import 'package:submersion_transcoder/src/color_encoder.dart';
+import 'package:submersion_transcoder/src/color_timeline.dart';
 import 'package:submersion_transcoder/src/transcode_engine.dart';
 import 'package:submersion_transcoder/src/transcode_target.dart';
 import 'package:submersion_transcoder/src/video_probe.dart';
@@ -13,7 +15,7 @@ import 'package:submersion_transcoder/src/video_probe.dart';
 /// "unavailable" when the plugin is not registered (e.g. `flutter test`), so
 /// absence is a normal state that maps onto the pipeline's upload-the-original
 /// fallback.
-class ChannelTranscodeEngine implements TranscodeEngine {
+class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
   ChannelTranscodeEngine({MethodChannel? methods, EventChannel? progress})
     : _methods =
           methods ?? const MethodChannel('submersion_transcoder/methods'),
@@ -147,6 +149,64 @@ class ChannelTranscodeEngine implements TranscodeEngine {
     } on MissingPluginException {
       throw const TranscodeException('transcoder plugin not registered');
     } finally {
+      await sub?.cancel();
+    }
+  }
+
+  @override
+  Future<void> encodeWithColor({
+    required File source,
+    required File output,
+    required ColorTimeline timeline,
+    ColorEncodeCancel? cancel,
+    void Function(double fraction)? onProgress,
+  }) async {
+    if (cancel?.isCancelled ?? false) throw const TranscodeCancelledException();
+    final progressId = 'p${_seq++}';
+    StreamSubscription<dynamic>? sub;
+    if (onProgress != null) {
+      sub = _progressStream.listen((event) {
+        if (event is Map && event['progressId'] == progressId) {
+          final f = (event['fraction'] as num).toDouble();
+          onProgress(f.clamp(0.0, 1.0));
+        }
+      });
+    }
+    var finished = false;
+    unawaited(
+      cancel?.whenCancelled.then((_) async {
+        if (finished) return;
+        try {
+          await _methods.invokeMethod<void>('cancelEncode', {
+            'progressId': progressId,
+          });
+        } on Object {
+          // The encode reports its own outcome; a cancel that cannot be
+          // delivered (no plugin, already finished) changes nothing.
+        }
+      }),
+    );
+    try {
+      await _methods.invokeMethod<void>('encodeWithColor', {
+        'source': source.path,
+        'output': output.path,
+        'timeline': timeline.toChannel(),
+        'progressId': progressId,
+      });
+    } on PlatformException catch (e) {
+      final detail = e.message ?? e.details?.toString() ?? e.code;
+      switch (e.code) {
+        case 'cancelled':
+          throw const TranscodeCancelledException();
+        case 'unsupported':
+          throw TranscodeUnsupportedException(detail);
+        default:
+          throw TranscodeException('colour encode failed: $detail');
+      }
+    } on MissingPluginException {
+      throw const TranscodeException('transcoder plugin not registered');
+    } finally {
+      finished = true;
       await sub?.cancel();
     }
   }
