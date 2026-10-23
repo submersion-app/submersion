@@ -16127,7 +16127,6 @@
   "settings_setUpDevice_again": "{device, select, phone{重新设置此手机} tablet{重新设置此平板} computer{重新设置此电脑} other{重新设置此设备}}",
   "settings_setUpDevice_count": "{done}/{total}",
   "settings_setUpDevice_countSemantics": "已完成 {done}/{total} 步",
-  "settings_setUpDevice_continue": "继续",
   "settings_setUpDevice_hide": "隐藏此卡片",
   "settings_setUpDevice_step_account": "选择数据的存放位置",
   "settings_setUpDevice_step_sync": "让每台设备都有潜水记录",
@@ -16138,12 +16137,13 @@
   "settings_setUpDevice_mark_notYet": "尚未完成",
   "settings_setUpDevice_mark_skipped": "已跳过",
   "settings_setUpDevice_item_signInAction": "登录",
-  "settings_setUpDevice_item_attachAction": "设置",
   "settings_setUpDevice_item_reconnectAction": "重新连接",
-  "settings_setUpDevice_item_dismiss": "忽略",
   "settings_setUpDevice_item_signIn": "请重新登录 {account}。在此之前，同步和备份已暂停。",
   "settings_setUpDevice_item_signInShort": "请重新登录 {account}。",
   "settings_setUpDevice_item_attach": "你的其他设备在 {account} 中保存照片副本。",
   "settings_setUpDevice_item_reconnect": "{account} 中的照片副本需要重新连接。",
-  "settings_setUpDevice_againSubtitle": "账户、同步、备份和照片"
+  "settings_setUpDevice_againSubtitle": "账户、同步、备份和照片",
+  "settings_setUpDevice_stepSemantics": "{step}：{mark}",
+  "settings_setUpDevice_item_signInSync": "请重新登录 {account}。在此之前，同步已暂停。",
+  "settings_setUpDevice_item_signInBackups": "请重新登录 {account}。在此之前，备份已暂停。"
 }

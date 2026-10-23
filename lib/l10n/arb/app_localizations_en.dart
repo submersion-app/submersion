@@ -54035,9 +54035,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => 'Continue';
-
-  @override
   String get settings_setUpDevice_hide => 'Hide this card';
 
   @override
@@ -54070,13 +54067,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Sign in';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'Set up';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'Reconnect';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'Dismiss';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -54101,4 +54092,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'Account, sync, backups and photos';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Sign in to $account again. Sync is paused until you do.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Sign in to $account again. Backups are paused until you do.';
+  }
 }

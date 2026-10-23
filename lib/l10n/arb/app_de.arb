@@ -16248,7 +16248,6 @@
   "settings_setUpDevice_again": "{device, select, phone{Dieses Telefon erneut einrichten} tablet{Dieses Tablet erneut einrichten} computer{Diesen Computer erneut einrichten} other{Dieses Gerät erneut einrichten}}",
   "settings_setUpDevice_count": "{done} von {total}",
   "settings_setUpDevice_countSemantics": "{done} von {total} Schritten erledigt",
-  "settings_setUpDevice_continue": "Weiter",
   "settings_setUpDevice_hide": "Diese Karte ausblenden",
   "settings_setUpDevice_step_account": "Wählen, wo Ihre Daten liegen",
   "settings_setUpDevice_step_sync": "Tauchgänge auf jedem Gerät",
@@ -16259,12 +16258,13 @@
   "settings_setUpDevice_mark_notYet": "Noch nicht",
   "settings_setUpDevice_mark_skipped": "Übersprungen",
   "settings_setUpDevice_item_signInAction": "Anmelden",
-  "settings_setUpDevice_item_attachAction": "Einrichten",
   "settings_setUpDevice_item_reconnectAction": "Neu verbinden",
-  "settings_setUpDevice_item_dismiss": "Ausblenden",
   "settings_setUpDevice_item_signIn": "Melden Sie sich erneut bei {account} an. Sync und Sicherungen sind bis dahin pausiert.",
   "settings_setUpDevice_item_signInShort": "Melden Sie sich erneut bei {account} an.",
   "settings_setUpDevice_item_attach": "Ihre anderen Geräte bewahren Fotokopien in {account} auf.",
   "settings_setUpDevice_item_reconnect": "Die Fotokopien in {account} müssen neu verbunden werden.",
-  "settings_setUpDevice_againSubtitle": "Konto, Sync, Sicherungen und Fotos"
+  "settings_setUpDevice_againSubtitle": "Konto, Sync, Sicherungen und Fotos",
+  "settings_setUpDevice_stepSemantics": "{step}: {mark}",
+  "settings_setUpDevice_item_signInSync": "Melden Sie sich erneut bei {account} an. Sync ist bis dahin pausiert.",
+  "settings_setUpDevice_item_signInBackups": "Melden Sie sich erneut bei {account} an. Sicherungen sind bis dahin pausiert."
 }

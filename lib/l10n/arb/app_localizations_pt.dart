@@ -54889,9 +54889,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => 'Continuar';
-
-  @override
   String get settings_setUpDevice_hide => 'Ocultar este cartão';
 
   @override
@@ -54926,13 +54923,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Iniciar sessão';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'Configurar';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'Voltar a ligar';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'Dispensar';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -54957,4 +54948,19 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'Conta, sincronização, backups e fotos';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Inicie sessão novamente em $account. A sincronização fica em pausa até lá.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Inicie sessão novamente em $account. Os backups ficam em pausa até lá.';
+  }
 }

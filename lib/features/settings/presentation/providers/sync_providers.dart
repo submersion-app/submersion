@@ -790,6 +790,9 @@ class SyncState {
     Object? message = _messageSentinel,
     double? progress,
     DateTime? lastSync,
+
+    /// Clears [lastSync] (a null [lastSync] keeps the current time).
+    bool clearLastSync = false,
     int? pendingChanges,
     int? conflicts,
     List<({String? name, String shortId})>? newerSchemaPeerLabels,
@@ -811,7 +814,7 @@ class SyncState {
           ? this.message
           : message as String?,
       progress: progress ?? this.progress,
-      lastSync: lastSync ?? this.lastSync,
+      lastSync: clearLastSync ? null : lastSync ?? this.lastSync,
       pendingChanges: pendingChanges ?? this.pendingChanges,
       conflicts: conflicts ?? this.conflicts,
       newerSchemaPeerLabels:
@@ -1089,6 +1092,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
       if (!mounted) return;
       state = state.copyWith(
         lastSync: lastSync,
+        // A backend this device never synced with has no time of its own;
+        // keeping the old backend's would claim a sync that never happened.
+        clearLastSync: lastSync == null,
         pendingChanges: pendingCount,
         conflicts: conflictCount,
         isAuthenticated: isAvailable,

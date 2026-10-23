@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Ticks on every SyncEventBus event (repository writes that mark records
@@ -41,6 +42,13 @@ final pendingSetupItemsProvider =
     FutureProvider.autoDispose<List<PendingSetupItem>>((ref) async {
       ref.watch(_syncBusTickProvider);
       ref.watch(_markerMismatchTickProvider);
+      // The backup copy decides which accounts this device uses, and a copy
+      // change is a preferences write that fires no bus event.
+      ref.watch(
+        backupSettingsProvider.select(
+          (s) => (s.cloudBackupEnabled, s.copyAccountId),
+        ),
+      );
       final service = PendingSetupService(
         prefs: ref.watch(sharedPreferencesProvider),
         registry: ref.watch(accountProviderRegistryProvider),

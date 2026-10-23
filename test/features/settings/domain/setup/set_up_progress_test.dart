@@ -160,9 +160,21 @@ void main() {
       ], row.marks);
       expect(progress.settled, row.settled);
       expect(progress.next, row.next);
-      expect(progress.complete, row.next == null);
       expect(progress.anyDone, row.anyDone);
       expect(progress.showsSteps, row.showsSteps);
     });
   }
+
+  // Issue #3482 review: the same facts give an equal progress, so a no-op
+  // reload upstream notifies no one.
+  test('the same inputs give an equal progress', () {
+    expect(
+      setUpProgress(_inputs(accountHere: true)),
+      setUpProgress(_inputs(accountHere: true)),
+    );
+    expect(
+      setUpProgress(_inputs(accountHere: true)),
+      isNot(setUpProgress(_inputs(accountHere: true, hidden: true))),
+    );
+  });
 }

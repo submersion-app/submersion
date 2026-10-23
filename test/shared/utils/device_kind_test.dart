@@ -5,14 +5,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/utils/device_kind.dart';
 
 void main() {
+  /// [logicalSize] is the display; [window] the app's window on it, the
+  /// whole display unless given.
   Future<DeviceKind> kindOn(
     WidgetTester tester,
     TargetPlatform platform,
-    Size logicalSize,
-  ) async {
+    Size logicalSize, {
+    Size? window,
+  }) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = logicalSize;
+    tester.view.physicalSize = window ?? logicalSize;
+    tester.view.display.devicePixelRatio = 1;
+    tester.view.display.size = logicalSize;
     addTearDown(tester.view.reset);
+    addTearDown(tester.view.display.reset);
     late DeviceKind kind;
     // Reset before the test ends: the binding checks foundation debug
     // variables before tear-downs run.
@@ -44,6 +50,20 @@ void main() {
   testWidgets('a wide iOS screen is a tablet', (tester) async {
     expect(
       await kindOn(tester, TargetPlatform.iOS, const Size(820, 1180)),
+      DeviceKind.tablet,
+    );
+  });
+
+  // Issue #3482 review: the word names the device, not the window; a
+  // tablet in Slide Over or a narrow split is still a tablet.
+  testWidgets('a tablet in a narrow window is still a tablet', (tester) async {
+    expect(
+      await kindOn(
+        tester,
+        TargetPlatform.iOS,
+        const Size(820, 1180),
+        window: const Size(320, 1180),
+      ),
       DeviceKind.tablet,
     );
   });

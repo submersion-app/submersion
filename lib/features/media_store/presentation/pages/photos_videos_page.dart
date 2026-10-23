@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_advanced_section.dart';
+import 'package:submersion/features/media_store/presentation/widgets/photos_moved_copies_notice.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_status_line.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_upload_settings.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_using_row.dart';
@@ -26,6 +27,7 @@ class PhotosVideosPage extends ConsumerWidget {
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           _header(context, l10n.settings_photos_cloudHeader),
+          const PhotosMovedCopiesNotice(),
           const PhotosUsingRow(),
           const PhotosStatusLine(),
           // Keyed, like the Advanced section below: the list matches its

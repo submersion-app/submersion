@@ -86829,12 +86829,6 @@ abstract class AppLocalizations {
   /// **'{done} of {total} steps done'**
   String settings_setUpDevice_countSemantics(int done, int total);
 
-  /// Card button that opens the next setup step
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get settings_setUpDevice_continue;
-
   /// Card menu item that hides the card on this device
   ///
   /// In en, this message translates to:
@@ -86895,23 +86889,11 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get settings_setUpDevice_item_signInAction;
 
-  /// Button on a card item that opens the photo step
-  ///
-  /// In en, this message translates to:
-  /// **'Set up'**
-  String get settings_setUpDevice_item_attachAction;
-
   /// Button on a card item that opens Photos and videos to reconnect
   ///
   /// In en, this message translates to:
   /// **'Reconnect'**
   String get settings_setUpDevice_item_reconnectAction;
-
-  /// Tooltip of the button that dismisses one card item on this device
-  ///
-  /// In en, this message translates to:
-  /// **'Dismiss'**
-  String get settings_setUpDevice_item_dismiss;
 
   /// Card item for an account sync or backups use that needs signing in again
   ///
@@ -86942,6 +86924,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account, sync, backups and photos'**
   String get settings_setUpDevice_againSubtitle;
+
+  /// Screen reader label for one setup step: its name and its mark (Done, Next, Not yet, Skipped)
+  ///
+  /// In en, this message translates to:
+  /// **'{step}: {mark}'**
+  String settings_setUpDevice_stepSemantics(String step, String mark);
+
+  /// Card item for an account sync uses (not the backup copy) that needs signing in again
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to {account} again. Sync is paused until you do.'**
+  String settings_setUpDevice_item_signInSync(String account);
+
+  /// Card item for an account the backup copy uses (not sync) that needs signing in again
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to {account} again. Backups are paused until you do.'**
+  String settings_setUpDevice_item_signInBackups(String account);
 }
 
 class _AppLocalizationsDelegate

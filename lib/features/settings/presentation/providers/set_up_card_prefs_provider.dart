@@ -6,20 +6,20 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 typedef SetUpCardState = ({bool hidden, bool photosSkipped});
 
 /// The card's stored state, rebuilt on every write so the card follows a
-/// Hide or a Skip at once.
-final setUpCardPrefsProvider =
+/// Hide or a Skip at once. The upgrade seed runs at startup, before this is
+/// first read.
+final setUpCardPrefsNotifierProvider =
     NotifierProvider<SetUpCardPrefsNotifier, SetUpCardState>(
       SetUpCardPrefsNotifier.new,
     );
 
 class SetUpCardPrefsNotifier extends Notifier<SetUpCardState> {
-  SetUpCardPrefs get _store =>
-      SetUpCardPrefs(ref.read(sharedPreferencesProvider));
+  late SetUpCardPrefs _store;
 
   @override
   SetUpCardState build() {
-    final store = SetUpCardPrefs(ref.watch(sharedPreferencesProvider));
-    return (hidden: store.hidden, photosSkipped: store.photosSkipped);
+    _store = SetUpCardPrefs(ref.watch(sharedPreferencesProvider));
+    return (hidden: _store.hidden, photosSkipped: _store.photosSkipped);
   }
 
   Future<void> setHidden(bool value) async {
@@ -30,11 +30,5 @@ class SetUpCardPrefsNotifier extends Notifier<SetUpCardState> {
   Future<void> setPhotosSkipped(bool value) async {
     await _store.setPhotosSkipped(value);
     state = (hidden: state.hidden, photosSkipped: value);
-  }
-
-  Future<void> seedOnce({required int diverCount}) async {
-    final store = _store;
-    await store.seedOnce(diverCount: diverCount);
-    state = (hidden: store.hidden, photosSkipped: store.photosSkipped);
   }
 }

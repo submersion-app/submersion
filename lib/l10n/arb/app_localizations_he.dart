@@ -53755,11 +53755,8 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_setUpDevice_countSemantics(int done, int total) {
-    return '$done מתוך $total שלבים הושלמו';
+    return 'שלבים שהושלמו: $done מתוך $total';
   }
-
-  @override
-  String get settings_setUpDevice_continue => 'המשך';
 
   @override
   String get settings_setUpDevice_hide => 'הסתרת הכרטיס הזה';
@@ -53794,13 +53791,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'התחברות';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'הגדרה';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'חיבור מחדש';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'התעלמות';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -53825,4 +53816,19 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'חשבון, סנכרון, גיבויים ותמונות';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'יש להתחבר שוב אל $account. הסנכרון מושהה עד אז.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'יש להתחבר שוב אל $account. הגיבויים מושהים עד אז.';
+  }
 }

@@ -178,6 +178,54 @@ void main() {
     expect(find.byIcon(Icons.checklist_outlined), findsNothing);
   });
 
+  // Issue #3482 review: another device moved the library's copies to a
+  // store this device is not attached to. The page says so above the Using
+  // row, whose Change follows the move.
+  group('a library that moved its copies', () {
+    const moved = PendingSetupItem(
+      kind: SetupItemKind.mediaStoreAttach,
+      key: 'store_s2',
+      label: 'Google Drive',
+      route: '/settings/photos-media',
+    );
+
+    testWidgets('an attached device is told where the copies went', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        copies: _copies(group: _dropbox),
+        items: [moved],
+      );
+
+      final notice = find.text(
+        'Your other devices keep photo copies in Google Drive.',
+      );
+      expect(notice, findsOneWidget);
+      expect(
+        y(tester, notice),
+        lessThan(y(tester, find.text('Copies in Dropbox'))),
+      );
+
+      await tester.tap(find.byTooltip('Dismiss'));
+      await tester.pumpAndSettle();
+      expect(prefs.getBool('setup_item_dismissed_store_s2'), isTrue);
+    });
+
+    testWidgets('a device not attached anywhere gets the status line '
+        'instead', (tester) async {
+      await pumpPage(
+        tester,
+        copies: _copies(attached: false, group: _dropbox),
+        items: [moved],
+      );
+      expect(
+        find.text('Your other devices keep photo copies in Google Drive.'),
+        findsNothing,
+      );
+    });
+  });
+
   group('the Using row', () {
     testWidgets('nothing set up offers Set up, and no copy controls', (
       tester,
@@ -490,7 +538,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      // The pending setup card above still offers the reconnect itself.
+      // The setup card on Settings > Data offers the reconnect itself.
       expect(
         find.descendant(
           of: find.byKey(const Key('photos-status')),

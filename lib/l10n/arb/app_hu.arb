@@ -16127,7 +16127,6 @@
   "settings_setUpDevice_again": "{device, select, phone{A telefon újbóli beállítása} tablet{A táblagép újbóli beállítása} computer{A számítógép újbóli beállítása} other{Az eszköz újbóli beállítása}}",
   "settings_setUpDevice_count": "{done}/{total}",
   "settings_setUpDevice_countSemantics": "{total} lépésből {done} kész",
-  "settings_setUpDevice_continue": "Folytatás",
   "settings_setUpDevice_hide": "A kártya elrejtése",
   "settings_setUpDevice_step_account": "Válassza ki, hol legyenek az adatai",
   "settings_setUpDevice_step_sync": "Merülések minden eszközön",
@@ -16138,12 +16137,13 @@
   "settings_setUpDevice_mark_notYet": "Még nem",
   "settings_setUpDevice_mark_skipped": "Kihagyva",
   "settings_setUpDevice_item_signInAction": "Bejelentkezés",
-  "settings_setUpDevice_item_attachAction": "Beállítás",
   "settings_setUpDevice_item_reconnectAction": "Újracsatlakozás",
-  "settings_setUpDevice_item_dismiss": "Elvetés",
   "settings_setUpDevice_item_signIn": "Jelentkezzen be újra ide: {account}. Addig a szinkronizálás és a mentések szünetelnek.",
   "settings_setUpDevice_item_signInShort": "Jelentkezzen be újra ide: {account}.",
   "settings_setUpDevice_item_attach": "A többi eszköze itt tárol fotómásolatokat: {account}.",
   "settings_setUpDevice_item_reconnect": "Az itt tárolt fotómásolatokat újra kell csatlakoztatni: {account}.",
-  "settings_setUpDevice_againSubtitle": "Fiók, szinkronizálás, mentések és fotók"
+  "settings_setUpDevice_againSubtitle": "Fiók, szinkronizálás, mentések és fotók",
+  "settings_setUpDevice_stepSemantics": "{step}: {mark}",
+  "settings_setUpDevice_item_signInSync": "Jelentkezzen be újra ide: {account}. Addig a szinkronizálás szünetel.",
+  "settings_setUpDevice_item_signInBackups": "Jelentkezzen be újra ide: {account}. Addig a mentések szünetelnek."
 }

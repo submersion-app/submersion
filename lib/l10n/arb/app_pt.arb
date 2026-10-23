@@ -16127,7 +16127,6 @@
   "settings_setUpDevice_again": "{device, select, phone{Configurar este telefone de novo} tablet{Configurar este tablet de novo} computer{Configurar este computador de novo} other{Configurar este dispositivo de novo}}",
   "settings_setUpDevice_count": "{done} de {total}",
   "settings_setUpDevice_countSemantics": "{done} de {total} passos concluídos",
-  "settings_setUpDevice_continue": "Continuar",
   "settings_setUpDevice_hide": "Ocultar este cartão",
   "settings_setUpDevice_step_account": "Escolher onde os seus dados ficam",
   "settings_setUpDevice_step_sync": "Mergulhos em todos os dispositivos",
@@ -16138,12 +16137,13 @@
   "settings_setUpDevice_mark_notYet": "Ainda não",
   "settings_setUpDevice_mark_skipped": "Ignorado",
   "settings_setUpDevice_item_signInAction": "Iniciar sessão",
-  "settings_setUpDevice_item_attachAction": "Configurar",
   "settings_setUpDevice_item_reconnectAction": "Voltar a ligar",
-  "settings_setUpDevice_item_dismiss": "Dispensar",
   "settings_setUpDevice_item_signIn": "Inicie sessão novamente em {account}. A sincronização e os backups ficam em pausa até lá.",
   "settings_setUpDevice_item_signInShort": "Inicie sessão novamente em {account}.",
   "settings_setUpDevice_item_attach": "Os seus outros dispositivos guardam cópias das fotos em {account}.",
   "settings_setUpDevice_item_reconnect": "As cópias das fotos em {account} precisam de voltar a ser ligadas.",
-  "settings_setUpDevice_againSubtitle": "Conta, sincronização, backups e fotos"
+  "settings_setUpDevice_againSubtitle": "Conta, sincronização, backups e fotos",
+  "settings_setUpDevice_stepSemantics": "{step}: {mark}",
+  "settings_setUpDevice_item_signInSync": "Inicie sessão novamente em {account}. A sincronização fica em pausa até lá.",
+  "settings_setUpDevice_item_signInBackups": "Inicie sessão novamente em {account}. Os backups ficam em pausa até lá."
 }

@@ -55656,9 +55656,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => 'متابعة';
-
-  @override
   String get settings_setUpDevice_hide => 'إخفاء هذه البطاقة';
 
   @override
@@ -55689,13 +55686,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'تسجيل الدخول';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'إعداد';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'إعادة الاتصال';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'تجاهل';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -55720,4 +55711,19 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'الحساب والمزامنة والنسخ الاحتياطية والصور';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'سجّل الدخول إلى $account مجددًا. المزامنة متوقفة مؤقتًا حتى تفعل.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'سجّل الدخول إلى $account مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل.';
+  }
 }

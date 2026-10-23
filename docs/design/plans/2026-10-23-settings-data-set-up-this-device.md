@@ -47,22 +47,23 @@ Calls this plan makes where the spec leaves a choice, or the code contradicts it
 
    | Step | Done when |
    |---|---|
-   | Account | A feature names an account here: sync is selected, the backup copy is pinned, or photos are attached. (Changed in review round 1: no account status is probed on the Settings root or the Data page.) |
-   | Sync | `isSyncEnabledProvider` is on and `syncStateProvider.lastSync != null`. |
-   | Backups | `enabled` and either a cloud copy with somewhere to go (`copyAccountId != null` or sync selected) or `backupLocation != null`. |
+   | Account | A feature names an account here: sync is selected, the backup copy is pinned (while the copy is on, to a row the roster still has), or photos are attached. (Changed in review: no account status is probed on the Settings root or the Data page.) |
+   | Sync | `isSyncEnabledProvider` is on and `syncStateProvider.lastSync != null`, which `refreshState` now clears for a backend never synced with. |
+   | Backups | `enabled` and either a cloud copy with somewhere to go (pinned to a row the roster has, or following a selected sync account) or `backupLocation != null`. |
    | Photos | `mediaStoreAttachedProvider` is true, or the step was skipped. |
 
-   A custom database folder (`storageConfig` custom) settles Account and Sync. The diver chose where the data lives, and nagging them to pick an account would contradict that choice.
-5. **The upgrade seed runs at startup, once.** It runs from the `diverCountProvider` listener in `lib/app.dart` on its first value.
+   A custom database folder (`storageConfig` custom) settles Account and Sync. The diver chose where the data lives, and nagging them to pick an account would contradict that choice. On Android the folder is a device volume no service keeps in step (the Sync row reads "Only on this device"), so there it settles neither (changed in review).
+5. **The upgrade seed runs at startup, once.** It runs in the startup sequence's account-migration step, with the database open and before the app mounts, so the card's first build reads the seeded values (moved there in review from the `diverCountProvider` listener in `lib/app.dart`). A failure is logged and retried next launch.
    - Prefs already there: either `setup_card_hidden` or `setup_photos_skipped` present marks the seed done and changes nothing else.
    - Database holds a diver: writes hidden and skipped, then marks the seed done.
    - No diver (a fresh install): only marks the seed done.
 
    Without the done mark, a fresh install would be seeded as soon as its wizard created the first diver.
 6. **Pending items under the steps** (spec 6.5) keep `PendingSetupService` and its dismiss keys unchanged.
-   - **Sign-in item:** the button "Sign in" runs `signInToGroup` for that account.
-   - **Attach item:** opens the photos step. It is not listed while the steps show photos as outstanding, since the step already covers it.
+   - **Sign-in item:** the button "Sign in" runs `signInToGroup` for that account, when this build can sign in to its kind; otherwise it opens the page that resolves the item. The line names what pauses from the account's uses: sync, backups, both or neither.
+   - **Attach item:** opens the photos step. The full card leaves it out while its steps show photos as outstanding, since the step already covers it; the compact card always lists it.
    - **Reconnect item:** opens Photos & videos.
+   - **Every page the card opens** goes through its host: the Data page pushes in the pane, the desktop settings list opens the Data pane, a phone's list pushes. While Settings > Data is selected on desktop, the list shows no card.
    - **Hidden card:** the items still show; only the steps section hides.
 7. **Removed outright, with no redirect:**
    - the Photos checklist page (`PhotosMediaSetupPage`, `setupGuideStatusProvider`) and its route `/settings/photos-media/setup`;

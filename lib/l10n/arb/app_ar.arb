@@ -16127,7 +16127,6 @@
   "settings_setUpDevice_again": "{device, select, phone{إعداد هذا الهاتف مجددًا} tablet{إعداد هذا الجهاز اللوحي مجددًا} computer{إعداد هذا الحاسوب مجددًا} other{إعداد هذا الجهاز مجددًا}}",
   "settings_setUpDevice_count": "{done} من {total}",
   "settings_setUpDevice_countSemantics": "اكتملت {done} من {total} خطوات",
-  "settings_setUpDevice_continue": "متابعة",
   "settings_setUpDevice_hide": "إخفاء هذه البطاقة",
   "settings_setUpDevice_step_account": "اختر مكان حفظ بياناتك",
   "settings_setUpDevice_step_sync": "الغطسات على كل جهاز",
@@ -16138,12 +16137,13 @@
   "settings_setUpDevice_mark_notYet": "ليس بعد",
   "settings_setUpDevice_mark_skipped": "تم التخطي",
   "settings_setUpDevice_item_signInAction": "تسجيل الدخول",
-  "settings_setUpDevice_item_attachAction": "إعداد",
   "settings_setUpDevice_item_reconnectAction": "إعادة الاتصال",
-  "settings_setUpDevice_item_dismiss": "تجاهل",
   "settings_setUpDevice_item_signIn": "سجّل الدخول إلى {account} مجددًا. المزامنة والنسخ الاحتياطي متوقفان مؤقتًا حتى تفعل.",
   "settings_setUpDevice_item_signInShort": "سجّل الدخول إلى {account} مجددًا.",
   "settings_setUpDevice_item_attach": "تحتفظ أجهزتك الأخرى بنسخ من الصور في {account}.",
   "settings_setUpDevice_item_reconnect": "يلزم إعادة توصيل نسخ الصور في {account}.",
-  "settings_setUpDevice_againSubtitle": "الحساب والمزامنة والنسخ الاحتياطية والصور"
+  "settings_setUpDevice_againSubtitle": "الحساب والمزامنة والنسخ الاحتياطية والصور",
+  "settings_setUpDevice_stepSemantics": "{step}: {mark}",
+  "settings_setUpDevice_item_signInSync": "سجّل الدخول إلى {account} مجددًا. المزامنة متوقفة مؤقتًا حتى تفعل.",
+  "settings_setUpDevice_item_signInBackups": "سجّل الدخول إلى {account} مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل."
 }

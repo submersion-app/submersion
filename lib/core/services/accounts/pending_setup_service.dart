@@ -34,10 +34,10 @@ class PendingSetupItem {
   /// For accountSignIn: the roster row that needs signing in.
   final String? accountId;
 
-  /// For accountSignIn: sync or the backup copy uses this account, so both
-  /// stop until it is signed in again. Read from the account's uses, not
-  /// from [route], which names only the first page that can sign it in.
-  final bool pausesSyncOrBackups;
+  /// For accountSignIn: what uses this account on this device, so a reader
+  /// can say which features stop until it is signed in again. [route] names
+  /// only the first page that can sign it in.
+  final Set<AccountUsageKind> usages;
 
   /// The settings page that actually resolves this item. Computed by the
   /// service, which knows what the account drives (sync selection, media
@@ -56,7 +56,7 @@ class PendingSetupItem {
     required this.route,
     this.accountKind,
     this.accountId,
-    this.pausesSyncOrBackups = false,
+    this.usages = const {},
     this.dismissed = false,
   });
 }
@@ -100,8 +100,6 @@ class PendingSetupService {
 
   bool _isDismissed(String key) =>
       _prefs.getBool('$_dismissedPrefix$key') ?? false;
-
-  Future<void> dismiss(String key) => dismissKey(_prefs, key);
 
   /// Records [key] as dismissed on this device. Needs no repositories, so a
   /// card can dismiss an item without building the whole service.
@@ -161,7 +159,8 @@ class PendingSetupService {
       // (another device's server or folder) asks for no sign-in (spec
       // section 7.2), and is never probed. A Lightroom row always counts as
       // used: the connector's usage is per kind, not per device.
-      if (usage.usagesOf(account).isEmpty) continue;
+      final uses = {for (final u in usage.usagesOf(account)) u.kind};
+      if (uses.isEmpty) continue;
       final adapter = _registry.capabilityFor<AccountProviderAdapter>(
         account.kind,
       );
@@ -177,14 +176,8 @@ class PendingSetupService {
           label: account.displayName,
           accountKind: account.kind,
           accountId: account.id,
-          pausesSyncOrBackups: usage
-              .usagesOf(account)
-              .any(
-                (u) =>
-                    u.kind == AccountUsageKind.databaseSync ||
-                    u.kind == AccountUsageKind.backupCopy,
-              ),
-          route: _routeFor(account, usage: usage),
+          usages: Set.unmodifiable(uses),
+          route: _routeFor(account, uses),
           dismissed: _isDismissed(key),
         ),
       );
@@ -199,10 +192,9 @@ class PendingSetupService {
   /// Storage; a library's account to its own account page, whose Sign in
   /// again covers every kind.
   String _routeFor(
-    domain.ConnectedAccount account, {
-    required AccountUsageSnapshot usage,
-  }) {
-    final kinds = {for (final u in usage.usagesOf(account)) u.kind};
+    domain.ConnectedAccount account,
+    Set<AccountUsageKind> kinds,
+  ) {
     if (kinds.contains(AccountUsageKind.lightroom)) {
       return '/settings/lightroom';
     }

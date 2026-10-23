@@ -36,7 +36,10 @@ class SetUpStepMarks extends StatelessWidget {
           _StepLine(
             name: setUpStepName(l10n, step),
             mark: marks[step]!,
-            markLabel: _markLabel(l10n, marks[step]!),
+            semanticsLabel: l10n.settings_setUpDevice_stepSemantics(
+              setUpStepName(l10n, step),
+              _markLabel(l10n, marks[step]!),
+            ),
             scheme: scheme,
           ),
       ],
@@ -48,13 +51,13 @@ class _StepLine extends StatelessWidget {
   const _StepLine({
     required this.name,
     required this.mark,
-    required this.markLabel,
+    required this.semanticsLabel,
     required this.scheme,
   });
 
   final String name;
   final SetUpMark mark;
-  final String markLabel;
+  final String semanticsLabel;
   final ColorScheme scheme;
 
   @override
@@ -68,7 +71,7 @@ class _StepLine extends StatelessWidget {
     final textStyle = Theme.of(context).textTheme.bodyMedium;
     return MergeSemantics(
       child: Semantics(
-        label: '$name, $markLabel',
+        label: semanticsLabel,
         excludeSemantics: true,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),

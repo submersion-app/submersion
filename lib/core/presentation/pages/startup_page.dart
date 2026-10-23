@@ -74,6 +74,7 @@ import 'package:submersion/features/media/data/services/scanned_logs_migration.d
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_orphan_backlog_sweep.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
@@ -994,6 +995,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       // deterministic ids and the pass finds nothing to do on a fresh
       // install. Both swallow their own errors: neither can block startup.
       await AccountDeduplicator(prefs: prefs).run();
+      await runSetUpCardSeed(prefs);
     });
     await timeStartupStep(
       'notifications',

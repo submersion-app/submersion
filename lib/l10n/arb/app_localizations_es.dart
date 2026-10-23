@@ -54941,9 +54941,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => 'Continuar';
-
-  @override
   String get settings_setUpDevice_hide => 'Ocultar esta tarjeta';
 
   @override
@@ -54978,13 +54975,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Iniciar sesión';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'Configurar';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'Reconectar';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'Descartar';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -55009,4 +55000,19 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'Cuenta, sincronización, copias de seguridad y fotos';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Vuelve a iniciar sesión en $account. La sincronización está en pausa hasta entonces.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Vuelve a iniciar sesión en $account. Las copias de seguridad están en pausa hasta entonces.';
+  }
 }

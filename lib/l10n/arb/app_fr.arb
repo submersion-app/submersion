@@ -16126,8 +16126,7 @@
   "settings_setUpDevice_titleFinish": "{device, select, phone{Terminer la configuration de ce téléphone} tablet{Terminer la configuration de cette tablette} computer{Terminer la configuration de cet ordinateur} other{Terminer la configuration de cet appareil}}",
   "settings_setUpDevice_again": "{device, select, phone{Reconfigurer ce téléphone} tablet{Reconfigurer cette tablette} computer{Reconfigurer cet ordinateur} other{Reconfigurer cet appareil}}",
   "settings_setUpDevice_count": "{done} sur {total}",
-  "settings_setUpDevice_countSemantics": "{done} étapes sur {total} terminées",
-  "settings_setUpDevice_continue": "Continuer",
+  "settings_setUpDevice_countSemantics": "Étapes terminées : {done} sur {total}",
   "settings_setUpDevice_hide": "Masquer cette carte",
   "settings_setUpDevice_step_account": "Choisir où vos données sont conservées",
   "settings_setUpDevice_step_sync": "Les plongées sur chaque appareil",
@@ -16138,12 +16137,13 @@
   "settings_setUpDevice_mark_notYet": "Pas encore",
   "settings_setUpDevice_mark_skipped": "Ignoré",
   "settings_setUpDevice_item_signInAction": "Se connecter",
-  "settings_setUpDevice_item_attachAction": "Configurer",
   "settings_setUpDevice_item_reconnectAction": "Reconnecter",
-  "settings_setUpDevice_item_dismiss": "Ignorer",
   "settings_setUpDevice_item_signIn": "Reconnectez-vous à {account}. La synchronisation et les sauvegardes sont en pause d'ici là.",
   "settings_setUpDevice_item_signInShort": "Reconnectez-vous à {account}.",
   "settings_setUpDevice_item_attach": "Vos autres appareils conservent des copies des photos dans {account}.",
   "settings_setUpDevice_item_reconnect": "Les copies des photos dans {account} doivent être reconnectées.",
-  "settings_setUpDevice_againSubtitle": "Compte, synchronisation, sauvegardes et photos"
+  "settings_setUpDevice_againSubtitle": "Compte, synchronisation, sauvegardes et photos",
+  "settings_setUpDevice_stepSemantics": "{step} : {mark}",
+  "settings_setUpDevice_item_signInSync": "Reconnectez-vous à {account}. La synchronisation est en pause d'ici là.",
+  "settings_setUpDevice_item_signInBackups": "Reconnectez-vous à {account}. Les sauvegardes sont en pause d'ici là."
 }

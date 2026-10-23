@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
@@ -112,7 +113,7 @@ void main() {
 
     test('a dismissed reconnect stays dismissed', () async {
       await attachedWithMismatch();
-      await service().dismiss('store_marker_store-1');
+      await PendingSetupService.dismissKey(prefs, 'store_marker_store-1');
 
       expect(await service().compute(), isEmpty);
     });
@@ -166,7 +167,7 @@ void main() {
     expect(items.single.kind, SetupItemKind.accountSignIn);
     expect(items.single.label, 'MinIO');
     expect(items.single.accountId, minio.id);
-    expect(items.single.pausesSyncOrBackups, isTrue);
+    expect(items.single.usages, {AccountUsageKind.databaseSync});
     expect(items.single.accountKind, AccountKind.s3);
     expect(items.single.route, '/settings/cloud-sync');
   });
@@ -300,7 +301,7 @@ void main() {
       providerType: CloudProviderType.s3,
       accountId: mediaAccount.id,
     );
-    await service().dismiss('store_store-2');
+    await PendingSetupService.dismissKey(prefs, 'store_store-2');
 
     final items = await service().compute();
 
@@ -308,8 +309,8 @@ void main() {
     expect(items.single.route, '/settings/photos-media');
   });
 
-  test('an account holding the backup copy pauses backups, even when it '
-      'routes to Photos & videos', () async {
+  test('an account holding the backup copy and the photo copies carries '
+      'both uses, though it routes to Photos & videos', () async {
     final account = await accounts.create(kind: AccountKind.s3, label: 'S3');
     await MediaStoreAttachState(prefs: prefs).setAttached(
       'store-1',
@@ -323,10 +324,13 @@ void main() {
     final item = (await service().compute()).single;
 
     expect(item.route, '/settings/photos-media');
-    expect(item.pausesSyncOrBackups, isTrue);
+    expect(item.usages, {
+      AccountUsageKind.mediaStorage,
+      AccountUsageKind.backupCopy,
+    });
   });
 
-  test('an account only the photo copies use pauses neither', () async {
+  test('an account only the photo copies use carries that use alone', () async {
     final account = await accounts.create(kind: AccountKind.s3, label: 'S3');
     await MediaStoreAttachState(prefs: prefs).setAttached(
       'store-1',
@@ -334,7 +338,9 @@ void main() {
       accountId: account.id,
     );
 
-    expect((await service().compute()).single.pausesSyncOrBackups, isFalse);
+    expect((await service().compute()).single.usages, {
+      AccountUsageKind.mediaStorage,
+    });
   });
 
   test('a key dismissed without a service is dismissed for it', () async {
@@ -350,7 +356,7 @@ void main() {
     final svc = service();
     expect(await svc.compute(), hasLength(1));
 
-    await svc.dismiss('account_${account.id}');
+    await PendingSetupService.dismissKey(prefs, 'account_${account.id}');
     expect((await svc.compute()).where((i) => !i.dismissed), isEmpty);
 
     // A different object (new key) still surfaces.
@@ -369,7 +375,7 @@ void main() {
     final svc = service();
     expect((await svc.compute()).single.dismissed, isFalse);
 
-    await svc.dismiss('account_${account.id}');
+    await PendingSetupService.dismissKey(prefs, 'account_${account.id}');
 
     final item = (await svc.compute()).single;
     expect(item.kind, SetupItemKind.accountSignIn);

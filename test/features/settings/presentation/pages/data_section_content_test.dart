@@ -32,6 +32,7 @@ import 'package:submersion/features/settings/presentation/widgets/settings_list_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../set_up_progress_fixture.dart';
 
 void main() {
   const health = [
@@ -71,7 +72,11 @@ void main() {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = size;
+    // The set up card's device word follows the display.
+    tester.view.display.devicePixelRatio = 1;
+    tester.view.display.size = size;
     addTearDown(tester.view.reset);
+    addTearDown(tester.view.display.reset);
     final router = GoRouter(
       initialLocation: '/settings?selected=data',
       routes: [
@@ -401,29 +406,12 @@ void main() {
     expect(find.text('Your data'), findsNothing);
   });
 
-  SetUpProgress setUpOf({
-    bool accountHere = false,
-    bool everything = false,
-    bool hidden = false,
-  }) => setUpProgress(
-    SetUpInputs(
-      accountHere: accountHere || everything,
-      syncEstablished: everything,
-      customFolder: false,
-      backupsAuto: everything,
-      backupOffDevice: everything,
-      photosAttached: everything,
-      photosSkipped: false,
-      hidden: hidden,
-    ),
-  );
-
   Finder inDataPage(Finder f) =>
       find.descendant(of: find.byType(DataSectionContent), matching: f);
 
   group('the set up card', () {
     testWidgets('sits between the strip and the facts line', (tester) async {
-      await pumpData(tester, setUp: setUpOf(accountHere: true));
+      await pumpData(tester, setUp: setUpProgressOf(accountHere: true));
 
       final card = inDataPage(find.byType(SetUpDeviceCard));
       expect(card, findsOneWidget);
@@ -439,7 +427,7 @@ void main() {
     });
 
     testWidgets('on a phone Continue pushes the next step', (tester) async {
-      await pumpData(tester, setUp: setUpOf(accountHere: true));
+      await pumpData(tester, setUp: setUpProgressOf(accountHere: true));
 
       await tester.tap(inDataPage(find.text('Continue')));
       await tester.pumpAndSettle();
@@ -452,7 +440,7 @@ void main() {
       final router = await pumpData(
         tester,
         size: const Size(1400, 2400),
-        setUp: setUpOf(accountHere: true),
+        setUp: setUpProgressOf(accountHere: true),
       );
 
       await tester.tap(inDataPage(find.text('Continue')));
@@ -470,14 +458,14 @@ void main() {
     testWidgets('is not offered while the card shows its steps', (
       tester,
     ) async {
-      await pumpData(tester, setUp: setUpOf(accountHere: true));
+      await pumpData(tester, setUp: setUpProgressOf(accountHere: true));
       expect(find.text('Set up this phone again'), findsNothing);
     });
 
     testWidgets('is offered under Advanced once setup is complete', (
       tester,
     ) async {
-      await pumpData(tester, setUp: setUpOf(everything: true));
+      await pumpData(tester, setUp: setUpProgressOf(everything: true));
 
       expect(find.text('Set up this phone again'), findsOneWidget);
       expect(
@@ -488,7 +476,7 @@ void main() {
 
     testWidgets('on a hidden card, shows the card again and opens the '
         'first step', (tester) async {
-      await pumpData(tester, setUp: setUpOf(hidden: true));
+      await pumpData(tester, setUp: setUpProgressOf(hidden: true));
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DataSectionContent)),
       );

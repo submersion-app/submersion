@@ -54587,9 +54587,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => 'Folytatás';
-
-  @override
   String get settings_setUpDevice_hide => 'A kártya elrejtése';
 
   @override
@@ -54623,13 +54620,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Bejelentkezés';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'Beállítás';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'Újracsatlakozás';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'Elvetés';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -54654,4 +54645,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'Fiók, szinkronizálás, mentések és fotók';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Jelentkezzen be újra ide: $account. Addig a szinkronizálás szünetel.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Jelentkezzen be újra ide: $account. Addig a mentések szünetelnek.';
+  }
 }

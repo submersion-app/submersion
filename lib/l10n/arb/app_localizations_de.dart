@@ -54784,9 +54784,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => 'Weiter';
-
-  @override
   String get settings_setUpDevice_hide => 'Diese Karte ausblenden';
 
   @override
@@ -54818,13 +54815,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Anmelden';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'Einrichten';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'Neu verbinden';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'Ausblenden';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -54849,4 +54840,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'Konto, Sync, Sicherungen und Fotos';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Melden Sie sich erneut bei $account an. Sync ist bis dahin pausiert.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Melden Sie sich erneut bei $account an. Sicherungen sind bis dahin pausiert.';
+  }
 }

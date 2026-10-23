@@ -54897,11 +54897,8 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_setUpDevice_countSemantics(int done, int total) {
-    return '$done passaggi su $total completati';
+    return 'Passaggi completati: $done su $total';
   }
-
-  @override
-  String get settings_setUpDevice_continue => 'Continua';
 
   @override
   String get settings_setUpDevice_hide => 'Nascondi questa scheda';
@@ -54936,13 +54933,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Accedi';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'Configura';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'Ricollega';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'Ignora';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -54967,4 +54958,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'Account, sincronizzazione, backup e foto';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Accedi di nuovo a $account. La sincronizzazione è in pausa fino ad allora.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Accedi di nuovo a $account. I backup sono in pausa fino ad allora.';
+  }
 }

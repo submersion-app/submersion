@@ -1,9 +1,14 @@
-import 'package:collection/collection.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
@@ -13,9 +18,20 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_pending_items.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_marks.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_route.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/device_kind.dart';
+
+final _log = LoggerService.forClass(SetUpDeviceCard);
+
+/// Runs an account's own sign-in; true when it is signed in afterwards.
+typedef SignInAccount =
+    Future<bool> Function(
+      BuildContext context,
+      WidgetRef ref,
+      AccountGroup group,
+    );
 
 /// "Set up this device" (issue #3482): the four steps with their marks and
 /// Continue, then whatever needs the diver later (spec 6.5). The full form
@@ -26,20 +42,20 @@ class SetUpDeviceCard extends ConsumerWidget {
   const SetUpDeviceCard({
     super.key,
     this.compact = false,
-    required this.onOpenStep,
-    this.onSignIn,
+    this.onOpen,
+    this.signInAccount = signInToGroup,
     this.margin,
   });
 
   final bool compact;
 
-  /// Opens [step] of the flow.
-  final ValueChanged<SetUpStep> onOpenStep;
+  /// Opens a settings page: a step's page, or the page that resolves an
+  /// item. Every page the card opens goes through it, so a host outside
+  /// Settings > Data (the desktop settings list) keeps them all in the Data
+  /// pane. Defaults to opening it as pages inside Settings > Data do.
+  final ValueChanged<String>? onOpen;
 
-  /// Signs in to the account of a sign-in item. Defaults to the account's
-  /// own sign-in, or the page that resolves it for a connector.
-  final Future<void> Function(BuildContext context, PendingSetupItem item)?
-  onSignIn;
+  final SignInAccount signInAccount;
 
   final EdgeInsetsGeometry? margin;
 
@@ -47,152 +63,218 @@ class SetUpDeviceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(setUpProgressProvider);
     if (progress == null) return const SizedBox.shrink();
-    final photosOutstanding =
+    // The full card's photo step already covers joining the announced
+    // store; the compact card shows no steps, so it lists the item.
+    final photoStepShown =
         progress.showsSteps &&
+        !compact &&
         progress.marks[SetUpStep.photos] != SetUpMark.done &&
         progress.marks[SetUpStep.photos] != SetUpMark.skipped;
     final items = [
       for (final item
           in ref.watch(pendingSetupItemsProvider).value ??
               const <PendingSetupItem>[])
-        // The photo step already covers joining the announced store.
         if (!item.dismissed &&
-            !(photosOutstanding && item.kind == SetupItemKind.mediaStoreAttach))
+            !(photoStepShown && item.kind == SetupItemKind.mediaStoreAttach))
           item,
     ];
     if (!progress.showsSteps && items.isEmpty) return const SizedBox.shrink();
 
-    final l10n = context.l10n;
-    final device = deviceKindArg(deviceKindOf(context));
-    final title = progress.anyDone
-        ? l10n.settings_setUpDevice_titleFinish(device)
-        : l10n.settings_setUpDevice_title(device);
-    final count = Semantics(
-      label: l10n.settings_setUpDevice_countSemantics(
-        progress.settled,
-        SetUpStep.values.length,
-      ),
-      excludeSemantics: true,
-      child: Text(
-        l10n.settings_setUpDevice_count(
-          progress.settled,
-          SetUpStep.values.length,
-        ),
-        style: Theme.of(context).textTheme.bodySmall,
-      ),
-    );
-    final continueButton = FilledButton(
-      onPressed: () => onOpenStep(progress.next!),
-      child: Text(l10n.settings_setUpDevice_continue),
-    );
-
     return Card(
-      margin: margin ?? const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (progress.showsSteps && compact)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        count,
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  continueButton,
-                ],
-              ),
-            ),
-          if (progress.showsSteps && !compact)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 4, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                      count,
-                      PopupMenuButton<void>(
-                        itemBuilder: (context) => [
-                          PopupMenuItem<void>(
-                            onTap: () => ref
-                                .read(setUpCardPrefsProvider.notifier)
-                                .setHidden(true),
-                            child: Text(l10n.settings_setUpDevice_hide),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: SetUpStepMarks(marks: progress.marks),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: continueButton,
-                    ),
-                  ),
-                ],
-              ),
+          if (progress.showsSteps)
+            _Steps(
+              progress: progress,
+              compact: compact,
+              onContinue: () => _open(context, setUpStepRoute(progress.next!)),
+              onHide: () => ref
+                  .read(setUpCardPrefsNotifierProvider.notifier)
+                  .setHidden(true),
             ),
           if (progress.showsSteps && items.isNotEmpty) const Divider(height: 1),
           if (items.isNotEmpty)
             SetUpPendingItems(
               items: items,
-              onOpenStep: onOpenStep,
-              onSignIn: (item) =>
-                  (onSignIn ?? _signIn(ref)).call(context, item),
-              onDismiss: (item) async {
-                await PendingSetupService.dismissKey(
-                  ref.read(sharedPreferencesProvider),
-                  item.key,
-                );
-                ref.invalidate(pendingSetupItemsProvider);
-              },
+              onOpen: (route) => _open(context, route),
+              onSignIn: (item) => _signIn(context, ref, item),
+              onDismiss: (item) => _dismiss(context, item),
             ),
         ],
       ),
     );
   }
 
-  /// The account's own sign-in when the account sheet can run it here;
-  /// otherwise (a connector, or a row not in any group) the page that
-  /// resolves the item.
-  Future<void> Function(BuildContext, PendingSetupItem) _signIn(
+  void _open(BuildContext context, String route) {
+    final open = onOpen;
+    if (open != null) {
+      open(route);
+    } else {
+      unawaited(context.pushSettingsPage(route));
+    }
+  }
+
+  /// The account's own sign-in when this build can run it; otherwise (a
+  /// connector, a row no account holds, a kind this build cannot sign in
+  /// to, a lookup that failed) the page that resolves the item.
+  Future<void> _signIn(
+    BuildContext context,
     WidgetRef ref,
-  ) => (context, item) async {
-    final groups = await ref.read(accountGroupsProvider.future);
-    final group = groups.firstWhereOrNull(
-      (g) => g.rows.any((r) => r.id == item.accountId),
-    );
+    PendingSetupItem item,
+  ) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    final kind = item.accountKind;
+    final group = kind == null || kind == AccountKind.adobeLightroom
+        ? null
+        : await _groupOf(container, item, kind);
     if (!context.mounted) return;
-    if (group == null || group.kind == AccountKind.adobeLightroom) {
-      await context.pushSettingsPage(item.route);
+    if (group == null) {
+      _open(context, item.route);
       return;
     }
-    await signInToGroup(context, ref, group);
-    // The item may have resolved and taken the card's tile away meanwhile.
-    if (!context.mounted) return;
-    refreshAccountState(ref.invalidate);
-  };
+    final signedIn = await signInAccount(context, ref, group);
+    // The photo copies' store and runtime were built without this
+    // account's keys; rebuild them now that it has them.
+    if (signedIn && item.usages.contains(AccountUsageKind.mediaStorage)) {
+      invalidateMediaStoreAttachmentWith(container.invalidate);
+    }
+  }
+
+  /// The account holding [item]'s row, or null when this build cannot sign
+  /// in to [kind] or the lookup fails. Probes only accounts of [kind].
+  static Future<AccountGroup?> _groupOf(
+    ProviderContainer container,
+    PendingSetupItem item,
+    AccountKind kind,
+  ) async {
+    final groups = accountGroupsOfKindsProvider(accountKindsKey({kind}));
+    // Held while read: nothing on the card's pages watches the groups, and
+    // an unwatched autoDispose provider is disposed partway through its
+    // build.
+    final subscription = container.listen(groups, (_, _) {});
+    try {
+      if (!await canSignInOnThisBuild(container, kind)) return null;
+      return (await container.read(groups.future)).holding(item.accountId);
+    } on Object catch (e, stackTrace) {
+      _log.warning(
+        'Could not look up the account to sign in to',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    } finally {
+      subscription.close();
+    }
+  }
+
+  /// Records the dismissal, then refreshes every card through the
+  /// container, which outlives this card if it goes away during the write.
+  Future<void> _dismiss(BuildContext context, PendingSetupItem item) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    await PendingSetupService.dismissKey(
+      container.read(sharedPreferencesProvider),
+      item.key,
+    );
+    container.invalidate(pendingSetupItemsProvider);
+  }
+}
+
+/// The title, the count and Continue; the full form adds the step marks and
+/// the menu with Hide this card.
+class _Steps extends StatelessWidget {
+  const _Steps({
+    required this.progress,
+    required this.compact,
+    required this.onContinue,
+    required this.onHide,
+  });
+
+  final SetUpProgress progress;
+  final bool compact;
+  final VoidCallback onContinue;
+  final VoidCallback onHide;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final textTheme = Theme.of(context).textTheme;
+    final device = deviceKindArg(deviceKindOf(context));
+    final title = Text(
+      progress.anyDone
+          ? l10n.settings_setUpDevice_titleFinish(device)
+          : l10n.settings_setUpDevice_title(device),
+      style: textTheme.titleMedium,
+    );
+    final total = SetUpStep.values.length;
+    final count = Semantics(
+      label: l10n.settings_setUpDevice_countSemantics(progress.settled, total),
+      excludeSemantics: true,
+      child: Text(
+        l10n.settings_setUpDevice_count(progress.settled, total),
+        style: textTheme.bodySmall,
+      ),
+    );
+    final continueButton = FilledButton(
+      onPressed: onContinue,
+      child: Text(l10n.common_action_continue),
+    );
+
+    if (compact) {
+      return Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [title, count],
+              ),
+            ),
+            const SizedBox(width: 12),
+            continueButton,
+          ],
+        ),
+      );
+    }
+    // The menu's own tap target reaches the end edge; everything under the
+    // header row keeps the card's 16 dp end inset.
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 4, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: title),
+              count,
+              PopupMenuButton<void>(
+                itemBuilder: (context) => [
+                  PopupMenuItem<void>(
+                    onTap: onHide,
+                    child: Text(l10n.settings_setUpDevice_hide),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SetUpStepMarks(marks: progress.marks),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: continueButton,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

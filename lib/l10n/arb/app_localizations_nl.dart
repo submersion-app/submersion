@@ -54563,9 +54563,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => 'Doorgaan';
-
-  @override
   String get settings_setUpDevice_hide => 'Deze kaart verbergen';
 
   @override
@@ -54598,13 +54595,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Inloggen';
 
   @override
-  String get settings_setUpDevice_item_attachAction => 'Instellen';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => 'Opnieuw verbinden';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => 'Negeren';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -54629,4 +54620,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_setUpDevice_againSubtitle =>
       'Account, synchronisatie, back-ups en foto\'s';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Log opnieuw in bij $account. Synchronisatie staat tot dan stil.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Log opnieuw in bij $account. Back-ups staan tot dan stil.';
+  }
 }

@@ -38,7 +38,6 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_impor
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/set_up_card_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
@@ -110,7 +109,6 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   late final PassportLinkDispatcher _passportLinks;
   late final GoRouter _linkRouter;
   bool _hasDivers = false;
-  bool _setUpCardSeeded = false;
   bool _navigationReadyRetryScheduled = false;
 
   /// This root's hold on the share gate, which outlives it (see
@@ -153,17 +151,6 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.listenManual<AsyncValue<int>>(diverCountProvider, (_, next) {
       _hasDivers = (next.value ?? 0) > 0;
       _updateNavigationReady();
-      // The first count decides, once, whether this device predates the
-      // Set up this device card (a diver already here) and starts with it
-      // hidden.
-      if (!_setUpCardSeeded && next.hasValue) {
-        _setUpCardSeeded = true;
-        unawaited(
-          ref
-              .read(setUpCardPrefsProvider.notifier)
-              .seedOnce(diverCount: next.requireValue),
-        );
-      }
     }, fireImmediately: true);
     // The serviceDue query field reads a cache of the service engine's
     // verdicts, and any list can reach it through a relation (a dive's

@@ -34,9 +34,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
-import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
-import 'package:submersion/features/settings/presentation/providers/set_up_card_prefs_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
@@ -340,36 +337,6 @@ void main() {
       tester.element(find.byType(SubmersionApp)),
     );
     expect(container.exists(serviceStatusKeeperProvider), isTrue);
-  });
-
-  testWidgets('a device that predates the set up card starts with it '
-      'hidden', (tester) async {
-    await pumpApp(
-      tester,
-      _DrivableSyncNotifier(const SyncState()),
-      extraOverrides: [diverCountProvider.overrideWith((ref) async => 1)],
-    );
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(SubmersionApp)),
-    );
-    final prefs = container.read(sharedPreferencesProvider);
-    expect(prefs.getBool(SetUpCardPrefs.hiddenKey), isTrue);
-    expect(prefs.getBool(SetUpCardPrefs.photosSkippedKey), isTrue);
-    expect(container.read(setUpCardPrefsProvider).hidden, isTrue);
-  });
-
-  testWidgets('a fresh install is not seeded', (tester) async {
-    await pumpApp(
-      tester,
-      _DrivableSyncNotifier(const SyncState()),
-      extraOverrides: [diverCountProvider.overrideWith((ref) async => 0)],
-    );
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(SubmersionApp)),
-    );
-    final prefs = container.read(sharedPreferencesProvider);
-    expect(prefs.containsKey(SetUpCardPrefs.hiddenKey), isFalse);
-    expect(prefs.getBool(SetUpCardPrefs.seedDoneKey), isTrue);
   });
 
   testWidgets('shows the post-restore syncing notice when sync begins', (

@@ -1,3 +1,6 @@
+import 'package:collection/collection.dart';
+import 'package:equatable/equatable.dart';
+
 /// The four steps of "Set up this device" (issue #3482), in their order.
 enum SetUpStep { account, sync, backups, photos }
 
@@ -38,6 +41,7 @@ class SetUpInputs {
 
   /// The database lives in a folder the diver chose, which another service
   /// keeps in step: that settles where the data is kept and how it travels.
+  /// A device-only folder (Android) is not one.
   final bool customFolder;
 
   final bool backupsAuto;
@@ -51,66 +55,60 @@ class SetUpInputs {
   final bool hidden;
 }
 
-/// The card's derived state.
-class SetUpProgress {
-  const SetUpProgress({
-    required this.marks,
-    required this.settled,
-    required this.next,
-    required this.anyDone,
-    required this.showsSteps,
-  });
+/// The card's derived state: each step's mark, and whether the diver hid
+/// the card. Everything else is read from the marks, so the parts cannot
+/// disagree. Equal facts give an equal progress, so a reload that changes
+/// nothing notifies no one.
+class SetUpProgress extends Equatable {
+  const SetUpProgress({required this.marks, required this.hidden});
 
   final Map<SetUpStep, SetUpMark> marks;
+  final bool hidden;
 
   /// Steps done or skipped, for the "2 of 4" count.
-  final int settled;
+  int get settled => marks.values
+      .where((m) => m == SetUpMark.done || m == SetUpMark.skipped)
+      .length;
 
   /// The step Continue opens; null once every step is settled.
-  final SetUpStep? next;
+  SetUpStep? get next => SetUpStep.values.firstWhereOrNull(
+    (step) => marks[step] == SetUpMark.next,
+  );
 
   /// Some step is done (not merely skipped): the title becomes "Finish
   /// setting up".
-  final bool anyDone;
+  bool get anyDone => marks.values.contains(SetUpMark.done);
 
   /// The card shows its steps: not hidden, and not complete.
-  final bool showsSteps;
+  bool get showsSteps => !hidden && next != null;
 
-  bool get complete => next == null;
+  @override
+  List<Object?> get props => [marks, hidden];
 }
 
 SetUpProgress setUpProgress(SetUpInputs inputs) {
-  final done = <SetUpStep, bool>{
-    SetUpStep.account: inputs.accountHere || inputs.customFolder,
-    SetUpStep.sync: inputs.syncEstablished || inputs.customFolder,
-    SetUpStep.backups: inputs.backupsAuto && inputs.backupOffDevice,
-    SetUpStep.photos: inputs.photosAttached,
+  bool done(SetUpStep step) => switch (step) {
+    SetUpStep.account => inputs.accountHere || inputs.customFolder,
+    SetUpStep.sync => inputs.syncEstablished || inputs.customFolder,
+    SetUpStep.backups => inputs.backupsAuto && inputs.backupOffDevice,
+    SetUpStep.photos => inputs.photosAttached,
   };
   bool skipped(SetUpStep step) =>
-      step == SetUpStep.photos && inputs.photosSkipped && !done[step]!;
-
-  SetUpStep? next;
-  final marks = <SetUpStep, SetUpMark>{};
-  for (final step in SetUpStep.values) {
-    if (done[step]!) {
-      marks[step] = SetUpMark.done;
-    } else if (skipped(step)) {
-      marks[step] = SetUpMark.skipped;
-    } else if (next == null) {
-      next = step;
-      marks[step] = SetUpMark.next;
-    } else {
-      marks[step] = SetUpMark.notYet;
-    }
-  }
-  final settled = marks.values
-      .where((m) => m == SetUpMark.done || m == SetUpMark.skipped)
-      .length;
+      step == SetUpStep.photos && inputs.photosSkipped;
+  final next = SetUpStep.values.firstWhereOrNull(
+    (step) => !done(step) && !skipped(step),
+  );
   return SetUpProgress(
-    marks: Map.unmodifiable(marks),
-    settled: settled,
-    next: next,
-    anyDone: done.values.any((d) => d),
-    showsSteps: !inputs.hidden && next != null,
+    marks: Map.unmodifiable({
+      for (final step in SetUpStep.values)
+        step: done(step)
+            ? SetUpMark.done
+            : skipped(step)
+            ? SetUpMark.skipped
+            : step == next
+            ? SetUpMark.next
+            : SetUpMark.notYet,
+    }),
+    hidden: inputs.hidden,
   );
 }

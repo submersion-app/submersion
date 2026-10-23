@@ -1,12 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
-import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_route.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/settings_root_set_up_card.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -172,10 +170,7 @@ class SettingsListContent extends ConsumerWidget {
             index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
         itemBuilder: (context, index) {
           if (index == 0) {
-            return SetUpDeviceCard(
-              compact: true,
-              onOpenStep: (step) => context.go(setUpStepDataLocation(step)),
-            );
+            return SettingsRootSetUpCard.desktop(selectedSectionId: selectedId);
           }
           final section = sections[index - 1];
           final isSelected = selectedId == section.id;

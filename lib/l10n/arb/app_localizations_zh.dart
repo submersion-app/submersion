@@ -51565,9 +51565,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_setUpDevice_continue => '继续';
-
-  @override
   String get settings_setUpDevice_hide => '隐藏此卡片';
 
   @override
@@ -51598,13 +51595,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => '登录';
 
   @override
-  String get settings_setUpDevice_item_attachAction => '设置';
-
-  @override
   String get settings_setUpDevice_item_reconnectAction => '重新连接';
-
-  @override
-  String get settings_setUpDevice_item_dismiss => '忽略';
 
   @override
   String settings_setUpDevice_item_signIn(String account) {
@@ -51628,4 +51619,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_againSubtitle => '账户、同步、备份和照片';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step：$mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return '请重新登录 $account。在此之前，同步已暂停。';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return '请重新登录 $account。在此之前，备份已暂停。';
+  }
 }
