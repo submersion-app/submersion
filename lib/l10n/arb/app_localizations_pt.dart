@@ -21549,6 +21549,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'A conta desta biblioteca já não está neste dispositivo. Use Alterar ligação para a escolher novamente.';
 
   @override
+  String get sharedLibrary_syncError_accountSignedOut =>
+      'Este dispositivo terminou a sessão na conta desta biblioteca. Inicie sessão novamente em Contas conectadas ou use Alterar ligação.';
+
+  @override
   String get sharedLibrary_syncError_notALibrary =>
       'Nenhuma biblioteca neste local.';
 

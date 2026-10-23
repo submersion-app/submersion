@@ -21,6 +21,8 @@ String libraryErrorText(AppLocalizations l10n, Object error) => switch (error) {
   LibraryLockedException() => l10n.sharedLibrary_encrypted_probe,
   UntrustedRolesError() => l10n.sharedLibrary_connect_untrusted,
   LibraryAccountMissingError() => l10n.sharedLibrary_syncError_accountMissing,
+  LibraryAccountSignedOutError() =>
+    l10n.sharedLibrary_syncError_accountSignedOut,
   LibraryAccountUnsupportedError() => l10n.sharedLibrary_connect_onlyS3Webdav,
   WebDavException() => webDavErrorText(l10n, error),
   CloudStorageException() => error.displayMessage,
@@ -37,6 +39,8 @@ String librarySyncErrorText(
 }) => switch (error.code) {
   LibrarySyncErrorCode.accountMissing =>
     l10n.sharedLibrary_syncError_accountMissing,
+  LibrarySyncErrorCode.accountSignedOut =>
+    l10n.sharedLibrary_syncError_accountSignedOut,
   LibrarySyncErrorCode.accountUnsupported =>
     l10n.sharedLibrary_connect_onlyS3Webdav,
   LibrarySyncErrorCode.notALibrary => l10n.sharedLibrary_syncError_notALibrary,

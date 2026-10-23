@@ -6165,6 +6165,7 @@
   "sharedLibrary_library_errorBanner": "Letzte Synchronisierung fehlgeschlagen: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_syncError_accountMissing": "Das Konto dieser Bibliothek ist nicht mehr auf diesem Gerät. Wählen Sie es unter Verbindung ändern erneut aus.",
+  "sharedLibrary_syncError_accountSignedOut": "Dieses Gerät ist vom Konto dieser Bibliothek abgemeldet. Melden Sie sich unter Verbundene Konten wieder an, oder verwenden Sie Verbindung ändern.",
   "sharedLibrary_syncError_notALibrary": "An diesem Ort gibt es keine Bibliothek.",
   "sharedLibrary_syncError_failed": "Etwas ist schiefgelaufen.",
   "sharedLibrary_library_addMySites": "Meine Tauchplätze hinzufügen",

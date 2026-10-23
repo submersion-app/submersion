@@ -159,6 +159,14 @@ final sharedLibraryAccountTransportProvider = Provider<LibraryTransportFactory>(
       if (capable == null) {
         throw LibraryAccountUnsupportedError(account.kind.name);
       }
+      // Signed out here, the row stays but its keys are gone: say so rather
+      // than failing in storage as "not configured" (issue #3563).
+      final adapter = registry.capabilityFor<AccountProviderAdapter>(
+        account.kind,
+      );
+      if (await adapter?.status(account) == AccountStatus.needsSignIn) {
+        throw LibraryAccountSignedOutError(account.id);
+      }
       return SharedLibraryTransport(
         capable.syncProvider(account),
         prefix: prefix,

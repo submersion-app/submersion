@@ -346,6 +346,17 @@ void main() {
     expect((await storedError()).code, LibrarySyncErrorCode.accountMissing);
   });
 
+  test('a signed-out account stores that as a code', () async {
+    await device(FakeCloudStorageProvider(), 'a');
+    final svc = SharedLibraryService(
+      store: SharedLibraryStore(),
+      transportFor: (lib) async => throw LibraryAccountSignedOutError('acc'),
+    );
+    final r = await svc.sync('L', diverId: 'd-a');
+    expect(r.status, SharedLibrarySyncStatus.notConnected);
+    expect((await storedError()).code, LibrarySyncErrorCode.accountSignedOut);
+  });
+
   test('an account kind that cannot hold a library stores its kind', () async {
     await device(FakeCloudStorageProvider(), 'a');
     final svc = SharedLibraryService(

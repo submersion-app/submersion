@@ -43,6 +43,10 @@ void main() {
       de.sharedLibrary_syncError_accountMissing,
     );
     expect(
+      libraryErrorText(de, LibraryAccountSignedOutError('acc')),
+      de.sharedLibrary_syncError_accountSignedOut,
+    );
+    expect(
       libraryErrorText(de, LibraryAccountUnsupportedError('adobeLightroom')),
       de.sharedLibrary_connect_onlyS3Webdav,
     );
@@ -57,6 +61,10 @@ void main() {
         LibrarySyncErrorCode.accountMissing:
             'The account for this library is no longer on this device. '
             'Use Change connection to choose it again.',
+        LibrarySyncErrorCode.accountSignedOut:
+            'This device is signed out of the account for this library. '
+            'Sign in to it again in Connected accounts, or use Change '
+            'connection.',
         LibrarySyncErrorCode.accountUnsupported:
             'Shared site libraries work with S3 and WebDAV accounts.',
         LibrarySyncErrorCode.notALibrary: 'No library at this location.',

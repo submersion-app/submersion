@@ -21523,6 +21523,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das Konto dieser Bibliothek ist nicht mehr auf diesem Gerät. Wählen Sie es unter Verbindung ändern erneut aus.';
 
   @override
+  String get sharedLibrary_syncError_accountSignedOut =>
+      'Dieses Gerät ist vom Konto dieser Bibliothek abgemeldet. Melden Sie sich unter Verbundene Konten wieder an, oder verwenden Sie Verbindung ändern.';
+
+  @override
   String get sharedLibrary_syncError_notALibrary =>
       'An diesem Ort gibt es keine Bibliothek.';
 

@@ -6034,6 +6034,7 @@
   "sharedLibrary_library_errorBanner": "A última sincronização falhou: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_syncError_accountMissing": "A conta desta biblioteca já não está neste dispositivo. Use Alterar ligação para a escolher novamente.",
+  "sharedLibrary_syncError_accountSignedOut": "Este dispositivo terminou a sessão na conta desta biblioteca. Inicie sessão novamente em Contas conectadas ou use Alterar ligação.",
   "sharedLibrary_syncError_notALibrary": "Nenhuma biblioteca neste local.",
   "sharedLibrary_syncError_failed": "Algo correu mal.",
   "sharedLibrary_library_addMySites": "Adicionar os meus locais",

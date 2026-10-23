@@ -20472,6 +20472,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '此库的账户已不在此设备上。请使用“更改连接”重新选择。';
 
   @override
+  String get sharedLibrary_syncError_accountSignedOut =>
+      '此设备已退出此库的账户。请在“已连接账户”中重新登录，或使用“更改连接”。';
+
+  @override
   String get sharedLibrary_syncError_notALibrary => '此位置没有库。';
 
   @override

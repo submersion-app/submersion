@@ -106,4 +106,46 @@ void main() {
 
     expect(account!.id, accountId);
   });
+
+  // A row still in the roster whose keys this device signed out of: the
+  // library says so rather than failing in storage as "not configured".
+  group('the account transport', () {
+    late ProviderContainer plain;
+
+    setUp(() {
+      plain = ProviderContainer(
+        overrides: [
+          accountCredentialsStoreProvider.overrideWithValue(credentials),
+        ],
+      );
+    });
+
+    tearDown(() => plain.dispose());
+
+    Future<SharedLibraryTransport> build(ConnectedAccount account) =>
+        plain.read(sharedLibraryAccountTransportProvider)(
+          account: account,
+          prefix: 'reef-team',
+        );
+
+    Future<ConnectedAccount> row() => ConnectedAccountsRepository().ensure(
+      kind: AccountKind.s3,
+      naturalKey: s3NaturalKey(config),
+      label: 'reef-sites @ r2.example.com',
+    );
+
+    test('a signed-out account reports it', () async {
+      await expectLater(
+        build(await row()),
+        throwsA(isA<LibraryAccountSignedOutError>()),
+      );
+    });
+
+    test('a signed-in account builds its transport', () async {
+      final account = await row();
+      await credentials.write(account.id, jsonEncode(config.toJson()));
+
+      expect(await build(account), isA<SharedLibraryTransport>());
+    });
+  });
 }

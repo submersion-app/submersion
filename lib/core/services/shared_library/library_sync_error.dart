@@ -8,6 +8,10 @@ enum LibrarySyncErrorCode {
   /// this device holds no keys to put it back.
   accountMissing,
 
+  /// The account is on this device, which is signed out of it: its keys
+  /// were removed here.
+  accountSignedOut,
+
   /// The library's account is of a kind that cannot hold a library; the
   /// detail is the kind's name.
   accountUnsupported,
@@ -122,6 +126,12 @@ class LibrarySyncError {
 class LibraryAccountMissingError extends StateError {
   LibraryAccountMissingError(String libraryName)
     : super('The account for $libraryName is no longer on this device');
+}
+
+/// The library's account is on this device, which is signed out of it.
+class LibraryAccountSignedOutError extends StateError {
+  LibraryAccountSignedOutError(String accountId)
+    : super('This device is signed out of account $accountId');
 }
 
 /// The library's account is of a kind that cannot hold a library.

@@ -5934,6 +5934,7 @@
   "sharedLibrary_library_errorBanner": "Ultima sincronizzazione non riuscita: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_syncError_accountMissing": "L'account di questa libreria non è più su questo dispositivo. Usa Cambia connessione per sceglierlo di nuovo.",
+  "sharedLibrary_syncError_accountSignedOut": "Questo dispositivo è disconnesso dall'account di questa libreria. Accedi di nuovo in Account collegati oppure usa Cambia connessione.",
   "sharedLibrary_syncError_notALibrary": "Nessuna libreria in questa posizione.",
   "sharedLibrary_syncError_failed": "Si è verificato un problema.",
   "sharedLibrary_library_addMySites": "Aggiungi i miei siti",

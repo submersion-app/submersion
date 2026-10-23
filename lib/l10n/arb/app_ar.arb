@@ -6034,6 +6034,7 @@
   "sharedLibrary_library_errorBanner": "فشلت آخر مزامنة: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_syncError_accountMissing": "لم يعد حساب هذه المكتبة على هذا الجهاز. استخدم تغيير الاتصال لاختياره مرة أخرى.",
+  "sharedLibrary_syncError_accountSignedOut": "تم تسجيل خروج هذا الجهاز من حساب هذه المكتبة. سجّل الدخول إليه مرة أخرى من الحسابات المتصلة، أو استخدم تغيير الاتصال.",
   "sharedLibrary_syncError_notALibrary": "لا توجد مكتبة في هذا الموقع.",
   "sharedLibrary_syncError_failed": "حدث خطأ ما.",
   "sharedLibrary_library_addMySites": "إضافة مواقعي",

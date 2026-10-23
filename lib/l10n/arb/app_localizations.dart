@@ -34457,6 +34457,12 @@ abstract class AppLocalizations {
   /// **'The account for this library is no longer on this device. Use Change connection to choose it again.'**
   String get sharedLibrary_syncError_accountMissing;
 
+  /// No description provided for @sharedLibrary_syncError_accountSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'This device is signed out of the account for this library. Sign in to it again in Connected accounts, or use Change connection.'**
+  String get sharedLibrary_syncError_accountSignedOut;
+
   /// No description provided for @sharedLibrary_syncError_notALibrary.
   ///
   /// In en, this message translates to:

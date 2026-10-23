@@ -21545,6 +21545,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'L\'account di questa libreria non è più su questo dispositivo. Usa Cambia connessione per sceglierlo di nuovo.';
 
   @override
+  String get sharedLibrary_syncError_accountSignedOut =>
+      'Questo dispositivo è disconnesso dall\'account di questa libreria. Accedi di nuovo in Account collegati oppure usa Cambia connessione.';
+
+  @override
   String get sharedLibrary_syncError_notALibrary =>
       'Nessuna libreria in questa posizione.';
 

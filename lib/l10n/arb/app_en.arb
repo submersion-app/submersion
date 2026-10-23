@@ -13333,6 +13333,7 @@
   "sharedLibrary_library_errorBanner": "Last sync failed: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_syncError_accountMissing": "The account for this library is no longer on this device. Use Change connection to choose it again.",
+  "sharedLibrary_syncError_accountSignedOut": "This device is signed out of the account for this library. Sign in to it again in Connected accounts, or use Change connection.",
   "sharedLibrary_syncError_notALibrary": "No library at this location.",
   "sharedLibrary_syncError_failed": "Something went wrong.",
   "sharedLibrary_library_addMySites": "Add my sites",

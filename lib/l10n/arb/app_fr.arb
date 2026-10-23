@@ -5934,6 +5934,7 @@
   "sharedLibrary_library_errorBanner": "La dernière synchronisation a échoué : {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_syncError_accountMissing": "Le compte de cette bibliothèque n'est plus sur cet appareil. Utilisez Modifier la connexion pour le choisir à nouveau.",
+  "sharedLibrary_syncError_accountSignedOut": "Cet appareil est déconnecté du compte de cette bibliothèque. Reconnectez-vous dans Comptes connectés, ou utilisez Modifier la connexion.",
   "sharedLibrary_syncError_notALibrary": "Aucune bibliothèque à cet emplacement.",
   "sharedLibrary_syncError_failed": "Une erreur s'est produite.",
   "sharedLibrary_library_addMySites": "Ajouter mes sites",

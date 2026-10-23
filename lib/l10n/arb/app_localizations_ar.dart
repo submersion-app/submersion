@@ -21828,6 +21828,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يعد حساب هذه المكتبة على هذا الجهاز. استخدم تغيير الاتصال لاختياره مرة أخرى.';
 
   @override
+  String get sharedLibrary_syncError_accountSignedOut =>
+      'تم تسجيل خروج هذا الجهاز من حساب هذه المكتبة. سجّل الدخول إليه مرة أخرى من الحسابات المتصلة، أو استخدم تغيير الاتصال.';
+
+  @override
   String get sharedLibrary_syncError_notALibrary =>
       'لا توجد مكتبة في هذا الموقع.';
 

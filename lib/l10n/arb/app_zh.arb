@@ -6186,6 +6186,7 @@
   "sharedLibrary_library_errorBanner": "上次同步失败：{error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
   "sharedLibrary_syncError_accountMissing": "此库的账户已不在此设备上。请使用“更改连接”重新选择。",
+  "sharedLibrary_syncError_accountSignedOut": "此设备已退出此库的账户。请在“已连接账户”中重新登录，或使用“更改连接”。",
   "sharedLibrary_syncError_notALibrary": "此位置没有库。",
   "sharedLibrary_syncError_failed": "出现问题。",
   "sharedLibrary_library_addMySites": "添加我的潜点",

@@ -155,6 +155,9 @@ class SharedLibraryService {
             LibraryAccountMissingError() => const LibrarySyncError(
               LibrarySyncErrorCode.accountMissing,
             ),
+            LibraryAccountSignedOutError() => const LibrarySyncError(
+              LibrarySyncErrorCode.accountSignedOut,
+            ),
             LibraryAccountUnsupportedError(:final kindName) => LibrarySyncError(
               LibrarySyncErrorCode.accountUnsupported,
               detail: kindName,
