@@ -432,6 +432,7 @@ class DiverSettingsRepository {
                 plannerAirBreakBreakSeconds: Value(
                   s.plannerAirBreakBreakSeconds,
                 ),
+                plannerReservePressure: Value(s.plannerReservePressure),
                 showProfilePanelInTableView: Value(
                   s.showProfilePanelInTableView,
                 ),
@@ -766,6 +767,7 @@ class DiverSettingsRepository {
       plannerTurnPressureFraction: Value(settings.plannerTurnPressureFraction),
       plannerAirBreakO2Seconds: Value(settings.plannerAirBreakO2Seconds),
       plannerAirBreakBreakSeconds: Value(settings.plannerAirBreakBreakSeconds),
+      plannerReservePressure: Value(settings.plannerReservePressure),
       showProfilePanelInTableView: Value(settings.showProfilePanelInTableView),
       showDetailsPaneDives: Value(settings.showDetailsPaneDives),
       showDetailsPaneSites: Value(settings.showDetailsPaneSites),
@@ -1022,6 +1024,7 @@ class DiverSettingsRepository {
       plannerTurnPressureFraction: row.plannerTurnPressureFraction,
       plannerAirBreakO2Seconds: row.plannerAirBreakO2Seconds,
       plannerAirBreakBreakSeconds: row.plannerAirBreakBreakSeconds,
+      plannerReservePressure: row.plannerReservePressure,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
       showDetailsPaneDives: row.showDetailsPaneDives,
       showDetailsPaneSites: row.showDetailsPaneSites,

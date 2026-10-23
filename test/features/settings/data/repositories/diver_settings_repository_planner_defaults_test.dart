@@ -64,6 +64,7 @@ void main() {
           plannerDeviationTimeMinutes: 7,
           plannerBatteryReserveFraction: 0.4,
           plannerWalkSpeedMps: 1.0,
+          plannerReservePressure: 60.0,
         ),
       );
       final loaded = await repository.getSettingsForDiver('d1');
@@ -83,6 +84,7 @@ void main() {
       expect(loaded.plannerDeviationTimeMinutes, 7);
       expect(loaded.plannerBatteryReserveFraction, 0.4);
       expect(loaded.plannerWalkSpeedMps, 1.0);
+      expect(loaded.plannerReservePressure, 60.0);
     });
 
     test('sacDeco and sacBottom persist as independent columns', () async {
