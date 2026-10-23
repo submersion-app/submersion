@@ -12551,7 +12551,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_entryMethod_backRoll => 'Achterwaartse rol';
 
   @override
-  String get enum_entryMethod_boat => 'Instap vanaf boot';
+  String get enum_entryMethod_boat => 'Boot';
 
   @override
   String get enum_entryMethod_frontRoll => 'Voorwaartse rol';
@@ -12575,7 +12575,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => 'Zittende instap';
 
   @override
-  String get enum_entryMethod_shore => 'Instap vanaf kant';
+  String get enum_entryMethod_shore => 'Kant';
 
   @override
   String get enum_equipmentStatus_active => 'Actief';

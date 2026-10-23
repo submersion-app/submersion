@@ -116,7 +116,7 @@ void main() {
     await expandConditions(tester);
 
     // Entry row value + mirrored exit row value.
-    expect(find.text('Boat Entry'), findsNWidgets(2));
+    expect(find.text('Boat'), findsNWidgets(2));
   });
 
   testWidgets('a site with no methods leaves both rows unset', (tester) async {

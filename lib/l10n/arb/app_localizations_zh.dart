@@ -12046,7 +12046,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_entryMethod_backRoll => '背滚式入水';
 
   @override
-  String get enum_entryMethod_boat => '船只入水';
+  String get enum_entryMethod_boat => '船只';
 
   @override
   String get enum_entryMethod_frontRoll => '前滚式入水';
@@ -12070,7 +12070,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => '坐式入水';
 
   @override
-  String get enum_entryMethod_shore => '岸边入水';
+  String get enum_entryMethod_shore => '岸边';
 
   @override
   String get enum_equipmentStatus_active => '活跃';

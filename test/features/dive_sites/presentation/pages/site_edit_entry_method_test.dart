@@ -95,7 +95,7 @@ void main() {
     );
     await expandAccess(tester);
 
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
     expect(find.text('Ladder'), findsOneWidget);
   });
 
@@ -174,6 +174,6 @@ void main() {
 
     // Collapsed section: the summary line carries the value, which also
     // proves the section is not treated as empty.
-    expect(find.text('Shore Entry'), findsOneWidget);
+    expect(find.text('Shore'), findsOneWidget);
   });
 }

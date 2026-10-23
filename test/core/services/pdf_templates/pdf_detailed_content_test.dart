@@ -175,7 +175,8 @@ void main() {
     test('renders visibility, water type and entry method', () {
       expect(text, contains('15m'));
       expect(text, contains(WaterType.salt.displayName));
-      expect(text, contains(EntryMethod.boat.displayName));
+      // The PDF prints the app label, which drops "Entry" (#2054).
+      expect(text, contains('Entry Boat'));
     });
 
     test('renders weight and the dive computer', () {
@@ -212,7 +213,7 @@ void main() {
         );
         final text = pdfVisibleText(await render(fallbackDive));
         expect(text, contains(WaterType.fresh.displayName));
-        expect(text, contains(EntryMethod.shore.displayName));
+        expect(text, contains('Entry Shore'));
       },
     );
   });

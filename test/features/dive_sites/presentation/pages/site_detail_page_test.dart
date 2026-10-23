@@ -827,8 +827,8 @@ void main() {
 
         final parkingY = topOf('Free parking by the church');
         final accessNotesY = topOf('Walk in from the church parking lot');
-        final entryY = topOf('Shore Entry');
-        final exitY = topOf('Boat Entry');
+        final entryY = topOf('Shore');
+        final exitY = topOf('Boat');
         final mooringY = topOf('M-12');
 
         expect(parkingY, lessThan(accessNotesY));

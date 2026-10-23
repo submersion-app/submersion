@@ -20326,7 +20326,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_entryMethod_boat.
   ///
   /// In en, this message translates to:
-  /// **'Boat Entry'**
+  /// **'Boat'**
   String get enum_entryMethod_boat;
 
   /// No description provided for @enum_entryMethod_frontRoll.
@@ -20374,7 +20374,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_entryMethod_shore.
   ///
   /// In en, this message translates to:
-  /// **'Shore Entry'**
+  /// **'Shore'**
   String get enum_entryMethod_shore;
 
   /// No description provided for @enum_equipmentStatus_active.

@@ -54,7 +54,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
   });
 
   testWidgets('the access card shows exit method when it differs', (
@@ -85,7 +85,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
   });
 
   testWidgets('a site with no access data shows no entry method', (

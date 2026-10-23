@@ -91,7 +91,7 @@ void main() {
     );
 
     // site1, the first non-empty candidate, wins initially.
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
 
     // Only entry method differs, so exactly one cycle button sits in the
     // Access & safety section.
@@ -101,8 +101,8 @@ void main() {
     await tester.tap(cycleButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('Shore Entry'), findsOneWidget);
-    expect(find.text('Boat Entry'), findsNothing);
+    expect(find.text('Shore'), findsOneWidget);
+    expect(find.text('Boat'), findsNothing);
   });
 
   testWidgets('merge mode cycles exit method independently', (tester) async {
