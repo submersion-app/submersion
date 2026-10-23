@@ -9,6 +9,7 @@ name: macOS Runner Tests
 
 on:
   push:
+    branches: [main]
     paths:
       - 'macos/Runner/**'
       - 'macos/RunnerTests/**'
@@ -17,6 +18,7 @@ on:
       - '.github/workflows/macos-runner-tests.yml'
       - '.github/actions/setup-flutter/**'
   pull_request:
+    branches: [main]
     paths:
       - 'macos/Runner/**'
       - 'macos/RunnerTests/**'
