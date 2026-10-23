@@ -200,6 +200,21 @@ void main() {
       expect(result.exit, EntryMethod.ladder);
     });
 
+    test('several entries and one exit: entry kept, exit taken', () {
+      final result = entryExitAfterSiteAssign(
+        currentEntry: null,
+        currentExit: null,
+        currentLinked: true,
+        site: multi(
+          entries: const [EntryMethod.shore, EntryMethod.boat],
+          exits: const [EntryMethod.ladder],
+        ),
+      );
+      expect(result.entry, isNull);
+      expect(result.exit, EntryMethod.ladder);
+      expect(result.linked, isFalse);
+    });
+
     test('one entry and one exit still snap as before', () {
       final result = entryExitAfterSiteAssign(
         currentEntry: null,

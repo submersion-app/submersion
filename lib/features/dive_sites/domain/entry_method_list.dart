@@ -18,13 +18,14 @@ String? encodeEntryMethods(Iterable<EntryMethod> methods) {
   return canonical.isEmpty ? null : canonical.map((m) => m.name).join(',');
 }
 
+final _byName = EntryMethod.values.asNameMap();
+
 /// The methods a stored column value names. Names this build does not know
 /// (written by a newer peer) are dropped rather than failing the read.
 List<EntryMethod> decodeEntryMethods(String? stored) {
   if (stored == null || stored.isEmpty) return const [];
-  final byName = EntryMethod.values.asNameMap();
   return canonicalEntryMethods([
-    for (final name in stored.split(',')) ?byName[name.trim()],
+    for (final name in stored.split(',')) ?_byName[name.trim()],
   ]);
 }
 
