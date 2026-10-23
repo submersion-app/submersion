@@ -378,6 +378,7 @@ void main() {
     expect(byId['afternoon']!.timeOfDay, TimeOfDayBucket.afternoon);
     expect(byId['no-site']!.timeOfDay, TimeOfDayBucket.night);
   });
+
   test(
     'entry method falls back only to a single-method site (#2054)',
     () async {

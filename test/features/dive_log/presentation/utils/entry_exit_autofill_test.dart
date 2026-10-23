@@ -142,6 +142,7 @@ void main() {
       expect(result.linked, isTrue);
     });
   });
+
   group('entryExitAfterSiteAssign with several site methods (#2054)', () {
     DiveSite multi({
       List<EntryMethod> entries = const [],

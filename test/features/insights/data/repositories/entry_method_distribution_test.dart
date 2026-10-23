@@ -199,6 +199,7 @@ void main() {
       expect(pairs, isEmpty);
     });
   });
+
   test('a site with several entry methods gives no fallback (#2054)', () async {
     // The site says shore or boat; which one this dive used is unknown, so
     // it counts as not recorded rather than as a combined bucket.
