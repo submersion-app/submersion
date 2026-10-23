@@ -142,4 +142,75 @@ void main() {
       expect(result.linked, isTrue);
     });
   });
+  group('entryExitAfterSiteAssign with several site methods (#2054)', () {
+    DiveSite multi({
+      List<EntryMethod> entries = const [],
+      List<EntryMethod> exits = const [],
+    }) =>
+        DiveSite(id: 'm', name: 'M', entryMethods: entries, exitMethods: exits);
+
+    test('several entry methods leave an empty dive empty', () {
+      final result = entryExitAfterSiteAssign(
+        currentEntry: null,
+        currentExit: null,
+        currentLinked: true,
+        site: multi(entries: const [EntryMethod.shore, EntryMethod.boat]),
+      );
+      expect(result.entry, isNull);
+      expect(result.exit, isNull);
+    });
+
+    test("several entry methods keep the dive's own entry", () {
+      final result = entryExitAfterSiteAssign(
+        currentEntry: EntryMethod.ladder,
+        currentExit: null,
+        currentLinked: true,
+        site: multi(entries: const [EntryMethod.shore, EntryMethod.boat]),
+      );
+      expect(result.entry, EntryMethod.ladder);
+      expect(result.exit, isNull);
+    });
+
+    test('one entry and several exits: a linked exit does not follow', () {
+      final result = entryExitAfterSiteAssign(
+        currentEntry: null,
+        currentExit: null,
+        currentLinked: true,
+        site: multi(
+          entries: const [EntryMethod.boat],
+          exits: const [EntryMethod.shore, EntryMethod.ladder],
+        ),
+      );
+      expect(result.entry, EntryMethod.boat);
+      expect(result.exit, isNull);
+    });
+
+    test('one entry and several exits keep a manual exit', () {
+      final result = entryExitAfterSiteAssign(
+        currentEntry: null,
+        currentExit: EntryMethod.ladder,
+        currentLinked: false,
+        site: multi(
+          entries: const [EntryMethod.boat],
+          exits: const [EntryMethod.shore, EntryMethod.ladder],
+        ),
+      );
+      expect(result.entry, EntryMethod.boat);
+      expect(result.exit, EntryMethod.ladder);
+    });
+
+    test('one entry and one exit still snap as before', () {
+      final result = entryExitAfterSiteAssign(
+        currentEntry: null,
+        currentExit: null,
+        currentLinked: true,
+        site: multi(
+          entries: const [EntryMethod.boat],
+          exits: const [EntryMethod.ladder],
+        ),
+      );
+      expect(result.entry, EntryMethod.boat);
+      expect(result.exit, EntryMethod.ladder);
+    });
+  });
 }
