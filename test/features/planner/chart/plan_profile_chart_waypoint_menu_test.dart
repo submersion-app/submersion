@@ -121,6 +121,33 @@ void main() {
     );
   });
 
+  testWidgets('picking a gas switches the leg after the waypoint', (
+    tester,
+  ) async {
+    await pumpPlan(tester, decoTank: true);
+    final before = ordered();
+    await longPress(tester, handleOf(tester, before.first.id));
+    await tester.tap(find.text('O2').last);
+    await tester.pumpAndSettle();
+
+    final after = ordered();
+    expect(after[1].tankId, 'o2');
+    expect(after[1].gasMix, const GasMix(o2: 100));
+    expect(after.first, before.first);
+  });
+
+  testWidgets('a gas picked at the last waypoint goes on its own leg', (
+    tester,
+  ) async {
+    await pumpPlan(tester, decoTank: true);
+    final last = ordered().last;
+    await longPress(tester, handleOf(tester, last.id));
+    await tester.tap(find.text('O2').last);
+    await tester.pumpAndSettle();
+
+    expect(ordered().last.tankId, 'o2');
+  });
+
   testWidgets('Remove drops the waypoint without moving the others', (
     tester,
   ) async {
