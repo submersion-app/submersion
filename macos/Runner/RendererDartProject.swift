@@ -35,8 +35,9 @@ enum RendererPolicy {
   }
 
   /// Asks the hardware, not the running slice: an x86_64 build translated by
-  /// Rosetta still draws on an Apple GPU, so it keeps Impeller. The key does
-  /// not exist on Intel Macs, so the lookup fails there.
+  /// Rosetta still draws on an Apple GPU, so it keeps Impeller. Only a
+  /// successful lookup that reads 1 counts; on an Intel Mac the key is
+  /// missing or reads 0, and both mean Intel.
   static func isAppleSiliconHardware() -> Bool {
     var value: Int32 = 0
     var size = MemoryLayout<Int32>.size
