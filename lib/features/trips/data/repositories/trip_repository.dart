@@ -37,13 +37,15 @@ class TripRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
 
-  /// Emits whenever the `trips` table, or a profile's hidden trips, change,
-  /// so list providers refresh after a sync or any other write (a hide
-  /// changes which trips a profile sees, issue #2594).
+  /// Emits whenever the `trips` table, or a profile's hidden or shared
+  /// trips, change, so list providers refresh after a sync or any other
+  /// write (a hide or a share changes which trips a profile sees, issues
+  /// #2594, #2151).
   Stream<void> watchTripsChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.trips),
       TableUpdateQuery.onTable(_db.tripHides),
+      TableUpdateQuery.onTable(_db.tripShares),
     ]),
   );
 

@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
@@ -284,5 +286,38 @@ void main() {
       () => repository.deleteShares(trip, ['bonaire'], diverId: 'son'),
     );
     expect(await tripShareDivers('bonaire'), {'daughter'});
+  });
+
+  test('the trip and site lists refresh on a share write', () async {
+    final trips = expectLater(
+      TripRepository().watchTripsChanges(),
+      emitsThrough(anything),
+    );
+    final sites = expectLater(
+      SiteRepository().watchSitesChanges(),
+      emitsThrough(anything),
+    );
+    await db
+        .into(db.tripShares)
+        .insert(
+          TripSharesCompanion.insert(
+            id: 'x1',
+            tripId: 'bonaire',
+            diverId: 'son',
+            createdAt: 1,
+          ),
+        );
+    await db
+        .into(db.siteShares)
+        .insert(
+          SiteSharesCompanion.insert(
+            id: 'x2',
+            siteId: 'pier',
+            diverId: 'son',
+            createdAt: 1,
+          ),
+        );
+    await trips;
+    await sites;
   });
 }

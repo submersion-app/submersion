@@ -110,13 +110,15 @@ class SiteRepository {
     }
   }
 
-  /// Emits whenever the `dive_sites` table, or a profile's hidden sites,
-  /// change, so list providers refresh after a sync or any other write (a
-  /// hide changes which sites a profile sees, issue #2594).
+  /// Emits whenever the `dive_sites` table, or a profile's hidden or shared
+  /// sites, change, so list providers refresh after a sync or any other
+  /// write (a hide or a share changes which sites a profile sees, issues
+  /// #2594, #2151).
   Stream<void> watchSitesChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.diveSites),
       TableUpdateQuery.onTable(_db.siteHides),
+      TableUpdateQuery.onTable(_db.siteShares),
     ]),
   );
 

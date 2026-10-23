@@ -472,7 +472,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final split = splitForBulkDelete(
       selectedSites,
       ownerOf: (s) => s.diverId,
-      isSharedOf: (s) => s.isShared,
+      // A listed item another profile owns reaches this one only by being
+      // shared with it, with everyone or by a share row (issue #2151).
+      isSharedOf: (_) => true,
       isLibraryOf: (s) => s.isLibrarySite,
       activeDiverId: sharing.activeDiverId,
     );

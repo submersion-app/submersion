@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
@@ -47,6 +49,21 @@ void main() {
     expect(await repository.hide(SharedItemKind.trip, 'private', 'b'), isFalse);
     expect(await repository.hide(SharedItemKind.trip, 'nope', 'b'), isFalse);
     expect(await db.select(db.tripHides).get(), isEmpty);
+  });
+
+  test('a profile hides a trip shared with it specifically', () async {
+    await seedDivers(db, ['c']);
+    await ItemSharesRepository().setSharing(
+      SharedItemKind.trip,
+      'private',
+      const ItemSharing(profileIds: {'b'}),
+      actingDiverId: 'a',
+    );
+    expect(await repository.hide(SharedItemKind.trip, 'private', 'b'), isTrue);
+    expect(await repository.hide(SharedItemKind.trip, 'private', 'c'), isFalse);
+    expect((await repository.hiddenItems('b')).map((i) => (i.id, i.isShared)), [
+      ('private', true),
+    ]);
   });
 
   test('hideAll hides a batch in one go and counts what is hidden', () async {

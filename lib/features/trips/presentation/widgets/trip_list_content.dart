@@ -379,7 +379,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     final split = splitForBulkDelete(
       selected,
       ownerOf: (t) => t.diverId,
-      isSharedOf: (t) => t.isShared,
+      // A listed item another profile owns reaches this one only by being
+      // shared with it, with everyone or by a share row (issue #2151).
+      isSharedOf: (_) => true,
       activeDiverId: sharing.activeDiverId,
     );
     final deleteCount = split.destroy.length;
