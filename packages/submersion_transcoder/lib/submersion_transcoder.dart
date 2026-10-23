@@ -1,4 +1,6 @@
 export 'src/channel_transcode_engine.dart';
+export 'src/color_math.dart';
+export 'src/color_timeline.dart';
 export 'src/engine_factory.dart';
 export 'src/linux_ffmpeg_engine.dart';
 export 'src/process_runner.dart';
