@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/domain/misplaced_logbook.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -50,6 +51,16 @@ class _FakeMergeRepository implements DiverMergeRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _FakeDiverRepository implements DiverRepository {
+  Map<String, int> counts = {'main': 212};
+
+  @override
+  Future<Map<String, int>> getDiveCountsByDiver() async => counts;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Diver _diver(String id, String name) => Diver(
   id: id,
   name: name,
@@ -64,6 +75,7 @@ void main() {
   late SharedPreferences prefs;
   late MockCurrentDiverIdNotifier currentDiver;
   late _FakeMergeRepository mergeRepo;
+  late _FakeDiverRepository diverRepo;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -71,6 +83,7 @@ void main() {
     currentDiver = MockCurrentDiverIdNotifier();
     await currentDiver.setCurrentDiver(_active.id);
     mergeRepo = _FakeMergeRepository();
+    diverRepo = _FakeDiverRepository();
   });
 
   Future<void> pumpBanner(
@@ -93,6 +106,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           currentDiverIdProvider.overrideWith((ref) => currentDiver),
           diverMergeRepositoryProvider.overrideWithValue(mergeRepo),
+          diverRepositoryProvider.overrideWithValue(diverRepo),
           misplacedLogbookProvider.overrideWith((ref) async => value),
         ],
         child: const MisplacedLogbookBanner(),
@@ -277,5 +291,17 @@ void main() {
 
     expect(mergeRepo.merges, hasLength(1));
     expect(button('Merge').onPressed, isNotNull);
+  });
+
+  testWidgets('Merge does not run when a second profile gained dives while '
+      'the dialog was open', (tester) async {
+    await pumpBanner(tester);
+    diverRepo.counts = {'main': 212, 'spouse': 30};
+
+    await confirmMerge(tester);
+    await tester.pumpAndSettle();
+
+    expect(mergeRepo.merges, isEmpty);
+    expect(currentDiver.state, _active.id);
   });
 }

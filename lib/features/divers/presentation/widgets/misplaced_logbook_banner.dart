@@ -28,7 +28,9 @@ class _MisplacedLogbookBannerState
 
   @override
   Widget build(BuildContext context) {
-    final found = ref.watch(misplacedLogbookProvider).asData?.value;
+    // .value keeps the last answer while a dive-count tick reloads the
+    // provider, so the banner does not flicker during a sync or import.
+    final found = ref.watch(misplacedLogbookProvider).value;
     if (found == null) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
@@ -152,8 +154,19 @@ class _MisplacedLogbookBannerState
     // rebuilds the Dives list and can unmount this banner.
     final repo = ref.read(diverMergeRepositoryProvider);
     final currentDiver = ref.read(currentDiverIdProvider.notifier);
+    final diverRepo = ref.read(diverRepositoryProvider);
     final DiverMergeSnapshot snapshot;
     try {
+      // [found] was computed before the dialog opened. A sync meanwhile can
+      // bring in a second profile with dives, which takes Merge off the table
+      // (it may be someone else's logbook), so check the live counts. The
+      // banner then rebuilds without Merge.
+      final counts = await diverRepo.getDiveCountsByDiver();
+      final holders = {
+        for (final e in counts.entries)
+          if (e.key != found.active.id && e.value > 0) e.key,
+      };
+      if (holders.length != 1 || holders.single != found.target.id) return;
       snapshot = await repo.mergeDivers(
         keeperId: found.target.id,
         duplicateId: found.active.id,
