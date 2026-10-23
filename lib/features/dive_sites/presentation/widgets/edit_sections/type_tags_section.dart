@@ -4,8 +4,7 @@ import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
@@ -101,35 +100,12 @@ class TypeTagsSection extends StatelessWidget {
             ),
           ],
         ),
-        // Browse opens the same tag picker the dive edit page does, listing
-        // the diver's site tags most used first.
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            FormOverline(
-              label: l10n.diveSites_edit_typeTags_tagsLabel,
-              actions: [
-                FormOverlineAction(
-                  label: l10n.tags_action_browse,
-                  icon: Icons.label_outline,
-                  onPressed: () => showTagPickerSheet(
-                    context,
-                    selected: selectedTags,
-                    onPicked: onTagsChanged,
-                    scope: TagScope.sites,
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-              child: TagInputWidget(
-                selectedTags: selectedTags,
-                onTagsChanged: onTagsChanged,
-                scope: TagScope.sites,
-              ),
-            ),
-          ],
+        // The same tags block the dive edit page shows, limited to site tags.
+        TagFormBlock(
+          label: l10n.diveSites_edit_typeTags_tagsLabel,
+          selectedTags: selectedTags,
+          onTagsChanged: onTagsChanged,
+          scope: TagScope.sites,
         ),
       ],
     );
