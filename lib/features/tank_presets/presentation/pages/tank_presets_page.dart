@@ -103,6 +103,14 @@ class TankPresetsPage extends ConsumerWidget {
                     units,
                     canEdit: true,
                     isDefault: preset.id == defaultCustomId,
+                    // While another custom preset of the default's name
+                    // remains, the name still resolves to it.
+                    deletesDefault:
+                        preset.name == settings.defaultTankPreset &&
+                        customPresets
+                                .where((p) => p.name == preset.name)
+                                .length ==
+                            1,
                   ),
                 ),
                 const Divider(),
@@ -171,6 +179,7 @@ class TankPresetsPage extends ConsumerWidget {
     bool isHidden = false,
     bool shadowed = false,
     bool canHide = true,
+    bool deletesDefault = false,
   }) {
     final volumeStr = units.formatTankVolume(
       preset.volumeLiters,
@@ -262,7 +271,12 @@ class TankPresetsPage extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmDelete(context, ref, preset),
+              onPressed: () => _confirmDelete(
+                context,
+                ref,
+                preset,
+                deletesDefault: deletesDefault,
+              ),
               tooltip: context.l10n.tankPresets_deletePreset,
             ),
           ],
@@ -274,17 +288,15 @@ class TankPresetsPage extends ConsumerWidget {
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
-    TankPresetEntity preset,
-  ) async {
-    final settings = ref.read(settingsProvider);
-    final isDefault = settings.defaultTankPreset == preset.name;
-
+    TankPresetEntity preset, {
+    required bool deletesDefault,
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.tankPresets_deleteTitle),
         content: Text(
-          isDefault
+          deletesDefault
               ? context.l10n.tankPresets_deleteDefaultMessage(
                   preset.displayName,
                 )
@@ -311,7 +323,7 @@ class TankPresetsPage extends ConsumerWidget {
         final notifier = ref.read(tankPresetListNotifierProvider.notifier);
         await notifier.deletePreset(preset.id);
         if (context.mounted) {
-          if (isDefault) {
+          if (deletesDefault) {
             ref.read(settingsProvider.notifier).setDefaultTankPreset('al80');
           }
           ScaffoldMessenger.of(context).showSnackBar(
