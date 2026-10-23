@@ -44,8 +44,12 @@ extension InsightsRepositoryFocus on InsightsRepository {
           NULLIF(d.current_strength, '') AS current_strength,
           COALESCE(NULLIF(d.water_type, ''), NULLIF(s.water_type, ''))
             AS water_type,
-          COALESCE(NULLIF(d.entry_method, ''), NULLIF(s.entry_method, ''))
-            AS entry_method,
+          COALESCE(
+            NULLIF(d.entry_method, ''),
+            -- Only a single-method site is a fallback (#2054).
+            CASE WHEN instr(s.entry_method, ',') = 0
+              THEN NULLIF(s.entry_method, '') END
+          ) AS entry_method,
           d.site_id,
           s.name AS site_name,
           (SELECT GROUP_CONCAT(ddt.dive_type_id, char(31))

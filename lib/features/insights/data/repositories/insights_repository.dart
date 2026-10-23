@@ -1419,7 +1419,10 @@ class InsightsRepository {
         FROM (
           SELECT COALESCE(
             NULLIF(dives.entry_method, ''),
-            NULLIF(dive_sites.entry_method, '')
+            -- A site listing several methods (stored comma-joined, #2054)
+            -- says nothing about which one this dive used.
+            CASE WHEN instr(dive_sites.entry_method, ',') = 0
+              THEN NULLIF(dive_sites.entry_method, '') END
           ) AS entry_method
           FROM dives
           LEFT JOIN dive_sites ON dive_sites.id = dives.site_id
