@@ -53,12 +53,17 @@ void main() {
     FakeItemShares shares, {
     List<String> ids = const ['t1', 't2'],
     String? body,
+    bool profilesUnreadable = false,
   }) async {
     outcome = null;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          allDiversProvider.overrideWith((_) async => divers),
+          allDiversProvider.overrideWith(
+            (_) async => profilesUnreadable
+                ? throw StateError('database unavailable')
+                : divers,
+          ),
           itemSharesRepositoryProvider.overrideWithValue(shares),
         ],
         child: MaterialApp(
@@ -70,7 +75,8 @@ void main() {
             // an unwatched provider's future does not settle.
             body: Consumer(
               builder: (context, ref, _) =>
-                  ref.watch(allDiversProvider).value == null
+                  !ref.watch(allDiversProvider).hasValue &&
+                      !ref.watch(allDiversProvider).hasError
                   ? const SizedBox.shrink()
                   : TextButton(
                       onPressed: () async =>
@@ -148,6 +154,20 @@ void main() {
   testWidgets('shows the body it is given', (tester) async {
     await open(tester, FakeItemShares(), body: 'Choose who sees them all.');
     expect(find.text('Choose who sees them all.'), findsOneWidget);
+  });
+
+  testWidgets('a failed profile read says to try again and fails the action', (
+    tester,
+  ) async {
+    final shares = FakeItemShares();
+    await open(tester, shares, profilesUnreadable: true);
+    await _settle(tester);
+    expect(outcome, BulkActionOutcome.failed);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(shares.addCalls, isEmpty);
   });
 }
 

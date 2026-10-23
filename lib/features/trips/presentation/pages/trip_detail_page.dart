@@ -22,7 +22,6 @@ import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
-import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
@@ -422,13 +421,18 @@ class _TripDetailContent extends ConsumerWidget {
   ) async {
     final divers = await ref.read(allDiversProvider.future);
     final diverCount = divers.length;
+    if (!context.mounted) return false;
     // Shared with everyone or with chosen profiles (issue #2151).
-    final isSharedDelete =
-        diverCount >= 2 &&
-        (await ref
-                .read(itemSharesRepositoryProvider)
-                .sharingOf(SharedItemKind.trip, trip.id))
-            .isShared;
+    final shared = diverCount < 2
+        ? false
+        : await readSharedWithAnyone(
+            ref,
+            context,
+            SharedItemKind.trip,
+            trip.id,
+          );
+    if (shared == null) return false;
+    final isSharedDelete = shared;
     // The other profiles' dives that lose the trip (issue #2594).
     final others = isSharedDelete
         ? (await readDiveLinkCounts(ref, SharedItemKind.trip, trip.id)).others

@@ -1328,7 +1328,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ref,
                 SharedItemKind.site,
                 widget.siteId!,
-                isLibrarySite: _originalSite?.isLibrarySite ?? false,
+                libraryId: _originalSite?.sharedLibraryId,
               ))
             IconButton(
               icon: const Icon(Icons.visibility_off_outlined),
@@ -2264,8 +2264,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     // A shared site's delete warns that it goes for every profile, and how
     // many of their dives lose it, as the detail page does (issue #2594).
     final divers = await ref.read(allDiversProvider.future);
-    // Shared with everyone or with chosen profiles (issue #2151).
-    final isSharedDelete = divers.length >= 2 && _originalSharing.isShared;
+    if (!mounted) return;
+    // Shared with everyone or with chosen profiles (issue #2151), read
+    // afresh: this page's own read may not have finished.
+    final shared = divers.length < 2
+        ? false
+        : await readSharedWithAnyone(
+            ref,
+            context,
+            SharedItemKind.site,
+            widget.siteId!,
+          );
+    if (shared == null) return;
+    final isSharedDelete = shared;
     final others = isSharedDelete
         ? (await readDiveLinkCounts(
             ref,

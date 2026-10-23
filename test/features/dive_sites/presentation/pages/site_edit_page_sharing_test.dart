@@ -62,6 +62,7 @@ void main() {
     GatedActiveProfile? activeProfile,
     bool profileUnreadable = false,
     ItemSharesRepository? shares,
+    String siteId = 'pier',
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -90,7 +91,7 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SiteEditPage(
-              siteId: 'pier',
+              siteId: siteId,
               embedded: true,
               onSaved: (id) {},
               onCancel: () {},
@@ -188,6 +189,32 @@ void main() {
       find.textContaining('1 dive in another profile will lose this site.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a shared site library site offers no Remove to a profile '
+      'outside the library (issue #2151)', (tester) async {
+    await seedSite(db, 'lib-site', name: 'Library Reef');
+    await db.customStatement(
+      "UPDATE dive_sites SET shared_library_id = 'L' WHERE id = 'lib-site'",
+    );
+    await pump(tester, active: 'd2', siteId: 'lib-site');
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsNothing,
+    );
+  });
+
+  testWidgets('a delete before the share rows load still warns about a site '
+      'shared by name (issue #2151)', (tester) async {
+    await db.customStatement(
+      "UPDATE dive_sites SET is_shared = 0 WHERE id = 'pier'",
+    );
+    // The page's own read is held open; the delete reads afresh.
+    final shares = _GatedShares(const ItemSharing(profileIds: {'d2'}));
+    await pump(tester, active: 'd1', shares: shares);
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.delete));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete shared site?'), findsOneWidget);
   });
 
   testWidgets('the sharing field stays locked until the share rows are read '
@@ -396,7 +423,7 @@ void main() {
 
 /// Holds the share-row read open until [gate] completes.
 class _GatedShares extends FakeItemShares {
-  _GatedShares() : super({'pier': ItemSharing.all});
+  _GatedShares([ItemSharing pier = ItemSharing.all]) : super({'pier': pier});
 
   final gate = Completer<void>();
 

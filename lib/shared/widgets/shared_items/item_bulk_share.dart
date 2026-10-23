@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/item_shares_pr
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 /// Shares several trips or sites at once (issue #2151): asks who to add,
 /// adds them to every one of [ids] that [activeDiverId] owns (an item
@@ -28,7 +29,14 @@ Future<BulkActionOutcome> shareItemsWithProfiles(
   }
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
-  final divers = await ref.read(allDiversProvider.future);
+  // Inside the error handling: a selection action must not throw.
+  final List<Diver> divers;
+  try {
+    divers = await ref.read(allDiversProvider.future);
+  } catch (_) {
+    messenger.showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+    return BulkActionOutcome.failed;
+  }
   if (!context.mounted) return BulkActionOutcome.cancelled;
   final chosen = await showShareTargetDialog(
     context,
