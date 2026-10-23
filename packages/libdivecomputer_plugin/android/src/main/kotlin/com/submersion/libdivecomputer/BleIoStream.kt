@@ -210,12 +210,14 @@ class BleIoStream(
                 // drains the semaphore before issuing.
                 lastWriteStatus = BluetoothGatt.GATT_FAILURE
                 writeSemaphore.release()
-                // A characteristic read in flight is woken the same way.
+                // A characteristic read in flight is woken the same way. A
+                // reply that already landed is kept: onReadComplete clears
+                // pendingReadUuid, and both callbacks run on this thread.
                 pendingReadUuid?.let {
                     pendingReadFailure = BleCharacteristicRead
                         .describeDisconnectedRead(it.toString(), status)
+                    pendingReadValue = null
                 }
-                pendingReadValue = null
                 readCharacteristicSemaphore.release()
                 NativeLogger.d(TAG, "BLE",
                     "onConnectionStateChange: disconnected status=$status " +
@@ -544,6 +546,8 @@ class BleIoStream(
             pendingReadFailure = BleCharacteristicRead
                 .describeEmptyRead(characteristic.uuid.toString())
         }
+        // Answered: a disconnect from here on must not discard this reply.
+        pendingReadUuid = null
         NativeLogger.d(TAG, "BLE",
             "onCharacteristicRead ${characteristic.uuid} status=$status " +
                 "bytes=${value?.size ?: 0}")
