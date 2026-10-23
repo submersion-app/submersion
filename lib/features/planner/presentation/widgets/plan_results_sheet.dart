@@ -717,7 +717,9 @@ class _GasRow extends StatelessWidget {
       if (usage.minGasBar != null)
         l10n.plannerCanvas_gas_minGas(units.formatPressure(usage.minGasBar))
       else if (minGap == PlanGasLimitGap.noStartPressure)
-        l10n.plannerCanvas_gas_minGasNoStartPressure,
+        l10n.plannerCanvas_gas_minGasNoStartPressure
+      else if (minGap == PlanGasLimitGap.noVolume)
+        l10n.plannerCanvas_gas_minGasNoVolume,
     ];
   }
 

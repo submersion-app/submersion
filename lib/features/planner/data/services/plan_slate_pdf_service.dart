@@ -35,6 +35,10 @@ class PlanSlateLabels {
   /// What a back gas's Turn or Min gas cell says when the cylinder has no
   /// start pressure to work from (#3603).
   final String noStartPressure;
+
+  /// What a back gas's Min gas cell says when the cylinder has no size
+  /// (#3603).
+  final String noVolume;
   final String base;
 
   /// A duration in whole minutes, such as "12 min" (#2252).
@@ -58,6 +62,7 @@ class PlanSlateLabels {
     required this.minGas,
     required this.noTurnRule,
     required this.noStartPressure,
+    required this.noVolume,
     required this.base,
     required this.minutes,
     required this.maxPrefix,
@@ -77,6 +82,7 @@ String planSlateGasLimitCell(
   return switch (gap) {
     PlanGasLimitGap.noTurnRule => labels.noTurnRule,
     PlanGasLimitGap.noStartPressure => labels.noStartPressure,
+    PlanGasLimitGap.noVolume => labels.noVolume,
     null => '--',
   };
 }

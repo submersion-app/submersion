@@ -12,12 +12,13 @@ const _ean50 = GasMix(o2: 50);
 
 domain.DivePlan _plan({
   double? backStartPressure = 200,
+  double backVolume = 11.1,
   domain.TurnPressureRule? turnRule = domain.TurnPressureRule.thirds,
   domain.PlanMode mode = domain.PlanMode.oc,
 }) {
   final back = DiveTank(
     id: 'back',
-    volume: 11.1,
+    volume: backVolume,
     startPressure: backStartPressure,
     gasMix: _air,
     role: TankRole.backGas,
@@ -120,6 +121,12 @@ void main() {
     );
     expect(back.turnPressureGap, PlanGasLimitGap.noTurnRule);
     expect(back.minGasGap, PlanGasLimitGap.noStartPressure);
+  });
+
+  test('a zero-litre back gas names the missing size for min gas', () {
+    final back = _usage(engine.compute(_plan(backVolume: 0)), 'back');
+    expect(back.minGasBar, isNull);
+    expect(back.minGasGap, PlanGasLimitGap.noVolume);
   });
 
   test('a deco cylinder reports no gap: the figures are back-gas only', () {

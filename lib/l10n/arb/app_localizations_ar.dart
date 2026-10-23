@@ -19937,6 +19937,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الحد الأدنى للغاز يتطلب ضغط بدء';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume =>
+      'الحد الأدنى للغاز يتطلب حجم الأسطوانة';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
       'العودة والحد الأدنى للغاز يتطلبان ضغط بدء';
 
@@ -20115,6 +20119,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_noStartPressure => 'لا ضغط بدء';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'لا حجم';
 
   @override
   String get plannerCanvas_table_depth => 'العمق';

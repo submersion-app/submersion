@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/cylinder_config_applier.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -64,12 +65,9 @@ class DiveTankConfigAdapter {
     final tank = _fromItem(item, order, id);
     if (tank.startPressure != null) return tank;
     return tank.copyWith(
-      startPressure: item.workingPressureBar ?? _planFillPressureBar,
+      startPressure: item.workingPressureBar ?? TankPresets.planFillPressureBar,
     );
   }
-
-  /// The start pressure the planner gives a cylinder nothing else fills.
-  static const double _planFillPressureBar = 200.0;
 
   /// Returns the merged tank list, the counts to report to the diver, and
   /// whether anything actually changed.

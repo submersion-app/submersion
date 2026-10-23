@@ -145,6 +145,9 @@ enum PlanGasLimitGap {
   /// The cylinder has no start pressure to measure from.
   noStartPressure,
 
+  /// The cylinder has no size, so a volume of gas cannot be read as bar.
+  noVolume,
+
   /// No turn-pressure rule applies: the plan's rule and the diver's default
   /// are both unset, or the rule is None.
   noTurnRule,

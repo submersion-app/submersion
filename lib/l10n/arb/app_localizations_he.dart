@@ -19236,6 +19236,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'גז מינימלי דורש לחץ התחלתי';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume => 'גז מינימלי דורש גודל מכל';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
       'נקודת הפנייה והגז המינימלי דורשים לחץ התחלתי';
 
@@ -19413,6 +19416,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_noStartPressure => 'אין לחץ התחלתי';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'אין גודל';
 
   @override
   String get plannerCanvas_table_depth => 'עומק';

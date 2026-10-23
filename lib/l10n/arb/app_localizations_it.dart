@@ -19668,6 +19668,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'il gas minimo richiede una pressione iniziale';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume =>
+      'il gas minimo richiede una dimensione della bombola';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
       'rientro e gas minimo richiedono una pressione iniziale';
 
@@ -19848,6 +19852,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get plannerCanvas_slate_noStartPressure =>
       'Nessuna pressione iniziale';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'Nessuna dimensione';
 
   @override
   String get plannerCanvas_table_depth => 'Profondità';

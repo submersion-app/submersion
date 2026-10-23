@@ -19601,6 +19601,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'a min. gázhoz kezdőnyomás kell';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume =>
+      'a min. gázhoz palackméret kell';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
       'a fordulóhoz és a min. gázhoz kezdőnyomás kell';
 
@@ -19779,6 +19783,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_noStartPressure => 'Nincs kezdőnyomás';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'Nincs méret';
 
   @override
   String get plannerCanvas_table_depth => 'Mélység';

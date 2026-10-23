@@ -57,6 +57,7 @@ final _labels = PlanSlateLabels(
   minGas: 'Min gas',
   noTurnRule: 'No rule',
   noStartPressure: 'No start pressure',
+  noVolume: 'No size',
   base: 'Base',
   minutes: (value) => '$value min',
   maxPrefix: 'max',
@@ -180,6 +181,7 @@ void main() {
         minGas: '',
         noTurnRule: '',
         noStartPressure: '',
+        noVolume: '',
         base: '',
         minutes: (value) => '$value Min.',
         maxPrefix: 'max.',
@@ -216,6 +218,13 @@ void main() {
           _labels,
         ),
         'No start pressure',
+      );
+    });
+
+    test('a missing cylinder size is named instead of a bare dash', () {
+      expect(
+        planSlateGasLimitCell(null, PlanGasLimitGap.noVolume, units, _labels),
+        'No size',
       );
     });
 

@@ -19543,6 +19543,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'min. gas vereist een startdruk';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume =>
+      'min. gas vereist een flesgrootte';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
       'keerpunt en min. gas vereisen een startdruk';
 
@@ -19721,6 +19725,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_noStartPressure => 'Geen startdruk';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'Geen grootte';
 
   @override
   String get plannerCanvas_table_depth => 'Diepte';

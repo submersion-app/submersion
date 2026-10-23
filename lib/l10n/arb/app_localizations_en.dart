@@ -19377,6 +19377,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'min gas needs a start pressure';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume =>
+      'min gas needs a cylinder size';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
       'turn and min gas need a start pressure';
 
@@ -19554,6 +19558,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_noStartPressure => 'No start pressure';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'No size';
 
   @override
   String get plannerCanvas_table_depth => 'Depth';

@@ -19726,6 +19726,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'le gaz mini nécessite une pression de départ';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume =>
+      'le gaz mini nécessite une taille de bouteille';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
       'le demi-tour et le gaz mini nécessitent une pression de départ';
 
@@ -19904,6 +19908,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_noStartPressure => 'Pas de pression de départ';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'Pas de taille';
 
   @override
   String get plannerCanvas_table_depth => 'Profondeur';

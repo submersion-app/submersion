@@ -31437,6 +31437,12 @@ abstract class AppLocalizations {
   /// **'min gas needs a start pressure'**
   String get plannerCanvas_gas_minGasNoStartPressure;
 
+  /// No description provided for @plannerCanvas_gas_minGasNoVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'min gas needs a cylinder size'**
+  String get plannerCanvas_gas_minGasNoVolume;
+
   /// No description provided for @plannerCanvas_gas_limitsNoStartPressure.
   ///
   /// In en, this message translates to:
@@ -31724,6 +31730,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No start pressure'**
   String get plannerCanvas_slate_noStartPressure;
+
+  /// No description provided for @plannerCanvas_slate_noVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'No size'**
+  String get plannerCanvas_slate_noVolume;
 
   /// No description provided for @plannerCanvas_table_depth.
   ///

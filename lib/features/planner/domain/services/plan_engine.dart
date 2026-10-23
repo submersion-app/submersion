@@ -1306,6 +1306,8 @@ class PlanEngine {
                   hePercent: tank.gasMix.he,
                   model: config.gasModel,
                 );
+          final turn = _turnPressureFor(plan, tank);
+          final minGas = _minGasFor(plan, tank, environment);
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
@@ -1317,37 +1319,13 @@ class PlanEngine {
                 : 0.0,
             reserveViolation:
                 remaining != null && remaining < config.reservePressure,
-            turnPressureBar: _turnPressureFor(plan, tank),
-            minGasBar: _minGasFor(plan, tank, environment),
-            turnPressureGap: _turnPressureGapFor(plan, tank),
-            minGasGap: _minGasGapFor(plan, tank),
+            turnPressureBar: turn.bar,
+            minGasBar: minGas.bar,
+            turnPressureGap: turn.gap,
+            minGasGap: minGas.gap,
           );
         }(),
     ];
-  }
-
-  /// Why [_turnPressureFor] is null for a back gas (#3603), or null when it
-  /// is not, or when [tank] is not a back gas at all. A missing rule comes
-  /// first: a start pressure alone would still leave the turn blank.
-  PlanGasLimitGap? _turnPressureGapFor(domain.DivePlan plan, DiveTank tank) {
-    if (tank.role != TankRole.backGas) return null;
-    final rule = config.turnPressureRuleFor(plan);
-    if (rule == null || rule == domain.TurnPressureRule.off) {
-      return PlanGasLimitGap.noTurnRule;
-    }
-    if (tank.startPressure == null) return PlanGasLimitGap.noStartPressure;
-    return null;
-  }
-
-  /// Why [_minGasFor] is null for an open-circuit back gas (#3603), or null
-  /// when it is not, or when minimum gas does not apply to [tank] or [plan].
-  PlanGasLimitGap? _minGasGapFor(domain.DivePlan plan, DiveTank tank) {
-    if (plan.mode == domain.PlanMode.ccr ||
-        tank.role != TankRole.backGas ||
-        plan.maxDepth <= 0) {
-      return null;
-    }
-    return tank.startPressure == null ? PlanGasLimitGap.noStartPressure : null;
   }
 
   /// Turn pressure per the plan's rule; bottom tanks with a start pressure
@@ -1357,14 +1335,22 @@ class PlanEngine {
   /// Reads the rule/fraction from [config] (issue #3552), not [plan]
   /// directly: by this point [config] is already resolvedFor this plan,
   /// so an unset plan field already carries the diver's Settings default.
-  double? _turnPressureFor(domain.DivePlan plan, DiveTank tank) {
+  ///
+  /// A back gas it cannot compute for carries the missing input as `gap`
+  /// (#3603); any other cylinder gets neither. A missing rule comes first:
+  /// a start pressure alone would still leave the turn blank.
+  ({double? bar, PlanGasLimitGap? gap}) _turnPressureFor(
+    domain.DivePlan plan,
+    DiveTank tank,
+  ) {
+    if (tank.role != TankRole.backGas) return (bar: null, gap: null);
     final rule = config.turnPressureRuleFor(plan);
+    if (rule == null || rule == domain.TurnPressureRule.off) {
+      return (bar: null, gap: PlanGasLimitGap.noTurnRule);
+    }
     final start = tank.startPressure;
-    if (rule == null ||
-        rule == domain.TurnPressureRule.off ||
-        start == null ||
-        tank.role != TankRole.backGas) {
-      return null;
+    if (start == null) {
+      return (bar: null, gap: PlanGasLimitGap.noStartPressure);
     }
     final usable = (start - config.reservePressure).clamp(0.0, start);
     final fraction = switch (rule) {
@@ -1375,7 +1361,7 @@ class PlanEngine {
       domain.TurnPressureRule.custom =>
         config.turnPressureFractionFor(plan) ?? 1.0 / 3.0,
     };
-    return start - usable * fraction;
+    return (bar: start - usable * fraction, gap: null);
   }
 
   /// Rock-bottom minimum gas: a stressed, buddy-shared emergency exit from
@@ -1387,17 +1373,26 @@ class PlanEngine {
   /// explicit override, or bottom SAC x2.5 by default); [config]'s
   /// `buddyFactor` is resolved from the plan's own `sacFactor` by [compute]
   /// before this runs, so it always reflects that plan's Gas options.
-  double? _minGasFor(
+  ///
+  /// A back gas it cannot compute for carries the missing input as `gap`
+  /// (#3603). A loop plan, any other cylinder, or a plan with no depth yet
+  /// gets neither: minimum gas does not apply there.
+  ({double? bar, PlanGasLimitGap? gap}) _minGasFor(
     domain.DivePlan plan,
     DiveTank tank,
     DiveEnvironment environment,
   ) {
-    if (plan.mode == domain.PlanMode.ccr) return null;
-    if (tank.role != TankRole.backGas || tank.startPressure == null) {
-      return null;
-    }
     final maxDepth = plan.maxDepth;
-    if (maxDepth <= 0) return null;
+    if (plan.mode == domain.PlanMode.ccr ||
+        tank.role != TankRole.backGas ||
+        maxDepth <= 0) {
+      return (bar: null, gap: null);
+    }
+    if (tank.startPressure == null) {
+      return (bar: null, gap: PlanGasLimitGap.noStartPressure);
+    }
+    final volume = tank.volume ?? 11.0;
+    if (volume <= 0) return (bar: null, gap: PlanGasLimitGap.noVolume);
     // config.sacStressedFor/sacBottom/problemSolvingMinutes (issue #3552):
     // config is already resolvedFor this plan at this point.
     final sac = config.sacStressedFor(plan) * config.buddyFactor;
@@ -1411,8 +1406,7 @@ class PlanEngine {
             config.problemSolvingMinutes *
             environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
-    final volume = tank.volume ?? 11.0;
-    return volume > 0 ? liters / volume : null;
+    return (bar: liters / volume, gap: null);
   }
 
   List<PlanIssue> _computeIssues(

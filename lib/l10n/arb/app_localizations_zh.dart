@@ -18730,6 +18730,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_gas_minGasNoStartPressure => '最低气量需要起始压力';
 
   @override
+  String get plannerCanvas_gas_minGasNoVolume => '最低气量需要气瓶容积';
+
+  @override
   String get plannerCanvas_gas_limitsNoStartPressure => '折返和最低气量需要起始压力';
 
   @override
@@ -18902,6 +18905,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_noStartPressure => '无起始压力';
+
+  @override
+  String get plannerCanvas_slate_noVolume => '无容积';
 
   @override
   String get plannerCanvas_table_depth => '深度';
