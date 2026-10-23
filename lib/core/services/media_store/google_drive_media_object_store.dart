@@ -434,7 +434,19 @@ class GoogleDriveMediaObjectStore
     final response = await _sendWith(client, request);
     final onAuthRejected = _onAuthRejected;
     if (response.statusCode != 401 || onAuthRejected == null) return response;
-    if (!await onAuthRejected(client)) return response;
+    final bool refreshed;
+    try {
+      refreshed = await onAuthRejected(client);
+    } on Exception catch (e) {
+      // Same treatment as a supplier that fails to produce a client: the
+      // refresh could not run right now, which says nothing about the grant.
+      throw MediaStoreException(
+        'Could not refresh the Google Drive sign-in',
+        kind: MediaStoreErrorKind.transient,
+        cause: e,
+      );
+    }
+    if (!refreshed) return response;
     // A sent request cannot be sent again, so the retry is a copy. Every
     // request here carries its whole body in memory, so nothing is lost.
     final retry = http.Request(request.method, request.url)

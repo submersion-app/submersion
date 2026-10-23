@@ -517,6 +517,26 @@ void main() {
       expect(refreshes, 1);
     });
 
+    test('a refresh that throws is a transient failure', () async {
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async =>
+            throw const CloudStorageException('keychain locked'),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.transient,
+          ),
+        ),
+      );
+    });
+
     test('is retried only once when the fresh token is refused too', () async {
       var refreshes = 0;
       final store = GoogleDriveMediaObjectStore(
