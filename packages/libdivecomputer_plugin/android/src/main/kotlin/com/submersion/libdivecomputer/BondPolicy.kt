@@ -30,8 +30,9 @@ object BondPolicy {
     private val vendorsWithoutProactiveBond = setOf("shearwater")
 
     // (vendor, product) pairs, lowercased, as libdivecomputer's
-    // descriptor.c spells them for DC_FAMILY_PELAGIC_I330R.
-    private val productsWithoutProactiveBond = setOf(
+    // descriptor.c spells them for DC_FAMILY_PELAGIC_I330R. BondPolicyTest
+    // reads descriptor.c and fails if a product joins or leaves that family.
+    internal val productsWithoutProactiveBond = setOf(
         "apeks" to "dsx",
         "aqualung" to "i330r",
         "aqualung" to "i330r console",

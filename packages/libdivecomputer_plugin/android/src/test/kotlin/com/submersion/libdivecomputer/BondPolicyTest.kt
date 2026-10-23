@@ -1,5 +1,7 @@
 package com.submersion.libdivecomputer
 
+import java.io.File
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -35,6 +37,25 @@ class BondPolicyTest {
         assertFalse(BondPolicy.requiresProactiveBond("Apeks", "DSX"))
         assertFalse(BondPolicy.requiresProactiveBond("Aqualung", "i330R"))
         assertFalse(BondPolicy.requiresProactiveBond("Aqualung", "i330R Console"))
+    }
+
+    // The exemption is spelled out by product name, so a libdivecomputer
+    // bump that adds a computer to the i330R family (or renames one) would
+    // silently bring the system PIN dialog back for it. Pin the set to
+    // every DC_FAMILY_PELAGIC_I330R row in the vendored descriptor.c.
+    @Test
+    fun exemptProductsMatchThePelagicI330rFamilyInDescriptorC() {
+        val descriptor = File(
+            File(System.getProperty("user.dir")).parentFile,
+            "third_party/libdivecomputer/src/descriptor.c"
+        )
+        assertTrue("descriptor.c not found at ${descriptor.path}", descriptor.isFile)
+        val row = Regex("""\{\s*"([^"]+)",\s*"([^"]+)",\s*DC_FAMILY_PELAGIC_I330R\b""")
+        val family = row.findAll(descriptor.readText())
+            .map { it.groupValues[1].lowercase() to it.groupValues[2].lowercase() }
+            .toSet()
+        assertTrue("no DC_FAMILY_PELAGIC_I330R rows parsed", family.isNotEmpty())
+        assertEquals(family, BondPolicy.productsWithoutProactiveBond)
     }
 
     @Test
