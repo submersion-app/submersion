@@ -189,6 +189,74 @@ void main() {
       expect(find.textContaining('turn @'), findsNothing);
     });
 
+    testWidgets('with no depth yet, only the turn names the start pressure', (
+      tester,
+    ) async {
+      // Min gas needs a depth to work from, so before any segment exists the
+      // turn is the one figure a missing start pressure blanks.
+      await tester.pumpWidget(
+        testApp(
+          overrides: _overrides(),
+          child: SizedBox(
+            width: 520,
+            height: 900,
+            child: PlanResultsSheet(controller: ScrollController()),
+          ),
+        ),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanResultsSheet)),
+      );
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateContingencies(turnRule: domain.TurnPressureRule.thirds);
+      final tank = notifier.state.tanks.single;
+      notifier.updateTank(
+        tank.id,
+        DiveTank(
+          id: tank.id,
+          name: tank.name,
+          volume: tank.volume,
+          workingPressure: tank.workingPressure,
+          gasMix: tank.gasMix,
+          role: tank.role,
+          order: tank.order,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('turn needs a start pressure'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('min gas'), findsNothing);
+    });
+
+    testWidgets('no rule and no start pressure name each input', (
+      tester,
+    ) async {
+      final notifier = await pumpSheet(tester);
+      final tank = notifier.state.tanks.single;
+      notifier.updateTank(
+        tank.id,
+        DiveTank(
+          id: tank.id,
+          name: tank.name,
+          volume: tank.volume,
+          workingPressure: tank.workingPressure,
+          gasMix: tank.gasMix,
+          role: tank.role,
+          order: tank.order,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('no turn rule set'), findsOneWidget);
+      expect(
+        find.textContaining('min gas needs a start pressure'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a zero-litre back gas names the missing size', (tester) async {
       final notifier = await pumpSheet(tester);
       final tank = notifier.state.tanks.single;
