@@ -444,6 +444,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     if (paginated == null || !paginated.hasMore) return;
     setState(() => _restLoads++);
     try {
+      // A failed read is logged and flagged for retry by the notifier; this
+      // catches anything else.
       await ref.read(paginatedDiveListProvider.notifier).loadRest();
     } catch (e, stackTrace) {
       _log.error(

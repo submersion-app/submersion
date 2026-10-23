@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/text/text_sort.dart';
@@ -752,6 +753,8 @@ final diveListNotifierProvider =
 ///
 /// Loads [DiveSummary] objects in pages of 50, with SQL-level filtering.
 /// Automatically reloads when the current diver or filter state changes.
+final _log = LoggerService.forClass(PaginatedDiveListNotifier);
+
 class PaginatedDiveListNotifier
     extends StateNotifier<AsyncValue<PaginatedDiveListState>> {
   final DiveRepository _repository;
@@ -1072,7 +1075,12 @@ class PaginatedDiveListNotifier
       } else {
         _loadBatchProfiles(ids);
       }
-    } catch (_) {
+    } catch (e, stackTrace) {
+      _log.error(
+        jump ? 'Failed to load dives for a jump' : 'Failed to load a page',
+        error: e,
+        stackTrace: stackTrace,
+      );
       // Record the failure rather than silently going idle: the trailing row
       // must be able to offer a retry instead of spinning on nothing (#1610).
       if (mounted) {

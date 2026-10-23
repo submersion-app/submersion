@@ -6,7 +6,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -20,10 +22,18 @@ import '../../../../helpers/test_database.dart';
 /// Counts the notifier's reads, records each profile batch, and can hold the
 /// [gateCall]th `getDiveSummaries` call open until [release] completes.
 class _CountingRepository implements DiveRepository {
-  _CountingRepository(this._inner, {this.gateCall, this.reportedCount});
+  _CountingRepository(
+    this._inner, {
+    this.gateCall,
+    this.reportedCount,
+    this.failCall,
+  });
 
   final DiveRepository _inner;
   final int? gateCall;
+
+  /// When set, the `getDiveSummaries` call that throws, as a failed read does.
+  final int? failCall;
 
   /// When set, the dive count reported in place of the real one, as a count
   /// that lags rows written since does.
@@ -44,6 +54,7 @@ class _CountingRepository implements DiveRepository {
     Set<String> disabledSafetyRules = const {},
   }) async {
     summaryCalls++;
+    if (summaryCalls == failCall) throw StateError('read failed');
     if (summaryCalls == gateCall) {
       gateReached.complete();
       await release.future;
@@ -430,6 +441,31 @@ void main() {
       expect(state.dives, hasLength(260));
       expect(state.dives.last.id, dives.last.id);
       expect(state.hasMore, isFalse);
+    });
+
+    test('logs a failed read and leaves the retry to the list', () async {
+      final diver = await setUpCurrentDiver();
+      await seedDives(diver.id, 120);
+      final repo = _CountingRepository(diveRepo, failCall: 2);
+      final container = makeContainer(repository: repo);
+      addTearDown(container.dispose);
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+      await loadPages(container, 1);
+      final errors = <LogEntry>[];
+      final logs = LoggerService.logStream
+          .where((entry) => entry.level == LogLevel.error)
+          .listen(errors.add);
+      addTearDown(logs.cancel);
+
+      await container.read(paginatedDiveListProvider.notifier).loadRest();
+      await Future<void>.delayed(Duration.zero);
+
+      final state = container.read(paginatedDiveListProvider).value!;
+      expect(state.loadMoreFailed, isTrue);
+      expect(state.dives, hasLength(50));
+      expect(errors, hasLength(1));
+      expect(errors.single.message, contains('read failed'));
     });
 
     test('reads nothing when every dive is already loaded', () async {
