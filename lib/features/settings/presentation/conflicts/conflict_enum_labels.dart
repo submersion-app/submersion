@@ -32,10 +32,21 @@ ConflictEnumLabeler enumLabeler<T extends Enum>(
   };
 }
 
-final ConflictEnumLabeler entryMethodLabeler = enumLabeler(
+final ConflictEnumLabeler _oneEntryMethodLabeler = enumLabeler(
   EntryMethod.values,
   (l, v) => v.localizedName(l),
 );
+
+/// A dive stores one entry method; a site stores a comma-joined list
+/// (#2054). A list naming any method this build does not know yields null,
+/// so the conflict shows the stored value rather than a shortened list.
+String? entryMethodLabeler(AppLocalizations l10n, String stored) {
+  if (!stored.contains(',')) return _oneEntryMethodLabeler(l10n, stored);
+  final labels = [
+    for (final name in stored.split(',')) _oneEntryMethodLabeler(l10n, name),
+  ];
+  return labels.contains(null) ? null : labels.join(', ');
+}
 
 /// The pre-v144 visibility bucket, still on dives logged before measured
 /// visibility.

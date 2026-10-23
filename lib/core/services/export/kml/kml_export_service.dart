@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
@@ -229,16 +230,16 @@ class KmlExportService {
         '<p><b>Water Type:</b> ${_escapeHtml(site.waterType!.displayName)}</p>',
       );
     }
-    if (site.entryMethods.firstOrNull != null) {
-      buffer.writeln(
-        '<p><b>Entry:</b> ${_escapeHtml(site.entryMethods.first.displayName)}</p>',
-      );
+    // A site may list several ways in and out (#2054). Exit is written only
+    // when it is a different set from entry.
+    if (site.entryMethods.isNotEmpty) {
+      final names = site.entryMethods.map((m) => m.displayName).join(', ');
+      buffer.writeln('<p><b>Entry:</b> ${_escapeHtml(names)}</p>');
     }
-    if (site.exitMethods.firstOrNull != null &&
-        site.exitMethods.firstOrNull != site.entryMethods.firstOrNull) {
-      buffer.writeln(
-        '<p><b>Exit:</b> ${_escapeHtml(site.exitMethods.first.displayName)}</p>',
-      );
+    if (site.exitMethods.isNotEmpty &&
+        !setEquals(site.exitMethods.toSet(), site.entryMethods.toSet())) {
+      final names = site.exitMethods.map((m) => m.displayName).join(', ');
+      buffer.writeln('<p><b>Exit:</b> ${_escapeHtml(names)}</p>');
     }
 
     if (site.hazards != null && site.hazards!.isNotEmpty) {

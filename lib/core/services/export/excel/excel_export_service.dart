@@ -390,7 +390,7 @@ class ExcelExportService {
         // Typical current has no backing column; the header position is kept
         // so existing consumers of this sheet keep their column offsets.
         '',
-        site.entryMethods.firstOrNull?.displayName ?? '',
+        site.entryMethods.map((m) => m.displayName).join(', '),
         site.difficulty?.displayName ?? '',
         site.rating?.toStringAsFixed(1) ?? '',
         site.description.replaceAll('\n', ' '),
