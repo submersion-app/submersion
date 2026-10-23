@@ -48,6 +48,7 @@ void main() {
           tagStatisticsProvider.overrideWith((ref) async => tagStats),
         ],
         child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: SingleChildScrollView(child: child)),
