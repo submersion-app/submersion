@@ -188,6 +188,18 @@ void main() {
       );
       expect(find.textContaining('turn @'), findsNothing);
     });
+
+    testWidgets('a zero-litre back gas names the missing size', (tester) async {
+      final notifier = await pumpSheet(tester);
+      final tank = notifier.state.tanks.single;
+      notifier.updateTank(tank.id, tank.copyWith(volume: 0));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('min gas needs a cylinder size'),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('sheet lists deviation tables and turn pressure', (tester) async {
