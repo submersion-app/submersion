@@ -4,7 +4,7 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+import 'package:submersion/shared/widgets/shared_items/profile_checkbox_tile.dart';
 
 /// Asks who a trip or site is shared with (issue #2151): Everyone, which
 /// also reaches profiles added later, or a checkbox per profile in
@@ -99,22 +99,15 @@ class _ShareTargetDialogState extends State<_ShareTargetDialog> {
             ),
             const Divider(),
             for (final diver in widget.profiles)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
+              ProfileCheckboxTile(
+                diver: diver,
                 value: _sharing.profileIds.contains(diver.id),
-                secondary: ProfileAvatar(
-                  photo: diver.photo,
-                  initials: diver.initials,
-                  backgroundColor: scheme.primaryContainer,
-                  foregroundColor: scheme.onPrimaryContainer,
-                ),
-                title: Text(diver.name),
                 // Ticking a profile leaves Everyone: the two exclude each
                 // other.
                 onChanged: (checked) => setState(() {
                   final ids = _sharing.profileIds;
                   _sharing = ItemSharing(
-                    profileIds: checked == true
+                    profileIds: checked
                         ? {...ids, diver.id}
                         : ids.difference({diver.id}),
                   );

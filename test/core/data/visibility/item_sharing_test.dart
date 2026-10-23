@@ -93,4 +93,19 @@ void main() {
       ItemSharing.all,
     );
   });
+
+  test('isSharedWithAnyone reads the flag or a share row', () {
+    expect(
+      isSharedWithAnyone(id: 't1', everyone: true, namedShares: const {}),
+      isTrue,
+    );
+    expect(
+      isSharedWithAnyone(id: 't1', everyone: false, namedShares: const {'t1'}),
+      isTrue,
+    );
+    expect(
+      isSharedWithAnyone(id: 't1', everyone: false, namedShares: const {'t2'}),
+      isFalse,
+    );
+  });
 }

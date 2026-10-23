@@ -53,3 +53,13 @@ class ItemSharing {
   String toString() =>
       everyone ? 'ItemSharing.all' : 'ItemSharing($profileIds)';
 }
+
+/// Whether item [id] is shared with anyone: with everyone (its
+/// `is_shared` flag, [everyone]) or with some profile by name
+/// ([namedShares], the ids of items that have share rows). The one rule the
+/// lists' shared badge and the delete warnings use (issue #2151).
+bool isSharedWithAnyone({
+  required String id,
+  required bool everyone,
+  required Set<String> namedShares,
+}) => everyone || namedShares.contains(id);

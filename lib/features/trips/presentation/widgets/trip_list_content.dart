@@ -45,6 +45,7 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 final _log = LoggerService.forClass(TripListContent);
@@ -417,7 +418,13 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     if (!mounted) return BulkActionOutcome.cancelled;
     final sharedDeleteCount = sharing.diverCount >= 2
         ? split.destroy
-              .where((t) => t.isShared || sharedByName.contains(t.id))
+              .where(
+                (t) => isSharedWithAnyone(
+                  id: t.id,
+                  everyone: t.isShared,
+                  namedShares: sharedByName,
+                ),
+              )
               .length
         : 0;
 
@@ -842,8 +849,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                           tripWithStats.trip.id;
                   final viewMode = ref.watch(tripListViewModeProvider);
                   final showSharedBadge =
-                      (tripWithStats.trip.isShared ||
-                          sharedByName.contains(tripWithStats.trip.id)) &&
+                      isSharedWithAnyone(
+                        id: tripWithStats.trip.id,
+                        everyone: tripWithStats.trip.isShared,
+                        namedShares: sharedByName,
+                      ) &&
                       diversCount >= 2;
                   final isChecked = _selectedIds.contains(
                     tripWithStats.trip.id,

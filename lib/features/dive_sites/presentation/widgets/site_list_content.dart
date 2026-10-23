@@ -56,6 +56,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -491,7 +492,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     if (!mounted) return BulkActionOutcome.cancelled;
     final sharedDeleteCount = sharing.diverCount >= 2
         ? split.destroy
-              .where((s) => s.isShared || sharedByName.contains(s.id))
+              .where(
+                (s) => isSharedWithAnyone(
+                  id: s.id,
+                  everyone: s.isShared,
+                  namedShares: sharedByName,
+                ),
+              )
               .length
         : 0;
     final usage = deleteCount > 0
@@ -1605,7 +1612,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         ref.watch(itemIdsWithSharesProvider(SharedItemKind.site)).value ??
         const <String>{};
     final showSharedBadge =
-        (site.isShared || sharedByName.contains(site.id)) && diversCount >= 2;
+        isSharedWithAnyone(
+          id: site.id,
+          everyone: site.isShared,
+          namedShares: sharedByName,
+        ) &&
+        diversCount >= 2;
 
     final viewMode = ref.watch(siteListViewModeProvider);
     final locationString = site.locationString.isNotEmpty
