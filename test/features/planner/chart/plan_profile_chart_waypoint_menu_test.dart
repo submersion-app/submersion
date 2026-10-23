@@ -196,6 +196,22 @@ void main() {
     );
   });
 
+  testWidgets('finger jitter during the hold does not edit the waypoint', (
+    tester,
+  ) async {
+    await pumpPlan(tester);
+    final descent = ordered().first;
+    final gesture = await tester.startGesture(handleOf(tester, descent.id));
+    // Jitter inside the slop, across the hold.
+    await gesture.moveBy(const Offset(5, 0));
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+    await tester.pumpAndSettle();
+    expect(ordered().first, descent);
+    expect(find.byKey(_removeItem), findsOneWidget);
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('a mouse held on a waypoint does not open the menu', (
     tester,
   ) async {

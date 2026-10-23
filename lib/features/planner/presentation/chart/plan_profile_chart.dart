@@ -415,6 +415,10 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
             _moved = true;
             _cancelLongPress();
           }
+          // A touch still inside the slop may yet become a long-press, so
+          // finger jitter must not edit the waypoint. The drag maps the
+          // absolute position, so nothing is lost once it starts.
+          if (_longPressTimer != null) return;
           if (_dragVertex != null) {
             _applyDrag(geometry, event.localPosition);
           } else {
