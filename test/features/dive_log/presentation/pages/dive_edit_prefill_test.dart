@@ -542,8 +542,10 @@ void main() {
 
 class _Club15Presets extends TankPresetRepository {
   @override
-  Future<TankPresetEntity?> getPresetByName(String name) async =>
-      name == 'club15'
+  Future<TankPresetEntity?> getPresetByName(
+    String name, {
+    required String? diverId,
+  }) async => name == 'club15'
       ? TankPresetEntity(
           id: 'custom-club15',
           name: 'club15',

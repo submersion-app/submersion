@@ -58,7 +58,10 @@ Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(Ref ref) async {
   final resolver = DefaultTankPresetResolver(
     repository: ref.read(tankPresetRepositoryProvider),
   );
-  return resolver.resolve(settings.defaultTankPreset);
+  return resolver.resolve(
+    settings.defaultTankPreset,
+    diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+  );
 }
 
 /// Stream provider for download events from the service.

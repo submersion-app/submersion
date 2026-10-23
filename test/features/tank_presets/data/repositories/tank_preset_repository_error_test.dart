@@ -53,7 +53,7 @@ void main() {
 
       // getPresetByName - rethrows
       await expectLater(
-        repository.getPresetByName('Custom AL80'),
+        repository.getPresetByName('Custom AL80', diverId: 'diver1'),
         throwsA(anything),
       );
 

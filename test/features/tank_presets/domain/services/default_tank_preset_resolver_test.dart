@@ -6,7 +6,7 @@ void main() {
   group('DefaultTankPresetResolver', () {
     test('resolves built-in preset by name', () async {
       final resolver = DefaultTankPresetResolver();
-      final result = await resolver.resolve('al80');
+      final result = await resolver.resolve('al80', diverId: null);
       expect(result, isNotNull);
       expect(result!.name, 'al80');
       expect(result.volumeLiters, 11.1);
@@ -15,20 +15,20 @@ void main() {
 
     test('returns null for unknown preset name', () async {
       final resolver = DefaultTankPresetResolver();
-      final result = await resolver.resolve('nonexistent');
+      final result = await resolver.resolve('nonexistent', diverId: null);
       expect(result, isNull);
     });
 
     test('returns null for null preset name', () async {
       final resolver = DefaultTankPresetResolver();
-      final result = await resolver.resolve(null);
+      final result = await resolver.resolve(null, diverId: null);
       expect(result, isNull);
     });
 
     test('resolves all built-in presets', () async {
       final resolver = DefaultTankPresetResolver();
       for (final preset in TankPresets.all) {
-        final result = await resolver.resolve(preset.name);
+        final result = await resolver.resolve(preset.name, diverId: null);
         expect(result, isNotNull, reason: 'Failed to resolve ${preset.name}');
         expect(result!.volumeLiters, preset.volumeLiters);
       }

@@ -741,7 +741,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (presetName != null) {
       final repository = ref.read(tankPresetRepositoryProvider);
       final resolver = DefaultTankPresetResolver(repository: repository);
-      final preset = await resolver.resolve(presetName);
+      final preset = await resolver.resolve(
+        presetName,
+        diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+      );
       if (mounted) {
         setState(() {
           _defaultPreset = preset;
