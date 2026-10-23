@@ -428,10 +428,12 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   Map<String, Rect> _rowsOnScreen() {
     final keys = widget.keys.toSet();
     final onScreen = <String, Rect>{};
+    // Every row sits in the one list, so its viewport is looked up once.
+    RenderObject? viewport;
     for (final MapEntry(key: key, value: row) in _rows.entries) {
       if (!keys.contains(key) || !row.mounted) continue;
+      viewport ??= Scrollable.maybeOf(row)?.context.findRenderObject();
       final box = row.findRenderObject();
-      final viewport = Scrollable.maybeOf(row)?.context.findRenderObject();
       if (box is! RenderBox || !box.hasSize || viewport is! RenderBox) {
         continue;
       }
