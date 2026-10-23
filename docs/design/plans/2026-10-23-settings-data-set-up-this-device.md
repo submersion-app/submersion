@@ -14,6 +14,8 @@
 
 **Spec:** `docs/design/specs/2026-10-17-settings-data-setup-and-accounts-design.md`, sections 5, 6.1-6.5 (6.6 is PR 7), 10, 11 (phase 6), 12 and the appendix rows for the pending card, the Photos checklist and the wizard. Phases 1-5 shipped as #3485, #3500, #3527, #3541, #3547 and #3572.
 
+**Delivery (decided by the user):** two PRs. PR 6a is Part A (Tasks 1-6), where Continue and the rows' Set up buttons still open today's pages. PR 6b is Part B (Tasks 7-14). Ruling 3 was approved as written. Screenshots are listed in each PR for the maintainer to capture.
+
 ## Global Constraints
 
 - **No schema change and no sync-format change.** The step 2 sentence names the device and time from the manifest only; there is no dive count (spec 12).
