@@ -95,8 +95,11 @@ The picker (`DiveCenterPickerSheet`) used by the dive edit page:
 - Receives a reference point for the dive, chosen in this order (decided by
   the maintainer): the selected site's coordinates; else the dive's entry GPS;
   else its exit GPS. These are the same sources the dive edit page already
-  gathers in `_currentDivePoints()` for equipment geofencing. This lets a dive
-  logged right after surfacing, before a site is picked, still get nearby
+  gathers in `_currentDivePoints()` for equipment geofencing. A brand-new dive
+  has no entry or exit GPS until it is saved, so for a new dive the last
+  fallback is the device location the page already captures for nearby site
+  suggestions (designer's call, to meet the maintainer's intent). This lets a
+  dive logged right after surfacing, before a site is picked, still get nearby
   centers.
 - When there is a reference point, shows a nearby section first, headed
   **"Near <site name>"** when it came from the site and **"Near this dive"**
