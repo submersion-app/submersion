@@ -183,6 +183,13 @@ final class _TrimFails implements GitObjectStore {
   Future<bool> has(GitObjectId id) => _inner.has(id);
 
   @override
+  Future<GitObjectReader?> open(GitObjectId id) => _inner.open(id);
+
+  @override
+  GitObjectWriter create(GitObjectType type, int size) =>
+      _inner.create(type, size);
+
+  @override
   Future<void> trim({Future<Set<GitObjectId>> Function()? keep}) async {
     throw const FileSystemException('cannot list the cache');
   }
