@@ -111,6 +111,11 @@ class SubmersionTranscoderPlugin :
                     }
                 }
             }
+            "encodeWithColor" -> encodeWithColor(call, result)
+            "cancelEncode" -> {
+                call.argument<String>("progressId")?.let { Media3ColorEncoder.cancel(it) }
+                result.success(null)
+            }
             "extractFrames" -> {
                 val path = call.argument<String>("path")
                 val timesMs = call.argument<List<Int>>("timesMs")
@@ -132,6 +137,38 @@ class SubmersionTranscoderPlugin :
             }
             else -> result.notImplemented()
         }
+    }
+
+    /** Issue #3521: a copy of a video with the app's colour timeline applied. */
+    @androidx.annotation.OptIn(markerClass = [androidx.media3.common.util.UnstableApi::class])
+    private fun encodeWithColor(call: MethodCall, result: MethodChannel.Result) {
+        val source = call.argument<String>("source")
+        val output = call.argument<String>("output")
+        val rawTimeline = call.argument<List<Map<String, Any>>>("timeline")
+        val progressId = call.argument<String>("progressId")
+        if (source == null || output == null || rawTimeline == null || progressId == null) {
+            result.error("bad_args", "encodeWithColor requires: source, output, timeline, progressId", null)
+            return
+        }
+        val keys = rawTimeline.mapNotNull { entry ->
+            val t = (entry["t"] as? Number)?.toDouble() ?: return@mapNotNull null
+            val m = (entry["m"] as? List<*>)?.mapNotNull { (it as? Number)?.toFloat() }
+            if (m == null || m.size != 20) null else ColorTimelineKey(t, m.toFloatArray())
+        }
+        Media3ColorEncoder.encode(
+            context = context,
+            source = source,
+            output = output,
+            timeline = ColorTimeline(keys),
+            location = call.argument<String>("location"),
+            progressId = progressId,
+            onProgress = { fraction ->
+                progressSink?.success(mapOf("progressId" to progressId, "fraction" to fraction))
+            },
+            done = { code, message ->
+                if (code == null) result.success(null) else result.error(code, message, null)
+            },
+        )
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {

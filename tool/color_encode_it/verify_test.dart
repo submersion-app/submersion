@@ -27,6 +27,12 @@ void main() {
   for (final c in colorCases) {
     test('colour encode keeps ${c.name}', () async {
       final r = report(c.fileName);
+      if (r['unsupported'] != null) {
+        markTestSkipped(
+          'this device cannot encode ${c.name}: ${r['unsupported']}',
+        );
+        return;
+      }
       expect(r['error'], isNull, reason: 'encode error: ${r['error']}');
       expect(r['tmpLeft'], isFalse);
       expect(r['lastFraction'], closeTo(1.0, 0.05));
@@ -79,12 +85,35 @@ void main() {
       // The timeline follows presentation time, the player's position: a
       // clip whose first frame is shown at 1.5 s gets the colour for 1.5 s.
       final first = await firstFrameSeconds(ffprobe, source);
+      List<double> expected(List<double> source, double t) => correctPixel(
+        source,
+        testTimeline.matrixAt((t * 1000).round()),
+        c.transfer,
+      );
+      // An engine's YUV and RGB conversions can shift every frame by the
+      // same amount (an Android emulator's do): measured on the first
+      // frame, held to a loose bound, and taken out of the check of the
+      // correction itself.
+      final firstBefore = await bandColors(ffmpeg, source, first, hdr: hdr);
+      final firstAfter = await bandColors(ffmpeg, copy, first, hdr: hdr);
+      final shift = [
+        for (var band = 0; band < firstBefore.length; band++)
+          [
+            for (var ch = 0; ch < 3; ch++)
+              firstAfter[band][ch] - expected(firstBefore[band], first)[ch],
+          ],
+      ];
+      for (final s in shift.expand((band) => band)) {
+        expect(s.abs(), lessThan(0.05), reason: 'conversion shift $shift');
+      }
       for (final t in [first + 0.5, first + 1.5]) {
         final before = await bandColors(ffmpeg, source, t, hdr: hdr);
         final after = await bandColors(ffmpeg, copy, t, hdr: hdr);
-        final matrix = testTimeline.matrixAt((t * 1000).round());
         for (var band = 0; band < before.length; band++) {
-          final want = correctPixel(before[band], matrix, c.transfer);
+          final want = [
+            for (var ch = 0; ch < 3; ch++)
+              expected(before[band], t)[ch] + shift[band][ch],
+          ];
           for (var ch = 0; ch < 3; ch++) {
             expect(
               after[band][ch],
