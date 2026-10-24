@@ -14,7 +14,9 @@ import 'package:submersion/features/media/presentation/providers/color_correctio
 
 /// The colour correction a shared copy of [item] carries (issue #3520): the
 /// same matrix the app draws it with, worked out from the full-resolution
-/// [bytes]. Identity for videos and documents, which are shared as they are.
+/// [bytes]. Identity for documents, shared as they are, and for videos,
+/// whose correction changes through the clip and is applied by
+/// re-encoding them (`prepareShareFiles`, issue #3521).
 Future<ColorMatrix> shareColorMatrixFor(
   WidgetRef ref,
   MediaItem item,

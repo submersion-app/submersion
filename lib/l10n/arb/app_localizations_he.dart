@@ -18459,6 +18459,36 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get media_share_preparingVideo => 'מכין סרטון';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return 'מכין סרטון $current מתוך $total';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle =>
+      'לא ניתן היה להחיל את תיקון הצבע';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עדיין אפשר לשתף $count סרטונים בלעדיו.',
+      one: 'עדיין אפשר לשתף את הסרטון הזה בלעדיו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'שתף מקור';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'הכנת הסרטון נעצרה כאשר Submersion עבר לרקע. שתף שוב כדי להתחיל מחדש.';
+
+  @override
   String get media_photoViewer_failedToWriteMetadata =>
       'כתיבת המטא-נתונים נכשלה';
 

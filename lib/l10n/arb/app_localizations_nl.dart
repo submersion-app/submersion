@@ -18753,6 +18753,36 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_share_preparingVideo => 'Video voorbereiden';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return 'Video $current van $total voorbereiden';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle =>
+      'Kleurcorrectie kon niet worden toegepast';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count video\'s kunnen nog steeds zonder worden gedeeld.',
+      one: 'Deze video kan nog steeds zonder worden gedeeld.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'Origineel delen';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'Het voorbereiden van de video stopte toen Submersion naar de achtergrond ging. Deel opnieuw om opnieuw te beginnen.';
+
+  @override
   String get media_photoViewer_failedToWriteMetadata =>
       'Kan metadata niet schrijven';
 

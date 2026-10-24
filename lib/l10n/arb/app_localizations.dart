@@ -30117,6 +30117,42 @@ abstract class AppLocalizations {
   /// **'Failed to share: {error}'**
   String media_photoViewer_failedToShare(Object error);
 
+  /// No description provided for @media_share_preparingVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing video'**
+  String get media_share_preparingVideo;
+
+  /// No description provided for @media_share_preparingVideoOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing video {current} of {total}'**
+  String media_share_preparingVideoOf(int current, int total);
+
+  /// No description provided for @media_share_correctionFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t apply the color correction'**
+  String get media_share_correctionFailedTitle;
+
+  /// No description provided for @media_share_correctionFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This video can still be shared without it.} other{{count} videos can still be shared without it.}}'**
+  String media_share_correctionFailedBody(int count);
+
+  /// No description provided for @media_share_shareOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Share original'**
+  String get media_share_shareOriginal;
+
+  /// No description provided for @media_share_videoInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the video stopped when Submersion went into the background. Share again to start over.'**
+  String get media_share_videoInterrupted;
+
   /// No description provided for @media_photoViewer_failedToWriteMetadata.
   ///
   /// In en, this message translates to:

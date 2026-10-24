@@ -17972,6 +17972,35 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_share_preparingVideo => '正在准备视频';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return '正在准备第 $current 个视频，共 $total 个';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle => '无法应用色彩校正';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个视频仍可在不校正的情况下分享。',
+      one: '此视频仍可在不校正的情况下分享。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => '分享原始文件';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'Submersion 转入后台时视频准备已停止。请重新分享以重新开始。';
+
+  @override
   String get media_photoViewer_failedToWriteMetadata => '写入元数据失败';
 
   @override

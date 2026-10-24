@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
-import 'package:submersion/features/media/presentation/helpers/share_color_matrix.dart';
+import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
@@ -327,50 +325,9 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   }
 
   Future<void> _shareCurrentItem(MediaItem item, Rect? anchor) async {
-    final l10n = context.l10n;
-
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) =>
-          const Center(child: CircularProgressIndicator(color: Colors.white)),
-    );
-
-    try {
-      final resolvedResult = await ref.read(
-        resolvedFullResolutionProvider(item).future,
-      );
-
-      if (resolvedResult.isUnavailable || resolvedResult.bytes == null) {
-        if (mounted) Navigator.of(context, rootNavigator: true).pop();
-        _showError(l10n.media_photoViewer_cannotShare);
-        return;
-      }
-
-      // A photo goes out with its colour correction (issue #3520).
-      final file = await writeShareFileFor(ref, item, resolvedResult.bytes!);
-
-      // Dismiss loading - use rootNavigator to match where showDialog placed it
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
-
-      await SharePlus.instance.share(
-        ShareParams(files: [file], sharePositionOrigin: anchor),
-      );
-    } catch (e) {
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      _showError(l10n.media_photoViewer_failedToShare(e.toString()));
-    }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
+    // Shared resolve-and-share flow (the dive viewer and the library use it
+    // too), so a corrected video goes out re-encoded here as well (#3521).
+    await shareMediaItems(context, ref, [item], anchor: anchor);
   }
 }
 

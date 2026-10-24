@@ -18811,6 +18811,36 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_share_preparingVideo => 'Videó előkészítése';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return '$current. videó előkészítése ($total közül)';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle =>
+      'Nem sikerült alkalmazni a színkorrekciót';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videó enélkül is megosztható.',
+      one: 'Ez a videó enélkül is megosztható.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'Eredeti megosztása';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'A videó előkészítése leállt, amikor a Submersion a háttérbe került. Oszd meg újra az újrakezdéshez.';
+
+  @override
   String get media_photoViewer_failedToWriteMetadata =>
       'Nem sikerült a metaadat írása';
 
