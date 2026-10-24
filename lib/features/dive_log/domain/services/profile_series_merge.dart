@@ -16,6 +16,15 @@ List<ProfileSeries> liveSeriesOf(List<ProfileSeries> owned) {
   if (owned.length < 2) return owned;
   final ranked = [...owned]
     ..sort((a, b) {
+      final aActivated = a.activatedAt;
+      final bActivated = b.activatedAt;
+      final byActivated = switch ((aActivated, bActivated)) {
+        (null, null) => 0,
+        (null, _) => 1,
+        (_, null) => -1,
+        _ => bActivated!.compareTo(aActivated!),
+      };
+      if (byActivated != 0) return byActivated;
       final byEdit = (a.computerId == null ? 0 : 1).compareTo(
         b.computerId == null ? 0 : 1,
       );
