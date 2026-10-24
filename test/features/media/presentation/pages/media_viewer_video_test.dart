@@ -117,6 +117,14 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
       ),
     );
   }
+
+  /// Reports a clip the decoder cannot open, after its player was created;
+  /// VideoPlayerController.initialize() then throws.
+  void failInitialization() {
+    _events.addError(
+      PlatformException(code: 'VideoError', message: 'Unsupported codec'),
+    );
+  }
 }
 
 /// A platform with no player, as on Windows before video_player_win (#3548):
@@ -230,6 +238,28 @@ void main() {
       ),
       isNotEmpty,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a video that fails after its player was created reports the '
+      'failure and still releases the player', (tester) async {
+    final platform = _FakeVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = platform;
+
+    // pump() leaves initialize() waiting on the platform's events.
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await tester.runAsync(() async {
+      platform.failInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    });
+
+    expect(find.text('Failed to load video'), findsOneWidget);
+    expect(platform.created, 1);
+    // The native decoder is not left behind for the process lifetime.
+    expect(platform.disposed, 1);
     expect(tester.takeException(), isNull);
   });
 

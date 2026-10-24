@@ -56,6 +56,18 @@ import 'package:submersion/features/media/presentation/match_confidence_display.
 
 const _log = LoggerService('MediaViewerPage', category: LogCategory.media);
 
+/// Releases [controller] without waiting on it, logging a failure rather
+/// than leaving it unhandled. Never awaited: a controller whose platform
+/// create() threw (no player on this platform, #3548) never finishes
+/// creating, and its dispose() waits on that forever.
+void _releaseController(VideoPlayerController controller, String mediaId) {
+  unawaited(
+    controller.dispose().catchError((Object e) {
+      _log.warning('Video $mediaId release failed', error: e);
+    }),
+  );
+}
+
 /// Full-screen media viewer with pinch-to-zoom and swipe navigation over an
 /// arbitrary media list (a dive's media, a trip's flat list, or a library
 /// page snapshot).
@@ -1232,7 +1244,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _error = null;
     if (controller == null) return;
     widget.onControllerChanged(widget.item.id, null);
-    unawaited(controller.dispose());
+    _releaseController(controller, widget.item.id);
   }
 
   /// Handle keyboard events for video playback
@@ -1271,7 +1283,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       await controller.initialize();
 
       if (stale()) {
-        controller.dispose();
+        _releaseController(controller, widget.item.id);
         return;
       }
 
@@ -1296,18 +1308,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
           _isLoading = false;
         });
       }
-      // Released without waiting, after the error is on screen: when the
-      // platform's create() threw (no player on this platform, #3548), the
-      // controller never finishes creating and its dispose() waits on that
-      // forever.
-      final failed = pending;
-      if (failed != null) {
-        unawaited(
-          failed.dispose().catchError((Object e) {
-            _log.warning('Video $mediaId release failed', error: e);
-          }),
-        );
-      }
+      // Only after the error is on screen: see _releaseController.
+      if (pending != null) _releaseController(pending, mediaId);
     }
   }
 
