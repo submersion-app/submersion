@@ -27,9 +27,11 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 /// usable right now (missing config, no silent Google session, iCloud
 /// unavailable). Shared by the runtime provider and the connect flows.
 ///
-/// [instanceFor] resolves a provider type to its instance; it defaults to
-/// the process-wide singletons and exists so a test can supply a provider
-/// with a fake session (the same seam as resolveHeadlessCloudProvider's).
+/// [instanceFor] supplies the Google Drive provider, the only branch built
+/// over a provider instance; S3, Dropbox and iCloud ignore it. It defaults
+/// to the process-wide singletons and exists so a test can supply a
+/// provider with a fake session (the same seam as
+/// resolveHeadlessCloudProvider's).
 Future<MediaObjectStore?> buildMediaObjectStore(
   CloudProviderType type, {
   S3Config? s3Config,

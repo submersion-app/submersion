@@ -340,6 +340,20 @@ void main() {
     );
   });
 
+  test('a rejection with no client captured still refreshes', () async {
+    // The client was installed after the call looked (another caller's
+    // silent auth landed in between). Not knowing which client was refused
+    // must not count as "already replaced": that skipped the refresh and
+    // retried on the same dead token.
+    final lateAuth = _LateInstallAuthenticator(drive_.client());
+    drive_.failuresRemaining = 1;
+
+    await GoogleDriveStorageProvider(authenticator: lateAuth).deleteFile('f1');
+
+    expect(lateAuth.authFailures, 1);
+    expect(lateAuth.silentAuthCalls, 1);
+  });
+
   test('concurrent 401s share one re-auth', () async {
     // The token expires for every in-flight request at once. A re-auth per
     // caller let the later one close the client the earlier had just
@@ -660,4 +674,21 @@ void main() {
       );
     });
   });
+}
+
+/// Reports no client on its first read only, the way a provider sees the
+/// session when another caller's silent auth installs it a moment later.
+class _LateInstallAuthenticator extends _FakeAuthenticator {
+  _LateInstallAuthenticator(super.client);
+
+  bool _read = false;
+
+  @override
+  http.Client? get authClient {
+    if (!_read) {
+      _read = true;
+      return null;
+    }
+    return super.authClient;
+  }
 }

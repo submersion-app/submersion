@@ -173,7 +173,8 @@ class GoogleDriveStorageProvider
   /// stored state and the user is asked to sign in again.
   ///
   /// The stale-vs-revoked disambiguation is the mobile authenticator's:
-  /// google_sign_in's lightweight re-auth can mint a fresh token silently.
+  /// google_sign_in can mint a fresh token silently from the known
+  /// account's authorization.
   /// The desktop authenticator's auto-refreshing client already handles
   /// hourly expiry itself. A revoked or expired refresh token reaches here
   /// not as a 401 but as the refresh's own failure, an OAuth `invalid_grant`
@@ -235,9 +236,13 @@ class GoogleDriveStorageProvider
     _driveApi = null;
   }
 
+  /// Whether the client has changed since [rejected] was refused. A null
+  /// [rejected] means the caller never saw which client it used (one was
+  /// installed after it looked), so it counts as not replaced: assuming
+  /// otherwise skipped the refresh and retried on the same dead token.
   bool _replacedSince(http.Client? rejected) {
     final current = _authenticator.authClient;
-    return current != null && !identical(current, rejected);
+    return rejected != null && current != null && !identical(current, rejected);
   }
 
   static bool _isAuthRejection(Object e) =>
