@@ -13,6 +13,12 @@ void main() {
       expect(bareDiveNumber(TextNode(['#500'])), 500);
     });
 
+    test('Arabic-Indic and full-width digits count too', () {
+      expect(bareDiveNumber(TextNode(['٥٠٠'])), 500);
+      expect(bareDiveNumber(TextNode(['۵۰۰'])), 500);
+      expect(bareDiveNumber(TextNode(['#５００'])), 500);
+    });
+
     test('anything else is not', () {
       expect(bareDiveNumber(null), isNull);
       expect(bareDiveNumber(TextNode(['manta'])), isNull);

@@ -35,6 +35,37 @@ class _FailingRepository implements DiveRepository {
   }) => Future.error(StateError('boom'));
 }
 
+/// Answers text queries from the real repository but fails every dive
+/// number lookup.
+class _NumberFailingRepository implements DiveRepository {
+  _NumberFailingRepository(this.inner);
+  final DiveRepository inner;
+
+  @override
+  Stream<void> watchDivesChanges() => const Stream.empty();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<List<DiveSummary>> getDiveSummaries({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    DiveSummaryCursor? cursor,
+    int? offset,
+    int limit = 50,
+    SortState<DiveSortField>? sort,
+    Set<String> disabledSafetyRules = const {},
+  }) => filter.query is ConditionNode
+      ? Future.error(StateError('number lookup failed'))
+      : inner.getDiveSummaries(
+          diverId: diverId,
+          filter: filter,
+          limit: limit,
+          disabledSafetyRules: disabledSafetyRules,
+        );
+}
+
 void main() {
   late DiveRepository repository;
 
@@ -184,6 +215,18 @@ void main() {
         notes: '500 m swim',
       );
       final c = makeContainer(repository);
+      final rows = await jump(c, TextNode(['500']));
+      expect(rows.map((d) => d.id), ['swim']);
+    });
+
+    test('a failed number lookup still shows the text matches', () async {
+      await dive(
+        'swim',
+        DateTime(2026, 3, 1),
+        number: 487,
+        notes: '500 m swim',
+      );
+      final c = makeContainer(_NumberFailingRepository(repository));
       final rows = await jump(c, TextNode(['500']));
       expect(rows.map((d) => d.id), ['swim']);
     });

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -165,5 +167,34 @@ void main() {
     await type(tester, '500');
     await pressEnter(tester);
     expect(opened, isNull);
+  });
+
+  testWidgets('rows kept while the next query loads keep their labels', (
+    tester,
+  ) async {
+    final pending = Completer<List<DiveSummary>>();
+    await pumpHeader(
+      tester,
+      rowsFor: (q) => bareDiveNumber(q) == 50 ? pending.future : _rowsFor(q),
+    );
+    await type(tester, '500');
+    await type(tester, '50');
+    // The 500 rows stay until 50 answers, still titled for 500.
+    final kept = find.byKey(const ValueKey('dive-jump-d500'));
+    expect(
+      find.descendant(of: kept, matching: find.text('#500 · Blue Hole')),
+      findsOneWidget,
+    );
+    pending.complete([_d50]);
+    // The provider settles, then the rows rebuild.
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('dive-jump-d50')),
+        matching: find.text('#50 · Salt Pier'),
+      ),
+      findsOneWidget,
+    );
   });
 }

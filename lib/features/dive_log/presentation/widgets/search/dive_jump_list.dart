@@ -27,6 +27,10 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
   /// list does not collapse and reappear as the diver types.
   List<DiveSummary> _shown = const [];
 
+  /// The dive number of the query that answered [_shown], so rows kept
+  /// while the next query loads keep their own labels.
+  int? _shownNumber;
+
   @override
   Widget build(BuildContext context) {
     final result = ref.watch(diveJumpResultsProvider(widget.query));
@@ -36,12 +40,13 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
       _shown = const [];
     } else if (result.value case final latest?) {
       _shown = latest;
+      _shownNumber = bareDiveNumber(widget.query);
     }
     final dives = _shown;
     if (dives.isEmpty) return const SizedBox.shrink();
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
-    final number = bareDiveNumber(widget.query);
+    final number = _shownNumber;
     String title(DiveSummary d) {
       final name =
           d.siteName ?? d.name ?? units.formatMonthDayWithYear(d.dateTime);

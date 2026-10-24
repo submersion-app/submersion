@@ -63,7 +63,7 @@ final diveJumpResultsProvider = FutureProvider.autoDispose
         final number = bareDiveNumber(query);
         if (number == null) return await fetch(query);
         final (numbered, text) = await (
-          fetch(diveNumberQuery(number)),
+          _numberedOrNone(fetch, number),
           fetch(query),
         ).wait;
         final seen = {for (final d in numbered) d.id};
@@ -80,6 +80,20 @@ final diveJumpResultsProvider = FutureProvider.autoDispose
         return const <DiveSummary>[];
       }
     });
+
+/// The dives numbered [number], or none when that lookup fails: the text
+/// matches still show, as they did before a number had rows of its own.
+Future<List<DiveSummary>> _numberedOrNone(
+  Future<List<DiveSummary>> Function(QueryNode node) fetch,
+  int number,
+) async {
+  try {
+    return await fetch(diveNumberQuery(number));
+  } catch (e, stackTrace) {
+    _log.error('Dive number lookup failed', error: e, stackTrace: stackTrace);
+    return const <DiveSummary>[];
+  }
+}
 
 /// Saves the whole dive search (#2773, spec 5.4) as one saved query under a
 /// name the diver gives; a provider so tests can stand in for the dialog
