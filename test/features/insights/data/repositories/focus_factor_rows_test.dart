@@ -378,4 +378,36 @@ void main() {
     expect(byId['afternoon']!.timeOfDay, TimeOfDayBucket.afternoon);
     expect(byId['no-site']!.timeOfDay, TimeOfDayBucket.night);
   });
+
+  test(
+    'entry method falls back only to a single-method site (#2054)',
+    () async {
+      for (final (id, stored) in [('both', 'shore,boat'), ('beach', 'shore')]) {
+        await db
+            .into(db.diveSites)
+            .insert(
+              DiveSitesCompanion(
+                id: Value(id),
+                name: Value(id),
+                entryMethod: Value(stored),
+                createdAt: const Value(0),
+                updatedAt: const Value(0),
+              ),
+            );
+      }
+      await dive('at-both');
+      await dive('at-beach', day: 2);
+      await (db.update(db.dives)..where((t) => t.id.equals('at-both'))).write(
+        const DivesCompanion(siteId: Value('both')),
+      );
+      await (db.update(db.dives)..where((t) => t.id.equals('at-beach'))).write(
+        const DivesCompanion(siteId: Value('beach')),
+      );
+
+      final rows = await repository.getFocusFactorRows(visibilityScale: scale);
+      final byId = {for (final r in rows) r.diveId: r};
+      expect(byId['at-both']!.entryMethod, isNull);
+      expect(byId['at-beach']!.entryMethod, 'shore');
+    },
+  );
 }

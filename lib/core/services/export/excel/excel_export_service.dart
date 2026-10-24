@@ -14,6 +14,7 @@ import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
@@ -390,7 +391,7 @@ class ExcelExportService {
         // Typical current has no backing column; the header position is kept
         // so existing consumers of this sheet keep their column offsets.
         '',
-        site.entryMethod?.displayName ?? '',
+        joinEntryMethodNames(site.entryMethods, (m) => m.displayName),
         site.difficulty?.displayName ?? '',
         site.rating?.toStringAsFixed(1) ?? '',
         site.description.replaceAll('\n', ' '),

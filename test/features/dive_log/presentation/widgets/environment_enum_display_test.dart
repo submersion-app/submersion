@@ -69,8 +69,12 @@ void main() {
       for (final v in CurrentStrength.values) {
         expect(v.localizedName(en), v.displayName);
       }
+      // Boat and Shore name an exit as well as an entry, so their labels
+      // drop "Entry" (#2054). Their displayName keeps it: that is the export
+      // and CSV import vocabulary, and files already written must re-import.
+      const relabelled = {EntryMethod.boat: 'Boat', EntryMethod.shore: 'Shore'};
       for (final v in EntryMethod.values) {
-        expect(v.localizedName(en), v.displayName);
+        expect(v.localizedName(en), relabelled[v] ?? v.displayName);
       }
     });
   });

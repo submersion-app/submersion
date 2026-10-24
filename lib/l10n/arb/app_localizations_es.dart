@@ -12689,7 +12689,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_entryMethod_backRoll => 'Volteo hacia atrás';
 
   @override
-  String get enum_entryMethod_boat => 'Entrada desde barco';
+  String get enum_entryMethod_boat => 'Barco';
 
   @override
   String get enum_entryMethod_frontRoll => 'Volteo hacia adelante';
@@ -12713,7 +12713,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => 'Entrada sentado';
 
   @override
-  String get enum_entryMethod_shore => 'Entrada desde costa';
+  String get enum_entryMethod_shore => 'Costa';
 
   @override
   String get enum_equipmentStatus_active => 'Activo';

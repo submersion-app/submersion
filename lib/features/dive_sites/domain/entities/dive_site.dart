@@ -56,12 +56,13 @@ class DiveSite extends Equatable {
   final String? parkingInfo; // Parking availability and tips
   final double?
   altitude; // Altitude above sea level in meters (for altitude diving)
-  /// Typical way into the water at this site (issue #1104). Snapped onto a
-  /// dive when the site is assigned; the diver can always override it.
-  final EntryMethod? entryMethod;
+  /// The ways into the water at this site (issues #1104, #2054), in enum
+  /// order. Snapped onto a dive when the site is assigned only while there is
+  /// exactly one ([soleEntryMethod]); the diver can always override it.
+  final List<EntryMethod> entryMethods;
 
-  /// Typical way out of the water at this site. Null means "same as entry".
-  final EntryMethod? exitMethod;
+  /// The ways out of the water at this site. Empty means "same as entry".
+  final List<EntryMethod> exitMethods;
   final bool isShared;
 
   /// The shared site library this site belongs to (issue #2567); null for a
@@ -91,14 +92,23 @@ class DiveSite extends Equatable {
     this.mooringNumber,
     this.parkingInfo,
     this.altitude,
-    this.entryMethod,
-    this.exitMethod,
+    this.entryMethods = const [],
+    this.exitMethods = const [],
     this.isShared = false,
     this.sharedLibraryId,
   });
 
   /// Whether this site belongs to a shared site library (issue #2567).
   bool get isLibrarySite => sharedLibraryId != null;
+
+  /// The site's entry method when it lists exactly one, else null: with
+  /// several there is no telling which one a given dive used.
+  EntryMethod? get soleEntryMethod =>
+      entryMethods.length == 1 ? entryMethods.single : null;
+
+  /// The site's exit method when it lists exactly one, else null.
+  EntryMethod? get soleExitMethod =>
+      exitMethods.length == 1 ? exitMethods.single : null;
 
   /// The town a site belongs to: its [city], falling back to its [island],
   /// trimmed; empty when neither is set.
@@ -163,8 +173,8 @@ class DiveSite extends Equatable {
     String? mooringNumber,
     String? parkingInfo,
     double? altitude,
-    EntryMethod? entryMethod,
-    EntryMethod? exitMethod,
+    List<EntryMethod>? entryMethods,
+    List<EntryMethod>? exitMethods,
     bool? isShared,
     String? sharedLibraryId,
     bool clearSharedLibraryId = false,
@@ -193,8 +203,8 @@ class DiveSite extends Equatable {
       mooringNumber: mooringNumber ?? this.mooringNumber,
       parkingInfo: parkingInfo ?? this.parkingInfo,
       altitude: altitude ?? this.altitude,
-      entryMethod: entryMethod ?? this.entryMethod,
-      exitMethod: exitMethod ?? this.exitMethod,
+      entryMethods: entryMethods ?? this.entryMethods,
+      exitMethods: exitMethods ?? this.exitMethods,
       isShared: isShared ?? this.isShared,
       sharedLibraryId: clearSharedLibraryId
           ? null
@@ -226,8 +236,8 @@ class DiveSite extends Equatable {
     mooringNumber,
     parkingInfo,
     altitude,
-    entryMethod,
-    exitMethod,
+    entryMethods,
+    exitMethods,
     isShared,
     sharedLibraryId,
   ];

@@ -12,6 +12,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_list_content.dart';
@@ -72,6 +73,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'certifications',
+          rememberedSelectedId: ref.watch(rememberedCertificationIdProvider),
           appBarTitle: context.l10n.nav_certifications,
           appBarSubtitle: countLabel,
           appBarTitleWidget: widget.headerTitle?.build(
@@ -191,7 +193,8 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
-        sectionId: 'certifications',
+        sectionId: RecordListSection.certifications,
+        rememberedSelectedId: ref.watch(rememberedCertificationIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) =>
             CertificationListContent(
               onItemSelected: onItemSelected,

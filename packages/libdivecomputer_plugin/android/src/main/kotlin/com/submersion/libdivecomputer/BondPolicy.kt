@@ -12,6 +12,11 @@ package com.submersion.libdivecomputer
 // Submersion blocks Shearwater Cloud from connecting until the user
 // unpairs the computer in Android Bluetooth settings (issue #910).
 //
+// Cressi's Bluetooth adapter did not complete a pairing in issue #422: the
+// bond sat out its whole 30 s wait and the version read that followed
+// failed, while Subsurface and every other Submersion backend, none of
+// which bond, download the same computer.
+//
 // The Pelagic i330R family (Apeks DSX, Aqualung i330R and i330R Console)
 // authenticates inside its own protocol instead: libdivecomputer asks the
 // computer for access, the computer shows a six-digit code, and the user
@@ -27,7 +32,7 @@ package com.submersion.libdivecomputer
 // during the first encrypted GATT operation (see
 // BleIoStream.connectAndDiscover).
 object BondPolicy {
-    private val vendorsWithoutProactiveBond = setOf("shearwater")
+    private val vendorsWithoutProactiveBond = setOf("shearwater", "cressi")
 
     // (vendor, product) pairs, lowercased, as libdivecomputer's
     // descriptor.c spells them for DC_FAMILY_PELAGIC_I330R. BondPolicyTest

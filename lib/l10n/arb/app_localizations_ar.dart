@@ -12864,7 +12864,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_entryMethod_backRoll => 'دحرجة خلفية';
 
   @override
-  String get enum_entryMethod_boat => 'دخول من القارب';
+  String get enum_entryMethod_boat => 'القارب';
 
   @override
   String get enum_entryMethod_frontRoll => 'دحرجة أمامية';
@@ -12888,7 +12888,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => 'دخول جلوسي';
 
   @override
-  String get enum_entryMethod_shore => 'دخول من الشاطئ';
+  String get enum_entryMethod_shore => 'الشاطئ';
 
   @override
   String get enum_equipmentStatus_active => 'نشط';

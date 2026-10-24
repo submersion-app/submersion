@@ -12664,7 +12664,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_entryMethod_backRoll => 'Hátragurulás';
 
   @override
-  String get enum_entryMethod_boat => 'Hajós beszállás';
+  String get enum_entryMethod_boat => 'Hajó';
 
   @override
   String get enum_entryMethod_frontRoll => 'Előregurulás';
@@ -12688,7 +12688,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => 'Ülős beszállás';
 
   @override
-  String get enum_entryMethod_shore => 'Parti beszállás';
+  String get enum_entryMethod_shore => 'Part';
 
   @override
   String get enum_equipmentStatus_active => 'Aktív';

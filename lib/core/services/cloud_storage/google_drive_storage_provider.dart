@@ -115,6 +115,12 @@ class GoogleDriveStorageProvider
     return null;
   }
 
+  /// The media store's 401 hook: Drive refused [rejected], so refresh the
+  /// token through the same shared re-auth the sync calls use. True when a
+  /// fresh client is available for one retry.
+  Future<bool> mediaAuthRejected(http.Client rejected) =>
+      _reauthorize(rejected);
+
   /// The Drive API bound to the authenticator's current client, or null
   /// when not authenticated. Rebuilt lazily so a re-auth (new client)
   /// transparently produces a new API instance.
@@ -167,7 +173,8 @@ class GoogleDriveStorageProvider
   /// stored state and the user is asked to sign in again.
   ///
   /// The stale-vs-revoked disambiguation is the mobile authenticator's:
-  /// google_sign_in's lightweight re-auth can mint a fresh token silently.
+  /// google_sign_in can mint a fresh token silently from the known
+  /// account's authorization.
   /// The desktop authenticator's auto-refreshing client already handles
   /// hourly expiry itself. A revoked or expired refresh token reaches here
   /// not as a 401 but as the refresh's own failure, an OAuth `invalid_grant`
@@ -175,25 +182,78 @@ class GoogleDriveStorageProvider
   /// the retry's attemptSilentAuth() fails and the user is asked to sign in
   /// again. Missing that case left the dead token in place, failing every
   /// sync with a generic listing error (issue #2332).
+  ///
+  /// A retry rejected the same way means the fresh authorization is no good
+  /// either. It is reported as the same sign-in-again error rather than the
+  /// raw Drive error, which told the diver only "invalid credentials", and
+  /// the client is dropped again so the next sync re-authorizes from scratch
+  /// (issue #3602).
   Future<T> _run<T>(Future<T> Function() operation) async {
+    final client = _authenticator.authClient;
     try {
       return await operation();
     } catch (e) {
-      final unauthorized =
-          e is drive.DetailedApiRequestError && e.status == 401;
-      if (!unauthorized && !_isRevokedGrant(e)) rethrow;
+      if (!_isAuthRejection(e)) rethrow;
       _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
-      await _authenticator.handleAuthFailure();
-      _driveApi = null;
-      if (!await _authenticator.attemptSilentAuth()) {
-        throw CloudStorageException(
-          'Google Drive sign-in expired. Please sign in again.',
-          e,
-        );
+      if (!await _reauthorize(client)) {
+        throw _signInExpired(e);
       }
-      return await operation();
+      final retryClient = _authenticator.authClient;
+      try {
+        return await operation();
+      } catch (retryError) {
+        if (!_isAuthRejection(retryError)) rethrow;
+        _log.warning('Drive rejected the re-authorized sign-in: $retryError');
+        await _dropRejectedAuth(retryClient);
+        throw _signInExpired(retryError);
+      }
     }
   }
+
+  /// Replaces [rejected] with a freshly authorized client, sharing one
+  /// re-auth among every caller rejected at the same time.
+  ///
+  /// The access token expires for all in-flight requests at once, so
+  /// concurrent rejections are the ordinary case, not a corner. Each running
+  /// its own drop-and-re-auth made the later one close the client the earlier
+  /// had just installed, failing its retry with "Client is already closed",
+  /// and evict that client's fresh token from the SDK cache.
+  Future<bool>? _reauthInFlight;
+
+  Future<bool> _reauthorize(http.Client? rejected) {
+    if (_replacedSince(rejected)) return Future.value(true);
+    return _reauthInFlight ??= () async {
+      await _dropRejectedAuth(rejected);
+      return _authenticator.attemptSilentAuth();
+    }().whenComplete(() => _reauthInFlight = null);
+  }
+
+  /// Drops the authenticator's client after Drive rejected [rejected],
+  /// unless another caller has already replaced it with a fresh one.
+  Future<void> _dropRejectedAuth(http.Client? rejected) async {
+    if (_replacedSince(rejected)) return;
+    await _authenticator.handleAuthFailure();
+    _driveApi = null;
+  }
+
+  /// Whether the client has changed since [rejected] was refused. A null
+  /// [rejected] means the caller never saw which client it used (one was
+  /// installed after it looked), so it counts as not replaced: assuming
+  /// otherwise skipped the refresh and retried on the same dead token.
+  bool _replacedSince(http.Client? rejected) {
+    final current = _authenticator.authClient;
+    return rejected != null && current != null && !identical(current, rejected);
+  }
+
+  static bool _isAuthRejection(Object e) =>
+      (e is drive.DetailedApiRequestError && e.status == 401) ||
+      _isRevokedGrant(e);
+
+  static CloudStorageException _signInExpired(Object cause) =>
+      CloudStorageException(
+        'Google Drive sign-in expired. Please sign in again.',
+        cause,
+      );
 
   /// True when [e] is Google's token endpoint refusing the refresh token
   /// itself (revoked, expired, or issued to another client). Any other

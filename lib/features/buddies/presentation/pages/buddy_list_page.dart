@@ -13,6 +13,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -68,6 +69,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'buddies',
+          rememberedSelectedId: ref.watch(rememberedBuddyIdProvider),
           appBarTitle: context.l10n.nav_buddies,
           appBarSubtitle: buddyListCountLabel(context, ref),
           tableContent: BuddyListContent(
@@ -185,7 +187,8 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return FocusTraversalGroup(
         child: MasterDetailScaffold(
-          sectionId: 'buddies',
+          sectionId: RecordListSection.buddies,
+          rememberedSelectedId: ref.watch(rememberedBuddyIdProvider),
           masterBuilder: (context, onItemSelected, selectedId) =>
               BuddyListContent(
                 onItemSelected: onItemSelected,

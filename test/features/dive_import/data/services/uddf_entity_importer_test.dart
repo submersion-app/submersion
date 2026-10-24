@@ -1639,6 +1639,8 @@ void main() {
       region: 'South Sinai',
       isShared: true,
       rating: 3.0,
+      entryMethods: [EntryMethod.shore, EntryMethod.boat],
+      exitMethods: [EntryMethod.ladder],
     );
 
     setUp(() {
@@ -1711,6 +1713,85 @@ void main() {
               as DiveSite;
       expect(site.city, 'Victoria');
       expect(site.island, 'Comino');
+    });
+
+    test('keeps entry and exit methods the payload omits (#2054)', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {'name': 'Blue Hole', 'uddfId': 'site-1'},
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.entryMethods, [EntryMethod.shore, EntryMethod.boat]);
+      expect(site.exitMethods, [EntryMethod.ladder]);
+    });
+
+    test('keeps methods when the payload names only unknown ones', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'entryMethod': 'jetpack',
+              'exitMethod': 'teleport',
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.entryMethods, [EntryMethod.shore, EntryMethod.boat]);
+      expect(site.exitMethods, [EntryMethod.ladder]);
+    });
+
+    test('replaces entry and exit methods the payload supplies', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'entryMethod': 'giantStride',
+              'exitMethod': 'platform',
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.entryMethods, [EntryMethod.giantStride]);
+      expect(site.exitMethods, [EntryMethod.platform]);
     });
 
     test('preserves existing fields the import payload omits', () async {

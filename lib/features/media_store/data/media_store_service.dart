@@ -3,6 +3,7 @@ import 'package:submersion/core/services/accounts/account_provider_adapter.dart'
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
@@ -25,9 +26,16 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 /// Builds the store adapter for [type], or null when the provider is not
 /// usable right now (missing config, no silent Google session, iCloud
 /// unavailable). Shared by the runtime provider and the connect flows.
+///
+/// [instanceFor] supplies the Google Drive provider, the only branch built
+/// over a provider instance; S3, Dropbox and iCloud ignore it. It defaults
+/// to the process-wide singletons and exists so a test can supply a
+/// provider with a fake session (the same seam as
+/// resolveHeadlessCloudProvider's).
 Future<MediaObjectStore?> buildMediaObjectStore(
   CloudProviderType type, {
   S3Config? s3Config,
+  CloudStorageProvider Function(CloudProviderType type)? instanceFor,
 }) async {
   switch (type) {
     case CloudProviderType.s3:
@@ -47,7 +55,9 @@ Future<MediaObjectStore?> buildMediaObjectStore(
       );
     case CloudProviderType.googledrive:
       final provider =
-          cloudProviderInstanceFor(CloudProviderType.googledrive)
+          (instanceFor ?? cloudProviderInstanceFor)(
+                CloudProviderType.googledrive,
+              )
               as GoogleDriveStorageProvider;
       // Probe once for "is there a session at all", then let the store
       // resolve the client per request: the authenticator closes and
@@ -56,6 +66,7 @@ Future<MediaObjectStore?> buildMediaObjectStore(
       if (await provider.mediaHttpClient() == null) return null;
       return GoogleDriveMediaObjectStore(
         clientSupplier: provider.mediaHttpClient,
+        onAuthRejected: provider.mediaAuthRejected,
       );
     case CloudProviderType.icloud:
       final availability = await ICloudNativeService.getAvailability();

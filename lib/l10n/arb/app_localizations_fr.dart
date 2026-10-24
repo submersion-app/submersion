@@ -12732,7 +12732,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_entryMethod_backRoll => 'Bascule arrière';
 
   @override
-  String get enum_entryMethod_boat => 'Mise à l\'eau depuis le bateau';
+  String get enum_entryMethod_boat => 'Bateau';
 
   @override
   String get enum_entryMethod_frontRoll => 'Bascule avant';
@@ -12756,7 +12756,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => 'Mise à l\'eau assise';
 
   @override
-  String get enum_entryMethod_shore => 'Mise à l\'eau du bord';
+  String get enum_entryMethod_shore => 'Bord';
 
   @override
   String get enum_equipmentStatus_active => 'Actif';

@@ -409,7 +409,8 @@ class DiveComputerHostApiImpl(
         // and holding one blocks Shearwater Cloud until the user unpairs
         // (issue #910). So is the Pelagic i330R family (Apeks DSX), whose
         // own access-code exchange the system pairing dialog pre-empts
-        // (issue #3546). BondPolicy holds both exemptions.
+        // (issue #3546), and Cressi, whose adapter did not complete a
+        // pairing in issue #422. BondPolicy holds every exemption.
         //
         // A bond that does not complete is not fatal. By this point the
         // link is connected and its services are discovered, and no other

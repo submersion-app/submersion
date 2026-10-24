@@ -81,6 +81,17 @@ class BondPolicyTest {
         assertTrue(BondPolicy.requiresProactiveBond("Apeks", "i330R"))
     }
 
+    // Cressi's Bluetooth adapter did not complete a pairing (issue #422): the
+    // proactive bond sat out its 30 s wait and the version read that
+    // followed failed, while Subsurface and every other backend, none of
+    // which bond, download the same computer.
+    @Test
+    fun cressiIsExemptFromProactiveBonding() {
+        assertFalse(BondPolicy.requiresProactiveBond("Cressi", "Cartesio"))
+        assertFalse(BondPolicy.requiresProactiveBond(" cressi ", "Donatello"))
+        assertFalse(BondPolicy.requiresProactiveBond("CRESSI", "Goa"))
+    }
+
     @Test
     fun otherVendorsStillRequireProactiveBonding() {
         assertTrue(BondPolicy.requiresProactiveBond("Oceanic", "Geo 4.0"))

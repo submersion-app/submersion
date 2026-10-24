@@ -34,6 +34,7 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_dive_lin
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 export 'package:submersion/features/dive_sites/data/repositories/site_links.dart'
     show SiteLinks, SiteUsage;
@@ -178,8 +179,8 @@ class SiteRepository {
                 mooringNumber: Value(site.mooringNumber),
                 parkingInfo: Value(site.parkingInfo),
                 altitude: Value(site.altitude),
-                entryMethod: Value(site.entryMethod?.name),
-                exitMethod: Value(site.exitMethod?.name),
+                entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+                exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                 isShared: Value(site.isShared),
                 sharedLibraryId: Value(site.sharedLibraryId),
                 createdAt: Value(now),
@@ -300,8 +301,8 @@ class SiteRepository {
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
         altitude: Value(site.altitude),
-        entryMethod: Value(site.entryMethod?.name),
-        exitMethod: Value(site.exitMethod?.name),
+        entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+        exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
         updatedAt: Value(now),
       );
@@ -1148,8 +1149,8 @@ class SiteRepository {
                   mooringNumber: Value(site.mooringNumber),
                   parkingInfo: Value(site.parkingInfo),
                   altitude: Value(site.altitude),
-                  entryMethod: Value(site.entryMethod?.name),
-                  exitMethod: Value(site.exitMethod?.name),
+                  entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+                  exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                   isShared: Value(site.isShared),
                   createdAt: Value(ts?.createdAt ?? now),
                   updatedAt: Value(ts?.updatedAt ?? now),
@@ -1526,8 +1527,8 @@ class SiteRepository {
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
         altitude: Value(site.altitude),
-        entryMethod: Value(site.entryMethod?.name),
-        exitMethod: Value(site.exitMethod?.name),
+        entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+        exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
         sharedLibraryId: Value(site.sharedLibraryId),
         updatedAt: Value(now),

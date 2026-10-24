@@ -102,7 +102,7 @@ void main() {
         expect(blue.location!.longitude, goldenSite.location!.longitude);
         near(blue.maxDepth, goldenSite.maxDepth, 0.06, 'maxDepth');
         expect(blue.waterType, goldenSite.waterType);
-        expect(blue.entryMethod, goldenSite.entryMethod);
+        expect(blue.entryMethods, goldenSite.entryMethods);
         expect(blue.rating, goldenSite.rating);
         expect(blue.description, goldenSite.description);
         expect(blue.notes, goldenSite.notes.replaceAll('\n', ' '));
@@ -117,7 +117,7 @@ void main() {
         expect(blue.accessNotes, goldenSite.accessNotes);
         expect(blue.mooringNumber, goldenSite.mooringNumber);
         expect(blue.parkingInfo, goldenSite.parkingInfo);
-        expect(blue.exitMethod, goldenSite.exitMethod);
+        expect(blue.exitMethods, goldenSite.exitMethods);
         expect(sites.map((s) => s.name), contains('House Reef'));
       });
 

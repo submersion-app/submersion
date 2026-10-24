@@ -14,7 +14,7 @@ void main() {
   test('entryType extracts the real entry method column', () {
     // The enum member keeps its historical name so saved table layouts that
     // reference "entryType" keep loading; only what it reads changed.
-    const site = DiveSite(id: 's', name: 'S', entryMethod: EntryMethod.boat);
+    const site = DiveSite(id: 's', name: 'S', entryMethods: [EntryMethod.boat]);
     expect(
       adapter.extractValue(SiteField.entryType, wrap(site)),
       EntryMethod.boat.displayName,
@@ -22,7 +22,11 @@ void main() {
   });
 
   test('exitMethod extracts the real exit method column', () {
-    const site = DiveSite(id: 's', name: 'S', exitMethod: EntryMethod.ladder);
+    const site = DiveSite(
+      id: 's',
+      name: 'S',
+      exitMethods: [EntryMethod.ladder],
+    );
     expect(
       adapter.extractValue(SiteField.exitMethod, wrap(site)),
       EntryMethod.ladder.displayName,
@@ -40,6 +44,23 @@ void main() {
     expect(
       adapter.extractValue(SiteField.waterType, wrap(site)),
       WaterType.salt.displayName,
+    );
+  });
+
+  test('several methods are listed in order (#2054)', () {
+    const site = DiveSite(
+      id: 's',
+      name: 'S',
+      entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+      exitMethods: [EntryMethod.ladder, EntryMethod.platform],
+    );
+    expect(
+      adapter.extractValue(SiteField.entryType, wrap(site)),
+      'Back Roll, Giant Stride',
+    );
+    expect(
+      adapter.extractValue(SiteField.exitMethod, wrap(site)),
+      'Ladder, Platform',
     );
   });
 }

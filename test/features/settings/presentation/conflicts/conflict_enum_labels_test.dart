@@ -192,6 +192,15 @@ void main() {
     expect(entryMethodLabeler(l10n, ''), isNull);
   });
 
+  test('labels a site list of entry methods (#2054)', () {
+    expect(
+      entryMethodLabeler(l10n, 'backRoll,giantStride'),
+      '${l10n.enum_entryMethod_backRoll}, ${l10n.enum_entryMethod_giantStride}',
+    );
+    // A list naming a method this build does not know prints as stored.
+    expect(entryMethodLabeler(l10n, 'backRoll,jetpack'), isNull);
+  });
+
   test('storedAs maps an enum stored by code rather than by name', () {
     final labeler = enumLabeler<_Mode>(
       _Mode.values,

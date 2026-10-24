@@ -11,6 +11,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_csv_table.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// The names in a joined cell, or null when it carries none.
@@ -128,11 +129,7 @@ class SubmersionSitesCsvParser implements ImportParser {
             (v) => v.displayName,
             table.text(row, 'Water Type'),
           )?.name,
-          'entryMethod': enumByDisplayName(
-            EntryMethod.values,
-            (v) => v.displayName,
-            table.text(row, 'Entry Type'),
-          )?.name,
+          'entryMethod': _methods(table.text(row, 'Entry Type')),
           'rating': table.number(row, 'Rating'),
           'description': table.text(row, 'Description'),
           'notes': table.text(row, 'Notes'),
@@ -149,11 +146,7 @@ class SubmersionSitesCsvParser implements ImportParser {
           'accessNotes': table.text(row, 'Access Notes'),
           'mooringNumber': table.text(row, 'Mooring Number'),
           'parkingInfo': table.text(row, 'Parking Info'),
-          'exitMethod': enumByDisplayName(
-            EntryMethod.values,
-            (v) => v.displayName,
-            table.text(row, 'Exit Type'),
-          )?.name,
+          'exitMethod': _methods(table.text(row, 'Exit Type')),
           // Site features (issue #2200) ride in one cell, decoded into the
           // same maps the UDDF parser produces.
           // Site types and tags (issue #2201) travel as names, resolved on
@@ -170,4 +163,19 @@ class SubmersionSitesCsvParser implements ImportParser {
       warnings: warnings,
     );
   }
+}
+
+/// A site's entry or exit types: one cell holding a '; ' list of display
+/// names (#2054), returned as the stored comma-joined enum names. A single
+/// name reads as before; an item this build does not know is dropped.
+String? _methods(String? cell) {
+  if (cell == null) return null;
+  return encodeEntryMethods([
+    for (final item in splitCsvList(cell))
+      ?enumByDisplayName(
+        EntryMethod.values,
+        (v) => v.displayName,
+        unescapeCsvListItem(item).trim(),
+      ),
+  ]);
 }

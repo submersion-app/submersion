@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
+import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
@@ -1419,7 +1420,7 @@ class InsightsRepository {
         FROM (
           SELECT COALESCE(
             NULLIF(dives.entry_method, ''),
-            NULLIF(dive_sites.entry_method, '')
+            ${singleSiteEntryMethodSql('dive_sites.entry_method')}
           ) AS entry_method
           FROM dives
           LEFT JOIN dive_sites ON dive_sites.id = dives.site_id

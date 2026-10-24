@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
@@ -718,9 +720,9 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.difficulty:
         return site.difficulty;
       case SiteField.entryType:
-        return site.entryMethod?.displayName;
+        return _methodNames(site.entryMethods);
       case SiteField.exitMethod:
-        return site.exitMethod?.displayName;
+        return _methodNames(site.exitMethods);
       case SiteField.bestSeason:
         // No backing column; retained for saved-layout compatibility.
         return null;
@@ -833,3 +835,9 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
     return SiteField.values.firstWhere((e) => e.name == name);
   }
 }
+
+/// A site's entry or exit methods for a table cell, in the export vocabulary
+/// ([EntryMethod.displayName]); null when there are none.
+String? _methodNames(List<EntryMethod> methods) => methods.isEmpty
+    ? null
+    : joinEntryMethodNames(methods, (m) => m.displayName);

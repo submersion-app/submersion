@@ -12424,7 +12424,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_entryMethod_backRoll => 'גלגול אחורה';
 
   @override
-  String get enum_entryMethod_boat => 'כניסה מסירה';
+  String get enum_entryMethod_boat => 'סירה';
 
   @override
   String get enum_entryMethod_frontRoll => 'גלגול קדימה';
@@ -12448,7 +12448,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => 'כניסה בישיבה';
 
   @override
-  String get enum_entryMethod_shore => 'כניסה מהחוף';
+  String get enum_entryMethod_shore => 'חוף';
 
   @override
   String get enum_equipmentStatus_active => 'פעיל';

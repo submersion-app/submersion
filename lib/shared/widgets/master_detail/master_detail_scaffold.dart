@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_route_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Width of the master (list) pane in a split view.
@@ -180,6 +182,17 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
   /// one scaffold's selection from being read by another.
   final String queryParamKey;
 
+  /// The record to reopen in the detail pane when the list is built without
+  /// one in its address: the list's last-opened record, resolved with
+  /// [rememberedListedId] against what the list currently shows (#3301).
+  ///
+  /// Loading makes the pane wait for the list; data(null) leaves it on the
+  /// summary. Null (the default) turns restoring off, for screens that are
+  /// not lists of records. Only a wide window restores, and never a pushed
+  /// list, a map view, or a pane the diver emptied on that same record (see
+  /// [closedPaneRecordProvider]).
+  final AsyncValue<String?>? rememberedSelectedId;
+
   const MasterDetailScaffold({
     super.key,
     required this.sectionId,
@@ -196,6 +209,7 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
     this.mobileCreateRoute,
     this.mapBuilder,
     this.queryParamKey = 'selected',
+    this.rememberedSelectedId,
   });
 
   @override
@@ -209,6 +223,11 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// Mutated on scroll without setState (it must not trigger a rebuild); read
   /// when a new detail is built. See [DetailScrollRetainer].
   double _detailScrollOffset = 0;
+
+  /// Whether this mount has decided about reopening
+  /// [MasterDetailScaffold.rememberedSelectedId]. Decided once: a record the
+  /// diver opens, or a list that resolves later, never reopens anything after.
+  bool _restoreSettled = false;
 
   /// The query this scaffold last read at its own address, under a
   /// [MasterDetailRouteScope]; see [_query].
@@ -271,6 +290,14 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
           context.goInPlace('$currentPath?$key=$itemId');
         }
       } else {
+        // An emptied pane stays empty when the list is returned to, while
+        // the list's remembered record is still the one it showed (#3301).
+        final shownId = _selectedId;
+        if (shownId != null) {
+          ref
+              .read(closedPaneRecordProvider.notifier)
+              .update((closed) => {...closed, widget.sectionId: shownId});
+        }
         // Clear selection, but preserve map view state
         if (_isMapView) {
           context.goInPlace('$currentPath?view=map');
@@ -336,11 +363,77 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     }
   }
 
+  /// Reopens the list's remembered record when this list was built without a
+  /// selection in its address, as returning to it from another section does
+  /// (#3301). The URL stays the one source of what the pane shows: the
+  /// record goes back into it rather than into a second selection state.
+  void _restoreRememberedSelection({
+    required bool isDesktop,
+    required String? selectedId,
+  }) {
+    if (_restoreSettled) return;
+    final remembered = widget.rememberedSelectedId;
+    if (remembered == null ||
+        !isDesktop ||
+        selectedId != null ||
+        _query['mode'] != null ||
+        _isMapView ||
+        isImperativelyPushed(context)) {
+      _restoreSettled = true;
+      return;
+    }
+    // Built under a page of its own, or as a hidden training tab: decided
+    // once the diver comes back to it, which rebuilds this with the route.
+    if (!_isShowing) return;
+    // The list has not loaded yet; the next build checks again.
+    if (!remembered.hasValue) return;
+    _restoreSettled = true;
+    final id = remembered.value;
+    if (id == null) return;
+    if (ref.read(closedPaneRecordProvider)[widget.sectionId] == id) return;
+    final path = _ownPath;
+    final key = widget.queryParamKey;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _selectedId != null) return;
+      context.goInPlace('$path?$key=$id');
+    });
+  }
+
+  /// Whether this list is the page on screen: not a list built underneath a
+  /// page of its own (a record's page reached with go()), whose address a
+  /// restore would rewrite, and not a training tab the diver switched away
+  /// from.
+  bool get _isShowing {
+    final state = GoRouterState.of(context);
+    final scopePath = MasterDetailRouteScope.pathOf(context);
+    return state.uri.path == (scopePath ?? state.matchedLocation);
+  }
+
+  /// Ends the wait for a list that is still loading once the diver scrolls
+  /// it: the pane must not open, nor the list move, after they took over.
+  bool _onMasterScroll(UserScrollNotification notification) {
+    if (notification.direction != ScrollDirection.idle) _restoreSettled = true;
+    return false;
+  }
+
+  /// A record now shows in the pane, so it is no longer one the diver closed.
+  void _forgetClosedPane({required bool isDesktop, required String? shownId}) {
+    if (!isDesktop || shownId == null) return;
+    if (!ref.read(closedPaneRecordProvider).containsKey(widget.sectionId)) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) forgetClosedPane(ref, widget.sectionId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
     final selectedId = _selectedId;
     final mode = _mode;
+    _restoreRememberedSelection(isDesktop: isDesktop, selectedId: selectedId);
+    _forgetClosedPane(isDesktop: isDesktop, shownId: selectedId);
 
     // While an edit/create form is actually shown in the detail pane, keep
     // keyboard Tab traversal confined to that pane. Without this, Tab crosses
@@ -400,12 +493,15 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
                         : null,
                     // The list's own create buttons hide for the same span
                     // (issue #3192).
-                    child: MasterDetailFormScope(
-                      isFormOpen: isEditingDetail,
-                      child: widget.masterBuilder(
-                        context,
-                        _onItemSelected,
-                        selectedId,
+                    child: NotificationListener<UserScrollNotification>(
+                      onNotification: _onMasterScroll,
+                      child: MasterDetailFormScope(
+                        isFormOpen: isEditingDetail,
+                        child: widget.masterBuilder(
+                          context,
+                          _onItemSelected,
+                          selectedId,
+                        ),
                       ),
                     ),
                   ),

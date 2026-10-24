@@ -24,12 +24,20 @@ class GoogleDriveMediaObjectStore
   /// client goes dead at the first token refresh and every later transfer
   /// throws "Client is already closed". Null means no Google session is
   /// available right now.
+  ///
+  /// [onAuthRejected] is told which client Drive answered 401 to, so its
+  /// owner can refresh the token; it answers whether a fresh client is now
+  /// available, and the request is then retried once. Without it an expired
+  /// token failed every transfer as an auth error until something else
+  /// replaced the client (#3602).
   GoogleDriveMediaObjectStore({
     required Future<http.Client?> Function() clientSupplier,
+    Future<bool> Function(http.Client rejected)? onAuthRejected,
     this.folderName = 'submersion-media',
     this.chunkSizeBytes = 8 * 1024 * 1024,
     String apiBase = 'https://www.googleapis.com',
   }) : _clientSupplier = clientSupplier,
+       _onAuthRejected = onAuthRejected,
        _apiBase = apiBase;
 
   /// For tests and any caller that owns the client's lifetime outright.
@@ -49,6 +57,7 @@ class GoogleDriveMediaObjectStore
        );
 
   final Future<http.Client?> Function() _clientSupplier;
+  final Future<bool> Function(http.Client rejected)? _onAuthRejected;
   final String folderName;
   final int chunkSizeBytes;
   final String _apiBase;
@@ -422,6 +431,34 @@ class GoogleDriveMediaObjectStore
 
   Future<http.Response> _send(http.Request request) async {
     final client = await _resolveClient();
+    final response = await _sendWith(client, request);
+    final onAuthRejected = _onAuthRejected;
+    if (response.statusCode != 401 || onAuthRejected == null) return response;
+    final bool refreshed;
+    try {
+      refreshed = await onAuthRejected(client);
+    } on Exception catch (e) {
+      // Same treatment as a supplier that fails to produce a client: the
+      // refresh could not run right now, which says nothing about the grant.
+      throw MediaStoreException(
+        'Could not refresh the Google Drive sign-in',
+        kind: MediaStoreErrorKind.transient,
+        cause: e,
+      );
+    }
+    if (!refreshed) return response;
+    // A sent request cannot be sent again, so the retry is a copy. Every
+    // request here carries its whole body in memory, so nothing is lost.
+    final retry = http.Request(request.method, request.url)
+      ..headers.addAll(request.headers)
+      ..bodyBytes = request.bodyBytes;
+    return _sendWith(await _resolveClient(), retry);
+  }
+
+  Future<http.Response> _sendWith(
+    http.Client client,
+    http.Request request,
+  ) async {
     try {
       return await http.Response.fromStream(await client.send(request));
     } on Exception catch (e) {
@@ -473,11 +510,21 @@ class GoogleDriveMediaObjectStore
       kind = MediaStoreErrorKind.fatal;
     }
     final reason = _errorReason(response.body);
-    return MediaStoreException(
-      'Drive $op $subject failed (HTTP $status)'
-      '${reason != null ? ': $reason' : ''}',
-      kind: kind,
-    );
+    final detail =
+        'Drive $op $subject failed (HTTP $status)'
+        '${reason != null ? ': $reason' : ''}';
+    if (status == 401) {
+      // A 401 reaching here has already outlived the one refresh [_send]
+      // allows, so the sign-in itself is gone. The transfer queue shows the
+      // message as is, and an HTTP status tells the diver nothing about how
+      // to recover; the detail stays on the cause for the log.
+      return MediaStoreException(
+        'Google Drive sign-in expired. Please sign in again.',
+        kind: kind,
+        cause: detail,
+      );
+    }
+    return MediaStoreException(detail, kind: kind);
   }
 
   /// Google's own explanation for the failure, pulled from the `{"error":
