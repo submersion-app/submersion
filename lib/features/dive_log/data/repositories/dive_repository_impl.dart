@@ -4131,6 +4131,7 @@ class DiveRepository {
             [],
         rating: center.rating,
         notes: center.notes,
+        isPermanentlyClosed: center.isPermanentlyClosed,
         createdAt: DateTime.fromMillisecondsSinceEpoch(center.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(center.updatedAt),
       );
@@ -4564,6 +4565,7 @@ class DiveRepository {
               [],
           rating: centerRow.rating,
           notes: centerRow.notes,
+          isPermanentlyClosed: centerRow.isPermanentlyClosed,
           createdAt: DateTime.fromMillisecondsSinceEpoch(centerRow.createdAt),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(centerRow.updatedAt),
         );

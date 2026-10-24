@@ -554,5 +554,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertMediaAndDocumentTagSchema();
     }
     if (from < 309) await reportProgress();
+
+    // v310: dive_centers.is_permanently_closed (issue #3379). Column only, no
+    // backfill: every existing center stays open. Re-asserted in beforeOpen
+    // through _assertDiveCenterClosedColumn.
+    if (from < 310) {
+      await _assertDiveCenterClosedColumn();
+    }
+    if (from < 310) await reportProgress();
   }
 }

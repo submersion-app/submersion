@@ -290,7 +290,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 309;
+  static const int currentSchemaVersion = 310;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1387,6 +1387,10 @@ class AppDatabase extends _$AppDatabase {
     // media_tags and document_tags junctions with their unique indexes.
     // Additive only, so the compatibility floor stays.
     309,
+    // v310: dive_centers.is_permanently_closed (issue #3379). Additive synced
+    // column, no backfill: an older peer ignores the field, so the floor
+    // stays.
+    310,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

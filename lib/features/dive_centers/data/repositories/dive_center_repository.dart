@@ -158,6 +158,7 @@ class DiveCenterRepository {
               notes: Value(center.notes),
               fillOpensAt: Value(center.fillOpensAt),
               fillClosesAt: Value(center.fillClosesAt),
+              isPermanentlyClosed: Value(center.isPermanentlyClosed),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -280,6 +281,7 @@ class DiveCenterRepository {
           notes: Value(center.notes),
           fillOpensAt: Value(center.fillOpensAt),
           fillClosesAt: Value(center.fillClosesAt),
+          isPermanentlyClosed: Value(center.isPermanentlyClosed),
           updatedAt: Value(now),
         ),
       );
@@ -440,6 +442,7 @@ class DiveCenterRepository {
       notes: row.notes,
       fillOpensAt: row.fillOpensAt,
       fillClosesAt: row.fillClosesAt,
+      isPermanentlyClosed: row.isPermanentlyClosed,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -464,6 +467,8 @@ class DiveCenterRepository {
       notes: (row.data['notes'] as String?) ?? '',
       fillOpensAt: row.data['fill_opens_at'] as int?,
       fillClosesAt: row.data['fill_closes_at'] as int?,
+      isPermanentlyClosed:
+          (row.data['is_permanently_closed'] as int? ?? 0) == 1,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
       ),
