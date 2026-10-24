@@ -2621,6 +2621,86 @@ class AppLocalizationsHu extends AppLocalizations {
       'A régebbi mentések automatikusan eltávolításra kerülnek';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'Az összes eszköz mentéseinek számolása';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Ki: ez az eszköz csak a saját mentéseit távolítja el';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return 'A felhőmappában lévő $count mentés $size helyet foglal';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolít $count mentést?',
+      one: 'Eltávolít $count mentést?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Az utolsó $keep mentés megtartása ezeket eltávolítja a felhőmappából (összesen $size).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rögzített mentés megmarad.',
+      one: '$count rögzített mentés megmarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentés eltávolítása',
+      one: '$count mentés eltávolítása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Ez az eszköz';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Másik eszköz';
+
+  @override
+  String get backup_retention_source_unknown => 'Ismeretlen eszköz';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Nem sikerült beolvasni a felhőbeli mentési mappát, ezért semmi sem változott.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentés eltávolítva a felhőmappából',
+      one: '$count mentés eltávolítva a felhőmappából',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'Előzmények';
 
   @override

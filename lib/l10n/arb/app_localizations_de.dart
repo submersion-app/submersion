@@ -2626,6 +2626,86 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ältere Sicherungen werden automatisch entfernt';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'Sicherungen aller Geräte zählen';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Aus: Dieses Gerät entfernt nur die Sicherungen, die es selbst erstellt hat';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisieren Sie zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '$count Sicherungen im Cloud-Ordner belegen $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen entfernen?',
+      one: '$count Sicherung entfernen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Wenn die letzten $keep Sicherungen behalten werden, werden diese aus dem Cloud-Ordner entfernt ($size insgesamt).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count angeheftete Sicherungen bleiben erhalten.',
+      one: '$count angeheftete Sicherung bleibt erhalten.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen entfernen',
+      one: '$count Sicherung entfernen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Dieses Gerät';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Anderes Gerät';
+
+  @override
+  String get backup_retention_source_unknown => 'Unbekanntes Gerät';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Der Cloud-Sicherungsordner konnte nicht gelesen werden, daher wurde nichts geändert.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen aus dem Cloud-Ordner entfernt',
+      one: '$count Sicherung aus dem Cloud-Ordner entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'Verlauf';
 
   @override

@@ -2630,6 +2630,86 @@ class AppLocalizationsEs extends AppLocalizations {
       'Las copias más antiguas se eliminan automáticamente';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'Contar las copias de todos los dispositivos';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Desactivado: este dispositivo solo elimina las copias que hizo';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'La carpeta en la nube conserva las últimas $count copias de seguridad de todos los dispositivos. Las copias ancladas se conservan. Si otros dispositivos también lo usan, gana el número más pequeño. Actualiza primero la app en todos los dispositivos para que se vean sus copias ancladas.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '$count copias en la carpeta en la nube ocupan $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Eliminar $count copias de seguridad?',
+      one: '¿Eliminar $count copia de seguridad?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Conservar las últimas $keep copias elimina estas de la carpeta en la nube ($size en total).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se conservan $count copias ancladas.',
+      one: 'Se conserva $count copia anclada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eliminar $count copias',
+      one: 'Eliminar $count copia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Este dispositivo';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Otro dispositivo';
+
+  @override
+  String get backup_retention_source_unknown => 'Dispositivo desconocido';
+
+  @override
+  String get backup_retention_listFailed =>
+      'No se pudo leer la carpeta de copias en la nube, así que no se cambió nada.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se eliminaron $count copias de la carpeta en la nube',
+      one: 'Se eliminó $count copia de la carpeta en la nube',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'Historial';
 
   @override

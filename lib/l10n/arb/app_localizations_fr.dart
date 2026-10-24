@@ -2636,6 +2636,86 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les anciennes sauvegardes sont supprimées automatiquement';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'Compter les sauvegardes de tous les appareils';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Désactivé : cet appareil ne supprime que ses propres sauvegardes';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '$count sauvegardes du dossier cloud occupent $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer $count sauvegardes ?',
+      one: 'Supprimer $count sauvegarde ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Conserver les $keep dernières sauvegardes supprime celles-ci du dossier cloud ($size au total).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sauvegardes épinglées sont conservées.',
+      one: '$count sauvegarde épinglée est conservée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer $count sauvegardes',
+      one: 'Supprimer $count sauvegarde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Cet appareil';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Autre appareil';
+
+  @override
+  String get backup_retention_source_unknown => 'Appareil inconnu';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Impossible de lire le dossier des sauvegardes cloud, rien n\'a été modifié.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sauvegardes supprimées du dossier cloud',
+      one: '$count sauvegarde supprimée du dossier cloud',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'Historique';
 
   @override

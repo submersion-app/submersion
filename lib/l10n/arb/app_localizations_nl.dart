@@ -2615,6 +2615,86 @@ class AppLocalizationsNl extends AppLocalizations {
       'Oudere back-ups worden automatisch verwijderd';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'Back-ups van alle apparaten meetellen';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Uit: dit apparaat verwijdert alleen de back-ups die het zelf maakte';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '$count back-ups in de cloudmap gebruiken $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups verwijderen?',
+      one: '$count back-up verwijderen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Door de laatste $keep back-ups te bewaren worden deze uit de cloudmap verwijderd ($size in totaal).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vastgemaakte back-ups blijven bewaard.',
+      one: '$count vastgemaakte back-up blijft bewaard.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups verwijderen',
+      one: '$count back-up verwijderen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Dit apparaat';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_retention_source_unknown => 'Onbekend apparaat';
+
+  @override
+  String get backup_retention_listFailed =>
+      'De back-upmap in de cloud kon niet worden gelezen, dus er is niets gewijzigd.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups uit de cloudmap verwijderd',
+      one: '$count back-up uit de cloudmap verwijderd',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'Geschiedenis';
 
   @override

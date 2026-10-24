@@ -2629,6 +2629,86 @@ class AppLocalizationsIt extends AppLocalizations {
       'I backup più vecchi vengono rimossi automaticamente';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'Conta i backup di tutti i dispositivi';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Disattivato: questo dispositivo rimuove solo i backup che ha creato';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'La cartella cloud conserva gli ultimi $count backup di tutti i dispositivi. I backup fissati vengono conservati. Se anche altri dispositivi usano questa opzione, vale il numero più piccolo. Aggiorna prima l\'app su tutti i dispositivi, così i loro backup fissati vengono riconosciuti.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '$count backup nella cartella cloud occupano $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimuovere $count backup?',
+      one: 'Rimuovere $count backup?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Conservare gli ultimi $keep backup rimuove questi dalla cartella cloud ($size in totale).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backup fissati vengono conservati.',
+      one: '$count backup fissato viene conservato.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimuovi $count backup',
+      one: 'Rimuovi $count backup',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Questo dispositivo';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Altro dispositivo';
+
+  @override
+  String get backup_retention_source_unknown => 'Dispositivo sconosciuto';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Impossibile leggere la cartella dei backup nel cloud, quindi non è stato modificato nulla.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimossi $count backup dalla cartella cloud',
+      one: 'Rimosso $count backup dalla cartella cloud',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'Cronologia';
 
   @override

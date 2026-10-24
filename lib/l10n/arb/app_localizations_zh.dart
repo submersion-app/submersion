@@ -2501,6 +2501,79 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_schedule_retention_subtitle => '旧备份将自动删除';
 
   @override
+  String get backup_retention_allDevices_title => '统计所有设备的备份';
+
+  @override
+  String get backup_retention_allDevices_off => '关闭：此设备只删除自己创建的备份';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '云文件夹中的 $count 个备份占用 $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除 $count 个备份？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return '保留最近 $keep 个备份将从云文件夹中删除以下备份（共 $size）。';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '保留 $count 个已置顶的备份。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除 $count 个备份',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => '此设备';
+
+  @override
+  String get backup_retention_source_anotherDevice => '其他设备';
+
+  @override
+  String get backup_retention_source_unknown => '未知设备';
+
+  @override
+  String get backup_retention_listFailed => '无法读取云备份文件夹，因此未做任何更改。';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从云文件夹删除 $count 个备份',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => '历史记录';
 
   @override

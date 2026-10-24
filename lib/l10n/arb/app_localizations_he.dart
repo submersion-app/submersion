@@ -2589,6 +2589,85 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבויים ישנים יותר מוסרים אוטומטית';
 
   @override
+  String get backup_retention_allDevices_title => 'ספירת גיבויים מכל המכשירים';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'כבוי: מכשיר זה מסיר רק את הגיבויים שהוא יצר';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '$count גיבויים בתיקיית הענן תופסים $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'להסיר $count גיבויים?',
+      one: 'להסיר גיבוי אחד?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'שמירת $keep הגיבויים האחרונים מסירה את אלה מתיקיית הענן ($size בסך הכול).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count גיבויים מוצמדים נשמרים.',
+      one: 'גיבוי מוצמד אחד נשמר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסר $count גיבויים',
+      one: 'הסר גיבוי אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'מכשיר זה';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'מכשיר אחר';
+
+  @override
+  String get backup_retention_source_unknown => 'מכשיר לא ידוע';
+
+  @override
+  String get backup_retention_listFailed =>
+      'לא ניתן לקרוא את תיקיית הגיבויים בענן, ולכן לא שונה דבר.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוסרו $count גיבויים מתיקיית הענן',
+      one: 'הוסר גיבוי אחד מתיקיית הענן',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'היסטוריה';
 
   @override

@@ -2681,6 +2681,102 @@ class AppLocalizationsAr extends AppLocalizations {
       'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'احتساب النسخ الاحتياطية من كل الأجهزة';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'متوقف: يزيل هذا الجهاز النسخ الاحتياطية التي أنشأها فقط';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return 'النسخ الاحتياطية في مجلد السحابة: $count، وتشغل $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة $count نسخة احتياطية؟',
+      many: 'إزالة $count نسخة احتياطية؟',
+      few: 'إزالة $count نسخ احتياطية؟',
+      two: 'إزالة نسختين احتياطيتين؟',
+      one: 'إزالة نسخة احتياطية واحدة؟',
+      zero: 'إزالة $count نسخة احتياطية؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'الاحتفاظ بأحدث النسخ وعددها $keep يزيل هذه النسخ من مجلد السحابة (المجموع $size).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تُحفظ $count نسخة مثبتة.',
+      many: 'تُحفظ $count نسخة مثبتة.',
+      few: 'تُحفظ $count نسخ مثبتة.',
+      two: 'تُحفظ نسختان مثبتتان.',
+      one: 'تُحفظ نسخة مثبتة واحدة.',
+      zero: 'لا توجد نسخ مثبتة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة $count نسخة',
+      many: 'إزالة $count نسخة',
+      few: 'إزالة $count نسخ',
+      two: 'إزالة نسختين',
+      one: 'إزالة نسخة واحدة',
+      zero: 'إزالة $count نسخة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'هذا الجهاز';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'جهاز آخر';
+
+  @override
+  String get backup_retention_source_unknown => 'جهاز غير معروف';
+
+  @override
+  String get backup_retention_listFailed =>
+      'تعذرت قراءة مجلد النسخ الاحتياطية في السحابة، لذا لم يتغير شيء.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُزيلت $count نسخة من مجلد السحابة',
+      many: 'أُزيلت $count نسخة من مجلد السحابة',
+      few: 'أُزيلت $count نسخ من مجلد السحابة',
+      two: 'أُزيلت نسختان من مجلد السحابة',
+      one: 'أُزيلت نسخة واحدة من مجلد السحابة',
+      zero: 'لم تُزل أي نسخة من مجلد السحابة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'السجل';
 
   @override

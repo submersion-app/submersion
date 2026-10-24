@@ -2627,6 +2627,86 @@ class AppLocalizationsPt extends AppLocalizations {
       'Backups mais antigos são removidos automaticamente';
 
   @override
+  String get backup_retention_allDevices_title =>
+      'Contar backups de todos os dispositivos';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Desativado: este dispositivo remove apenas os backups que criou';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    return '$count backups na pasta na nuvem ocupam $size';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count backups?',
+      one: 'Remover $count backup?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Manter os últimos $keep backups remove estes da pasta na nuvem ($size no total).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backups fixados são mantidos.',
+      one: '$count backup fixado é mantido.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count backups',
+      one: 'Remover $count backup',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Este dispositivo';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Outro dispositivo';
+
+  @override
+  String get backup_retention_source_unknown => 'Dispositivo desconhecido';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Não foi possível ler a pasta de backups na nuvem, por isso nada foi alterado.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backups removidos da pasta na nuvem',
+      one: '$count backup removido da pasta na nuvem',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_section_history => 'Histórico';
 
   @override
