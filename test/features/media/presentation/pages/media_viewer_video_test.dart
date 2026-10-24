@@ -273,6 +273,26 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a load that finishes after the viewer closed releases its '
+      'player', (tester) async {
+    final platform = _FakeVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = platform;
+
+    // pump() leaves initialize() waiting on the platform's events.
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await tester.runAsync(() async {
+      await tester.pumpWidget(const SizedBox());
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+
+    expect(platform.created, 1);
+    expect(platform.disposed, 1);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a release that fails is logged, not left unhandled', (
     tester,
   ) async {
