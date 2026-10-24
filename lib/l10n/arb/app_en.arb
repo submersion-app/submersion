@@ -11209,10 +11209,66 @@
       }
     }
   },
-  "media_photoPicker_files_diveGroupTitle": "Dive {diveId}",
-  "@media_photoPicker_files_diveGroupTitle": {
+  "media_photoPicker_files_diveGroupNumberSite": "Dive #{number} · {site}",
+  "@media_photoPicker_files_diveGroupNumberSite": {
     "placeholders": {
-      "diveId": {
+      "number": {
+        "type": "int"
+      },
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupNumber": "Dive #{number}",
+  "@media_photoPicker_files_diveGroupNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupSite": "Dive · {site}",
+  "@media_photoPicker_files_diveGroupSite": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupUnnamed": "Dive",
+  "media_photoPicker_files_diveGroupWindow": "{date} · {start} – {end}",
+  "@media_photoPicker_files_diveGroupWindow": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupStart": "{date} · {start}",
+  "@media_photoPicker_files_diveGroupStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupSubtitle": "{when} · {files}",
+  "@media_photoPicker_files_diveGroupSubtitle": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "files": {
         "type": "String"
       }
     }

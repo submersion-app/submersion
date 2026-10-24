@@ -29805,11 +29805,51 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 item} other{{count} items}}'**
   String media_photoPicker_files_itemCount(int count);
 
-  /// No description provided for @media_photoPicker_files_diveGroupTitle.
+  /// No description provided for @media_photoPicker_files_diveGroupNumberSite.
   ///
   /// In en, this message translates to:
-  /// **'Dive {diveId}'**
-  String media_photoPicker_files_diveGroupTitle(String diveId);
+  /// **'Dive #{number} · {site}'**
+  String media_photoPicker_files_diveGroupNumberSite(int number, String site);
+
+  /// No description provided for @media_photoPicker_files_diveGroupNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String media_photoPicker_files_diveGroupNumber(int number);
+
+  /// No description provided for @media_photoPicker_files_diveGroupSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive · {site}'**
+  String media_photoPicker_files_diveGroupSite(String site);
+
+  /// No description provided for @media_photoPicker_files_diveGroupUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get media_photoPicker_files_diveGroupUnnamed;
+
+  /// No description provided for @media_photoPicker_files_diveGroupWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {start} – {end}'**
+  String media_photoPicker_files_diveGroupWindow(
+    String date,
+    String start,
+    String end,
+  );
+
+  /// No description provided for @media_photoPicker_files_diveGroupStart.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {start}'**
+  String media_photoPicker_files_diveGroupStart(String date, String start);
+
+  /// No description provided for @media_photoPicker_files_diveGroupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{when} · {files}'**
+  String media_photoPicker_files_diveGroupSubtitle(String when, String files);
 
   /// No description provided for @media_photoPicker_files_groupCount.
   ///
