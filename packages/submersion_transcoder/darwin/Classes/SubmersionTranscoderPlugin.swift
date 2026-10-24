@@ -5,6 +5,27 @@ import Flutter
 import FlutterMacOS
 #endif
 
+#if os(iOS)
+/// One stretch of extra background time, ended exactly once: by the encode
+/// finishing or by iOS running out of time. Used on the main thread only.
+private final class BackgroundTask {
+  private var id = UIBackgroundTaskIdentifier.invalid
+
+  func begin(onExpiry: @escaping () -> Void) {
+    id = UIApplication.shared.beginBackgroundTask { [weak self] in
+      onExpiry()
+      self?.end()
+    }
+  }
+
+  func end() {
+    guard id != .invalid else { return }
+    UIApplication.shared.endBackgroundTask(id)
+    id = .invalid
+  }
+}
+#endif
+
 public class SubmersionTranscoderPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   private var progressSink: FlutterEventSink?
   // Colour encodes in flight, by progressId, for cancelEncode.
@@ -107,11 +128,10 @@ public class SubmersionTranscoderPlugin: NSObject, FlutterPlugin, FlutterStreamH
       cancelLock.unlock()
       #if os(iOS)
       // iOS stops video encoding soon after the app leaves the screen; ask for
-      // the extra time, and stop cleanly when it runs out.
-      var backgroundTask = UIBackgroundTaskIdentifier.invalid
-      backgroundTask = UIApplication.shared.beginBackgroundTask {
-        flag.set()
-      }
+      // the extra time, and stop cleanly when it runs out. The expiration
+      // handler must end the task itself, or iOS terminates the app.
+      let background = BackgroundTask()
+      background.begin { flag.set() }
       #endif
       DispatchQueue.global(qos: .userInitiated).async { [weak self] in
         var failure: FlutterError?
@@ -138,9 +158,7 @@ public class SubmersionTranscoderPlugin: NSObject, FlutterPlugin, FlutterStreamH
           self?.cancelFlags[progressId] = nil
           self?.cancelLock.unlock()
           #if os(iOS)
-          if backgroundTask != .invalid {
-            UIApplication.shared.endBackgroundTask(backgroundTask)
-          }
+          background.end()
           #endif
           result(failure)
         }

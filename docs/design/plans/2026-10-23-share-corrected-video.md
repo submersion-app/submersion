@@ -59,8 +59,8 @@ offset; offsets on the 0-255 scale), and the source transfer:
   4. Matrix as in sdr, without the clamp.
   5. Inverse of 3, BT.709 to BT.2020, inverse of 1, clamp to 0..1.
 
-Timeline interpolation at presentation time `t` (ms, measured from the first
-video sample's presentation time): before the first key, the first key;
+Timeline interpolation at presentation time `t` (ms, the player's position
+at that frame; corrected during the build, see Task 8's ruling): before the first key, the first key;
 after the last, the last; otherwise elementwise lerp of the two keys around
 `t`.
 
@@ -69,8 +69,8 @@ after the last, the last; otherwise elementwise lerp of the two keys around
 1. Portrait/rotated phone clips: copy keeps the rotation, not stretched or
    turned. (Tasks 8-10: rotated input asserted.)
 2. Clips whose first sample is not at time 0 (iPhone edit lists): the
-   timeline is read relative to the first video sample. (Task 8: input with
-   a start offset.)
+   timeline is read at presentation time, as the player's position reads
+   it. (Task 8: input with a start offset.)
 3. Clips with no duration or shorter than one step: one key, still shared
    corrected. (Task 4 tests.)
 4. Encode failing part-way (disk full, codec error): failure dialog, no
@@ -311,7 +311,7 @@ Read autoDispose providers with `ref.listenManual(provider.future, (_, _) {})`, 
 - Consumes: channel contract (Task 2), colour formula.
 - Produces: `ColorEncoder.encode(source: String, output: String, keys: [(timeMs: Int, matrix: [Float])], onProgress: (Double) -> Void, isCancelled: () -> Bool) throws` with errors mapped to `cancelled` / `unsupported` / `transcode_failed`.
 
-Approach: `AVAssetReader` video output in a 16-bit float RGBA format for 10-bit/HDR sources and BGRA for 8-bit SDR; detect transfer from the track's format description (`kCVImageBufferTransferFunction_ITU_R_2100_HLG` / `SMPTE_ST_2084_PQ`, else sdr); apply the formula on the GPU (Core Image custom color kernel or Metal compute) with colour management off (`CIImage` colorSpace `NSNull`, context working space `NSNull`); `AVAssetWriter(fileType: .mp4)` with codec by the Global Constraints, `AVVideoColorPropertiesKey` copied, Main 10 profile for 10-bit, `transform` copied, bitrate from the track's `estimatedDataRate` (floor 4 Mbps); every audio track passthrough (`outputSettings: nil`, `sourceFormatHint`); `writer.metadata = asset.metadata`; times relative to the first video sample; iOS `beginBackgroundTask` around the encode, expiry sets cancelled; `isCancelled` checked per frame; `.tmp` then rename; `unsupported` when `canAdd`/`startWriting` refuses the codec/size/profile.
+Approach: `AVAssetReader` video output in a 16-bit float RGBA format for 10-bit/HDR sources and BGRA for 8-bit SDR; detect transfer from the track's format description (`kCVImageBufferTransferFunction_ITU_R_2100_HLG` / `SMPTE_ST_2084_PQ`, else sdr); apply the formula on the GPU (Core Image custom color kernel or Metal compute) with colour management off (`CIImage` colorSpace `NSNull`, context working space `NSNull`); `AVAssetWriter(fileType: .mp4)` with codec by the Global Constraints, `AVVideoColorPropertiesKey` copied, Main 10 profile for 10-bit, `transform` copied, bitrate from the track's `estimatedDataRate` (floor 4 Mbps); every audio track passthrough (`outputSettings: nil`, `sourceFormatHint`); `writer.metadata = asset.metadata`; times are presentation times; iOS `beginBackgroundTask` around the encode, expiry sets cancelled; `isCancelled` checked per frame; `.tmp` then rename; `unsupported` when `canAdd`/`startWriting` refuses the codec/size/profile.
 
 - [ ] **Step 1: Write the integration test** (pattern of `darwin_transcode_test.dart`; ffmpeg synthesizes inputs, skip without it): flat-patch clips 2 s, 320x240, three solid patches; cases `h264 sdr`, `hevc sdr`, `hevc hlg 10-bit`, `hevc pq 10-bit with mastering metadata`, `rotated 90 h264`, `h264 with 1.5 s start offset`. Timeline: identity at 0, gains(1.3, 1, 0.7) + brightness offset at 2000 ms. Assertions via ffprobe: codec matches, pix_fmt bit depth matches, `color_transfer`/`color_primaries` match, rotation matches, audio stream present, `creation_time` and `location` tags kept; via ffmpeg decoding frames at 0.5 s and 1.5 s to `rgb48le`: each patch within 3% (8-bit SDR) or 2% (10-bit) of `correctPixel` applied to the source's decoded patch with `matrixAt(t)`. Plus `cancel leaves no output or tmp`.
 - [ ] **Step 2:** Run `flutter test integration_test/darwin_color_encode_test.dart -d macos`, expect FAIL (method not implemented). Needs ffmpeg with libx264/libx265 on PATH (`brew install ffmpeg`, ask first).

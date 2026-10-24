@@ -291,18 +291,44 @@ void main() {
   testWidgets('failure after leaving the foreground is ShareInterrupted', (
     tester,
   ) async {
+    var trips = 0;
     final result = await withRef(
       tester,
       (ref) => prepareShareFiles(
         ref,
         [_item('v1', adjustment: _warm)],
-        onProgress: (_) {},
+        // The app goes away while the encode runs.
+        onProgress: (p) {
+          if (p.fraction != null) trips++;
+        },
         cancel: ColorEncodeCancel(),
-        leftForeground: () => true,
+        backgroundEntries: () => trips,
       ),
       encoder: _FakeEncoder([_Outcome.fail]),
     );
     expect(result, isA<ShareInterrupted>());
+  });
+
+  testWidgets('a failure after an earlier trip away is still a failure', (
+    tester,
+  ) async {
+    final v2 = _item('v2', adjustment: _warm);
+    var trips = 0;
+    final result = await withRef(
+      tester,
+      (ref) => prepareShareFiles(
+        ref,
+        [_item('v1', adjustment: _warm), v2],
+        // The app goes away during the first encode only.
+        onProgress: (p) {
+          if (p.index == 1 && p.fraction != null) trips++;
+        },
+        cancel: ColorEncodeCancel(),
+        backgroundEntries: () => trips,
+      ),
+      encoder: _FakeEncoder([_Outcome.ok, _Outcome.unsupported]),
+    );
+    expect((result as ShareReady).failedVideos, [v2]);
   });
 
   testWidgets('a cancel the diver did not ask for is ShareInterrupted', (

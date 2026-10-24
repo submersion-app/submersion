@@ -35,7 +35,7 @@ typedef _Prepare =
     Future<SharePreparation> Function(
       void Function(VideoShareProgress) onProgress,
       ColorEncodeCancel cancel,
-      bool Function() leftForeground,
+      int Function() backgroundEntries,
     );
 
 /// Issue #3521: the share flow's dialogs around preparing the files.
@@ -262,19 +262,19 @@ void main() {
     tester,
   ) async {
     final gate = Completer<void>();
-    late bool Function() left;
+    late int Function() trips;
     await pumpHost(
       tester,
-      prepare: (_, _, leftForeground) async {
-        left = leftForeground;
+      prepare: (_, _, backgroundEntries) async {
+        trips = backgroundEntries;
         await gate.future;
         return const ShareCancelled();
       },
     );
-    expect(left(), isFalse);
+    expect(trips(), 0);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
-    expect(left(), isTrue);
+    expect(trips(), 1);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     gate.complete();

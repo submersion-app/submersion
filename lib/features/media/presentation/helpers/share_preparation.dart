@@ -76,14 +76,14 @@ final class ShareInterrupted extends SharePreparation {
 /// A video whose correction cannot be applied (no encoder, no file, an
 /// encoder failure) is listed in [ShareReady.failedVideos] and the rest
 /// carry on. [cancel] stops it ([ShareCancelled]); a failure or a stop the
-/// diver did not ask for while [leftForeground] says the app went into the
-/// background is [ShareInterrupted].
+/// diver did not ask for during an encode in which the app went into the
+/// background (the [backgroundEntries] count moved) is [ShareInterrupted].
 Future<SharePreparation> prepareShareFiles(
   WidgetRef ref,
   List<MediaItem> items, {
   required void Function(VideoShareProgress progress) onProgress,
   required ColorEncodeCancel cancel,
-  bool Function()? leftForeground,
+  int Function()? backgroundEntries,
 }) async {
   final total = items.where((i) => videoMayNeedCorrection(ref, i)).length;
   final files = <XFile>[];
@@ -127,6 +127,7 @@ Future<SharePreparation> prepareShareFiles(
 
     final filename = p.setExtension(item.shareFilename, '.mp4');
     final output = await shareTempFileFor(item, filename: filename);
+    final backgroundBefore = backgroundEntries?.call() ?? 0;
     try {
       final opened = await ref.read(videoFileAccessProvider)<bool>(
         path: path,
@@ -157,7 +158,7 @@ Future<SharePreparation> prepareShareFiles(
       );
     } on Object catch (e, stackTrace) {
       await deleteShareCopies([output]);
-      if (leftForeground?.call() ?? false) {
+      if ((backgroundEntries?.call() ?? 0) != backgroundBefore) {
         return abandon(const ShareInterrupted());
       }
       _log.warning(

@@ -35,12 +35,12 @@ Future<bool> shareMediaItems(
   context,
   anchor: anchor,
   showVideoProgress: items.any((item) => videoMayNeedCorrection(ref, item)),
-  prepare: (onProgress, cancel, leftForeground) => prepareShareFiles(
+  prepare: (onProgress, cancel, backgroundEntries) => prepareShareFiles(
     ref,
     items,
     onProgress: onProgress,
     cancel: cancel,
-    leftForeground: leftForeground,
+    backgroundEntries: backgroundEntries,
   ),
   originals: (failed) => originalShareFiles(ref, failed),
 );
@@ -57,7 +57,7 @@ Future<bool> runShareFlow(
   required Future<SharePreparation> Function(
     void Function(VideoShareProgress progress) onProgress,
     ColorEncodeCancel cancel,
-    bool Function() leftForeground,
+    int Function() backgroundEntries,
   )
   prepare,
   required Future<List<XFile>> Function(List<MediaItem> failed) originals,
@@ -72,16 +72,10 @@ Future<bool> runShareFlow(
   final cancel = ColorEncodeCancel();
   final progress = ValueNotifier(const VideoShareProgress(index: 1, total: 1));
   // An encode that fails or stops while the app is away was stopped by the
-  // system (iOS suspends video encoding in the background), not by a fault.
-  var leftForeground = false;
-  final lifecycle = AppLifecycleListener(
-    onStateChange: (state) {
-      if (state == AppLifecycleState.hidden ||
-          state == AppLifecycleState.paused) {
-        leftForeground = true;
-      }
-    },
-  );
+  // system (iOS suspends video encoding in the background), not by a fault:
+  // count the trips away so each encode can tell whether one fell inside it.
+  var backgroundEntries = 0;
+  final lifecycle = AppLifecycleListener(onHide: () => backgroundEntries++);
 
   showDialog<void>(
     context: context,
@@ -106,7 +100,7 @@ Future<bool> runShareFlow(
     final prepared = await prepare(
       (p) => progress.value = p,
       cancel,
-      () => leftForeground,
+      () => backgroundEntries,
     );
     dismissDialog();
     switch (prepared) {
@@ -157,6 +151,7 @@ Future<bool> runShareFlow(
     return false;
   } finally {
     lifecycle.dispose();
+    progress.dispose();
   }
 }
 

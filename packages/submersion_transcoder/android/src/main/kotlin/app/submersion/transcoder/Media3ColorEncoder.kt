@@ -48,8 +48,11 @@ object Media3ColorEncoder {
         val done: Done,
     )
 
-    // Encodes in flight, by progressId. Touched on the main looper only.
+    // Encodes in flight, by progressId, and cancels that arrived before their
+    // encode started (while the source was still being inspected). Touched on
+    // the main looper only.
     private val jobs = HashMap<String, Job>()
+    private val cancelledEarly = HashSet<String>()
     private val main = Handler(Looper.getMainLooper())
 
     // A device that cannot edit HDR fails with one of the format codes.
@@ -89,7 +92,10 @@ object Media3ColorEncoder {
             val info = try {
                 inspect(source)
             } catch (e: Exception) {
-                main.post { done.call("transcode_failed", e.message ?: "unreadable source") }
+                main.post {
+                    cancelledEarly.remove(progressId)
+                    done.call("transcode_failed", e.message ?: "unreadable source")
+                }
                 return@Thread
             }
             main.post {
@@ -100,7 +106,11 @@ object Media3ColorEncoder {
 
     fun cancel(progressId: String) {
         main.post {
-            val job = jobs.remove(progressId) ?: return@post
+            val job = jobs.remove(progressId)
+            if (job == null) {
+                cancelledEarly.add(progressId)
+                return@post
+            }
             main.removeCallbacks(job.poll)
             job.transformer.cancel()
             job.tmp.delete()
@@ -188,6 +198,10 @@ object Media3ColorEncoder {
         onProgress: (Double) -> Unit,
         done: Done,
     ) {
+        if (cancelledEarly.remove(progressId)) {
+            done.call("cancelled", null)
+            return
+        }
         try {
             val encoderFactory = DefaultEncoderFactory.Builder(context)
                 .setEnableFallback(false)

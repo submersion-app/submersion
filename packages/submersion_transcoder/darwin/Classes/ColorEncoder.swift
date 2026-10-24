@@ -136,18 +136,12 @@ final class ColorEncoder {
     let group = DispatchGroup()
     let videoQueue = DispatchQueue(label: "color.encode.video")
     var renderError: Error?
-    var stopped = false
-
-    func stop() -> Bool {
-      if isCancelled() { stopped = true }
-      return stopped
-    }
 
     group.enter()
     var pending: CMSampleBuffer? = first
     videoIn.requestMediaDataWhenReady(on: videoQueue) {
       while videoIn.isReadyForMoreMediaData {
-        guard !stop(), writer.status == .writing, reader.status == .reading
+        guard !isCancelled(), writer.status == .writing, reader.status == .reading
             || pending != nil,
           let sample = pending ?? videoOut.copyNextSampleBuffer()
         else {
@@ -184,7 +178,7 @@ final class ColorEncoder {
       let queue = DispatchQueue(label: "color.encode.audio")
       input.requestMediaDataWhenReady(on: queue) {
         while input.isReadyForMoreMediaData {
-          guard !stop(), writer.status == .writing, reader.status == .reading,
+          guard !isCancelled(), writer.status == .writing, reader.status == .reading,
             let sample = out.copyNextSampleBuffer(), input.append(sample)
           else {
             input.markAsFinished()
@@ -196,7 +190,7 @@ final class ColorEncoder {
     }
     group.wait()
 
-    if stopped || isCancelled() {
+    if isCancelled() {
       reader.cancelReading()
       writer.cancelWriting()
       discard()
