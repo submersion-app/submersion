@@ -115,7 +115,7 @@ extension TripMigrations on AppDatabase {
     await Migrator(this).createTable(tripHides);
   }
 
-  /// The trip_shares table (v310, issue #2151). Called from the v310 rung
+  /// The trip_shares table (v311, issue #2151). Called from the v311 rung
   /// and the beforeOpen backstop. Skipped on a partial migration-test
   /// fixture that lacks a parent table.
   Future<void> _assertTripSharesSchema() async {

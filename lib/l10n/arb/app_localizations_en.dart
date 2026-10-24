@@ -22230,6 +22230,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => 'Tag imported dives';
 
   @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      'Add downloads to the computer\'s owner';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
 
   @override
@@ -29640,6 +29644,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.';
 
   @override
+  String get settings_downloadsFollowOwner_title =>
+      'Add downloads to the computer\'s owner';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.';
+
+  @override
   String get tags_manage_searchHint => 'Search tags...';
 
   @override
@@ -32156,6 +32168,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => 'New profile';
+
+  @override
+  String get universalImport_summary_unnamedProfile => 'Unnamed profile';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -35095,6 +35110,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_title_importOptions => 'Import Options';
+
+  @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return 'This computer belongs to $owner. Dives will be added to $chosen\'s log.';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => 'Profile';
 
   @override
   String get universalImport_label_options => 'Options';

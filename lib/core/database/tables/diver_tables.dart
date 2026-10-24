@@ -318,6 +318,12 @@ class DiverSettings extends Table {
   /// diver override it for that one import without touching this default.
   BoolColumn get autoTagImports =>
       boolean().withDefault(const Constant(true))();
+
+  /// Whether a dive computer download defaults to the computer's owner when
+  /// that is another profile (v310, issue #2050). Only the review step's
+  /// starting choice: the computer is recognised either way.
+  BoolColumn get downloadsFollowComputerOwner =>
+      boolean().withDefault(const Constant(true))();
   // List view modes for other features (v52)
   TextColumn get siteListViewMode =>
       text().withDefault(const Constant('detailed'))();

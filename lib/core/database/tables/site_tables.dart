@@ -285,7 +285,7 @@ class SiteHides extends Table {
 }
 
 /// A profile a site is shared with when it is not shared with everyone
-/// (v310, issue #2151). "Everyone" stays `dive_sites.is_shared`; the two forms
+/// (v311, issue #2151). "Everyone" stays `dive_sites.is_shared`; the two forms
 /// never hold together for long (a reader that meets both treats the site as
 /// shared with everyone). A parent-gated child of `dive_sites`, like
 /// `site_hides`: no updated_at, its own clock, never updated in place (a

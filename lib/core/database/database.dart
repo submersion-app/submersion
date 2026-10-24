@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 310;
+  static const int currentSchemaVersion = 311;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1389,12 +1389,16 @@ class AppDatabase extends _$AppDatabase {
     // media_tags and document_tags junctions with their unique indexes.
     // Additive only, so the compatibility floor stays.
     309,
-    // v310: trip_shares and site_shares, the profiles a trip or site is
+    // v310: diver_settings.downloads_follow_computer_owner (issue #2050).
+    // Additive, on by default; the floor does not move. Renumbered from 309
+    // as #3605 shipped 309 first.
+    310,
+    // v311: trip_shares and site_shares, the profiles a trip or site is
     // shared with when it is not shared with everyone (issue #2151).
     // Table-only rung, no backfill; an older peer keeps the new entity types
     // as inert unknowns and sees such an item as private, so the floor does
-    // not move. Renumbered from 309, which #1970 shipped first.
-    310,
+    // not move. Renumbered from 309 and 310, which #1970 and #2050 took.
+    311,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

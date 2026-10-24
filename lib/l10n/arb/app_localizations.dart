@@ -35904,6 +35904,12 @@ abstract class AppLocalizations {
   /// **'Tag imported dives'**
   String get settings_conflict_field_autoTagImports;
 
+  /// Label for the downloads-follow-computer-owner setting in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Add downloads to the computer\'s owner'**
+  String get settings_conflict_field_downloadsFollowComputerOwner;
+
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
   /// In en, this message translates to:
@@ -48331,6 +48337,18 @@ abstract class AppLocalizations {
   /// **'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.'**
   String get settings_autoTagImports_subtitle;
 
+  /// Switch title, in Import options on Settings > Data, for adding a dive computer download to the profile that owns the computer
+  ///
+  /// In en, this message translates to:
+  /// **'Add downloads to the computer\'s owner'**
+  String get settings_downloadsFollowOwner_title;
+
+  /// Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile
+  ///
+  /// In en, this message translates to:
+  /// **'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.'**
+  String get settings_downloadsFollowOwner_subtitle;
+
   /// No description provided for @tags_manage_searchHint.
   ///
   /// In en, this message translates to:
@@ -51996,6 +52014,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New profile'**
   String get universalImport_summary_newProfile;
+
+  /// Name shown in the import summary's By profile section for a profile whose name could not be read
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed profile'**
+  String get universalImport_summary_unnamedProfile;
 
   /// Import summary hint on a profile that is not the active one
   ///
@@ -56547,6 +56571,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import Options'**
   String get universalImport_title_importOptions;
+
+  /// Review step notice for a dive computer download when the computer belongs to another profile: names the owner and the profile the dives will be added to
+  ///
+  /// In en, this message translates to:
+  /// **'This computer belongs to {owner}. Dives will be added to {chosen}\'s log.'**
+  String universalImport_computerOwner_notice(String owner, String chosen);
+
+  /// Label of the profile picker beside the computer owner notice on the review step
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get universalImport_computerOwner_profileLabel;
 
   /// Label for the import options button
   ///

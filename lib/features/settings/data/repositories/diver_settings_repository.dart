@@ -331,6 +331,9 @@ class DiverSettingsRepository {
                 diveListViewMode: Value(s.diveListViewMode.name),
                 groupTripsInDiveList: Value(s.groupTripsInDiveList),
                 autoTagImports: Value(s.autoTagImports),
+                downloadsFollowComputerOwner: Value(
+                  s.downloadsFollowComputerOwner,
+                ),
                 siteListViewMode: Value(s.siteListViewMode.name),
                 tripListViewMode: Value(s.tripListViewMode.name),
                 equipmentListViewMode: Value(s.equipmentListViewMode.name),
@@ -676,6 +679,9 @@ class DiverSettingsRepository {
       diveListViewMode: Value(settings.diveListViewMode.name),
       groupTripsInDiveList: Value(settings.groupTripsInDiveList),
       autoTagImports: Value(settings.autoTagImports),
+      downloadsFollowComputerOwner: Value(
+        settings.downloadsFollowComputerOwner,
+      ),
       siteListViewMode: Value(settings.siteListViewMode.name),
       tripListViewMode: Value(settings.tripListViewMode.name),
       equipmentListViewMode: Value(settings.equipmentListViewMode.name),
@@ -940,6 +946,7 @@ class DiverSettingsRepository {
       diveListViewMode: ListViewMode.fromName(row.diveListViewMode),
       groupTripsInDiveList: row.groupTripsInDiveList,
       autoTagImports: row.autoTagImports,
+      downloadsFollowComputerOwner: row.downloadsFollowComputerOwner,
       siteListViewMode: ListViewMode.fromName(row.siteListViewMode),
       tripListViewMode: ListViewMode.fromName(row.tripListViewMode),
       equipmentListViewMode: ListViewMode.fromName(row.equipmentListViewMode),

@@ -1498,8 +1498,8 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            defaultTankPresetForImports: () async => al80,
-            transmitterMatcherForImports: () async =>
+            defaultTankPresetForImports: (_) async => al80,
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([entry()]),
           );
 
@@ -1527,8 +1527,8 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            defaultTankPresetForImports: () async => al80,
-            transmitterMatcherForImports: () async =>
+            defaultTankPresetForImports: (_) async => al80,
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([entry()]),
           );
 
@@ -1546,7 +1546,7 @@ void main() {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          transmitterMatcherForImports: () async => throw StateError('db'),
+          transmitterMatcherForImports: (_) async => throw StateError('db'),
         );
 
         final result = await service.importDives(
@@ -1558,11 +1558,37 @@ void main() {
         expect(importedTanks().single.role, isNot('oxygenSupply'));
       });
 
+      test('both loaders receive the diver the dive is imported for', () async {
+        final tankDivers = <String?>[];
+        final matcherDivers = <String?>[];
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          defaultTankPresetForImports: (diverId) async {
+            tankDivers.add(diverId);
+            return null;
+          },
+          transmitterMatcherForImports: (diverId) async {
+            matcherDivers.add(diverId);
+            return const TransmitterMatcher.empty();
+          },
+        );
+
+        await service.importSingleDiveAsNew(
+          diveWithSerialTank('180777'),
+          computerId: computer.id,
+          diverId: 'mitchell',
+        );
+
+        expect(tankDivers, ['mitchell']);
+        expect(matcherDivers, ['mitchell']);
+      });
+
       test('a reset clears serials from an earlier run', () async {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          transmitterMatcherForImports: () async =>
+          transmitterMatcherForImports: (_) async =>
               TransmitterMatcher.fromEntries([entry()]),
         );
         await service.importSingleDiveAsNew(
@@ -1580,7 +1606,7 @@ void main() {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          transmitterMatcherForImports: () async =>
+          transmitterMatcherForImports: (_) async =>
               TransmitterMatcher.fromEntries([entry()]),
         );
         await service.importSingleDiveAsNew(
@@ -1602,7 +1628,7 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            transmitterMatcherForImports: () async =>
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([entry()]),
           );
 
@@ -1628,7 +1654,7 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            transmitterMatcherForImports: () async =>
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([
                   Transmitter(
                     id: 'e2',
@@ -1724,7 +1750,7 @@ void main() {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          defaultTankPresetForImports: () async => al80,
+          defaultTankPresetForImports: (_) async => al80,
         );
 
         await service.importDives(
@@ -1746,7 +1772,7 @@ void main() {
       service = DiveImportService(
         repository: mockComputerRepo,
         diveRepository: mockDiveRepo,
-        defaultTankPresetForImports: () async => null,
+        defaultTankPresetForImports: (_) async => null,
       );
 
       await service.importDives(
@@ -1770,7 +1796,7 @@ void main() {
       service = DiveImportService(
         repository: mockComputerRepo,
         diveRepository: mockDiveRepo,
-        defaultTankPresetForImports: () async => al80,
+        defaultTankPresetForImports: (_) async => al80,
       );
 
       await service.importSingleDiveAsNew(
@@ -1786,7 +1812,7 @@ void main() {
       service = DiveImportService(
         repository: mockComputerRepo,
         diveRepository: mockDiveRepo,
-        defaultTankPresetForImports: () async {
+        defaultTankPresetForImports: (_) async {
           loads++;
           return al80;
         },

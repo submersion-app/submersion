@@ -138,11 +138,6 @@ class _UnifiedImportWizardBodyState
   /// bar until the next attempt. Null while nothing has failed.
   String? _advanceError;
 
-  /// True once duplicate detection threw and the review list was built without
-  /// it. Surfaced on the review step so nobody re-imports a dive believing the
-  /// wizard checked.
-  bool _duplicateCheckFailed = false;
-
   static const _log = LoggerService('UnifiedImportWizard');
 
   List<WizardStepDef> get _acquisitionSteps => widget.adapter.acquisitionSteps;
@@ -253,11 +248,8 @@ class _UnifiedImportWizardBodyState
   Future<void> _onNext() async {
     if (_advancing) return;
     _advancing = true;
-    if (_advanceError != null || _duplicateCheckFailed) {
-      setState(() {
-        _advanceError = null;
-        _duplicateCheckFailed = false;
-      });
+    if (_advanceError != null) {
+      setState(() => _advanceError = null);
     }
     try {
       await _advance();
@@ -330,6 +322,7 @@ class _UnifiedImportWizardBodyState
         // abandon the advance entirely, which is what a large or unhappy
         // library looked like from the outside: Next did nothing, forever.
         ImportBundle checkedBundle;
+        var duplicateCheckFailed = false;
         try {
           checkedBundle = await widget.adapter.checkDuplicates(bundle);
         } catch (e, stackTrace) {
@@ -339,14 +332,17 @@ class _UnifiedImportWizardBodyState
             stackTrace: stackTrace,
           );
           checkedBundle = bundle;
-          _duplicateCheckFailed = true;
+          duplicateCheckFailed = true;
         }
         if (!mounted) return;
         await _awaitSettingsLoad();
         if (!mounted) return;
         ref
             .read(importWizardNotifierProvider.notifier)
-            .setBundle(checkedBundle);
+            .setBundle(
+              checkedBundle,
+              duplicateCheckFailed: duplicateCheckFailed,
+            );
         ref
             .read(importWizardNotifierProvider.notifier)
             .initializeDefaultTag(
@@ -377,6 +373,8 @@ class _UnifiedImportWizardBodyState
   }
 
   Future<void> _startImport() async {
+    // Held while a change of profile re-checks the rows (issue #2050).
+    if (ref.read(importWizardNotifierProvider).isRetargeting) return;
     await _animateToPage(_importIndex);
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (!mounted) return;
@@ -558,7 +556,16 @@ class _UnifiedImportWizardBodyState
               icon: Icons.error_outline,
               isError: true,
             ),
-          if (_duplicateCheckFailed && _currentPage == _reviewIndex)
+          // Duplicate detection threw and the review list was built without
+          // it, on entering the review step or after a change of profile
+          // there (issue #2050). Said here so nobody re-imports a dive
+          // believing the wizard checked.
+          if (ref.watch(
+                importWizardNotifierProvider.select(
+                  (s) => s.duplicateCheckFailed,
+                ),
+              ) &&
+              _currentPage == _reviewIndex)
             _WizardMessage(
               message: context.l10n.universalImport_error_duplicateCheckFailed,
               icon: Icons.warning_amber_outlined,

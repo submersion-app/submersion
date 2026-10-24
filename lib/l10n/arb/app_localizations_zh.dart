@@ -21420,6 +21420,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => '为导入的潜水添加标签';
 
   @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      '将下载的记录添加到电脑所属的潜水员';
+
+  @override
   String get settings_conflict_field_avgSpeed => '平均速度';
 
   @override
@@ -28429,6 +28433,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '每次新的导入都会以包含来源和日期的标签开始。可以在该次导入的选项中为单次导入更改此设置。';
 
   @override
+  String get settings_downloadsFollowOwner_title => '将下载的记录添加到电脑所属的潜水员';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      '当潜水电脑属于另一个潜水员档案时，它的潜水记录会添加到该档案的日志中。你可以在核对页面中更改。';
+
+  @override
   String get tags_manage_searchHint => '搜索标签...';
 
   @override
@@ -30818,6 +30829,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => '新潜水员档案';
+
+  @override
+  String get universalImport_summary_unnamedProfile => '未命名的潜水员档案';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -33620,6 +33634,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_title_importOptions => '导入选项';
+
+  @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return '这台电脑属于 $owner。潜水记录将添加到 $chosen 的日志中。';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => '潜水员档案';
 
   @override
   String get universalImport_label_options => '选项';

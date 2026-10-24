@@ -4947,7 +4947,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `trip_shares` row (v310, issue #2151). The
+  /// Applies one incoming `trip_shares` row (v311, issue #2151). The
   /// (trip, profile) pair is unique: a peer's copy under another id is
   /// reconciled to the lower id and then skipped, as
   /// [_applyTripEquipmentRecord] does.
@@ -10836,7 +10836,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// The profiles a trip is shared with (v310, issue #2151), gated on the
+  /// The profiles a trip is shared with (v311, issue #2151), gated on the
   /// parent trip's clock like [_exportTripEquipment]. A share travels on its
   /// own pending mark, never by re-stamping the trip.
   Future<List<Map<String, dynamic>>> _exportTripShares(String? hlcSince) async {
@@ -11460,6 +11460,7 @@ class SyncDataSerializer {
       'showMapBackgroundOnDiveCards': false,
       'groupTripsInDiveList': false,
       'autoTagImports': true,
+      'downloadsFollowComputerOwner': true,
       'showMapBackgroundOnSiteCards': false,
       // Dive profile markers
       'showMaxDepthMarker': true,

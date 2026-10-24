@@ -555,13 +555,20 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 309) await reportProgress();
 
-    // v310: the profiles a trip or site is shared with when it is not
+    // v310: diver_settings.downloads_follow_computer_owner (issue #2050).
+    // Column only, on by default; re-asserted in beforeOpen. Renumbered from
+    // 309 as #3605 shipped 309 first.
+    if (from < 310) await _assertDownloadOwnerColumn();
+    if (from < 310) await reportProgress();
+
+    // v311: the profiles a trip or site is shared with when it is not
     // shared with everyone (issue #2151). Table-only rung, no backfill;
-    // re-asserted in beforeOpen. Renumbered from 309, which #1970 took.
-    if (from < 310) {
+    // re-asserted in beforeOpen. Renumbered from 309 and 310, which #1970
+    // and #2050 took.
+    if (from < 311) {
       await _assertTripSharesSchema();
       await _assertSiteSharesSchema();
     }
-    if (from < 310) await reportProgress();
+    if (from < 311) await reportProgress();
   }
 }

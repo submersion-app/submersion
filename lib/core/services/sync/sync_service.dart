@@ -3291,7 +3291,7 @@ class SyncService {
       (field: 'siteId', parent: 'diveSites', nullable: false),
       (field: 'diverId', parent: 'divers', nullable: false),
     ],
-    // v310: the profiles a trip or site is shared with (issue #2151).
+    // v311: the profiles a trip or site is shared with (issue #2151).
     'tripShares': [
       (field: 'tripId', parent: 'trips', nullable: false),
       (field: 'diverId', parent: 'divers', nullable: false),

@@ -11,9 +11,11 @@ extension _DiveComputerAdapterConnections on DiveComputerAdapter {
     final connections = _connections;
     if (connections == null) return false;
     try {
-      final id = await connections.computerIdForLocalAddress(
-        address: device.address,
-        diverId: _diverId,
+      final id = await _findAcrossProfiles(
+        (diverId) => connections.computerIdForLocalAddress(
+          address: device.address,
+          diverId: diverId,
+        ),
       );
       if (id == null) return false;
       final found = await _computerRepository.getComputerById(id);

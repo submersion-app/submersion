@@ -16,7 +16,9 @@ import 'package:submersion/shared/widgets/label_with_control.dart';
 /// cylinder end pressure is read at the moment of surfacing (applied on dive
 /// computer downloads, file imports and reparses), and whether every new
 /// import session starts with a tag naming its source and date (issue #998;
-/// moved here from Settings > Manage > Tags in issue #3193).
+/// moved here from Settings > Manage > Tags in issue #3193), and whether a
+/// dive computer download defaults to the profile that owns the computer
+/// (issue #2050).
 ///
 /// The auto-tag switch is only the starting point for a new session: the
 /// import wizard's Import Options sheet overrides it for a single import
@@ -34,6 +36,9 @@ class ImportPreferencesGroup extends ConsumerWidget {
     );
     final autoTagImports = ref.watch(
       settingsProvider.select((s) => s.autoTagImports),
+    );
+    final followComputerOwner = ref.watch(
+      settingsProvider.select((s) => s.downloadsFollowComputerOwner),
     );
 
     // Flush with the page's other rows, which drop the default inset.
@@ -91,6 +96,15 @@ class ImportPreferencesGroup extends ConsumerWidget {
             value: autoTagImports,
             onChanged: (value) =>
                 ref.read(settingsProvider.notifier).setAutoTagImports(value),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.person_pin_outlined),
+            title: Text(context.l10n.settings_downloadsFollowOwner_title),
+            subtitle: Text(context.l10n.settings_downloadsFollowOwner_subtitle),
+            value: followComputerOwner,
+            onChanged: (value) => ref
+                .read(settingsProvider.notifier)
+                .setDownloadsFollowComputerOwner(value),
           ),
         ],
       ),

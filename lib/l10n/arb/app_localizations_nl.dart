@@ -22432,6 +22432,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geïmporteerde duiken labelen';
 
   @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      'Downloads toevoegen aan de eigenaar van de computer';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
 
   @override
@@ -29949,6 +29953,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Elke nieuwe import begint met een tag die de bron en datum vermeldt. Dit kan voor één import worden aangepast in de opties van die import.';
 
   @override
+  String get settings_downloadsFollowOwner_title =>
+      'Downloads toevoegen aan de eigenaar van de computer';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      'Hoort een duikcomputer bij een ander profiel, dan gaan de duiken naar het logboek van dat profiel. Je kunt dit wijzigen op het controlescherm.';
+
+  @override
   String get tags_manage_searchHint => 'Tags zoeken...';
 
   @override
@@ -32483,6 +32495,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => 'Nieuw profiel';
+
+  @override
+  String get universalImport_summary_unnamedProfile => 'Naamloos profiel';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -35454,6 +35469,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_title_importOptions => 'Importopties';
+
+  @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return 'Deze computer is van $owner. De duiken worden toegevoegd aan het logboek van $chosen.';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => 'Profiel';
 
   @override
   String get universalImport_label_options => 'Opties';

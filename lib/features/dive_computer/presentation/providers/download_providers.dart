@@ -43,24 +43,64 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
     gpsTrackMatchService: ref.watch(gpsTrackMatchServiceProvider),
     // Read at import time, not provider build time, so a toggle flipped in
     // Settings applies to the very next download (issue #386).
-    defaultTankPresetForImports: () => loadDefaultTankPresetForDownloads(ref),
-    transmitterMatcherForImports: () => loadTransmitterMatcher(ref),
+    defaultTankPresetForImports: (diverId) =>
+        loadDefaultTankPresetForDownloads(ref, diverId: diverId),
+    transmitterMatcherForImports: (diverId) =>
+        loadTransmitterMatcher(ref, diverId: diverId),
   );
 });
+
+const _loaderLog = LoggerService('DefaultTankPresetForDownloads');
 
 /// The default tank preset to fill downloaded cylinders with, or null when
 /// the diver has not opted in ("Also apply to imported dives" off) or the
 /// configured preset no longer exists.
+///
+/// [diverId] names the diver the dives are imported for (issue #2050); null,
+/// empty or the active diver reads the live settings, and another diver reads
+/// their saved settings (the defaults when they have none, and no preset when
+/// they cannot be read: a download must not fail over a cylinder default).
 @visibleForTesting
-Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(Ref ref) async {
-  final settings = ref.read(settingsProvider);
+Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(
+  Ref ref, {
+  String? diverId,
+}) async {
+  final otherDiver =
+      diverId != null &&
+      diverId.isNotEmpty &&
+      diverId != ref.read(currentDiverIdProvider);
+  final AppSettings settings;
+  if (otherDiver) {
+    try {
+      settings =
+          await ref
+              .read(diverSettingsRepositoryProvider)
+              .getSettingsForDiver(diverId) ??
+          const AppSettings();
+    } catch (e, stackTrace) {
+      _loaderLog.error(
+        'Could not read the settings of $diverId; importing without a '
+        'default tank',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  } else {
+    settings = ref.read(settingsProvider);
+  }
   if (!settings.applyDefaultTankToImports) return null;
   final resolver = DefaultTankPresetResolver(
     repository: ref.read(tankPresetRepositoryProvider),
   );
+  // The preset is looked up among the same diver's own presets as the
+  // settings that name it (#3593), so another diver's download gets their
+  // cylinder, not the active diver's preset of the same name (#2050).
   return resolver.resolve(
     settings.defaultTankPreset,
-    diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+    diverId: otherDiver
+        ? diverId
+        : await ref.read(validatedCurrentDiverIdProvider.future),
   );
 }
 
@@ -597,9 +637,10 @@ final computerDiveIdsProvider = FutureProvider.family<List<String>, String>((
   return repository.getDiveIdsForComputer(computerId);
 });
 
-/// Default first-sync cutoff: the newest dive in the active diver's log.
+/// Default first-sync cutoff: the newest dive in [diverId]'s log, the profile
+/// the download is expected to go to (issue #2050).
 ///
-/// Null when there is no active diver or the log is empty (no cutoff
+/// Null when there is no such diver or the log is empty (no cutoff
 /// prompt is shown then).
 ///
 /// `autoDispose`: this is only ever watched by `DcAdapterDownloadStep` while
@@ -617,11 +658,9 @@ final computerDiveIdsProvider = FutureProvider.family<List<String>, String>((
 // re-fetched every time the step mounts, so a stale value cannot render; a tick
 // would instead move the default under the user mid-download, since the
 // download itself writes the dives this reads.
-final firstSyncCutoffDefaultProvider = FutureProvider.autoDispose<DateTime?>((
-  ref,
-) async {
-  final diverId = ref.watch(currentDiverIdProvider);
-  if (diverId == null || diverId.isEmpty) return null;
-  final repository = ref.watch(diveRepositoryProvider);
-  return repository.getNewestDiveDateTime(diverId: diverId);
-});
+final firstSyncCutoffDefaultProvider = FutureProvider.autoDispose
+    .family<DateTime?, String?>((ref, diverId) async {
+      if (diverId == null || diverId.isEmpty) return null;
+      final repository = ref.watch(diveRepositoryProvider);
+      return repository.getNewestDiveDateTime(diverId: diverId);
+    });

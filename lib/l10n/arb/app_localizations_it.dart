@@ -22575,6 +22575,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Etichetta le immersioni importate';
 
   @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      'Aggiungi i download al proprietario del computer';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocità media';
 
   @override
@@ -30167,6 +30171,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ogni nuova importazione inizia con un tag che indica l\'origine e la data. Puoi modificarlo per una singola importazione nelle opzioni di quell\'importazione.';
 
   @override
+  String get settings_downloadsFollowOwner_title =>
+      'Aggiungi i download al proprietario del computer';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      'Se un computer subacqueo appartiene a un altro profilo, le sue immersioni vanno nel registro di quel profilo. Puoi cambiarlo nella schermata di revisione.';
+
+  @override
   String get tags_manage_searchHint => 'Cerca tag...';
 
   @override
@@ -32715,6 +32727,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => 'Nuovo profilo';
+
+  @override
+  String get universalImport_summary_unnamedProfile => 'Profilo senza nome';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -35707,6 +35722,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get universalImport_title_importOptions => 'Opzioni di importazione';
+
+  @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return 'Questo computer appartiene a $owner. Le immersioni verranno aggiunte al registro di $chosen.';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => 'Profilo';
 
   @override
   String get universalImport_label_options => 'Opzioni';

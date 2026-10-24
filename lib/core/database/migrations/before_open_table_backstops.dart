@@ -79,7 +79,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     await _assertTripHidesSchema();
     await _assertSiteHidesSchema();
 
-    // v310 backstop: trip_shares and site_shares (idempotent).
+    // v311 backstop: trip_shares and site_shares (idempotent).
     await _assertTripSharesSchema();
     await _assertSiteSharesSchema();
 

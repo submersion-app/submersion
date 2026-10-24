@@ -22497,6 +22497,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Importált merülések címkézése';
 
   @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      'Letöltések hozzáadása a komputer tulajdonosához';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
 
   @override
@@ -29994,6 +29998,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden új import egy, a forrást és a dátumot megnevező címkével kezdődik. Ez egyetlen importra megváltoztatható az adott import beállításaiban.';
 
   @override
+  String get settings_downloadsFollowOwner_title =>
+      'Letöltések hozzáadása a komputer tulajdonosához';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      'Ha egy búvárkomputer egy másik profilhoz tartozik, a merülései annak a profilnak a naplójába kerülnek. Ezt az ellenőrző képernyőn módosíthatod.';
+
+  @override
   String get tags_manage_searchHint => 'Címkék keresése...';
 
   @override
@@ -32528,6 +32540,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => 'Új profil';
+
+  @override
+  String get universalImport_summary_unnamedProfile => 'Névtelen profil';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -35502,6 +35517,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_title_importOptions => 'Importálási beállítások';
+
+  @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return 'Ez a komputer $owner tulajdona. A merülések $chosen naplójába kerülnek.';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => 'Profil';
 
   @override
   String get universalImport_label_options => 'Beállítások';

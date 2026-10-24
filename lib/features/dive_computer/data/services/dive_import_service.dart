@@ -250,9 +250,17 @@ class ImportResult {
   int get totalProcessed => imported + skipped + updated;
 }
 
-/// Supplies the default tank preset to fill downloaded cylinders with, or
-/// null when the diver has not opted in (or the preset no longer exists).
-typedef DefaultTankPresetLoader = Future<TankPresetEntity?> Function();
+/// Supplies the default tank preset to fill downloaded cylinders with for the
+/// diver a dive is imported for (null for the active diver), or null when
+/// that diver has not opted in (or the preset no longer exists).
+typedef DefaultTankPresetLoader =
+    Future<TankPresetEntity?> Function(String? diverId);
+
+/// Loads the transmitter registry of the diver a dive is imported for (null
+/// for the active diver), at import time so an entry saved a moment ago
+/// applies to the next download (issue #2050).
+typedef ImportTransmitterMatcherLoader =
+    Future<TransmitterMatcher> Function(String? diverId);
 
 /// Service for importing downloaded dives into the app's database.
 class DiveImportService {
@@ -261,7 +269,7 @@ class DiveImportService {
   final DiveParser _parser;
   final GpsTrackMatchService? _gpsTrackMatchService;
   final DefaultTankPresetLoader? _defaultTankPresetForImports;
-  final TransmitterMatcherLoader? _transmitterMatcherForImports;
+  final ImportTransmitterMatcherLoader? _transmitterMatcherForImports;
   final Set<String> _unmatchedSerials = {};
   static final _log = LoggerService.forClass(DiveImportService);
 
@@ -271,7 +279,7 @@ class DiveImportService {
     DiveParser? parser,
     GpsTrackMatchService? gpsTrackMatchService,
     DefaultTankPresetLoader? defaultTankPresetForImports,
-    TransmitterMatcherLoader? transmitterMatcherForImports,
+    ImportTransmitterMatcherLoader? transmitterMatcherForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser(),
@@ -294,11 +302,11 @@ class DiveImportService {
   /// The diver's transmitter registry, or an empty matcher when none is
   /// configured or the load fails: a download must never fail because the
   /// registry could not be read.
-  Future<TransmitterMatcher> _loadTransmitterMatcher() async {
+  Future<TransmitterMatcher> _loadTransmitterMatcher(String? diverId) async {
     final loader = _transmitterMatcherForImports;
     if (loader == null) return const TransmitterMatcher.empty();
     try {
-      return await loader();
+      return await loader(diverId);
     } catch (e, st) {
       _log.warning(
         'Transmitter registry unavailable, importing without it',
@@ -316,10 +324,10 @@ class DiveImportService {
   /// resolve it per call: one small preset lookup beside a profile write of
   /// thousands of samples, and deliberately not cached across calls so a
   /// toggle flipped in Settings applies to the next download.
-  Future<TankPresetEntity?> _loadDefaultTankPreset() async {
+  Future<TankPresetEntity?> _loadDefaultTankPreset(String? diverId) async {
     final loader = _defaultTankPresetForImports;
     if (loader == null) return null;
-    return loader();
+    return loader(diverId);
   }
 
   /// Import a list of downloaded dives.
@@ -365,8 +373,8 @@ class DiveImportService {
         ? await _diveRepository.getSourceKeysByDiveId()
         : null;
 
-    final defaultTankPreset = await _loadDefaultTankPreset();
-    final transmitterMatcher = await _loadTransmitterMatcher();
+    final defaultTankPreset = await _loadDefaultTankPreset(diverId);
+    final transmitterMatcher = await _loadTransmitterMatcher(diverId);
     resetUnmatchedTransmitterSerials();
 
     for (final dive in sortedDives) {
@@ -843,8 +851,8 @@ class DiveImportService {
       diverId,
       forceNew: true,
       retainSourceDiveNumber: retainSourceDiveNumber,
-      defaultTankPreset: await _loadDefaultTankPreset(),
-      transmitterMatcher: await _loadTransmitterMatcher(),
+      defaultTankPreset: await _loadDefaultTankPreset(diverId),
+      transmitterMatcher: await _loadTransmitterMatcher(diverId),
       descriptorVendor: descriptorVendor,
       descriptorProduct: descriptorProduct,
       descriptorModel: descriptorModel,
@@ -1024,8 +1032,8 @@ class DiveImportService {
           conflict.downloaded,
           computerId,
           diverId,
-          defaultTankPreset: await _loadDefaultTankPreset(),
-          transmitterMatcher: await _loadTransmitterMatcher(),
+          defaultTankPreset: await _loadDefaultTankPreset(diverId),
+          transmitterMatcher: await _loadTransmitterMatcher(diverId),
           descriptorVendor: descriptorVendor,
           descriptorProduct: descriptorProduct,
           descriptorModel: descriptorModel,

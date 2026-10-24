@@ -453,10 +453,19 @@ final diveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
 /// the tick a stale number rendered for the rest of the app's life -- long
 /// enough to number two dives the same after an import or sync added dives.
 final nextDiveNumberProvider = FutureProvider<int>((ref) async {
-  final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
+  return ref.watch(nextDiveNumberForDiverProvider(currentDiverId).future);
+});
+
+/// The next dive number in [diverId]'s log, for a download sent to a profile
+/// other than the active one (issue #2050).
+final nextDiveNumberForDiverProvider = FutureProvider.family<int, String?>((
+  ref,
+  diverId,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
-  return repository.getNextDiveNumber(diverId: currentDiverId);
+  return repository.getNextDiveNumber(diverId: diverId);
 });
 
 /// Search results provider.

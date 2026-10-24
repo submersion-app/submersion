@@ -22571,6 +22571,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Etiquetar mergulhos importados';
 
   @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      'Adicionar downloads ao dono do computador';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocidade média';
 
   @override
@@ -30147,6 +30151,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Cada nova importação começa com uma etiqueta que indica a origem e a data. Pode alterar isto para uma única importação nas opções dessa importação.';
 
   @override
+  String get settings_downloadsFollowOwner_title =>
+      'Adicionar downloads ao dono do computador';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      'Quando um computador de mergulho pertence a outro perfil, os mergulhos dele vão para o registro desse perfil. Você pode mudar isso na tela de revisão.';
+
+  @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';
 
   @override
@@ -32700,6 +32712,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => 'Novo perfil';
+
+  @override
+  String get universalImport_summary_unnamedProfile => 'Perfil sem nome';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -35687,6 +35702,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_title_importOptions => 'Opções de Importação';
+
+  @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return 'Este computador pertence a $owner. Os mergulhos serão adicionados ao registro de $chosen.';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => 'Perfil';
 
   @override
   String get universalImport_label_options => 'Opções';

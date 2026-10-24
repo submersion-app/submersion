@@ -13738,6 +13738,10 @@
   "settings_conflict_field_autoApplyOnComputerImport": "Applied on dive computer import",
   "settings_conflict_field_autoAttach": "Scheduled automatically",
   "settings_conflict_field_autoTagImports": "Tag imported dives",
+  "settings_conflict_field_downloadsFollowComputerOwner": "Add downloads to the computer's owner",
+  "@settings_conflict_field_downloadsFollowComputerOwner": {
+    "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
+  },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",
   "settings_conflict_field_bboxHeight": "Box height",
@@ -17547,6 +17551,14 @@
   "@settings_autoTagImports_subtitle": {
     "description": "Switch subtitle, in the Import card on Settings > Data, for auto-tagging every new import session"
   },
+  "settings_downloadsFollowOwner_title": "Add downloads to the computer's owner",
+  "@settings_downloadsFollowOwner_title": {
+    "description": "Switch title, in Import options on Settings > Data, for adding a dive computer download to the profile that owns the computer"
+  },
+  "settings_downloadsFollowOwner_subtitle": "When a dive computer belongs to another profile, its dives go to that profile's log. You can change it on the review screen.",
+  "@settings_downloadsFollowOwner_subtitle": {
+    "description": "Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile"
+  },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
   "@tags_manage_diveCount": {
@@ -18911,6 +18923,10 @@
   "universalImport_divers_newLabel": "New: {name}",
   "universalImport_summary_byProfileTitle": "By profile",
   "universalImport_summary_newProfile": "New profile",
+  "universalImport_summary_unnamedProfile": "Unnamed profile",
+  "@universalImport_summary_unnamedProfile": {
+    "description": "Name shown in the import summary's By profile section for a profile whose name could not be read"
+  },
   "universalImport_summary_switchToSee": "Switch to {name} to see these dives",
   "@universalImport_divers_intro": {"description": "Explains the import wizard Divers step for a logbook holding several divers", "placeholders": {"count": {"type": "num"}}},
   "@universalImport_divers_diveCount": {"description": "Dive count of one diver row in the Divers step", "placeholders": {"count": {"type": "num"}}},
@@ -21491,6 +21507,24 @@
   "universalImport_title_importOptions": "Import Options",
   "@universalImport_title_importOptions": {
     "description": "Title for the import options bottom sheet"
+  },
+  "universalImport_computerOwner_notice": "This computer belongs to {owner}. Dives will be added to {chosen}'s log.",
+  "@universalImport_computerOwner_notice": {
+    "description": "Review step notice for a dive computer download when the computer belongs to another profile: names the owner and the profile the dives will be added to",
+    "placeholders": {
+      "owner": {
+        "type": "String",
+        "example": "Mitchell"
+      },
+      "chosen": {
+        "type": "String",
+        "example": "Bill"
+      }
+    }
+  },
+  "universalImport_computerOwner_profileLabel": "Profile",
+  "@universalImport_computerOwner_profileLabel": {
+    "description": "Label of the profile picker beside the computer owner notice on the review step"
   },
   "universalImport_label_options": "Options",
   "@universalImport_label_options": {
