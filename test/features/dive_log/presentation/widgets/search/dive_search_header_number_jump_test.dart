@@ -169,12 +169,13 @@ void main() {
       onOpenDive: (d) => opened = d,
       rowsFor: (q) {
         if (bareDiveNumber(q) != 500) return _rowsFor(q);
-        // The rows' own query answers; the lookup Enter starts waits.
+        // The first lookup answers the rows; every later one waits on
+        // [pending], so Enter's lookup is still loading when the text changes.
         return ++lookups == 1 ? _rowsFor(q) : pending.future;
       },
     );
     await type(tester, '500');
-    // Drop the cached answer so Enter's lookup is the slow one.
+    // Drop the cached answer so the next lookup, Enter's, is a slow one.
     final element = tester.element(find.byKey(kDiveSearchFieldKey));
     ProviderScope.containerOf(
       element,
@@ -185,7 +186,11 @@ void main() {
     await tester.pump();
     pending.complete([_d500]);
     await tester.pumpAndSettle();
-    expect(lookups, greaterThan(1), reason: 'Enter waited on the slow lookup');
+    expect(
+      lookups,
+      greaterThan(1),
+      reason: 'the lookup re-ran after the invalidate',
+    );
     expect(opened, isNull);
   });
 
