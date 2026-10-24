@@ -66,6 +66,7 @@ import 'package:submersion/features/dive_centers/domain/services/rental_memory_r
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
+import 'package:submersion/features/dive_centers/domain/services/dive_center_picker_ranking.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
@@ -3267,6 +3268,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         builder: (_, scrollController) => DiveCenterPickerSheet(
           scrollController: scrollController,
           selectedCenter: _selectedDiveCenter,
+          // Centers near the dive first (#3379): the site, else the dive's
+          // GPS, else where a new dive was logged from.
+          reference: resolveDiveCenterPickerReference(
+            site: _selectedSite,
+            entryLocation: _existingDive?.entryLocation,
+            exitLocation: _existingDive?.exitLocation,
+            deviceLocation: _currentLocation == null
+                ? null
+                : GeoPoint(
+                    _currentLocation!.latitude,
+                    _currentLocation!.longitude,
+                  ),
+          ),
           onCenterSelected: (center) {
             Navigator.of(sheetContext).pop();
             _markDirty();
