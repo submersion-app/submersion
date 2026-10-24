@@ -213,6 +213,33 @@ void main() {
       },
     );
 
+    test('a copy written without a location gets the source one', () async {
+      final source = File(p.join(dir.path, 'in.mp4'))
+        ..writeAsBytesSync(
+          movie([
+            mvhd(DateTime.utc(2026)),
+            box('udta', xyz('+1.0000+002.0000/')),
+          ]),
+        );
+      final output = File(p.join(dir.path, 'out.mp4'));
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        // An encoder that writes no location (Media Foundation).
+        output.writeAsBytesSync(
+          movie([mvhd(DateTime.utc(2030))], moovLast: true),
+        );
+        return null;
+      });
+      await ChannelTranscodeEngine().encodeWithColor(
+        source: source,
+        output: output,
+        timeline: timeline,
+      );
+      expect(
+        (await readMp4RecordingInfo(output)).location,
+        '+01.0000+002.0000+000.000/',
+      );
+    });
+
     test('a source with no date leaves the copy as written', () async {
       final source = File(p.join(dir.path, 'in.mp4'))
         ..writeAsBytesSync([1, 2, 3]);

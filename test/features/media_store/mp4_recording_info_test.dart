@@ -247,6 +247,50 @@ void main() {
     expect(trackHeaderDate(bytes, 'mdhd'), date);
   });
 
+  group('addMp4Location', () {
+    test('adds a location to a movie whose moov is last', () async {
+      final bytes = movie([mvhd(date)], moovLast: true);
+      final f = await write(bytes);
+      expect(await addMp4Location(f, '+20.5000-087.0000+000.000/'), isTrue);
+      expect(
+        (await readMp4RecordingInfo(f)).location,
+        '+20.5000-087.0000+000.000/',
+      );
+      // Everything before the moov (the media data) is untouched.
+      final after = await f.readAsBytes();
+      final moovAt = bytes.length - (box('moov', mvhd(date))).length;
+      expect(after.sublist(0, moovAt), bytes.sublist(0, moovAt));
+    });
+
+    test('goes inside an existing udta', () async {
+      final f = await write(
+        movie([
+          mvhd(date),
+          box('udta', box('©too', [0, 3, 0, 0, 0x61, 0x62, 0x63])),
+        ], moovLast: true),
+      );
+      expect(await addMp4Location(f, '-12.5000+130.2500/'), isTrue);
+      expect(
+        (await readMp4RecordingInfo(f)).location,
+        '-12.5000+130.2500+000.000/',
+      );
+    });
+
+    test('leaves a movie whose moov is not last alone', () async {
+      final bytes = movie([mvhd(date)]);
+      final f = await write(bytes);
+      expect(await addMp4Location(f, '+20.5000-087.0000/'), isFalse);
+      expect(await f.readAsBytes(), bytes);
+    });
+
+    test('an unreadable location changes nothing', () async {
+      final bytes = movie([mvhd(date)], moovLast: true);
+      final f = await write(bytes);
+      expect(await addMp4Location(f, 'somewhere'), isFalse);
+      expect(await f.readAsBytes(), bytes);
+    });
+  });
+
   test('stamping a file with no movie header changes nothing', () async {
     final bytes = Uint8List.fromList(utf8.encode('plain bytes'));
     final f = await write(bytes);

@@ -1,5 +1,7 @@
 #include "submersion_transcoder_plugin.h"
 
+#include "color_encoder.h"
+
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Graphics.Imaging.h>
@@ -399,6 +401,106 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
     std::thread(ExtractFramesOnWorker, *path, times_ms, max_dimension, exact,
                 shared)
         .detach();
+    return;
+  }
+  if (method == "encodeWithColor") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    auto get = [&](const char* k) -> const EncodableValue* {
+      if (!args) return nullptr;
+      auto it = args->find(EncodableValue(k));
+      return it == args->end() ? nullptr : &it->second;
+    };
+    const auto* source = get("source") ? std::get_if<std::string>(get("source"))
+                                       : nullptr;
+    const auto* output = get("output") ? std::get_if<std::string>(get("output"))
+                                       : nullptr;
+    const auto* progress_id =
+        get("progressId") ? std::get_if<std::string>(get("progressId"))
+                          : nullptr;
+    const auto* timeline =
+        get("timeline") ? std::get_if<flutter::EncodableList>(get("timeline"))
+                        : nullptr;
+    if (!source || !output || !progress_id || !timeline) {
+      result->Error("bad_args",
+                    "encodeWithColor requires: source, output, timeline, "
+                    "progressId");
+      return;
+    }
+    auto number = [](const EncodableValue& v) -> double {
+      if (const auto* d = std::get_if<double>(&v)) return *d;
+      if (const auto* i = std::get_if<int32_t>(&v)) return *i;
+      if (const auto* l = std::get_if<int64_t>(&v)) return static_cast<double>(*l);
+      return 0;
+    };
+    std::vector<TimelineKey> keys;
+    for (const auto& entry : *timeline) {
+      const auto* map = std::get_if<EncodableMap>(&entry);
+      if (!map) continue;
+      auto t = map->find(EncodableValue("t"));
+      auto m = map->find(EncodableValue("m"));
+      if (t == map->end() || m == map->end()) continue;
+      const auto* values = std::get_if<flutter::EncodableList>(&m->second);
+      if (!values || values->size() != 20) continue;
+      TimelineKey key;
+      key.time_ms = number(t->second);
+      for (size_t i = 0; i < 20; ++i) {
+        key.matrix[i] = static_cast<float>(number((*values)[i]));
+      }
+      keys.push_back(key);
+    }
+    auto flag = std::make_shared<std::atomic<bool>>(false);
+    {
+      std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
+      cancel_flags_->flags[*progress_id] = flag;
+    }
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
+        std::move(result));
+    std::thread([source = *source, output = *output, id = *progress_id, keys,
+                 flag, flags = cancel_flags_, dispatcher = dispatcher_,
+                 shared] {
+      const ColorEncodeResult outcome = EncodeWithColor(
+          Wide(source), Wide(output), keys,
+          [&](double fraction) {
+            dispatcher->Emit(EncodableValue(EncodableMap{
+                {EncodableValue("progressId"), EncodableValue(id)},
+                {EncodableValue("fraction"), EncodableValue(fraction)},
+            }));
+          },
+          *flag);
+      {
+        std::lock_guard<std::mutex> lock(flags->mutex);
+        flags->flags.erase(id);
+      }
+      switch (outcome.outcome) {
+        case ColorEncodeOutcome::kOk:
+          shared->Success(EncodableValue());
+          break;
+        case ColorEncodeOutcome::kCancelled:
+          shared->Error("cancelled", outcome.message);
+          break;
+        case ColorEncodeOutcome::kUnsupported:
+          shared->Error("unsupported", outcome.message);
+          break;
+        case ColorEncodeOutcome::kFailed:
+          shared->Error("transcode_failed", outcome.message);
+          break;
+      }
+    }).detach();
+    return;
+  }
+  if (method == "cancelEncode") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    if (args) {
+      auto it = args->find(EncodableValue("progressId"));
+      if (it != args->end()) {
+        if (const auto* id = std::get_if<std::string>(&it->second)) {
+          std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
+          auto found = cancel_flags_->flags.find(*id);
+          if (found != cancel_flags_->flags.end()) found->second->store(true);
+        }
+      }
+    }
+    result->Success(EncodableValue());
     return;
   }
   if (method == "transcode") {

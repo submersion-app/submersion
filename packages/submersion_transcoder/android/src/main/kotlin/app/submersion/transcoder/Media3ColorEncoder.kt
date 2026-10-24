@@ -169,7 +169,7 @@ object Media3ColorEncoder {
 
     /** `+20.5000-087.0000+000.000/` to latitude and longitude. */
     private fun parseIso6709(text: String?): Pair<Float, Float>? {
-        val match = Regex("""^([+-]\d{2}(?:\.\d+)?)([+-]\d{3}(?:\.\d+)?)""")
+        val match = Regex("""^([+-]\d{1,2}(?:\.\d+)?)([+-]\d{1,3}(?:\.\d+)?)""")
             .find(text ?: return null) ?: return null
         val lat = match.groupValues[1].toFloatOrNull() ?: return null
         val lon = match.groupValues[2].toFloatOrNull() ?: return null

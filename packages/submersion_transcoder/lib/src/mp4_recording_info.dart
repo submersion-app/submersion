@@ -92,11 +92,94 @@ Future<void> stampMp4CreationTime(File file, DateTime created) async {
   }
 }
 
+/// Adds [iso6709] (e.g. `+20.5000-087.0000/`) to [file] as a 3GPP `loci`
+/// box in `moov/udta` (issue #3521), for an encoder that writes no location.
+/// Done only when `moov` is the file's last box, so growing it moves no
+/// sample data and no chunk offset. Returns whether it was added.
+Future<bool> addMp4Location(File file, String iso6709) async {
+  final place = _parseIso6709(iso6709);
+  if (place == null) return false;
+  final raf = await file.open(mode: FileMode.append);
+  try {
+    final moov = await _findTopLevel(raf, 'moov');
+    final length = await raf.length();
+    // A 64-bit moov header is left alone: it never needs the space here.
+    if (moov == null ||
+        moov.end != length ||
+        moov.payloadStart - moov.start != 8) {
+      return false;
+    }
+    await raf.setPosition(moov.payloadStart);
+    final payload = await raf.read(moov.payloadLength);
+    final loci = _lociBox(place.$1, place.$2, place.$3);
+    final children = BytesBuilder();
+    var placed = false;
+    for (final child in _children(payload, 0, payload.length)) {
+      if (child.type == 'udta' && !placed) {
+        final udta = BytesBuilder()
+          ..add(payload.sublist(child.payloadStart, child.end))
+          ..add(loci);
+        children.add(_box('udta', udta.toBytes()));
+        placed = true;
+      } else {
+        children.add(payload.sublist(child.start, child.end));
+      }
+    }
+    if (!placed) children.add(_box('udta', loci));
+    final newMoov = _box('moov', children.toBytes());
+    await raf.setPosition(moov.start);
+    await raf.writeFrom(newMoov);
+    return true;
+  } on Object {
+    return false;
+  } finally {
+    await raf.close();
+  }
+}
+
+(double, double, double)? _parseIso6709(String text) {
+  final match = RegExp(
+    r'^([+-]\d{1,2}(?:\.\d+)?)([+-]\d{1,3}(?:\.\d+)?)([+-]\d+(?:\.\d+)?)?',
+  ).firstMatch(text);
+  if (match == null) return null;
+  final lat = double.tryParse(match.group(1)!);
+  final lon = double.tryParse(match.group(2)!);
+  final alt = double.tryParse(match.group(3) ?? '+0') ?? 0;
+  if (lat == null || lon == null) return null;
+  return (lat, lon, alt);
+}
+
+Uint8List _box(String type, List<int> payload) {
+  final header = ByteData(8)..setUint32(0, 8 + payload.length);
+  return (BytesBuilder()
+        ..add(header.buffer.asUint8List(0, 4))
+        ..add(latin1.encode(type))
+        ..add(payload))
+      .toBytes();
+}
+
+Uint8List _lociBox(double lat, double lon, double alt) {
+  final fixed = ByteData(12)
+    ..setInt32(0, (lon * 65536).round())
+    ..setInt32(4, (lat * 65536).round())
+    ..setInt32(8, (alt * 65536).round());
+  return _box('loci', [
+    0, 0, 0, 0, // version, flags
+    0x15, 0xc7, // language: und
+    0, // empty name
+    0, // role: shooting location
+    ...fixed.buffer.asUint8List(),
+    0, // astronomical body
+    0, // notes
+  ]);
+}
+
 final _epoch = DateTime.utc(1904);
 
 class _Box {
-  const _Box(this.type, this.payloadStart, this.end);
+  const _Box(this.type, this.start, this.payloadStart, this.end);
   final String type;
+  final int start;
   final int payloadStart;
   final int end;
   int get payloadLength => end - payloadStart;
@@ -121,7 +204,7 @@ Future<_Box?> _findTopLevel(RandomAccessFile raf, String type) async {
     }
     if (size < header) return null;
     final name = latin1.decode(head.sublist(4, 8));
-    if (name == type) return _Box(name, pos + header, pos + size);
+    if (name == type) return _Box(name, pos, pos + header, pos + size);
     pos += size;
   }
   return null;
@@ -142,6 +225,7 @@ Iterable<_Box> _children(Uint8List bytes, int start, int end) sync* {
     if (size < header || pos + size > end) return;
     yield _Box(
       latin1.decode(bytes.sublist(pos + 4, pos + 8)),
+      pos,
       pos + header,
       pos + size,
     );

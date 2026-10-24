@@ -199,6 +199,12 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
         'location': recording.location,
         'progressId': progressId,
       });
+      // An encoder that writes no location (Media Foundation) gets it added.
+      final location = recording.location;
+      if (location != null &&
+          (await readMp4RecordingInfo(output)).location == null) {
+        await addMp4Location(output, location);
+      }
       final created = recording.created;
       if (created != null) await stampMp4CreationTime(output, created);
     } on PlatformException catch (e) {
