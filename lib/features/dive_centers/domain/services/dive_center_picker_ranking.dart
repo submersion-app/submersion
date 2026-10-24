@@ -30,7 +30,11 @@ DiveCenterPickerReference? resolveDiveCenterPickerReference({
 }) {
   final siteLocation = site?.location;
   if (siteLocation != null) {
-    return DiveCenterPickerReference(point: siteLocation, siteName: site!.name);
+    final name = site!.name.trim();
+    return DiveCenterPickerReference(
+      point: siteLocation,
+      siteName: name.isEmpty ? null : name,
+    );
   }
   final point = entryLocation ?? exitLocation ?? deviceLocation;
   return point == null ? null : DiveCenterPickerReference(point: point);

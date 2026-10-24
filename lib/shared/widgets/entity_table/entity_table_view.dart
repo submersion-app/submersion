@@ -594,7 +594,19 @@ class _EntityTableViewState<T, F extends EntityField>
                                       width: _kLeadingWidth,
                                       height: kEntityTableRowHeight,
                                       child: Center(
-                                        child: widget.leadingBuilder!(entity),
+                                        child:
+                                            (widget.isEntityMuted?.call(
+                                                  entity,
+                                                ) ??
+                                                false)
+                                            ? Opacity(
+                                                opacity:
+                                                    kEntityTableMutedOpacity,
+                                                child: widget.leadingBuilder!(
+                                                  entity,
+                                                ),
+                                              )
+                                            : widget.leadingBuilder!(entity),
                                       ),
                                     ),
                                   ...pinned.asMap().entries.map((entry) {

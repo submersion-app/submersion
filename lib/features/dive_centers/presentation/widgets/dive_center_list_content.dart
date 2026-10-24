@@ -1020,8 +1020,6 @@ class DiveCenterListTile extends ConsumerWidget {
       ),
     );
     // A permanently closed center stays listed, greyed (#3379).
-    return center.isPermanentlyClosed
-        ? Opacity(opacity: kClosedDiveCenterOpacity, child: card)
-        : card;
+    return greyIfClosed(closed: center.isPermanentlyClosed, child: card);
   }
 }

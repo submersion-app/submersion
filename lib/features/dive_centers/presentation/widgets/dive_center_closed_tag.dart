@@ -6,6 +6,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// (#3379): list tiles, table rows, map markers and picker rows.
 const double kClosedDiveCenterOpacity = 0.6;
 
+/// [child] greyed to [kClosedDiveCenterOpacity] when [closed], as every
+/// surface shows a permanently closed dive center (#3379); [child] as is
+/// otherwise.
+Widget greyIfClosed({required bool closed, required Widget child}) =>
+    closed ? Opacity(opacity: kClosedDiveCenterOpacity, child: child) : child;
+
 /// A small outlined "Closed" label beside a permanently closed dive center's
 /// name (#3379). Deliberately not a [Chip], so it sizes to its text and is
 /// safe beside a title in a row. Drawn in onSurface so it stays readable

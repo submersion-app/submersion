@@ -103,9 +103,10 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
               onTap: () => context.push('/dive-centers/${center.id}'),
             );
             // A permanently closed center stays findable, greyed (#3379).
-            return center.isPermanentlyClosed
-                ? Opacity(opacity: kClosedDiveCenterOpacity, child: tile)
-                : tile;
+            return greyIfClosed(
+              closed: center.isPermanentlyClosed,
+              child: tile,
+            );
           },
         );
       },

@@ -206,9 +206,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
         onTap: () => onCenterSelected(center),
       ),
     );
-    return closed
-        ? Opacity(opacity: kClosedDiveCenterOpacity, child: tile)
-        : tile;
+    return greyIfClosed(closed: closed, child: tile);
   }
 }
 

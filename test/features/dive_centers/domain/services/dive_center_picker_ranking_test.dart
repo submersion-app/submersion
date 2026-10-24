@@ -77,6 +77,14 @@ void main() {
       expect(fromDevice.siteName, isNull);
     });
 
+    test('a site with a blank name heads the section as "this dive"', () {
+      final ref = resolveDiveCenterPickerReference(
+        site: const DiveSite(id: 's3', name: '  ', location: GeoPoint(1, 1)),
+      );
+      expect(ref!.point, const GeoPoint(1, 1));
+      expect(ref.siteName, isNull);
+    });
+
     test('nothing to measure from gives no reference', () {
       expect(resolveDiveCenterPickerReference(), isNull);
       expect(resolveDiveCenterPickerReference(site: siteWithoutCoords), isNull);

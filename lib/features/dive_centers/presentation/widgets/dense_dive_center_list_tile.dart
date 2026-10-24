@@ -115,8 +115,6 @@ class DenseDiveCenterListTile extends StatelessWidget {
       ),
     );
     // A permanently closed center stays listed, greyed (#3379).
-    return center.isPermanentlyClosed
-        ? Opacity(opacity: kClosedDiveCenterOpacity, child: row)
-        : row;
+    return greyIfClosed(closed: center.isPermanentlyClosed, child: row);
   }
 }

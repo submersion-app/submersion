@@ -4,6 +4,9 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 
 import 'entity_table_test_harness.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import '../../../helpers/test_app.dart';
 
 /// A muted row and a cell trailing widget (#3379, closed dive centers).
 void main() {
@@ -100,5 +103,28 @@ void main() {
     expect(count.left, greaterThan(header.center.dx - 60));
     expect(tag.right, greaterThan(count.right));
     expect(tag.right, closeTo(header.right + 8, 40));
+  });
+
+  testWidgets('a muted row greys its leading widget too', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        child: EntityTableView<TestEntity, TestField>(
+          entities: const [open, closed],
+          idExtractor: (e) => e.id,
+          adapter: TestAdapter(),
+          config: testTableConfig,
+          units: const UnitFormatter(AppSettings()),
+          onSortFieldChanged: (_) {},
+          onResizeColumn: (_, _) {},
+          onEntityTap: (_) {},
+          isEntityMuted: (e) => e.id == 'b',
+          leadingBuilder: (e) => Text('lead-${e.id}'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(mutedAround('lead-b'), findsOneWidget);
+    expect(mutedAround('lead-a'), findsNothing);
   });
 }

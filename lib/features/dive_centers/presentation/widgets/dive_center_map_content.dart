@@ -356,9 +356,10 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     );
     // A permanently closed center is still on the map, drawn faded (#3379),
     // except while selected.
-    return center.isPermanentlyClosed && !isSelected
-        ? Opacity(opacity: kClosedDiveCenterOpacity, child: marker)
-        : marker;
+    return greyIfClosed(
+      closed: center.isPermanentlyClosed && !isSelected,
+      child: marker,
+    );
   }
 
   Widget _buildClusterMarker(BuildContext context, int count) {
