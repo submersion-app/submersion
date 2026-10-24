@@ -141,6 +141,16 @@ class _UncreatableVideoPlatform extends _FakeVideoPlatform {
       throw UnimplementedError('create() has not been implemented.');
 }
 
+/// A platform whose native release fails, so VideoPlayerController.dispose()
+/// throws.
+class _UnreleasableVideoPlatform extends _FakeVideoPlatform {
+  @override
+  Future<void> dispose(int playerId) async {
+    disposed++;
+    throw PlatformException(code: 'VideoError', message: 'release blew up');
+  }
+}
+
 /// A clip path under the platform's temp directory. The fake platform never
 /// opens it; it only has to be a valid path on every OS (issue #2279).
 String _tempVideoPath(String id) =>
@@ -260,6 +270,38 @@ void main() {
     expect(platform.created, 1);
     // The native decoder is not left behind for the process lifetime.
     expect(platform.disposed, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a release that fails is logged, not left unhandled', (
+    tester,
+  ) async {
+    final platform = _UnreleasableVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = platform;
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await tester.runAsync(() async {
+      platform.failInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    });
+
+    expect(find.text('Failed to load video'), findsOneWidget);
+    expect(platform.disposed, 1);
+    expect(
+      logged.where(
+        (e) =>
+            e.category == LogCategory.media &&
+            e.message.contains('release failed') &&
+            e.message.contains('release blew up'),
+      ),
+      isNotEmpty,
+    );
     expect(tester.takeException(), isNull);
   });
 
