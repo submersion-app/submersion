@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 
+import '../../helpers/contrast_ratio.dart';
 import '../../helpers/google_fonts_settle.dart';
 
 void main() {
@@ -64,7 +64,7 @@ void main() {
         );
         final accent = theme.extension<FeatureAccentColors>()!.of('buddies')!;
         expect(
-          _contrast(accent, card),
+          contrastRatio(accent, card),
           greaterThanOrEqualTo(4.5),
           reason: '${preset.id} ${theme.brightness.name} card',
         );
@@ -73,18 +73,11 @@ void main() {
         // colour than the bare card.
         final avatar = Color.alphaBlend(accent.withValues(alpha: 0.15), card);
         expect(
-          _contrast(accent, avatar),
+          contrastRatio(accent, avatar),
           greaterThanOrEqualTo(4.5),
           reason: '${preset.id} ${theme.brightness.name} avatar initials',
         );
       }
     }
   });
-}
-
-// WCAG 2.1 contrast ratio.
-double _contrast(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
 }
