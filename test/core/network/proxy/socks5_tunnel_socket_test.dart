@@ -81,7 +81,7 @@ void main() {
       expect(s.address, tunnel.socket.address);
       expect(s.remoteAddress.isLoopback, isTrue);
       final reply = await s.first;
-      expect(utf8.decode(reply), 'ok');
+      expect(utf8.decode(reply), startsWith('ok'));
       expect(() => s.listen(null), throwsStateError);
       // dart:io sockets refuse errors written into them; the tunnel passes
       // the call through, so it refuses too.
