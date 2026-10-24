@@ -1315,12 +1315,13 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   void dispose() {
-    if (_controller != null) {
+    final controller = _controller;
+    if (controller != null) {
       // Unregister before disposing so the page never holds a dead
       // controller; guarded by mounted on the page side.
       widget.onControllerChanged(widget.item.id, null);
+      _releaseController(controller, widget.item.id);
     }
-    _controller?.dispose();
     _focusNode.dispose();
     super.dispose();
   }
