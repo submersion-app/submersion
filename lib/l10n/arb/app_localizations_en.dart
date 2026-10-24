@@ -8628,6 +8628,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Duplicate';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Duplicate Site';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (copy)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Access & safety';
 
   @override
@@ -8644,6 +8655,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Type & Tags';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Site added, but its map features could not be copied.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Manage types';
@@ -10036,6 +10051,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Show retired and sold regulators';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Add regulator';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Regulator $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Remove regulator';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Trip cylinder';
@@ -23845,6 +23871,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Shared with computers';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'Extra regulators';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Shore swim';

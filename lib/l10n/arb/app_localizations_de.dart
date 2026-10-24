@@ -8761,6 +8761,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Duplizieren';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Tauchplatz duplizieren';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (Kopie)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Zugang & Sicherheit';
 
   @override
@@ -8777,6 +8788,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Typ & Tags';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Tauchplatz hinzugefügt, aber seine Kartenmerkmale konnten nicht kopiert werden.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Typen verwalten';
@@ -10191,6 +10206,17 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Ausgemusterte und verkaufte Atemregler anzeigen';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Atemregler hinzufügen';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Atemregler $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Atemregler entfernen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Flasche der Reise';
@@ -24204,6 +24230,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Geteilt mit Computern';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds =>
+      'Zusätzliche Atemregler';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Schwimmstrecke zum Ufer';

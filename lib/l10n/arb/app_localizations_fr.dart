@@ -8793,6 +8793,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Dupliquer';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Dupliquer le site';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (copie)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Accès et sécurité';
 
   @override
@@ -8809,6 +8820,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Type et étiquettes';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Site ajouté, mais ses éléments de carte n\'ont pas pu être copiés.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Gérer les types';
@@ -10232,6 +10247,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Afficher les détendeurs réformés et vendus';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Ajouter un détendeur';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Détendeur $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Retirer le détendeur';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Bloc du voyage';
@@ -24319,6 +24345,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Partagé avec les ordinateurs';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds =>
+      'Détendeurs supplémentaires';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Nage jusqu\'au rivage';

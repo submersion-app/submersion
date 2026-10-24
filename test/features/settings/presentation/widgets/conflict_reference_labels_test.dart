@@ -133,6 +133,7 @@ void main() {
       for (final (field, target, label) in [
         ('diverRole', 'diveRoles', 'Your role'),
         ('regulatorEquipmentId', 'equipment', 'Regulator'),
+        ('extraRegulatorIds', 'equipment', 'Regulator'),
         ('viaEquipmentId', 'equipment', 'Attached through'),
         ('viaSetId', 'equipmentSets', 'Applied from set'),
         ('parentEquipmentId', 'equipment', 'Installed in'),

@@ -8764,6 +8764,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Duplica';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Duplica sito';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (copia)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Accesso e sicurezza';
 
   @override
@@ -8780,6 +8791,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Tipo e tag';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Sito aggiunto, ma non è stato possibile copiare i suoi elementi sulla mappa.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Gestisci tipi';
@@ -10196,6 +10211,17 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Mostra erogatori dismessi e venduti';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Aggiungi erogatore';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Erogatore $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Rimuovi erogatore';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Bombola del viaggio';
@@ -24261,6 +24287,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Condiviso con i computer';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds =>
+      'Erogatori aggiuntivi';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Nuoto fino alla riva';

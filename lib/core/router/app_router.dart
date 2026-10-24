@@ -611,8 +611,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newSite',
-                builder: (context, state) =>
-                    SiteEditPage.fromNewSiteExtra(state.extra),
+                builder: (context, state) => SiteEditPage.fromNewSiteExtra(
+                  state.extra,
+                  duplicateOfId: state.uri.queryParameters['duplicateOf'],
+                ),
               ),
               GoRoute(
                 path: 'merge',

@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_ca
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/duplicate_site_action.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
@@ -285,6 +286,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
                 openInConnectionsMenuItem(context),
+                duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 ..._libraryMenuItems(context, ref, site),
               ],
@@ -538,6 +540,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
                 openInConnectionsMenuItem(context),
+                duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 ..._libraryMenuItems(context, ref, site),
                 // Delete for the owner; another profile only removes the
@@ -816,6 +819,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     }
     if (action == 'displayOptions') {
       _displayOptionsMenu.open();
+      return;
+    }
+    if (action == kDuplicateSiteAction) {
+      await openDuplicateSite(context, ref, site.id);
       return;
     }
     if (action == 'remove') {

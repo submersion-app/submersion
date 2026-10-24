@@ -8578,6 +8578,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'שכפל';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'שכפל אתר';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (עותק)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'גישה ובטיחות';
 
   @override
@@ -8594,6 +8605,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'סוג ותגיות';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'האתר נוסף, אך לא ניתן היה להעתיק את המאפיינים שלו במפה.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'ניהול סוגים';
@@ -9974,6 +9989,17 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'הצג וסתים שהוצאו משימוש ושנמכרו';
+
+  @override
+  String get diveLog_tank_addRegulator => 'הוסף וסת';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'וסת $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'הסר וסת';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'מכל הטיול';
@@ -23648,6 +23674,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sharedComputerIds => 'משותף עם מחשבים';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'וסתים נוספים';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'שחייה לחוף';

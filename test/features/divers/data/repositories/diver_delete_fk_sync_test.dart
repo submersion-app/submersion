@@ -171,6 +171,8 @@ void main() {
           DiveTanksCompanion.insert(id: 'tank-b', diveId: 'dive-b').copyWith(
             equipmentId: const Value('cyl-a'),
             regulatorEquipmentId: const Value('reg-a'),
+            // An extra regulator of the deleted diver's too (#3375).
+            extraRegulatorIds: const Value('["reg-a"]'),
           ),
         );
 
@@ -178,12 +180,13 @@ void main() {
 
     final tank = await db
         .customSelect(
-          'SELECT equipment_id, regulator_equipment_id FROM dive_tanks '
-          "WHERE id = 'tank-b'",
+          'SELECT equipment_id, regulator_equipment_id, extra_regulator_ids '
+          "FROM dive_tanks WHERE id = 'tank-b'",
         )
         .getSingle();
     expect(tank.readNullable<String>('equipment_id'), isNull);
     expect(tank.readNullable<String>('regulator_equipment_id'), isNull);
+    expect(tank.readNullable<String>('extra_regulator_ids'), isNull);
     expect(await pendingCountFor('diveTanks', 'tank-b'), 1);
     expect(
       await pendingCountFor('dives', 'dive-b'),

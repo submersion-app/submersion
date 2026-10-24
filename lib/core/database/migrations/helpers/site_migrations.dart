@@ -82,8 +82,8 @@ extension SiteMigrations on AppDatabase {
     await Migrator(this).createTable(diveCenterGearNotes);
   }
 
-  /// dive_centers.is_permanently_closed (v312, issue #3379). Column only,
-  /// no backfill: every existing center stays open. Called from the v312
+  /// dive_centers.is_permanently_closed (v313, issue #3379). Column only,
+  /// no backfill: every existing center stays open. Called from the v313
   /// rung and the beforeOpen backstop.
   Future<void> _assertDiveCenterClosedColumn() async {
     await _addColumnIfMissing(

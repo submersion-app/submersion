@@ -345,6 +345,8 @@ void main() {
           presetName: 'al80',
           decoSwitchDepth: 21,
           equipmentId: 'eq-1',
+          regulatorEquipmentId: 'reg-1',
+          extraRegulatorIds: const ['reg-2'],
         ),
       );
       await tester.pumpAndSettle();
@@ -362,6 +364,7 @@ void main() {
       expect(edited.presetName, 'al80');
       expect(edited.decoSwitchDepth, 21);
       expect(edited.equipmentId, 'eq-1');
+      expect(edited.regulatorIds, ['reg-1', 'reg-2']);
     });
   });
 

@@ -8708,6 +8708,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Dupliceren';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Stek dupliceren';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (kopie)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Toegang & veiligheid';
 
   @override
@@ -8724,6 +8735,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Type & labels';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Stek toegevoegd, maar de kenmerken op de kaart konden niet worden gekopieerd.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Types beheren';
@@ -10131,6 +10146,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Ademautomaten die uit gebruik of verkocht zijn tonen';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Ademautomaat toevoegen';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Ademautomaat $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Ademautomaat verwijderen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';
@@ -24095,6 +24121,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Gedeeld met computers';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'Extra ademautomaten';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Zwemmen naar de kant';

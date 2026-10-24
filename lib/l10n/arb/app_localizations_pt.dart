@@ -8762,6 +8762,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Duplicar';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Duplicar Ponto';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (cópia)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Acesso e segurança';
 
   @override
@@ -8778,6 +8789,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Tipo e etiquetas';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Ponto adicionado, mas não foi possível copiar seus elementos do mapa.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Gerir tipos';
@@ -10194,6 +10209,17 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Mostrar reguladores aposentados e vendidos';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Adicionar regulador';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Regulador $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Remover regulador';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Cilindro da viagem';
@@ -24240,6 +24266,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Compartilhado com computadores';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds =>
+      'Reguladores adicionais';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Natação até a margem';

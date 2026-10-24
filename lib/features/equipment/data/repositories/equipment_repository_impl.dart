@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_share_
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_ownershi
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
@@ -1107,7 +1109,9 @@ class EquipmentRepository {
         WHERE (EXISTS (SELECT 1 FROM dive_equipment de
                        WHERE de.dive_id = d.id AND de.equipment_id = ?1)
             OR EXISTS (SELECT 1 FROM dive_tanks dt
-                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1))
+                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1)
+            -- A regulator on a tank, first or extra (#3375).
+            OR d.id IN (${tankRegulatorDiveIdsSql('?1')}))
           AND (?2 IS NULL OR d.diver_id = ?2)
       ''',
             variables: [
@@ -1182,6 +1186,9 @@ class EquipmentRepository {
           SELECT dive_id, o2_percent, 0 FROM dive_tanks
             WHERE equipment_id = ?1 OR regulator_equipment_id = ?1
           UNION ALL
+          SELECT dive_id, o2_percent, 0
+            FROM ($tankExtraRegulatorRowsSql) WHERE regulator_id = ?1
+          UNION ALL
           SELECT de.dive_id, t.o2_percent, 0
             FROM dive_equipment de
             JOIN dive_tanks t ON t.dive_id = de.dive_id
@@ -1206,6 +1213,9 @@ class EquipmentRepository {
           UNION ALL
           SELECT dive_id, o2_percent, 1 FROM dive_tanks
             WHERE equipment_id = ?2 OR regulator_equipment_id = ?2
+          UNION ALL
+          SELECT dive_id, o2_percent, 1
+            FROM ($tankExtraRegulatorRowsSql) WHERE regulator_id = ?2
           UNION ALL
           SELECT de.dive_id, t.o2_percent, 1
             FROM dive_equipment de
@@ -1535,7 +1545,9 @@ class EquipmentRepository {
               '''
         WITH owners(owner_id, parent_id, installed_since, rebreather) AS (
           VALUES $values
-        )
+        ),
+        -- Extra tank regulators (#3375), parsed once for every owner.
+        extra_regs AS ($tankExtraRegulatorRowsSql)
         SELECT je.owner_id AS owner_id,
                d.id AS dive_id,
                -- The dive and its synced series (#1769): the stamp a
@@ -1561,6 +1573,10 @@ class EquipmentRepository {
             FROM owners o
             JOIN dive_tanks t ON t.equipment_id = o.owner_id
               OR t.regulator_equipment_id = o.owner_id
+          UNION ALL
+          SELECT o.owner_id, x.dive_id, x.o2_percent, 0
+            FROM owners o
+            JOIN extra_regs x ON x.regulator_id = o.owner_id
           UNION ALL
           SELECT o.owner_id, de.dive_id, t.o2_percent, 0
             FROM owners o
@@ -1588,6 +1604,10 @@ class EquipmentRepository {
             FROM owners o
             JOIN dive_tanks t ON t.equipment_id = o.parent_id
               OR t.regulator_equipment_id = o.parent_id
+          UNION ALL
+          SELECT o.owner_id, x.dive_id, x.o2_percent, 1
+            FROM owners o
+            JOIN extra_regs x ON x.regulator_id = o.parent_id
           UNION ALL
           SELECT o.owner_id, de.dive_id, t.o2_percent, 1
             FROM owners o
@@ -1664,36 +1684,67 @@ class EquipmentRepository {
     return earliest;
   }
 
-  /// The regulator last paired with a cylinder preset, for prefilling the
-  /// tank editor: the newest dive whose tank of that preset names one.
-  /// Operational, not descriptive: an excluded dive still tells us which
-  /// regulator the diver hangs on that cylinder. Only a regulator still in
-  /// the kit, by the same test as [getActiveEquipment]: prefilling a new
-  /// tank with one since retired or sold would put it back in use (#3210).
+  /// The regulators last paired with a cylinder preset, for prefilling the
+  /// tank editor: the first and the extras (issue #3375) of the newest tank
+  /// of that preset that names one still in the kit, in order. Operational,
+  /// not descriptive: an excluded dive still tells us which regulators the
+  /// diver hangs on that cylinder. Only regulators still in the kit, by the
+  /// same test as [getActiveEquipment]: prefilling a new tank with one since
+  /// retired or sold would put it back in use (#3210).
   // stats-scope-exempt: editor prefill, not a statistic
-  Future<String?> getLastRegulatorForPreset(String presetName) async {
-    final rows = await _db
+  Future<List<String>> getLastRegulatorsForPreset(String presetName) async {
+    const inKit = '''
+      e.is_active = 1 AND e.status NOT IN (?2, ?3, ?4)
+    ''';
+    final kitVars = [
+      Variable.withString(EquipmentStatus.retired.name),
+      Variable.withString(EquipmentStatus.sold.name),
+      Variable.withString(EquipmentStatus.wanted.name),
+    ];
+    final tank = await _db
         .customSelect(
           '''
-      SELECT t.regulator_equipment_id AS reg
+      SELECT t.regulator_equipment_id AS reg, t.extra_regulator_ids AS extras
       FROM dive_tanks t
       JOIN dives d ON d.id = t.dive_id
-      JOIN equipment e ON e.id = t.regulator_equipment_id
       WHERE t.preset_name = ?1
-        AND e.is_active = 1
-        AND e.status NOT IN (?2, ?3, ?4)
+        AND (EXISTS (SELECT 1 FROM equipment e
+                     WHERE e.id = t.regulator_equipment_id AND $inKit)
+          OR EXISTS (SELECT 1 FROM json_each(${tankExtraRegulatorsJson('t')}) j
+                     JOIN equipment e ON e.id = j.value WHERE $inKit))
       ORDER BY d.dive_date_time DESC
       LIMIT 1
     ''',
-          variables: [
-            Variable.withString(presetName),
-            Variable.withString(EquipmentStatus.retired.name),
-            Variable.withString(EquipmentStatus.sold.name),
-            Variable.withString(EquipmentStatus.wanted.name),
-          ],
+          variables: [Variable.withString(presetName), ...kitVars],
         )
-        .get();
-    return rows.isEmpty ? null : rows.first.data['reg'] as String?;
+        .getSingleOrNull();
+    if (tank == null) return const [];
+    final named = normalizeTankRegulators(
+      tank.readNullable<String>('reg'),
+      decodeExtraRegulatorIds(tank.readNullable<String>('extras')),
+    );
+    final ids = [?named.first, ...named.extras];
+    // The same variables as the tank pick, so the same in-kit test reads
+    // ?2-?4; the ids follow from ?5.
+    final marks = [for (var i = 0; i < ids.length; i++) '?${i + 5}'].join(', ');
+    final kept = {
+      for (final r
+          in await _db
+              .customSelect(
+                'SELECT e.id FROM equipment e WHERE e.id IN ($marks) AND $inKit',
+                variables: [
+                  Variable.withString(presetName),
+                  ...kitVars,
+                  for (final id in ids) Variable.withString(id),
+                ],
+              )
+              .get())
+        r.read<String>('id'),
+    };
+    return [
+      for (final id in ids)
+        if (kept.contains(id)) id,
+    ];
   }
 
   /// Get trip count for equipment item (unique trips from dives using this equipment)

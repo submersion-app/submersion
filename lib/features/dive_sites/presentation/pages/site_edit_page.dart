@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart'
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
@@ -83,6 +84,11 @@ class SiteEditPage extends ConsumerStatefulWidget {
   /// searched the site picker for (#1501).
   final String? initialName;
 
+  /// Starts a new site from every field, type, tag and expected species of
+  /// this one, named as its copy; Save also copies its map features. Nothing
+  /// is written until then (issue #3575).
+  final String? duplicateOfId;
+
   /// A reader's view of a shared site library site (issue #2567): Save becomes
   /// Send and writes a suggestion instead of the site.
   final bool suggest;
@@ -97,6 +103,7 @@ class SiteEditPage extends ConsumerStatefulWidget {
     this.onDeleted,
     this.initialLocation,
     this.initialName,
+    this.duplicateOfId,
     this.suggest = false,
   }) : assert(
          siteId == null || mergeSiteIds == null,
@@ -109,16 +116,34 @@ class SiteEditPage extends ConsumerStatefulWidget {
        assert(
          initialName == null || (siteId == null && mergeSiteIds == null),
          'initialName is only valid when creating a new site',
+       ),
+       assert(
+         duplicateOfId == null || (siteId == null && mergeSiteIds == null),
+         'duplicateOfId is only valid when creating a new site',
+       ),
+       assert(
+         duplicateOfId == null ||
+             (initialLocation == null && initialName == null),
+         'a duplicate takes its name and location from the original',
        );
 
   /// The new-site form for the `/sites/new` route, seeded from its `extra`
-  /// as [NewSiteSeed.fromRouteExtra] reads it.
-  factory SiteEditPage.fromNewSiteExtra(Object? extra) {
+  /// as [NewSiteSeed.fromRouteExtra] reads it, or duplicating the site its
+  /// `duplicateOf` query names.
+  factory SiteEditPage.fromNewSiteExtra(
+    Object? extra, {
+    String? duplicateOfId,
+  }) {
     final seed = NewSiteSeed.fromRouteExtra(extra);
-    return SiteEditPage(initialLocation: seed.location, initialName: seed.name);
+    return SiteEditPage(
+      initialLocation: seed.location,
+      initialName: seed.name,
+      duplicateOfId: duplicateOfId,
+    );
   }
 
   bool get isEditing => siteId != null;
+  bool get isDuplicating => !isEditing && duplicateOfId != null;
   bool get isMerging => mergeSiteIds != null && mergeSiteIds!.length > 1;
 
   @override
@@ -173,6 +198,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   bool _isApplyingInitialValues = false;
   Timer? _altitudeLookupDebounce;
   DiveSite? _originalSite;
+
+  /// The duplicate's type, tag and species loads. A new site always writes
+  /// its picks, so Save waits for these rather than saving empty ones.
+  Future<void>? _duplicateLoads;
   List<Species> _expectedSpecies = [];
   Set<String> _originalExpectedSpeciesIds = {};
   // Site types and tags (issue #1765). A Set keeps insertion order, so types
@@ -219,15 +248,20 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _latitudeController.addListener(_scheduleAltitudeLookup);
     _longitudeController.addListener(_scheduleAltitudeLookup);
     _mergeLoadFuture = widget.isMerging ? _loadMergeData() : null;
-    if (!widget.isEditing && !widget.isMerging) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final shareByDefault = await ref.read(shareByDefaultProvider.future);
-        if (!mounted) return;
-        setState(
-          () => _sharing = shareByDefault ? ItemSharing.all : ItemSharing.none,
-        );
-      });
+    // A duplicate decides its own sharing instead (issue #3575).
+    if (!widget.isEditing && !widget.isMerging && !widget.isDuplicating) {
+      _applyShareByDefault();
     }
+  }
+
+  void _applyShareByDefault() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final shareByDefault = await ref.read(shareByDefaultProvider.future);
+      if (!mounted) return;
+      setState(
+        () => _sharing = shareByDefault ? ItemSharing.all : ItemSharing.none,
+      );
+    });
   }
 
   void _onFieldChanged() {
@@ -378,6 +412,79 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (_isInitialized) return;
     _isInitialized = true;
     _originalSite = site;
+    _fillForm(site, units);
+
+    // Load expected species
+    _loadSharing(site);
+    _loadExpectedSpecies(site.id);
+    _loadClassification(site.id);
+  }
+
+  /// Fills the form from [source] as a new site named as its copy (issue
+  /// #3575), with its types, tags and expected species picked. There is no
+  /// [_originalSite]: the save creates a site of the active diver's, and a
+  /// shared library site's copy is a personal one, shared as a new site is.
+  /// The copy keeps the sharing of a site that is the diver's own, everyone
+  /// and named profiles alike (issue #2151); another profile's site is its
+  /// owner's audience, so that copy is shared as a new site is too.
+  void _initializeFromDuplicate(DiveSite source, UnitFormatter units) {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    _fillForm(
+      source.copyWith(
+        name: context.l10n.diveSites_edit_duplicateName(source.name),
+      ),
+      units,
+    );
+    // Nothing is stored for the copy yet, so Save writes its sharing. A
+    // library site's copy is shared as a new site is.
+    _originalSharing = ItemSharing.none;
+    if (source.isLibrarySite) {
+      _sharing = ItemSharing.none;
+      _applyShareByDefault();
+    }
+    // Handled here, not only at Save: the diver may never press it. A load
+    // that fails leaves its picks as they are for the diver to adjust.
+    _duplicateLoads =
+        Future.wait([
+          _loadExpectedSpecies(source.id),
+          _loadClassification(source.id, ownOnly: true),
+          if (!source.isLibrarySite) _loadDuplicateSharing(source),
+        ]).then<void>(
+          (_) {},
+          onError: (Object e, StackTrace stackTrace) => _log.error(
+            'Could not load what site ${source.id} carries to its copy',
+            error: e,
+            stackTrace: stackTrace,
+          ),
+        );
+  }
+
+  /// Settles the copy's sharing once the active profile is known: the
+  /// diver's own site adds the profiles it is shared with by name, and
+  /// another profile's site is shared as a new site is. A choice the diver
+  /// made meanwhile is kept.
+  Future<void> _loadDuplicateSharing(DiveSite source) async {
+    final provisional = ItemSharing(everyone: source.isShared);
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final ItemSharing settled;
+    if (isOwnOrUnowned(ownerId: source.diverId, activeDiverId: diverId)) {
+      final stored = await ref
+          .read(itemSharesRepositoryProvider)
+          .storedProfileIds(SharedItemKind.site, source.id);
+      settled = ItemSharing(everyone: source.isShared, profileIds: stored);
+    } else {
+      settled = await ref.read(shareByDefaultProvider.future)
+          ? ItemSharing.all
+          : ItemSharing.none;
+    }
+    if (!mounted || _sharing != provisional) return;
+    setState(() => _sharing = settled);
+  }
+
+  /// Fills every form field from [site], as initial values that leave the
+  /// form clean.
+  void _fillForm(DiveSite site, UnitFormatter units) {
     _isApplyingInitialValues = true;
 
     _nameController.text = site.name;
@@ -410,11 +517,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         ? _altitudeForInput(units.convertAltitude(site.altitude!))
         : '';
     _isApplyingInitialValues = false;
-
-    // Load expected species
-    _loadSharing(site);
-    _loadExpectedSpecies(site.id);
-    _loadClassification(site.id);
   }
 
   /// Reads the profiles the site is shared with by name (issue #2151); the
@@ -447,9 +549,29 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   /// The stored values always become the baseline a save compares against,
   /// but they fill the section only if the diver has not already edited it:
   /// a pick made before the load finished is what the diver saw and chose.
-  Future<void> _loadClassification(String siteId) async {
-    final types = await ref.read(siteTypesForSiteProvider(siteId).future);
-    final tags = await ref.read(tagsForSiteProvider(siteId).future);
+  ///
+  /// With [ownOnly] (a duplicate) only built-ins and the active diver's own
+  /// types and tags are kept: another profile's shared site must not bring
+  /// its owner's vocabulary onto the copy, as an equipment clone (#2046).
+  Future<void> _loadClassification(
+    String siteId, {
+    bool ownOnly = false,
+  }) async {
+    var types = await ref.read(siteTypesForSiteProvider(siteId).future);
+    var tags = await ref.read(tagsForSiteProvider(siteId).future);
+    if (ownOnly) {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      bool mine(String? owner) =>
+          isOwnOrUnowned(ownerId: owner, activeDiverId: diverId);
+      types = [
+        for (final t in types)
+          if (mine(t.diverId)) t,
+      ];
+      tags = [
+        for (final t in tags)
+          if (mine(t.diverId)) t,
+      ];
+    }
     if (!mounted) return;
     setState(() {
       _originalTypeIds = {for (final t in types) t.id};
@@ -765,8 +887,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       );
     }
 
-    if (widget.isEditing) {
-      final siteAsync = ref.watch(siteProvider(widget.siteId!));
+    if (widget.isEditing || widget.isDuplicating) {
+      final siteAsync = ref.watch(
+        siteProvider(widget.siteId ?? widget.duplicateOfId!),
+      );
       return siteAsync.when(
         data: (site) {
           if (site == null) {
@@ -784,7 +908,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               ),
             );
           }
-          _initializeFromSite(site, units);
+          if (widget.isEditing) {
+            _initializeFromSite(site, units);
+          } else {
+            _initializeFromDuplicate(site, units);
+          }
           return _buildForm(context, units);
         },
         loading: () {
@@ -1282,6 +1410,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ? context.l10n.diveSites_edit_appBar_editSite
           : widget.isMerging
           ? context.l10n.diveSites_edit_appBar_mergeSites
+          : widget.isDuplicating
+          ? context.l10n.diveSites_edit_appBar_duplicateSite
           : context.l10n.diveSites_edit_appBar_newSite,
       saveLabel: _suggestModeShown()
           ? context.l10n.sharedLibrary_suggest_send
@@ -2019,6 +2149,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     final rulesAfterCreate = widget.isEditing || widget.isMerging
         ? null
         : captureRulesAfterCreate(context, ref);
+    await _duplicateLoads;
+    if (!mounted) return;
 
     try {
       final settings = ref.read(settingsProvider);
@@ -2113,6 +2245,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
       final notifier = ref.read(siteListNotifierProvider.notifier);
       String savedId;
+      // Set when a duplicate saved but its map features did not copy.
+      var featuresNotCopied = false;
 
       // Types and tags (issue #1765) are written with the row, in one
       // transaction, only when the diver changed them on this page.
@@ -2175,6 +2309,27 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           classification: classification,
         );
         savedId = newSite.id;
+        if (widget.isDuplicating) {
+          // The site is saved by now, so a failure here must not read as a
+          // failed save: saving again would make a second copy.
+          try {
+            await ref
+                .read(siteFeatureRepositoryProvider)
+                .copyFeatures(
+                  fromSiteId: widget.duplicateOfId!,
+                  toSiteId: savedId,
+                  actingDiverId: diverId,
+                );
+          } catch (e, stackTrace) {
+            _log.error(
+              'Could not copy the map features of site '
+              '${widget.duplicateOfId} to its duplicate $savedId',
+              error: e,
+              stackTrace: stackTrace,
+            );
+            featuresNotCopied = true;
+          }
+        }
       }
       // The chosen profiles (issue #2151), only when the owner changed
       // them; the save above already wrote the everyone flag. Checked in
@@ -2235,12 +2390,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             SiteMergeResult(survivorId: savedId, snapshot: mergeSnapshot),
           );
         } else {
+          // A duplicate's opener takes the id and shows the copy where it
+          // shows sites (openDuplicateSite).
           context.pop(savedId);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 widget.isEditing
                     ? context.l10n.diveSites_edit_snackbar_siteUpdated
+                    : featuresNotCopied
+                    ? context.l10n.diveSites_edit_snackbar_featuresNotCopied
                     : context.l10n.diveSites_edit_snackbar_siteAdded,
               ),
             ),

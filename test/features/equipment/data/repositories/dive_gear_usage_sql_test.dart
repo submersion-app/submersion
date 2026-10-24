@@ -46,6 +46,7 @@ void main() {
     String dive, {
     String? cylinder,
     String? regulator,
+    String? extras,
     String? serial,
   }) => db
       .into(db.diveTanks)
@@ -53,6 +54,7 @@ void main() {
         DiveTanksCompanion.insert(id: id, diveId: dive).copyWith(
           equipmentId: Value(cylinder),
           regulatorEquipmentId: Value(regulator),
+          extraRegulatorIds: Value(extras),
           transmitterSerial: Value(serial),
         ),
       );
@@ -77,7 +79,7 @@ void main() {
     for (final d in ['bill', 'anna']) {
       await addDiver(d);
     }
-    for (final i in ['mask', 'tank', 'reg', 'txItem']) {
+    for (final i in ['mask', 'tank', 'reg', 'reg2', 'txItem']) {
       await addItem(i);
     }
     await addDive('b1', 'bill');
@@ -134,5 +136,22 @@ void main() {
       ('a1', 'mask', 'gearList'),
     });
     expect(await gearUsageForDives(db, const []), isEmpty);
+  });
+
+  test('an extra regulator is on the dive too (#3375)', () async {
+    await addTank('t1', 'b1', regulator: 'reg', extras: '["reg2"]');
+    await addTank('t2', 'b1', extras: 'not json');
+    expect(asSet(await gearUsageForDives(db, ['b1'])), {
+      ('b1', 'reg', 'tankRegulator'),
+      ('b1', 'reg2', 'tankRegulator'),
+    });
+  });
+
+  test('a non-string entry in the list is no regulator (#3375)', () async {
+    await addTank('t1', 'b1', regulator: 'reg', extras: '["reg2",1,null]');
+    expect(asSet(await gearUsageForDives(db, ['b1'])), {
+      ('b1', 'reg', 'tankRegulator'),
+      ('b1', 'reg2', 'tankRegulator'),
+    });
   });
 }

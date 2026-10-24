@@ -162,6 +162,44 @@ void main() {
     );
   });
 
+  test(
+    'a tank regulator counts, first or extra, once per dive (#3375)',
+    () async {
+      for (final id in ['r1', 'r2']) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: 'regulator',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+      }
+      await dive('1');
+      for (final (id, extras) in [('t1', '["r2"]'), ('t2', '["r1"]')]) {
+        await db
+            .into(db.diveTanks)
+            .insert(
+              DiveTanksCompanion.insert(id: id, diveId: '1').copyWith(
+                regulatorEquipmentId: Value(id == 't1' ? 'r1' : null),
+                extraRegulatorIds: Value(extras),
+              ),
+            );
+      }
+      expect(
+        await repo.diveCountsBySubject(
+          ParsedSubject.equipment,
+          null,
+          diverId: 'me',
+        ),
+        {'r1': 1, 'r2': 1},
+      );
+    },
+  );
+
   test('the tick tables name every table a count reads', () {
     expect(ExploreRepository.subjectCountTables(ParsedSubject.sites), isEmpty);
     expect(ExploreRepository.subjectCountTables(ParsedSubject.buddies), {

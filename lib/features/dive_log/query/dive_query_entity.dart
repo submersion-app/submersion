@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dar
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
@@ -34,13 +35,15 @@ const kDiveNoWeightSql =
     '(SELECT 1 FROM dive_weights w WHERE w.dive_id = {r}.id))';
 
 /// The gear union the equipment axes have always used: items linked
-/// through `dive_equipment` plus cylinders the transmitter registry matched
-/// through `dive_tanks.equipment_id`.
-const kDiveGearJoinSql =
+/// through `dive_equipment`, cylinders the transmitter registry matched
+/// through `dive_tanks.equipment_id`, and the regulators on the dive's
+/// tanks, first and extra (issue #3375).
+final kDiveGearJoinSql =
     '{to}.id IN (SELECT de.equipment_id FROM dive_equipment de '
     'WHERE de.dive_id = {from}.id '
     'UNION SELECT dt.equipment_id FROM dive_tanks dt '
-    'WHERE dt.dive_id = {from}.id AND dt.equipment_id IS NOT NULL)';
+    'WHERE dt.dive_id = {from}.id AND dt.equipment_id IS NOT NULL '
+    'UNION ${tankRegulatorIdsOfDiveSql('{from}.id')})';
 
 /// A dive's effective water type: its own, else its site's (issue #3196).
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water

@@ -24,7 +24,7 @@ class DiveCenter extends Equatable {
   final int? fillOpensAt;
   final int? fillClosesAt;
 
-  /// Out of business (v312, #3379). Kept for past dives and statistics, but
+  /// Out of business (v313, #3379). Kept for past dives and statistics, but
   /// never offered as a nearby center in the picker.
   final bool isPermanentlyClosed;
   final DateTime createdAt;

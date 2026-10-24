@@ -8744,6 +8744,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Duplikálás';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Helyszín duplikálása';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (másolat)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Megközelítés és biztonság';
 
   @override
@@ -8760,6 +8771,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Típus és címkék';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Helyszín hozzáadva, de a térképen jelölt jellemzőit nem sikerült átmásolni.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Típusok kezelése';
@@ -10173,6 +10188,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Kivont és eladott reduktorok megjelenítése';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Reduktor hozzáadása';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return '$number. reduktor';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Reduktor eltávolítása';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Az utazás palackja';
@@ -24139,6 +24165,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Megosztva komputerekkel';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'További reduktorok';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Úszás a partig';

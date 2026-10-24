@@ -5088,6 +5088,12 @@
       }
     }
   },
+  "diveSites_detail_duplicateMenu_label": "Duplicate",
+  "@diveSites_detail_duplicateMenu_label": {"description": "Site detail menu action that opens a new site pre-filled from this one"},
+  "diveSites_edit_appBar_duplicateSite": "Duplicate Site",
+  "@diveSites_edit_appBar_duplicateSite": {"description": "Title of the site form while it is filled from another site, before it is saved"},
+  "diveSites_edit_duplicateName": "{name} (copy)",
+  "@diveSites_edit_duplicateName": {"description": "Name a duplicated site starts with; name is the original site's name", "placeholders": {"name": {"type": "String"}}},
   "diveSites_edit_group_accessSafety": "Access & safety",
   "@diveSites_edit_group_accessSafety": {
     "description": "Site form group: access, mooring, parking, hazards"
@@ -5112,6 +5118,8 @@
   "@diveSites_edit_group_typeTags": {
     "description": "Site form group: the site's types (reef, wreck, lake...) and its tags"
   },
+  "diveSites_edit_snackbar_featuresNotCopied": "Site added, but its map features could not be copied.",
+  "@diveSites_edit_snackbar_featuresNotCopied": {"description": "Shown after a duplicated site saved but copying the original's map features failed"},
   "diveSites_edit_typeTags_manageTypes": "Manage types",
   "diveSites_edit_typeTags_tagsLabel": "Tags",
   "diveSites_edit_typeTags_typesLabel": "Site types",
@@ -5716,6 +5724,16 @@
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
   "diveLog_tank_regulatorShowLeftKit": "Show retired and sold regulators",
+  "diveLog_tank_addRegulator": "Add regulator",
+  "diveLog_tank_regulatorNumbered": "Regulator {number}",
+  "@diveLog_tank_regulatorNumbered": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_tank_removeRegulator": "Remove regulator",
   "diveLog_tank_tripCylinderLabel": "Trip cylinder",
   "diveLog_tank_tripCylinderNone": "None",
   "diveLog_tank_tripCylinderMissing": "No longer on this trip",
@@ -14280,6 +14298,7 @@
   "settings_conflict_field_settings_value": "Value",
   "settings_conflict_field_shallowAscentRate": "Ascent rate between shallow stops",
   "settings_conflict_field_sharedComputerIds": "Shared with computers",
+  "settings_conflict_field_extraRegulatorIds": "Extra regulators",
   "settings_conflict_field_shoreSwimM": "Shore swim",
   "settings_conflict_field_shoreWalkM": "Shore walk",
   "settings_conflict_field_shortName": "Short name",

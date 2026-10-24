@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 312;
+  static const int currentSchemaVersion = 313;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1399,10 +1399,15 @@ class AppDatabase extends _$AppDatabase {
     // as inert unknowns and sees such an item as private, so the floor does
     // not move. Renumbered from 309 and 310, which #1970 and #2050 took.
     311,
-    // v312: dive_centers.is_permanently_closed (issue #3379). Additive synced
-    // column, no backfill: an older peer ignores the field, so the floor
-    // stays. Renumbered from 310, which #2050 took.
+    // v312: dive_tanks.extra_regulator_ids, the regulators on a cylinder
+    // after the first (issue #3375). An additive nullable column, so the
+    // floor stays: an older peer's payload omits it and the row keeps null.
+    // Renumbered from 310 and 311 as #3611 and #2151 shipped them first.
     312,
+    // v313: dive_centers.is_permanently_closed (issue #3379). Additive synced
+    // column, no backfill: an older peer ignores the field, so the floor
+    // stays. Renumbered from 310 and 312, which #2050 and #3375 took.
+    313,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

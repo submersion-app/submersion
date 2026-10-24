@@ -571,13 +571,22 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 311) await reportProgress();
 
-    // v312: dive_centers.is_permanently_closed (issue #3379). Column only, no
-    // backfill: every existing center stays open. Re-asserted in beforeOpen
-    // through _assertDiveCenterClosedColumn. Renumbered from 310, which
-    // #2050 took.
+    // v312: dive_tanks.extra_regulator_ids (issue #3375). Column only, no
+    // backfill: a tank's single regulator stays the first. Re-asserted in
+    // beforeOpen through _assertTankExtraRegulatorIds. Renumbered from 310
+    // and 311 as #3611 and #2151 shipped them first.
     if (from < 312) {
-      await _assertDiveCenterClosedColumn();
+      await _assertTankExtraRegulatorIds();
     }
     if (from < 312) await reportProgress();
+
+    // v313: dive_centers.is_permanently_closed (issue #3379). Column only, no
+    // backfill: every existing center stays open. Re-asserted in beforeOpen
+    // through _assertDiveCenterClosedColumn. Renumbered from 310 and 312,
+    // which #2050 and #3375 took.
+    if (from < 313) {
+      await _assertDiveCenterClosedColumn();
+    }
+    if (from < 313) await reportProgress();
   }
 }

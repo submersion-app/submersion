@@ -8906,6 +8906,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'تكرار';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'تكرار الموقع';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'الوصول والسلامة';
 
   @override
@@ -8922,6 +8933,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'النوع والوسوم';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'تمت إضافة الموقع، لكن تعذر نسخ معالمه على الخريطة.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'إدارة الأنواع';
@@ -10342,6 +10357,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'عرض منظمات التنفس المتقاعدة والمباعة';
+
+  @override
+  String get diveLog_tank_addRegulator => 'إضافة منظم تنفس';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'منظم التنفس $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'إزالة منظم التنفس';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'أسطوانة الرحلة';
@@ -24483,6 +24509,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sharedComputerIds => 'مشترك مع الحواسيب';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'منظمات تنفس إضافية';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'السباحة إلى الشاطئ';

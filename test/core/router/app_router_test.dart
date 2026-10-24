@@ -51,6 +51,7 @@ import 'package:submersion/features/trips/presentation/navigation/open_trip_list
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 
@@ -225,6 +226,48 @@ void main() {
       expect(planning.tripId, 't1');
       expect(planning.initialSection, TripEditSection.planning);
       expect(build('/trips/t1/edit').initialSection, isNull);
+    });
+  });
+
+  group('site duplicate (#3575)', () {
+    test('openDuplicateSite pushes the newSite route', () {
+      // openDuplicateSite writes the path by hand; it must stay this route's.
+      expect(
+        _locationOfRoute(router.configuration.routes, 'newSite'),
+        '/sites/new',
+      );
+    });
+
+    testWidgets('newSite reads the site to duplicate from the URL', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      SiteEditPage build(String location) =>
+          _findRouteByName(router.configuration.routes, 'newSite')!.builder!(
+                capturedContext,
+                GoRouterState(
+                  router.configuration,
+                  uri: Uri.parse(location),
+                  matchedLocation: Uri.parse(location).path,
+                  fullPath: '/sites/new',
+                  pathParameters: const {},
+                  pageKey: ValueKey(location),
+                ),
+              )
+              as SiteEditPage;
+
+      expect(build('/sites/new?duplicateOf=s1').duplicateOfId, 's1');
+      expect(build('/sites/new').duplicateOfId, isNull);
     });
   });
 
