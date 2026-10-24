@@ -16,7 +16,7 @@ void main() {
         'providers',
         'trip_providers.dart',
       ),
-    ).readAsStringSync();
+    ).readAsStringSync().replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final start = state.indexOf('class TripFilterState');
     expect(start, isNonNegative);
     final body = state.substring(start, state.indexOf('\n}\n', start));
