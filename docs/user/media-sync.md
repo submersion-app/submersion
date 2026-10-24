@@ -15,8 +15,9 @@ up separately from Sync between devices.
 > **In the app this lives under Settings > Data > Photos & videos.** The page
 > covers two ideas: **Copies in the cloud**, which is this guide, and **Where
 > photos come from** (your gallery, files, URLs; see
-> [Marine Life & Photos](marine-life-and-photos.md)). The **Set up this device**
-> card on Settings > Data walks through photos with sync and backups.
+> [Marine Life & Photos](marine-life-and-photos.md)). **Guided setup:** step 4
+> of [Set Up This Device](set-up-this-device.md) starts or joins the copies with
+> sync and backups.
 
 ## What Media Sync Solves
 
@@ -56,6 +57,10 @@ database sync at all. The same account can do both: on your own server, sync and
 copies each use a folder of their own.
 
 ## Setting Up
+
+The quickest way is the **Set up this device** card on Settings > Data: its
+photo step uses the account you chose for sync, and on a later device it joins
+the copies your other devices keep. To set up copies on their own:
 
 1. Go to **Settings > Data > Photos & videos**.
 2. Under **Copies in the cloud**, tap **Set up**. The account list opens.

@@ -245,14 +245,18 @@ where you'll run into them:
 ## Data
 
 The top of the page shows four status marks (Backups, Sync, Libraries and
-Photos) with a line for anything that needs attention, then a count of your
-dives, sites and photos.
+Photos) with a line for anything that needs attention. Under them, until you
+hide it or finish it, is the **Set up this device** card, which walks through
+an account, sync, backups and photo copies; see
+[Set Up This Device](set-up-this-device.md). Then comes a count of your dives,
+sites and photos.
 
 ### Your data
 
 Each row says in one sentence where things stand, for example "Backed up
 3 hours ago, copy in Google Drive" or "In step with Eric's iPhone, 12m ago".
-A feature that is not set up shows a **Set up** action under its status.
+A feature that is not set up shows a **Set up** action under its status,
+which opens that step of Set up this device.
 
 | Item | What it does |
 |------|--------------|
@@ -270,6 +274,7 @@ A feature that is not set up shows a **Set up** action under its status.
 | **Offline maps** | Map tiles and 3D terrain data for use without a connection |
 | **Import options** | How incoming dive data is read (see below) |
 | **Data tools** | One-off repairs for imported data (see below) |
+| **Set up this device again** | Shown once the setup card is hidden or finished: reopens it from the first step |
 
 **Import options**
 
