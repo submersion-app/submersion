@@ -18,6 +18,9 @@ const double _kCheckboxWidth = 48.0;
 /// Width reserved for [EntityTableView.leadingBuilder], when one is given.
 const double _kLeadingWidth = 40.0;
 
+/// Opacity of a row [EntityTableView.isEntityMuted] answers true for.
+const double kEntityTableMutedOpacity = 0.6;
+
 /// Generic full-width data table for displaying entity lists with pinned
 /// columns and synchronized horizontal scrolling.
 ///
@@ -93,6 +96,15 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// Every cell has one when null.
   final bool Function(T entity, F field)? hasCellMenu;
 
+  /// Whether [entity]'s row is greyed out, such as a permanently closed dive
+  /// center (#3379). No row is when null.
+  final bool Function(T entity)? isEntityMuted;
+
+  /// A widget shown after the text in [entity]'s cell in [field]'s column,
+  /// such as a status tag beside a name, or null for none. Cells hold only
+  /// their text when this is null.
+  final Widget? Function(T entity, F field)? cellTrailingBuilder;
+
   const EntityTableView({
     super.key,
     required this.entities,
@@ -114,6 +126,8 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     this.cellMenuBuilder,
     this.isColumnFiltered,
     this.hasCellMenu,
+    this.isEntityMuted,
+    this.cellTrailingBuilder,
   });
 
   @override
@@ -366,8 +380,17 @@ class _EntityTableViewState<T, F extends EntityField>
   }) {
     final value = widget.adapter.extractValue(column.field, entity);
     final text = widget.adapter.formatValue(column.field, value, widget.units);
+    final label = Text(
+      text,
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: isSelected ? theme.colorScheme.onPrimaryContainer : null,
+      ),
+    );
+    final trailing = widget.cellTrailingBuilder?.call(entity, column.field);
 
-    final cell = Container(
+    final box = Container(
       width: _widthOf(column),
       height: kEntityTableRowHeight,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -385,15 +408,19 @@ class _EntityTableViewState<T, F extends EntityField>
               : BorderSide.none,
         ),
       ),
-      child: Text(
-        text,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: isSelected ? theme.colorScheme.onPrimaryContainer : null,
-        ),
-      ),
+      child: trailing == null
+          ? label
+          : Row(
+              children: [
+                Flexible(child: label),
+                const SizedBox(width: 6),
+                trailing,
+              ],
+            ),
     );
+    final cell = (widget.isEntityMuted?.call(entity) ?? false)
+        ? Opacity(opacity: kEntityTableMutedOpacity, child: box)
+        : box;
     final menu = widget.cellMenuBuilder;
     if (menu == null ||
         !(widget.hasCellMenu?.call(entity, column.field) ?? true)) {
