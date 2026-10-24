@@ -58,6 +58,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   List<String> _selectedAffiliations = [];
   int? _fillOpensAt;
   int? _fillClosesAt;
+  bool _isPermanentlyClosed = false;
 
   /// Set by a save the fill hours blocked, so their error shows from then.
   bool _fillHoursChecked = false;
@@ -213,6 +214,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _selectedAffiliations = List.from(center.affiliations);
     _fillOpensAt = center.fillOpensAt;
     _fillClosesAt = center.fillClosesAt;
+    _isPermanentlyClosed = center.isPermanentlyClosed;
   }
 
   Future<void> _save() async {
@@ -272,6 +274,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         notes: _notesController.text.trim(),
         fillOpensAt: _fillOpensAt,
         fillClosesAt: _fillClosesAt,
+        isPermanentlyClosed: _isPermanentlyClosed,
         createdAt: now,
         updatedAt: now,
       );
@@ -586,6 +589,20 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.url,
+          ),
+
+          const SizedBox(height: 24),
+
+          // Out of business (#3379): kept for past dives, never nearby.
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.l10n.diveCenters_label_permanentlyClosed),
+            subtitle: Text(context.l10n.diveCenters_hint_permanentlyClosed),
+            value: _isPermanentlyClosed,
+            onChanged: (value) => setState(() {
+              _isPermanentlyClosed = value;
+              _hasChanges = true;
+            }),
           ),
 
           const SizedBox(height: 24),
