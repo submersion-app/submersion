@@ -20,7 +20,8 @@ final class GitStoredObject {
 }
 
 /// A stored object's body read in pieces, for one too large to hold whole.
-/// The caller closes it.
+/// The caller closes it. One read at a time: [readSync] and a stream from
+/// [openRead] share a file position, so they must not be interleaved.
 abstract interface class GitObjectReader {
   GitObjectType get type;
 

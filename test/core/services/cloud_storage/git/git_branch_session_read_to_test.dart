@@ -8,6 +8,7 @@ import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
 
 import '../../../../helpers/git_cli.dart';
+import '../../../../helpers/git_delegating_store.dart';
 import '../../../../helpers/git_http_backend_server.dart';
 import '../../../../helpers/git_test_session.dart';
 
@@ -15,36 +16,20 @@ const _path = 'Submersion Backups/backup.json';
 
 /// A store whose first [open] of a blob finds it gone, as when another
 /// store on the same directory evicts it between the check and the read.
-final class _LosesFirstOpen implements GitObjectStore {
-  final _inner = MemoryGitObjectStore();
+final class _LosesFirstOpen extends DelegatingGitObjectStore {
+  _LosesFirstOpen() : super(MemoryGitObjectStore());
+
   bool _lost = false;
 
   @override
-  Future<GitStoredObject?> get(GitObjectId id) => _inner.get(id);
-
-  @override
-  Future<void> put(GitStoredObject object) => _inner.put(object);
-
-  @override
-  Future<bool> has(GitObjectId id) => _inner.has(id);
-
-  @override
   Future<GitObjectReader?> open(GitObjectId id) async {
-    final reader = await _inner.open(id);
+    final reader = await inner.open(id);
     if (!_lost && reader?.type == GitObjectType.blob) {
       _lost = true;
       return null;
     }
     return reader;
   }
-
-  @override
-  GitObjectWriter create(GitObjectType type, int size) =>
-      _inner.create(type, size);
-
-  @override
-  Future<void> trim({Future<Set<GitObjectId>> Function()? keep}) =>
-      _inner.trim(keep: keep);
 }
 
 void main() {

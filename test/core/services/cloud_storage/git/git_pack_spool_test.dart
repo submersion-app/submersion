@@ -71,6 +71,30 @@ void main() {
     expect(dir.listSync(), isEmpty);
   });
 
+  test(
+    'clears packs a killed download left long ago, and nothing else',
+    () async {
+      final dir = tempDirForTest('git_spool_');
+      final old = DateTime.now().subtract(const Duration(days: 1));
+      final stale = File(p.join(dir.path, 'submersion-dead.pack'))
+        ..writeAsStringSync('partial')
+        ..setLastModifiedSync(old);
+      final recent = File(p.join(dir.path, 'submersion-live.pack'))
+        ..writeAsStringSync('another download, still running');
+      final unrelated = File(p.join(dir.path, 'other-app.pack'))
+        ..writeAsStringSync('not ours')
+        ..setLastModifiedSync(old);
+      await readSpooledPack(
+        _pieces(_fixture('full.pack'), 4096),
+        MemoryGitObjectStore(),
+        directory: dir,
+      );
+      expect(stale.existsSync(), isFalse);
+      expect(recent.existsSync(), isTrue);
+      expect(unrelated.existsSync(), isTrue);
+    },
+  );
+
   test('is on disk while the stream is still arriving', () async {
     final dir = tempDirForTest('git_spool_');
     final pack = _fixture('full.pack');

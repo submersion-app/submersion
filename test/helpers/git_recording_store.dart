@@ -4,12 +4,12 @@ import 'dart:typed_data';
 import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
 
+import 'git_delegating_store.dart';
+
 /// A [GitObjectStore] that records the largest body that crossed it whole,
 /// so a test can show a large object only ever moved in pieces.
-final class RecordingGitObjectStore implements GitObjectStore {
-  RecordingGitObjectStore(this.inner);
-
-  final GitObjectStore inner;
+final class RecordingGitObjectStore extends DelegatingGitObjectStore {
+  RecordingGitObjectStore(super.inner);
 
   /// The largest body [get] returned or [put] was given.
   int largestWholeBody = 0;
@@ -42,9 +42,6 @@ final class RecordingGitObjectStore implements GitObjectStore {
   }
 
   @override
-  Future<bool> has(GitObjectId id) => inner.has(id);
-
-  @override
   Future<GitObjectReader?> open(GitObjectId id) async {
     final reader = await inner.open(id);
     if (reader == null) return null;
@@ -57,10 +54,6 @@ final class RecordingGitObjectStore implements GitObjectStore {
     createdSizes.add(size);
     return _RecordingWriter(this, inner.create(type, size));
   }
-
-  @override
-  Future<void> trim({Future<Set<GitObjectId>> Function()? keep}) =>
-      inner.trim(keep: keep);
 }
 
 final class _RecordingReader implements GitObjectReader {

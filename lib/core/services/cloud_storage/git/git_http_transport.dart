@@ -83,8 +83,8 @@ class GitHttpTransport {
   /// How long a push of a pack of that many bytes may take.
   final Duration Function(int packBytes) pushDeadline;
 
-  /// Where a fetched pack is written as it arrives; the system temp
-  /// directory unless given.
+  /// Where a fetched pack is written as it arrives; unless given,
+  /// [defaultGitSpoolDirectory].
   final Directory? _spoolDirectory;
   final CertificateTrustRecorder? _recorder;
   late final http.Client _client;
@@ -615,7 +615,7 @@ class GitHttpTransport {
     await readSpooledPack(
       demuxSideBand(reader),
       into,
-      directory: _spoolDirectory ?? Directory.systemTemp,
+      directory: _spoolDirectory,
     );
   }
 
