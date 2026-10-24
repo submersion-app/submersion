@@ -219,7 +219,16 @@ final class FileGitObjectStore implements GitObjectStore {
       ..[0] = object.type.packCode
       ..setRange(1, object.body.length + 1, object.body);
     await tmp.writeAsBytes(bytes, flush: true);
-    await tmp.rename(file.path);
+    try {
+      await tmp.rename(file.path);
+    } on FileSystemException {
+      // Another concurrent put may have landed the same object first.
+      if (await file.exists()) {
+        await tmp.delete().catchError((_) => tmp);
+      } else {
+        rethrow;
+      }
+    }
     // A concurrent put of the same object has counted it already.
     if (index.containsKey(file.path)) return;
     final size = object.body.length + 1;
