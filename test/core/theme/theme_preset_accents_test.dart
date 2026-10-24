@@ -68,6 +68,15 @@ void main() {
           greaterThanOrEqualTo(4.5),
           reason: '${preset.id} ${theme.brightness.name} card',
         );
+        // The initials sit on the accent at 15% over the card, the avatar
+        // background BuddyListTile paints, which is closer to the text
+        // colour than the bare card.
+        final avatar = Color.alphaBlend(accent.withValues(alpha: 0.15), card);
+        expect(
+          _contrast(accent, avatar),
+          greaterThanOrEqualTo(4.5),
+          reason: '${preset.id} ${theme.brightness.name} avatar initials',
+        );
       }
     }
   });

@@ -77,7 +77,7 @@ void main() {
 
     test('buddies wears a calm sage green in both palettes', () {
       // The old crimson pink read as an alert on every buddy card (#3584).
-      expect(FeatureAccentColors.light.of('buddies'), const Color(0xFF4A7356));
+      expect(FeatureAccentColors.light.of('buddies'), const Color(0xFF40674C));
       expect(FeatureAccentColors.dark.of('buddies'), const Color(0xFFA5C8AE));
     });
 

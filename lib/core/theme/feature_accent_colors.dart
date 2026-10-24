@@ -39,8 +39,9 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       // A muted sage: the crimson pink this replaced read as an alert on
       // every buddy card (#3584). Its low saturation is what keeps it apart
       // from the vivid sites green at icon size, and it is deep enough to
-      // read at 4.5:1 as the small stat text on the buddy card.
-      'buddies': Color(0xFF4A7356),
+      // read at 4.5:1 as the small stat text and as the initials on their
+      // 15% tint of itself on every preset's buddy card.
+      'buddies': Color(0xFF40674C),
       'dive-centers': Color(0xFF6D4C41),
       'certifications': Color(0xFFB45309),
       'documents': Color(0xFF1565C0),
