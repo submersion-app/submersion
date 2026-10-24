@@ -20,9 +20,9 @@ String _asciiDigits(String digits) => String.fromCharCodes(
 
 /// The dive number a search field holding only a whole number asks for
 /// (`500`, `#500`, or the same in Arabic-Indic or full-width digits), or
-/// null for anything else (#3455). The parser reads
-/// both as one free-text word, so the list still searches them as text;
-/// only the jump list treats them as a dive number too.
+/// null for anything else (#3455). The parser reads both as one free-text
+/// word, so the list still searches them as text; only the jump list
+/// treats them as a dive number too.
 int? bareDiveNumber(QueryNode? node) {
   if (node is! TextNode || node.words.length != 1) return null;
   final match = _bareNumber.firstMatch(node.words.single);
