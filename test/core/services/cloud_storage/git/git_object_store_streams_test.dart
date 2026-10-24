@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
 
@@ -133,6 +134,24 @@ void main() {
       });
     });
   }
+
+  test('FileGitObjectStore refuses to open an object with a damaged type '
+      'byte, and can still delete it', () async {
+    final dir = tempDirForTest('git_store_streams_');
+    final store = FileGitObjectStore(dir);
+    final body = _random(100, 10);
+    final id = await (store.create(
+      GitObjectType.blob,
+      body.length,
+    )..add(body)).close();
+    final objectFile = File(
+      p.join(dir.path, id.hex.substring(0, 2), id.hex.substring(2)),
+    )..writeAsBytesSync([0x0f, ...body]);
+    await expectLater(store.open(id), throwsFormatException);
+    // The handle was closed, so the file is not held open (which on Windows
+    // would block this delete).
+    objectFile.deleteSync();
+  });
 
   group('FileGitObjectStore writers', () {
     test(

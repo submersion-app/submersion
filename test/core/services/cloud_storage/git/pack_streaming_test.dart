@@ -318,6 +318,14 @@ void main() {
       );
     });
 
+    test('the reserved opcode is a corrupt pack', () async {
+      await expectCorrupt(
+        _delta(base.length, 1, [
+          [0],
+        ]),
+      );
+    });
+
     test('an insert past the declared result is a corrupt pack', () async {
       await expectCorrupt(
         _delta(base.length, 2, [

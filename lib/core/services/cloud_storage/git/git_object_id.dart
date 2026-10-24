@@ -112,9 +112,6 @@ final class GitObjectHasher {
   late final ByteConversionSink _sink;
   int _added = 0;
 
-  /// How many body bytes have been added.
-  int get added => _added;
-
   void add(List<int> chunk) {
     _added += chunk.length;
     _sink.add(chunk);
