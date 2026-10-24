@@ -40,11 +40,25 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   String? setSiteId;
   GeoPoint? setSiteAnchor;
   bool? setSiteClearAnchor;
+  String? setEquipmentRouteId;
+  String? setEquipmentId;
+  String? setEquipmentDeviceName;
 
   @override
   Future<void> rename(String routeId, String? name) async {
     renamedId = routeId;
     newName = name;
+  }
+
+  @override
+  Future<void> setEquipment(
+    String routeId, {
+    String? equipmentId,
+    String? deviceName,
+  }) async {
+    setEquipmentRouteId = routeId;
+    setEquipmentId = equipmentId;
+    setEquipmentDeviceName = deviceName;
   }
 
   @override
@@ -705,6 +719,82 @@ void main() {
 
       expect(repository.renamedId, 'r1');
       expect(repository.newName, 'Morning dive');
+    });
+
+    testWidgets(
+      'change device opens the picker and persists the chosen equipment',
+      (tester) async {
+        const scooter = EquipmentItem(
+          id: 'eq1',
+          name: 'Test Scooter',
+          type: EquipmentType.dpv,
+        );
+        final overrides = await getBaseOverrides();
+        final repository = _RecordingNavTrackRepository();
+        final route = _route();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              navTrackByIdProvider(route.id).overrideWith((ref) async => route),
+              navTrackRepositoryProvider.overrideWithValue(repository),
+              activeEquipmentProvider.overrideWith((ref) async => [scooter]),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: NavTrackDetailPage(trackId: route.id),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Change device'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Test Scooter'));
+        await tester.pumpAndSettle();
+
+        expect(repository.setEquipmentRouteId, 'r1');
+        expect(repository.setEquipmentId, 'eq1');
+        expect(repository.setEquipmentDeviceName, 'Test Scooter');
+      },
+    );
+
+    testWidgets('change device, choosing "no equipment", clears both fields', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+      final repository = _RecordingNavTrackRepository();
+      final route = _route(equipmentId: 'eq1');
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            navTrackByIdProvider(route.id).overrideWith((ref) async => route),
+            navTrackRepositoryProvider.overrideWithValue(repository),
+            activeEquipmentProvider.overrideWith((ref) async => const []),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavTrackDetailPage(trackId: route.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Change device'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-equipment-none')));
+      await tester.pumpAndSettle();
+
+      expect(repository.setEquipmentRouteId, 'r1');
+      expect(repository.setEquipmentId, isNull);
+      expect(repository.setEquipmentDeviceName, isNull);
     });
 
     testWidgets('the unlink item only appears for a linked route, and calls '

@@ -22,6 +22,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -100,6 +101,30 @@ class NavTrackDetailPage extends ConsumerWidget {
 
   Future<void> _unlink(WidgetRef ref, NavTrack route) async {
     await ref.read(navTrackRepositoryProvider).unlink(route.id);
+  }
+
+  Future<void> _changeDevice(
+    BuildContext context,
+    WidgetRef ref,
+    NavTrack route,
+  ) async {
+    final choice = await pickNavTrackEquipment(
+      context,
+      selectedEquipmentId: route.equipmentId,
+    );
+    final repository = ref.read(navTrackRepositoryProvider);
+    switch (choice) {
+      case NavTrackEquipmentChosen(:final item):
+        await repository.setEquipment(
+          route.id,
+          equipmentId: item.id,
+          deviceName: item.name,
+        );
+      case NavTrackEquipmentCleared():
+        await repository.setEquipment(route.id);
+      case NavTrackEquipmentPickCancelled():
+        break;
+    }
   }
 
   Future<void> _delete(
@@ -262,6 +287,8 @@ class NavTrackDetailPage extends ConsumerWidget {
                   switch (value) {
                     case 'rename':
                       await _rename(context, ref, route);
+                    case 'changeDevice':
+                      await _changeDevice(context, ref, route);
                     case 'unlink':
                       await _unlink(ref, route);
                     case 'delete':
@@ -272,6 +299,10 @@ class NavTrackDetailPage extends ConsumerWidget {
                   PopupMenuItem(
                     value: 'rename',
                     child: Text(l10n.navTrack_detail_menuRename),
+                  ),
+                  PopupMenuItem(
+                    value: 'changeDevice',
+                    child: Text(l10n.navTrack_detail_menuChangeDevice),
                   ),
                   if (route.diveId != null)
                     PopupMenuItem(

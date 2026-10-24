@@ -15443,6 +15443,7 @@
   "navTrack_detail_defaultTrackTitle": "Víz alatti nyomvonal",
   "navTrack_detail_menuRename": "Átnevezés",
   "navTrack_detail_menuChangeSite": "Merülőhely módosítása",
+  "navTrack_detail_menuChangeDevice": "Eszköz módosítása",
   "navTrack_detail_noMapYet": "Állítsd be a kezdőpontot, hogy ezt térképen lásd.",
   "navTrack_detail_correctionStatus_none": "Még nincs alkalmazott korrekció.",
   "navTrack_detail_correctionStatus_sameAsStart": "A vég a kezdőponttal azonosra állítva.",

@@ -52525,6 +52525,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'Changer de site';
 
   @override
+  String get navTrack_detail_menuChangeDevice => 'Changer d\'appareil';
+
+  @override
   String get navTrack_detail_noMapYet =>
       'Placez le point de départ pour voir ceci sur une carte.';
 

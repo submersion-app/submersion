@@ -15591,6 +15591,7 @@
   "navTrack_detail_defaultTrackTitle": "Unterwasser-Track",
   "navTrack_detail_menuRename": "Umbenennen",
   "navTrack_detail_menuChangeSite": "Tauchplatz ändern",
+  "navTrack_detail_menuChangeDevice": "Gerät ändern",
   "navTrack_detail_noMapYet": "Startpunkt setzen, um dies auf einer Karte zu sehen.",
   "navTrack_detail_correctionStatus_none": "Noch keine Korrektur angewendet.",
   "navTrack_detail_correctionStatus_sameAsStart": "Ende auf gleich wie Start gesetzt.",

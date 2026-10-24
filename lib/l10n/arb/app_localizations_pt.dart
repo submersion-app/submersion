@@ -52409,6 +52409,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'Alterar ponto de mergulho';
 
   @override
+  String get navTrack_detail_menuChangeDevice => 'Alterar dispositivo';
+
+  @override
   String get navTrack_detail_noMapYet =>
       'Defina o ponto de início para ver isso em um mapa.';
 

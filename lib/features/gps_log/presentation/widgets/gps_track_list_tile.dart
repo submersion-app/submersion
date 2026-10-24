@@ -33,31 +33,38 @@ class GpsTrackListTile extends ConsumerWidget {
   final VoidCallback? onDelete;
   final EdgeInsetsGeometry? contentPadding;
 
-  /// Shown under the detail line, so the title keeps the full row width.
+  /// Shown in the title row, after the title (dive-list parity: the badge
+  /// sits next to the title the way `DiveModeBadge` does, not buried in the
+  /// detail line).
   final Widget? kindBadge;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
+    final badge = kindBadge;
     return ListTile(
       onTap: onTap,
       selected: selected,
       contentPadding: contentPadding,
       minLeadingWidth: kTrackThumbnailWidth,
       leading: GpsTrackThumbnail(trackId: track.id),
-      title: Text(formatTrackTitle(units, track)),
-      subtitle: kindBadge == null
-          ? Text(formatTrackDetailLine(l10n, units, track))
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      title: badge == null
+          ? Text(formatTrackTitle(units, track))
+          : Row(
               children: [
-                Text(formatTrackDetailLine(l10n, units, track)),
-                const SizedBox(height: 4),
-                kindBadge!,
+                Expanded(
+                  child: Text(
+                    formatTrackTitle(units, track),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                badge,
               ],
             ),
+      subtitle: Text(formatTrackDetailLine(l10n, units, track)),
       trailing: onDelete == null
           ? null
           : IconButton(

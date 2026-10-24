@@ -51290,6 +51290,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'שינוי אתר';
 
   @override
+  String get navTrack_detail_menuChangeDevice => 'שינוי מכשיר';
+
+  @override
   String get navTrack_detail_noMapYet =>
       'קבע את נקודת ההתחלה כדי לראות זאת על מפה.';
 

@@ -10,7 +10,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../helpers/mock_providers.dart';
 
 void main() {
-  testWidgets('a kind badge sits under the detail line, which stays a Text', (
+  testWidgets('a kind badge sits in the title row, next to the title', (
     tester,
   ) async {
     const track = GpsTrack(
@@ -53,9 +53,16 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // The badge rides the title row, above the (unchanged) detail line --
+    // dive-list parity moved it out of the subtitle, where it used to sit
+    // under the detail text.
     final detail = tester.getRect(find.text('1 point, 1h 30m'));
     final badge = tester.getRect(find.byKey(const ValueKey('badge')));
-    expect(badge.top, greaterThanOrEqualTo(detail.bottom));
+    expect(badge.bottom, lessThanOrEqualTo(detail.top));
+
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    expect(tile.title, isA<Row>());
+    expect(tile.subtitle, isA<Text>());
   });
 
   testWidgets('without a badge the detail line is the whole subtitle', (

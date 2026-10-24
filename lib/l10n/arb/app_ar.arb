@@ -15443,6 +15443,7 @@
   "navTrack_detail_defaultTrackTitle": "مسار تحت الماء",
   "navTrack_detail_menuRename": "إعادة التسمية",
   "navTrack_detail_menuChangeSite": "تغيير الموقع",
+  "navTrack_detail_menuChangeDevice": "تغيير الجهاز",
   "navTrack_detail_noMapYet": "عيّن نقطة البداية لرؤية هذا على خريطة.",
   "navTrack_detail_correctionStatus_none": "لم يُطبَّق أي تصحيح بعد.",
   "navTrack_detail_correctionStatus_sameAsStart": "تم تعيين النهاية لتكون مثل البداية.",

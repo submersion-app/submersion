@@ -15443,6 +15443,7 @@
   "navTrack_detail_defaultTrackTitle": "מסלול תת-ימי",
   "navTrack_detail_menuRename": "שינוי שם",
   "navTrack_detail_menuChangeSite": "שינוי אתר",
+  "navTrack_detail_menuChangeDevice": "שינוי מכשיר",
   "navTrack_detail_noMapYet": "קבע את נקודת ההתחלה כדי לראות זאת על מפה.",
   "navTrack_detail_correctionStatus_none": "טרם הוחל תיקון.",
   "navTrack_detail_correctionStatus_sameAsStart": "הסיום נקבע כזהה להתחלה.",

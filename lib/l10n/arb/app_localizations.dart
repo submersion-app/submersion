@@ -82995,6 +82995,12 @@ abstract class AppLocalizations {
   /// **'Change site'**
   String get navTrack_detail_menuChangeSite;
 
+  /// No description provided for @navTrack_detail_menuChangeDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Change device'**
+  String get navTrack_detail_menuChangeDevice;
+
   /// No description provided for @navTrack_detail_noMapYet.
   ///
   /// In en, this message translates to:

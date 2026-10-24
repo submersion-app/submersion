@@ -51580,6 +51580,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'Change site';
 
   @override
+  String get navTrack_detail_menuChangeDevice => 'Change device';
+
+  @override
   String get navTrack_detail_noMapYet =>
       'Set the start point to see this on a map.';
 

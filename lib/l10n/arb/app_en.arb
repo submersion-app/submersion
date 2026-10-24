@@ -31100,6 +31100,7 @@
   "navTrack_detail_defaultTrackTitle": "Underwater track",
   "navTrack_detail_menuRename": "Rename",
   "navTrack_detail_menuChangeSite": "Change site",
+  "navTrack_detail_menuChangeDevice": "Change device",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
   "navTrack_detail_correctionStatus_none": "No correction applied yet.",
   "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",

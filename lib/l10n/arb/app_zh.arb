@@ -15443,6 +15443,7 @@
   "navTrack_detail_defaultTrackTitle": "水下轨迹",
   "navTrack_detail_menuRename": "重命名",
   "navTrack_detail_menuChangeSite": "更改潜点",
+  "navTrack_detail_menuChangeDevice": "更改设备",
   "navTrack_detail_noMapYet": "设置起点以在地图上查看。",
   "navTrack_detail_correctionStatus_none": "尚未应用校正。",
   "navTrack_detail_correctionStatus_sameAsStart": "终点已设置为与起点相同。",

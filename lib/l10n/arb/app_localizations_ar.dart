@@ -53053,6 +53053,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'تغيير الموقع';
 
   @override
+  String get navTrack_detail_menuChangeDevice => 'تغيير الجهاز';
+
+  @override
   String get navTrack_detail_noMapYet =>
       'عيّن نقطة البداية لرؤية هذا على خريطة.';
 
